@@ -386,10 +386,6 @@ class acc_Balances extends core_Master
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
     		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
     		
-    		// Изтриваме детайлите за системен баланс -1 / ако има
-    		$bD->delete("#balanceId = -1");
-    		$this->logDebug("BCALC: {$rec->id} - DELETE '-1'");
-    		
     		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
     		$bD->saveBalance($rec->id);
     		$this->logDebug("BCALC: {$rec->id} - SAVE '-1'");

@@ -45,6 +45,14 @@ class core_Detail extends core_Manager
         if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
             $mvc->Master = cls::get($mvc->masterClass);
         }
+        
+        // Проверяваме дали мастър ключа има индекс за търсене
+        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($mvc->masterKey))));
+        if(!isset($mvc->dbIndexes[$indexName])){
+        	
+        	// Ако мастър ключа не е индексиран, добавяме го като индекс
+        	$mvc->setDbIndex($mvc->masterKey);
+        }
     }
     
     
