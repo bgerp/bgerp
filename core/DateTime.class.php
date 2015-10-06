@@ -380,7 +380,7 @@ class core_DateTime
             
             $color = static::getColorByTime($mysqlDate);
           
-            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)", $lg, FALSE, FALSE);
+            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i:s (l)", $lg, FALSE, FALSE);
             $title = "  title='{$title}'";
             
             $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" $title>{$verbDate}</span>";
