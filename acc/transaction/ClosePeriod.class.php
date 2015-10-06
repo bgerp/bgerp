@@ -275,7 +275,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     			if($accIds[$rec->accountId] != '700'){
     				if($rec->blQuantity < 0){
     					
-    					// Ако имаме кредитно салдо, правим такова к-во че да го занулим
+    					// Ако имаме кредитно салдо, правим такова к-во, че да го занулим
     					$quantity = abs($rec->blQuantity);
     				} else {
     					$quantity = $rec->blQuantity;
@@ -628,7 +628,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     					continue;
     				} else {
     					
-    					// Иначе прихвърляме толкова че да остане минимум зададеното салдо
+    					// Иначе прихвърляме толкова, че да остане минимум зададеното салдо
     					$amount -= $rec->amountKeepBalance;
     				}
     			}
