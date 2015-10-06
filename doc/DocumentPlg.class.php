@@ -666,7 +666,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
-            // Обновяваме споделените на нишката, да сме сигурни че данните ще са актуални
+            // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
             $threadRec = doc_Threads::fetch($rec->threadId);
             $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
             doc_Threads::save($threadRec, 'shared');
