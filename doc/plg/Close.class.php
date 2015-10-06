@@ -40,11 +40,11 @@ class doc_plg_Close extends core_Plugin
     		
     		if($data->rec->state == 'closed'){
     			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnActivate,row=2,ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle}");
-    			$data->toolbar->setWarning('btnActivate', 'Сигурнили сте, че искате да активирате документа?');
+    			$data->toolbar->setWarning('btnActivate', 'Сигурни ли сте, че искате да активирате документа?');
     		
     		} elseif($data->rec->state == 'active'){
     			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnClose,row=2,ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle}");
-    			$data->toolbar->setWarning('btnClose', 'Сигурнили сте, че искате да затворите документа?');
+    			$data->toolbar->setWarning('btnClose', 'Сигурни ли сте, че искате да затворите документа?');
     		}
     	}
     }
