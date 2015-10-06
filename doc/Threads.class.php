@@ -183,8 +183,8 @@ class doc_Threads extends core_Manager
      */
     function logInAct($msg, $rec = NULL, $type = 'info')
     {
-        if (($type == 'info') && ($folderId = Request::get('folderId'))) {
-            doc_Folders::logInfo($msg, $folderId);
+        if (($type == 'info') && ($folderId = Request::get('folderId')) && ($msg == 'Листване')) {
+            doc_Folders::logInfo('Разглеждане на папка', $folderId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }

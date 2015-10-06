@@ -47,7 +47,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	
         // Ако е ДИ или КИ не правим нищо
         if($rec->type != 'invoice') return;
-        
+       
         // Намиране на пораждащия се документ
         $origin         = $mvc->getOrigin($rec);
         $dealInfo       = $origin->getAggregateDealInfo();
@@ -118,6 +118,11 @@ class deals_plg_DpInvoice extends core_Plugin
     	// Ако няма авансово плащане на задаваме дефолти
     	if(!isset($downpayment)) {
     		$dpOperation = 'none';
+    		
+    		if(isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0){
+    			$dpAmount = $invoicedDp - $deductedDp;
+    			$dpOperation = 'deducted';
+    		}
     	} else {
     		
     		// Ако няма фактуриран аванс
@@ -132,12 +137,12 @@ class deals_plg_DpInvoice extends core_Plugin
     			$dpAmount = $invoicedDp - $deductedDp;
     			$dpOperation = 'deducted';
     		}
-    		 
-    		// Слагане на изчислените дефолти
-    		if(isset($dpAmount)){
-    			$dpAmount = self::getDpWithoutVat($dpAmount, $form->rec);
-    			$form->setDefault('dpAmount', $dpAmount);
-    		}
+    	}
+    	
+    	// Слагане на изчислените дефолти
+    	if(isset($dpAmount)){
+    		$dpAmount = self::getDpWithoutVat($dpAmount, $form->rec);
+    		$form->setDefault('dpAmount', $dpAmount);
     	}
     	
     	if($dpOperation){

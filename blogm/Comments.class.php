@@ -153,6 +153,11 @@ class blogm_Comments extends core_Detail {
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
+            $Crypt = cls::get('core_Crypt');
+            $key = Mode::getPermanentKey();
+            $now = $Crypt->encodeVar(time(), $key);
+            $data->commentForm->setHidden('renderOn', $now);
+
             $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
             
             foreach ($valsArr as $vName => $val) {
@@ -206,6 +211,30 @@ class blogm_Comments extends core_Detail {
 
             $rec->brid = log_Browsers::getBrid();
             
+            $Crypt = cls::get('core_Crypt');
+            $key = Mode::getPermanentKey();
+            $rec->userDelay = time() - $Crypt->decodeVar($rec->renderOn, $key);
+            
+            // Начален рейтинг
+            $sr = 0;
+
+            // Ако потребителя е посочил уеб-сайт +1
+            if($rec->web) $sr += 1;
+            
+            // Ако има файлови окончания +1
+            $sr += 1 - 1/(1 + str::countInside($rec->web, array('.pdf', '.htm', 'html')));
+
+            if(stripos($rec->web, '.html')) $sr += 1;
+
+
+            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+
+            // Колко линка се съдържат в тялото
+
+            // Колко href= се съдържат или  src=
+
+            // Дали е от UA или RU
+
             // Да се записва само при нов запис и и когато няма регистриран потребител
             if (core_Users::getCurrent() < 1) {
                 log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));

@@ -42,7 +42,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, ceo';
+    var $canList = 'admin, ceo, debug';
     
     
     /**
@@ -66,7 +66,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, object=Документ, sendOn=Изпращане->На, createdBy=Изпращане->От, sentOn';
+    var $listFields = 'id, object=Документ, sendOn=Изпращане->На, createdBy=Изпращане->От, boxFrom=Изпращане->Адрес, emailsTo, emailsCc, faxTo, faxService, sentOn';
     
     
     /**
@@ -74,7 +74,7 @@ class email_SendOnTime extends core_Manager
      */
     function description()
     {
-        $this->FLD('classId', 'class(interface=email_SendIntf,select=title)', 'caption=Клас');
+        $this->FLD('class', 'varchar(64, ci)', 'caption=Клас, oldFieldName=classId');
         $this->FLD('objectId', 'int', 'caption=Обект');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         $this->FLD('delay', 'time', 'caption=Отлагане');
@@ -82,23 +82,28 @@ class email_SendOnTime extends core_Manager
         $this->FLD('state', 'enum(pending=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
         
         $this->FNC('sendOn', 'datetime(format=smartTime)', 'caption=Изпращане->На');
+        $this->FNC('emailsTo', 'emails', 'caption=Изпращане->До');
+        $this->FNC('emailsCc', 'emails', 'caption=Изпращане->Копие');
+        $this->FNC('faxTo', 'drdata_PhoneType', 'caption=Изпращане->Факс');
+        $this->FNC('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=Изпращане->От адрес,mandatory');
+        $this->FNC('faxService', 'class(interface=email_SentFaxIntf, select=title)', 'input=none, caption=Изпращане->Факс услуга');
     }
     
     
     /**
+     * Добавя запис в модела
      * 
-     * 
-     * @param integer $classId
+     * @param integer $class
      * @param integer $objectId
      * @param array $data
      * @param integer $delay
      * 
      * @return integer
      */
-    public static function add($classId, $objectId, $data, $delay)
+    public static function add($class, $objectId, $data, $delay)
     {
         $rec = new stdClass();
-        $rec->classId = $classId;
+        $rec->class = $class;
         $rec->objectId = $objectId;
         $rec->data = $data;
         $rec->delay = $delay;
@@ -111,23 +116,14 @@ class email_SendOnTime extends core_Manager
     /**
      * Връща вербалните данни за чакащите за изпращане имейли
      * 
-     * @param integer $classId
      * @param integer $objectId
      * 
      * @return array
      */
-    public static function getPendingRows($classId, $objectId)
+    public static function getPendingRows($objectId)
     {
         $query = self::getQuery();
         $query->where(array("#objectId = [#1#]", $objectId));
-        $query->where(array("#classId = [#1#]", $classId));
-        
-        $intf = cls::getInterface('email_SendIntf', $classId);
-        $mClassInst = $intf->getModelClass();
-        $mClassId = core_Classes::getId($mClassInst);
-        if ($mClassId != $classId) {
-            $query->orWhere(array("#classId = [#1#]", $mClassId));
-        }
         
         $query->where("#state = 'pending'");
         $query->orderBy('delay', 'ASC');
@@ -137,7 +133,7 @@ class email_SendOnTime extends core_Manager
             $resArr[$rec->id] = self::recToVerbal($rec);
             if (self::haveRightFor('stop', $rec)) {
                 $resArr[$rec->id]->StopLink = ht::createLink('', array(get_called_class(), 'stop', $rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изпращането') . '?',
-                                                            array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Спиране на изпращането')));
+                                                            array('ef_icon' => 'img/12/close.png', 'title' => tr('Спиране на изпращането'), 'class' => 'smallLinkWithWithIcon'));
             }
         }
         
@@ -146,11 +142,74 @@ class email_SendOnTime extends core_Manager
     
     
     /**
-     * Прибавя ключовото поле към другите за да получи всичко
+     * 
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
      */
     static function on_CalcSendOn($mvc, $rec)
     {
         $rec->sendOn = dt::addSecs($rec->delay, $rec->createdOn);
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле emailsTo
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcEmailsTo($mvc, $rec)
+    {
+        $rec->emailsTo = $rec->data['options']->emailsTo;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле emailsCc
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcEmailsCc($mvc, $rec)
+    {
+        $rec->emailsCc = $rec->data['options']->emailsCc;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле faxTo
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcFaxTo($mvc, $rec)
+    {
+        $rec->faxTo = $rec->data['options']->faxTo;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле faxService
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcFaxService($mvc, $rec)
+    {
+        $rec->faxService = $rec->data['options']->service;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле boxFrom
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcBoxFrom($mvc, $rec)
+    {
+        $rec->boxFrom = $rec->data['options']->boxFrom;
     }
     
     
@@ -171,20 +230,18 @@ class email_SendOnTime extends core_Manager
         
         $rec->state = 'stopped';
         
-        $intf = cls::getInterface('email_SendIntf', $rec->classId);
-        $mClassInst = $intf->getModelClass();
-        
         $msg = 'Спряно изпращане';
         $type = 'notice';
         if (self::save($rec, 'state')) {
-            $mClassInst->logInfo($msg, $rec->objectId);
+            email_Outgoings::logInfo($msg, $rec->objectId);
+            email_Outgoings::touchRec($rec->objectId);
         } else {
             $msg = 'Грешка при спиране на изпращането';
             $type = 'error';
-            $mClassInst->logErr($msg, $rec->objectId);
+            email_Outgoings::logErr($msg, $rec->objectId);
         }
         
-        return new Redirect(array($mClassInst, 'single', $rec->objectId), $msg, $type);
+        return new Redirect(array('email_Outgoings', 'single', $rec->objectId), $msg, $type);
     }
     
     
@@ -223,13 +280,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if (cls::load($rec->classId, TRUE)) {
-            
-            $intf = cls::getInterface('email_SendIntf', $rec->classId);
-            $mClassInst = $intf->getModelClass();
-            
-            $row->object = $mClassInst->getLinkForObject($rec->objectId);
-        }
+        $row->object = email_Outgoings::getLinkForObject($rec->objectId);
     }
     
     
@@ -266,8 +317,8 @@ class email_SendOnTime extends core_Manager
             
             core_Users::sudo($rec->createdBy);
             try {
-                $intf = cls::getInterface('email_SendIntf', $rec->classId);
-                $intf->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
+                $inst = cls::get($rec->class);
+                $inst->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
                 self::logErr('Грешка при изпращане', $rec->id);
             } catch (Exception $e) {
                 reportException($e, NULL, TRUE);

@@ -151,9 +151,6 @@ class plg_RefreshRows extends core_Plugin
             $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE);
             
             $res = array($resObj);
-            
-            // Добавяме в лога
-            $mvc->logInfo('Обновяване на листов изглед по AJAX', NULL, self::$logKeepDays);
         }
         
         return FALSE;

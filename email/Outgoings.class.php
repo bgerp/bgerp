@@ -44,7 +44,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, email_SendIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -283,14 +283,13 @@ class email_Outgoings extends core_Master
      * 
      * @return boolean
      */
-    public static function checkAndAddForLateSending($rec, $options, $lg)
+    public static function checkAndAddForLateSending($rec, $options, $lg, $className = 'email_Outgoings')
     {
         if ($options->delay) {
-            $classId = core_Classes::getId(get_called_class());
             $delay = $options->delay;
             // Нулираме закъснението, за да не сработи при отложеното изпращане
             $options->delay = NULL;
-            if (email_SendOnTime::add($classId, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay)) {
+            if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay, 'email_FaxSent')) {
                 status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
                 self::logInfo('Добавяне за отложено изпращане', $rec->id);
                 
@@ -585,18 +584,6 @@ class email_Outgoings extends core_Master
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
         }
-    }
-    
-    
-    /**
-     * Връща инстанция, на класа в който са записани данните
-     * 
-     * @see email_SendIntf
-     */
-    public static function getModelClass()
-    {
-        
-        return cls::get(get_called_class());
     }
     
     
@@ -2034,22 +2021,20 @@ class email_Outgoings extends core_Master
             
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
-                                                            array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Премахване на изчакването за отговор')));
+                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => tr('Премахване на изчакването за отговор')));
             }
         }
         
         if (!Mode::is('text', 'xhtml')) {
-            $classId = core_Classes::getId($mvc);
-            $sendArr = email_SendOnTime::getPendingRows($classId, $data->rec->id);
+            $sendArr = email_SendOnTime::getPendingRows($data->rec->id);
             
             if ($sendArr) {
                 $data->row->sendLater = new ET();
                 foreach ($sendArr as $row) {
-                    $sendTpl = new ET(tr("|*<div>|Писмото ще бъде изпратено|* [#sendOn#] - [#createdBy#]
-                    	        	[#StopLink#]
-                    	        </div>"));
+                    $sendTpl = getTplFromFile('email/tpl/SendOnTimeText.shtml');
                     $sendTpl->placeObject($row);
                     $sendTpl->removePlaces();
+                    $sendTpl->removeBlocks();
                     $data->row->sendLater->append($sendTpl);
                 }
             }
@@ -2432,7 +2417,7 @@ class email_Outgoings extends core_Master
                         'forward',
                         $data->rec->containerId,
                         'ret_url' => TRUE,
-                    ), array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
+                    ), array('order'=>'19', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
                 );
             }
         }

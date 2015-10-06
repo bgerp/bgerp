@@ -66,6 +66,7 @@ try {
     // PHP5.4 bugFix
     ini_set('zlib.output_compression', 'Off');
 
+    require_once(EF_APP_PATH . "/setup/Controller.class.php");
 
     // Стартира Setup, ако в заявката присъства верен SetupKey
     if (isset($_GET['SetupKey'])) {

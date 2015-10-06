@@ -1,13 +1,4 @@
 <?php
-
-
-
-/**
- * Служебна константа, за стойност на инпута на паролата
- */
-defIfNot('EF_PASS_NO_CHANGE', 'no_change');
-
-
 /**
  * Клас  'type_Password' - Тип за парола
  *
@@ -22,7 +13,11 @@ defIfNot('EF_PASS_NO_CHANGE', 'no_change');
  */
 class type_Password extends type_Varchar {
     
-    
+    /**
+     * Служебна константа, за стойност на инпута на паролата
+     */
+    const EF_PASS_NO_CHANGE = 'no_change';
+
     /**
      * Рендира HTML инпут поле
      */
@@ -36,8 +31,8 @@ class type_Password extends type_Varchar {
             $attr['type'] = 'text';
             $attr['style'] = ';color:#ccc; text-shadow: 0px 0px 5px #444;';
         } elseif($value && !$this->params['allowEmpty']) {
-            $value = EF_PASS_NO_CHANGE;
-            $attr['onfocus'] = "if(this.value == '" . EF_PASS_NO_CHANGE . "') this.select();";
+            $value = self::EF_PASS_NO_CHANGE;
+            $attr['onfocus'] = "if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
         } else {
             $value = '';
         }
@@ -59,7 +54,7 @@ class type_Password extends type_Varchar {
      */
     function fromVerbal($value)
     {
-        if(!isset($value) || $value == EF_PASS_NO_CHANGE) return NULL;
+        if(!isset($value) || $value == self::EF_PASS_NO_CHANGE) return NULL;
                 
         return $value;
     }
