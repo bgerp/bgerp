@@ -202,27 +202,12 @@ class setup_Controller {
                 "PTo3XWpbdYpzlbaT0gCD1ih72lhz2oBv3pBr4tzP5vDr5wUARJx0eAAAAAXRSTlMAQObYZgAAAGFJREFUG".
                 "BkFwTESAVEQBcCeX6OUhJCE+99LJN2IYt/orjs8D/jeYAEANAACHRAIdEAgAACgLtZkO476nFftOgKF2dEDw" . "EAPAAMAAOoKr1PJ+7GMBn4wOzpgYKADAoEFAPAHl3wkRpLmpFkAAAAASUVORK5CYII=";
 
-        $tpl = "
-        <!DOCTYPE html>
+        $tpl = "<!DOCTYPE html>
         <html>
             <head>
                 <title>HTML centering</title>
 
-                <style type='text/css'>
-                <!--
-                html, body, .center { height: 100%; width: 100%; padding: 0; margin: 0; border-spacing: 0px; font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;}
-                .center { vertical-align: middle;}
-                #bodyCnt {max-height:235px;}
-                #bodyTd {height:235px;}
-                @media (min-height: 525px) {
-                    #bodyCnt {max-height:400px;}
-                    #bodyTd {height:400px;}
-                }
-                @media (min-width: 820px) and (min-height: 360px) {
-                    #container {border:solid 3px #bbb;border-radius:10px;}
-                }
-                -->
-                </style>
+                <link rel='stylesheet' type='text/css' href='" . sbf('setup/setup.css', "") . "'/>
         </head>
 
         <body bgcolor='#ffffff'>
@@ -239,14 +224,14 @@ class setup_Controller {
                 <table  class='center'><tbody><tr><td class='center' id='bodyTd' style='padding:5px;  background-color:#fff;'>
                     <div style='display:table;  margin: auto;'>
                         <div id='bodyCnt' style='overflow:auto;padding:10px'>
-                            <div style='font-size:1.2em;'>[#question#]</div>
+                            <div style='font-size:1.1em;font-weight: 600; margin-bottom: 15px;'>[#question#]</div>
                             [#body#]
                         </div>
                     </div>
                 </td></tr></tbody></table>
 
                 <input name='Step' value='{$current}' type='hidden'>
-                <div style='font-size:1.2em;padding:5px;text-align:center'>
+                <div style='padding:5px;text-align:center'>
                     [#back#][#next#]
                 </div>
             </form>
@@ -255,7 +240,7 @@ class setup_Controller {
         </td></tr></tbody></table>
         </body>
         </html>";
-
+      // bp($tpl);
         return $tpl;
     }
 

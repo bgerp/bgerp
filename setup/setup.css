@@ -1,0 +1,111 @@
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../fonts/opensans-regular-webfont.eot');
+    src: url('../fonts/opensans-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/opensans-regular-webfont.woff2') format('woff2'),
+         url('../fonts/opensans-regular-webfont.woff') format('woff'),
+         url('../fonts/opensans-regular-webfont.ttf') format('truetype'),
+         url('../fonts/opensans-regular-webfont.svg#open_sansregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+html, body, .center { 
+	height: 100%; 
+	width: 100%; 
+	padding: 0; 
+	margin: 0; 
+	border-spacing: 0px; 
+	font-family: 'Open Sans', 'Helvetica Neue', Helvetica,Arial,sans-serif;
+}
+.center { 
+	vertical-align: middle;
+}
+
+#bodyCnt {
+	max-height:235px;
+}
+
+#bodyTd {
+    height:235px;
+    border-top: 1px solid #bbb;
+    border-bottom: 1px solid #bbb;
+}
+
+input[type=submit] {
+    -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+    box-shadow:inset 0px 1px 0px 0px #ffffff;
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ffffff), color-stop(1, #f6f6f6));
+    background:-moz-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+    background:-webkit-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+    background:-o-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+    background:-ms-linear-gradient(top, #ffffff 5%, #f6f6f6 100%);
+    background:linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#f6f6f6',GradientType=0);
+    background-color:#ffffff;
+    -moz-border-radius:4px;
+    -webkit-border-radius:4px;
+    border-radius:4px;
+    border:1px solid #bbb;
+    display:inline-block;
+    cursor:pointer;
+    color:#666666;
+    font-weight:600;
+    padding:5px 15px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #ffffff;
+}
+
+input[type=submit]:hover {
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #f6f6f6), color-stop(1, #ffffff));
+    background:-moz-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+    background:-webkit-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+    background:-o-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+    background:-ms-linear-gradient(top, #f6f6f6 5%, #ffffff 100%);
+    background:linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f6f6f6', endColorstr='#ffffff',GradientType=0);
+    background-color:#f6f6f6;
+}
+
+ input[type=submit]:active {
+    position:relative;
+    top:1px;
+}
+
+label {
+    bottom: 1px;
+    position: relative;
+    padding-left: 3px;
+    color: #333;
+}
+
+input[type=radio]:checked + label, input[type=checkbox]:checked + label {
+   color: #000;
+   text-shadow: 1px 1px 1px #aaa;
+}
+
+input[type=checkbox] + label {
+    bottom: 2px;
+}
+
+@media (min-height: 525px) {
+    #bodyCnt {
+        max-height:380px;
+    }
+    #bodyTd {
+        height:400px;
+    }
+    #container { 
+        border-top: 1px solid #bbb; 
+        border-bottom: 1px solid #bbb;
+    }
+}
+
+@media (min-width: 820px) and (min-height: 360px) {
+    #container {
+	    border-radius: 5px;
+	    box-shadow: 0 0 5px rgba(0,0,0,0.15);
+	    border: 2px solid #bbb;
+    }
+}
