@@ -106,7 +106,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public $title = 'Детайли на баланса';
     
-    //var $listItemsPerPage = 20;
+    
     /**
      * Описание на модела
      */
