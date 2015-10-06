@@ -396,6 +396,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             $cnt = 0;
         }
+
         
         return $cnt;
     }
@@ -574,12 +575,32 @@ class bgerp_Notifications extends core_Manager
             // Броя на нотифиакциите
             $notifCnt = static::getOpenCnt();
             
+            $res = array();
+
             // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'notificationsCnt';
-            $resObj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj = new stdClass();
+            $obj->func = 'notificationsCnt';
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
             
-            return array($resObj);
+            $res[] = $obj;
+
+            // Ако има увеличаване - пускаме звук
+            $lastCnt = Mode::get('NotificationsCnt');
+            if(isset($lastCnt) && $notifCnt > $lastCnt) {
+                    $obj = new stdClass();
+                    $obj->func = 'Notify';
+                    $obj->arg = array(   'soundOgg' => sbf("sounds/scanner.ogg", ''),
+                                            'soundMp3' => sbf("sounds/scanner.mp3", ''),
+                                            'blinkTimes' => 2,
+                                            //'favicon' => sbf("img/faviconAlt.ico", ''),
+                                            'title' => tr('Нови известия'),
+                                        );
+                    $res[] = $obj;
+            }
+
+            Mode::setPermanent('NotificationsCnt', $notifCnt);
+
+            return $res;
         }
     }
     
