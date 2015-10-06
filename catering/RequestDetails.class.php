@@ -183,12 +183,14 @@ class catering_RequestDetails extends core_Detail
         // END Prepare $menuArr
         
         $menuArr = (array) $menuArr;
+        $menuDetailsArr = array();
         
         // Prepare $menuDetailsArr
         foreach($menuArr as $k => $v) {
             $queryMenuDetails = $mvc->MenuDetails->getQuery();
             
             while($rec = $queryMenuDetails->fetch("#menuId = {$k}")) {
+            	$menuDetailsArr[$rec->id] = new stdClass();
                 $menuDetailsArr[$rec->id]->companyId = $mvc->Menu->fetchField("#id = {$k}", 'companyId');
                 $menuDetailsArr[$rec->id]->companyIdCrmCompanies = catering_Companies::fetchField("#id = {$menuDetailsArr[$rec->id]->companyId}", 'companyId');
                 $menuDetailsArr[$rec->id]->companyName = crm_Companies::fetchField("#id = {$menuDetailsArr[$rec->id]->companyIdCrmCompanies}", 'name');
