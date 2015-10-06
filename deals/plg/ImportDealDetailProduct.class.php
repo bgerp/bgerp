@@ -136,7 +136,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					             'price'    => $row[$fields['price']]
 			);
 		
-			// Подсигуряваме се че подадените данни са във вътрешен вид
+			// Подсигуряваме се, че подадените данни са във вътрешен вид
 			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
 			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
 			if($obj->price){
