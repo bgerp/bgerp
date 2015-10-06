@@ -48,7 +48,7 @@ class acc_BalanceTransfers extends core_Master
 	
 	
 	/**
-	 * Можели да се контира въпреки че има приключени пера в транзакцията
+	 * Можели да се контира въпреки, че има приключени пера в транзакцията
 	 */
 	public $canUseClosedItems = TRUE;
 	
@@ -212,7 +212,7 @@ class acc_BalanceTransfers extends core_Master
 		
 		if($form->isSubmitted()){
 
-			// Подсигуряваме се че аналитичностите на началната и крайната сметка, наистина съвпадат
+			// Подсигуряваме се, че аналитичностите на началната и крайната сметка, наистина съвпадат
 			if($form->fromAccountInterfaces != $form->getFieldTypeParam("toAccount", 'regInterfaces')){
 				$form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съответсващи аналитичности');
 			}
@@ -237,7 +237,7 @@ class acc_BalanceTransfers extends core_Master
 						}
 					}
 					
-					// Подсигуряваме се че номенклатурите на съответните аналитичностите са еднакви
+					// Подсигуряваме се, че номенклатурите на съответните аналитичностите са еднакви
 					$fromList = $form->getFieldTypeParam("fromEnt{$i}Id", 'lists');
 					$toList = $form->getFieldTypeParam("toEnt{$i}Id", 'lists');
 					if($fromList != $toList){
