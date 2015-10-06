@@ -213,25 +213,25 @@ class setup_Controller {
         <body bgcolor='#ffffff'>
         <table class='center' border='0'><tbody><tr><td class='center'>
 
-        <div id='container' style='max-width:800px;background-color:#ddd;margin: 0 auto;padding:0px;'>
-            <form method='POST' style='margin:0; padding:0px;'>
-                <div style='padding:5px;font-size:1.2em;text-align:center; line-height:32px;'>
-                    <span style='background-repeat: no-repeat; background:url(\"{$icon}\") left center no-repeat; padding-left:22px'>
+        <div id='container'>
+            <form method='POST'>
+                <div class='header'>
+                    <span style='background:url(\"{$icon}\") left center no-repeat; padding-left:22px'>
                         bgERP: [#title#]
                     </span>
                 </div>
 
-                <table  class='center'><tbody><tr><td class='center' id='bodyTd' style='padding:5px;  background-color:#fff;'>
-                    <div style='display:table;  margin: auto;'>
-                        <div id='bodyCnt' style='overflow:auto;padding:10px'>
-                            <div style='font-size:1.1em;font-weight: 600; margin-bottom: 15px;'>[#question#]</div>
+                <table  class='center'><tbody><tr><td class='center' id='bodyTd'>
+                    <div class='centeredContent'>
+                        <div id='bodyCnt'>
+                            <div class='question'>[#question#]</div>
                             [#body#]
                         </div>
                     </div>
                 </td></tr></tbody></table>
 
                 <input name='Step' value='{$current}' type='hidden'>
-                <div style='padding:5px;text-align:center'>
+                <div class='formFooter'>
                     [#back#][#next#]
                 </div>
             </form>
@@ -266,7 +266,7 @@ class setup_Controller {
                 $checked = ($this->state[$name] == $val) ? ' checked' : '';
             }
             
-            $res .= "\n<div style='margin-top:10px;margin-left:10px;'>" .
+            $res .= "\n<div class='answer'>" .
                     "\n<input type='radio' name='{$name}' value='{$val}' id='{$id}'{$checked}>" .
                     "<label for='{$id}'>{$caption}</label></div>";
             $checked = '';
@@ -293,7 +293,7 @@ class setup_Controller {
                 $checked = (in_array($val, $this->state[$name])) ? ' checked' : '';
             }
             
-            $res .= "\n<div style='margin-top:10px;margin-left:10px;'>" .
+            $res .= "\n<div class='answer'>" .
                     "\n<input type='checkbox' name='{$name}[]' value='{$val}' id='{$id}'{$checked}>" .
                     "<label for='{$id}'>{$caption}</label></div>";
             $checked = '';
