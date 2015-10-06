@@ -110,10 +110,11 @@ class doc_plg_Close extends core_Plugin
     	$state = ($rec->state == 'closed') ? 'active' : 'closed';
     	$action = ($state == 'closed') ? 'Приключване' : 'Активиране';
     	
+    	$rec->brState = $rec->state;
     	$rec->exState = $rec->state;
     	$rec->state = $state;
     	
-    	$mvc->save($rec, 'state');
+    	$mvc->save($rec);
     	$mvc->logInfo($action, $rec->id);
     	
     	return Redirect(array($mvc, 'single', $rec->id));
