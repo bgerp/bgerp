@@ -117,7 +117,7 @@ class acc_ReportDetails extends core_Manager
         $data->limitFields = arr::make("item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от");
         
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
-        // Създава се с new за да сме сигурни че обекта е нова празна инстанция
+        // Създава се с new за да сме сигурни, че обекта е нова празна инстанция
         $data->reportTableMvc = new core_Mvc;
         $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
         $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
