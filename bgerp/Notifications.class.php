@@ -569,6 +569,8 @@ class bgerp_Notifications extends core_Manager
      */
     function act_NotificationsCnt()
     {
+
+        
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
@@ -586,8 +588,9 @@ class bgerp_Notifications extends core_Manager
 
             // Ако има увеличаване - пускаме звук
             $lastCnt = Mode::get('NotificationsCnt');
+
             if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
-                
+            
                 $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
                 
                 if ($notifSound != 'none') {
@@ -597,16 +600,28 @@ class bgerp_Notifications extends core_Manager
                                             'soundMp3' => sbf("sounds/{$notifSound}.mp3", ''),
                                             'blinkTimes' => 2,
                                             //'favicon' => sbf("img/faviconAlt.ico", ''),
-                                            'title' => tr('Нови известия'),
+                                            'title' => "$notifCnt > $lastCnt", //tr('Нови известия'),
                                         );
                     $res[] = $obj;
                 }
             }
-
-            Mode::setPermanent('NotificationsCnt', $notifCnt);
+            
+            // Записваме в сесията последно изпратените нотификации, ако има промяна
+            if($notifCnt != $lastCnt) {
+                if(core_Users::getCurrent()) {
+                    Mode::setPermanent('NotificationsCnt', $notifCnt);
+                } else {
+                    Mode::setPermanent('NotificationsCnt', NULL);
+                }
+            }
 
             return $res;
         }
+    }
+
+    function act_BP()
+    {
+        bp(Mode::get('NotificationsCnt'), core_Users::getCurrent());
     }
     
     

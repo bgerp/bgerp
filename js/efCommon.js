@@ -596,7 +596,7 @@ function rp(text, textarea, newLine) {
 /*
  * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
  */
-function crateRicheditTable(textarea, newLine, tableCol, tableRow) {
+function createRicheditTable(textarea, newLine, tableCol, tableRow) {
     if (tableRow < 2 || tableRow > 10 || tableCol < 2 || tableCol > 10) return;
     var version = getIEVersion();
     if ((version == 8 || version == 9) && typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange) {
@@ -2897,16 +2897,12 @@ function render_Notify(data) {
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
-		if (newIcon) {
-			setFavIcon(newIcon);
-		}
+		setFavIcon(newIcon);
 
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
 			restoreTitle(oldTitle);
-			if (oldIcon) {
-				setFavIcon(oldIcon);
-			}
+			setFavIcon(oldIcon);
 		}, 600);
 
 		counter++;
@@ -2960,7 +2956,9 @@ function prepareFavIcon(iconPath) {
  * @param icon - иконата, която ще задаваме
  */
 function setFavIcon(icon){
-	$('head').append(icon);
+	if (icon) {
+		$('head').append(icon);
+	}
 }
 
 
