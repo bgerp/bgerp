@@ -337,7 +337,7 @@ class sales_Quotations extends core_Master
 	    			$warning = '';
 	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
 	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
-	    				$warning = "warning=Сигурнили сте, че искате да създадете продажба?";
+	    				$warning = "warning=Сигурни ли сте, че искате да създадете продажба?";
 	    				$title = 'Създаване на продажба от офертата';
 	    			}
 	    			
