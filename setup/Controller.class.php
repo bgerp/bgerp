@@ -201,13 +201,13 @@ class setup_Controller {
                 "8Aod4AqeMDs+kRvO8Wv/EiHh8jHh8wzvMxz/M50/RYljJmozZ0rzmDvTyDvT2GvkCHv0K9M3rEO4DKRof" .
                 "PTo3XWpbdYpzlbaT0gCD1ih72lhz2oBv3pBr4tzP5vDr5wUARJx0eAAAAAXRSTlMAQObYZgAAAGFJREFUG".
                 "BkFwTESAVEQBcCeX6OUhJCE+99LJN2IYt/orjs8D/jeYAEANAACHRAIdEAgAACgLtZkO476nFftOgKF2dEDw" . "EAPAAMAAOoKr1PJ+7GMBn4wOzpgYKADAoEFAPAHl3wkRpLmpFkAAAAASUVORK5CYII=";
-
+        
         $tpl = "<!DOCTYPE html>
         <html>
             <head>
                 <title>HTML centering</title>
 
-                <link rel='stylesheet' type='text/css' href='" . sbf('setup/setup.css', "") . "'/>
+                <style>" . file_get_contents(__DIR__ . '/setup.css') . "</style>
         </head>
 
         <body bgcolor='#ffffff'>
@@ -240,7 +240,7 @@ class setup_Controller {
         </td></tr></tbody></table>
         </body>
         </html>";
-      // bp($tpl);
+        
         return $tpl;
     }
 
