@@ -165,13 +165,13 @@ class setup_Controller {
                 $res['back'] = "« Предишен";
             }
             if($res['back']) {
-                $res['back'] = "<input type='submit' name='Cmd_Back' style='font-size:16px;margin:3px' value='" . $res['back'] . "'>";
+                $res['back'] = "<input type='submit' name='Cmd_Back' style='font-size:14px;margin:3px' value='" . $res['back'] . "'>";
             }
             if(!isset($res['next'])) {
                 $res['next'] = "Следващ »";
             }
             if($res['next']) {
-                $res['next'] = "<input type='submit' name='Cmd_Next' style='font-size:16px;margin:3px' value='" . $res['next'] . "'>";
+                $res['next'] = "<input type='submit' name='Cmd_Next' style='font-size:14px;margin:3px' value='" . $res['next'] . "'>";
             }
 
             $res['title'] = $res['title'];
