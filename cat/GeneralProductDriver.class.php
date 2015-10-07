@@ -161,31 +161,29 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * След рендиране на единичния изглед
+	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
 	 * 
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param core_ET $tpl
 	 * @param stdClass $data
+	 * @return core_ET $tpl
 	 */
-	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
+	protected function renderSingleDescription($data)
 	{
 		// Ако не е зададен шаблон, взимаме дефолтния
-		$nTpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
-		$nTpl->placeObject($data->row);
-	
+		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
+		$tpl->placeObject($data->row);
+		
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
-		if(!cls::haveInterface('cat_ProductAccRegIntf', $Embedder)){
+		if(!cls::haveInterface('cat_ProductAccRegIntf', $data->Embedder)){
 			$data->noChange = TRUE;
 		}
 		
 		// Рендираме параметрите винаги ако сме към артикул или ако има записи
 		if($data->noChange !== TRUE || count($data->params)){
 			$paramTpl = cat_products_Params::renderParams($data);
-			$nTpl->append($paramTpl, 'PARAMS');
+			$tpl->append($paramTpl, 'PARAMS');
 		}
 		
-		$tpl->append($nTpl, 'innerState');
+		return $tpl;
 	}
 	
 	
@@ -230,7 +228,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Рендира данните за показване на артикула
 	 * 
 	 * @param stdClass $data
-	 * @return core_ET $tpl
+	 * @return core_ET
 	 */
 	public function renderProductDescription($data)
 	{
