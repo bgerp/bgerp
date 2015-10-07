@@ -2897,16 +2897,12 @@ function render_Notify(data) {
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
-		if (newIcon) {
-			setFavIcon(newIcon);
-		}
+		setFavIcon(newIcon);
 
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
 			restoreTitle(oldTitle);
-			if (oldIcon) {
-				setFavIcon(oldIcon);
-			}
+			setFavIcon(oldIcon);
 		}, 600);
 
 		counter++;
@@ -2960,7 +2956,9 @@ function prepareFavIcon(iconPath) {
  * @param icon - иконата, която ще задаваме
  */
 function setFavIcon(icon){
-	$('head').append(icon);
+	if (icon) {
+		$('head').append(icon);
+	}
 }
 
 
