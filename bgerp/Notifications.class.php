@@ -586,16 +586,21 @@ class bgerp_Notifications extends core_Manager
 
             // Ако има увеличаване - пускаме звук
             $lastCnt = Mode::get('NotificationsCnt');
-            if(isset($lastCnt) && $notifCnt > $lastCnt) {
+            if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
+                
+                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
+                
+                if ($notifSound != 'none') {
                     $obj = new stdClass();
                     $obj->func = 'Notify';
-                    $obj->arg = array(   'soundOgg' => sbf("sounds/scanner.ogg", ''),
-                                            'soundMp3' => sbf("sounds/scanner.mp3", ''),
+                    $obj->arg = array(   'soundOgg' => sbf("sounds/{$notifSound}.ogg", ''),
+                                            'soundMp3' => sbf("sounds/{$notifSound}.mp3", ''),
                                             'blinkTimes' => 2,
                                             //'favicon' => sbf("img/faviconAlt.ico", ''),
                                             'title' => tr('Нови известия'),
                                         );
                     $res[] = $obj;
+                }
             }
 
             Mode::setPermanent('NotificationsCnt', $notifCnt);

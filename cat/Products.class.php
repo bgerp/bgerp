@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups';
     
     
     /**
@@ -165,7 +165,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой  може да групира "С избраните"?
      */
-    public $canGrouping = 'no_one';
+    public $canGrouping = 'cat,ceo';
 
 	
     /**
@@ -266,13 +266,13 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%,formOrder=2');
-        $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%,formOrder=3');
-		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em,formOrder=4');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=5');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,formOrder=5');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=5');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
+        $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
+		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
@@ -288,7 +288,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируем,
                                 canConvert=Вложим,
                                 fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,formOrder=100000000,mandatory');
+        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');

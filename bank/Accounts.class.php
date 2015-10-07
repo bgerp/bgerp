@@ -285,6 +285,15 @@ class bank_Accounts extends core_Master {
         	
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
+            
+            // Ако сметката е на нашата фирма, подменяме линка да сочи към изгледа на нашата сметка
+            if($data->isOurCompany === TRUE){
+            	$iban = $this->getVerbal($rec, 'iban');
+            	$aId = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'id');
+            	if(bank_OwnAccounts::haveRightFor('single', $aId)){
+            		$row->iban = ht::createLink($iban, array('bank_OwnAccounts', 'single', $aId), FALSE, 'title=Към нашата банкова сметка,ef_icon=img/16/own-bank.png');
+            	}
+            }
         }
         
         $data->TabCaption = 'Банка';
@@ -348,6 +357,7 @@ class bank_Accounts extends core_Master {
         return $tpl;
     }
     
+    
     /**
      * Реализация по подразбиране на метода getEditUrl()
      *
@@ -360,7 +370,7 @@ class bank_Accounts extends core_Master {
     	if($rec->ourAccount === TRUE){
     		$retUrl = $editUrl['ret_url'];
     		$ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'id');
-    		$editUrl = array('bank_OwnAccounts', 'edit', $ownAccountId);
+    		$editUrl = array('bank_OwnAccounts', 'edit', $ownAccountId, 'fromOurCompany' => TRUE);
     		$editUrl['ret_url'] = $retUrl;
     	}
     }

@@ -1735,10 +1735,8 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
-	        display: none;
-	    	margin-right: 5px;
-	    	top: 2px;
-	    	position: relative;
+	       float: right;
+	       display: none;
 	    } 
     }
 }
@@ -1754,12 +1752,10 @@ td.keylist-group{
 }
 
 .keylistCategory{
-	&.opened  .invert-checkbox {
-	   float: right;
+	.invert-checkbox {
+	   float: left;
 	   display: block;
-	}
-	&.closed  .invert-checkbox {
-        display: none;
+	   margin-right: 5px;
 	}
 	 .hidden {
         display: none !important;

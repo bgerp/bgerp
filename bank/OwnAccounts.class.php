@@ -304,7 +304,9 @@ class bank_OwnAccounts extends core_Master {
         }
         
     	$optionAccounts = $mvc->getPossibleBankAccounts();
-        $form->setSuggestions('iban', array('' => '') + $optionAccounts);
+    	if(count($optionAccounts)){
+    		$form->setSuggestions('iban', array('' => '') + $optionAccounts);
+    	}
         
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts

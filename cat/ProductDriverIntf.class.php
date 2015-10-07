@@ -109,6 +109,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	/**
 	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET
 	 */
 	public function renderProductDescription($data)
 	{
@@ -121,7 +124,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 */
 	public function getJobFolderName()
 	{
-		return $this->getJobFolderName();
+		return $this->class->getJobFolderName();
 	}
 	
 	
@@ -135,7 +138,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 */
 	public function getDefaultJobTasks()
 	{
-		return $this->getDefaultJobTasks();
+		return $this->class->getDefaultJobTasks();
 	}
 	
 	
@@ -146,6 +149,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 */
 	public function getIcon()
 	{
-		return $this->getIcon();
+		return $this->class->getIcon();
+	}
+	
+	
+	/**
+	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	protected function renderSingleDescription($data)
+	{
+		return $this->class->renderSingleDescription($data);
 	}
 }
