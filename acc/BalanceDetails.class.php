@@ -86,7 +86,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Кой има достъп до хронологичната справка
      */
-    public $canHistory = 'powerUser';
+    public $canHistory = 'accJournal';
     
     
     /**

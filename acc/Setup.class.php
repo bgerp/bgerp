@@ -126,8 +126,9 @@ class acc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-        'acc',
-        array('accMaster', 'acc')
+    	array('accJournal'),
+    	array('acc', 'accJournal'),
+        array('accMaster', 'acc'),
     );
     
     
