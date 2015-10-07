@@ -87,7 +87,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Print'] = 'doclog_Documents';
             $mvc->details['Changed'] = 'doclog_Documents';
             $mvc->details['Used'] = 'doclog_Documents';
-            $mvc->details['Act'] = 'doclog_Documents';
+            $mvc->details['History'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
@@ -245,6 +245,13 @@ class doc_DocumentPlg extends core_Plugin
                 ),
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);    
 
+        }
+        
+        $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+        
+        if ($historyCnt) {
+            $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+            "id=btnHistory{$data->rec->containerId}, row=2, order=33,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
         }
     }
     
@@ -436,10 +443,6 @@ class doc_DocumentPlg extends core_Plugin
 	    			}
 	    		}
 	    	}
-        }
-        
-        if ($rec->threadId) {
-            doclog_Documents::removeHistoryFromCache($rec->threadId);
         }
     }
     
