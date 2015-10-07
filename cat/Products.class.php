@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups';
     
     
     /**
@@ -165,7 +165,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой  може да групира "С избраните"?
      */
-    public $canGrouping = 'no_one';
+    public $canGrouping = 'cat,ceo';
 
 	
     /**
