@@ -35,9 +35,6 @@ class change_Plugin extends core_Plugin
             // Добавяме
             $mvc->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
         }
-        
-//        $mvc->loadList = arr::make($mvc->loadList, TRUE);
-//        $mvc->loadList['plg_Modified'] = 'plg_Modified';
     }
     
     
@@ -56,7 +53,7 @@ class change_Plugin extends core_Plugin
             );
             
             // Добавяме бутона за промяна
-            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'20', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа'));    
+            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'20', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа', 'row' => 2));    
         }
     }
     
