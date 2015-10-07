@@ -357,6 +357,7 @@ class bank_Accounts extends core_Master {
         return $tpl;
     }
     
+    
     /**
      * Реализация по подразбиране на метода getEditUrl()
      *

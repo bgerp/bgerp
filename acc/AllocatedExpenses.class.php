@@ -139,6 +139,10 @@ class acc_AllocatedExpenses extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
+    	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
+    	//$this->FLD('chargeVat', 'enum(yes=С ДДС,no=Без ДДС)', 'caption=ДДС,maxRadio=2');
+    	
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
     	$this->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Кореспондираща сделка->Контрагент,refreshForm,silent,input');
@@ -172,10 +176,11 @@ class acc_AllocatedExpenses extends core_Master
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->dealOriginId = $firstDoc->getLink(0);
     	$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
-    	$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+    	$row->baseCurrencyCode = $rec->currencyId;
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
-    	$row->realAmount = $row->amount;
+    	$rec->amount /= $rec->rate;
+    	$row->realAmount = $mvc->getFieldType('amount')->toVerbal($rec->amount);
     	
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
     		$amount = $rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
@@ -201,6 +206,8 @@ class acc_AllocatedExpenses extends core_Master
     	$row = new stdClass();
     	$row->name = cat_Products::getShortHyperlink($pRec->productId);
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	$pRec->amount /= $rec->rate;
+    	$pRec->allocated /= $rec->rate;
     	
     	foreach (array('amount', 'allocated', 'quantity', 'allocated') as $fld){
     		if(isset($pRec->$fld)){
@@ -355,15 +362,25 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
-    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    	$form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
+    	
+    	if($form->cmd !== 'refresh'){
+    		$form->setDefault('rate', $firstDoc->fetchField('currencyRate'));
+    	}
+    	
+    	if(isset($rec->id) && isset($rec->rate)){
+    		$rec->amount /= $rec->rate;
+    		$rec->amount = round($rec->amount, 2);
+    	}
+    	
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
     		if($form->rec->amount){
     			$form->rec->amount = $form->rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
     			$form->rec->amount = round($form->rec->amount, 2);
     		}
-    		$form->setField('amount', "unit=|*{$baseCurrencyCode} |с ДДС|*");
+    		$form->setField('amount', "unit=с ДДС");
     	} else {
-    		$form->setField('amount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+    		$form->setField('amount', "unit=без ДДС");
     	}
     	
     	$data->form->origin = $firstDoc;
@@ -495,6 +512,14 @@ class acc_AllocatedExpenses extends core_Master
     	// Ако е събмитната формата
     	if($form->isSubmitted()){
     		
+    		if(!isset($rec->rate)){
+    			// Изчисляваме курса към основната валута ако не е дефиниран
+    			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL), 4);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
+    		}
+    		
     		// Намираме контейнера на първия документ в нишката
     		$doc = doc_Threads::getFirstDocument($rec->threadId);
     		$firstDocument = $doc;
@@ -541,6 +566,8 @@ class acc_AllocatedExpenses extends core_Master
     					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
     				}
     			}
+    			
+    			$rec->amount *= $rec->rate;
     			
     			if($form->chargeVat == 'yes' || $form->chargeVat == 'separate'){
     				$rec->amount /= 1 + acc_Periods::fetchByDate($rec->valior)->vatRate;

@@ -108,6 +108,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     	'migrate::updateClosedItems3',
+    	'migrate::fixExpenses',
     );
     
     
@@ -324,6 +325,21 @@ class acc_Setup extends core_ProtoSetup
     		$iRec->closedOn = $closedOn;
     		$iRec->closedOn = dt::verbal2mysql($iRec->closedOn, FALSE);
     		cls::get('acc_Items')->save_($iRec, 'closedOn');
+    	}
+    }
+    
+    
+    /**
+     * Миграция на разпределението на разходите
+     */
+    function fixExpenses()
+    {
+    	$query = acc_AllocatedExpenses::getQuery();
+    	$query->where('#currencyId IS NULL AND #rate IS NULL');
+    	while($rec = $query->fetch()){
+    		$rec->currencyId = 'BGN';
+    		$rec->rate = 1;
+    		acc_AllocatedExpenses::save($rec);
     	}
     }
 }
