@@ -517,6 +517,8 @@ class doc_Threads extends core_Manager
      */
     public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = FALSE, $rejected = FALSE)
     {
+        if (!$folderId) return array();
+        
     	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
     	// Проверяваме имали кеширани данни
