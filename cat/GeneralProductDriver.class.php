@@ -31,19 +31,19 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		// Добавя полетата само ако ги няма във формата
 		if(!$fieldset->getField('info', FALSE)){
-			$fieldset->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
+			$fieldset->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
 		} else {
 			$fieldset->setField('info', 'input');
 		}
 		
 		if(!$fieldset->getField('photo', FALSE)){
-			$fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
+			$fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение");
 		} else {
 			$fieldset->setField('photo', 'input');
 		}
 		
 		if(!$fieldset->getField('measureId', FALSE)){
-			$fieldset->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory,formOrder=4");
+			$fieldset->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory");
 		} else {
 			$fieldset->setField('measureId', 'input');
 		}
@@ -77,7 +77,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 					
 				foreach ($defaultParams as $id){
 					$paramRec = cat_Params::fetch($id);
-					$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},formOrder=100000002,categoryParams");
+					$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},categoryParams,before=meta");
 					$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
 				}
 			}
