@@ -1624,10 +1624,8 @@ td.keylist-group {
     margin-top: 1px;
     cursor: pointer; }
     td.keylist-group > div img {
-      display: none;
-      margin-right: 5px;
-      top: 2px;
-      position: relative; }
+      float: right;
+      display: none; }
 
 .narrow .keylistCategory .keylist-group > div {
   position: relative; }
@@ -1637,11 +1635,10 @@ td.keylist-group {
     top: 50%;
     margin-top: -8px; }
 
-  .keylistCategory.opened  .invert-checkbox {
-    float: right;
-    display: block; }
-  .keylistCategory.closed  .invert-checkbox {
-    display: none; }
+  .keylistCategory .invert-checkbox {
+    float: left;
+    display: block;
+    margin-right: 5px; }
   .keylistCategory .hidden {
     display: none !important; }
 
