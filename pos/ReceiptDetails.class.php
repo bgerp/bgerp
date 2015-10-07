@@ -333,7 +333,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$rec->action = "payment|{$type}";
     	$rec->amount = $amount;
     	
-    	// Отбелязваме че на това плащане ще има ресто
+    	// Отбелязваме, че на това плащане ще има ресто
     	$paid = $receipt->paid + $amount;
     	if(($paid) > $receipt->total){
     		$rec->value = 'change';

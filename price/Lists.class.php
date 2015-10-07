@@ -248,7 +248,7 @@ class price_Lists extends core_Master
     {
     	if($form->isSubmitted()){
     		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
-    			$form->setError('discountCompared', 'Неможе да изберете същата политика');
+    			$form->setError('discountCompared', 'Не може да изберете същата политика');
     		}
     	}
     }

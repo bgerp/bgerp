@@ -322,41 +322,43 @@ body {
 }
 
 .sideBarTitle {
-    text-align: center;
     color: #fffb99;
 }
 
 .bookmarkText {
-    margin: 0 8px;
-    font-size: 0.95em;
+    margin-right: 5px;
+    font-size: 1.2em;
 }
+
 .inner-fav-panel {
     position: relative;
 }
+
 .narrow .bookmarkText {
-    margin: 0 4px;
+    margin-right: 4px;
+    font-size: 1.05em;
 }
 
 .bookmarkLink {
-    width: 28px;
-    height: 28px;
     display: inline-block;
-    position: absolute;
+    float: right;
     top: 10px;
+    margin-left: 15px;
     opacity: 0.8;
     transition: opacity 0.5s;
-    &.addBookmarkLink {
-        right: 13px;
-    }
-    &.listBookmarkLink {
-        left: 13px;
-    }
     img {
         border-radius: 5px;
     }
     &:hover {
         opacity: 1
     }
+}
+.narrow .bookmarkLink {
+	margin-left: 10px;
+	img {
+	   width: 18px;
+	   height: 18px;
+	}
 }
 
 .narrow .sidebar-row {

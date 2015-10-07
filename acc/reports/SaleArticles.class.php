@@ -80,7 +80,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
    
         $form->setDefault('orderField', 'creditAmount');
         
-        // Задаваме че ще филтрираме по перо
+        // Задаваме, че ще филтрираме по перо
         $form->setDefault('action', 'group');
         $form->setDefault('orderBy', 'desc');
     }

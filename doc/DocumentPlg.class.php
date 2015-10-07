@@ -87,7 +87,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Print'] = 'doclog_Documents';
             $mvc->details['Changed'] = 'doclog_Documents';
             $mvc->details['Used'] = 'doclog_Documents';
-            $mvc->details['Act'] = 'doclog_Documents';
+            $mvc->details['History'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
@@ -163,7 +163,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа',  'ef_icon = img/16/reject.png');
+                "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr("Оттегляне на документа"),  'ef_icon = img/16/reject.png');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -173,7 +173,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
+                "id=btnRestore{$data->rec->containerId},warning=Наистина ли желаете да възстановите документа?,order=32,title=" . tr("Възстановяване на документа"), 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -191,7 +191,7 @@ class doc_DocumentPlg extends core_Plugin
                 			'originId' => $data->rec->containerId,
                 			'ret_url'=>$retUrl
                 	),
-                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
                 }
             }
         } else {
@@ -222,7 +222,7 @@ class doc_DocumentPlg extends core_Plugin
                     			'clone' => 'clone',
                     			'ret_url'=>$retUrl
                     	),
-                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');
+                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=' . tr('Клониране на документа'));
                     } 
                 }
             }
@@ -233,6 +233,9 @@ class doc_DocumentPlg extends core_Plugin
         	// По подразбиране бутона всички се показва на втория ред на тулбара
         	setIfNot($mvc->allBtnToolbarRow, 2);
         	
+        	$title = $mvc->getTitle();
+        	$title = tr($title);
+        	$title = mb_strtolower($title);
         	
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
@@ -240,8 +243,15 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);    
 
+        }
+        
+        $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+        
+        if ($historyCnt) {
+            $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+            "id=btnHistory{$data->rec->containerId}, row=2, order=33,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
         }
     }
     
@@ -433,10 +443,6 @@ class doc_DocumentPlg extends core_Plugin
 	    			}
 	    		}
 	    	}
-        }
-        
-        if ($rec->threadId) {
-            doclog_Documents::removeHistoryFromCache($rec->threadId);
         }
     }
     
@@ -666,7 +672,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
-            // Обновяваме споделените на нишката, да сме сигурни че данните ще са актуални
+            // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
             $threadRec = doc_Threads::fetch($rec->threadId);
             $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
             doc_Threads::save($threadRec, 'shared');

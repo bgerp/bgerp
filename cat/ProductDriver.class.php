@@ -201,10 +201,66 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	/**
 	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET
 	 */
 	public function renderProductDescription($data)
 	{
 		return new core_ET("");
+	}
+
+
+	/**
+	 * След рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
+	{
+		$data->Embedder = $Embedder;
+		$nTpl = $Driver->renderSingleDescription($data);
+	
+		$tpl->append($nTpl, 'innerState');
+	}
+	
+	
+	/**
+	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	protected function renderSingleDescription($data)
+	{
+		$tpl = new ET(tr("|*<fieldset class='detail-info'>
+                    <legend class='groupTitle'>|Информация|*</legend>
+                    <div class='groupList'>
+						<table class = 'no-border'>
+							[#INFO#]
+						</table>
+					<div>
+				</fieldset>
+				"));
+		
+		$driverFields = cat_Products::getDriverFields($this);
+		
+		if(is_array($driverFields)){
+			foreach ($driverFields as $key => $value){
+				if(isset($data->row->$key)){
+					$caption = str_replace('->', '|*: |', $value);
+					$caption = tr($caption);
+					
+					$dhtml = "<tr><td>{$caption}:</td><td>{$data->row->$key}</td</tr>";
+					$tpl->append($dhtml, 'INFO');
+				}
+			}
+		}
+		
+		return $tpl;
 	}
 	
 	

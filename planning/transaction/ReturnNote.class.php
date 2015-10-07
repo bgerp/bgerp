@@ -106,7 +106,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 			$entries[] = $entry;
 		}
 		
-		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		// Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);

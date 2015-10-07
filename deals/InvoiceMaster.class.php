@@ -903,7 +903,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
-    		// Ако не е въведена дата на даначно събитие, приема се че е текущата
+    		// Ако не е въведена дата на даначно събитие, приема се, че е текущата
     		if(empty($rec->vatDate)){
     			$row->vatDate = $mvc->getFieldType('vatDate')->toVerbal($rec->date);
     		}

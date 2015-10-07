@@ -201,52 +201,37 @@ class setup_Controller {
                 "8Aod4AqeMDs+kRvO8Wv/EiHh8jHh8wzvMxz/M50/RYljJmozZ0rzmDvTyDvT2GvkCHv0K9M3rEO4DKRof" .
                 "PTo3XWpbdYpzlbaT0gCD1ih72lhz2oBv3pBr4tzP5vDr5wUARJx0eAAAAAXRSTlMAQObYZgAAAGFJREFUG".
                 "BkFwTESAVEQBcCeX6OUhJCE+99LJN2IYt/orjs8D/jeYAEANAACHRAIdEAgAACgLtZkO476nFftOgKF2dEDw" . "EAPAAMAAOoKr1PJ+7GMBn4wOzpgYKADAoEFAPAHl3wkRpLmpFkAAAAASUVORK5CYII=";
-
-        $tpl = "
-        <!DOCTYPE html>
+        
+        $tpl = "<!DOCTYPE html>
         <html>
             <head>
                 <title>HTML centering</title>
 
-                <style type='text/css'>
-                <!--
-                html, body, .center { height: 100%; width: 100%; padding: 0; margin: 0; border-spacing: 0px; font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;}
-                .center { vertical-align: middle;}
-                #bodyCnt {max-height:235px;}
-                #bodyTd {height:235px;}
-                @media (min-height: 525px) {
-                    #bodyCnt {max-height:400px;}
-                    #bodyTd {height:400px;}
-                }
-                @media (min-width: 820px) and (min-height: 360px) {
-                    #container {border:solid 3px #bbb;border-radius:10px;}
-                }
-                -->
-                </style>
+                <style>" . file_get_contents(__DIR__ . '/setup.css') . "</style>
         </head>
 
         <body bgcolor='#ffffff'>
         <table class='center' border='0'><tbody><tr><td class='center'>
 
-        <div id='container' style='max-width:800px;background-color:#ddd;margin: 0 auto;padding:0px;'>
-            <form method='POST' style='margin:0; padding:0px;'>
-                <div style='padding:5px;font-size:1.2em;text-align:center; line-height:32px;'>
-                    <span style='background-repeat: no-repeat; background:url(\"{$icon}\") left center no-repeat; padding-left:22px'>
+        <div id='container'>
+            <form method='POST'>
+                <div class='header'>
+                    <span style='background:url(\"{$icon}\") left center no-repeat; padding-left:22px'>
                         bgERP: [#title#]
                     </span>
                 </div>
 
-                <table  class='center'><tbody><tr><td class='center' id='bodyTd' style='padding:5px;  background-color:#fff;'>
-                    <div style='display:table;  margin: auto;'>
-                        <div id='bodyCnt' style='overflow:auto;padding:10px'>
-                            <div style='font-size:1.2em;'>[#question#]</div>
+                <table  class='center'><tbody><tr><td class='center' id='bodyTd'>
+                    <div class='centeredContent'>
+                        <div id='bodyCnt'>
+                            <div class='question'>[#question#]</div>
                             [#body#]
                         </div>
                     </div>
                 </td></tr></tbody></table>
 
                 <input name='Step' value='{$current}' type='hidden'>
-                <div style='font-size:1.2em;padding:5px;text-align:center'>
+                <div class='formFooter'>
                     [#back#][#next#]
                 </div>
             </form>
@@ -255,7 +240,7 @@ class setup_Controller {
         </td></tr></tbody></table>
         </body>
         </html>";
-
+        
         return $tpl;
     }
 
@@ -281,7 +266,7 @@ class setup_Controller {
                 $checked = ($this->state[$name] == $val) ? ' checked' : '';
             }
             
-            $res .= "\n<div style='margin-top:10px;margin-left:10px;'>" .
+            $res .= "\n<div class='answer'>" .
                     "\n<input type='radio' name='{$name}' value='{$val}' id='{$id}'{$checked}>" .
                     "<label for='{$id}'>{$caption}</label></div>";
             $checked = '';
@@ -308,7 +293,7 @@ class setup_Controller {
                 $checked = (in_array($val, $this->state[$name])) ? ' checked' : '';
             }
             
-            $res .= "\n<div style='margin-top:10px;margin-left:10px;'>" .
+            $res .= "\n<div class='answer'>" .
                     "\n<input type='checkbox' name='{$name}[]' value='{$val}' id='{$id}'{$checked}>" .
                     "<label for='{$id}'>{$caption}</label></div>";
             $checked = '';

@@ -143,7 +143,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     	$coversArr = array();
     	foreach ($interfaces as $index => $int){
     		
-    		// Ако иднекса е число, приемаме че е зададен интерфейс, иначе приемаме че е име на клас
+    		// Ако иднекса е число приемаме, че е зададен интерфейс иначе приемаме, че е име на клас
     		if(is_numeric($index)){
     			$coversArr +=  core_Classes::getOptionsByInterface($int);
     		} else {

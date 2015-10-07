@@ -134,7 +134,19 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        	$storeId = $data->rec->store;
 	        }
 	        
-	        $materials = cat_Products::getMaterialsForProduction($productId,$rec->quantity);
+	        $materials[] = cat_Products::getMaterialsForProduction($productId,$rec->quantity);
+	        
+	    }
+	    
+	    $mArr = array ();
+	    foreach ($materials as $material) {
+	    	foreach ($material as $product => $productRec) {
+	    		$mArr[$product] += $productRec['quantity'];
+	    	}
+	    }
+	    
+	    foreach($mArr as $pId => $quantity) {
+	    	$index = $pId;
 
 	        // ако нямаме такъв запис,
 	        // го добавяме в масив
@@ -151,25 +163,19 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        	}
 
 	        	$data->recs[$index] =
-	        	(object) array ('id' => $productId,
-	        			'quantity'	=> $rec->quantity,
-	        			'date' => $date,
-	        			'job' => array($id),
-	        			'store' => $store,
-	        	        'materials' => $materials);
+	        	(object) array ('id' => $pId,
+	        			'quantity'	=> $quantity,
+	        			'store' => $store,);
 	        	} else {
 	        		 
 	        		$obj = &$data->recs[$index];
-	        		$obj->quantity += $rec->quantity;
-	        		$obj->date = $date;
-	        		$obj->job[] = $id;
+	        		$obj->quantity += $quantity;
 	        		$obj->store += $store;
-	        		$obj->materials[] = $materials;
 	        	}
 	        	
 	    }
 
-	    foreach ($data->recs as $id => $recs) {
+	    foreach ($data->recs as $id => $recs) { 
 	    	
 		    unset($data->recs[$id]->store);
 		    
@@ -178,11 +184,9 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 			    	$recs->store = $store[$id];
 			    }
 		    }
-		    
-		    foreach($recs->materials as $material => $mRecs) {
-		    	if ($mRecs[quantity] < $recs->store) {
-		    		unset($data->recs[$id]);
-		    	}
+
+		    if ($recs->quantity < $recs->store) {
+		    	unset($data->recs[$id]);
 		    }
 	    }
 
@@ -262,9 +266,6 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     	
     	$f->FLD('id', 'varchar');
     	$f->FLD('quantity', 'double');
-    	$f->FLD('date', 'date');
-    	$f->FLD('job', 'double');
-    	$f->FLD('materials', 'double');
     	$f->FLD('store', 'double');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
@@ -287,10 +288,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     
         $data->listFields = array(
         		'id' => 'Име (код)',
-        		'quantity' => 'Задание за производство->Бройка',
-        		'date' => "Задание за производство->Дата",
-        		'job' => "Задание за производство->Задание",
-        		'materials' => 'Материали->Име (код) / Брой',
+        		'quantity' => 'Бройка',
         		'store' => 'На склад',
         		);
     }
@@ -309,22 +307,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $row = new stdClass();
         
         $row->id = cat_Products::getShortHyperlink($rec->id);
-    	$row->quantity = $Int->toVerbal($rec->quantity);
-    	$row->date = $Date->toVerbal($rec->date);
-    		
-    	for($i = 0; $i <= count($rec->job)-1; $i++) {
-    		
-    		$row->job .= planning_Jobs::getHyperlink($rec->job[$i]) .",";
-    	}
-    	
-    	$row->job = substr($row->job, 0, strlen($row->job)-1);
-    	
-    	foreach($rec->materials as $materialId => $mRec) { 
-    		$cn = $Double->toVerbal($mRec[quantity]);
-    		$row->materials .= cat_Products::getShortHyperlink($mRec[productId]). " / " . $cn . ",  <br>";
-    	}
-    	
-    	$row->materials = substr($row->materials, 0, strlen($row->materials)-1);
+    	$row->quantity = $Double->toVerbal($rec->quantity);
     	
     	$row->store = $Double->toVerbal($rec->store);
     	

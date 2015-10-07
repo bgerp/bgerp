@@ -117,7 +117,7 @@ class bgerp_Notifications extends core_Manager
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         if (!haveRole('debug') && $userId == core_Users::getCurrent()) return;
         
-        // Ако има такова съобщение - само му вдигаме флага че е активно
+        // Ако има такова съобщение - само му вдигаме флага, че е активно
         $query = bgerp_Notifications::getQuery();
         $r = $query->fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
@@ -586,16 +586,21 @@ class bgerp_Notifications extends core_Manager
 
             // Ако има увеличаване - пускаме звук
             $lastCnt = Mode::get('NotificationsCnt');
-            if(isset($lastCnt) && $notifCnt > $lastCnt) {
+            if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
+                
+                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
+                
+                if ($notifSound != 'none') {
                     $obj = new stdClass();
                     $obj->func = 'Notify';
-                    $obj->arg = array(   'soundOgg' => sbf("sounds/scanner.ogg", ''),
-                                            'soundMp3' => sbf("sounds/scanner.mp3", ''),
+                    $obj->arg = array(   'soundOgg' => sbf("sounds/{$notifSound}.ogg", ''),
+                                            'soundMp3' => sbf("sounds/{$notifSound}.mp3", ''),
                                             'blinkTimes' => 2,
                                             //'favicon' => sbf("img/faviconAlt.ico", ''),
                                             'title' => tr('Нови известия'),
                                         );
                     $res[] = $obj;
+                }
             }
 
             Mode::setPermanent('NotificationsCnt', $notifCnt);

@@ -150,7 +150,7 @@ class cond_PaymentMethods extends core_Master
      */
     public static function isCOD($payment)
     {
-    	// Ако няма избран метод, се приема че е COD
+    	// Ако няма избран метод се приема, че е COD
     	if(!$payment) return TRUE;
     	
     	$where = (is_numeric($payment)) ? $payment : "#name = '{$payment}'";
@@ -260,7 +260,7 @@ class cond_PaymentMethods extends core_Master
      */
     public static function hasDownpayment($id)
     {
-    	// Ако няма избран метод, се приема че няма авансово плащане
+    	// Ако няма избран метод се приема, че няма авансово плащане
     	if(!$id) return FALSE;
     	
     	expect($rec = static::fetch($id));

@@ -135,7 +135,7 @@ class cat_products_Packagings extends doc_Detail
     			$rec->quantity = $roundQuantity;
     		}
     		
-    		// Закръгляме к-то така че да е в границите на допустимото от мярката
+    		// Закръгляме к-то, така че да е в границите на допустимото от мярката
     		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
     	}
     }

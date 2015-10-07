@@ -161,9 +161,9 @@ class doclog_Documents extends core_Manager
     
     
     /**
-     * Екшъна за действията
+     * Екшъна за действията/историята на документа
      */
-    const ACTION_ACT = 'act';
+    const ACTION_HISTORY = 'history';
     
     
     /**
@@ -1124,7 +1124,7 @@ class doclog_Documents extends core_Manager
      * 
      * @param object $data
      */
-    function prepareAct($data)
+    function prepareHistory($data)
     {
         // Ако сме в режим принтиране
         // Да не се изпълнява
@@ -1136,9 +1136,9 @@ class doclog_Documents extends core_Manager
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
         
-        $data->TabCaption = 'Действия';
+        $data->TabCaption = 'История';
         
-        $action = static::ACTION_ACT;
+        $action = static::ACTION_HISTORY;
         
         $document = doc_Containers::getDocument($cid);
         
@@ -1146,7 +1146,7 @@ class doclog_Documents extends core_Manager
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
         
         // URL' то където ще сочат
-        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_ACT));
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_HISTORY));
         
         // Вземаме записите
         $recs = log_Data::getRecs($document, $document->that, $data->pager);
@@ -1168,7 +1168,7 @@ class doclog_Documents extends core_Manager
      * 
      * @param object $data
      */
-    static function renderAct($data)
+    static function renderHistory($data)
     {
         // Ако няма записи
         if (!$data->rows) return ;
@@ -1284,7 +1284,7 @@ class doclog_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_ACT))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
             $rec->mid = static::generateMid();
         }
         
@@ -2003,23 +2003,6 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
-        $contQuery = doc_Containers::getQuery();
-        $contQuery->where("#threadId = {$threadId}");
-        while ($cRec = $contQuery->fetch()) {
-            if (!isset($data[$cRec->id])) {
-                $data[$cRec->id] = new stdClass();
-            }
-            try {
-                $document = doc_Containers::getDocument($cRec->id);
-            } catch (core_exception_Expect $e) {
-                
-                continue;
-            }
-            
-            $data[$cRec->id]->summary[self::ACTION_ACT] = log_Data::getObjectCnt($document, $document->that);
-            $data[$cRec->id]->containerId = $cRec->id;
-        }
-        
         return $data;
     }
     
@@ -2090,7 +2073,6 @@ class doclog_Documents extends core_Manager
                 static::ACTION_USED => array('използване', 'използвания'),
                 static::ACTION_FAX => array('факс', 'факс'),
                 static::ACTION_PDF => array('pdf', 'pdf'),
-                static::ACTION_ACT => array('действие', 'действия'),
             );
             
             $wordingsTitle = $wordings;
@@ -2109,7 +2091,6 @@ class doclog_Documents extends core_Manager
                     static::ACTION_USED => array('изп', 'изп'),
                     static::ACTION_FAX => array('факс', 'факс'),
                     static::ACTION_PDF => array('pdf', 'pdf'),
-                    static::ACTION_ACT => array('д', 'д'),
                 );
             }
         }
@@ -2127,7 +2108,6 @@ class doclog_Documents extends core_Manager
                 static::ACTION_CHANGE    => static::ACTION_CHANGE,
                 static::ACTION_FORWARD    => static::ACTION_FORWARD,
                 static::ACTION_USED => static::ACTION_USED,
-                static::ACTION_ACT => static::ACTION_ACT,
             );
         }
         
@@ -2425,7 +2405,7 @@ class doclog_Documents extends core_Manager
             $rec = static::fetch(array("#mid = '[#1#]'", $mid));
             
             // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_ACT))) {
+            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
                 
                 return FALSE;
             }

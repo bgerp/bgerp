@@ -2893,16 +2893,20 @@ function render_Notify(data) {
 	// подготвяме фав иконките
 	var newIcon = prepareFavIcon(data.favicon);
 	var oldIcon = prepareFavIcon(oldIconPath);
-
+	
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
-		setFavIcon(newIcon);
+		if (newIcon) {
+			setFavIcon(newIcon);
+		}
 
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
 			restoreTitle(oldTitle);
-			restoreFavIcon(oldIcon);
+			if (oldIcon) {
+				setFavIcon(oldIcon);
+			}
 		}, 600);
 
 		counter++;
@@ -2936,9 +2940,12 @@ function restoreTitle(oldTitle) {
 /**
  * връща необходимия за смяна на фав иконата таг
  * @param iconPath - пътя до картинката
- * @returns icon
+ * @returns object|false
  */
 function prepareFavIcon(iconPath) {
+	
+	if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
+	
 	var icon = document.createElement('link');
 	icon.type = 'image/x-icon';
 	icon.rel = 'shortcut icon';
@@ -2954,15 +2961,6 @@ function prepareFavIcon(iconPath) {
  */
 function setFavIcon(icon){
 	$('head').append(icon);
-}
-
-
-/**
- * задава старата фав икона
- * @param oldIcon - иконата, която ще задаваме
- */
-function restoreFavIcon(oldIcon) {
-	$('head').append(oldIcon);
 }
 
 

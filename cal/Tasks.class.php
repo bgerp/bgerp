@@ -2023,7 +2023,7 @@ class cal_Tasks extends core_Master
    
     
     /**
-     * Правим нотификация на всички шернати потребители
+     * Правим нотификация на всички шернати потребители,
      * че е стартирана задачата
      */
     static public function doNotificationForActiveTasks($activatedTasks)

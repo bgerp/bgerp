@@ -53,7 +53,7 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
         $form->setDefault('accountId', $accId);
         $form->setHidden('accountId');
 
-        // Задаваме че ще филтрираме по перо
+        // Задаваме, че ще филтрираме по перо
         $form->setDefault('action', 'group');
         $form->setField('to', 'input=none');
 

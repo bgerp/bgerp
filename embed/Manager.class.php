@@ -40,7 +40,7 @@ class embed_Manager extends core_Master
 		expect($mvc->driverInterface, $mvc);
 		expect(is_subclass_of($mvc->driverInterface, 'embed_DriverIntf'), $mvc->driverInterface);
 		
-		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
+		// Добавяме задължителните полета само ако не е дефинирано, че вече съществуват
 		if(!isset($mvc->fields[$mvc->driverClassField])){
 			$mvc->FLD($mvc->driverClassField, "class(interface={$mvc->driverInterface}, allowEmpty, select=title)", "caption=Вид,mandatory,silent,refreshForm,after=id");
 		}

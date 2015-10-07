@@ -25,7 +25,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
      */
     public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
-    	// Ако е мениджъра е казано че може да се контира/възстановява/оттегля ако има затворени права, премахваме изискването
+    	// Ако е мениджъра е казано, че може да се контира/възстановява/оттегля ако има затворени права, премахваме изискването
     	if($mvc->canUseClosedItems($id)){
     		$res = array();
     		

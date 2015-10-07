@@ -456,7 +456,7 @@ class core_Array
     			$uRec = clone $nRec;
     		
     			// Ако записа се среща с този индекс и с тази стойност на зададените полета в $modOld
-    			// то отбелязваме записа че е за обновяване
+    			// то отбелязваме записа, че е за обновяване
     			if(array_key_exists($nKey, $modOld)){
     				if($modOld[$nKey][0] != $nValKey){
     					$uRec->id = $modOld[$nKey][1];

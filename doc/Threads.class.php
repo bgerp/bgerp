@@ -517,6 +517,8 @@ class doc_Threads extends core_Manager
      */
     public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = FALSE, $rejected = FALSE)
     {
+        if (!$folderId) return array();
+        
     	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
     	// Проверяваме имали кеширани данни
@@ -785,7 +787,7 @@ class doc_Threads extends core_Manager
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
         $exp->rule("#moveRest", "'no'", '#Selected');
         $exp->rule("#haveAccess", "haveaccess(#folderId)");
-        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте че искате да преместите нишката?"), '#haveAccess === FALSE');
+        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте, че искате да преместите нишката?"), '#haveAccess === FALSE');
         
         $result = $exp->solve('#folderId,#moveRest,#haveAccess');
         

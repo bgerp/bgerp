@@ -371,7 +371,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		if($rec->id){
     			$oldRec = $mvc->fetch($rec->id);
     			if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
-    				$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
+    				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на  новата опаковка!");
     			}
     		}
 	    	
@@ -665,12 +665,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		if(isset($rec->discount)){
-    			if($rec->optional == 'no'){
-    				$data->discounts[$rec->discount] = $row->discount;
-    			} else {
-    				$data->discountsOptional[$rec->discount] = $row->discount;
-    			}
+    		if($rec->optional == 'no'){
+    			$data->discounts[$rec->discount] = $row->discount;
+    		} else {
+    			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
             
             if($data->masterData->rec->state == 'draft') {

@@ -1076,7 +1076,7 @@ class acc_Items extends core_Manager
     	// За кой баланс ще извличаме перата
     	$bId = acc_Balances::fetchField("#fromDate <= '{$date}' && #toDate >= '{$date}'", 'id');
     	
-    	// Филтрираме записите така че да намерим само тези пера
+    	// Филтрираме записите, така че да намерим само тези пера
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $bId, $accSysId);
     	$bQuery->show("ent{$posId}Id");
