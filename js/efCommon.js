@@ -596,7 +596,7 @@ function rp(text, textarea, newLine) {
 /*
  * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
  */
-function crateRicheditTable(textarea, newLine, tableCol, tableRow) {
+function createRicheditTable(textarea, newLine, tableCol, tableRow) {
     if (tableRow < 2 || tableRow > 10 || tableCol < 2 || tableCol > 10) return;
     var version = getIEVersion();
     if ((version == 8 || version == 9) && typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange) {
