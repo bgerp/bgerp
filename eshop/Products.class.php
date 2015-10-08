@@ -521,7 +521,6 @@ class eshop_Products extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setField($mvc->)
     	
     	if($form->rec->coDriver){
     		$params = "measureId =" . PHP_EOL . "moq =" . PHP_EOL . "quantities =";
