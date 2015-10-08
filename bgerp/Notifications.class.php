@@ -595,13 +595,14 @@ class bgerp_Notifications extends core_Manager
                 
                 $newNotifCnt = $notifCnt - $lastCnt;
                 
-                if ($newNotifCnt == 1) {
-                    $notifStr = $newNotifCnt . ' ' . tr('ново известие');
-                } else {
-                    $notifStr = $newNotifCnt . ' ' . tr('нови известия');
-                }
-                
                 if ($notifSound != 'none') {
+                
+                    if ($newNotifCnt == 1) {
+                        $notifStr = $newNotifCnt . ' ' . tr('ново известие');
+                    } else {
+                        $notifStr = $newNotifCnt . ' ' . tr('нови известия');
+                    }
+                    
                     $obj = new stdClass();
                     $obj->func = 'Notify';
                     $obj->arg = array('soundOgg' => sbf("sounds/{$notifSound}.ogg", ''),
