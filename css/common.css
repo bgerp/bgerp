@@ -1627,13 +1627,9 @@ td.keylist-group {
       float: right;
       display: none; }
 
-.narrow .keylistCategory .keylist-group > div {
-  position: relative; }
-  .narrow .keylistCategory .keylist-group > div .invert-checkbox {
-    position: absolute;
-    right: 3px;
-    top: 50%;
-    margin-top: -8px; }
+.narrow .keylistCategory  img {
+  position: relative;
+  top: 2px; }
 
   .keylistCategory .invert-checkbox {
     float: left;
