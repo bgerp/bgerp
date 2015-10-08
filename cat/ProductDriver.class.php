@@ -243,6 +243,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 							[#INFO#]
 						</table>
 					<div>
+					[#ROW_AFTER#]
 				</fieldset>
 				"));
 		
