@@ -593,15 +593,22 @@ class bgerp_Notifications extends core_Manager
             
                 $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
                 
+                $newNotifCnt = $notifCnt - $lastCnt;
+                
+                if ($newNotifCnt == 1) {
+                    $notifStr = $newNotifCnt . ' ' . tr('ново известие');
+                } else {
+                    $notifStr = $newNotifCnt . ' ' . tr('нови известия');
+                }
+                
                 if ($notifSound != 'none') {
                     $obj = new stdClass();
                     $obj->func = 'Notify';
-                    $obj->arg = array(   'soundOgg' => sbf("sounds/{$notifSound}.ogg", ''),
-                                            'soundMp3' => sbf("sounds/{$notifSound}.mp3", ''),
-                                            'blinkTimes' => 2,
-                                            //'favicon' => sbf("img/faviconAlt.ico", ''),
-                                            'title' => "$notifCnt > $lastCnt", //tr('Нови известия'),
-                                        );
+                    $obj->arg = array('soundOgg' => sbf("sounds/{$notifSound}.ogg", ''),
+										'soundMp3' => sbf("sounds/{$notifSound}.mp3", ''),
+                                        'blinkTimes' => 2,
+                                        'title' => $notifStr
+                                     );
                     $res[] = $obj;
                 }
             }
