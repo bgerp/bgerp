@@ -717,8 +717,6 @@ class core_Form extends core_FieldSet
                     $idForFocus = $attr['id'];
                 }
                 
-                $options = array('' => '', '4' => '23');
-                
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
                 if(count($options) == 2 && $type->params['mandatory'] && empty($value) && $options[key($options)] === '') {
                     list($o1, $o2) = array_keys($options);
