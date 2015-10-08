@@ -593,10 +593,10 @@ class bgerp_Notifications extends core_Manager
             
                 $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
                 
-                $newNotifCnt = $notifCnt - $lastCnt;
-                
                 if ($notifSound != 'none') {
-                
+                    
+                    $newNotifCnt = $notifCnt - $lastCnt;
+                    
                     if ($newNotifCnt == 1) {
                         $notifStr = $newNotifCnt . ' ' . tr('ново известие');
                     } else {
