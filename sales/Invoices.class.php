@@ -270,6 +270,38 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
     		$form->setField('vatReason', 'mandatory');
     	}
+    	
+    	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
+    	$firstRec = $firstDoc->rec();
+    	 
+    	$defInfo = "";
+    	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
+    	core_Lg::push($tLang);
+    	
+    	// Ако продажбата има референтен номер, попълваме го в забележката
+    	if($firstRec->reff){
+    		$defInfo .= tr("|Ваш реф.|* {$firstRec->reff}") . PHP_EOL;
+    	}
+    	
+    	// Ако продажбата приключва други продажби също ги попълва в забележката
+    	if($firstRec->closedDocuments){
+    		$docs = keylist::toArray($firstRec->closedDocuments);
+    		$closedDocuments = '';
+    		foreach ($docs as $docId){
+    			$closedDocuments .= "#" . $firstDoc->getInstance()->getHandle($docId) . ", ";
+    		}
+    		$closedDocuments = trim($closedDocuments, ", ");
+    		$defInfo .= tr('|Фактура към продажби|*: ') . $closedDocuments . PHP_EOL;
+    	}
+    	core_Lg::pop();
+    	
+    	// Ако има дефолтен текст за фактура добавяме и него
+    	if($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')){
+    		$defInfo .= $invText;
+    	}
+    	
+    	// Задаваме дефолтния текст
+    	$form->setDefault('additionalInfo', $defInfo);
     }
     
     
