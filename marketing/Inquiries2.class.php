@@ -224,7 +224,9 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		$uom = cat_UoM::getShortName($data->Driver->getDefaultUom($params['measureId']));
+    		$measureId = $data->Driver->getDefaultUom($params['measureId']);
+    		$uom = cat_UoM::getShortName($measureId);
+    		
     		if(isset($params['moq'])){
     			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($params['moq']);
     			$caption .= " <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";

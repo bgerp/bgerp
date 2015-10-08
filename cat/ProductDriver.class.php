@@ -179,10 +179,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @param int $measureId - мярка
+	 * @param string $measureName - име на мярка
 	 * @return FALSE|int - ид на мярката
 	 */
-	public function getDefaultUom($measureId = NULL)
+	public function getDefaultUom($measureName = NULL)
 	{
 		return FALSE;
 	}
