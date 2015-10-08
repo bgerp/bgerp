@@ -310,7 +310,7 @@ class cat_Products extends embed_Manager {
     	
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->driverClassField)){
-    		$form->setField($mvc->driverClassField, 'remember');
+    		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=measureId|meta");
     	}
     	
     	// Всички позволени мерки
@@ -326,7 +326,7 @@ class cat_Products extends embed_Manager {
     			$defMetas = $Driver->getDefaultMetas($defMetas);
     			$measureName = $Driver->getDefaultUom();
     			$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
-    			 
+    			
     			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
     		}
