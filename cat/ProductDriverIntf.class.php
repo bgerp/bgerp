@@ -60,12 +60,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @param int $measureId - мярка
-	 * @return int - ид на мярката
+	 * @param string $measureName - име на мярка
+	 * @return FALSE|int - ид на мярката
 	 */
-	public function getDefaultUom($measureId = NULL)
+	public function getDefaultUom($measureName = NULL)
 	{
-		return $this->class->getDefaultUom($measureId);
+		return $this->class->getDefaultUom($measureName);
 	}
 	
 	

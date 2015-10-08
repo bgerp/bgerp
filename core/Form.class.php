@@ -718,7 +718,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
-                if(count($options) == 2 && $type->params['mandatory'] && empty($value)) {
+                if(count($options) == 2 && $type->params['mandatory'] && empty($value) && $options[key($options)] === '') {
                     list($o1, $o2) = array_keys($options);
                     if(!empty($o2)) {
                         $value = $o2;

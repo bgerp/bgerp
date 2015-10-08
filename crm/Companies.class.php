@@ -1576,12 +1576,6 @@ class crm_Companies extends core_Master
     		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	if(count($meta)){
-    		foreach ($meta as &$m){
-    			$m = TRUE;
-    		}
-    	}
-    	
     	return $meta;
     }
     

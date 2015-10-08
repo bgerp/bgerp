@@ -251,7 +251,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($historyCnt) {
             $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
-            "id=btnHistory{$data->rec->containerId}, row=2, order=33,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
+            "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
         }
     }
     

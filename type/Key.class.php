@@ -584,7 +584,7 @@ class type_Key extends type_Int
                 } else {
                 
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
-                    if($this->params['mandatory'] && $optionsCnt == 2 && empty($value)) {
+                    if($this->params['mandatory'] && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
                         if(!empty($o2)) {
                             $value = $o2;

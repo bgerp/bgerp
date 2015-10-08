@@ -53,7 +53,7 @@ class change_Plugin extends core_Plugin
             );
             
             // Добавяме бутона за промяна
-            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'20', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа', 'row' => 2));    
+            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'19', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа', 'row' => 2));    
         }
     }
     

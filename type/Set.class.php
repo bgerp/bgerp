@@ -168,8 +168,12 @@ class type_Set extends core_Type {
      */
     function fromVerbal($value)
     {
+    	// Ако има стойност и тя не е масив, правим я на масив
+    	if(!is_array($value) && isset($value)){
+    		$value = self::toArray($value);
+    	}
+    	
     	if (is_array($value)) {
-        	
             $res = implode(',', array_keys($value));
         }
         
