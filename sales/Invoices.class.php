@@ -586,8 +586,7 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public static function on_AfterPrepareExportQuery($mvc, &$query)
    	{
-   		$query->orWhere("#state = 'rejected' AND #brState = 'active'");
-   		$query->where("#state != 'draft'");
+   		$query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
    	}
    	
    	
