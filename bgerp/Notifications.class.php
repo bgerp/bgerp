@@ -590,28 +590,28 @@ class bgerp_Notifications extends core_Manager
             $lastCnt = Mode::get('NotificationsCnt');
 
             if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
-            
-                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
                 
-                if ($notifSound != 'none') {
+                $newNotifCnt = $notifCnt - $lastCnt;
                     
-                    $newNotifCnt = $notifCnt - $lastCnt;
-                    
-                    if ($newNotifCnt == 1) {
-                        $notifStr = $newNotifCnt . ' ' . tr('ново известие');
-                    } else {
-                        $notifStr = $newNotifCnt . ' ' . tr('нови известия');
-                    }
-                    
-                    $obj = new stdClass();
-                    $obj->func = 'Notify';
-                    $obj->arg = array('soundOgg' => sbf("sounds/{$notifSound}.ogg", ''),
-										'soundMp3' => sbf("sounds/{$notifSound}.mp3", ''),
-                                        'blinkTimes' => 2,
-                                        'title' => $notifStr
-                                     );
-                    $res[] = $obj;
+                if ($newNotifCnt == 1) {
+                    $notifStr = $newNotifCnt . ' ' . tr('ново известие');
+                } else {
+                    $notifStr = $newNotifCnt . ' ' . tr('нови известия');
                 }
+                
+                $notifyArr = array('title' => $notifStr, 'blinkTimes' => 2);
+                
+                // Добавяме и звук, ако е зададено
+                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
+                if ($notifSound != 'none') {
+                    $notifyArr['soundOgg'] = sbf("sounds/{$notifSound}.ogg", '');
+                    $notifyArr['soundMp3'] = sbf("sounds/{$notifSound}.mp3", '');
+                }
+                
+                $obj = new stdClass();
+                $obj->func = 'Notify';
+                $obj->arg = $notifyArr;
+                $res[] = $obj;
             }
             
             // Записваме в сесията последно изпратените нотификации, ако има промяна

@@ -104,12 +104,6 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
-    	// Ако баланса се преизчислява в момента, не подготвяме никакви данни защото няма да са верни
-    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
-    		$data->balanceIsRecalculating = TRUE;
-    		return;
-    	}
-    	
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
     	$data->canSeePrices = haveRole('ceo,accMaster');
     	
@@ -138,6 +132,12 @@ class acc_ReportDetails extends core_Manager
         // Ако мастъра не е перо, няма какво да се показва
         if(empty($items)) {
         	$data->renderReports = FALSE;
+        	return;
+        }
+        
+        // Ако баланса е заключен не показваме нищо
+        if(core_Locks::isLocked('RecalcBalances')){
+        	$data->balanceIsRecalculating = TRUE;
         	return;
         }
         
