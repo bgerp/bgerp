@@ -270,7 +270,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param mixed $id - ид или запис
 	 * @return fileman_FileType $hnd - файлов хендлър на изображението
 	 */
-	public function getProductImage($rec)
+	public static function getProductImage($rec)
 	{
 		return $rec->photo;
 	}

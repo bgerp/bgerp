@@ -239,22 +239,41 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$tpl = new ET(tr("|*<fieldset class='detail-info'>
                     <legend class='groupTitle'>|Информация|*</legend>
                     <div class='groupList'>
+                        <b>{$this->singleTitle}</b>
 						<table class = 'no-border'>
+                            
 							[#INFO#]
 						</table>
 					<div>
+					[#ROW_AFTER#]
 				</fieldset>
 				"));
 		
-		$driverFields = cat_Products::getDriverFields($this);
-		
+		//$driverFields = cat_Products::getDriverFields($this);
+        $form = cls::get('core_Form');
+        $this->addFields($form);
+		$driverFields = $form->fields;
+
 		if(is_array($driverFields)){
-			foreach ($driverFields as $key => $value){
-				if(isset($data->row->$key)){
-					$caption = str_replace('->', '|*: |', $value);
-					$caption = tr($caption);
+			foreach ($driverFields as $name => $field){
+				if(isset($data->row->{$name})){
+
+                    $caption = $field->caption;
+
+                    if(strpos($caption, '->')) {
+                        list($group, $caption) = explode('->', $caption);
+                        if($group != $lastGroup) {
+                            $group = tr($group);
+                            $dhtml = "<tr><td colspan='2' style='padding-left:0px;padding-top:5px;font-weight:bold;'><b>{$group}</b></td></td</tr>";
+                            $tpl->append($dhtml, 'INFO');
+                        }
+
+                        $lastGroup = $group;
+                    }
+
+                    $caption = tr($caption);
 					
-					$dhtml = "<tr><td>{$caption}:</td><td>{$data->row->$key}</td</tr>";
+					$dhtml = "<tr><td>{$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
 					$tpl->append($dhtml, 'INFO');
 				}
 			}
@@ -286,5 +305,17 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function getDefaultJobTasks()
 	{
 		return array();
+	}
+
+
+	/**
+	 * Връща хендлъра на изображението представящо артикула, ако има такова
+	 *
+	 * @param mixed $id - ид или запис
+	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 */
+	public static function getProductImage($id)
+	{
+		return;
 	}
 }
