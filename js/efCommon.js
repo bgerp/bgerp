@@ -2039,7 +2039,7 @@ function checkForHiddenGroups() {
 function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
-		  if ($(e.target).is(".invert-checkbox")) {
+		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {
