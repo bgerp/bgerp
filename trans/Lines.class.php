@@ -40,7 +40,7 @@ class trans_Lines extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg';
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_BusinessDoc';
 
     
     /**
@@ -305,6 +305,7 @@ class trans_Lines extends core_Master
     
 	/**
      * В кои корици може да се вкарва документа
+     * 
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
