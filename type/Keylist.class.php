@@ -206,7 +206,7 @@ class type_Keylist extends core_Type {
                     
                     $addKeylistWide = TRUE;
                     
-                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div>" . $checkImg  . $uncheckImg . "<span class='invertTitle'>". $v->title . "</span>" .  $plusImg . $minusImg . "</div></td></tr>" .
+                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group noSelect'><div>" . $checkImg  . $uncheckImg . "<span class='invertTitle'>". $v->title . "</span>" .  $plusImg . $minusImg . "</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
                   
                     $groupOpen = 1;
