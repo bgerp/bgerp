@@ -2201,6 +2201,11 @@ class doc_DocumentPlg extends core_Plugin
 	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
 	    	}
     	}
+    	
+    	if(isset($rec->originId)){
+    		$document = doc_Containers::getDocument($rec->originId);
+    		$res[] = (object)array('class' => $document->getInstance(), 'id' => $document->that);
+    	}
     }
     
     
