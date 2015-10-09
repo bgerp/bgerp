@@ -115,6 +115,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    var $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -456,6 +462,21 @@ class acc_Journal extends core_Master
     	}
     	
     	return array($docClassId, $docId);
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		
+    		// Ако вече са заопашени ид-та за обновяване, махаме ги от опашката след като са изтрити
+    		if(isset($mvc->updateQueue[$id])){bp();
+    			unset($mvc->updateQueue[$id]);
+    		}
+    	}
     }
     
     
