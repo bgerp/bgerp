@@ -1627,7 +1627,7 @@ td.keylist-group {
       float: right;
       display: none; }
 
-.narrow .keylistCategory  img {
+.narrow .keylistCategory . img {
   position: relative;
   top: 2px; }
 
@@ -2136,6 +2136,9 @@ a.rtbutton {
   height: 1.2em;
   min-width: 15px;
   text-align: center; }
+
+.richtext-holder-group {
+  z-index: 1001; }
 
 .richtext-holder-group a.rtbutton {
   background: #dddddd;
