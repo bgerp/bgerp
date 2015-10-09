@@ -247,7 +247,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             switch($fld->summary) {
                 case "amount" :
-                    $baseAmount = $rec->{$fld->name};
+                	$baseAmount = $rec->{$fld->name};
+                	if($mvc->amountIsInNotInBaseCurrency === TRUE && isset($rec->rate)){
+                		$baseAmount *= $rec->rate;
+                	}
+                	
                     $res[$fld->name]->amount += $baseAmount;
                     $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
                     break;
