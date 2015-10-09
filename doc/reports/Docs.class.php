@@ -116,6 +116,11 @@ class doc_reports_Docs extends frame_BaseDriver
     	    $userFromTeamsArr = type_Users::getUserFromTeams($cu);
     		$form->setDefault('user', key($userFromTeamsArr));
     	}
+
+    	$today = dt::today();
+    	
+    	$form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+    	$form->setDefault('to', dt::addDays(-1,$today));
     }
     
     
