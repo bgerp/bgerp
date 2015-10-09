@@ -205,11 +205,16 @@ class bgerp_plg_Import extends core_Plugin
             // Поставяне на възможност да се направи мачване на 
             // полетата от модела и полетата от csv-то
             foreach($fieldsArr as $name => $fld) {
-                $exp->DEF("#col{$name}={$fld['caption']}", 'int', "{$fld['mandatory']}");
-                $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
-                $exp->ASSUME("#col{$name}", "-1");
+            	$type = ($fld['type']) ? $fld['type'] : 'int';
+                $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
+                if(!isset($fld['notColumn'])){
+                	$exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
+                	$exp->ASSUME("#col{$name}", "-1");
+                }
+                
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }
+            
             
             $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->className}\"") . ":", TRUE, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
             
