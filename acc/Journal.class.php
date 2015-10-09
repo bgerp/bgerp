@@ -473,7 +473,7 @@ class acc_Journal extends core_Master
     	foreach ($query->getDeletedRecs() as $id => $rec) {
     		
     		// Ако вече са заопашени ид-та за обновяване, махаме ги от опашката след като са изтрити
-    		if(isset($mvc->updateQueue[$id])){bp();
+    		if(isset($mvc->updateQueue[$id])){
     			unset($mvc->updateQueue[$id]);
     		}
     	}
