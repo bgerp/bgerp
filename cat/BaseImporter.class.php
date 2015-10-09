@@ -91,12 +91,12 @@ class cat_BaseImporter extends core_Manager {
     				$fld->mandatory = 'mandatory';
     			}
     			$captionArr = explode('->', $fld->caption);
-    			$arr = array('caption' => "Колони->{$captionArr[0]}", 'mandatory' => $fld->mandatory, 'column' => 'column');
+    			$arr = array('caption' => "Колони->{$captionArr[0]}", 'mandatory' => $fld->mandatory);
     			$fields[$name] = $arr;
     		}
     	}
-    	$fields['category'] = array('caption' => 'Папка->Категория', 'mandatory' => 'mandatory', 'type' => 'key(mvc=cat_Categories,select=name,allowEmpty)');
-    	$fields['meta'] = array('caption' => 'Папка->Свойства', 'mandatory' => 'mandatory', 'type' => 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем, canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)');
+    	$fields['category'] = array('caption' => 'Папка->Категория', 'mandatory' => 'mandatory', 'type' => 'key(mvc=cat_Categories,select=name,allowEmpty)', 'notColumn' => 'notColumn');
+    	$fields['meta'] = array('caption' => 'Папка->Свойства', 'mandatory' => 'mandatory', 'type' => 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем, canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'notColumn' => 'notColumn');
     	
     	return $fields;
     }

@@ -207,7 +207,7 @@ class bgerp_plg_Import extends core_Plugin
             foreach($fieldsArr as $name => $fld) {
             	$type = ($fld['type']) ? $fld['type'] : 'int';
                 $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
-                if(isset($fld['column'])){
+                if(!isset($fld['notColumn'])){
                 	$exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
                 	$exp->ASSUME("#col{$name}", "-1");
                 }
