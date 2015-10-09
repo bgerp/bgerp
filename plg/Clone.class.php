@@ -260,8 +260,12 @@ class plg_Clone extends core_Plugin
         // Ако имаме права за клониране, да се показва бутона
         if ($mvc->haveRightFor('clonerec', $data->rec)) {
             
+            $singleTitle = tr($mvc->singleTitle);
+            
+            $singleTitle = mb_strtolower($singleTitle);
+            
             // Добавяме бутон за клониране в сингъл изгледа
-            $title = tr('Клониране на' . ' ' . mb_strtolower($mvc->singleTitle));
+            $title = tr('|Клониране на|*' . ' ' . $singleTitle);
             $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=19.1");
         }
     }
