@@ -128,6 +128,8 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
+        
+        $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
     }
     
     
@@ -2498,5 +2500,77 @@ class doc_DocumentPlg extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         $mvc->save($rec, 'modifiedOn, modifiedBy');
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документите
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+    }
+    
+    
+    /**
+     * Получава масив със стойности, които да ги показва в таблица.
+     * В зависимост от режима, определя как да са подредени и връща редовете и колоните на таблицата
+     * 
+     * @param core_Master $mvc
+     * @param NULL|core_ET $res
+     * @param array $headerArr - двумерен масив с ключ името на полето
+     * и стойност 'name' - име на полето и 'val' - стойност
+     * @param array $hideInInternal - кои полета да се скриват, при вътрешно показване
+     * Отговаря на ключа на $headerArr
+     */
+    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideInInternal = array())
+    {
+        if (!$headerArr) return ;
+        
+        $hideInInternal = arr::make($hideInInternal, TRUE);
+        
+        // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
+        $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
+        
+        $isNarrow = Mode::is('screenMode', 'narrow');
+        
+        if ($isNarrow) {
+            $res = new ET('');
+        } else {
+            $res = new ET("<tr>[#1#]</tr><tr>[#2#]</tr>");
+        }
+        
+        $haveVal = FALSE;
+        
+        foreach ((array)$headerArr as $key => $value) {
+            
+            if ($isInternal && (($hideInInternal[$key]) || $hideInInternal['*'])) continue;
+            
+            $haveVal = TRUE;
+            
+            $colon = $isNarrow ? ':' : '';
+            
+            $val = new ET("<td>{$value['val']}</td>");
+            
+            if ($isNarrow) {
+                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $res->append("<tr>");
+                $res->append($name);
+                $res->append($val);
+                $res->append("</tr>");
+            } else {
+                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $res->append($name, '1');
+                $res->append($val, '2');
+            }
+        }
+        
+        if (!$haveVal) {
+            $res = NULL;
+        }
     }
 }

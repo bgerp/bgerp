@@ -80,5 +80,4 @@ class plg_Modified extends core_Plugin
             $res .= "<li style='color:green'>Обновено времето за модифициране на $modRecs запис(а)</li>";
         }
     }
-
 }

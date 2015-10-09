@@ -155,7 +155,7 @@ class doc_Comments extends core_Master
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%, input=hidden');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments, appendQuote)', 'caption=Коментар,mandatory');
     }
     
@@ -182,10 +182,13 @@ class doc_Comments extends core_Master
         //Ако добавяме нови данни
         if (!$rec->id) {
             
+            $haveOrigin = FALSE;
+            
             //Ако имаме originId
             if ($rec->originId) {
                 
                 $cid = $rec->originId;
+                $haveOrigin = TRUE;
             } elseif ($rec->threadId) {
                 
                 // Ако добавяме коментар в нишката
@@ -197,7 +200,12 @@ class doc_Comments extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($cid);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = tr('|За|*: ') . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                $for = tr('|За|*: ');
+                $rec->subject = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                
+                if ($haveOrigin) {
+                    $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
+                }
             }
         }
     }
@@ -264,6 +272,41 @@ class doc_Comments extends core_Master
     static function getThreadState($id)
     {
         return NULL;
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        // Полета, които ще се показват
+        $headerRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#] / <!--ET_END LastSelectedVersionDate--><!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_BEGIN FirstSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
+        				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#] <!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN LastSelectedVersion-->[#LastSelectedVersion#] / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSIONREMOVE-->"));
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['*'] = '*';
+        }
+        
+        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
     }
     
     
