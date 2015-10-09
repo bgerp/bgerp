@@ -245,7 +245,7 @@ class plg_Clone extends core_Plugin
         $cloneSbf = sbf("img/16/clone.png");
         
         // Ако не е подадено заглавиет, създаваме линк с иконата
-        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=Копиране');
+        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=' . tr('Клониране'));
     }
     
     
@@ -262,7 +262,7 @@ class plg_Clone extends core_Plugin
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('Клониране на' . ' ' . mb_strtolower($mvc->singleTitle));
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=40");
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=19.1");
         }
     }
     
