@@ -1,4 +1,4 @@
-<h3>[#TITLE#]</h3>
+<h1>[#TITLE#]</h1>
 [#FORM#]
 <!--ET_BEGIN action-->
 <div><span class='quiet'>[#action#]</span>: [#groupBy#]</div><br>

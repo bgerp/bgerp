@@ -239,8 +239,12 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         $tpl = $this->getReportLayout();
+        
+        $explodeTitle = explode(" » ", $this->title);
+        
+        $title = tr("|{$explodeTitle[1]}|*");
 
-        $tpl->replace($this->title, 'TITLE');
+        $tpl->replace($title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
 
         $tpl->placeObject($data->row);

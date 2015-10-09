@@ -88,4 +88,17 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
 
         return $activateOn;
     }
+    
+    
+    /**
+     * Връща дефолт заглавието на репорта
+     */
+    public function getReportTitle()
+    {
+    	$explodeTitle = explode(" » ", $this->title);
+    	
+    	$title = tr("|{$explodeTitle[1]}|*");
+    	 
+    	return $title;
+    }
 }
