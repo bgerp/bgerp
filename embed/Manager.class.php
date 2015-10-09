@@ -200,7 +200,15 @@ class embed_Manager extends core_Master
      */
     static function recToVerbal_($rec, &$fields = '*')
     {
-        $row = parent::recToVerbal_($rec, $fields);
+        if($fields === '*'){
+        	
+        	// Ако извличаме всички полета се подсигуряваме че към тях са и полетата на драйвера
+        	$data = (object)array('rec' => $rec);
+        	static::prepareSingleFields($data);
+        	$fields = $data->singleFields;
+        }
+    	
+    	$row = parent::recToVerbal_($rec, $fields);
 		$mvc = cls::get(get_called_class());
 		
 		if(is_array($fields)){

@@ -23,6 +23,14 @@ class cash_ExchangeDocument extends core_Master
    
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     public $title = "Касови обмени на валути";

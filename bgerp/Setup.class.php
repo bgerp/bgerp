@@ -202,6 +202,7 @@ class bgerp_Setup extends core_ProtoSetup {
                         //$haveError = TRUE;
                         file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                         $haveError[$p] .= "<h3 class='debug-error'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
+                        reportException($exp, NULL, TRUE);
                     }
                 }
             }
@@ -231,6 +232,7 @@ class bgerp_Setup extends core_ProtoSetup {
                             //$haveError = TRUE;
                             file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                             $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
+                            reportException($exp, NULL, TRUE);
                         }
                     }
                 }

@@ -2295,6 +2295,10 @@ a.rtbutton {
 	text-align:center;
 }
 
+.richtext-holder-group{
+	z-index: 1001;
+}
+
 .richtext-holder-group a.rtbutton{
 	background:#ddd;
     border: 1px solid #bba;
