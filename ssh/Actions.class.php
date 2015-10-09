@@ -73,11 +73,11 @@ class ssh_Actions
         // Свързваме се по ssh
         $this->connection = @ssh2_connect($this->host, $this->port);
         if (!$this->connection) {
-            throw new core_exception_Expect("{$this->host}: няма ssh връзка");
+            throw new core_exception_Expect("@500 {$this->host}: няма ssh връзка");
         }
         
         if (!@ssh2_auth_password($this->connection, $this->user, $this->pass)) {
-            throw new core_exception_Expect("{$this->host}: грешен потребител или парола.");
+            throw new core_exception_Expect("@500 {$this->host}: грешен потребител или парола.");
         }
     }
     
