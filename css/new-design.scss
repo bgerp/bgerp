@@ -225,7 +225,7 @@ body {
 
 #framecontentTop{
     position: fixed;
-    top: 0 !important;
+    top: 0;
     left: 0;
     right: 0;
     width: 100%;
@@ -635,7 +635,7 @@ a.bookmark-external-url {
 	border: none;
 }
 
-#main-container > div.tab-control > div.tab-row > .row-holder .tab {
+#main-container > div.tab-control > div.tab-row > .tab {
     font-family: arial;
     display: inline-block;
     height: 18px;
@@ -663,31 +663,19 @@ a.bookmark-external-url {
         color: white;
     }
 }
-
-.narrow #main-container > div.tab-control > div.tab-row {
-	overflow-x: auto; /* 1 */
-	-webkit-overflow-scrolling: touch; /* 2 */
-	.row-holder {
-		text-align: justify; /* 3 */
-		white-space: nowrap;
-		height: 28px;
-	}
-	.tab {
-		border: none;
-		margin: 5px 2px 3px;
-		padding: 0 !important;
-		border-radius: 3px;
-		font-size: 0.8em;
-		a, span {
-			margin: 0px 2px 3px;
-			display: block;
-			line-height: normal;
-		}
+.narrow #main-container > div.tab-control > div.tab-row > .tab {
+	border: none;
+	margin: 5px 2px 3px;
+    padding: 0 !important;
+    border-radius: 3px;
+    font-size: 0.8em;
+    a, span {
+        margin: 0px 2px 3px;
+        display: block;
+        line-height: normal;
     }
 }
-.narrow .tab-title {
-	display: inline-block !important;
-}
+
 .headerInfo{
     display:inline-block;
     float: left;
