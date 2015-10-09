@@ -275,7 +275,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     			if($accIds[$rec->accountId] != '700'){
     				if($rec->blQuantity < 0){
     					
-    					// Ако имаме кредитно салдо, правим такова к-во че да го занулим
+    					// Ако имаме кредитно салдо, правим такова к-во, че да го занулим
     					$quantity = abs($rec->blQuantity);
     				} else {
     					$quantity = $rec->blQuantity;
@@ -287,7 +287,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     				$dealItemRec = acc_Items::fetch($rec->{$dealPosition[$rec->accountId]});
     				
     				// Пропускаме активните продажби и тези които са затворени в друг период
-    				if($dealItemRec->state == 'active' || ($dealItemRec->closedOn > $this->periodRec->end)) continue;
+    				if($dealItemRec->state == 'active' || (strtotime($dealItemRec->closedOn) > strtotime($this->periodRec->end))) continue;
     				
     				// Пропускаме нулевите салда
     				if(round($rec->blAmount, 2) == 0) continue;
@@ -334,6 +334,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	while($bRec1 = $bQuery1->fetch()){
     		$arr1 = array('700', $bRec1->ent1Id, $bRec1->ent2Id);
     		$arr2 = array($accIds[$bRec1->accountId], $bRec1->ent1Id, $bRec1->ent2Id);
+    		
+    		$dealItemRec = acc_Items::fetch($bRec1->{$dealPosition[$bRec1->accountId]});
+    		if($dealItemRec->state == 'active' || (strtotime($dealItemRec->closedOn) > strtotime($this->periodRec->end))) continue;
     		
     		if($accIds[$bRec1->accountId] == '7911'){
     			$debitArr = $arr2;
@@ -625,7 +628,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     					continue;
     				} else {
     					
-    					// Иначе прихвърляме толкова че да остане минимум зададеното салдо
+    					// Иначе прихвърляме толкова, че да остане минимум зададеното салдо
     					$amount -= $rec->amountKeepBalance;
     				}
     			}
@@ -651,7 +654,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
     	$rec605 = $bQuery->fetch();
     	
-    	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604);
+    	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604, $this->periodRec->end);
     	
     	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
     	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;

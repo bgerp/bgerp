@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 
     
     /**
@@ -75,7 +75,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, inCharge, progress, state';
+    public $listFields = 'tools=Пулт, name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
     
     
     /**
@@ -87,7 +87,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Детайли
      */
-    public $details = 'tasks_TaskDetails, tasks_TaskConditions';
+    public $details = 'tasks_TaskConditions';
     
     
     /**
@@ -100,12 +100,6 @@ class tasks_Tasks extends embed_Manager
      * Шаблон за единичен изглед
      */
     public $singleLayoutFile = 'tasks/tpl/SingleLayoutTask.shtml';
-    
-    
-    /**
-     * Опашка за обновяване
-     */
-    protected $updated = array();
     
     
     /**
@@ -155,14 +149,12 @@ class tasks_Tasks extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
-    	$this->FLD('inCharge' , 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,changable');
+    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
     			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
     	$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
     	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
-    	$this->FLD('sharedUsers', 'userList', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
@@ -301,46 +293,45 @@ class tasks_Tasks extends embed_Manager
     	
     	if($form->isSubmitted()){
     		
-    		// Запомняне кои документи трябва да се обновят
-    		if($rec->id){
-    			$mvc->updated[$rec->id] = $rec->id;
+    		if(empty($rec->title)){
+				if(cls::load($rec->driverClass, TRUE)){
+    				if($Driver = cls::get($rec->driverClass)){
+    					$rec->title = $Driver->getDefaultTitle();
+    				}
+    			}
     		}
     		
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
     			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
     		}
-    	}
-    }
-    
-    
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetch($id);
-    			
-    			// Даваме възможност на драйвера да обнови мастъра ако иска
-    			if($Driver = $mvc->getDriver($id)){
-    				$Driver->updateEmbedder($rec);
+    		
+    		if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){
+    			if(strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)){
+    				$form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителноста не отговарят на въведената крайната дата');
     			}
-    			
-    			$rec->expectedTimeStart = $mvc->getExpectedTimeStart($rec);
-    			$mvc->save($rec);
     		}
     	}
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetch($id);
+    	
+    	// Даваме възможност на драйвера да обнови мастъра ако иска
+    	if($Driver = $this->getDriver($id)){
+    		$Driver->updateEmbedder($rec);
+    	}
+    	
+    	$rec->expectedTimeStart = $this->getExpectedTimeStart($rec);
+    	
+    	return $this->save($rec);
     }
     
     
@@ -386,7 +377,8 @@ class tasks_Tasks extends embed_Manager
     			
     			// Може да се добавя само към активно задание
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!($origin->getInstance() instanceof planning_Jobs)){
+    			
+    			if(!$origin->isInstanceOf('planning_Jobs')){
     				$requiredRoles = 'no_one';
     			} else {
     				if($origin->fetchField('state') != 'active'){
@@ -417,35 +409,6 @@ class tasks_Tasks extends embed_Manager
     				}
     			}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	if($rec->id){
-    		$dQuery = tasks_TaskDetails::getQuery();
-    		$dQuery->where("#taskId = {$rec->id}");
-    		
-    		$detailsKeywords = '';
-    		while($dRec = $dQuery->fetch()){
-    			
-    			// Добавяме данните от детайла към ключовите думи
-    			$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'operation'));
-    			if($dRec->code){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'code'));
-    			}
-    			
-    			if($dRec->fixedAsset){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'fixedAsset'));
-    			}
-    		}
-    		
-    		// Добавяме новите ключови думи към старите
-    		$res = " " . $res . " " . $detailsKeywords;
     	}
     }
     
@@ -512,16 +475,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Преди запис на документ
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-    	// Добавяме отговорниците към споделените
-    	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->inCharge);
-    }
-    
-    
-    /**
      * Ако са въведени две от времената (начало, продължителност, край) а третото е празно, изчисляваме го.
      * ако е въведено само едно време или всички не правим нищо
      * 
@@ -579,7 +532,7 @@ class tasks_Tasks extends embed_Manager
 	 *  
 	 *  @return void
 	 */
-    public function cron_CheckTasks()
+    public function cron_UpdateTasksStates()
     {
     	// Намираме чакащите и активните задачи от най-старата към най-новата
     	$query = self::getQuery();
@@ -652,7 +605,7 @@ class tasks_Tasks extends embed_Manager
     	
     	$this->saveArray($recs);
     }
-
+    
     
     /**
      * Намира очакваното време за изпълнение спрямо условията.
@@ -717,7 +670,7 @@ class tasks_Tasks extends embed_Manager
     	$Cover = doc_Folders::getCover($folderId);
     	
     	// Може да се добавя само в папка на 'Проект'
-    	return ($Cover->getInstance() instanceof doc_UnsortedFolders);
+    	return ($Cover->isInstanceOf('doc_UnsortedFolders'));
     }
 
 
@@ -732,7 +685,7 @@ class tasks_Tasks extends embed_Manager
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може да се добавя само към нишка с начало задание
-    	return ($firstDoc->getInstance() instanceof planning_Jobs);
+    	return $firstDoc->isInstanceOf('planning_Jobs');
     }
     
     
@@ -787,5 +740,21 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	return $options;
+    }
+    
+
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    function prepareSingle_($data)
+    {
+    	$rec = $data->rec;
+    	if($Driver = $this->getDriver($rec->id)){
+    		$data->details = array_merge(arr::make($Driver->getDetail(), TRUE), arr::make($this->details, TRUE));
+    	}
+    		
+    	parent::prepareSingle_($data);
+    	
+    	return $data;
     }
 }

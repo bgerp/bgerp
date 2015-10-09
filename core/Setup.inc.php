@@ -671,6 +671,7 @@ if($step == 3) {
 
     	} catch (core_Exception_Expect $e) {
     		$log[] = "err: " . $e->getMessage();
+    		reportException($e, NULL, TRUE);
     	}
     } else {
         $log[] = "err:Недефинирани константи за връзка със сървъра на базата данни";
@@ -813,7 +814,7 @@ if ($step == 'setup') {
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
-        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3>");
+        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
         
         exit;
     }
@@ -967,9 +968,11 @@ if($step == 'start') {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
         } catch (core_exception_Expect $e) {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            reportException($e, NULL, TRUE);
         }
     } catch (Exception $e) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
+        reportException($e, NULL, TRUE);
     }
     
     $Packs = cls::get('core_Packs');

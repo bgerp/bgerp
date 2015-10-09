@@ -110,6 +110,9 @@ class acc_BalanceHistory extends core_Manager
         $tpl->removeBlock('toDate');
         $tpl = $this->renderWrapping($tpl);
         
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logInfo("Разглеждане на хронология на сметка");
+        
         // Връщаме шаблона
         return $tpl;
     }
@@ -274,11 +277,20 @@ class acc_BalanceHistory extends core_Manager
         $filter->FNC('fromDate', 'date', 'caption=От,input');
         $filter->FNC('toDate', 'date', 'caption=До,input');
         $filter->FNC('accNum', 'int', 'input=hidden');
-        $filter->FNC('ent1Id', 'int', 'input=hidden');
-        $filter->FNC('ent2Id', 'int', 'input=hidden');
-        $filter->FNC('ent3Id', 'int', 'input=hidden');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
         $filter->showFields = 'fromDate,toDate,isGrouped';
+        $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
+        
+        foreach (array(3, 2, 1) as $i){
+        	$ent = $data->rec->{"ent{$i}Id"};
+        	if(isset($ent)){
+        		$listRec = $data->accountInfo->groups[$i]->rec;
+        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink)", "input,caption={$listRec->name}");
+        		$filter->showFields = "ent{$i}Id,{$filter->showFields}";
+        	} else {
+        		$filter->FNC("ent{$i}Id", 'int', 'input=hidden');
+        	}
+        }
         
         $filter->setDefault('isGrouped', 'yes');
         $filter->setDefault('accNum', $data->rec->accountNum);
@@ -543,6 +555,10 @@ class acc_BalanceHistory extends core_Manager
         } else {
             $tpl->replace($data->row->fromDate, 'fromDate');
             $tpl->replace($data->row->toDate, 'toDate');
+        }
+        
+        if($data->isReport !== TRUE){
+        	unset($data->row->ent1Id,$data->row->ent2Id,$data->row->ent3Id);
         }
         
         // Проверка дали всички к-ва равнят на сумите

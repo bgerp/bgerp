@@ -23,6 +23,14 @@ class cash_ExchangeDocument extends core_Master
    
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     public $title = "Касови обмени на валути";
@@ -219,6 +227,7 @@ class cash_ExchangeDocument extends core_Master
 		    $cCode = currency_Currencies::getCodeById($rec->creditCurrency);
 		    $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
 		    $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    currency_CurrencyRates::checkRateAndRedirect($cRate);
 		    $rec->creditPrice = $cRate;
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
@@ -249,9 +258,6 @@ class cash_ExchangeDocument extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}	
     	
     	if($fields['-single']) {
 		    

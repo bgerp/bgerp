@@ -108,12 +108,18 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'baseQuantity';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,refreshForm');
+    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -152,7 +158,9 @@ class cat_BomDetails extends doc_Detail
     	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
     	
     	// Добавяме всички вложими артикули за избор
-    	$products = cat_Products::getByProperty('canConvert');
+    	$metas = ($form->rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
+    	$products = cat_Products::getByProperty($metas);
+    	
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
     	
@@ -220,12 +228,15 @@ class cat_BomDetails extends doc_Detail
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
     		$form->setDefault('measureId', $pInfo->productRec->measureId);
-    		$shortName = cat_UoM::getShortName($rec->measureId);
-    		$form->setField('baseQuantity', "unit={$shortName}");
-    		$form->setField('propQuantity', "unit={$shortName}");
-
+    		
     		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
     		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    		
+    		$packname = cat_UoM::getTitleByid($rec->packagingId);
+    		$form->setField('baseQuantity', "unit={$packname}");
+    		$form->setField('propQuantity', "unit={$packname}");
+    		
     	} else {
     		$form->setReadOnly('packagingId');
     	}
@@ -249,8 +260,9 @@ class cat_BomDetails extends doc_Detail
     		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
     			$selfValue = planning_ObjectResources::getSelfValue($rec->resourceId);
+    			
     			if(!isset($selfValue)){
-    				$form->setError('resourceId', 'Отпадакът няма себестойност');
+    				$form->setError('resourceId', 'Отпадакът не може да му се определи себестойност');
     			}
     		}
     		

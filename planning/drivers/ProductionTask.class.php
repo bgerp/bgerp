@@ -37,6 +37,18 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Какво да е дефолтното име на задача от драйвера
+	 */
+	protected $defaultTitle = 'Задача за производство';
+	
+	
+	/**
+	 * Кои детайли да се заредят динамично към мастъра
+	 */
+	protected $detail = 'planning_drivers_ProductionTaskDetails';
+	
+	
+	/**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -45,48 +57,19 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=cat_Products,select=name,makeLinks=short)', 'caption=Машини');
-	}
-	
-	
-	/**
-	 * Преди показване на форма за добавяне/промяна
-	 */
-	protected static function on_AfterPrepareEditForm($Driver, &$data)
-	{
-		// Оставяме за избор само артикули ДМА-та
-		$products = cat_Products::getByProperty('fixedAsset');
-		$data->form->setSuggestions('fixedAssets', $products);
-		$data->form->setFieldTypeParams('inCharge', array('roles' => 'planning,ceo'));
-	}
-	
-	
-	/**
-	 * След преобразуване на записа в четим за хора вид.
-	 *
-	 * @param core_BaseClass $Driver
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
-	 */
-	protected static function on_AfterRecToVerbal($Driver, &$row, $rec)
-	{
-		if($rec->fixedAssets){
-			$assetsArr = explode(',', $row->fixedAssets);
-				
-			$row->fixedAssets = "<ul style='padding-left:12px;margin:0px;list-style:none'>";
-			foreach ($assetsArr as $asset){
-				$row->fixedAssets .= "<li style='padding:0px'>{$asset}</li>";
-			}
-			
-			$row->fixedAssets .= "<ul>";
-		}
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
 	}
 	
 	
 	/**
 	 * Преди рендиране на шаблона
+	 * 
+	 * @param tasks_BaseDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
 	 */
-	protected static function on_AfterRenderSingleLayout($Driver, &$tpl, $data)
+	protected static function on_AfterRenderSingleLayout(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		$tpl = getTplFromFile($Driver->singleLayoutFile);
 	}
@@ -101,7 +84,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	public function updateEmbedder(&$rec)
 	{
 		 // Колко е общото к-во досега
-		 $dQuery = tasks_TaskDetails::getQuery();
+		 $dQuery = planning_drivers_ProductionTaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
@@ -122,16 +105,18 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
      * Възможност за промяна след обръщането на данните във вербален вид
      *
+     * @param tasks_TaskDetails $Detail
      * @param stdClass $row
      * @param stdClass $rec
      * @return void
      */
-	public function recToVerbalDetail(&$row, $rec)
+	public function recToVerbalDetail(tasks_TaskDetails $Detail, &$row, $rec)
 	{
-		if($rec->operation){
+		if(isset($rec->operation)){
 			$verbal = arr::make('start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране');
 			if(isset($verbal[$rec->operation])){
 				$row->operation = $verbal[$rec->operation];
+				$row->operation = "<div class='centered'>{$row->operation}</div>";
 			}
 		}
 	}
@@ -140,27 +125,15 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
      * Възможност за промяна след подготовката на формата на детайла
      *
+     * @param tasks_TaskDetails $Detail
      * @param stdClass $data
      * @return void
      */
-	public function prepareEditFormDetail(&$data)
+	public function prepareEditFormDetail(tasks_TaskDetails $Detail, &$data)
 	{
 		$form = &$data->form;
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
 		$form->setField('operation', 'input,mandatory');
-		
-		$form->setField('message', 'input=none');
-		
-		if(isset($data->masterRec->fixedAssets)){
-			$keylist = $data->masterRec->fixedAssets;
-			$arr = keylist::toArray($keylist);
-			
-			foreach ($arr as $key => &$value){
-				$value = cat_Products::getTitleById($key, FALSE);
-			}
-			$form->setOptions('fixedAsset', array('' => '') + $arr);
-			$form->setField('fixedAsset', 'input');
-		}
 		
 		// Показваме полето за въвеждане на код само при операция "произвеждане"
 		if($form->rec->operation == 'production'){
@@ -172,15 +145,16 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
      * Възможност за промяна след рендирането на детайла
      * 
+     * @param tasks_TaskDetails $Detail
      * @param core_ET $tpl
      * @param stdClass $data
      * @return void
      */
-    public function renderDetail(&$tpl, $data)
+    public function renderDetail(tasks_TaskDetails $Detail, &$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(tasks_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('tasks_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    	if($Detail->haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
     		$tpl->append($ht, 'ADD_BTN');
     	} 
     }
@@ -189,13 +163,50 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     /**
      * Възможност за промяна след подготовката на лист тулбара
      *
+     * @param tasks_TaskDetails $Detail
      * @param stdClass $data
      * @return void
      */
-    public function prepareListToolbarDetail(&$data)
+    public function prepareListToolbarDetail(tasks_TaskDetails $Detail, &$data)
     {
     	// Премахваме стандартния бутон за добавяне
-    	parent::prepareListToolbarDetail($data);
+    	parent::prepareListToolbarDetail($Detail, $data);
     	$data->toolbar->removeBtn('btnAdd');
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetSearchKeywords(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+    	if(empty($rec->id)) return;
+    	
+    	$Detail = cls::get($Driver->getDetail());
+    	
+    	$dQuery = $Detail->getQuery();
+    	$dQuery->where("#taskId = {$rec->id}");
+    	 
+    	$detailsKeywords = '';
+    	while($dRec = $dQuery->fetch()){
+    		 
+    		// Добавяме данните от детайла към ключовите думи
+    		$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'operation'));
+    		if($dRec->code){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'code'));
+    		}
+    		 
+    		if($dRec->fixedAsset){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
+    		}
+    	}
+    	 
+    	// Добавяме новите ключови думи към старите
+    	$res = " " . $res . " " . $detailsKeywords;
     }
 }

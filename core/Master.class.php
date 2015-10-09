@@ -30,6 +30,12 @@ class core_Master extends core_Manager
     
     
     /**
+     * Опашка на записите чакащи ъпдейт
+     */
+    protected $updateQueue = array();
+    
+    
+    /**
      * Изпълнява се след конструирането на мениджъра
      */
     static function on_AfterDescription(core_Master &$mvc)
@@ -92,6 +98,8 @@ class core_Master extends core_Manager
             
         }
         
+        $data->details = arr::make($this->details);
+        
         expect($data->rec);
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
@@ -107,8 +115,13 @@ class core_Master extends core_Manager
         $tpl = $this->renderWrapping($tpl, $data);
         
         if (!Request::get('ajax_mode')) {
-            // Записваме, че потребителя е разглеждал този списък
-            $this->logInfo('Single', $id);
+            if (Mode::is('printing')) {
+                $this->logInfo('Отпечатване', $id);
+            } elseif(Mode::is('pdf')) {
+                $this->logInfo('PDF', $id);
+            } else {
+                $this->logInfo('Виждане', $id);
+            }
         }
         
         return $tpl;
@@ -120,6 +133,10 @@ class core_Master extends core_Manager
      */
     function prepareSingle_($data)
     {
+    	if(empty($data->details) && isset($this->details)){
+    		$data->details = arr::make($this->details);
+    	}
+    	
         // Подготвяме полетата за показване
         $this->prepareSingleFields($data);
         
@@ -140,12 +157,12 @@ class core_Master extends core_Manager
         $this->prepareSingleToolbar($data);
         
         // Подготвяме детайлите
-        if(count($this->details)) {
+        if(count($data->details)) {
 
             // Добавяме текущ таб, ако го има в заявката
             $data->Tab = Request::get('Tab');
 
-            foreach($this->details as $var => $class) {
+            foreach($data->details as $var => $class) {
                 $this->loadSingle($var, $class);
                 
                 if($var == $class) {
@@ -297,8 +314,8 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if(count($this->details) && $data->noDetails !== TRUE) {
-            foreach($this->details as $var => $class) {
+        if(count($data->details) && $data->noDetails !== TRUE) {
+            foreach($data->details as $var => $class) {
                 $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
                 // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
@@ -317,7 +334,7 @@ class core_Master extends core_Manager
 
                 foreach($detailInline as $var => $order) {
                     
-                    $class = $this->details[$var];
+                    $class = $data->details[$var];
 
                     if($var == $class) {
                         $method = 'renderDetail';
@@ -371,7 +388,7 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
-					$method = ($selected ==  $this->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+					$method = ($selected ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
 					
 					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
 					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
@@ -390,7 +407,7 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
-					$method = ($selected ==  $this->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
+					$method = ($selected ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
 					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
 					
 					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
@@ -432,15 +449,30 @@ class core_Master extends core_Manager
             $layoutText = $this->singleLayoutTpl;
         } else {
             if(count($data->singleFields)) {
+                $lastGroup = '';
                 foreach($data->singleFields as $field => $caption) {
-                    $fieldsHtml .= "\n<!--ET_BEGIN {$field}--><tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr><!--ET_END {$field}-->";
+                    if(strpos($caption, '->')) {
+                        list($group, $caption) = explode('->', $caption);
+                        $fieldsHtml .= "\n<!--ET_BEGIN {$field}-->";
+                        if($group != $lastGroup) {
+                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>" . tr($group) . "</td></tr>\n";
+                        }
+                        $lastGroup = $group;
+                    } else {
+                        $lastGroup = '';
+                    }
+
+                    $unit = $this->fields[$field]->unit;
+                    if($unit) $unit = ' ' . $unit;
+
+                    $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}</td></tr><!--ET_END {$field}-->";
                 }
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
             $layoutText = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-            "\n<table class='listTable'>{$fieldsHtml}\n</table>\n" .
+            "\n<table class='listTable' style='border:none;'>{$fieldsHtml}\n</table>\n" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>";
         }
         
@@ -675,5 +707,43 @@ class core_Master extends core_Manager
     	} 
     	
     	return $url;
+    }
+    
+
+    /**
+     * След промяна в детайлите на обект от този клас
+     */
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+    	if(isset($id)){
+    		
+    		// Запомняне кои документи трябва да се обновят
+    		$mvc->updateQueue[$id] = $id;
+    	}
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->updateQueue)){
+    		
+    		foreach ($mvc->updateQueue as $id) {
+    			$mvc->updateMaster($id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    function updateMaster_($id)
+    {
     }
 }

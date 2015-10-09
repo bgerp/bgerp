@@ -462,13 +462,17 @@ class change_Log extends core_Manager
         if (!$rec->docClass && !$rec->docId) return ;
         
         // Масив с избраните версии
-        static $dataArr;
+        static $allDataArr = array();
+        
+        $str = $rec->docClass . '_' . $rec->docId;
+        
+        $dataArr = $allDataArr[$str];
         
         // Ако не е генериран
         if (!$dataArr) {
             
             // Вземаем избраните версии
-            $dataArr = static::getSelectedVersionsArr($rec->docClass, $rec->docId);
+            $dataArr = $allDataArr[$str] = static::getSelectedVersionsArr($rec->docClass, $rec->docId);
         }
         
         // Иконата за неизбрани версии
@@ -789,7 +793,11 @@ class change_Log extends core_Manager
     static function getFirstAndLastVersion($docClass, $docId)
     {
         // Масива, който ще връщаме
-        static $res = array();
+        static $allRes = array();
+        
+        $str = $docClass . '_' . $docId;
+        
+        $res = (array)$allRes[$str];
         
         // Ако е генериран преди
         if ($res) return $res;
@@ -824,6 +832,9 @@ class change_Log extends core_Manager
                 // Добавяме в масива
                 $res['last'] = $lastVer;
             }
+            
+            $firstTime = NULL;
+            $lastTime = NULL;
             
             // Обхождамва масива
             foreach ($versionArr as $keyVer => $dummy) {
@@ -861,6 +872,8 @@ class change_Log extends core_Manager
                 }
             }
         }
+        
+        $allRes[$str] = $res;
         
         return $res;
     }
@@ -941,7 +954,11 @@ class change_Log extends core_Manager
     static function getSelectedVersionsBetween($docClass, $docId)
     {
         // Масива, който ще връщаме
-        static $arr = array();
+        static $allVersionsArr = array();
+        
+        $str = $docClass . '_' . $docId;
+        
+        $arr = (array)$allVersionsArr[$str];
         
         // Ако е генерирано преди, връщаме
         if ($arr) return $arr;
@@ -1025,6 +1042,8 @@ class change_Log extends core_Manager
             }
         }
         
+        $allVersionsArr[$str] = $arr;
+        
         return $arr;
     }
     
@@ -1039,10 +1058,14 @@ class change_Log extends core_Manager
     static function getRec($docClass, $docId, $field=FALSE)
     {
         // Масива със записите
-        static $recsArr=array();
+        static $allRecsArr = array();
+        
+        $str = $docClass . '_' . $docId;
+        
+        $recsArr = $allRecsArr[$str];
         
         // Ако не е сетнат
-        if (is_array($recsArr) && !$recsArr) {
+        if ($recsArr !== FALSE) {
             
             // Вземаме всички записи за съответния клас и документ
             $query = static::getQuery();
@@ -1055,10 +1078,17 @@ class change_Log extends core_Manager
                 // Добавяме в масива
                 $recsArr[$rec->field] = $rec;
             }
+            
+            $allRecsArr[$str] = $recsArr;
+            
+            // Ако няма резултат връщаме FALSE
+            if (!$recsArr) {
+                
+                $allRecsArr[$str] = FALSE;
+            }
         } 
         
-        // Ако няма резултат връщаме FALSE
-        if (!$recsArr) return FALSE;
+        if ($allRecsArr[$str] === FALSE) return FALSE;
         
         // Ако е зададено съответно поле
         if ($field) {

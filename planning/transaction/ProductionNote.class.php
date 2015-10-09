@@ -112,10 +112,14 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 							
 							if($res->type == 'input'){
-								$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени материали в производството на артикул';
+								
+								$pInfo = cat_Products::getProductInfo($res->productId);
+								
+								$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($pInfo->meta['canStore'])) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложени материали в производството на артикул');
+								
 								$entry = array(
 										'debit' => array('321', array('store_Stores', $rec->storeId),
-															  array($dRec->classId, $dRec->productId),
+															  array('cat_Products', $dRec->productId),
 												'quantity' => $pQuantity),
 										'credit' => array('61101', array('cat_Products', $res->productId),
 												'quantity' => $res->finalQuantity),
@@ -134,9 +138,9 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'debit' => array('61101', array('cat_Products', $res->productId),
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
-																 array($dRec->classId, $dRec->productId),
+																 array('cat_Products', $dRec->productId),
 															'quantity' => $pQuantity),
-										'reason' => 'Приспадане себестойността на отпадък от произведен артикул',
+										'reason' => 'Приспадане себестойността на отпадък от произведен продукт',
 								);
 								
 								$total += $amount;
@@ -155,7 +159,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							$costArray = array(
 									'amount' => $costAmount,
 									'debit' => array('321', array('store_Stores', $rec->storeId),
-											array($dRec->classId, $dRec->productId),
+											array('cat_Products', $dRec->productId),
 											'quantity' => 0),
 									'credit' => array('61102'),
 									'reason' => 'Разпределени режийни разходи',
@@ -168,15 +172,15 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 				}
 			
 			if(!$entry){
-				$errorArr[] = cls::get($dRec->classId)->getTitleById($dRec->productId);
+				$errorArr[] = cat_Products::getTitleById($dRec->productId);
 			}
 		}
 		
-		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		// Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат произведени");
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото нямат задания или рецепти избрани в протокола");
 			}
 		}
 		

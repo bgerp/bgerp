@@ -688,8 +688,37 @@ class email_Incomings extends core_Master
             
             static::calcAllToAndCc($rec);
             
+            $errEmailInNameStr = tr('Имейлът в името не съвпада с оригиналния|*.');
+            
+            // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
             $row->allTo = self::getVerbalEmail($rec->allTo);
+            if (!self::checkNamesInEmails($rec->allTo)) {
+                $row->allTo = self::addErrToEmailStr($row->allTo, $errEmailInNameStr, 'error');
+            }
+            
             $row->allCc = self::getVerbalEmail($rec->allCc);
+            if (!self::checkNamesInEmails($rec->allCc)) {
+                $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
+            }
+            
+            if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
+                $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+            }
+            
+            // Ако имейлът не съвпада с този на Return-Path, добавяме предупреждение
+            $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
+            $returnPathEmails = type_Email::extractEmails($returnPath);
+            if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+            }
+            
+            $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
+            
+            // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
+            if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
+                $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+            }
+            
         }
         
         if(!$rec->toBox) {
@@ -703,12 +732,174 @@ class email_Incomings extends core_Master
         $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
-            $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
+            $row->fromEml .= ' (' . trim($row->fromName) . ')';
         }
+    }
+    
+    
+    /**
+     * Проверява дали има имейл и дали съвпада с оригиналния имейл в name частта
+     * 
+     * @param array $emailsArr
+     * 
+     * @return boolean
+     */
+    protected static function checkNamesInEmails($emailsArr)
+    {
+        if (!$emailsArr) return TRUE;
+        
+        foreach ($emailsArr as $emailArr) {
+            if (!$emailArr['name']) continue;
+            $pEmailsFromName = type_Email::extractEmails($emailArr['name']);
+            if (!$pEmailsFromName) continue;
+            
+            if (!self::checkEmailIsExist($emailArr['address'], $pEmailsFromName)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Добавя иконка за грешка пред стринга
+     * 
+     * @param string $emailStr
+     * @param string $errStr
+     * @param string $type
+     * 
+     * @return string
+     */
+    protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
+    {
+        if ($type == 'error') {
+            $img = 'img/16/error-red.png';
+        } elseif ($type == 'warning') {
+            $img = 'img/16/error.png';
+        } else {
+            $img = 'img/16/info-16.png';
+        }
+        
+        $img = sbf($img, '');
+        
+        $errTitle = tr('Възможен проблем' . '! ') . $errStr;
+        $err = ht::createElement('span', array('style' => 'background:url("' . $img . '"); 
+        													width: 16px; height: 16px; display: inline-block;float: left; margin-right: 2px; top: 1px; position: relative;', 
+												'title' => $errTitle), '', TRUE);
+        
+        return $err . $emailStr;
+    }
+    
+    
+    /**
+     * Проверява дали имейла е в добър списък
+     * Дали от нишката има изпращане към този имейл
+     * Дали папката е на контрагент и имейла го има в списъка
+     * 
+     * @param string $email
+     * @param integer $threadId
+     * @param integer $folderId
+     * 
+     * @return boolean
+     */
+    protected static function checkEmailIsFromGoodList($email, $threadId, $folderId)
+    {
+        static $threadEmailsArr = FALSE;
+        static $checkedEmailsArr = array();
+        static $contrDataEmailsArr = FALSE;
+        
+        // Всички изпратени имейли в нишката
+        if ($threadEmailsArr === FALSE) {
+            $threadEmailsArr = array();
+            $emailRecsArr = doclog_Documents::getRecs(NULL, doclog_Documents::ACTION_SEND, $threadId);
+            
+            foreach ($emailRecsArr as $emailRecArr) {
+                $to = $emailRecArr->data->to;
+                $threadEmailsArr[$to] = $to;
+            }
+        }
+        
+        $email = trim($email);
+        $email = strtolower($email);
+        
+        if (!isset($checkedEmailsArr[$email])) {
+            // Дали е в изпратените имейли
+            $checked = self::checkEmailIsExist($email, $threadEmailsArr, TRUE);
+            
+            if (!$checked) {
+                // Ако папката е на котрагент, проверява в техните имейли
+                if ($folderId) {
+                    $cover = doc_Folders::getCover($folderId);
+            		if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)){
+            			if ($contrDataEmailsArr === FALSE) {
+            			    $contrData = $cover->getContragentData();
+            			    $contrDataEmailsArr = type_Emails::toArray($contrData->groupEmails);
+            			}
+            			$checkedEmailsArr[$email] = self::checkEmailIsExist($email, $contrDataEmailsArr, TRUE);
+            		}
+                }
+            } else {
+                $checkedEmailsArr[$email] = TRUE;
+            }
+        }
+        
+        if (!isset($checkedEmailsArr[$email])) {
+            $checkedEmailsArr[$email] = !(boolean)$threadEmailsArr;
+        }
+        
+        return $checkedEmailsArr[$email];
+    }
+    
+    
+    /**
+     * Проверява дали имейла може да е еднакъв с подадения масив
+     * Публичните трябва да съвпадат точно
+     * При останалите домейна трябва да съвпада
+     * 
+     * @param string $email
+     * @param array $emailsArr
+     * @param boolean $emailsArr
+     * 
+     * @return boolean
+     */
+    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE)
+    {
+        if (!$emailsArr) {
+            if ($mandatory) {
                 
-        if($fields['-list']) {
-           // $row->textPart = mb_Substr($row->textPart, 0, 100);
+                return FALSE;
+            } else {
+                
+                return TRUE;
+            }
         }
+        
+        $email = strtolower($email);
+        $domain = type_Email::domain($email);
+        
+        $isPublic = FALSE;
+        
+        if (drdata_Domains::isPublic($domain)) {
+            $isPublic = TRUE;
+        }
+        
+        foreach ($emailsArr as $emailCheck) {
+            if ($isPublic) {
+                $emailCheck = strtolower($emailCheck);
+                if ($emailCheck == $email) {
+                    
+                    return TRUE;
+                }
+            } else {
+                $cDomain = type_Email::domain($emailCheck);
+                $cDomain = strtolower($cDomain);
+                if ($domain == $cDomain) {
+                    
+                    return TRUE;
+                }
+            }
+        }
+        
+        return FALSE;
     }
     
     
@@ -810,6 +1001,14 @@ class email_Incomings extends core_Master
         
         // Парсираме cc хедъра
         $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+        
+        // Към cc добавяме и bcc, ако има такива
+        $allBcc = email_Mime::getHeadersFromArr($headersArr, 'bcc', '*');
+        $allBcc = trim($allBcc);
+        if ($allBcc) {
+            $allCc = trim($allCc);
+            $allCc = ($allCc) ? $allCc . ', ' . $allBcc : $allBcc;
+        }        
         $ccParser = new email_Rfc822Addr();
         $rec->allCc = array();
         $ccParser->ParseAddressList($allCc, $rec->allCc);
@@ -1495,7 +1694,7 @@ class email_Incomings extends core_Master
                         'forward',
                         $data->rec->containerId,
                         'ret_url' => TRUE,
-                    ), NULL, array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
+                    ), NULL, array('order'=>'19', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
                 );
             }
         }

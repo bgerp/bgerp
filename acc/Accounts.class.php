@@ -730,4 +730,22 @@ class acc_Accounts extends core_Manager
     	
     	return self::$cache[$id];
     }
+    
+    
+    /**
+     * Връща опции за избор на сметки, чиито пера имат подадените интерфейси
+     * 
+     * @param mixed $interfaces - имената на интерфейсите като масив или стринг
+     * @return array $options - готовите опции
+     */
+    public static function getOptionsByListInterfaces($interfaces)
+    {
+    	$options = cls::get('acc_Accounts')->makeArray4Select('title', array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", ''));
+    	
+    	$interfaces = arr::make($interfaces);
+    	$interfaces = implode('|', $interfaces);
+    	acc_type_Account::filterSuggestions($interfaces, $options);
+    	
+    	return $options;
+    }
 }

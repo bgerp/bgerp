@@ -175,6 +175,23 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'info')
+    {
+        if (($type == 'info') && ($folderId = Request::get('folderId')) && ($msg == 'Листване')) {
+            doc_Folders::logInfo('Разглеждане на папка', $folderId);
+        } else {
+            parent::logInAct($msg, $rec, $type);
+        }
+    }
+    
+    
+    /**
      * Поправка на структурата на нишките
      * 
      * @param datetime $from
@@ -219,40 +236,44 @@ class doc_Threads extends core_Manager
         $query->orWhere("#lastState IS NULL");
         
         while ($rec = $query->fetch()) {
+            try {
             
-            // Ако има нишка без firstContainerId
-            if (!isset($rec->firstContainerId)) {
-            
-                // Първия документ от нишката
-                $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                // Ако има нишка без firstContainerId
+                if (!isset($rec->firstContainerId)) {
                 
-                // Ако не може да се определи първия документ в нишката, изтриваме нишката
-                if (!$firstCid) {
-                    if ($rec->id) {
-                        self::delete($rec->id);
-                        $resArr['del_cnt']++;
-                        continue;
+                    // Първия документ от нишката
+                    $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                    
+                    // Ако не може да се определи първия документ в нишката, изтриваме нишката
+                    if (!$firstCid) {
+                        if ($rec->id) {
+                            self::delete($rec->id);
+                            $resArr['del_cnt']++;
+                            continue;
+                        }
+                    }
+                    
+                    $rec->firstContainerId = $firstCid;
+                    
+                    if (self::save($rec)) {
+                        $resArr['firstContainerId']++;
                     }
                 }
                 
-                $rec->firstContainerId = $firstCid;
-                
-                if (self::save($rec)) {
-                    $resArr['firstContainerId']++;
+                // Ако няма папка използваме папката за несортирани
+                if (!isset($rec->folderId) && isset($defaultFolderId)) {
+                    $rec->folderId = $defaultFolderId;
+                    
+                    if (self::save($rec)) {
+                        $resArr['folderId']++;
+                    }
                 }
-            }
-            
-            // Ако няма папка използваме папката за несортирани
-            if (!isset($rec->folderId) && isset($defaultFolderId)) {
-                $rec->folderId = $defaultFolderId;
                 
-                if (self::save($rec)) {
-                    $resArr['folderId']++;
-                }
+                // Обновяваме нишката
+                self::updateThread($rec->id);
+            } catch (Exception $e) {
+                reportException($e, NULL, TRUE);
             }
-            
-            // Обновяваме нишката
-            self::updateThread($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
@@ -286,34 +307,37 @@ class doc_Threads extends core_Manager
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
         
         while ($rec = $query->fetch()) {
-            
-            if (!$rec->firstContainerId) continue;
-            
             try {
-                $cRec = doc_Containers::fetch($rec->firstContainerId);
-            } catch (Exception $e) {
-                continue;
-            }
-            
-            if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
-            
-            try {
-                $clsInst = cls::get($cRec->docClass);
-                $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                if (!$rec->firstContainerId) continue;
                 
-                if (!isset($iRec->state)) continue;
-                
-                // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
-                if ($iRec->state != 'rejected') continue;
-                if ($iRec->state == $rec->state) continue;
-                $rec->state = $iRec->state;
-                
-                if (self::save($rec, 'state')) {
-                    $resArr['firstContainerIdState']++;
+                try {
+                    $cRec = doc_Containers::fetch($rec->firstContainerId);
+                } catch (Exception $e) {
+                    continue;
                 }
-            } catch (core_exception_Expect $e) {
                 
-                continue;
+                if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
+                
+                try {
+                    $clsInst = cls::get($cRec->docClass);
+                    $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                    
+                    if (!isset($iRec->state)) continue;
+                    
+                    // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
+                    if ($iRec->state != 'rejected') continue;
+                    if ($iRec->state == $rec->state) continue;
+                    $rec->state = $iRec->state;
+                    
+                    if (self::save($rec, 'state')) {
+                        $resArr['firstContainerIdState']++;
+                    }
+                } catch (core_exception_Expect $e) {
+                    
+                    continue;
+                }
+            } catch (Exception $e) {
+                reportException($e, NULL, TRUE);
             }
         }
         
@@ -493,6 +517,8 @@ class doc_Threads extends core_Manager
      */
     public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = FALSE, $rejected = FALSE)
     {
+        if (!$folderId) return array();
+        
     	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
     	// Проверяваме имали кеширани данни
@@ -761,7 +787,7 @@ class doc_Threads extends core_Manager
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
         $exp->rule("#moveRest", "'no'", '#Selected');
         $exp->rule("#haveAccess", "haveaccess(#folderId)");
-        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте че искате да преместите нишката?"), '#haveAccess === FALSE');
+        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте, че искате да преместите нишката?"), '#haveAccess === FALSE');
         
         $result = $exp->solve('#folderId,#moveRest,#haveAccess');
         
@@ -1355,7 +1381,7 @@ class doc_Threads extends core_Manager
     private static function getFastButtons($folderId)
     {
     	$Cover = doc_Folders::getCover($folderId);
-    	$managers = $Cover->getDocButtonsInFolder($rec);
+    	$managers = $Cover->getDocButtonsInFolder();
     	
     	$res = array();
     	if(is_array($managers) && count($managers)){

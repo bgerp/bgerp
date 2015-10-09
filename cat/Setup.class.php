@@ -2,6 +2,12 @@
 
 
 /**
+ * Коя да е основната мярка на универсалните артикули
+ */
+defIfNot('CAT_DEFAULT_MEASURE_ID', '');
+
+
+/**
  * Колко от последно вложените ресурси да се показват в мастъра на рецептите
  */
 defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
@@ -84,6 +90,7 @@ class cat_Setup extends core_ProtoSetup
             'migrate::fixProductsSearchKeywords',
     		'migrate::replaceResources4',
     		'migrate::replacePackagings',
+    		'migrate::updateProductsNew',
         );
 
 
@@ -114,6 +121,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
     		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
+    		'CAT_DEFAULT_MEASURE_ID' => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
     );
 
     
@@ -147,7 +155,25 @@ class cat_Setup extends core_ProtoSetup
         return $html;
     }
     
-           
+
+    /**
+     * Начални данни
+     */
+    function loadSetupData()
+    {
+    	$res = parent::loadSetupData();
+    	
+    	// Ако няма посочени от потребителя сметки за синхронизация
+    	$defMeasureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+    	if(strlen($defMeasureId) === 0){
+    		core_Packs::setConfig('cat', array('CAT_DEFAULT_MEASURE_ID' => cat_UoM::fetchBySysId('pcs')->id));
+    		$res .= "<li style='color:green'>Дефолт основна мярка 'брой' за универсалните артикули</li>";
+    	}
+    	
+    	return $res;
+    }
+    
+    
     /**
      * Де-инсталиране на пакета
      */
@@ -515,24 +541,29 @@ class cat_Setup extends core_ProtoSetup
     function replacePackagings()
     {
     	core_App::setTimeLimit(400);
-    	
+    	 
+    	if(!cls::load('cat_Packagings', TRUE)) return;
+    	 
+    	$Packs = cls::get('cat_Packagings');
+    	$Packs->setupMvc();
+    	 
     	$Pos = cls::get('pos_Reports');
     	$Pos->setupMvc();
-    	
+    	 
+    	$Cat = cls::get('cat_Categories');
+    	$Cat->setupMvc();
+    	 
     	$Uom = cls::get('cat_UoM');
     	$Uom->setupMvc();
-    	
+    	 
     	$Products = cls::get('cat_Products');
     	$Products->setupMvc();
-    	
-    	$Ss = cls::get('sales_ServicesDetails');
-    	$Ss->setupMvc();
-    	
-    	$Ps = cls::get('purchase_ServicesDetails');
-    	$Ps->setupMvc();
-    	
+    	 
+    	$Pl = cls::get('price_ListDocs');
+    	$Pl->setupMvc();
+    	 
     	acc_Balances::log("Започване на миграцията на ОПАКОВКИТЕ");
-    	
+    	 
     	$packs = array();
     	$pQuery = cat_Packagings::getQuery();
     	while($pRec = $pQuery->fetch()){
@@ -542,108 +573,110 @@ class cat_Setup extends core_ProtoSetup
     		} elseif($name == 'хил.бр.'){
     			$name = 'хиляди бройки';
     		}
-    		
+    
     		if($name == 'хиляди бройки' || $name == 'брой'){
     			$pRec->showContents = 'no';
     		}
-    		
+    
     		$nRec = (object)array('name' => $name, 'shortName' => $name, 'type' => 'packaging', 'round' => $pRec->round, 'showContents' => $pRec->showContents);
     		if(!$Uom->isUnique($nRec, $fields, $exRec)){
     			$nRec->id = $exRec->id;
     			$nRec->type = $exRec->type;
-    			
+    			 
     			if($exRec->shortName){
     				$nRec->shortName = $exRec->shortName;
     			}
-    			
+    			 
     			$exRecs[$nRec->id] = $exRec;
-    		} 
-    		
-    		$Uom->save($nRec);
+    		}
+    
+    		$Uom->save($nRec, NULL, 'IGNORE');
     		$packs[$pRec->id] = $nRec->id;
     	}
-    	
+    	 
     	$brRec = cat_UoM::fetch("#name = 'брой'");
     	$brRec->showContents = 'no';
     	$Uom->save($brRec);
-    	
+    	 
     	$hbrRec = cat_UoM::fetch("#name = 'хиляди бройки'");
     	$hbrRec->showContents = 'no';
     	$Uom->save($hbrRec);
-    	
+    	 
     	$packQuery = cat_products_Packagings::getQuery();
-    	
+    	 
     	while($pRec = $packQuery->fetch()){
     		$pRec->packagingId = $packs[$pRec->packagingId];
     		cls::get('cat_products_Packagings')->save_($pRec, NULL, 'REPLACE');
     	}
-    	
+    	 
     	$lQuery = price_ListDocs::getQuery();
     	$lQuery->where('#packagings IS NOT NULL');
     	$lQuery->show('packagings');
     	while($lRec = $lQuery->fetch()){
     		$packagings = keylist::toArray($lRec->packagings);
-    		
+    
     		$newPacks = array();
     		foreach ($packagings as $p){
     			$val = $packs[$p];
     			$newPacks[$val] = $val;
     		}
-    		
+    
     		$keylist = keylist::fromArray($newPacks);
     		$lRec->packagings = $keylist;
-    		
+    
     		try{
     			cls::get('price_ListDocs')->save_($lRec, 'packagings');
     		} catch(core_exception_Expect $e){
     		}
     	}
-    	
+    	 
     	sales_Sales::log(ht::arrayToHtml($packs));
-    	
-    	$details = array('sales_SalesDetails', 
-    					 'purchase_PurchasesDetails', 
-    					 'store_ShipmentOrderDetails', 
-    					 'store_ReceiptDetails', 
-    					 'sales_InvoiceDetails', 
-    					 'sales_QuotationsDetails', 
-    					 'purchase_InvoiceDetails',
-    					 'cat_BomDetails', 
-    					 'pos_Favourites', 
-    					 'sales_ProformaDetails',
-    					 'store_TransfersDetails', 
-    					 'planning_ConsumptionNoteDetails', 
-    					 'planning_ProductionNoteDetails', 
-    					 'planning_DirectProductNoteDetails', 
-    					 'store_ConsignmentProtocolDetailsReceived', 
-    					 'store_ConsignmentProtocolDetailsSend',
-    					 'sales_ServicesDetails',
-    					 'purchase_ServicesDetails',
-    					 );
-    	
+    	 
+    	$details = array('sales_SalesDetails',
+    			'purchase_PurchasesDetails',
+    			'store_ShipmentOrderDetails',
+    			'store_ReceiptDetails',
+    			'sales_InvoiceDetails',
+    			'sales_QuotationsDetails',
+    			'purchase_InvoiceDetails',
+    			'cat_BomDetails',
+    			'pos_Favourites',
+    			'sales_ProformaDetails',
+    			'store_TransfersDetails',
+    			'planning_ConsumptionNoteDetails',
+    			'planning_ProductionNoteDetails',
+    			'planning_DirectProductNoteDetails',
+    			'store_ConsignmentProtocolDetailsReceived',
+    			'store_ConsignmentProtocolDetailsSend',
+    			'sales_ServicesDetails',
+    			'purchase_ServicesDetails',
+    	);
+    	 
     	foreach ($details as $Det){
-    		$query = $Det::getQuery();
     		$Det = cls::get($Det);
-    		
+    		$Det->setupMvc();
+    
+    		$query = $Det->getQuery();
+    
     		$count = 0;
     		$recsToSave = array();
     		while($dRec = $query->fetch()){
     			if($dRec->packagingId){
     				if(isset($packs[$dRec->packagingId])){
     					$dRec->packagingId = $packs[$dRec->packagingId];
-    				
+    
     					$recsToSave[] = $dRec;
     				}
     			} else {
     				if($Det->className == 'cat_BomDetails'){
     					if(!isset($dRec->resourceId)) continue;
-    					
+    						
     					if(empty($measureArr[$dRec->resourceId])){
     						$measureArr[$dRec->resourceId] = cat_Products::fetchField($dRec->resourceId, 'measureId');
     					}
     					$dRec->packagingId = $measureArr[$dRec->resourceId];
     					$recsToSave[] = $dRec;
-    					
+    						
     				} else {
     					if(empty($measureArr[$dRec->productId])){
     						$measureArr[$dRec->productId] = cat_Products::fetchField($dRec->productId, 'measureId');
@@ -652,45 +685,47 @@ class cat_Setup extends core_ProtoSetup
     					$recsToSave[] = $dRec;
     				}
     			}
-    			
+    			 
     			$count++;
     		}
-    		
+    
     		if(count($recsToSave)){
     			sales_Sales::log("$Det->className: {$count}");
     			$Det->saveArray_($recsToSave);
     		}
-    	} 
-    	
+    	}
+    	 
     	$recsToSave = array();
     	$repQuery = pos_Reports::getQuery();
     	while($repRec = $repQuery->fetch()){
     		$add = FALSE;
     		if($repRec->details['receiptDetails']){
-    			 
+    
     			foreach ($repRec->details['receiptDetails'] as $d){
     				if($d->action != 'sale') continue;
-    	
+    				 
     				if(isset($packs[$d->pack])){
     					$d->pack = $packs[$d->pack];
     					$add = TRUE;
     				}
     			}
-    			 
+    
     			if($add){
     				$recsToSave[] = $repRec;
     			}
     		}
     	}
-    	 
+    
+    	cls::get('pos_Reports')->setupMvc();
     	if(count($recsToSave)){
     		cls::get('pos_Reports')->saveArray_($recsToSave);
     	}
-    	 
+    
     	$recsToSave = $measureArr = array();
-    	 
+    
+    	cls::get('pos_ReceiptDetails')->setupMvc();
     	$rQuery = pos_ReceiptDetails::getQuery();
-    	
+    	 
     	$rQuery->where("#action LIKE '%sale%'");
     	while($rRec = $rQuery->fetch()){
     		if(isset($packs[$rRec->value])){
@@ -698,9 +733,32 @@ class cat_Setup extends core_ProtoSetup
     			$recsToSave[] = $rRec;
     		}
     	}
-    	 
+    
     	if(count($recsToSave)){
     		cls::get('pos_ReceiptDetails')->saveArray_($recsToSave);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на артикулите
+     */
+    function updateProductsNew()
+    {
+    	if(!cat_Products::count()) return;
+    	
+    	core_App::setTimeLimit(700);
+    	
+    	$Products = cls::get('cat_Products');
+    	$query = $Products->getQuery();
+    	
+		$query->orderBy('id', 'ASC');
+    	while($rec = $query->fetch()){
+    		try{
+    			$Products->save_($rec);
+    		} catch(core_exception_Expect $e){
+    			
+    		}
     	}
     }
 }

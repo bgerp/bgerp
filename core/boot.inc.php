@@ -66,6 +66,7 @@ try {
     // PHP5.4 bugFix
     ini_set('zlib.output_compression', 'Off');
 
+    require_once(EF_APP_PATH . "/setup/Controller.class.php");
 
     // Стартира Setup, ако в заявката присъства верен SetupKey
     if (isset($_GET['SetupKey'])) {
@@ -90,7 +91,12 @@ try {
         if(!isDebug() && $e->isNotExistsDB()) {   
 
             // Опитваме се да създадем базата и редиректваме към сетъп-а
-            try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exception $e) {}
+            try {
+                mysql_query("CREATE DATABASE " . EF_DB_NAME);
+            } catch(Exception $e) {
+                reportException($e, NULL, TRUE);
+            }
+            
             redirect(array('Index', 'SetupKey' => setupKey()));
 
         } elseif(!isDebug() && $e->isNotInitializedDB() && core_Db::databaseEmpty()) {
@@ -105,15 +111,41 @@ try {
             try {
                 if(isDebug() || haveRole('admin')) {
                     if($e->isNotExistsDB()) {
-                        try { mysql_query("CREATE DATABASE " . EF_DB_NAME); } catch(Exception $e) {}
+                        try {
+                            mysql_query("CREATE DATABASE " . EF_DB_NAME);
+                        } catch(Exception $e) {
+                            reportException($e, NULL, TRUE);
+                        }
                     }
                     $update =  array('Index', 'SetupKey' => setupKey(), 'step' => 2);
                 }
-            } catch(Exception $e) {}
+            } catch(Exception $e) {
+                reportException($e, NULL, TRUE);
+            }
             
         } 
     }
-    
+    reportException($e, $update);
+}
+
+
+/****************************************************************************************
+*                                                                                       *
+*      Глобални функции-псевдоними на често използвани статични методи на core_App      *
+*                                                                                       *
+****************************************************************************************/
+
+
+/**
+ * При възникване на изключение показва грешката
+ * Ако е зададено да се записва/изпраща прави съответното действие
+ * 
+ * $param $e Exception
+ * $param $update NULL|array
+ * $param $supressShowing boolean
+ */
+function reportException($e, $update = NULL, $supressShowing = FALSE)
+{
     $errType   = 'PHP EXCEPTION';
     $contex    = $_SERVER;
     $errTitle  = $e->getMessage();
@@ -123,24 +155,15 @@ try {
     $breakLine = $e->getLine();
     $stack     = $e->getTrace();
 
-    if($e instanceOf core_exception_Break) {
+    if ($e instanceOf core_exception_Break) {
         $dump = $e->getDump();
         $errType = $e->getType();
     }
     
     $state = core_Debug::prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
 
-    core_Debug::renderErrorState($state);
+    core_Debug::renderErrorState($state, $supressShowing);
 }
-
-
-
-/****************************************************************************************
-*                                                                                       *
-*      Глобални функции-псевдоними на често използвани статични методи на core_App      *
-*                                                                                       *
-****************************************************************************************/
-
 
 
 /**
@@ -321,6 +344,22 @@ function bp()
     $dump = func_get_args();
     
     throw new core_exception_Break('500 Прекъсване в сървъра', 'Прекъсване', $dump);
+}
+
+
+/**
+ * Следене без прекъсване.
+ * Работи по подобен начин на bp(), но без прекъсване, само репортува състоянието
+ */
+function wp()
+{   
+    try {
+        $dump = func_get_args();
+    
+        throw new core_exception_Watching('@Наблюдение', 'Наблюдение', $dump);
+    } catch (core_exception_Watching $e) {
+        reportException($e, NULL, TRUE);
+    }
 }
 
 

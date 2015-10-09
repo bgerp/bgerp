@@ -128,13 +128,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     	$property .= ',canStore';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	
     	return $products;
     }
@@ -200,22 +200,15 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     { 
     	$rec = &$form->rec;
-    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    	 
-    	if(isset($rec->productId)){
-    		if(isset($masterStore)){
-    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
     	
-    	if ($form->isSubmitted()){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-    		$quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+    	if(isset($rec->productId)){
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+    		$form->info = $storeInfo->formInfo;
     		
-			if(isset($storeInfo)){
-    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    		if ($form->isSubmitted()){
+    			if(isset($storeInfo->warning)){
+    				$form->setWarning('packQuantity', $storeInfo->warning);
     			}
     		}
     	}
@@ -247,7 +240,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
     		
     		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     		
@@ -255,7 +248,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
     		}
     		 
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
+    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
@@ -271,7 +264,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     			
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+                if($data->masterData->rec->state == 'draft') {
+                    $time = NULL;
+                } else {
+                    $time = $data->masterData->rec->modifiedOn;
+                }
+
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}
@@ -285,7 +285,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cls::get($rec->classId)->getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cls::get($rec->classId)->getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
     }
 }

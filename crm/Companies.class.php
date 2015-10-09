@@ -807,7 +807,7 @@ class crm_Companies extends core_Master
     public static function createRoutingRules($emails, $objectId)
     {
         // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
-        $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
+        $priority = email_Router::dateToPriority(dt::now(), 'mid', 'asc');
 
         // Нормализираме параметъра $emails - да стане масив от валидни имейл адреси
         if (!is_array($emails)) {
@@ -1576,12 +1576,6 @@ class crm_Companies extends core_Master
     		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	if(count($meta)){
-    		foreach ($meta as &$m){
-    			$m = TRUE;
-    		}
-    	}
-    	
     	return $meta;
     }
     
@@ -1618,5 +1612,18 @@ class crm_Companies extends core_Master
     	}
     	 
     	return $res;
+    }
+    
+    
+    /**
+     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * универсален артикул, създаден в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $params - масив с дефолтни параметри
+     */
+    public function getDefaultProductParams($id)
+    {
+    	return array();
     }
 }

@@ -59,7 +59,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=action|grouping1|grouping2|grouping3');
     	$form->FLD('from', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=От,mandatory');
@@ -78,7 +78,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     /**
      * След подготовката на ембеднатата форма
      */
-    public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+    public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
 
     	// Искаме всички счетоводни периоди за които
@@ -263,7 +263,9 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	$data = $res;
         
     	// подготвяме страницирането
-        $pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
        
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;

@@ -23,14 +23,6 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
      * @var cash_ExchangeDocument
      */
     public $class;
-
-
-    /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
     
     
     /**

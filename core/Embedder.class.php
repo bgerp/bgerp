@@ -68,7 +68,7 @@ class core_Embedder extends core_Master
 		expect($mvc->innerObjectInterface);
 		expect(is_subclass_of($mvc->innerObjectInterface, 'core_InnerObjectIntf'));
 		
-		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
+		// Добавяме задължителните полета само ако не е дефинирано, че вече съществуват
 		
 		if(!isset($mvc->fields[$mvc->innerClassField])){
 			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Вид,mandatory,silent,refreshForm");
@@ -270,7 +270,7 @@ class core_Embedder extends core_Master
 	{
 		$innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id, $mvc->innerClassField);
 		
-		// Подсигуряваме се че няма по погрешка да забършим полетата за вътрешното състояние
+		// Подсигуряваме се, че няма по погрешка да забършим полетата за вътрешното състояние
 		if($rec->id){
 			$rec->{$mvc->innerStateField} = (!empty($rec->{$mvc->innerStateField})) ? $rec->{$mvc->innerStateField} : $mvc->fetchField($rec->id, $mvc->innerStateField);
 			$rec->{$mvc->innerFormField} = (!empty($rec->{$mvc->innerFormField})) ? $rec->{$mvc->innerFormField} : $mvc->fetchField($rec->id, $mvc->innerFormField);

@@ -255,10 +255,10 @@ class blast_Lists extends core_Master
     /**
      * Поддържа точна информацията за записите в детайла
      */
-    static function on_AfterUpdateDetail($mvc, $id, $Detail)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetch($id);
-        $dQuery = $Detail->getQuery();
+        $dQuery = $detailMvc->getQuery();
         $dQuery->where("#listId = $id");
         $rec->contactsCnt = $dQuery->count();
         

@@ -126,12 +126,6 @@ class store_Transfers extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "4.5|Логистика";
-
-
-    /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
     
     
     /**
@@ -168,46 +162,25 @@ class store_Transfers extends core_Master
             'caption=Статус, input=none'
         );
     }
-
-
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-	
-	
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(count($mvc->updated)){
-        	foreach ($mvc->updated as $id) {
-	        	$mvc->updateMaster($id);
-	        }
-        }
-    }
     
     
 	/**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    public function updateMaster($id)
+    public function updateMaster_($id)
     {
     	$rec = $this->fetch($id);
-    	$dQuery = $this->store_TransfersDetails->getQuery();
+    	$dQuery = store_TransfersDetails::getQuery();
     	$dQuery->where("#transferId = {$id}");
     	$measures = $this->getMeasures($dQuery->fetchAll());
     	
     	$rec->weight = $measures->weight;
     	$rec->volume = $measures->volume;
     	
-    	$this->save($rec);
+    	return $this->save($rec);
     }
     
     
@@ -258,7 +231,6 @@ class store_Transfers extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getLink($rec->id, 0);
     		
     		$attr = array();
@@ -358,11 +330,9 @@ class store_Transfers extends core_Master
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
     		$sProd = store_Products::fetch($dRec->productId);
-    		$ProductMan = cls::get($sProd->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $ProductMan)){
-    			$res[] = (object)array('class' => $ProductMan, 'id' => $sProd->productId);
-    		}
+    		$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $sProd->productId);
     	}
+    	
     	return $res;
     }
     

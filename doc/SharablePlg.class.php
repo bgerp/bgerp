@@ -150,8 +150,17 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
+            $rec->modifiedOn = dt::verbal2mysql();
             if ($mvc->save_($rec)) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
+                if($rec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $rec->containerId;
+                    $cRec->modifiedOn = $rec->modifiedOn;
+                    $cRec->modifiedBy = $userId;
+                    $dCon = cls::get("doc_Containers");
+                    $dCon->save_($cRec);
+                }
             }
         }
     }
@@ -235,5 +244,48 @@ class doc_SharablePlg extends core_Plugin
             // Да има само 2 колони
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
         }
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     * 
+     * @param core_MVc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+        $mvcClassId = core_Classes::getId($mvc);
+        foreach ($recsArr as $rec) {
+            if ($mvcClassId != $rec->docClass) continue;
+            $mRec = $mvc->fetch($rec->docId);
+            
+            if (!$mRec->threadId || !$mRec->containerId) continue;
+            
+            $cRec = doc_Containers::fetch($mRec->containerId);
+            
+            // Всички споделени и абонирани потребители
+            $sharedArr = doc_ThreadUsers::getShared($mRec->threadId);
+            $subscribedArr = doc_ThreadUsers::getSubscribed($mRec->threadId);
+            $subscribedArr += $sharedArr;
+            
+            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени');
+            
+            break;
+        }
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterInputChanges в change_Plugin
+     * 
+     * @param core_MVc $mvc
+     * @param object $oldRec - Стария запис
+     * @param object $newRec - Новия запис
+     */
+    function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    {
+        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
 }

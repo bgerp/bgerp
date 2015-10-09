@@ -371,7 +371,6 @@ class price_ListToCustomers extends core_Detail
      * @param mixed $customerClass - клас на контрагента
      * @param int $customerId - ид на контрагента
      * @param int $productId - ид на артикула
-     * @param int $productManId - ид на продуктовия мениджър
      * @param int $packagingId - ид на опаковка
      * @param double $quantity - количество
      * @param datetime $datetime - дата
@@ -380,21 +379,21 @@ class price_ListToCustomers extends core_Detail
      * @return stdClass $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
         // Опит за намиране на цената по ценовата политика на клиента
-    	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+    	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
     	
     	// Ако няма цена по политика
         if(is_null($rec->price)){
         	
         	// Опитваме се да намерим цената според рецептата и заданието
-        	$rec = $this->getPriceByBom($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        	$rec = $this->getPriceByBom($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
         
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if(!is_null($rec->price)){
-        	$vat = cls::get($productManId)->getVat($productId);
+        	$vat = cat_Products::getVat($productId);
         	$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat, $listRec->roundingPrecision);
         }
        
@@ -406,7 +405,7 @@ class price_ListToCustomers extends core_Detail
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */
-    private function getPriceByList($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    private function getPriceByList($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
     	$listId = self::getListForCustomer($customerClass, $customerId, $datetime);
     	$rec = new stdClass();
@@ -441,15 +440,14 @@ class price_ListToCustomers extends core_Detail
     /**
      * Намиране на цената според технологичната рецепта и задание (ако има такива)
      */
-    private function getPriceByBom($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    private function getPriceByBom($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-    	$ProductMan = cls::get($productManId);
     	$price = (object)array('price' => NULL);
     	 
     	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
     	if(!isset($quantity)){
     		
-    		$quantityJob = $ProductMan->getLastJob($productId)->quantity;
+    		$quantityJob = cat_Products::getLastJob($productId)->quantity;
     		if(isset($quantityJob)){
     			$quantity = $quantityJob;
     		}
@@ -461,7 +459,7 @@ class price_ListToCustomers extends core_Detail
     		
     		$minCharge = $maxCharge = NULL;
     		
-    		// Ако контрагента има зададен ценоразпис, който ене  дефолтния
+    		// Ако контрагента има зададен ценоразпис, който не е дефолтния
     		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
     			
     			// Взимаме максималната и минималната надценка от него, ако ги има
@@ -471,12 +469,12 @@ class price_ListToCustomers extends core_Detail
     		}
     		
     		// Ако няма мин надценка, взимаме я от търговските условия
-    		if(!$minCharge){
+    		if(!isset($minCharge)){
     			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
     		}
     		
     		// Ако няма макс надценка, взимаме я от търговските условия
-    		if(!$maxCharge){
+    		if(!isset($maxCharge)){
     			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
     		}
     		

@@ -115,9 +115,9 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Кеш на афектираните пера
+     * Кои полета да се извличат при изтриване
      */
-    protected $updated = array();
+    var $fetchFieldsBeforeDelete = 'id';
     
     
     /**
@@ -306,6 +306,9 @@ class acc_Journal extends core_Master
         // Контиране на документа
         $mvc->conto($docId);
         
+        // Записваме, че потребителя е разглеждал този списък
+        $mvc->logInfo("Контиране на документ", $docId);
+        
         // Редирект към сингъла
         return redirect(array($mvc, 'single', $docId));
     }
@@ -340,6 +343,9 @@ class acc_Journal extends core_Master
         }
         
         list($docClassId, $docId) = $result;
+        
+        // Записваме, че потребителя е разглеждал този списък
+        $mvc->logInfo("Сторниране на документ", $docId);
         
         return new Redirect(array($docClassId, 'single', $docId));
     }
@@ -456,6 +462,21 @@ class acc_Journal extends core_Master
     	}
     	
     	return array($docClassId, $docId);
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		
+    		// Ако вече са заопашени ид-та за обновяване, махаме ги от опашката след като са изтрити
+    		if(isset($mvc->updateQueue[$id])){
+    			unset($mvc->updateQueue[$id]);
+    		}
+    	}
     }
     
     
@@ -597,31 +618,16 @@ class acc_Journal extends core_Master
                 acc_Items::notifyObject($rec);
             }
         }
-        
-        // Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
-        if(count($mvc->updated)){
-        	
-        	// Увеличаваме времето за изпълнение спрямо броя променените записи
-        	$timeLimit = count($mvc->updated) * 15;
-        	core_App::setTimeLimit($timeLimit);
-        	
-            foreach ($mvc->updated as $journalId){
-                $rec = $mvc->fetchRec($journalId);
-                $mvc->updateMaster($rec);
-                
-                // Нотифицираме документа породил записа в журнала че журнала му е променен
-                if(cls::load($rec->docType, TRUE)){
-                    cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
-                }
-            }
-        }
     }
     
     
     /**
-     * Обновява данните на журнала след промяна в детайлите
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    private function updateMaster($id)
+    public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
         $rec->totalAmount = 0;
@@ -634,19 +640,14 @@ class acc_Journal extends core_Master
             $rec->totalAmount += $dRec->amount;
         }
         
-        $this->save_($rec, 'totalAmount');
-    }
-    
-    
-    /**
-     * Поддържа точна информацията за записите в детайла
-     */
-    public static function on_AfterUpdateDetail($mvc, $id, $Detail)
-    {
-        // Ако има промяна в детайлите, маркираме журнала че е променен
-        if(!empty($id)){
-            $mvc->updated[$id] = $id;
+        $id = $this->save_($rec, 'totalAmount');
+        
+        // Нотифицираме документа породил записа в журнала, че журнала му е променен
+        if(cls::load($rec->docType, TRUE)){
+        	cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
         }
+        
+        return $id;
     }
     
     
@@ -769,6 +770,9 @@ class acc_Journal extends core_Master
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logInfo("Реконтиране на документ", $docId);
     	
     	return $tpl;
     }

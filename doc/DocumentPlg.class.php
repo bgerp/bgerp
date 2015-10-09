@@ -87,6 +87,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Print'] = 'doclog_Documents';
             $mvc->details['Changed'] = 'doclog_Documents';
             $mvc->details['Used'] = 'doclog_Documents';
+            $mvc->details['History'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
@@ -95,6 +96,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали мжое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -161,7 +163,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа',  'ef_icon = img/16/reject.png');
+                "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr("Оттегляне на документа"),  'ef_icon = img/16/reject.png');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -171,7 +173,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
+                "id=btnRestore{$data->rec->containerId},warning=Наистина ли желаете да възстановите документа?,order=32,title=" . tr("Възстановяване на документа"), 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -189,7 +191,7 @@ class doc_DocumentPlg extends core_Plugin
                 			'originId' => $data->rec->containerId,
                 			'ret_url'=>$retUrl
                 	),
-                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
                 }
             }
         } else {
@@ -220,7 +222,7 @@ class doc_DocumentPlg extends core_Plugin
                     			'clone' => 'clone',
                     			'ret_url'=>$retUrl
                     	),
-                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');
+                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=' . tr('Клониране на документа'));
                     } 
                 }
             }
@@ -231,6 +233,9 @@ class doc_DocumentPlg extends core_Plugin
         	// По подразбиране бутона всички се показва на втория ред на тулбара
         	setIfNot($mvc->allBtnToolbarRow, 2);
         	
+        	$title = $mvc->getTitle();
+        	$title = tr($title);
+        	$title = mb_strtolower($title);
         	
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
@@ -238,8 +243,15 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);    
 
+        }
+        
+        $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+        
+        if ($historyCnt) {
+            $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+            "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
         }
     }
     
@@ -289,8 +301,6 @@ class doc_DocumentPlg extends core_Plugin
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
-        //$fields = arr::make($fields);
-        
         if($fields['-single']) {
             if(!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
@@ -303,6 +313,12 @@ class doc_DocumentPlg extends core_Plugin
             if($rec->state == 'rejected') {
                 $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
                 $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+            }
+        }
+        
+        if($fields['-list']){
+            if($rec->folderId) {
+        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
             }
         }
     }
@@ -377,6 +393,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
+        $fields = arr::make($fields, TRUE);
         try {
             
             // Опитваме се да запишем файловете от документа в модела
@@ -409,7 +426,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = FALSE;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         
@@ -642,7 +659,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-            
+           
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
                 // Оттегляме документа + нишката, ако се налага
                 if ($mvc->reject($rec)) {
@@ -655,17 +672,29 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
+            // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+            doc_Threads::save($threadRec, 'shared');
+           
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-                $res = array($mvc, 'single', $id);
+            	if($mvc->haveRightFor('single', $rec)){
+            		$res = array($mvc, 'single', $id);
+            	} else {
+            		$res = array('bgerp_Portal', 'show');
+            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            	}
             }
             
             $res['afterReject'] = 1;
             
             doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-            
+           
             $res = new Redirect($res); //'OK';
-                
+
+            $mvc->logInAct('Оттегляне', $rec);
+            
             return FALSE;
         }
         
@@ -692,6 +721,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
+            
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
@@ -775,8 +806,6 @@ class doc_DocumentPlg extends core_Plugin
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
-        
-        $mvc->logInfo($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
@@ -1356,6 +1385,8 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
+                
+                //bp($oRec, $requiredRoles);
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
@@ -2347,6 +2378,76 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        // Ако не е оставено време за кеширане - не генерираме ключ
+        if(!doc_Setup::get('CACHE_LIFETIME') > 0) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа има отворена история - не се кешира
+        if($cRec->id == Request::get('Cid')) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако модела не допуска кеширане - ключ не се генерира
+        if($mvc->preventCache) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
+        if($cRec->state == 'draft' && dt::addSecs(10*60, $cRec->modifiedOn) > dt::now()) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Потребител
+        $userId = core_Users::getCurrent();
+        
+        // Последно модифициране
+        $modifiedOn = $cRec->modifiedOn;
+        
+        // Контейнер
+        $containerId = $cRec->id;
+        
+        // Положение на пейджърите
+        $pageVar = core_Pager::getPageVar($mvc->className, $id);
+        $pages =  serialize(Request::getVarsStartingWith($pageVar));
+        
+        // Режим на екрана
+        $screenMode = Mode::get('screenMode');
+
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+        
+        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop;
+        
+        if ($res) {
+            $cacheStr .= $res;
+        }
+        
+        $res = md5($cacheStr);
+    }
+    
+    
+    /**
      * 
      * 
      * @param core_Master $mvc
@@ -2368,5 +2469,34 @@ class doc_DocumentPlg extends core_Plugin
             
             return ;
         }
+    }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	if(!$res){
+    		$rec->modifiedOn = dt::now();
+    		$mvc->save($rec, 'modifiedOn');
+    	}
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     * 
+     * @param core_Master $mvc
+     * @param boolean|NULL $res
+     * @param integer $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $mvc->save($rec, 'modifiedOn, modifiedBy');
     }
 }

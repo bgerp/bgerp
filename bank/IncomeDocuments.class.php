@@ -29,6 +29,14 @@ class bank_IncomeDocuments extends core_Master
     
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     * 
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = "Приходни банкови документи";
@@ -212,10 +220,7 @@ class bank_IncomeDocuments extends core_Master
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec));
-        
-        if(empty($form->rec->id)) {
-            $mvc->setDefaultsFromOrigin($origin, $form, $options);
-        }
+        $mvc->setDefaultsFromOrigin($origin, $form, $options);
         
         $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
@@ -247,6 +252,7 @@ class bank_IncomeDocuments extends core_Master
     
     /**
      * Задава стойности по подразбиране от продажба/покупка
+     * 
      * @param core_ObjectReference $origin - ориджин на документа
      * @param core_Form $form - формата
      * @param array $options - масив с сч. операции
@@ -274,12 +280,11 @@ class bank_IncomeDocuments extends core_Master
         }
         
         $cId = $dealInfo->get('currency');
-        $form->rec->currencyId = currency_Currencies::getIdByCode($cId);
-        
-        $form->rec->rate = $dealInfo->get('rate');
+        $form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
+        $form->setDefault('rate', $dealInfo->get('rate'));
         
         if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
-            $form->rec->amount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+        	$form->setDefault('amount', currency_Currencies::round($amount, $dealInfo->get('currency')));
             
             // Ако има банкова сметка по подразбиране
             if($bankId = $dealInfo->get('bankAccountId')){
@@ -362,10 +367,6 @@ class bank_IncomeDocuments extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
-        if($fields['-list']){
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-        }
         
         if($fields['-single']) {
             

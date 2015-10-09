@@ -137,7 +137,6 @@ class social_Followers extends core_Master
      */
     public function act_Redirect()
     {
-    	// Взимаме $ид-то на услугата
     	$id = core_Request::get('id', 'key(mvc=' . get_class($this) . ')');
     	
     	// Намираме нейния запис

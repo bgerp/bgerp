@@ -147,8 +147,6 @@ class plg_Rejected extends core_Plugin
         
         $rec->state = $rec->exState;
         $res = $mvc->save($rec);
-
-        $mvc->logInfo('restore', $rec->id);
     }
 
 
@@ -166,7 +164,9 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('reject', $rec);
             $mvc->reject($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
-                        
+
+            $mvc->logInAct('Оттегляне', $rec);
+            
             return FALSE;
         }
         
@@ -177,6 +177,8 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('restore', $rec);
             $mvc->restore($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
+            
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }

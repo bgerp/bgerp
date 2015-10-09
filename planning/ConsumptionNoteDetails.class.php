@@ -91,10 +91,8 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     
     /**
      * Какви продукти да могат да се избират в детайла
-     *
-     * @var enum(canManifacture=Производими,canConvert=Вложими)
      */
-    protected $defaultMeta = 'canConvert';
+    protected $defaultMeta = 'canConvert,canStore';
     
     
     /**
@@ -107,6 +105,27 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         parent::setDetailFields($this);
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId');
+        $this->setDbUnique('noteId,productId');
+    }
+    
+    
+    /**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 */
+	public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+	{
+    	$rec = &$form->rec;
+    	
+    	if(isset($rec->productId)){
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+    		$form->info = $storeInfo->formInfo;
+    		
+    		if($form->isSubmitted()){
+    			if(isset($storeInfo->warning)){
+    				$form->setWarning('packQuantity', $storeInfo->warning);
+    			}
+    		}
+    	}
     }
 }

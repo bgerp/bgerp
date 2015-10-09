@@ -1,17 +1,21 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div>[#productId#]</div>
+    <h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
     
-     <!--ET_BEGIN expenses-->
-    <div style='margin-top:5px'>|Режийни разходи|*: [#expenses#]</div>
-     <!--ET_END expenses-->
+    <!--ET_BEGIN primeCost-->
+    	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#primeCost#]</div>
+    <!--ET_END primeCost-->
    
+    <!--ET_BEGIN expenses-->
+    	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: [#expenses#]</div>
+    <!--ET_END expenses-->
+     
     <div class = 'fieldset-holder' style='margin-top:10px'>
         <div class="scrolling-holder">
             [#cat_BomDetails#]
         </div>
     </div>
     <!--ET_BEGIN notes-->
-    <div>|Забележки|*:</div>
-    <div>[#notes#]</div>
+	    <div class='quiet'>|Забележки|*:</div>
+	    <div>[#notes#]</div>
     <!--ET_END notes-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

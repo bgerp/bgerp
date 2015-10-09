@@ -633,6 +633,18 @@ class html2text_Converter
         $schema  = strtolower(trim($linkArr[0]));
         $path    = strtolower(trim($linkArr[1], "\t\n\r/"));
         
+        preg_match(type_Richtext::URL_PATTERN, strip_tags($display), $dUrls);
+ 
+        if(is_array($dUrls) && $dU = $dUrls[0]) {  
+            if(stripos($dU, 'www.') === 0) {
+                $dU = 'http://' . $dU;
+            }
+ 
+            if(core_Url::getDomain($dU) != core_Url::getDomain($link)) {
+                $alert = ' [em=alert]';
+            }
+        }
+
         switch($schema) {
             case 'http' :
             case 'https' :
@@ -640,8 +652,8 @@ class html2text_Converter
             case 'ftps' :
                 if(stripos($display, trim($path)) === FALSE) {
                     $this->_link_count++;
-                    $this->_link_list .= "[" . $this->_link_count . "] $link\n";
-                    $additional = " [link={$link}][" . $this->_link_count . "][/link]";
+                    $this->_link_list .= "[" . $this->_link_count . "] $link {$alert}\n";
+                    $additional = " [link={$link}][" . $this->_link_count . "][/link]{$alert}";
                 } else {
                     $additional = '';
                 }
@@ -649,7 +661,7 @@ class html2text_Converter
             case 'mailto' :
                 if(stripos($display, $path) === FALSE) {
                     $this->_link_count++;
-                    $this->_link_list .= "[" . $this->_link_count . "] $path\n";
+                    $this->_link_list .= "[" . $this->_link_count . "]$path\n";
                     $additional = " [" . $this->_link_count . "]";
                 } else {
                     $additional = '';

@@ -969,8 +969,6 @@ class cal_Tasks extends core_Master
     	if ($newRec->notifySent === 'yes') {
     		$newRec->notifySent = 'no';
     	}
-    	
-        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
     
     
@@ -2025,7 +2023,7 @@ class cal_Tasks extends core_Master
    
     
     /**
-     * Правим нотификация на всички шернати потребители
+     * Правим нотификация на всички шернати потребители,
      * че е стартирана задачата
      */
     static public function doNotificationForActiveTasks($activatedTasks)
@@ -2193,7 +2191,7 @@ class cal_Tasks extends core_Master
      */
     static public function calculateTimeToStart ($rec, $recCond)
     {
-    	if($rec->id == 37) {
+    	
     	// времето от което зависи новата задача е началото на зависимата задача
     	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
@@ -2232,7 +2230,7 @@ class cal_Tasks extends core_Master
     		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	}
-    	bp($calcTimeStart,$recCond->distTime,$dependTimeEnd,dt::mysql2timestamp($dependTimeEnd));
+    	
     	// ако задачата е безкрайна
     	if (!$rec->timeStart) { 
     		$rec->timeCalc = $calcTimeStart;
@@ -2254,8 +2252,6 @@ class cal_Tasks extends core_Master
     			
     			return $calcTimeStart;
     		}
-    	}
-    	
     	}
     }
     

@@ -82,7 +82,7 @@ class currency_CurrencyRates extends core_Detail
      * Код на междинна валута за косвено изчисляване изчисляване на курсове.
      * 
      * Когато курсът на една валута (X) към друга (Y) не е изрично записан в БД, той може да бъде 
-     * изчислен чрез преминаване през трета валута, при условие че в БД има записани курсовете
+     * изчислен чрез преминаване през трета валута, при условие, че в БД има записани курсовете
      * както на X така и на Y към тази трета валута. В тази променлива е посочен кода на 
      * междинната валута
      * 
@@ -359,6 +359,27 @@ class currency_CurrencyRates extends core_Detail
         return NULL;
     }
     
+    
+    /**
+     * Проверява дали има валутен курс и редиректва при нужда
+     * 
+     * @param NULL|double $rate
+     */
+    public static function checkRateAndRedirect($rate)
+    {
+        if (!is_null($rate)) return ;
+        
+        $errMsg = 'Няма валутен курс';
+        
+        self::logErr($errMsg);
+        
+        if (self::haveRightFor('list')) {
+            redirect(array(get_called_class(), 'list', 'ret_url' => TRUE), FALSE, $errMsg, 'error');
+        } else {
+            status_Messages::newStatus($errMsg, 'error');
+        }
+    }
+    
 
     /**
      * Връща директния курс на една валута към друга, без преизчисляване през трета валута
@@ -458,7 +479,7 @@ class currency_CurrencyRates extends core_Detail
      * Приемливото отклонение е дефинирано в , дефолт 5%
      * @param double $givenRate - подаден курс.
      * @param string $from - код от коя валута
-     * @param string $то - код към коя валута
+     * @param string $to - код към коя валута
      * @return mixed FALSE - ако няма отколонение
      * 				 $msg  - 'предупреждението за съответствие'
      */

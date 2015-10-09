@@ -73,13 +73,7 @@ class dec_Declarations extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'ceo,dec';
-    
-    
-    /**
-     * Кой е детайла на каласа
-     */
-    var $details = 'dec_DeclarationDetails';
-    
+
     
     /**
      * Кои полета ще виждаме в листовия изглед
@@ -200,8 +194,7 @@ class dec_Declarations extends core_Master
 	       	if (count($invoicedProducts)) {
 	       		
 		       	foreach($invoicedProducts as $iProduct){
-		    		$ProductMan = cls::get($iProduct->classId);
-		        	$productName [$iProduct->classId."|".$iProduct->productId] = $ProductMan::getTitleById($iProduct->productId);
+		        	$productName [$iProduct->productId] = cat_Products::getTitleById($iProduct->productId);
 				}
 				
 				$data->form->setSuggestions('productId', $productName);
@@ -431,7 +424,8 @@ class dec_Declarations extends core_Master
             		$requiredRoles = 'no_one';
             	} else {
             		$origin = doc_Containers::getDocument($rec->originId);
-            		if(!($origin->getInstance() instanceof sales_Invoices)){
+            		
+            		if(!$origin->isInstanceOf('sales_Invoices')){
             			$requiredRoles = 'no_one';
             		} else {
             			$originRec = $origin->rec();

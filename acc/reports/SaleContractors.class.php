@@ -51,7 +51,7 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
     /**
      * След подготовката на ембеднатата форма
      */
-    public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+    public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
 
         // Искаме да покажим оборотната ведомост за сметката на касите
@@ -64,11 +64,25 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
 
         $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
         $form->setDefault('to', $today);
-
-        // Задаваме че ще филтрираме по перо
+        
+        unset($form->fields['orderField']->type->options['ent2Id']);
+        unset($form->fields['orderField']->type->options['ent3Id']);
+        unset($form->fields['orderField']->type->options['baseQuantity']);
+        unset($form->fields['orderField']->type->options['baseAmount']);
+        unset($form->fields['orderField']->type->options['debitQuantity']);
+        unset($form->fields['orderField']->type->options['debitAmount']);
+        unset($form->fields['orderField']->type->options['creditQuantity']);
+        unset($form->fields['orderField']->type->options['blAmount']);
+        unset($form->fields['orderField']->type->options['blQuantity']);
+        
+        $form->fields['orderField']->type->options['ent1Id'] = "Контрагенти";
+        $form->fields['orderField']->type->options['creditAmount'] = "Сума";
+        
+        $form->setDefault('orderField', 'creditAmount');
+        // Задаваме, че ще филтрираме по перо
         $form->setDefault('action', 'group');
-        $form->setHidden('orderField');
-        $form->setHidden('orderBy');
+
+        $form->setDefault('orderBy', 'desc');
     }
 
 
@@ -108,8 +122,8 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         unset($data->listFields['blQuantity']);
         unset($data->listFields['blAmount']);
 
-        $data->listFields['creditQuantity'] = "Кредит->К-во";
-        $data->listFields['creditAmount'] = "Кредит->Сума";
+        $data->listFields['creditQuantity'] = "Количество";
+        $data->listFields['creditAmount'] = "Сума";
     }
 
     
@@ -127,7 +141,9 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
     		}
     	}
     	 
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
     	 
     	$pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
     	$data->pager = $pager;

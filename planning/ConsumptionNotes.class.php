@@ -27,7 +27,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за влагане';
+	public $title = 'Протоколи за влагане в производство';
 	
 	
 	/**
@@ -88,7 +88,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за влагане';
+	public $singleTitle = 'Протокол за влагане в производство';
 	
 	
 	/**
@@ -148,6 +148,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Влагане по артикули->Избор,notNull,default=yes,maxRadio=2,before=note');
+		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 }

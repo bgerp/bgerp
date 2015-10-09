@@ -820,6 +820,17 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+.smallLinkWithWithIcon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  top: 2px;
+  position: relative;
+  margin-bottom: 0 !important;
+  opacity: 0.8; }
+  .smallLinkWithWithIcon:hover {
+    opacity: 1; }
+
 .linkWithIconSpan {
   display: inline-block; }
 
@@ -1187,6 +1198,18 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .inputWarning {
   border: solid 1px #ff9900; }
 
+span.inputLackOfChoice {
+  border: solid 1px #bbbbbb;
+  background-color: #dddddd;
+  padding: 4px;
+  border-radius: 2px; }
+
+span.inputLackOfChoiceMandatory {
+  padding: 4px;
+  background-color: yellow;
+  border: solid 1px red;
+  border-radius: 2px; }
+
 .formInfo,
 .formWarning {
   margin-bottom: 8px; }
@@ -1219,6 +1242,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
  */
 .formFields {
   margin-bottom: 10px; }
+
+.narrow .vertical .formFields {
+  margin-bottom: 0; }
 
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;
@@ -1598,24 +1624,17 @@ td.keylist-group {
     margin-top: 1px;
     cursor: pointer; }
     td.keylist-group > div img {
-      display: none;
-      margin-right: 5px;
-      top: 2px;
-      position: relative; }
+      float: right;
+      display: none; }
 
-.narrow .keylistCategory .keylist-group > div {
-  position: relative; }
-  .narrow .keylistCategory .keylist-group > div .invert-checkbox {
-    position: absolute;
-    right: 3px;
-    top: 50%;
-    margin-top: -8px; }
+.narrow .keylistCategory . img {
+  position: relative;
+  top: 2px; }
 
-  .keylistCategory.opened  .invert-checkbox {
-    float: right;
-    display: block; }
-  .keylistCategory.closed  .invert-checkbox {
-    display: none; }
+  .keylistCategory .invert-checkbox {
+    float: left;
+    display: block;
+    margin-right: 5px; }
   .keylistCategory .hidden {
     display: none !important; }
 
@@ -2117,6 +2136,9 @@ a.rtbutton {
   height: 1.2em;
   min-width: 15px;
   text-align: center; }
+
+.richtext-holder-group {
+  z-index: 1001; }
 
 .richtext-holder-group a.rtbutton {
   background: #dddddd;

@@ -313,9 +313,8 @@ class store_Stores extends core_Master
     	foreach ($recs as &$dRec){
     		$productPlace = acc_Lists::getPosition($dRec->accountNum, 'cat_ProductAccRegIntf');
     		$itemRec = acc_Items::fetch($dRec->{"ent{$productPlace}Id"});
-    		$ProductMan = cls::get($itemRec->classId);
     		
-    		$packs = $ProductMan->getPacks($itemRec->objectId);
+    		$packs = cat_Products::getPacks($itemRec->objectId);
     		$basePackId = key($packs);
     		$data->uomNames[$dRec->id] = cat_UoM::getTitleById($basePackId);
     		
@@ -332,7 +331,7 @@ class store_Stores extends core_Master
     public static function on_AfterPrepareAccReportRows($mvc, &$data)
     {
     	$rows = &$data->balanceRows;
-    	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
+    	arr::placeInAssocArray($data->listFields, 'packId=Мярка', 'blQuantity');
     	
     	foreach ($rows as &$arrs){
     		if(count($arrs['rows'])){

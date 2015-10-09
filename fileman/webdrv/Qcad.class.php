@@ -23,8 +23,23 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
     
     /**
      * Типа на изходния файл
+     * 
+     * Възможни - svg, bmp, pdf
      */
-    static $fileType = 'svg';
+    static $fileType = 'bmp';
+    
+    
+    /**
+     * Дали да се зададат размери за широчина и височина на изходния файл
+     */
+    static $useSizes = TRUE;
+    
+    
+    /**
+     * Колко пъти да се увеличи широчината/височината за показване
+     * По-добро качество
+     */
+    static $qualityFactor = 1.4;
     
     
     /**
@@ -51,13 +66,13 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
         
-        $Script->setProgram('dwg2svg', $qcadPath . '/dwg2svg');
+        $Script->setProgram('dwg2' . self::$fileType, $qcadPath . '/dwg2' . self::$fileType);
         
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
 
         // Задаваме пътя до изходния файла
-        $outFilePath = $Script->tempDir . $name . '.svg';
+        $outFilePath = $Script->tempDir . $name . '.' . self::$fileType;
         
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $fRec->fileHnd);
@@ -67,8 +82,16 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
+        $lineExec = "dwg2" . self::$fileType . " -outfile=[#OUTPUTF#]";
+        
+        if (self::$useSizes) {
+            $lineExec .= ' -x ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_WIDTH') . ' -y ' . self::$qualityFactor * fileman_Setup::get('PREVIEW_HEIGHT');
+        }
+        
+        $lineExec .= ' [#INPUTF#]';
+        
         // Скрипта, който ще конвертира файла в SVG формат
-        $Script->lineExec("dwg2svg -outfile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
+        $Script->lineExec($lineExec, array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
@@ -91,6 +114,8 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
      */
     function act_Preview()
     {
+        expect(in_array(self::$fileType, array('bmp', 'svg', 'pdf')));
+        
         // Очакваме да има права за виждане
         $this->requireRightFor('view');
         
@@ -139,15 +164,17 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
                     return parent::act_Preview();
                 }
                 
-                $svgInst = cls::get('fileman_webdrv_Svg');
+                $clsName = 'fileman_webdrv_' . ucfirst(self::$fileType);
+                
+                $clsInst = cls::get($clsName);
                 
                 // Стартираме процеса на конвертиране към JPG формат
-                $svgInst->convertToJpg($nRec);
+                $clsInst->convertToJpg($nRec);
                 
                 Request::push(array('id' => $nRec->fileHnd));
                 
                 // Показваме thumbnail'а
-                return $svgInst->act_Preview();
+                return $clsInst->act_Preview();
             } catch (fileman_Exception $e) {
                 
                 // Сменяме мода

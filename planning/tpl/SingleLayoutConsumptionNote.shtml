@@ -9,7 +9,8 @@
                                 <tbody>
                                     <tr>
                                        <td class="cell centered" rowspan='4' style='width:30%;'>
-                                            <div class="document-title">|ПРОТОКОЛ ЗА ВЛАГАНЕ|*</div>
+                                            <div class="document-title">|протокол за влагане в производство|*</div>
+                                            <div class='small'>( <i>|на складируеми суровини и материали|*</i> )</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
@@ -52,7 +53,7 @@
                                                 <!--ET_END deadline-->
                                                 <!--ET_BEGIN useResourceAccounts-->
                                                 <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Влагане по ресурси|*:</td>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Детайлно влагане|*:</td>
                                                     <td>[#useResourceAccounts#]</td>
                                                 </tr>
                                                 <!--ET_END useResourceAccounts-->
@@ -81,13 +82,8 @@
                             </table>
                         </div>
                     </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
                 </td>
             </tr>
         </tbody>
     </table>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

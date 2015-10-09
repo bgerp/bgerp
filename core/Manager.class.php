@@ -168,7 +168,7 @@ class core_Manager extends core_Mvc
         
         if (!Request::get('ajax_mode')) {
             // Записваме, че потребителя е разглеждал този списък
-            $this->logInfo('List');
+            $this->logInAct('Листване');
         }
         
         return $tpl;
@@ -244,7 +244,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->logInfo($data->cmd, $data->id);
+        $this->logInfo('Изтриване', $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -307,8 +307,9 @@ class core_Manager extends core_Mvc
             // Записваме данните
             $id = $this->save($rec);
             
-            // Правим запис в лога
-            $this->logInfo($data->cmd, $id);
+            $msg = ($data->cmd == 'Add') ? 'Създаване' : 'Редактиране';
+            
+            $this->logInAct($msg, $rec);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -337,6 +338,27 @@ class core_Manager extends core_Mvc
         return $tpl;
     }
     
+    
+    /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'info')
+    {
+        $id = NULL;
+        
+        if ($rec) {
+            $id = $rec->id;
+        }
+        if ($type == 'info') {
+            $this->logInfo($msg, $id);
+        } else {
+            $this->logErr($msg, $id);
+        }
+    }
     
     /**
      * Начално установяване на мениджъра
@@ -449,12 +471,14 @@ class core_Manager extends core_Mvc
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
         
-        if($perPage) {
-            if(!isset($data->pageVar)) {
-                $data->pageVar = 'P_' . $this->className;
-            }
+        if($perPage) {  
             $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar));
             $data->pager->itemsPerPage = $perPage;
+            if(isset($data->rec->id)) {
+                $data->pager->setPageVar($this->className, $data->rec->id);
+            } else {
+                $data->pager->setPageVar($this->className);
+            }
         }
         
         return $data;
@@ -931,8 +955,6 @@ class core_Manager extends core_Mvc
         }
         
         $select = new ET('');
-        
-        $this->logInfo("ajaxGetOptions", NULL, 7);
         
         $options = $this->fetchOptions($q);
         

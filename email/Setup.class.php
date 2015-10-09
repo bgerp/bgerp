@@ -275,9 +275,11 @@ class email_Setup extends core_ProtoSetup
             'email_Unparsable',
             'email_Salutations',
             'email_ThreadHandles',
+            'email_SendOnTime',
             'migrate::transferThreadHandles',
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',
+            'migrate::repairSendOnTimeClasses',
         );
     
 
@@ -424,6 +426,23 @@ class email_Setup extends core_ProtoSetup
             $rec->systemId = $systemId;
             
             email_Filters::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Миграция, за поправка на класовете в sendOnTime
+     */
+    public static function repairSendOnTimeClasses()
+    {
+        $query = email_SendOnTime::getQuery();
+        while ($rec = $query->fetch()) {
+            if (!cls::load($rec->class, TRUE)) continue;
+            $clsInst = cls::get($rec->class);
+            
+            $rec->class = core_Cls::getClassName($clsInst);
+            
+            email_SendOnTime::save($rec, 'class');
         }
     }
 }

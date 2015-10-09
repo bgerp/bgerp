@@ -153,7 +153,7 @@ class acc_Items extends core_Manager
         // Кога за последно е използвано
         $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
-        $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затваряне,input=none');
+        $this->FLD('closedOn', 'date', 'caption=Затваряне,input=none');
         
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
@@ -220,8 +220,8 @@ class acc_Items extends core_Manager
         
         if($rec->state == 'closed'){
         	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
-        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::now();
-        	$rec->closedOn = $closedOn;
+        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::today();
+        	$rec->closedOn = dt::verbal2mysql($closedOn, FALSE);
         } elseif($rec->state == 'active'){
         	$rec->closedOn = NULL;
         }
@@ -407,7 +407,7 @@ class acc_Items extends core_Manager
         	$listOptions+= array('-1' => '[Без номенклатури]');
         }
         
-        $data->listFilter->setOptions('listId', $listOptions);
+        $data->listFilter->setOptions('listId', array('' => '') + $listOptions);
         
         $data->listFilter->view = 'horizontal';
         
@@ -832,6 +832,9 @@ class acc_Items extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logInfo("Добавяне на обекти, като пера");
+        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -1073,7 +1076,7 @@ class acc_Items extends core_Manager
     	// За кой баланс ще извличаме перата
     	$bId = acc_Balances::fetchField("#fromDate <= '{$date}' && #toDate >= '{$date}'", 'id');
     	
-    	// Филтрираме записите така че да намерим само тези пера
+    	// Филтрираме записите, така че да намерим само тези пера
     	$bQuery = acc_BalanceDetails::getQuery();
     	acc_BalanceDetails::filterQuery($bQuery, $bId, $accSysId);
     	$bQuery->show("ent{$posId}Id");

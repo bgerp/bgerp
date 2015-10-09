@@ -213,7 +213,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     			$originRec = $origin->fetch();
     			
     			// Ако няма сч. движения по сделката не може да се приключи
-    			if($originRec->state == 'active' && $origin->getInstance() instanceof sales_Sales){
+    			if($originRec->state == 'active' && $origin->isInstanceOf('sales_Sales')){
     				
     				// Ако разликата между доставеното/платеното е по голяма, се изисква
     				// потребителя да има по-големи права за да създаде документа
@@ -238,7 +238,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може само към нишка, породена от продажба
-    	if(!($firstDoc->getInstance() instanceof sales_Sales)) return FALSE;
+    	if(!$firstDoc->isInstanceOf('sales_Sales')) return FALSE;
     	
     	return TRUE;
     }

@@ -55,6 +55,17 @@ class tasks_DriverIntf extends embed_DriverIntf
 
 
 	/**
+	 * Връща дефолтното име на задача от драйвера
+	 *
+	 * @return string
+	 */
+	public function getDefaultTitle()
+	{
+		$this->class->getDefaultTitle();
+	}
+	
+	
+	/**
 	 * Обновяване на данните на мастъра
 	 *
 	 * @param stdClass $rec - запис
@@ -162,5 +173,16 @@ class tasks_DriverIntf extends embed_DriverIntf
 	public function renderDetailLayout(&$tpl, $data)
 	{
 		$this->class->renderDetailLayout($tpl, $data);
+	}
+	
+	
+	/**
+	 * Кой детайл да бъде добавен към мастъра
+	 * 
+	 * @return varchar - името на детайла
+	 */
+	public function getDetail()
+	{
+		$this->class->getDetail();
 	}
 }

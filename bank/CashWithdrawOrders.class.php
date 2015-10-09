@@ -286,14 +286,14 @@ class bank_CashWithdrawOrders extends core_Master
     {
         // Ако няма ориджин в урл-то, документа не може да се добави към нишката
         $originId = Request::get('originId');
-        
+       
         if(empty($originId)) return FALSE;
         
         // Към кой документ се създава бланката
         $origin = doc_Containers::getDocument($originId);
         
         // Може да се добавя само към Разходен банков ордер
-        if(!($origin->getInstance() instanceof bank_SpendingDocuments || $origin->getInstance() instanceof bank_InternalMoneyTransfer)) return FALSE;
+        if(!($origin->isInstanceOf('bank_SpendingDocuments') || $origin->isInstanceOf('bank_InternalMoneyTransfer'))) return FALSE;
         
         return TRUE;
     }

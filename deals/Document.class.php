@@ -213,9 +213,6 @@ abstract class deals_Document extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$row->number = $mvc->getHandle($rec->id);
-		if($fields['-list']){
-			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-		}
 		 
 		if($fields['-single']){
 			if(findeals_Deals::haveRightFor('single', $rec->dealId)){

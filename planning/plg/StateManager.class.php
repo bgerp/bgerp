@@ -56,27 +56,27 @@ class planning_plg_StateManager extends core_Plugin
 		 
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
-			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на документа,warning=Сигурнили сте че искате да приключите документа');
+			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), array('ef_icon' => "img/16/lightbulb_off.png",'title' => "Приключване на документа",'warning' => "Сигурни ли сте, че искате да приключите документа"));
 		}
 		 
 		// Добавяне на бутон за спиране
 		if($mvc->haveRightFor('stop', $rec)){
-			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на документа,warning=Сигурнили сте че искате да спрете документа');
+			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE),  array('ef_icon' => "img/16/control_pause.png",'title' => "Спиране на документа",'warning' => "Сигурни ли сте, че искате да спрете документа"));
 		}
 		 
 		// Добавяне на бутон за събуждане
 		if($mvc->haveRightFor('wakeup', $rec)){
-			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $rec->id, 'type' => 'wakeup', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Събуждане на документа,warning=Сигурнили сте че искате да събудите документа');
+			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $rec->id, 'type' => 'wakeup', 'ret_url' => TRUE),  array('ef_icon' => "img/16/lightbulb.png",'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа"));
 		}
 		 
 		// Добавяне на бутон за активиране от различно от чернова състояние
 		if($mvc->haveRightFor('activateAgain', $rec)){
-			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activateAgain', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на документа,warning=Сигурнили сте че искате да активирате документа');
+			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activateAgain', 'ret_url' => TRUE, ), array('ef_icon' => "img/16/control_play.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа"));
 		}
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), 'ef_icon = img/16/lightning.png,title=Активиране на документа,warning=Сигурнили сте че искате да активирате документа');
+			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), array('ef_icon' => "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа"));
 		}
 	}
 	
@@ -158,26 +158,32 @@ class planning_plg_StateManager extends core_Plugin
     		switch($action){
     			case 'close':
     				$rec->state = 'closed';
+    				$action = 'Приключване';
     				break;
     			case 'stop':
     				$rec->state = 'stopped';
+    				$action = 'Спиране';
     				break;
     			case 'wakeup':
     				$rec->state = 'wakeup';
+    				$action = 'Събуждане';
     			break;
     			case 'activateAgain':
     				$rec->state = 'active';
+    				$action = 'Активиране';
     			case 'activate':
     				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'pending';
+    				$action = 'Активиране';
     			break;
     		}
     	
     		// Обновяваме състоянието и старото състояние
     		if($mvc->save($rec, 'brState,state')){
+    			$mvc->logInfo($action, $rec->id);
     			$mvc->invoke('AfterChangeState', array(&$rec));
     		}
     		
-    		// Ако сме активирали: запалваме събитие че сме активирали
+    		// Ако сме активирали: запалваме събитие, че сме активирали
     		if($action == 'activate'){
     			$mvc->invoke('AfterActivation', array(&$rec));
     		}

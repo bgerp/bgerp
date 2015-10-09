@@ -39,9 +39,12 @@ class doc_plg_Close extends core_Plugin
     		$singleTitle = mb_strtolower($mvc->singleTitle);
     		
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnActivate,row=2,ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle},warning=Сигурнили сте че искате да активирате");
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnActivate,row=2,ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle}");
+    			$data->toolbar->setWarning('btnActivate', 'Сигурни ли сте, че искате да активирате документа?');
+    		
     		} elseif($data->rec->state == 'active'){
-    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnClose,row=2,ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle},warning=Сигурнили сте че искате да затворите");
+    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnClose,row=2,ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle}");
+    			$data->toolbar->setWarning('btnClose', 'Сигурни ли сте, че искате да затворите документа?');
     		}
     	}
     }
@@ -105,11 +108,15 @@ class doc_plg_Close extends core_Plugin
     	$mvc->requireRightFor('close', $rec);
     	 
     	$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	$action = ($state == 'closed') ? 'Приключване' : 'Активиране';
+    	
+    	$rec->brState = $rec->state;
     	$rec->exState = $rec->state;
     	$rec->state = $state;
     	
-    	$mvc->save($rec, 'state');
-    	 
+    	$mvc->save($rec);
+    	$mvc->logInfo($action, $rec->id);
+    	
     	return Redirect(array($mvc, 'single', $rec->id));
     }
 }

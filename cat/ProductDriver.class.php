@@ -7,47 +7,25 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
  */
-abstract class cat_ProductDriver extends core_ProtoInner
+abstract class cat_ProductDriver extends core_BaseClass
 {
-	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationDriver';
 	
 	
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo, cat, sales';
+	public $canSelectDriver = 'ceo, cat, sales';
 	
 	
 	/**
 	 * Интерфейси които имплементира
 	 */
 	public $interfaces = 'cat_ProductDriverIntf';
-	
-	
-	/**
-	 * Вътрешната форма
-	 *
-	 * @param mixed $innerForm
-	 */
-	protected $innerForm;
-	
-	
-	/**
-	 * Вътрешното състояние
-	 *
-	 * @param mixed $innerState
-	 */
-	protected $innerState;
 
 	
 	/**
@@ -59,58 +37,51 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	
 	
 	/**
-	 * Параметри
+     * Икона за единичния изглед
+     */
+    protected $icon = 'img/16/wooden-box.png';
+	
+	
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+    
+    }
+    
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function canSelectDriver($userId = NULL)
+    {
+    	return core_Users::haveRole($this->canSelectDriver, $userId);
+    }
+    
+    
+	/**
+	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param array $driverParams
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
 	 */
-	protected $driverParams;
-	
-	
-	/**
-	 * Записа на ембедера
-	 */
-	public $EmbedderRec;
-	
-	
-	/**
-	 * Задава параметрите на обекта
-	 *
-	 * @param mixed $innerForm
-	 */
-	public function setDriverParams($params)
+	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
-		$params = arr::make($params, TRUE);
-		if(count($params)){
-			$this->driverParams = arr::make($params, TRUE);
-		}
-	}
-	
-	
-	/**
-	 * Връща параметрите на драйвера
-	 */
-	public function getDriverParams()
-	{
-		return $this->driverParams;
-	}
-	
-	
-	/**
-	 * Подготвя формата за въвеждане на данни за вътрешния обект
-	 *
-	 * @param core_Form $form
-	 */
-	public function prepareEmbeddedForm(core_Form &$form)
-	{
+		$form = &$data->form;
+		
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
 		
-		if(count($this->driverParams)){
+		if(is_array($data->driverParams) && count($data->driverParams)){
 			
 			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
 			foreach ($fields as $name => $fld){
-				if(isset($this->driverParams[$name])){
-					$form->setDefault($name, $this->driverParams[$name]);
+				if(isset($data->driverParams[$name])){
+					$form->setDefault($name, $data->driverParams[$name]);
 				}
 			}
 		}
@@ -139,25 +110,60 @@ abstract class cat_ProductDriver extends core_ProtoInner
 			}
 		}
 	}
-
-
+	
+	
 	/**
-	 * Можели вградения обект да се избере
+	 * Връща счетоводните свойства на обекта
 	 */
-	public function canSelectInnerObject($userId = NULL)
+	public function getFeatures($productId)
 	{
-		return core_Users::haveRole($this->canSelectSource, $userId);
+		return array();
 	}
 
+	
+	/**
+	 * Кои опаковки поддържа продукта
+	 *
+	 * @param array $metas - кои са дефолтните мета данни от ембедъра
+	 * @return array $metas - кои са дефолтните мета данни
+	 */
+	public function getDefaultMetas($metas)
+	{
+		// Взимаме дефолтните мета данни от ембедъра
+		$metas = arr::make($metas, TRUE);
+	
+		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
+		if(!empty($this->defaultMetaData)){
+			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
+		}
+	
+		return $metas;
+	}
+	
 
 	/**
-	 * Преди запис
+	 * Връща стойността на параметъра с това име
+	 * 
+	 * @param string $name - име на параметъра
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public static function on_BeforeSave($mvc, &$is, $filter, $rec)
+	public function getParamValue($name, $id)
 	{
-		if(isset($filter)){
-			$is = is_object($filter) ? clone $filter : $filter;
-		}
+		return FALSE;
+	}
+	
+	
+	/**
+	 * Подготвя данните за показване на описанието на драйвера
+	 *
+	 * @param stdClass $rec - запис
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 * @return stdClass - подготвените данни за описанието
+	 */
+	public function prepareProductDescription($rec, $documentType = 'public')
+	{
+		return (object)array();
 	}
 	
 	
@@ -168,98 +174,112 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	{
 		return FALSE;
 	}
-
-
-	/**
-	 * Кои опаковки поддържа продукта
-	 * 
-	 * @param array $metas - кои са дефолтните мета данни от ембедъра
-	 * @return array $metas - кои са дефолтните мета данни
-	 */
-	public function getDefaultMetas($metas)
-	{
-		// Взимаме дефолтните мета данни от ембедъра
-		$metas = arr::make($metas, TRUE);
-		
-		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
-		if(!empty($this->defaultMetaData)){
-			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
-		}
-		
-		return $metas;
-	}
 	
 	
 	/**
-	 * Връща основната мярка, специфична за технолога
-	 */
-	public function getDriverUom()
-	{
-		$params = $this->driverParams;
-		
-		if(empty($params['measureId'])){
-			 
-			return cat_UoM::fetchBySysId('pcs')->id;
-		}
-		
-		return $params['measureId'];
-	}
-	
-	
-	/**
-	 * Изображението на артикула
-	 */
-	public function getProductImage()
-	{
-		return NULL;
-	}
-	
-	
-	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
+	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
+	 * @param string $measureName - име на мярка
+	 * @return FALSE|int - ид на мярката
 	 */
-	public function getParams()
+	public function getDefaultUom($measureName = NULL)
 	{
-		$res = array();
-		
-		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-			$res[$p] = NULL;
-		}
-		
-		return $res;
+		return FALSE;
 	}
 	
 	
 	/**
-	 * Подготвя данните за показване на описанието на драйвера
+	 * Връща иконата на драйвера
 	 * 
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 * @return string - пътя към иконата
 	 */
-	public function prepareProductDescription($documentType = 'public')
+	public function getIcon()
 	{
-		return (object)array();
+		return $this->icon;
 	}
 	
 	
 	/**
 	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET
 	 */
 	public function renderProductDescription($data)
 	{
 		return new core_ET("");
+	}
+
+
+	/**
+	 * След рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
+	{
+		$data->Embedder = $Embedder;
+		$nTpl = $Driver->renderSingleDescription($data);
+	
+		$tpl->append($nTpl, 'innerState');
+	}
+	
+	
+	/**
+	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	protected function renderSingleDescription($data)
+	{
+		$tpl = new ET(tr("|*<fieldset class='detail-info'>
+                    <legend class='groupTitle'>|Информация|*</legend>
+                    <div class='groupList'>
+                        <b>{$this->singleTitle}</b>
+						<table class = 'no-border'>
+                            
+							[#INFO#]
+						</table>
+					<div>
+					[#ROW_AFTER#]
+				</fieldset>
+				"));
+		
+		//$driverFields = cat_Products::getDriverFields($this);
+        $form = cls::get('core_Form');
+        $this->addFields($form);
+		$driverFields = $form->fields;
+
+		if(is_array($driverFields)){
+			foreach ($driverFields as $name => $field){
+				if(isset($data->row->{$name})){
+
+                    $caption = $field->caption;
+
+                    if(strpos($caption, '->')) {
+                        list($group, $caption) = explode('->', $caption);
+                        if($group != $lastGroup) {
+                            $group = tr($group);
+                            $dhtml = "<tr><td colspan='2' style='padding-left:0px;padding-top:5px;font-weight:bold;'><b>{$group}</b></td></td</tr>";
+                            $tpl->append($dhtml, 'INFO');
+                        }
+
+                        $lastGroup = $group;
+                    }
+
+                    $caption = tr($caption);
+					
+					$dhtml = "<tr><td>{$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
+					$tpl->append($dhtml, 'INFO');
+				}
+			}
+		}
+		
+		return $tpl;
 	}
 	
 	
@@ -275,43 +295,6 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	
 	
 	/**
-	 * Връща счетоводните свойства на обекта
-	 */
-	public function getFeatures()
-	{
-		return array();
-	}
-	
-	
-	/**
-	 * Подготвя данните необходими за показването на вградения обект
-	 *
-	 * @param core_Form $innerForm
-	 * @param stdClass $innerState
-	 */
-	public function prepareEmbeddedData()
-	{
-		$data = new stdClass();
-		$row = new stdClass();
-	
-		$form = new core_Form();
-		$this->addEmbeddedFields($form);
-		$this->prepareEmbeddedForm($form);
-		$fields = $form->selectFields();
-		foreach($fields as $name => $fld){
-			$captionArr = explode('->', $fld->caption);
-			$caption = (count($captionArr) == 2) ? $captionArr[1] : $fld->caption;
-				
-			$row->{$caption} = $form->getFieldType($name)->toVerbal($this->innerForm->$name);
-		}
-	
-		$data->row = $row;
-	
-		return $data;
-	}
-	
-	
-	/**
 	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
 	 * 
 	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
@@ -322,5 +305,17 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	public function getDefaultJobTasks()
 	{
 		return array();
+	}
+
+
+	/**
+	 * Връща хендлъра на изображението представящо артикула, ако има такова
+	 *
+	 * @param mixed $id - ид или запис
+	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 */
+	public static function getProductImage($id)
+	{
+		return;
 	}
 }

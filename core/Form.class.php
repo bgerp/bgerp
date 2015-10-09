@@ -685,6 +685,10 @@ class core_Form extends core_FieldSet
                     setIfNot($type->params['columns'], $field->columns);
                 }
                 
+                if ($field->mandatory) {
+                    setIfNot($type->params['mandatory'], $field->mandatory);
+                }
+                
                 if ($field->options) {
                     $type->options = $field->options;
                 }
@@ -713,11 +717,22 @@ class core_Form extends core_FieldSet
                     $idForFocus = $attr['id'];
                 }
                 
+                // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
+                if(count($options) == 2 && $type->params['mandatory'] && empty($value) && $options[key($options)] === '') {
+                    list($o1, $o2) = array_keys($options);
+                    if(!empty($o2)) {
+                        $value = $o2;
+                    } elseif(!empty($o1)) {
+                        $value = $o1;
+                    }
+                }
+
                 // Рендиране на select или input полето
                 if (count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) {
                     
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
+ 
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
                         $type->params['maxColumns'],

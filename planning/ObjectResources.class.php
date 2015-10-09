@@ -68,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,likeProductId=Влагане като,selfValue=Себестойност';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като';
     
     
     /**
@@ -88,17 +88,16 @@ class planning_ObjectResources extends core_Manager
      */
     function description()
     {
-    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
-    	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като');
+    	$this->FLD('objectId', 'key(mvc=cat_Products,select=name)', 'input=hidden,caption=Обект,silent');
+    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като,mandatory');
     	
     	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
     	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,input=none');
-    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност');
+    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност,input=none');
     	
     	// Поставяне на уникални индекси
-    	$this->setDbUnique('classId,objectId');
+    	$this->setDbUnique('objectId');
     }
     
     
@@ -126,9 +125,6 @@ class planning_ObjectResources extends core_Manager
     	} else {
     		$form->setReadOnly('likeProductId');
     	}
-    	
-    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
-    	$form->setField('selfValue', "unit={$baseCurrencyCode}");
     	
     	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
     	$form->title = $title . "|* <b>". cat_Products::getTitleByid($rec->objectId) . "</b>";
@@ -197,29 +193,13 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()){
-    		$rec = &$form->rec;
-    		
-    		if(!isset($rec->selfValue) && !isset($rec->likeProductId)){
-    			$form->setError('selfValue,likeProductId', 'Поне едно от полетата трябва да е попълнено');
-    		}
-    	}
-    }
-    
-    
-    /**
      * Подготвя показването на информацията за влагане
      */
     public function prepareResources(&$data)
     {
     	$data->rows = array();
-    	$classId = $data->masterMvc->getClassId();
     	$query = $this->getQuery();
-    	$query->where("#classId = {$classId} AND #objectId = {$data->masterId}");
+    	$query->where("#objectId = {$data->masterId}");
     	while($rec = $query->fetch()){
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
     	}
@@ -237,8 +217,8 @@ class planning_ObjectResources extends core_Manager
     	$data->Tab = 'top';
     	
     	if(!Mode::is('printing')) {
-    		if(self::haveRightFor('add', (object)array('classId' => $classId, 'objectId' => $data->masterId))){
-    			$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
+    		if(self::haveRightFor('add', (object)array('objectId' => $data->masterId))){
+    			$data->addUrl = array($this, 'add', 'objectId' => $data->masterId, 'ret_url' => TRUE);
     		}
     	}
     }
@@ -288,14 +268,13 @@ class planning_ObjectResources extends core_Manager
     {
     	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
     		
-    		$Class = cls::get($rec->classId);
-    		$masterRec = $Class->fetchRec($rec->objectId);
+    		$masterRec = cat_Products::fetchRec($rec->objectId);
     		
     		// Не може да добавяме запис ако не може към обекта, ако той е оттеглен или ако нямаме достъп до сингъла му
-    		if($masterRec->state != 'active' || !$Class->haveRightFor('single', $rec->objectId)){
+    		if($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->objectId)){
     			$res = 'no_one';
     		} else {
-    			if($pInfo = cls::get($rec->classId)->getProductInfo($rec->objectId)){
+    			if($pInfo = cat_Products::getProductInfo($rec->objectId)){
     				if(!isset($pInfo->meta['canConvert'])){
     					$res = 'no_one';
     				}
@@ -305,7 +284,7 @@ class planning_ObjectResources extends core_Manager
     	 
     	// За да се добави ресурс към обект, трябва самия обект да може да има ресурси
     	if($action == 'add' && isset($rec)){
-    		if($mvc->fetch("#classId = {$rec->classId} AND #objectId = {$rec->objectId}")){
+    		if($mvc->fetch("#objectId = {$rec->objectId}")){
     			$res = 'no_one';
     		}
     	}
@@ -315,7 +294,7 @@ class planning_ObjectResources extends core_Manager
     		// Ако обекта е използван вече в протокол за влагане, да не може да се изтрива докато протокола е активен
     		$consumptionQuery = planning_ConsumptionNoteDetails::getQuery();
     		$consumptionQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
-    		if($consumptionQuery->fetch("#classId = {$rec->classId} AND #productId = {$rec->objectId} AND #state = 'active'")){
+    		if($consumptionQuery->fetch("#productId = {$rec->objectId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
     	}
@@ -331,11 +310,6 @@ class planning_ObjectResources extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if(isset($rec->selfValue)){
-    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
-    		$row->selfValue = "{$row->selfValue} <span class='cCode'>{$baseCurrencyCode}</span>";
-    	}
-    	
     	if(isset($rec->likeProductId)){
     		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
     	}
@@ -355,54 +329,32 @@ class planning_ObjectResources extends core_Manager
      * Връща себестойността на материала
      *
      * @param int $objectId - ид на артикула - материал
-     * @return double $selfValue -себестойността му
+     * @return double $selfValue - себестойността му
      */
-    public static function getSelfValue($objectId)
+    public static function getSelfValue($objectId, $date = NULL)
     {
-    	$selfValue = self::fetchField(array("#objectId = '[#1#]'", $objectId), 'selfValue');
+    	// Проверяваме имали зададена търговска себестойност
+    	$selfValue = cat_Products::getSelfValue($objectId, NULL, 1, $date);
     	
+    	// Ако няма търговска себестойност: проверяваме за счетоводна
     	if(!isset($selfValue)){
-    		
-    		// Проверяваме имали зададена търговска себестойност
-    		$selfValue = cls::get('cat_Products')->getSelfValue($objectId);
-    		
-    		// Ако няма търговска себестойност: проверяваме за счетоводна
-    		if(!isset($selfValue)){
+    		if(!$date){
+    			$date = dt::now();
+    		}
     			
-    			// Кой баланс ще вземем
-    			$lastBalance = acc_Balances::getLastBalance();
+    		$pInfo = cat_Products::getProductInfo($objectId);
     			
-    			// Ако има баланс
-    			if($lastBalance){
-    					
-    				// Материала перо ли е ?
-    				$objectItem = acc_Items::fetchItem('cat_Products', $objectId);
-    				 
-    				// Ако е перо
-    				if($objectItem){
-    			
-    					// Опитваме се да изчислим последно притеглената му цена
-    					$query = acc_BalanceDetails::getQuery();
-    					acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
-    					$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
-    			
-    					$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
-    					$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
-    					$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
-    					$res = $query->fetch();
-    			
-    					// Ако има някакво количество и суми в складовете, натрупваме ги
-    					if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
-    						$totalQuantity = round($res->totalQuantity, 2);
-    						$totalAmount = round($res->totalAmount, 2);
-    						 
-    						if($totalAmount == 0){
-    							$selfValue = 0;
-    						} else {
-    							@$selfValue = $totalAmount / $totalQuantity;
-    						}
-    					}
-    				}
+    		// Ако артикула е складируем взимаме среднопритеглената му цена от склада
+    		if(isset($pInfo->meta['canStore'])){
+    			$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
+    		} else {
+    				
+    			// Ако не е складируем взимаме среднопритеглената му цена в производството
+    			$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
+    			if(isset($item1)){
+    				// Намираме сумата която струва к-то от артикула в склада
+    				$selfValue = acc_strategy_WAC::getAmount(1, $date, '61101', $item1, NULL, NULL);
+    				$selfValue = round($selfValue, 4);
     			}
     		}
     	}

@@ -62,6 +62,7 @@ class bank_Setup extends core_ProtoSetup
         'bank_PaymentOrders',
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
+    	'migrate::updateDocumentStates'
     );
     
     
@@ -117,5 +118,33 @@ class bank_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на старите документи
+     */
+    function updateDocumentStates()
+    {
+    	$documents = array('bank_IncomeDocuments', 'bank_SpendingDocuments', 'bank_InternalMoneyTransfer', 'bank_ExchangeDocument');
+    	core_App::setTimeLimit(150);
+    	 
+    	foreach ($documents as $doc){
+    		try{
+    			$Doc = cls::get($doc);
+    			$Doc->setupMvc();
+    			 
+    			$query = $Doc->getQuery();
+    			$query->where("#state = 'closed'");
+    			$query->show('state');
+    			 
+    			while($rec = $query->fetch()){
+    				$rec->state = 'active';
+    				$Doc->save_($rec, 'state');
+    			}
+    		} catch(core_exception_Expect $e){
+    			 
+    		}
+    	}
     }
 }

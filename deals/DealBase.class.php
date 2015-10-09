@@ -297,12 +297,15 @@ abstract class deals_DealBase extends core_Master
     			}
     		}
     	   
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo("Приключване на сделка с друга сделка", $id);
+    		
     		return redirect(array($this, 'single', $id));
     	}
     
     	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
     	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
-    		 
+    	
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
     }
@@ -363,6 +366,27 @@ abstract class deals_DealBase extends core_Master
     
     
     /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        if ($res === FALSE) return ;
+        
+        $dealHistory = Request::get('dealHistory');
+        
+        $res = md5($res . $dealHistory);
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
@@ -411,6 +435,7 @@ abstract class deals_DealBase extends core_Master
     	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->historyItemsPerPage));
+    	$Pager->setPageVar($this->className, $rec->id);
     	$Pager->itemsCount = count($entries);
     	$Pager->calc();
     	$data->historyPager = $Pager;

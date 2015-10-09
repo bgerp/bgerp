@@ -456,8 +456,9 @@ div.folder-cover {
 	margin-left: 0;
 	margin-top: 8px;
 	max-width: 720px;
+	min-width: 280px;
 	font-size: 0.9em;
-	padding: 10px 10px 12px 10px;
+	padding: 10px !important;
 	.block_title img {
 		vertical-align: baseline;
 	}
@@ -597,6 +598,22 @@ div.folder-cover {
 		width: 1%;
 		min-width: 85px
 	}
+}
+
+#profileLoginLog.groupList table, #profileActionLog.groupList table {
+    td {
+        padding: 3px;
+        border-top: 1px dashed #bbb;
+        &:first-child {
+            width: 1%;
+            white-space: nowrap;
+            padding: 3px 20px;
+        }
+    }
+    tr:first-child td {
+        border-top: none;
+    }
+    
 }
 
 .narrow .user-profile {
@@ -796,7 +813,7 @@ div.acc-detail {
        padding: 10px;
 	   display: none;
 	   position: absolute;
-	   z-index: 20;
+	   z-index: 1001;
 	   bottom: 15px;
 	   left:20px;
 	   background: #ffe;
@@ -1003,6 +1020,16 @@ div.acc-detail {
 		}
     }
 }
+.portal.planning table.listTable th {
+    border: 1px solid #ccc;
+    &:first-child {
+        border-left: none;
+    }
+    &:last-child {
+        border-right: none;
+    }
+    display: table-cell;
+}
 
 .narrow .portal .listRows {
 	font-size:0.9em;	
@@ -1023,6 +1050,16 @@ td.portal-date {
 
 .shortTable .listTable {
     width: 1%;
+}
+
+.wide .half-block {
+	padding-right:20px;
+	&.large {
+	   width: 70%;
+	}
+}
+.narrow .half-block {
+	display: block;
 }
 /*край на портал*/
 
@@ -1499,7 +1536,12 @@ pre.document {
 .full-width{
     width: 100%;
 }
-
+.full-width-holder {
+	width: 100%;
+	table {
+	   width: 100%;
+	}
+}
 /*край на стилове за документи*/
 
 
@@ -1888,6 +1930,9 @@ ul.history {
 		&.used b {
 			background-color: #F99;
 		}
+		&.act b {
+            background-color: #aaa;
+        }
 	}
 	.detailed b {
 		background-color: #ccc;
@@ -4499,22 +4544,41 @@ body.narrow {
 	background-color:#eee;
 }
 
+.single-thread .document .docStatistic div.alphabet .tab-page .detail-info {
+	.logs-type-warning td {
+        background-color: #fae3ca !important;
+	}
+	.logs-type-debug td {
+	    background-color: #eee !important;
+	}
+	.logs-type-notice td {
+	    background-color: #dff4fa !important;
+	}
+	.logs-type-err td {
+	    background-color: #fad0d1 !important;
+	}
+}
+
 .logs-type-warning {
     background-color: #fae3ca;
 }
+
 .logs-type-debug {
     background-color: #eee;
 }
-.logs-type-notice {
+
+ .logs-type-notice {
     background-color: #dff4fa;
 }
-.logs-type-info {
-    background-color: #fffef4;
-}
-.logs-type-err {
+
+.logs-type-err{
     background-color: #fad0d1;
 }
 
+.logs-type-info {
+    background-color: #fffef4;
+}
+ 
 /* Стилове за езика във външната част*/
 .wide .langSelect{
 	margin:10px 20px;

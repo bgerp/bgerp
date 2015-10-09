@@ -5,9 +5,6 @@
             <table class='full-width'>
                 <tr>
                     <td>
-                        <div>
-                            |Отговорници|*: [#inCharge#]
-                        </div>
                         <!--ET_BEGIN timeStart-->
                         |Начало|*: [#timeStart#]<br>
                         <!--ET_END timeStart-->
@@ -45,7 +42,7 @@
     
     <!--ET_BEGIN tasks_TaskConditions-->
     <div class="clearfix21 portal" style="background-color:transparent;">
-		<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Условия|*</div>
+		<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Условия за стартиране|*</div>
 	    <div class="listRows">
 	    	<div class='overflow-scroll'>[#tasks_TaskConditions#]</div>
 		</div>

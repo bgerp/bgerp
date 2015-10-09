@@ -33,7 +33,7 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_RowTools,plg_SaveAndNew';
+    public $loadList = 'plg_Created,plg_RowTools,plg_SaveAndNew,plg_Modified';
 
 
     /**
@@ -51,13 +51,13 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Условие за започване';
+    public $singleTitle = 'Условие за стартиране';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,taskId=Задача,progress,dependsOn,offset,calcTime,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,taskId=Задача,progress=Условие,offset,calcTime,modified=Модифицирано';
     
     
     /**
@@ -91,6 +91,12 @@ class tasks_TaskConditions extends doc_Detail
 
     
     /**
+     * Кои колони да скриваме ако янма данни в тях
+     */
+    public $hideListFieldsIfEmpty = 'offset,calcTime';
+    
+    
+    /**
      * Кой е мастър класа
      */
     public function getMasterMvc($rec)
@@ -98,6 +104,22 @@ class tasks_TaskConditions extends doc_Detail
     	$masterMvc = cls::get(tasks_Tasks::fetchField($rec->taskId, 'classId'));
     
     	return $masterMvc;
+    }
+    
+    
+    /**
+     * Връща списъка от мастър-мениджъри на зададен детайл-запис.
+     *
+     * Обикновено детайлите имат точно един мастър. Използваме този метод в случаите на детайли
+     * с повече от един мастър, който евентуално зависи и от данните в детайл-записа $rec.
+     *
+     * @param stdClass $rec
+     * @return array масив от core_Master-и. Ключа е името на полето на $rec, където се
+     *               съхранява външния ключ към съотв. мастър
+     */
+    public function getMasters_($rec)
+    {
+    	return array($this->masterKey => $this->getMasterMvc($rec));
     }
     
     
@@ -110,7 +132,7 @@ class tasks_TaskConditions extends doc_Detail
     	$this->FLD('dependsOn', 'key(mvc=tasks_Tasks,select=title, allowEmpty)', 'mandatory,caption=Зависи от');
     	$this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'mandatory,caption=Прогрес');
     	$this->FLD('offset', 'time()', 'notNull,value=0,caption=Отместване');
-    	$this->FLD('calcTime', 'datetime(format=smartTime)', 'input=none,caption=Изчислено време');
+    	$this->FLD('calcTime', 'datetime(format=smartTime)', 'input=none,caption=Стартиране');
     	
     	$this->setDbUnique('taskId,dependsOn');
     }
@@ -123,7 +145,7 @@ class tasks_TaskConditions extends doc_Detail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	//bp($mvc->Master);
+    	
     	// Задаваме предложения за прогрес
     	$form->setSuggestions('progress', array('' => '') + arr::make('0 %,10 %,20 %,30 %,40 %,50 %, 60 %, 70 %, 80 %, 90 %, 100 %', TRUE));
     	
@@ -197,10 +219,8 @@ class tasks_TaskConditions extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if(isset($rec->dependsOn)){
-    		$row->dependsOn = tasks_Tasks::getLink($rec->dependsOn, 0);
-    	}
-    	$row->taskId = tasks_Tasks::getLink($rec->taskId, 0);
+    	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
     	
     	switch($rec->progress){
     		case 0:
@@ -213,6 +233,12 @@ class tasks_TaskConditions extends doc_Detail
     			$row->progress = "<b>" . $row->progress . "</b>" . tr("|* |от изпълнението на|* ");
     			break;
     	}
+    	
+    	if(isset($rec->dependsOn)){
+    		$row->progress .= " " . tasks_Tasks::getLink($rec->dependsOn, 0);
+    	}
+    	$row->progress = "<div style='text-align:center;'>{$row->progress}</div>";
+    	$row->ROW_ATTR['class'] .= " state-active";
     }
     
     

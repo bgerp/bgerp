@@ -150,7 +150,7 @@ class cond_PaymentMethods extends core_Master
      */
     public static function isCOD($payment)
     {
-    	// Ако няма избран метод, се приема че е COD
+    	// Ако няма избран метод се приема, че е COD
     	if(!$payment) return TRUE;
     	
     	$where = (is_numeric($payment)) ? $payment : "#name = '{$payment}'";
@@ -172,6 +172,7 @@ class cond_PaymentMethods extends core_Master
      * 		['paymentOnDelivery']         - сума за плащане при получаване
      * 		['paymentAfterInvoice']       - сума за плащане след фактуриране
      * 		['deadlineForBalancePayment'] - крайна дата за окончателно плащане
+     * 		['timeBalancePayment']        - срок за окончателно плащане
      */
     public static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
@@ -192,8 +193,8 @@ class cond_PaymentMethods extends core_Master
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
         $paymentAfterInvoice = round($paymentAfterInvoice * $amount, 4);
         
+        $res['timeBalancePayment'] = $rec->timeBalancePayment;
         if($paymentAfterInvoice > 0) {
-        	
             $res['paymentAfterInvoice']       = $paymentAfterInvoice;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeBalancePayment, $invoiceDate);
         }
@@ -259,7 +260,7 @@ class cond_PaymentMethods extends core_Master
      */
     public static function hasDownpayment($id)
     {
-    	// Ако няма избран метод, се приема че няма авансово плащане
+    	// Ако няма избран метод се приема, че няма авансово плащане
     	if(!$id) return FALSE;
     	
     	expect($rec = static::fetch($id));

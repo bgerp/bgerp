@@ -23,6 +23,14 @@ class cash_InternalMoneyTransfer extends core_Master
    
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = "Вътрешни касови трансфери";
@@ -322,9 +330,6 @@ class cash_InternalMoneyTransfer extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}	
     	
     	if($fields['-single']) {
     		$row->currency = currency_Currencies::getCodeById($rec->currencyId);

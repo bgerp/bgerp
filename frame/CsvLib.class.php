@@ -42,6 +42,15 @@ class frame_CsvLib
 					$value = self::toCsvFormatDouble($value);
 		
 				}
+				
+				// ако е doubele
+				if (in_array($field ,array('quantityDelivered', 'quantityDelivered', 'quantityToDeliver', 'quantityJob',
+						                   'quantityТоDelivered', 'quantityProduced', 'quantityToProduced','store', 'inStore'))) {
+				
+						$Int = cls::get('type_Int');
+						$value = $Int->toVerbal($value);
+				
+				}
 	
 				if (is_array($rec)) {
 					// ако е class
@@ -65,6 +74,18 @@ class frame_CsvLib
 					} else {
 						$value = self::toCsvFormatData($rec['valior']);
 					}
+				}
+				
+				if ($field == 'dateSale') {
+					if (is_object($rec)) { 
+						$value = self::toCsvFormatData($rec->dateSale);
+					} else {
+						$value = self::toCsvFormatData($rec['dateSale']);
+					}
+				}
+				
+				if($field == 'delta') {
+					$value = cls::get('type_Percent')->toVerbal($rec->delta);
 				}
 		
 				$rows->{$field} = $value;

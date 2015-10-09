@@ -51,6 +51,7 @@ class log_Setup extends core_ProtoSetup
     		'log_Classes',
     		'log_Ips',
     		'log_Referer',
+    		'log_PhpErr',
     		'migrate::removeMaxCrc',
         );
         

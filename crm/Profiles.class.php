@@ -104,6 +104,12 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Кой може да види действията на потребителя
+     */
+    var $canViewlogact = 'powerUser';
+    
+    
+    /**
      * Поле за търсене
      */
     var $searchFields = 'userId, personId';
@@ -136,6 +142,20 @@ class crm_Profiles extends core_Master
         
         // Премахваме бутона за изтриване
         $data->toolbar->removeBtn('btnDelete');
+        
+        // Подготвяме табовете за логове
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'log-tabs'));
+    	$url = getCurrentUrl();
+    	
+		$url['logTab'] = 'login';
+		$url['#'] = 'profileLoginLog';
+		$tabs->TAB('login', 'Логин' , $url);
+		
+		$url['logTab'] = 'action';
+		$url['#'] = 'profileActionLog';
+		$tabs->TAB('action', 'Действия' , $url);
+	
+		$data->tabs = $tabs;
     }
     
     
@@ -225,11 +245,16 @@ class crm_Profiles extends core_Master
                 unset($data->User->row->state);
             }
             
+            $reqTab = Request::get('logTab');
+		    $data->LogTab = ($reqTab) ? $reqTab : 'login';
+            
             // Ако има права за виждане на IP-то на последно логване
             if ($mvc->haveRightFor('viewip', $data->rec)) {
                 
                 // Ако има права за виждане на записите от лога
-                if (core_LoginLog::haveRightFor('viewlog')) {
+                if (($data->LogTab == 'login') && core_LoginLog::haveRightFor('viewlog')) {
+                    
+                    $data->HaveRightForLog = TRUE;
                     
                     // Създаваме обекта
                     $data->LoginLog = new stdClass();
@@ -274,6 +299,39 @@ class crm_Profiles extends core_Master
                 }
             } else {
                 unset($data->User->row->lastLoginIp);
+            }
+            
+            // Рендираме екшън лога на потребителя
+            if (($data->LogTab == 'action') && $mvc->haveRightFor('viewlogact', $data->rec)) {
+                
+                $data->HaveRightForLog = TRUE;
+                
+                $data->ActionLog = new stdClass();
+                
+                $userLogAct = log_Data::getLogsForUser($data->rec->userId, 20);
+                
+                $data->ActionLog->rowsArr = $userLogAct['rows'];
+                $data->ActionLog->pager = $userLogAct['pager'];
+                
+                // Ако има роля admin
+                if (log_Data::haveRightFor('list')) {
+                    
+                    // id на потребитяля за търсене
+                    $userTeams = type_User::getUserFromTeams($data->rec->userId);
+                    reset($userTeams);
+                    $userId = key($userTeams);
+                    
+                    $attr = array();
+                    $attr['class'] = 'linkWithIcon';
+    		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+    		        $attr['title'] = tr('Екшън лог на потребителя');
+                    
+                    // URL за промяна
+                    $loginLogUrl = array('log_Data', 'list', 'users' => $userId, 'ret_url' => TRUE);
+                    
+                    // Създаме линка
+                    $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $loginLogUrl, FALSE, $attr);  
+                }
             }
         }
         
@@ -320,23 +378,51 @@ class crm_Profiles extends core_Master
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
         
-        if ($data->LoginLog && $data->LoginLog->rowsArr) {
-            // Вземаме шаблона за потребителя
-            $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
-            
-            $logBlockTpl = $lTpl->getBlock('log');
-            
-            foreach ((array)$data->LoginLog->rowsArr as $rows) {
-                $logBlockTpl->placeObject($rows);
-                $logBlockTpl->append2Master();
+        if ($data->LoginLog) {
+            if ($data->LoginLog->rowsArr) {
+                // Вземаме шаблона за потребителя
+                $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
+                
+                $logBlockTpl = $lTpl->getBlock('log');
+                
+                foreach ((array)$data->LoginLog->rowsArr as $rows) {
+                    $logBlockTpl->placeObject($rows);
+                    $logBlockTpl->append2Master();
+                }
+                
+                // Заместваме данните
+                $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+            } else {
+                $lTpl = new ET(tr('Няма данни'));
             }
-            
-            // Заместваме данните
-            $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
-            
-            // Заместваме в шаблона
-            $tpl->prepend($lTpl, 'loginLog');
         }
+        
+        if ($data->ActionLog) {
+            if ($data->ActionLog->rowsArr) {
+                $lTpl = getTplFromFile('crm/tpl/SingleProfileActionLogLayout.shtml');
+            
+                $logBlockTpl = $lTpl->getBlock('log');
+                
+                foreach ((array)$data->ActionLog->rowsArr as $rows) {
+                    $logBlockTpl->placeObject($rows);
+                    $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                    $logBlockTpl->append2Master();
+                }
+                
+                $lTpl->append($data->ActionLog->pager->getHtml(), 'pager');
+                $lTpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
+            } else {
+                $lTpl = new ET(tr('Няма данни'));
+            }
+        }
+        
+        if (isset($data->tabs) && $data->HaveRightForLog) {
+    		if (!$lTpl) {
+                $lTpl = new ET(tr('Липсва информация'));
+    		}
+    		$tabHtml = $data->tabs->renderHtml($lTpl, $data->LogTab);
+    		$tpl->replace($tabHtml, 'logTabs');
+    	}
     }
     
     
@@ -799,6 +885,19 @@ class crm_Profiles extends core_Master
 
         return $title;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        
+        return self::getVerbal($id, 'userId');
+    }
 
 
     /**
@@ -897,6 +996,14 @@ class crm_Profiles extends core_Master
         if ($action == 'viewip') {
             if ($rec && ($rec->userId != $userId)) {
                 if (!haveRole('ceo, admin')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'viewlogact') {
+            if ($rec) {
+                if (!log_Data::canViewUserLog($rec->userId, $userId)) {
                     $requiredRoles = 'no_one';
                 }
             }

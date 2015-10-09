@@ -99,25 +99,24 @@ class core_page_InternalModern extends core_page_Active
      */
     static function getTemplate()
     {
-    	if (isset($_COOKIE['menuInformation'])) {
+    	if (isset($_COOKIE['menuInformation']) && $_COOKIE['menuInformation']) {
     		$openMenuInfo = $_COOKIE['menuInformation'];
     		$mainContainerClass = '';
+    		
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
-    		if($openMenuInfo){
-    			if(strrpos($openMenuInfo, "l") !== FALSE) {
-    				$openLeftBtn = ' menu-active ';
-    				$openLeftMenu = ' sidemenu-open ';
-    				$mainContainerClass .= ' sidemenu-push-toright ';
-    			}
-    			if(strrpos($openMenuInfo, "r") !== FALSE) {
-    				$openRightBtn = ' menu-active ';
-    				$openRightMenu = ' sidemenu-open';
-    				$mainContainerClass .= ' sidemenu-push-toleft ';
-    				$pin = ' hidden ';
-    			} else {
-    				$pinned = ' hidden ';
-    			}
-    		} 
+			if(strrpos($openMenuInfo, "l") !== FALSE) {
+				$openLeftBtn = ' menu-active ';
+				$openLeftMenu = ' sidemenu-open ';
+				$mainContainerClass .= ' sidemenu-push-toright ';
+			}
+			if(strrpos($openMenuInfo, "r") !== FALSE) {
+				$openRightBtn = ' menu-active ';
+				$openRightMenu = ' sidemenu-open';
+				$mainContainerClass .= ' sidemenu-push-toleft ';
+				$pin = ' hidden ';
+			} else {
+				$pinned = ' hidden ';
+			}
     	} else {
     			$pinned = ' hidden ';
     	}
@@ -179,7 +178,11 @@ class core_page_InternalModern extends core_page_Active
         // Опаковките и главното съдържание заемат екрана до долу
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
     	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
-        $tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+    	
+    	if(Mode::is('screenMode', 'narrow')){
+        	$tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+    	}
+    	
         // Добавяме кода, за определяне параметрите на браузъра
         $Browser = cls::get('log_Browsers');
         $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');

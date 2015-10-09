@@ -433,7 +433,7 @@ class blast_ListDetails extends doc_Detail
                 break;
             }
             
-            $this->FNC($name, $type, "caption={$caption},mandatory,input" . $attr);
+            $this->FNC($name, $type, "caption={$caption},mandatory,input,forceField" . $attr);
         }
     }
     

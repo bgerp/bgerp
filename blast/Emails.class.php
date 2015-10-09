@@ -201,7 +201,7 @@ class blast_Emails extends core_Master
         
         //Данни на адресата - антетка
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, changable');
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData, changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData, changable');
         $this->FLD('email', 'varchar', 'caption=Адресат->Имейл,class=contactData, changable');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,class=contactData, changable');
         $this->FLD('fax', 'varchar', 'caption=Адресат->Факс,class=contactData, changable');

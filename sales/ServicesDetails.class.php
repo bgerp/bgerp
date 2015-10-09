@@ -100,12 +100,12 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
     	
     	return $products;
     }
@@ -132,8 +132,15 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-    			 
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+            
+                if($data->masterData->rec->state == 'draft') {
+                    $time = NULL;
+                } else {
+                    $time = $data->masterData->rec->modifiedOn;
+                }
+
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     			}

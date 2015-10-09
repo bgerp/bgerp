@@ -596,7 +596,7 @@ function rp(text, textarea, newLine) {
 /*
  * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
  */
-function crateRicheditTable(textarea, newLine, tableCol, tableRow) {
+function createRicheditTable(textarea, newLine, tableCol, tableRow) {
     if (tableRow < 2 || tableRow > 10 || tableCol < 2 || tableCol > 10) return;
     var version = getIEVersion();
     if ((version == 8 || version == 9) && typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange) {
@@ -1452,7 +1452,7 @@ function setThreadElemWidth() {
     var threadWidth = parseInt($(window).width()) - offsetWidth;
     $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.docStatistic').css('maxWidth', threadWidth);
-    $('.scrolling-holder').css('maxWidth', threadWidth + 10);
+    $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
 function checkForElementWidthChange() {
@@ -2039,7 +2039,7 @@ function checkForHiddenGroups() {
 function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
-		  if ($(e.target).is(".invert-checkbox")) {
+		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {
@@ -2728,6 +2728,9 @@ function render_showToast(data) {
             stayTime: data.stayTime,
             type: data.type
         });
+    } else {
+    	var errorData = {id: "statuses", html: "<div class='statuses-message statuses-" + data.type + "'>" + data.text +"</div>", replace: !data.isSticky};
+        render_html(errorData);
     }
 }
 
@@ -2890,7 +2893,7 @@ function render_Notify(data) {
 	// подготвяме фав иконките
 	var newIcon = prepareFavIcon(data.favicon);
 	var oldIcon = prepareFavIcon(oldIconPath);
-
+	
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
@@ -2899,7 +2902,7 @@ function render_Notify(data) {
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
 			restoreTitle(oldTitle);
-			restoreFavIcon(oldIcon);
+			setFavIcon(oldIcon);
 		}, 600);
 
 		counter++;
@@ -2933,9 +2936,12 @@ function restoreTitle(oldTitle) {
 /**
  * връща необходимия за смяна на фав иконата таг
  * @param iconPath - пътя до картинката
- * @returns icon
+ * @returns object|false
  */
 function prepareFavIcon(iconPath) {
+	
+	if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
+	
 	var icon = document.createElement('link');
 	icon.type = 'image/x-icon';
 	icon.rel = 'shortcut icon';
@@ -2950,16 +2956,9 @@ function prepareFavIcon(iconPath) {
  * @param icon - иконата, която ще задаваме
  */
 function setFavIcon(icon){
-	$('head').append(icon);
-}
-
-
-/**
- * задава старата фав икона
- * @param oldIcon - иконата, която ще задаваме
- */
-function restoreFavIcon(oldIcon) {
-	$('head').append(oldIcon);
+	if (icon) {
+		$('head').append(icon);
+	}
 }
 
 

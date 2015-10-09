@@ -25,14 +25,6 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     
     
     /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
-    
-    
-    /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      */
@@ -83,15 +75,14 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$dealInfo = $origin->getAggregateDealInfo();
     	$amount = $rec->rate * $rec->amount;
     	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
     	
     	// Дебита е винаги във валутата на пораждащия документ,
-    	$debitCurrency = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$debitQuantity = $amount / $dealInfo->get('rate');
+    	$debitCurrency = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
+    	$debitQuantity = $amount / $origin->fetchField('currencyRate');
     	
     	// Дебитираме разчетната сметка
     	$dealArr = array($rec->debitAccount,

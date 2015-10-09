@@ -7,11 +7,11 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_ProductDriverIntf extends core_InnerObjectIntf
+class cat_ProductDriverIntf extends embed_DriverIntf
 {
 	
 	
@@ -25,52 +25,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 * Инстанция на класа имплементиращ интерфейса
 	 */
 	public $class;
-	
-	
-	/**
-	 * Вътрешната форма
-	 *
-	 * @param mixed $innerForm
-	 */
-	protected $innerForm;
-	
-	
-	/**
-	 * Вътрешното състояние
-	 *
-	 * @param mixed $innerState
-	 */
-	protected $innerState;
-	
-	
-	/**
-	 * В кой документ е инстанциран драйвера
-	 *
-	 * @param core_ObjectReference
-	 */
-	public $EmbedderRec;
-	
-	
-	/**
-	 * Връща информацията за продукта от драйвера
-	 *
-	 * @param stdClass $innerState
-	 * @param int $packagingId
-	 * @return stdClass $res
-	 */
-	public function getProductInfo($innerState)
-	{
-		return $this->class->getProductInfo($innerState);
-	}
-	
-	
-	/**
-	 * Кои опаковки поддържа продукта
-	 */
-	public function getPacks($innerState)
-	{
-		return $this->class->getPacks($innerState);
-	}
 	
 	
 	/**
@@ -104,53 +58,27 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Коя е основната мярка на драйвера
-	 */
-	public function getDriverUom($params = array())
-	{
-		return $this->class->getDriverUom($params);
-	}
-	
-	
-	/**
-	 * Задава параметрите на обекта
+	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @param mixed $params
+	 * @param string $measureName - име на мярка
+	 * @return FALSE|int - ид на мярката
 	 */
-	public function setDriverParams($params)
+	public function getDefaultUom($measureName = NULL)
 	{
-		return $this->class->setDriverParams($params);
+		return $this->class->getDefaultUom($measureName);
 	}
 	
 	
 	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
+	 * Връща стойността на параметъра с това име
+	 * 
+	 * @param string $name - име на параметъра
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams()
+	public function getParamValue($name, $id)
 	{
-		return $this->class->getParams();
-	}
-	
-	
-	/**
-	 * Връща параметрите на драйвера
-	 */
-	public function getDriverParams()
-	{
-		return $this->class->getDriverParams();
+		return $this->class->getParamValue($name, $id);
 	}
 	
 	
@@ -168,17 +96,22 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
-	 * 
+	 *
+	 * @param stdClass $rec - запис
 	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 * @return stdClass - подготвените данни за описанието
 	 */
-	public function prepareProductDescription($documentType = 'public')
+	public function prepareProductDescription($rec, $documentType = 'public')
 	{
-		return $this->class->prepareProductDescription($documentType);
+		return $this->class->prepareProductDescription($rec, $documentType);
 	}
 	
 	
 	/**
 	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET
 	 */
 	public function renderProductDescription($data)
 	{
@@ -191,7 +124,7 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 */
 	public function getJobFolderName()
 	{
-		return $this->getJobFolderName();
+		return $this->class->getJobFolderName();
 	}
 	
 	
@@ -205,6 +138,29 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 */
 	public function getDefaultJobTasks()
 	{
-		return $this->getDefaultJobTasks();
+		return $this->class->getDefaultJobTasks();
+	}
+	
+	
+	/**
+	 * Връща иконата на драйвера
+	 *
+	 * @return string - пътя към иконата
+	 */
+	public function getIcon()
+	{
+		return $this->class->getIcon();
+	}
+	
+	
+	/**
+	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	protected function renderSingleDescription($data)
+	{
+		return $this->class->renderSingleDescription($data);
 	}
 }

@@ -184,8 +184,7 @@ class accda_Da extends core_Master
     		
     			// Ако е избран склад
     			if($rec->storeId){
-    				$productsClassId = cat_Products::getClassId();
-    				$form->info = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $productsClassId, $rec->storeId)->formInfo;
+    				$form->info = deals_Helper::checkProductQuantityInStore($rec->productId, NULL, 1, $rec->storeId)->formInfo;
     			}
     		} else {
     			$form->setFieldTypeParams('accountId', 'root=21');
@@ -355,7 +354,7 @@ class accda_Da extends core_Master
     	$rec = $mvc->fetchRec($id);
     
     	// От списъка с приключените пера, премахваме това на приключения документ, така че да може
-    	// приключването да се оттегля/възстановява въпреки че има в нея приключено перо
+    	// приключването да се оттегля/възстановява въпреки, че има в нея приключено перо
     	$itemId = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
     	
     	unset($res[$itemId]);
@@ -368,5 +367,23 @@ class accda_Da extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->handler = $mvc->getLink($rec->id, 0);
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+    	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $data->rec->id))){
+    		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');
+    	}
+    
+    	if($hRecId = planning_AssetResources::fetchField("#protocolId = {$data->rec->id}", 'id')){
+    		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit-icon.png,title=Редактиране на ресурс');
+    	}
     }
 }

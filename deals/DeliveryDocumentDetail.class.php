@@ -28,8 +28,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function setDocumentFields($mvc)
 	{
-		$mvc->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap,silent');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap,silent');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount');
 		
 		$mvc->FLD('quantity', 'double', 'caption=К-во,input=none');
@@ -40,18 +39,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
-	}
-	
-	
-	/**
-	 * Преди подготвяне на едит формата
-	 */
-	public static function on_BeforePrepareEditForm($mvc, &$res, $data)
-	{
-		if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
-			$data->ProductManager = cls::get($classId);
-			$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
-		}
 	}
 	
 	
@@ -70,9 +57,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
 		$data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
 		
-		$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
-			
-		$products = $mvc->getProducts($ProductManager, $masterRec);
+		$products = $mvc->getProducts($masterRec);
 		expect(count($products));
 			
 		if (empty($rec->id)) {
@@ -85,7 +70,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
 		
 		if (!empty($rec->packPrice)) {
-			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+			$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 		}
 	}
@@ -103,21 +88,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 		$update = FALSE;
 	
-		/* @var $ProductMan core_Manager */
-		expect($ProductMan = cls::get($rec->classId));
 		if($form->rec->productId){
-			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+			$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+			$productInfo = cat_Products::getProductInfo($rec->productId);
 			
-			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-			expect($productInfo = $productRef->getProductInfo());
-			
-			$packs = $ProductMan->getPacks($rec->productId);
+			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
 			$form->setDefault('packagingId', key($packs));
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
 			if(isset($mvc->$LastPolicy)){
-				$policyInfoLast = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+				$policyInfoLast = $mvc->$LastPolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
 				if($policyInfoLast->price != 0){
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
@@ -151,7 +132,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			}
 	
 			if(empty($rec->id)){
-				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId}";
+				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #productId = {$rec->productId}";
 				if($form->getField('packagingId', FALSE)){
 					$where .= ($rec->packagingId) ? " AND #packagingId={$rec->packagingId}" : " IS NULL";
 				}
@@ -176,7 +157,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					
 					if(count($products)){
 						foreach ($products as $p){
-							if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
+							if($rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
 								$policyInfo = new stdClass();
 								$policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 								$policyInfo->discount = $p->discount;
@@ -188,8 +169,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				
 				if(!$policyInfo){
 					// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-					$Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get($rec->classId)->getPolicy()) : (($mvc->Policy) ? $mvc->Policy : cls::get($rec->classId)->getPolicy());
-					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+					$Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
+					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
 				}
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
@@ -227,7 +208,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
 				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
-					$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
+					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте, че зададената цена отговаря на  новата опаковка!");
 				}
 			}
 		}
@@ -292,24 +273,15 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
 		if (!empty($data->toolbar->buttons['btnAdd'])) {
-			$productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-			$masterRec = $data->masterData->rec;
-	
-			foreach ($productManagers as $manId => $manName) {
-				$productMan = cls::get($manId);
-				$products = $mvc->getProducts($productMan, $masterRec);
-				 
-				if(!count($products)){
-					$error = "error=Няма {$productMan->title}, ";
-				}
-	
-				$title = mb_strtolower($productMan->singleTitle);
-				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-						"id=btnAdd-{$manId},{$error} order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
-				unset($error);
+			unset($data->toolbar->buttons['btnAdd']);
+			$products = $mvc->getProducts($masterRec);
+			
+			if(!count($products)){
+				$error = "error=Няма артикули, ";
 			}
 	
-			unset($data->toolbar->buttons['btnAdd']);
+			$data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE),
+					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
 		}
 	}
 	

@@ -23,6 +23,11 @@ defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
 defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
 
 
+/**
+ * Думи, срещани в спам моментари
+ */
+defIfNot('BLOGM_SPAM_WORDS', 'sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы');
+
 
 /**
   * class blogm_Setup
@@ -79,6 +84,8 @@ class blogm_Setup extends core_ProtoSetup
 			'BLOGM_MAX_COMMENT_DAYS' => array ('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
 
             'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
+
+            'BLOGM_SPAM_WORDS' => array('text', 'caption=Определяне на SPAM рейтинг на коментар->Думи'),
 	
 	);
 	

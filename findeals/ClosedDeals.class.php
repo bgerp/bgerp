@@ -215,7 +215,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	if(!($firstDoc->getInstance() instanceof findeals_Deals)) return FALSE;
+    	if(!$firstDoc->isInstanceOf('findeals_Deals')) return FALSE;
     	
     	return TRUE;
     }

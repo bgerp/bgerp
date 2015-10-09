@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
+    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
     
     
     /**
@@ -131,12 +131,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Записи за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -144,8 +138,9 @@ class cat_Boms extends core_Master
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
-    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
     	
     	$this->setDbIndex('productId');
     }
@@ -175,32 +170,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	if(!empty($id)){
-    		$mvc->updated[$id] = $id;
-    	}
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetchRec($id);
-    			$mvc->save($rec);
-    		}
-    	}
-    }
-    
-    
-    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -213,6 +182,8 @@ class cat_Boms extends core_Master
     	$productInfo = cat_Products::getProductInfo($form->rec->productId);
     	$shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
     	$form->setField('quantity', "unit={$shortUom}");
+    	$form->setField('quantityForPrice', "unit={$shortUom}");
+    	
     	$form->setDefault('quantity', 1);
     	
     	// При създаване на нова рецепта
@@ -252,6 +223,23 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		if(!isset($rec->quantityForPrice)){
+    			$rec->quantityForPrice = $rec->quantity;
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      */
     public static function on_AfterCreate($mvc, $rec)
@@ -275,6 +263,79 @@ class cat_Boms extends core_Master
     				// Запис на детайла
     				cat_BomDetails::save($dRec);
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Активира последната затворена рецепта за артикула
+     * 
+     * @param mixed $id
+     * @return FALSE|int
+     */
+    private function activateLastBefore($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	if($rec->state != 'closed' && $rec->state != 'rejected') return FALSE;
+    	
+    	// Намираме последната приключена рецепта (различна от текущата за артикула)
+    	$query = $this->getQuery();
+    	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId}");
+    	$query->orderBy('id', 'DESC');
+    	$query->limit(1);
+    	 
+    	$nextActiveBomRec = $query->fetch();
+    	if($nextActiveBomRec){
+    		$nextActiveBomRec->state = 'active';
+    		$nextActiveBomRec->brState = 'closed';
+    		$nextActiveBomRec->modifiedOn = dt::now();
+    			
+    		// Ако има такава я активираме
+    		return $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// При оттегляне или затваряне, ако преди документа е бил активен
+    	if($rec->state == 'closed' || $rec->state == 'rejected'){
+    		
+    		if($rec->brState == 'active'){
+    			if($nextId = $mvc->activateLastBefore($rec)){
+					core_Statuses::newStatus(tr("Активирана е рецепта|* #Bom{$nextId}"));
+    			}
+    		} 
+    	}
+    	
+    	// При активиране, 
+    	if($rec->state == 'active'){
+    		$cRec = $mvc->fetch($rec->id);
+    		
+    		// Намираме всички останали активни рецепти
+    		$query = static::getQuery();
+    		$query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId}");
+    		
+    		// Затваряме ги
+    		$idCount = 0;
+    		while($bomRec = $query->fetch()){
+    			$bomRec->state = 'closed';
+    			$bomRec->brState = 'active';
+    			$bomRec->modifiedOn = dt::now();
+    			$mvc->save_($bomRec, 'state,brState,modifiedOn');
+    			$idCount++;
+    		}
+    		
+    		if($idCount){
+    			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
     	}
     }
@@ -320,7 +381,7 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->productId) && $res != 'no_one'){
+    	if(($action == 'add') && isset($rec->productId) && $res != 'no_one'){
     		
     		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
     		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
@@ -376,12 +437,31 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-    		$row->quantity .= " " . cat_UoM::getShortName($measureId);
+    		$shortUom = cat_UoM::getShortName($measureId);
+    		$row->quantity .= " " . $shortUom;
+    	}
+    	
+    	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
+	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+	        $rec->primeCost = 0;
+	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
+	        
+	        if($priceObj) {
+	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
+        	}
+        	
+        	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        	$row->primeCost = $Double->toVerbal($rec->primeCost);
+        	$row->primeCost .= tr("|* ( |за|* {$row->quantityForPrice} {$shortUom} )");
+        	 
+        	if(haveRole('ceo, acc, cat, price')){
+        		$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
+        	}
     	}
     }
     
@@ -409,11 +489,11 @@ class cat_Boms extends core_Master
     public static function getPrice($productId, $bomId = NULL)
     {
     	// Намираме активната карта за обекта
-    	$where = "#productId = {$productId} AND #state = 'active'";
     	if($bomId){
-    		$where .= " AND #id = {$bomId}";
+    		$rec = self::fetch($bomId);
+    	} else {
+    	    $rec = cat_Products::getLastActiveBom($productId);
     	}
-    	$rec = self::fetch($where);
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
@@ -428,7 +508,7 @@ class cat_Boms extends core_Master
     			$sign = ($dRec->type == 'input') ? 1 : -1;
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId);
+    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
@@ -441,6 +521,9 @@ class cat_Boms extends core_Master
     	
     	$amounts->base /= $rInfo['quantity'];
     	$amounts->prop /= $rInfo['quantity'];
+    	
+    	$amounts->base *= (1 + $rec->expenses);
+    	$amounts->prop *= (1 + $rec->expenses);
     	
     	// Връщаме изчислените суми
     	return $amounts;
@@ -466,6 +549,7 @@ class cat_Boms extends core_Master
     	expect($rec = static::fetchRec($id));
     	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
     	$resources['expenses'] = ($rec->expenses) ? $rec->expenses : NULL;
+    	$resources['resources'] = array();
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
@@ -579,5 +663,21 @@ class cat_Boms extends core_Master
     	
     	// Връщаме ид-то на новосъздадената рецепта
     	return $id;
+    }
+    
+    
+    /**
+     * Форсира изчисляването на себестойността по рецептата
+     */
+    function act_RecalcSelfValue()
+    {
+    	requireRole('ceo, acc, cat, price');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	$rec->modifiedOn = dt::now();
+    	$this->save($rec, 'modifiedOn');
+    	
+    	return Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
     }
 }

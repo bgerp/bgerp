@@ -829,6 +829,19 @@ table .linkWithIcon {
 	}
 }
 
+.smallLinkWithWithIcon {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	top: 2px;
+	position: relative;
+	margin-bottom: 0 !important;
+	opacity: 0.8;
+	&:hover {
+	   opacity: 1;
+	}
+}
+
 .linkWithIconSpan {
 	display: inline-block;
 }
@@ -1229,6 +1242,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     border: solid 1px $orange;
 }
 
+span.inputLackOfChoice {
+   border:solid 1px #bbb;
+   background-color:#ddd;
+   padding:4px;
+   border-radius:2px;
+}
+
+span.inputLackOfChoiceMandatory {
+    padding:4px;
+    background-color:yellow;
+    border:solid 1px red;
+    border-radius:2px;
+}
+
 .formInfo, .formWarning {
     margin-bottom: 8px;
 }
@@ -1261,6 +1288,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 /*общи стилове за елементите на формите*/
 .formFields {
 	margin-bottom: 10px;
+}
+.narrow .vertical .formFields {
+    margin-bottom: 0;
 }
 
 .staticFormView .formFieldValue {
@@ -1705,31 +1735,22 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
-	        display: none;
-	    	margin-right: 5px;
-	    	top: 2px;
-	    	position: relative;
+	       float: right;
+	       display: none;
 	    } 
     }
 }
 
-.narrow .keylistCategory .keylist-group > div {
+.narrow .keylistCategory . img{
     position: relative;
-    .invert-checkbox {
-        position: absolute;
-        right: 3px;
-        top: 50%;
-        margin-top: -8px;
-    }
+    top: 2px;
 }
 
 .keylistCategory{
-	&.opened  .invert-checkbox {
-	   float: right;
+	.invert-checkbox {
+	   float: left;
 	   display: block;
-	}
-	&.closed  .invert-checkbox {
-        display: none;
+	   margin-right: 5px;
 	}
 	 .hidden {
         display: none !important;
@@ -2272,6 +2293,10 @@ a.rtbutton {
     height: 1.2em;
 	min-width:15px;
 	text-align:center;
+}
+
+.richtext-holder-group{
+	z-index: 1001;
 }
 
 .richtext-holder-group a.rtbutton{

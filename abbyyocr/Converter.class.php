@@ -65,7 +65,7 @@ class abbyyocr_Converter extends core_Manager
              
             // Добавяме бутона
             $toolbar->addBtn('OCR', $url, 
-            	'ef_icon = img/16/scanner.png', 
+            	array('ef_icon' => 'img/16/scanner.png'), 
                 $btnParams
             ); 
         } catch (core_exception_Expect $e) {}
@@ -164,7 +164,7 @@ class abbyyocr_Converter extends core_Manager
         $Script->setParam('LANGUAGE', abbyyocr_Setup::get('LANGUAGES'), TRUE);
         
         // Заместваме програмата с пътя от конфига
-        $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('ABBYYOCR_PATH'));
+        $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('PATH'));
         
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";

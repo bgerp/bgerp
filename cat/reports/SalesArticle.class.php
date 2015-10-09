@@ -91,7 +91,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
@@ -217,14 +217,14 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	$tpl = new ET("
-            <h1>Продажбени артикули</h1>
+    	$tpl = new ET(tr("
+            |*<h1>|Продажбени артикули|*</h1>
             [#FORM#]
     		[#PAGER#]
             [#ARTICLE#]
     		[#PAGER#]
         "
-    	);
+    	));
 
     	$form = cls::get('core_Form');
     
@@ -237,7 +237,10 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     
     	$tpl->placeObject($data->rec);
     
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+
     	$pager->itemsCount = count($data->articleCnt, COUNT_RECURSIVE);
 
     	$f = cls::get('core_FieldSet');
@@ -259,7 +262,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
                         if (!$pager->isOnPage()) continue;
 
                         $row = new stdClass();
-                        $row->article = cls::get($artClassId)->getTitleById($product);
+                        $row->article = cat_Products::getTitleById($product);
 
                         if ($doc == 'sales') {
                             $row->salesCnt = $cntType->toVerbal($cnt);
@@ -288,7 +291,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	$tpl->append($html, 'ARTICLE');
         $tpl->append($pager->getHtml(), 'PAGER');
     
-    	$embedderTpl->append($tpl, $data);
+    	$embedderTpl->append($tpl, 'data');
     }  
      
     

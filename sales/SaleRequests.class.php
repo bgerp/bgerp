@@ -288,7 +288,6 @@ class sales_SaleRequests extends core_Master
     		$id = $row->id;
     		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
-    	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	
 	    	if($rec->state == 'draft'){
 	    		$img = "<img src=" . sbf('img/16/edit-icon.png') . "/>";
@@ -349,7 +348,7 @@ class sales_SaleRequests extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if ($data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'order=22,ef_icon = img/16/cart_go.png,title=Създаване на нова продажба по заявката');
+    		$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $data->rec->id, 'ret_url' => TRUE), array('warning' => "Сигурни ли сте че искате да създадете продажба?", 'order' => "22",'ef_icon' => "img/16/cart_go.png",'title' => "Създаване на нова продажба по заявката"));
     	}
     	
     	if($data->rec->state == 'draft') {

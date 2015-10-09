@@ -48,7 +48,7 @@ class acc_BalanceTransfers extends core_Master
 	
 	
 	/**
-	 * Можели да се контира въпреки че има приключени пера в транзакцията
+	 * Можели да се контира въпреки, че има приключени пера в транзакцията
 	 */
 	public $canUseClosedItems = TRUE;
 	
@@ -134,14 +134,14 @@ class acc_BalanceTransfers extends core_Master
 	{
 		$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
 		$this->FLD('fromAccount', 'acc_type_Account(allowEmpty)', 'mandatory,caption=От->Сметка,removeAndRefreshForm=ent1Id|ent2Id|ent3Id|toAccount|toEnt1Id|toEnt2Id|toEnt3Id,silent');
-		$this->FLD('fromEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=Сметка->перо 1,input=none,removeAndRefreshForm=toEnt1Id');
-        $this->FLD('fromEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=Сметка->перо 2,input=none,removeAndRefreshForm=toEnt2Id');
-        $this->FLD('fromEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=Сметка->перо 3,input=none,removeAndRefreshForm=toEnt3Id');
+		$this->FLD('fromEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо 1,input=none,removeAndRefreshForm=toEnt1Id');
+        $this->FLD('fromEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо 2,input=none,removeAndRefreshForm=toEnt2Id');
+        $this->FLD('fromEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'silent,caption=От->перо 3,input=none,removeAndRefreshForm=toEnt3Id');
 		
 		$this->FLD('toAccount', 'acc_type_Account(allowEmpty)', 'mandatory,caption=Към->Сметка,silent,removeAndRefreshForm=toEnt1Id|toEnt2Id|toEnt3Id');
-		$this->FLD('toEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Сметка->перо 1,input=none');
-		$this->FLD('toEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Сметка->перо 2,input=none');
-		$this->FLD('toEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Сметка->перо 3,input=none');
+		$this->FLD('toEnt1Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо 1,input=none');
+		$this->FLD('toEnt2Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо 2,input=none');
+		$this->FLD('toEnt3Id', 'acc_type_Item(allowEmpty,select=titleLink)', 'caption=Към->перо 3,input=none');
 	}
 	
 	
@@ -169,7 +169,7 @@ class acc_BalanceTransfers extends core_Master
 					}
 					
 					// Типа на полето му задаваме да показва само перата от номенклатурите
-					$form->setField("fromEnt{$i}Id", "input,caption={$gr->rec->name}");
+					$form->setField("fromEnt{$i}Id", "input,caption=От->{$gr->rec->name}");
 					$form->setFieldTypeParams("fromEnt{$i}Id", array('lists' => $gr->rec->num));
 				}
 			}
@@ -185,7 +185,7 @@ class acc_BalanceTransfers extends core_Master
 			$accInfo1 = acc_Accounts::getAccountInfo($rec->toAccount);
 			if(count($accInfo1->groups)){
 				foreach ($accInfo1->groups as $i => $gr){
-					$form->setField("toEnt{$i}Id", "input,caption={$gr->rec->name}");
+					$form->setField("toEnt{$i}Id", "input,caption=Към->{$gr->rec->name}");
 					$form->setFieldTypeParams("toEnt{$i}Id", array('lists' => $gr->rec->num));
 				}
 			}
@@ -212,7 +212,7 @@ class acc_BalanceTransfers extends core_Master
 		
 		if($form->isSubmitted()){
 
-			// Подсигуряваме се че аналитичностите на началната и крайната сметка, наистина съвпадат
+			// Подсигуряваме се, че аналитичностите на началната и крайната сметка, наистина съвпадат
 			if($form->fromAccountInterfaces != $form->getFieldTypeParam("toAccount", 'regInterfaces')){
 				$form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съответсващи аналитичности');
 			}
@@ -237,7 +237,7 @@ class acc_BalanceTransfers extends core_Master
 						}
 					}
 					
-					// Подсигуряваме се че номенклатурите на съответните аналитичностите са еднакви
+					// Подсигуряваме се, че номенклатурите на съответните аналитичностите са еднакви
 					$fromList = $form->getFieldTypeParam("fromEnt{$i}Id", 'lists');
 					$toList = $form->getFieldTypeParam("toEnt{$i}Id", 'lists');
 					if($fromList != $toList){

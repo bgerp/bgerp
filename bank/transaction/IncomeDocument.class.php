@@ -14,19 +14,13 @@
  */
 class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 {
+    
+    
     /**
      *
      * @var bank_IncomeDocuments
      */
     public $class;
-    
-    
-    /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
     
     
     /**
@@ -65,15 +59,14 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-        $dealInfo = $origin->getAggregateDealInfo();
         $amount = $rec->rate * $rec->amount;
         
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
         
         // Кредита е винаги във валутата на пораждащия документ,
-        $creditCurrency = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-        $creditQuantity = $amount / $dealInfo->get('rate');
+        $creditCurrency = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
+        $creditQuantity = $amount / $origin->fetchField('currencyRate');
         
         // Дебитираме банковата сметка
         $debitArr = array($rec->debitAccId,

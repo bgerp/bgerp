@@ -50,7 +50,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_ExportCsv, doc_DocumentPlg, bgerp_plg_Export,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, crm_plg_UpdateContragentData, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
@@ -184,18 +184,26 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кои полета да могат да се експортират в CSV формат
+     * 
+     * @see bgerp_plg_CsvExport
+     */
+    public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,dealValue,accountId,number,state';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId,export=Csv');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	
-    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
+    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, after=place,input=hidden,notNull,default=1');
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv, after=place,input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
+    	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         
         $conf = core_Packs::getConfig('sales');
@@ -262,6 +270,38 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
     		$form->setField('vatReason', 'mandatory');
     	}
+    	
+    	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
+    	$firstRec = $firstDoc->rec();
+    	 
+    	$defInfo = "";
+    	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
+    	core_Lg::push($tLang);
+    	
+    	// Ако продажбата има референтен номер, попълваме го в забележката
+    	if($firstRec->reff){
+    		$defInfo .= tr("|Ваш реф.|* {$firstRec->reff}") . PHP_EOL;
+    	}
+    	
+    	// Ако продажбата приключва други продажби също ги попълва в забележката
+    	if($firstRec->closedDocuments){
+    		$docs = keylist::toArray($firstRec->closedDocuments);
+    		$closedDocuments = '';
+    		foreach ($docs as $docId){
+    			$closedDocuments .= "#" . $firstDoc->getInstance()->getHandle($docId) . ", ";
+    		}
+    		$closedDocuments = trim($closedDocuments, ", ");
+    		$defInfo .= tr('|Фактура към продажби|*: ') . $closedDocuments . PHP_EOL;
+    	}
+    	core_Lg::pop();
+    	
+    	// Ако има дефолтен текст за фактура добавяме и него
+    	if($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')){
+    		$defInfo .= $invText;
+    	}
+    	
+    	// Задаваме дефолтния текст
+    	$form->setDefault('additionalInfo', $defInfo);
     }
     
     
@@ -509,7 +549,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($action == 'add' && isset($rec->threadId)){
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
-    		 if(!($firstDoc->getInstance() instanceof sales_Sales && $docState == 'active')){
+    		 
+    		 if(!($firstDoc->isInstanceOf('sales_Sales') && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}
@@ -577,8 +618,7 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public static function on_AfterPrepareExportQuery($mvc, &$query)
    	{
-   		$query->orWhere("#state = 'rejected' AND #brState = 'active'");
-   		$query->where("#state != 'draft'");
+   		$query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
    	}
    	
    	

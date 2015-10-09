@@ -12,10 +12,16 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_Packagings extends cat_products_Detail
+class cat_products_Packagings extends doc_Detail
 {
     
     
+	/**
+	 * Име на поле от модела, външен ключ към мастър записа
+	 */
+	var $masterKey = 'productId';
+	
+	
     /**
      * Заглавие
      */
@@ -98,7 +104,7 @@ class cat_products_Packagings extends cat_products_Detail
     		
     		if($baseMeasureId == $rec->packagingId){
     			if($rec->quantity != 1){
-    				$form->setError('quantity', 'Количеството не може да е различно от еденица за избраната мярка/опаковка');
+    				$form->setError('quantity', 'Количеството не може да е различно от единица за избраната мярка/опаковка');
     			}
     		}
     		
@@ -129,7 +135,7 @@ class cat_products_Packagings extends cat_products_Detail
     			$rec->quantity = $roundQuantity;
     		}
     		
-    		// Закръгляме к-то така че да е в границите на допустимото от мярката
+    		// Закръгляме к-то, така че да е в границите на допустимото от мярката
     		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
     	}
     }
@@ -349,7 +355,7 @@ class cat_products_Packagings extends cat_products_Detail
         $wrapTpl->append($title, 'TITLE');
         
         if ($data->addUrl) {
-        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка/мярка');
         	$tpl->append($addBtn, 'TITLE');
         }
         
@@ -440,12 +446,12 @@ class cat_products_Packagings extends cat_products_Detail
     	$isUsed = FALSE;
     	foreach ($details as $Detail){
     		if($Detail == 'cat_BomDetails'){
-    			if($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = {$uomId}")){
+    			if($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'")){
     				$isUsed = TRUE;
     				break;
     			}
     		} else {
-    			if($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = {$uomId}")){
+    			if($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'")){
     				$isUsed = TRUE;
     				break;
     			}

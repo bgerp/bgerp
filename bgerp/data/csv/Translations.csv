@@ -763,7 +763,7 @@ en,Условие,Condition
 en,Общо,Total
 en,ДДС,VAT
 en,Данъчна основа,Tax base
-en,С думи,Verbally
+en,С думи,Say words
 en,ЕИК,UIC
 en,номер по ЗДДС,VAT number
 en,Доставчик,Supplier
@@ -1619,7 +1619,7 @@ en,Бъдещ,Future
 en,Чакащ,Pending
 en,Приключен,Closed
 en,Професия,Profession
-en,Липсва избор за,Missing choice for
+en,Липсва избор за,Lack of choice for
 en,Таблица,Table
 en,Графика,Chart
 en,Професии,Professions
@@ -1974,6 +1974,7 @@ en,Търсене на фирми,Search companies
 en,Търсене на лица,Search persons
 en,Фамилия,Last name
 en,Отметки,Bookmarks
+en,Авансово плащане,Downpayment
 en,Възможен проблем с полето,Possible problem with the field
 en,"Ако не желаете да получавате повече информация от нас, моля натиснете","If you no longer want to receive information from us, please click"
 en,ако не желаете да получавате повече информация от нас,if you no longer want to receive information from us

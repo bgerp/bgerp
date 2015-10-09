@@ -95,11 +95,18 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$tpl = new ET("");
     	$lastRow = Mode::get('lastAdded');
-    	$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
+    	
+    	if(!Mode::is('printing')){
+    		$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
+    	} else {
+    		$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetailPrint.shtml');
+    	}
+    	
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$paymentTpl = $blocksTpl->getBlock('payment');
     	if($data->rows) {
 	    	foreach($data->rows as $id => $row) {
+	    		$row->id = $id;
 	    		$action = $this->getAction($data->rows[$id]->action);
                 $at = ${"{$action->type}Tpl"};
                 if(is_object($at)) {
@@ -326,7 +333,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$rec->action = "payment|{$type}";
     	$rec->amount = $amount;
     	
-    	// Отбелязваме че на това плащане ще има ресто
+    	// Отбелязваме, че на това плащане ще има ресто
     	$paid = $receipt->paid + $amount;
     	if(($paid) > $receipt->total){
     		$rec->value = 'change';
@@ -549,7 +556,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $rec->value, NULL, $receiptRec->createdOn);
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, NULL, $receiptRec->createdOn);
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);

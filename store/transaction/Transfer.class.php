@@ -45,13 +45,13 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 			$result->entries[] = array(
 					'credit'  => array($accId,
 							array('store_Stores', $rec->fromStore), // Перо 1 - Склад
-							array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
+							array('cat_Products', $sProd->productId),  // Перо 2 - Артикул
 							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
 					),
 	
 					'debit' => array($accId,
 							array('store_Stores', $rec->toStore), // Перо 1 - Склад
-							array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
+							array('cat_Products', $sProd->productId),  // Перо 2 - Артикул
 							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
 					),
 			);

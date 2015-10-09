@@ -18,12 +18,6 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * Опашка от записи за записване в on_Shutdown
-	 */
-	protected $updated = array();
-	
-	
-	/**
 	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
 	 */
 	public $rowToolsField = 'tools';
@@ -68,23 +62,15 @@ abstract class deals_ServiceMaster extends core_Master
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 		$mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
 	}
-
-
-	/**
-	 * След промяна в детайлите на обект от този клас
-	 */
-	public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-	{
-		// Запомняне кои документи трябва да се обновят
-		$mvc->updated[$id] = $id;
-	}
 	
 	
 	/**
-	 * Обновява информацията на документа
-	 * @param int $id - ид на документа
+	 * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		 
@@ -101,20 +87,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec->amountDelivered = $amount * $rec->currencyRate;
 		$rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-		$this->save($rec);
-	}
-	
-	
-	/**
-	 * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		if(count($mvc->updated)){
-			foreach ($mvc->updated as $id) {
-				$mvc->updateMaster($id);
-			}
-		}
+		
+		return $this->save($rec);
 	}
 
 
@@ -134,7 +108,7 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $product) {
-				$info = cls::get($product->classId)->getProductInfo($product->productId);
+				$info = cat_Products::getProductInfo($product->productId);
 				
 				// Колко остава за експедиране от продукта
 				$toShip = $product->quantity - $product->quantityDelivered;
@@ -144,7 +118,6 @@ abstract class deals_ServiceMaster extends core_Master
 				 
 				$shipProduct = new stdClass();
 				$shipProduct->shipmentId  = $rec->id;
-				$shipProduct->classId     = $product->classId;
 				$shipProduct->productId   = $product->productId;
 				$shipProduct->packagingId = $product->packagingId;
 				$shipProduct->quantity    = $toShip;
@@ -253,7 +226,6 @@ abstract class deals_ServiceMaster extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->amountDeliveredVat || $rec->amountDelivered){
     			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
@@ -311,20 +283,7 @@ abstract class deals_ServiceMaster extends core_Master
      */
     public function getUsedDocs_($id)
     {
-    	$res = array();
-    	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->EXT('state', $this->className, 'externalKey=shipmentId');
-    	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-    	$dQuery->groupBy('productId,classId');
-    	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-    		}
-    	}
-    	
-    	return $res;
+    	return deals_Helper::getUsedDocs($this, $id);
     }
 
     /**
@@ -348,11 +307,10 @@ abstract class deals_ServiceMaster extends core_Master
     
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
-    		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
     		$p->inPack      = $dRec->quantityInPack;
-    		$index = $dRec->classId . "|" . $dRec->productId;
+    		$index = $dRec->productId;
     		
     		$aggregator->push('shippedPacks', $p, $index);
     	}
@@ -388,7 +346,7 @@ abstract class deals_ServiceMaster extends core_Master
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите
-	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
 	        	// и ги нормализираме
 	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
 	        }

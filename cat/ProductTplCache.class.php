@@ -98,7 +98,7 @@ class cat_ProductTplCache extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-single'])){
-			$Driver = cat_Products::getDriver($rec->productId);
+			$Driver = cls::get('cat_Products')->getDriver($rec->productId);
 			$row->cache = $Driver->renderProductDescription($rec->cache);
 		}
 	}
@@ -146,7 +146,23 @@ class cat_ProductTplCache extends core_Master
 		// Изчистваме записите от моделите
 		self::truncate();
 		 
+		// Записваме, че потребителя е разглеждал този списък
+		$this->logInfo("Изтриване на кеша на изгледите на артикула");
+		
 		Redirect(array($this, 'list'), FALSE, 'Записите са изчистени успешно');
+	}
+	
+	
+	/**
+	 * Връща кешираните данни на артикула за дадено време ако има
+	 * 
+	 * @param int $productId - ид на артикул
+	 * @param datetime $time - време
+	 * @return mixed
+	 */
+	public static function getCache($productId, $time)
+	{
+		return self::fetchField("#productId = {$productId} AND #time = '{$time}'", 'cache');
 	}
 	
 	
@@ -161,8 +177,9 @@ class cat_ProductTplCache extends core_Master
 	public static function cacheTpl($productId, $time, $documentType = 'public')
 	{
 		$pRec = cat_Products::fetchRec($productId);
-		$cache = self::fetchField("#productId = {$pRec->id} AND #time = '{$time}'", 'cache');
-		$Driver = cls::get('cat_Products')->getDriver($productId);
+		
+		$cache = self::getCache($pRec->id, $time);
+		$Driver = cat_Products::getDriver($productId);
 		
 		// Ако има кеширан изглед за тази дата връщаме го
 		if(!$cache){
@@ -171,9 +188,13 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-			$cacheRec->cache = $Driver->prepareProductDescription($documentType);
-			self::save($cacheRec);
-	
+			$cacheRec->cache = $Driver->prepareProductDescription($pRec, $documentType);
+			
+			// Записваме кеша само ако е подадено валидно време
+			if(isset($cacheRec->time)){
+				self::save($cacheRec);
+			}
+			
 			$cache = $cacheRec->cache;
 		}
 		

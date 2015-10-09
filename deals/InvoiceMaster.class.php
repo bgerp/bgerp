@@ -48,12 +48,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Работен кеш
      */
     protected $cache = array();
@@ -70,21 +64,23 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function setInvoiceFields(core_Master &$mvc)
     {
-    	$mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory, export=Csv');
+    	$mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
     	$mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
     	$mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
     	$mvc->FLD('contragentId', 'int', 'input=hidden');
-    	$mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData, export=Csv');
+    	$mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData');
     	$mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
     	$mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId');
-    	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo, export=Csv');
-    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId, export=Csv');
+    	$mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo');
+    	$mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');
     	$mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
     	$mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-    	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод, export=Csv');
+    	//$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод');
+    	
+    	$mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
@@ -94,7 +90,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
     	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount, export=Csv');
+    	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
     }
@@ -133,16 +129,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Сортираме низходящо по номер
     	$query->orderBy('#number', 'DESC');
     }
-
-
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
     
     
     /**
@@ -157,30 +143,19 @@ abstract class deals_InvoiceMaster extends core_Master
     		$query = $mvc->$Detail->getQuery();
     		$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
     		if($query->fetch()){
-    			$mvc->updated[$rec->id] = $rec->id;
-    		}
-    	}
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$mvc->updateMaster($id);
+    			$mvc->updateQueue[$rec->id] = $rec->id;
     		}
     	}
     }
 
 
     /**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    public function updateMaster($id, $save = TRUE)
+    public function updateMaster_($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
     	$Detail = $this->mainDetail;
@@ -202,7 +177,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec->discountAmount = $this->_total->discount * $rec->rate;
     	
     	if($save){
-    		$this->save($rec);
+    		return $this->save($rec);
     	}
     }
     
@@ -338,7 +313,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	if($form->rec->type == 'credit_note'){
     		unset($invArr['dueDate']);
-    		$form->setField('dueDate', 'input=none');
     	}
     	
     	// Копиране на повечето от полетата на фактурата
@@ -352,7 +326,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('deliveryId', 'input=none');
     	$form->setField('deliveryPlaceId', 'input=none');
     
-    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'dueDate') as $name){
+    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
     		if($form->rec->$name){
     			$form->setReadOnly($name);
     		}
@@ -436,20 +410,7 @@ abstract class deals_InvoiceMaster extends core_Master
     */
    public function getUsedDocs_($id)
    {
-	   	$res = array();
-	   	$Detail = $this->mainDetail;
-	   	$dQuery = $this->$Detail->getQuery();
-	   	$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
-	   	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-	   	$dQuery->groupBy('productId,classId');
-	   	while($dRec = $dQuery->fetch()){
-	   		$productMan = cls::get($dRec->classId);
-	   		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-	   			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-	   		}
-	   	}
-	   	 
-	   	return $res;
+	   	return deals_Helper::getUsedDocs($this, $id);
    }
 
 
@@ -540,7 +501,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		$packs = $info->get('shippedPacks');
 	   		
 	   		$mvc::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
-	   	} elseif($origin->getInstance() instanceof $mvc){
+	   	} elseif($origin->isInstanceOf($mvc)){
 	   		$dpOperation = $origin->fetchField('dpOperation');
 	   		
 	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
@@ -573,7 +534,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   			$diff = $product->quantity;
 	   			if(count($invoiced)){
 	   				foreach ($invoiced as $inv){
-	   					if($inv->classId == $product->classId && $inv->productId == $product->productId){
+	   					if($inv->productId == $product->productId){
 	   						$diff = $product->quantity - $inv->quantity;
 	   						if($diff <= 0){
 	   							$continue = TRUE;
@@ -600,11 +561,11 @@ abstract class deals_InvoiceMaster extends core_Master
    protected static function saveProductFromOrigin($mvc, $rec, $product, $packs, $restAmount)
    {
 	   	$dRec = clone $product;
-	   	$index = $product->classId . "|" . $product->productId;
+	   	$index = $product->productId;
 	   	
 	   	// Ако няма информация за експедираните опаковки, визмаме основната опаковка
    		if(!isset($packs[$index])){
-   			$packs1 = cls::get('cat_Products')->getPacks($product->productId);
+   			$packs1 = cat_Products::getPacks($product->productId);
    			$dRec->packagingId = key($packs1);
    			
    			$packQuantity = 1;
@@ -619,7 +580,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	
 	   	$Detail = $mvc->mainDetail;
 	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;
-	   	$dRec->classId        			  = $product->classId;
 	   	$dRec->discount        			  = $product->discount;
 	   	$dRec->price 		  			  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
 	   	$dRec->quantityInPack 			  = $packQuantity;
@@ -686,7 +646,7 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	while ($recDetails = $query->fetch()){
     		// взимаме заглавията на продуктите
-    		$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+    		$productTitle = cat_Products::getTitleById($recDetails->productId);
     		// и ги нормализираме
     		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
     	}
@@ -733,8 +693,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->rate       = $aggregateInfo->get('rate');
     		 
     		if($aggregateInfo->get('paymentMethodId')){
-    			$form->rec->paymentMethodId = $aggregateInfo->get('paymentMethodId');
-    			$form->setField('paymentMethodId', 'input=hidden');
+    			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
+    			$plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
+    			
+    			if(!isset($form->rec->id)){
+    				$form->setDefault('dueTime', $plan['timeBalancePayment']);
+    				$form->setDefault('dueDate', $plan['deadlineForBalancePayment']);
+    			}
     		}
     		 
     		$form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
@@ -742,7 +707,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
     		
-    		$form->setField('dueDate', 'input=none');
     		$data->aggregateInfo = $aggregateInfo;
     		$form->aggregateInfo = $aggregateInfo;
     	} 
@@ -772,15 +736,14 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		// Извлича се платежния план
-    		if($form->rec->paymentMethodId){
-    			if(isset($form->aggregateInfo)){
-    				$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
-    				
-    				if(isset($plan['deadlineForBalancePayment'])){
-    					$rec->dueDate = $plan['deadlineForBalancePayment'];
-    				}
-    			}
+    		// Ако има срок за плащане но няма дата изчисляваме я
+    		if(isset($rec->dueTime) && empty($rec->dueDate)){
+    			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
+    		}
+    		
+    		// Ако има дата за плащане но няма срок изчисляваме го
+    		if(empty($rec->dueTime) && isset($rec->dueDate)){
+    			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
     		}
     		
     		if(!$rec->rate){
@@ -888,7 +851,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->number){
     			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     		}
@@ -941,7 +903,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
-    		// Ако не е въведена дата на даначно събитие, приема се че е текущата
+    		// Ако не е въведена дата на даначно събитие, приема се, че е текущата
     		if(empty($rec->vatDate)){
     			$row->vatDate = $mvc->getFieldType('vatDate')->toVerbal($rec->date);
     		}
@@ -980,7 +942,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
-    	$aggregator->setIfNot('paymentMethodId', $rec->paymentMethodId);
     	
     	if(isset($rec->dpAmount)){
     		if($rec->dpOperation == 'accrued'){
@@ -1013,7 +974,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	$invoiced = $aggregator->get('invoicedProducts');
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
-    		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
     		$p->quantity    = $dRec->quantity * $dRec->quantityInPack;
@@ -1022,7 +982,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$update = FALSE;
     		if(count($invoiced)){
     			foreach ($invoiced as &$inv){
-    				if($inv->classId == $p->classId && $inv->productId == $p->productId){
+    				if($inv->productId == $p->productId){
     					$inv->quantity += $p->quantity;
     					$update = TRUE;
     					break;
@@ -1063,7 +1023,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getInvoiceDetailedInfo($containerId)
     {
     	expect($document = doc_Containers::getDocument($containerId));
-    	expect($document->getInstance() instanceof $this);
+    	expect($document->isInstanceOf($this));
     	
     	if(!isset($this->cache[$containerId])){
     		$cache = array();

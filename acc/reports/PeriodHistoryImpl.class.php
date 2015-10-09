@@ -50,7 +50,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 	/**
 	 * След подготовката на ембеднатата форма
 	 */
-	public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+	public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
 	{
 		$form->FLD('step', "enum(day=Дни,week=Седмици,month=Месеци,year=Години)", "caption=Групиране по");
 		
@@ -375,7 +375,11 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
 				
 				// Подготвяме страницирането
-				$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
+                $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+                $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+                $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+				$data->Pager = $pager;
+
 				$data->Pager->itemsCount = count($data->recs);
 			}
 	

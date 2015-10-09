@@ -40,7 +40,7 @@ class trans_Lines extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg';
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_BusinessDoc';
 
     
     /**
@@ -281,7 +281,6 @@ class trans_Lines extends core_Master
     	}
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
-    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
     
@@ -306,6 +305,7 @@ class trans_Lines extends core_Master
     
 	/**
      * В кои корици може да се вкарва документа
+     * 
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
@@ -356,27 +356,7 @@ class trans_Lines extends core_Master
     {
     	$tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-    
-    
-	/**
-     * Връща само активните транспортни линии
-     */
-    static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
-    {
-    	$options = array();
-    	$query = static::getQuery();
-    	if(strlen($where)){
-    		$query->where = $where;
-    	}
-    	$query->where("state = 'active'");
-    	
-    	while($rec = $query->fetch()){
-    		$options[$rec->id] = static::getTitleById($rec->id);
-    	}
-    	
-    	return $options;
-    }
-    
+        
     
     /**
      * Дали има свързано подотчетно лице към линията

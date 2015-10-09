@@ -192,10 +192,10 @@ class blogm_Articles extends core_Master {
     /**
      * След обновяването на коментарите, обновяваме информацията в статията
      */
-    function on_AfterUpdateDetail($mvc, $articleId, $Detail)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         if($Detail->className == 'blogm_Comments') {
-            $queryC = $Detail->getQuery();
+            $queryC = $detailMvc->getQuery();
             $queryC->where("#articleId = {$articleId} AND #state = 'active'");
             $rec = $mvc->fetch($articleId);
             $rec->commentsCnt = $queryC->count();
@@ -262,7 +262,8 @@ class blogm_Articles extends core_Master {
         $data->listFilter->showFields = 'search,category';
 
         // Подреждаме статиите по датата им на публикуане в низходящ ред	
-		$data->query->orderBy('createdOn', 'DESC');
+        $data->query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$data->query->orderBy('#pubTime', 'DESC');
 		
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
  
@@ -342,7 +343,7 @@ class blogm_Articles extends core_Master {
         if($cForm = $data->commentForm) {
         
             // Зареждаме REQUEST данните във формата за коментар
-            $rec = $cForm->input();
+            $cRec = $cForm->input();
             
             // Мениджърът на блог-коментарите
             $Comments = cls::get('blogm_Comments');
@@ -351,21 +352,27 @@ class blogm_Articles extends core_Master {
             $Comments->invoke('AfterInputEditForm', array($cForm));
             
             // Дали имаме права за това действие към този запис?
-            $Comments->requireRightFor('add', $rec, NULL);
+            $Comments->requireRightFor('add', $cRec, NULL);
             
             // Ако формата е успешно изпратена - запис, лог, редирект
-            if ($cForm->isSubmitted() && !Request::get('Comment')) {
+            if ($cForm->isSubmitted()) {
                 
                 vislog_History::add('Нов коментар в блога');
                 
                 // Записваме данните
-                $id = $Comments->save($rec);
+                if($id = $Comments->save($cRec)) {
                 
-                // Правим запис в лога
-                $Comments->logInfo('add', $id);
+                    // Правим запис в лога
+                    $Comments->logInfo('add', $id);
+                    
+                    // Редиректваме към предварително установения адрес
+                    return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
+                } else {
+
+                    // Връщане на СПАМ съобщение
+                    return new Redirect(self::getUrl($data->rec), 'За съжаление не успяхме да запишем коментара ви :(');
+                }
                 
-                // Редиректваме към предварително установения адрес
-                return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
             }
         }
       
@@ -397,7 +404,7 @@ class blogm_Articles extends core_Master {
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
         $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
-		
+        
 		return $tpl;
 	}
 	
@@ -422,7 +429,7 @@ class blogm_Articles extends core_Master {
        	$this->prepareNavigation($data);
 
         if($this->haveRightFor('single', $data->rec)) {
-            $data->workshop = array('blogm_Articles', 'single', $data->rec->id);
+            $data->workshop = array('blogm_Articles', 'edit', $data->rec->id);
         }
         
         // Подготвяме информацията за Статията за Open Graph Protocol
@@ -639,7 +646,8 @@ class blogm_Articles extends core_Master {
             $data->query->where("#createdOn LIKE '{$data->archiveY}-{$data->archiveM}-%'");
         }
      
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$data->query->orderBy('#pubTime', 'DESC');
         
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
@@ -841,9 +849,12 @@ class blogm_Articles extends core_Master {
     {
 		$query = $this->getQuery();
         $query->XPR('month', 'varchar', "CONCAT(YEAR(#createdOn), '|', MONTH(#createdOn))");
+        
+        $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+
         $query->groupBy("month");
-        $query->show('month');
-        $query->orderBy('#createdOn', 'DESC');
+        $query->show('month,pubTime');
+        $query->orderBy('#pubTime', 'DESC');
         $query->where("#state = 'active'");
         
         // Филтриране по категориите на съответния език
@@ -934,7 +945,8 @@ class blogm_Articles extends core_Master {
     	}
     	
     	$query->where("#state = 'active'");
-		$query->orderBy('createdOn', 'DESC');
+        $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$query->orderBy('#pubTime', 'DESC');
     	$query->limit($itemsCnt);
     	
     	$items = array();
@@ -947,7 +959,7 @@ class blogm_Articles extends core_Master {
 	    		$item = new stdClass();
 	    		$item->title = $rec->title;
 	    		$item->link = toUrl(self::getUrl($rec), 'absolute');
-	    		$item->date = $rec->createdOn;
+	    		$item->date = $rec->pubTime;
 	    		
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
 	    		$desc = explode("\n", $rec->body);

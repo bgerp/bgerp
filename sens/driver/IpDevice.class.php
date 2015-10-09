@@ -293,7 +293,7 @@ class sens_driver_IpDevice extends core_BaseClass
         $settingsArr = (array) $this->getSettings();
 
         foreach ($this->params as $param => $arr) {
-        	// Ако в сетингите е зададено че параметъра е изчисляем:
+        	// Ако в сетингите е зададено, че параметъра е изчисляем:
         	// Създаваме logPeriod 
         	if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
         		$settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];

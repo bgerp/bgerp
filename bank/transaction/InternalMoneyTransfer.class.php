@@ -23,14 +23,6 @@ class bank_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
      * @var bank_InternalMoneyTransfer
      */
     public $class;
-
-
-    /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
     
     
     /**

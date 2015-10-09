@@ -481,6 +481,9 @@ class acc_Periods extends core_Manager
         
         $res = new Redirect(array('acc_Periods'), tr($res));
         
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logInfo("Затваряне на период", $id);
+        
         return $res;
     }
     
@@ -513,7 +516,8 @@ class acc_Periods extends core_Manager
         $query->where("#end > '{$activeRec->end}' AND #end <= '{$curPerEnd}'");
        
         // Ако сме достигнали указания ден за активиране на следващия бъдещ период
-        $daysBefore = acc_Setup::get('DAYS_BEFORO_MAKE_PERIOD_PENDING');
+        $daysBefore = acc_Setup::get('DAYS_BEFORE_MAKE_PERIOD_PENDING');
+        
         if($daysBefore){
 
         	if(dt::now() >= dt::addSecs(-1 * $daysBefore, $curPerEnd)){
@@ -547,6 +551,7 @@ class acc_Periods extends core_Manager
         }
     }
     
+    
     /**
      * Създава бъдещи (3 месеца напред) счетоводни периоди
      */
@@ -556,10 +561,7 @@ class acc_Periods extends core_Manager
         $this->updateExistingPeriodsState();
     }
     
-    function act_Test()
-    {
-    	$this->cron_CreateFuturePeriods();
-    }
+    
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
      *

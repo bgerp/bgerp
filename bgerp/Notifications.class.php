@@ -117,7 +117,7 @@ class bgerp_Notifications extends core_Manager
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         if (!haveRole('debug') && $userId == core_Users::getCurrent()) return;
         
-        // Ако има такова съобщение - само му вдигаме флага че е активно
+        // Ако има такова съобщение - само му вдигаме флага, че е активно
         $query = bgerp_Notifications::getQuery();
         $r = $query->fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
@@ -313,49 +313,66 @@ class bgerp_Notifications extends core_Manager
     static function render_($userId = NULL)
     {
         if(empty($userId)) {
-            $userId = core_Users::getCurrent();
+            expect($userId = core_Users::getCurrent());
         }
         
         $Notifications = cls::get('bgerp_Notifications');
+
+
+        // Намираме времето на последния запис
+        $query = $Notifications->getQuery();
+        $query->where("#userId = $userId");
+        $query->limit(1);
+        $query->orderBy("#modifiedOn", 'DESC');
+        $lastRec = $query->fetch();
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch'));
+
+        list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
+ 
+        if(!$tpl || $modifiedOn != $lastRec->modifiedOn) {
+
         
-        // Създаваме обекта $data
-        $data = new stdClass();
-        
-        // Създаваме заявката
-        $data->query = $Notifications->getQuery();
-        
-        $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords");
-        
-        // Подготвяме полетата за показване
-        $data->listFields = 'modifiedOn=Време,msg=Съобщение';
-        
-        $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
-        $data->query->orderBy("state,modifiedOn=DESC");
-        
-        if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
-            $data->query->where("#state = 'active'");
+            // Създаваме обекта $data
+            $data = new stdClass();
+            
+            // Създаваме заявката
+            $data->query = $Notifications->getQuery();
+            
+            $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords");
+            
+            // Подготвяме полетата за показване
+            $data->listFields = 'modifiedOn=Време,msg=Съобщение';
+            
+            $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
+            $data->query->orderBy("state,modifiedOn=DESC");
+            
+            if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
+                $data->query->where("#state = 'active'");
+            }
+            
+            // Подготвяме филтрирането
+            $Notifications->prepareListFilter($data);
+            
+            // Подготвяме навигацията по страници
+            $Notifications->prepareListPager($data);
+            
+            // Подготвяме записите за таблицата
+            $Notifications->prepareListRecs($data);
+            
+            // Подготвяме редовете на таблицата
+            $Notifications->prepareListRows($data);
+            
+            // Подготвяме заглавието на таблицата
+            $data->title = tr("Известия");
+            
+            // Подготвяме лентата с инструменти
+            $Notifications->prepareListToolbar($data);
+            
+            // Рендираме изгледа
+            $tpl = $Notifications->renderPortal($data);
+
+            core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), 5);
         }
-        
-        // Подготвяме филтрирането
-        $Notifications->prepareListFilter($data);
-        
-        // Подготвяме навигацията по страници
-        $Notifications->prepareListPager($data);
-        
-        // Подготвяме записите за таблицата
-        $Notifications->prepareListRecs($data);
-        
-        // Подготвяме редовете на таблицата
-        $Notifications->prepareListRows($data);
-        
-        // Подготвяме заглавието на таблицата
-        $data->title = tr("Известия");
-        
-        // Подготвяме лентата с инструменти
-        $Notifications->prepareListToolbar($data);
-        
-        // Рендираме изгледа
-        $tpl = $Notifications->renderPortal($data);
         
         //Задаваме текущото време, за последно преглеждане на нотификациите
         Mode::setPermanent('lastNotificationTime', time());
@@ -379,6 +396,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             $cnt = 0;
         }
+
         
         return $cnt;
     }
@@ -551,19 +569,67 @@ class bgerp_Notifications extends core_Manager
      */
     function act_NotificationsCnt()
     {
+
+        
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
             // Броя на нотифиакциите
             $notifCnt = static::getOpenCnt();
             
+            $res = array();
+
             // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'notificationsCnt';
-            $resObj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj = new stdClass();
+            $obj->func = 'notificationsCnt';
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
             
-            return array($resObj);
+            $res[] = $obj;
+
+            // Ако има увеличаване - пускаме звук
+            $lastCnt = Mode::get('NotificationsCnt');
+
+            if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
+                
+                $newNotifCnt = $notifCnt - $lastCnt;
+                    
+                if ($newNotifCnt == 1) {
+                    $notifStr = $newNotifCnt . ' ' . tr('ново известие');
+                } else {
+                    $notifStr = $newNotifCnt . ' ' . tr('нови известия');
+                }
+                
+                $notifyArr = array('title' => $notifStr, 'blinkTimes' => 2);
+                
+                // Добавяме и звук, ако е зададено
+                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
+                if ($notifSound != 'none') {
+                    $notifyArr['soundOgg'] = sbf("sounds/{$notifSound}.ogg", '');
+                    $notifyArr['soundMp3'] = sbf("sounds/{$notifSound}.mp3", '');
+                }
+                
+                $obj = new stdClass();
+                $obj->func = 'Notify';
+                $obj->arg = $notifyArr;
+                $res[] = $obj;
+            }
+            
+            // Записваме в сесията последно изпратените нотификации, ако има промяна
+            if($notifCnt != $lastCnt) {
+                if(core_Users::getCurrent()) {
+                    Mode::setPermanent('NotificationsCnt', $notifCnt);
+                } else {
+                    Mode::setPermanent('NotificationsCnt', NULL);
+                }
+            }
+
+            return $res;
         }
+    }
+
+    function act_BP()
+    {
+        bp(Mode::get('NotificationsCnt'), core_Users::getCurrent());
     }
     
     

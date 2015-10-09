@@ -102,7 +102,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId,type');
+        $this->setDbUnique('noteId,productId,type');
     }
     
     
@@ -129,29 +129,49 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$classId = cat_Products::getClassId();
-    	
-    	if($rec->id){
+    	if(isset($rec->id)){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
     	} else {
-    		$products = array('' => '') + cat_Products::getByProperty('canConvert');
+    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
+    		$products = array('' => '') + cat_Products::getByProperty($metas);
     	}
     	
     	$form->setOptions('productId', $products);
-    	
-    	$form->setDefault('classId', $classId);
     }
     
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	$rec = &$form->rec;
     	
-    	if($form->isSubmitted()){
+    	if($rec->productId){
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		if(isset($pInfo->meta['canStore'])){
+    			$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	
+    		if($form->isSubmitted()){
+    			if(isset($storeInfo->warning)){
+    				$form->setWarning('packQuantity', $storeInfo->warning);
+    			}
+    			
+    			// Ако добавяме отпадък, искаме да има себестойност
+    			if($rec->type == 'pop'){
+    				$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
     		
+    				if(!isset($selfValue)){
+    					$form->setError('productId', 'Отпадакът не може да му се определи себестойност');
+    				}
+    			}
+    		}
     	}
     }
     
@@ -222,27 +242,27 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		unset($data->listFields['tools']);
     	}
     	
-    	
     	// Рендираме таблицата с вложените материали
+    	$data->listFields['productId'] = '|Суровини и материали|* ' . "<small style='font-weight:normal'>( |вложени от склад|*: {$data->masterData->row->inputStoreId} )</small>";
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
     	// Добавяне на бутон за нов материал
-    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'input'))){
     		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Рендираме таблицата с отпадъците
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
-    		$data->listFields['productId'] = 'Отпадък';
+    		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
     		$detailsPop = $table->get($data->popArr, $data->listFields);
     		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
     		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
     	}
     	
     	// Добавяне на бутон за нов отпадък
-    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'pop'))){
     		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	

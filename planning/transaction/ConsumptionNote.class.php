@@ -29,7 +29,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason' => "Протокол за влагане №{$rec->id}",
+				'reason' => "Протокол за влагане в производство №{$rec->id}",
 				'valior' => $rec->valior,
 				'totalAmount' => NULL,
 				'entries' => array()
@@ -58,13 +58,13 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$dQuery = planning_ConsumptionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
-			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+			$pInfo = cat_Products::getProductInfo($dRec->productId);
 			$debitArr = NULL;
 			
 			if($rec->useResourceAccounts == 'yes'){
 				
 				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-				$debitArr = array('61101', array($dRec->classId, $dRec->productId),
+				$debitArr = array('61101', array('cat_Products', $dRec->productId),
 								  'quantity' => $dRec->quantity);
 				
 				$reason = 'Влагане на материал в производството';
@@ -79,7 +79,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 			$entries[] = array('debit' => $debitArr,
 							   'credit' => array(321,
 									array('store_Stores', $rec->storeId),
-									array($dRec->classId, $dRec->productId),
+									array('cat_Products', $dRec->productId),
 									'quantity' => $dRec->quantity),
 							   'reason' => $reason);
 		}

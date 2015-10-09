@@ -278,7 +278,7 @@ class forum_Postings extends core_Detail {
 		// Рендираме темата
 		$layout = $this->renderTheme($data);
 		
-		// Записваме че темата е посетена в лога
+		// Записваме, че темата е посетена в лога
 		if(core_Packs::fetch("#name = 'vislog'")) {
             $cnt = vislog_History::add($data->row->title, TRUE);
             
@@ -541,11 +541,11 @@ class forum_Postings extends core_Detail {
         
 		// Извличаме всички постинги направени относно темата
 		while($rec = $data->query->fetch()) {
-			$data->details[$rec->id] = $this->recToVerbal($rec, $fields);
+			$data->postings[$rec->id] = $this->recToVerbal($rec, $fields);
 			
 			// Заглавието на коментара е комбинация от #C и id-то на коментара
-			$data->details[$rec->id]->title = tr("Коментар") . " <b>#C{$rec->id}</b>";
-			$data->details[$rec->id]->anchor = "C{$rec->id}";
+			$data->postings[$rec->id]->title = tr("Коментар") . " <b>#C{$rec->id}</b>";
+			$data->postings[$rec->id]->anchor = "C{$rec->id}";
 		}
         
 		$this->prepareTopicToolbar($data);
@@ -582,10 +582,10 @@ class forum_Postings extends core_Detail {
 		$tpl->placeObject($data->row);
 		
 		// Ако има коментари ние ги рендираме
-		if(count($data->details)) {
+		if(count($data->postings)) {
 			$cloneTpl = clone($detailsTpl);
 			
-			foreach($data->details as $row) {
+			foreach($data->postings as $row) {
 				$rowTpl = $cloneTpl->getBlock('ROW');
 				$rowTpl->placeObject($row);
 				$rowTpl->append2master();

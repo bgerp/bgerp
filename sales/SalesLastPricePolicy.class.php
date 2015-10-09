@@ -38,16 +38,17 @@ class sales_SalesLastPricePolicy extends core_Manager
      * 				  $rec->discount - отстъпка
      * 				  $rec->priority - приоритет на цената
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
     	$lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
-        if(!isset($lastPrices[$productId])) return NULL;
         
-        $pInfo = cls::get($productManId)->getProductInfo($productId);
+    	if(!isset($lastPrices[$productId])) return NULL;
+        
+        $pInfo = cat_Products::getProductInfo($productId);
         $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
         $packPrice = $lastPrices[$productId] * $quantityInPack;
     	
-        $vat = cls::get($productManId)->getVat($productId);
+        $vat = cat_Products::getVat($productId);
         $packPrice = deals_Helper::getDisplayPrice($packPrice, $vat, $rate, $chargeVat);
        
         return (object)array('price' => deals_Helper::roundPrice($packPrice));

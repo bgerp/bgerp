@@ -172,7 +172,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
-    	$this->FLD('tolerance', 'percent', 'caption=Толеранс');
+    	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
@@ -202,22 +202,28 @@ class planning_Jobs extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
     	$form->setReadOnly('productId');
-    	$pInfo = cat_Products::getProductInfo($form->rec->productId);
+    	$pInfo = cat_Products::getProductInfo($rec->productId);
     	$uomName = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
     	$form->setField('quantity', "unit={$uomName}");
     	$form->setSuggestions('tolerance', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
     	
-    	if($form->rec->saleId){
-    		$saleRec = sales_Sales::fetch($form->rec->saleId);
+		if($tolerance = cat_Products::getParamValue($rec->productId, 'tolerance')){
+    		$form->setDefault('tolerance', $tolerance);
+    	}
+    	
+    	if(isset($rec->saleId)){
+    		$saleRec = sales_Sales::fetch($rec->saleId);
     		
     		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$form->setDefault('storeId', $saleRec->shipmentStoreId);
-    		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($form->rec->saleId) . "</b>";
+    		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие");
     		$form->setField('deliveryDate', "caption={$caption}->Срок");
@@ -233,8 +239,8 @@ class planning_Jobs extends core_Master
     	}
     	
     	// При ново задание, ако текущия потребител има права го добавяме като споделен
-    	if(haveRole('planning,ceo') && empty($form->rec->id)){
-    		$form->rec->sharedUsers = keylist::addKey($form->rec->sharedUsers, core_Users::getCurrent());
+    	if(haveRole('planning,ceo') && empty($rec->id)){
+    		$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
     	}
     }
     
@@ -321,9 +327,8 @@ class planning_Jobs extends core_Master
     		}
     		
     		// Колко е еденичното тегло
-    		$params = cls::get('cat_Products')->getParams($rec->productId);
-    		if(isset($params['weight'])){
-    			$rec->weight = $params['weight'] * $rec->quantity;
+    		if($weight = cat_Products::getParamValue($rec->productId, 'weight')){
+    			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
     		}
@@ -368,7 +373,6 @@ class planning_Jobs extends core_Master
     	
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 

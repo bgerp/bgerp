@@ -21,7 +21,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools';
 	
 	
 	/**
@@ -57,7 +57,9 @@ class planning_Tasks extends tasks_Tasks
 		 
 		// Дали според продуктовия драйвер на артикула в заданието има дефолтни задачи
 		$ProductDriver = cat_Products::getDriver($data->masterData->rec->productId);
-		$defaultTasks = $ProductDriver->getDefaultJobTasks();
+		if(!empty($ProductDriver)){
+			$defaultTasks = $ProductDriver->getDefaultJobTasks();
+		}
 		 
 		// Намираме всички задачи към задание
 		$query = $this->getQuery();
@@ -71,11 +73,14 @@ class planning_Tasks extends tasks_Tasks
 		// Подготвяме данните
 		while($rec = $query->fetch()){
 			$data->recs[$rec->id] = $rec;
-			$data->rows[$rec->id] = $this->recToVerbal($rec);
-	
+			$row = $this->recToVerbal($rec);
+			$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
+			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
+			$data->rows[$rec->id] = $row;
+			
 			// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
 			$title = $data->rows[$rec->id]->title;
-			if(isset($rec->systemId)){
+			if(isset($rec->systemId) && is_array($defaultTasks)){
 				unset($defaultTasks[$rec->systemId]);
 			}
 		}
@@ -90,7 +95,7 @@ class planning_Tasks extends tasks_Tasks
 				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driverClass, 'systemId' => $index, 'ret_url' => TRUE);
 				$row = new stdClass();
 				$row->title = $taskInfo->title;
-				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
+				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача за производство');
 				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
 	
 				$data->rows[] = $row;
@@ -116,15 +121,18 @@ class planning_Tasks extends tasks_Tasks
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
-		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
-		 
-		 
+		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
+		
 		// Добавя бутон за създаване на нова задача
 		if(isset($data->addUrl)){
 			$addBtn = ht::createLink('', $data->addUrl, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/add.png');
 			$tpl->append($addBtn, 'ADD_BTN');
 		}
 		 
+		$taskLink = tr("Производствени задачи");
+		$taskLink = ($this->haveRightFor('list')) ? ht::createLink($taskLink, array($this, 'list')) : $taskLink;
+		$tpl->replace($taskLink, 'TASKS_LINK');
+		
 		// Връщаме шаблона
 		return $tpl;
 	}
