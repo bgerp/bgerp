@@ -173,15 +173,15 @@ class dec_Declarations extends core_Master
         
     	// намираме езика на нишката
     	$language = doc_Threads::getLanguage($data->form->rec->threadId);
-    	// намираме българската декларация
-    	$idBg = dec_DeclarationTypes::fetchField('#sysId = "Декларация за съответствие"', 'id');
-    	// намираме английската декларация
-    	$idEn = dec_DeclarationTypes::fetchField('#sysId = "Declaration of compliance"', 'id');
     	
     	// слагаме ги по дефолт
     	if ($language == 'bg') {
+    		// намираме българската декларация
+    		$idBg = dec_DeclarationTypes::fetchField('#sysId = "Декларация за съответствие"', 'id');
     		$data->form->setDefault('typeId', $idBg);
     	} else{
+    		// намираме английската декларация
+    		$idEn = dec_DeclarationTypes::fetchField('#sysId = "Declaration of compliance"', 'id');
     		$data->form->setDefault('typeId', $idEn);
     	}
     	
