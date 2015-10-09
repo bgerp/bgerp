@@ -337,11 +337,14 @@ class sales_Quotations extends core_Master
 	    			$warning = '';
 	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
 	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
-	    				$warning = "warning=Сигурни ли сте, че искате да създадете продажба?";
+	    				$warning = "Сигурни ли сте, че искате да създадете продажба?";
 	    				$title = 'Създаване на продажба от офертата';
+	    				$efIcon = 'img/16/star_2.png';
+	    			} else {
+	    				$efIcon = 'img/16/cart_go.png';
 	    			}
 	    			
-	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), array('warning' => $warning), "ef_icon=img/16/star_2.png,title={$title}");
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), array('warning' => $warning), "ef_icon={$efIcon},title={$title}");
 	    		}
 	    	}
 	    }

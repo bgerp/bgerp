@@ -14,8 +14,11 @@
  */
 class sales_Sales extends deals_DealMaster
 {
+	
+	
 	const AGGREGATOR_TYPE = 'sale';
     
+	
     /**
      * Заглавие
      */
