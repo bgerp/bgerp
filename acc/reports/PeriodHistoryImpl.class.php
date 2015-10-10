@@ -251,7 +251,12 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 		if(empty($data)) return;
 		
 		$tpl = $this->getReportLayout();
-		$tpl->replace($this->title, 'TITLE');
+		
+		$explodeTitle = explode(" » ", $this->title);
+			
+		$title = tr("|{$explodeTitle[1]}|*");
+
+		$tpl->replace($title, 'TITLE');
 		
 		// Рендираме статичната форма
 		$this->prependStaticForm($tpl, 'FORM');

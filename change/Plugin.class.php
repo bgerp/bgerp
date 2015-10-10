@@ -405,6 +405,27 @@ class change_Plugin extends core_Plugin
         // Вербално представяне на избраните версии
         $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first']);
         $lastVerDocArr = change_Log::getVersionAndDateFromKey($mvc, $lastVersion);
+        $isLastVer = (boolean)($lastVersionStr && ($selVerArr['last'] == $lastVersion));
+        
+        if (!$isLastVer) {
+            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
+            $lastCreatedOn = $lastSelVerArr['createdOn'];
+        } else {
+            $lastCreatedOn = $lastVerDocArr['createdOn'];
+        }
+        
+        $dateMask = 'd-m-y';
+        
+        // Ако се сравняват две версии от един и същи ден, да се показва и датата
+        if ($lastCreatedOn) {
+            
+            $lastCreatedOnDate = dt::mysql2verbal($lastCreatedOn, $dateMask);
+            $firstCreatedOnDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
+            
+            if ($firstCreatedOnDate == $lastCreatedOnDate) {
+                $dateMask = 'd-m-y H:m:s';
+            }
+        }
         
         // Ако има избрана версия
         if ($selVerArr['first']) {
@@ -414,16 +435,19 @@ class change_Plugin extends core_Plugin
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
-                $data->row->LastSavedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+                $data->row->LastSavedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         } else {
             
-            // Добавяме в друга променлива
-            $data->row->LastVersion = $lastVerDocArr['versionStr'];
-            
-            // Ако е върната дата
-            if ($lastVerDocArr['createdOn']) {
-                $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+            // Ако има само една версия, да не се показва
+            if ($lastVerDocArr['versionStr'] != '0.1') {
+                // Добавяме в друга променлива
+                $data->row->LastVersion = $lastVerDocArr['versionStr'];
+                
+                // Ако е върната дата
+                if ($lastVerDocArr['createdOn']) {
+                    $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
+                }
             }
         }
         
@@ -432,29 +456,27 @@ class change_Plugin extends core_Plugin
         
         // Ако е върната дата
         if ($firstSelVerArr['createdOn']) {
-            $data->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], 'd-m-y');
+            $data->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
         }
         
         // Ако последната версия е последния вариант
-        if ($lastVersionStr && ($selVerArr['last'] == $lastVersion)) {
+        if ($isLastVer) {
             
             // Последната избрана версия
             $data->row->LastSelectedVersion = $lastVerDocArr['versionStr'];
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
-                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         } else {
-            
-            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
             
             // Последната избрана версия
             $data->row->LastSelectedVersion = $lastSelVerArr['versionStr'];
             
             // Ако е върната дата
             if ($lastSelVerArr['createdOn']) {
-                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], 'd-m-y');
+                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], $dateMask);
             }
         }
     }

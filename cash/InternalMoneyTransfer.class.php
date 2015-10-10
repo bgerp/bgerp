@@ -23,6 +23,14 @@ class cash_InternalMoneyTransfer extends core_Master
    
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = "Вътрешни касови трансфери";

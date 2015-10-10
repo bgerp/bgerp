@@ -24,6 +24,14 @@ class cash_Rko extends core_Master
     
 
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Флаг, който указва, че документа е партньорски
      */
     public $visibleForPartners = TRUE;

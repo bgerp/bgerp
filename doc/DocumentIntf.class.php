@@ -239,4 +239,17 @@ class doc_DocumentIntf
         
         return $this->class->generateCacheKey($rec, $document);
     }
+    
+    
+    /**
+     * Връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     */
+    function getLetterHead($rec, $row)
+    {
+        
+        return $this->class->getLetterHead($rec, $row);
+    }
 }

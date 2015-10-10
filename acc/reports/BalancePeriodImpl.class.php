@@ -103,6 +103,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	
     	$form->setDefault('from', $lastBalance->periodId);
     	$form->setDefault('to', $previousBalance->periodId);
+    	
+    	$form->sethidden('compare');
     }
     
     

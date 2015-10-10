@@ -671,6 +671,7 @@ if($step == 3) {
 
     	} catch (core_Exception_Expect $e) {
     		$log[] = "err: " . $e->getMessage();
+    		reportException($e, NULL, TRUE);
     	}
     } else {
         $log[] = "err:Недефинирани константи за връзка със сървъра на базата данни";
@@ -967,6 +968,7 @@ if($step == 'start') {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
         } catch (core_exception_Expect $e) {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            reportException($e, NULL, TRUE);
         }
     } catch (Exception $e) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
