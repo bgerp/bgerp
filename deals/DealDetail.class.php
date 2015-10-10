@@ -99,7 +99,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
     	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
-    	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
+        $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
     	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     }
     
