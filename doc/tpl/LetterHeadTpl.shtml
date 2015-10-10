@@ -1,0 +1,7 @@
+<!--ET_BEGIN TableRow-->
+	<div class="small antetka">
+		<table class="top-table" style="width: 99%;">
+			[#TableRow#]
+		</table>
+	</div>
+<!--ET_END TableRow-->

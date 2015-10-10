@@ -223,7 +223,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml', 'lang' => 'bg');
-        $tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
+    	$tplArr[] = array('name' => 'Фактура за факторинг', 'content' => 'sales/tpl/InvoiceFactoring.shtml', 'lang' => 'bg');
+    	
+    	$tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
         $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 'lang' => 'en');
        
     	$res = '';

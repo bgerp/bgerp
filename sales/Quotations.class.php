@@ -278,7 +278,7 @@ class sales_Quotations extends core_Master
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
-       if($rec->originId && empty($rec->id)){
+       if(isset($rec->originId)){
        	
        		// Ако офертата има ориджин
        		$data->form->setField('row1,row2,row3', 'input');
@@ -337,11 +337,14 @@ class sales_Quotations extends core_Master
 	    			$warning = '';
 	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
 	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
-	    				$warning = "warning=Сигурни ли сте, че искате да създадете продажба?";
+	    				$warning = "Сигурни ли сте, че искате да създадете продажба?";
 	    				$title = 'Създаване на продажба от офертата';
+	    				$efIcon = 'img/16/star_2.png';
+	    			} else {
+	    				$efIcon = 'img/16/cart_go.png';
 	    			}
 	    			
-	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), "{$warning}", "ef_icon=img/16/star_2.png,title={$title}");
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), array('warning' => $warning), "ef_icon={$efIcon},title={$title}");
 	    		}
 	    	}
 	    }
@@ -811,6 +814,8 @@ class sales_Quotations extends core_Master
      */
     private function createSale($rec)
     {
+    	$templateId = sales_Sales::getDefaultTemplate((object)array('folderId' => $rec->folderId));
+    	
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
     					'currencyRate'       => $rec->currencyRate,
@@ -820,6 +825,7 @@ class sales_Quotations extends core_Master
     					'chargeVat'          => $rec->chargeVat,
     					'note'				 => $rec->others,
     					'originId'			 => $rec->containerId,
+    					'template'			 => $templateId,
     					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
     	);
     	
@@ -841,7 +847,7 @@ class sales_Quotations extends core_Master
     	
     	// Опитваме се да намерим съществуваща чернова продажба
     	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
-    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
     	}
     	
     	// Ако няма създаваме нова

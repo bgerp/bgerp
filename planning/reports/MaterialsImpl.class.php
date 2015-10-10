@@ -170,7 +170,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        		 
 	        		$obj = &$data->recs[$index];
 	        		$obj->quantity += $quantity;
-	        		$obj->store += $store;
+	        		$obj->store[] = $store;
 	        	}
 	        	
 	    }

@@ -235,7 +235,10 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
     {
 		$tpl = $this->getReportLayout();
 
-        $tpl->replace($this->title, 'TITLE');
+		$explodeTitle = explode(" » ", $this->title);
+		
+		$title = tr("|{$explodeTitle[1]}|*");
+        $tpl->replace($title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
 
         $tpl->placeObject($data->row);

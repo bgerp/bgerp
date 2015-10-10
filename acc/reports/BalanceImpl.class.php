@@ -266,7 +266,12 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     	if(empty($data)) return;
     	
     	$tpl = $this->getReportLayout();
-    	$tpl->replace($this->title, 'TITLE');
+
+    	$explodeTitle = explode(" » ", $this->title);
+    		
+    	$title = tr("|{$explodeTitle[1]}|*");
+    	
+    	$tpl->replace($title, 'TITLE');
     	
     	$this->prependStaticForm($tpl, 'FORM');
     	

@@ -1397,6 +1397,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['note'] 				-  бележки за сделката
      * 		o $fields['originId'] 			-  източник на документа
      *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
+     *		o $fields['template'] 		-  бележки за сделката
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1437,6 +1438,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Ако има платежен метод, съществува ли?
     	if(isset($fields['paymentMethodId'])){
     		expect(cond_PaymentMethods::fetch($fields['paymentMethodId']));
+    	}
+    	
+    	// Ако е зададен шаблон, съществува ли?
+    	if(isset($fields['template'])){
+    		expect(doc_TplManager::fetch($fields['template']));
     	}
     	
     	// Ако не е подадена дата, това е сегашната
@@ -1668,8 +1674,11 @@ abstract class deals_DealMaster extends deals_DealBase
     		return Redirect($retUrl);
     	}
     	
+    	$quotationId = Request::get('quotationId', 'int');
+    	$rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
+    	
     	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор на документа');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());
     }
