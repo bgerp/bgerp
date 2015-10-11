@@ -89,9 +89,10 @@ class ssh_Actions
      * @param string $output [optionаl]
      * @param string $errors [optionаl]
      */
-    public function exec($command, &$output=NULL, &$errors=NULL)
+    public function exec($command, $callBackUrl=NULL, &$output=NULL, &$errors=NULL)
     {
-
+		// Ако имаме callBackUrl изпълняваме командата асинхронно
+		
         // Изпълняваме командата
         $stream = ssh2_exec($this->connection, $command);
         $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
