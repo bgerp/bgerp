@@ -248,7 +248,7 @@ class bank_DepositSlips extends core_Master
         $origin = doc_Containers::getDocument($originId);
         
         // Може да се поражда само от приходен или разходен банков документ
-        return $origin->getInstance() instanceof  bank_IncomeDocuments || $origin->getInstance() instanceof bank_SpendingDocuments || $origin->getInstance() instanceof cash_InternalMoneyTransfer;
+        return $origin->isInstanceOf('bank_IncomeDocuments') || $origin->isInstanceOf('bank_SpendingDocuments') || $origin->isInstanceOf('cash_InternalMoneyTransfer');
     }
     
     

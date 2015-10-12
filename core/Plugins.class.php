@@ -238,7 +238,7 @@ class core_Plugins extends core_Manager
             }
         } else {
         	
-        	// Ако не е закачен запомняме че този плъгин трябва да се закачи при инстанцирането на класа
+        	// Ако не е закачен запомняме, че този плъгин трябва да се закачи при инстанцирането на класа
         	$class = strtolower($class);
         	$name = $name ? $name : $plugin;
         	$this->attachedPlugins[$class][$cover][$name] = $plugin;

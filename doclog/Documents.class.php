@@ -161,6 +161,12 @@ class doclog_Documents extends core_Manager
     
     
     /**
+     * Екшъна за действията/историята на документа
+     */
+    const ACTION_HISTORY = 'history';
+    
+    
+    /**
      * Екшъна за промяна
      */
     const ACTION_CHANGE = 'changed';
@@ -1110,7 +1116,80 @@ class doclog_Documents extends core_Manager
         $tpl->append($sendTpl, 'content');
         
         return $tpl;
-    }  
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за действията с документа
+     * 
+     * @param object $data
+     */
+    function prepareHistory($data)
+    {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
+        // Вземаме cid от URL' то
+        $cid = Request::get('Cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        $data->TabCaption = 'История';
+        
+        $action = static::ACTION_HISTORY;
+        
+        $document = doc_Containers::getDocument($cid);
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_HISTORY));
+        
+        // Вземаме записите
+        $recs = log_Data::getRecs($document, $document->that, $data->pager);
+        
+        // Ако няма записи бутона да не е линк
+        if (empty($recs)) {
+            
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        $data->rows = log_Data::getRows($recs, array('actionCrc', 'actTime', 'userId', 'ROW_ATTR'));
+    }
+    
+    
+    /**
+     * Рендиране на данните за шаблона на детайла за действията с документа
+     * 
+     * @param object $data
+     */
+    static function renderHistory($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $logTpl = $inst->get($data->rows, 'actTime=Дата, userId=Потребител, actionCrc=Действие');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($logTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
+        
+        return $tpl;
+    }
     
     
     /**
@@ -1205,7 +1284,7 @@ class doclog_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
             $rec->mid = static::generateMid();
         }
         
@@ -1682,7 +1761,7 @@ class doclog_Documents extends core_Manager
         // Съобщение в лога
         $doc = doc_Containers::getDocument($rec->containerId);
 		$docInst = $doc->getInstance();
-		$docInst->logInfo("Редактиран документ", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+		$docInst->logInfo("Промяна", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1889,6 +1968,9 @@ class doclog_Documents extends core_Manager
         $data = array();   // Масив с историите на контейнерите в нишката
         $changesArr = array();
         while ($rec = $query->fetch()) {
+            if (!isset($data[$rec->containerId])) {
+                $data[$rec->containerId] = new stdClass();
+            }
             if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward) && ($rec->action != $used)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
@@ -1920,7 +2002,7 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->summary[$used] += count($rec->data->{$used});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
-
+        
         return $data;
     }
     
@@ -2030,7 +2112,7 @@ class doclog_Documents extends core_Manager
         }
         
         $html = '';
-       
+        
         foreach ($data->summary as $action=>$count) {
             if ($count == 0) {
                 continue;
@@ -2323,7 +2405,7 @@ class doclog_Documents extends core_Manager
             $rec = static::fetch(array("#mid = '[#1#]'", $mid));
             
             // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD))) {
+            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
                 
                 return FALSE;
             }
@@ -2585,7 +2667,7 @@ class doclog_Documents extends core_Manager
     			 
     			// При активация/възстановяване се вкарва запис в лога
     			$rec->data->{$action}[] = $inClass;
-    			$msg = "Използван документ";
+    			$msg = "Използване";
     		}
     		
     		// Пушваме съответното действие

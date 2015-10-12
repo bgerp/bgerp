@@ -99,6 +99,6 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
         parent::setDetailFields($this);
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId');
+        $this->setDbUnique('noteId,productId');
     }
 }

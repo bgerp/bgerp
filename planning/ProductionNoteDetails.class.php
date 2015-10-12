@@ -112,7 +112,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
         $this->FLD('selfValue', 'double', 'caption=Ед. ст-ст,input=hidden');
         $this->FNC('amount', 'double', 'caption=Сума');
         
-        $this->setDbUnique('noteId,productId,classId');
+        $this->setDbUnique('noteId,productId');
     }
     
     
@@ -138,17 +138,16 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     	$showSelfvalue = TRUE;
     	
     	if($rec->productId){
-    		$ProductMan = cls::getClassName($rec->classId);
     		
     		// Имали задание за артикула ?
-    		if($jobId = $ProductMan::getLastJob($rec->productId)->id){
+    		if($jobId = cat_Products::getLastJob($rec->productId)->id){
     			$rec->jobId = $jobId;
     		} else {
     			$rec->jobId = NULL;
     		}
     			
     		// Имали активна рецепта за артикула ?
-    		if($bomRec = $ProductMan::getLastActiveBom($rec->productId)){
+    		if($bomRec = cat_Products::getLastActiveBom($rec->productId)){
     			$rec->bomId = $bomRec->id;
     		} else {
     			$rec->bomId = NULL;

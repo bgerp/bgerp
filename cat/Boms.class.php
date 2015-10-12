@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
+    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
     
     
     /**
@@ -138,7 +138,7 @@ class cat_Boms extends core_Master
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
-    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
     	
@@ -269,6 +269,79 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Активира последната затворена рецепта за артикула
+     * 
+     * @param mixed $id
+     * @return FALSE|int
+     */
+    private function activateLastBefore($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	if($rec->state != 'closed' && $rec->state != 'rejected') return FALSE;
+    	
+    	// Намираме последната приключена рецепта (различна от текущата за артикула)
+    	$query = $this->getQuery();
+    	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId}");
+    	$query->orderBy('id', 'DESC');
+    	$query->limit(1);
+    	 
+    	$nextActiveBomRec = $query->fetch();
+    	if($nextActiveBomRec){
+    		$nextActiveBomRec->state = 'active';
+    		$nextActiveBomRec->brState = 'closed';
+    		$nextActiveBomRec->modifiedOn = dt::now();
+    			
+    		// Ако има такава я активираме
+    		return $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// При оттегляне или затваряне, ако преди документа е бил активен
+    	if($rec->state == 'closed' || $rec->state == 'rejected'){
+    		
+    		if($rec->brState == 'active'){
+    			if($nextId = $mvc->activateLastBefore($rec)){
+					core_Statuses::newStatus(tr("Активирана е рецепта|* #Bom{$nextId}"));
+    			}
+    		} 
+    	}
+    	
+    	// При активиране, 
+    	if($rec->state == 'active'){
+    		$cRec = $mvc->fetch($rec->id);
+    		
+    		// Намираме всички останали активни рецепти
+    		$query = static::getQuery();
+    		$query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId}");
+    		
+    		// Затваряме ги
+    		$idCount = 0;
+    		while($bomRec = $query->fetch()){
+    			$bomRec->state = 'closed';
+    			$bomRec->brState = 'active';
+    			$bomRec->modifiedOn = dt::now();
+    			$mvc->save_($bomRec, 'state,brState,modifiedOn');
+    			$idCount++;
+    		}
+    		
+    		if($idCount){
+    			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
+    		}
+    	}
+    }
+    
+    
+    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
@@ -308,7 +381,7 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->productId) && $res != 'no_one'){
+    	if(($action == 'add') && isset($rec->productId) && $res != 'no_one'){
     		
     		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
     		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
@@ -476,6 +549,7 @@ class cat_Boms extends core_Master
     	expect($rec = static::fetchRec($id));
     	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
     	$resources['expenses'] = ($rec->expenses) ? $rec->expenses : NULL;
+    	$resources['resources'] = array();
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();

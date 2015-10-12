@@ -120,6 +120,11 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	    
     		$form->setDefault('user', key($userFromTeamsArr));
     	}
+
+    	$today = dt::today();
+    	 
+    	$form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+    	$form->setDefault('to', dt::addDays(-1,$today));
     }
     
     
@@ -217,14 +222,14 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	$tpl = new ET("
-            <h1>Продажбени артикули</h1>
+    	$tpl = new ET(tr("
+            |*<h1>|Продажбени артикули|*</h1>
             [#FORM#]
     		[#PAGER#]
             [#ARTICLE#]
     		[#PAGER#]
         "
-    	);
+    	));
 
     	$form = cls::get('core_Form');
     
@@ -262,7 +267,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
                         if (!$pager->isOnPage()) continue;
 
                         $row = new stdClass();
-                        $row->article = cls::get($artClassId)->getTitleById($product);
+                        $row->article = cat_Products::getTitleById($product);
 
                         if ($doc == 'sales') {
                             $row->salesCnt = $cntType->toVerbal($cnt);
@@ -291,7 +296,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	$tpl->append($html, 'ARTICLE');
         $tpl->append($pager->getHtml(), 'PAGER');
     
-    	$embedderTpl->append($tpl, $data);
+    	$embedderTpl->append($tpl, 'data');
     }  
      
     

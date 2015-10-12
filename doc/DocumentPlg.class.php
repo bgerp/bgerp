@@ -87,6 +87,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Print'] = 'doclog_Documents';
             $mvc->details['Changed'] = 'doclog_Documents';
             $mvc->details['Used'] = 'doclog_Documents';
+            $mvc->details['History'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
@@ -95,6 +96,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали мжое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -126,6 +128,8 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
+        
+        $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
     }
     
     
@@ -161,7 +165,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа',  'ef_icon = img/16/reject.png');
+                "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr("Оттегляне на документа"),  'ef_icon = img/16/reject.png');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -171,7 +175,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
+                "id=btnRestore{$data->rec->containerId},warning=Наистина ли желаете да възстановите документа?,order=32,title=" . tr("Възстановяване на документа"), 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -189,7 +193,7 @@ class doc_DocumentPlg extends core_Plugin
                 			'originId' => $data->rec->containerId,
                 			'ret_url'=>$retUrl
                 	),
-                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
                 }
             }
         } else {
@@ -220,7 +224,7 @@ class doc_DocumentPlg extends core_Plugin
                     			'clone' => 'clone',
                     			'ret_url'=>$retUrl
                     	),
-                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');
+                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=' . tr('Клониране на документа'));
                     } 
                 }
             }
@@ -231,6 +235,9 @@ class doc_DocumentPlg extends core_Plugin
         	// По подразбиране бутона всички се показва на втория ред на тулбара
         	setIfNot($mvc->allBtnToolbarRow, 2);
         	
+        	$title = $mvc->getTitle();
+        	$title = tr($title);
+        	$title = mb_strtolower($title);
         	
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
@@ -238,8 +245,15 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);    
 
+        }
+        
+        $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+        
+        if ($historyCnt) {
+            $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+            "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
         }
     }
     
@@ -660,7 +674,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
-            // Обновяваме споделените на нишката, да сме сигурни че данните ще са актуални
+            // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
             $threadRec = doc_Threads::fetch($rec->threadId);
             $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
             doc_Threads::save($threadRec, 'shared');
@@ -988,8 +1002,8 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId && $rec->folderId) {
-        	expect(doc_Folders::haveRightToFolder($rec->folderId));
+        if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
+        	error('403 Недостъпен ресурс');
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
@@ -1099,7 +1113,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      */
     static function on_AfterInputEditForm($mvc, $form)
-    {   
+    {  
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
@@ -1109,7 +1123,7 @@ class doc_DocumentPlg extends core_Plugin
         		$title .= ' |в|* ' . $t;
         	}
         }
-        
+     
         $rec = $form->rec;
         
         $in = ' |в|* ';
@@ -2184,9 +2198,20 @@ class doc_DocumentPlg extends core_Plugin
     	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
     	if(count($docs)){
 	    	foreach ($docs as $doc){
-	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+                $mvc = is_object($doc['mvc']) ? $doc['mvc']->className : $mvc;
+	    		$res[$mvc . '-' . $doc['rec']->id] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
 	    	}
     	}
+    	
+        // Ако ориджина е от друг тред, добавяме и него
+    	if(isset($rec->originId)){
+            $cRec = doc_Containers::fetch($rec->originId);
+            if($cRec->threadId != $rec->threadId) {
+                $document = doc_Containers::getDocument($rec->originId);
+                $res[$document->getInstance()->className . '-' . $document->that] = (object)array('class' => $document->getInstance(), 'id' => $document->that);
+            }
+    	}
+
     }
     
     
@@ -2472,5 +2497,91 @@ class doc_DocumentPlg extends core_Plugin
     		$rec->modifiedOn = dt::now();
     		$mvc->save($rec, 'modifiedOn');
     	}
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     * 
+     * @param core_Master $mvc
+     * @param boolean|NULL $res
+     * @param integer $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $mvc->save($rec, 'modifiedOn, modifiedBy');
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документите
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+    }
+    
+    
+    /**
+     * Получава масив със стойности, които да ги показва в таблица.
+     * В зависимост от режима, определя как да са подредени и връща редовете и колоните на таблицата
+     * 
+     * @param core_Master $mvc
+     * @param NULL|core_ET $res
+     * @param array $headerArr - двумерен масив с ключ името на полето
+     * и стойност 'name' - име на полето и 'val' - стойност
+     * @param array $hideInInternal - кои полета да се скриват, при вътрешно показване
+     * Отговаря на ключа на $headerArr
+     */
+    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideInInternal = array())
+    {
+        if (!$headerArr) return ;
+        
+        $hideInInternal = arr::make($hideInInternal, TRUE);
+        
+        // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
+        $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
+        
+        $isNarrow = Mode::is('screenMode', 'narrow');
+        
+        if ($isNarrow) {
+            $res = new ET('');
+        } else {
+            $res = new ET("<tr>[#1#]</tr><tr>[#2#]</tr>");
+        }
+        
+        $haveVal = FALSE;
+        
+        foreach ((array)$headerArr as $key => $value) {
+            
+            if ($isInternal && (($hideInInternal[$key]) || $hideInInternal['*'])) continue;
+            
+            $haveVal = TRUE;
+            
+            $colon = $isNarrow ? ':' : '';
+            
+            $val = new ET("<td>{$value['val']}</td>");
+            
+            if ($isNarrow) {
+                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $res->append("<tr>");
+                $res->append($name);
+                $res->append($val);
+                $res->append("</tr>");
+            } else {
+                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $res->append($name, '1');
+                $res->append($val, '2');
+            }
+        }
+        
+        if (!$haveVal) {
+            $res = NULL;
+        }
     }
 }

@@ -87,7 +87,7 @@ class cms_VerbalIdPlg extends core_Plugin
 
 
     /**
-     * Преди екшън, ако id-то не е цифрово, го приема че е vid и извлича id
+     * Преди екшън, ако id-то не е цифрово го приема, че е vid и извлича id
      * Поставя, коректното id в Request
      */
     function on_BeforeAction($mvc, $action)

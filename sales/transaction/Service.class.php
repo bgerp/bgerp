@@ -98,7 +98,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
     							'703', // Сметка "703". Приходи от продажби на услуги
     							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
     							array($origin->className, $origin->that),			// Перо 2 - Сделка
-    							array($dRec->classId, $dRec->productId), // Перо 3 - Артикул
+    							array('cat_Products', $dRec->productId), // Перо 3 - Артикул
     							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
     					),
     			);

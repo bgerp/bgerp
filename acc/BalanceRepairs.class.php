@@ -114,7 +114,7 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
-     * Можели да се контира въпреки че има приключени пера в транзакцията
+     * Можели да се контира въпреки, че има приключени пера в транзакцията
      */
     public $canUseClosedItems = TRUE;
     
@@ -161,7 +161,8 @@ class acc_BalanceRepairs extends core_Master
     	
     	if(!empty($form->rec->threadId)){
     		if($origin = doc_Threads::getFirstDocument($form->rec->threadId)){
-    			if($origin->getInstance() instanceof acc_ClosePeriods){
+    			
+    			if($origin->isInstanceOf('acc_ClosePeriods')){
     				$periodId = $origin->fetchField('periodId');
     				$bId = acc_Balances::fetchField("#periodId = {$periodId}");
     				$form->setDefault('balanceId', $bId);
@@ -196,7 +197,7 @@ class acc_BalanceRepairs extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     
     	// Може да се добавя само към нишка с начало документ 'Приключване на период'
-    	if($firstDoc->getInstance() instanceof acc_ClosePeriods){
+    	if($firstDoc->isInstanceOf('acc_ClosePeriods')){
     			
     		return TRUE;
     	}

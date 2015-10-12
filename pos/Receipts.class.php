@@ -328,7 +328,6 @@ class pos_Receipts extends core_Master {
 	    	$quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
 	    	
 	    	$products[] = (object) array(
-	    		'classId'     => cat_Products::getClassId(),
 	    		'productId'   => $rec->productId,
 		    	'price'       => $rec->price / $quantityInPack,
 	    	    'packagingId' => $rec->value,
@@ -484,7 +483,10 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetch($id));
     	
     	// Имаме ли достъп до терминала
-    	$this->requireRightFor('terminal', $rec);
+    	if(!$this->haveRightFor('terminal', $rec)){
+    		
+    		return Redirect(array($this, 'new'));
+    	}
     	
     	// Лейаут на терминала
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
@@ -835,8 +837,8 @@ class pos_Receipts extends core_Master {
     		foreach ($products as $product){
     			
     			// Намираме цената от ценовата политика
-    			$Policy = cls::get($product->classId)->getPolicy();
-    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->classId, $product->packagingId);
+    			$Policy = cls::get('price_ListToCustomers');
+    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId);
     			
     			// Колко са двете цени с приспадната отстъпка
     			$rPrice1 = $product->price * (1 - $product->discount);
@@ -849,7 +851,7 @@ class pos_Receipts extends core_Master {
     			}
     			
     			// Добавяме го като детайл на продажбата;
-    			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
+    			sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
     		}
     	}
     	
@@ -1179,12 +1181,12 @@ class pos_Receipts extends core_Master {
     				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
     			} else {
     				
-    				// Ако няма приемаме че от ляво е колчиество а от дясно код
+    				// Ако няма приемаме, че от ляво е колчиество а от дясно код
     				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     				$rec->ean = $matches[3];
     			}
     			
-    			// Ако има само лява част приемаме че е количество
+    			// Ако има само лява част приемаме, че е количество
     		} elseif(!empty($matches[1]) && empty($matches[3])) {
     			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     		} else {
@@ -1360,7 +1362,7 @@ class pos_Receipts extends core_Master {
     		$packId = key($packs);
     		$perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
     		
-    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), $packId, NULL, $data->rec->createdOn, 1, 'yes');
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, NULL, $data->rec->createdOn, 1, 'yes');
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
@@ -1412,6 +1414,8 @@ class pos_Receipts extends core_Master {
     		$params = keylist::toArray($data->showParams);
     		$values = NULL;
     		foreach ($params as $pId){
+    			
+    			//@TODO да използва нов метод getParamValue
     			if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
     				$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
     			}

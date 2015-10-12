@@ -139,6 +139,10 @@ class acc_AllocatedExpenses extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
+    	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
+    	//$this->FLD('chargeVat', 'enum(yes=С ДДС,no=Без ДДС)', 'caption=ДДС,maxRadio=2');
+    	
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
     	$this->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Кореспондираща сделка->Контрагент,refreshForm,silent,input');
@@ -172,10 +176,11 @@ class acc_AllocatedExpenses extends core_Master
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->dealOriginId = $firstDoc->getLink(0);
     	$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
-    	$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+    	$row->baseCurrencyCode = $rec->currencyId;
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
-    	$row->realAmount = $row->amount;
+    	$rec->amount /= $rec->rate;
+    	$row->realAmount = $mvc->getFieldType('amount')->toVerbal($rec->amount);
     	
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
     		$amount = $rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
@@ -201,6 +206,8 @@ class acc_AllocatedExpenses extends core_Master
     	$row = new stdClass();
     	$row->name = cat_Products::getShortHyperlink($pRec->productId);
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	$pRec->amount /= $rec->rate;
+    	$pRec->allocated /= $rec->rate;
     	
     	foreach (array('amount', 'allocated', 'quantity', 'allocated') as $fld){
     		if(isset($pRec->$fld)){
@@ -355,15 +362,25 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
-    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    	$form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
+    	
+    	if($form->cmd !== 'refresh'){
+    		$form->setDefault('rate', $firstDoc->fetchField('currencyRate'));
+    	}
+    	
+    	if(isset($rec->id) && isset($rec->rate)){
+    		$rec->amount /= $rec->rate;
+    		$rec->amount = round($rec->amount, 2);
+    	}
+    	
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
     		if($form->rec->amount){
     			$form->rec->amount = $form->rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
     			$form->rec->amount = round($form->rec->amount, 2);
     		}
-    		$form->setField('amount', "unit=|*{$baseCurrencyCode} |с ДДС|*");
+    		$form->setField('amount', "unit=с ДДС");
     	} else {
-    		$form->setField('amount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+    		$form->setField('amount', "unit=без ДДС");
     	}
     	
     	$data->form->origin = $firstDoc;
@@ -380,13 +397,13 @@ class acc_AllocatedExpenses extends core_Master
     private function getChosenProducts(core_ObjectReference $firstDoc)
     {
     	// Aко първия документ е продажба
-    	if($firstDoc->getInstance() instanceof sales_Sales){
+    	if($firstDoc->isInstanceOf('sales_Sales')){
     		
     		// Взимаме артикулите от сметка 701
     		$shipped = sales_transaction_Sale::getShippedProducts($firstDoc->that, '701');
-    	
+    		
     	  // Ако е покупка
-    	} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
+    	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
     		
     		// Вземаме всички заскладени артикули
     		$shipped = purchase_transaction_Purchase::getShippedProducts($firstDoc->that, '321', TRUE);
@@ -399,11 +416,10 @@ class acc_AllocatedExpenses extends core_Master
     	$products = array();
     	if(count($shipped)){
     		foreach ($shipped as $p){
-    			$params = cls::get($p->classId)->getParams($p->productId);
     			if($p->amount == 0) continue;
     			
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
-    												     'name'      => cls::get($p->classId)->getTitleById($p->productId), 
+    												     'name'      => cat_Products::getTitleById($p->productId), 
     													 'quantity'  => $p->quantity,
     													 'amount'    => $p->amount,
     			);
@@ -412,12 +428,14 @@ class acc_AllocatedExpenses extends core_Master
     				$products[$p->productId]->inStores = $p->inStores;
     			}
     			
-    			if(isset($params['transportWeight'])){
-    				$products[$p->productId]->transportWeight = $params['transportWeight'];
+    			$transportWeight = cat_Products::getParamValue($p->productId, 'transportWeight');
+    			if(!empty($transportWeight)){
+    				$products[$p->productId]->transportWeight = $transportWeight;
     			}
     			
-    			if(isset($params['transportVolume'])){
-    				$products[$p->productId]->transportVolume = $params['transportVolume'];
+    			$transportVolume = cat_Products::getParamValue($p->productId, 'transportVolume');
+    			if(!empty($transportVolume)){
+    				$products[$p->productId]->transportVolume = $transportVolume;
     			}
     		}
     	}
@@ -494,6 +512,14 @@ class acc_AllocatedExpenses extends core_Master
     	// Ако е събмитната формата
     	if($form->isSubmitted()){
     		
+    		if(!isset($rec->rate)){
+    			// Изчисляваме курса към основната валута ако не е дефиниран
+    			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL), 4);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
+    		}
+    		
     		// Намираме контейнера на първия документ в нишката
     		$doc = doc_Threads::getFirstDocument($rec->threadId);
     		$firstDocument = $doc;
@@ -540,6 +566,8 @@ class acc_AllocatedExpenses extends core_Master
     					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
     				}
     			}
+    			
+    			$rec->amount *= $rec->rate;
     			
     			if($form->chargeVat == 'yes' || $form->chargeVat == 'separate'){
     				$rec->amount /= 1 + acc_Periods::fetchByDate($rec->valior)->vatRate;
@@ -652,9 +680,10 @@ class acc_AllocatedExpenses extends core_Master
     {
     	$doc = doc_Containers::getDocument($correspondingOriginId);
     	$amount = 0;
-    	if($doc->getInstance() instanceof findeals_Deals){
+    	
+    	if($doc->isInstanceOf('findeals_Deals')){
     		$amount = $doc->fetchField('amountDeal');
-    	} elseif($doc->getInstance() instanceof purchase_Purchases){
+    	} elseif($doc->isInstanceOf('purchase_Purchases')){
     		$dRec = $doc->fetch();
     		$amount = $dRec->amountDeal;
     		if($chargeVat != 'yes' && $chargeVat != 'separate'){
@@ -683,21 +712,21 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	// Ако е финансова сделка, винаги може
-    	if($doc->getInstance() instanceof findeals_Deals){
+    	if($doc->isInstanceOf('findeals_Deals')){
     		
     		return TRUE;
     		
     		// Ако е покупка
-    	} elseif($doc->getInstance() instanceof purchase_Purchases){
+    	} elseif($doc->isInstanceOf('purchase_Purchases')){
     		
     		// Намираме  артикулите
     		$pQuery = purchase_PurchasesDetails::getQuery();
     		$pQuery->where("#requestId = {$doc->that}");
-    		$pQuery->show('classId,productId');
+    		$pQuery->show('productId');
     		 
     		// Ако има поне един складируем артикул не може да се създаде
     		while($dRec = $pQuery->fetch()){
-    			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$pInfo = cat_Products::getProductInfo($dRec->productId);
     			if(isset($pInfo->meta['canStore'])){
     				return FALSE;
     			}
@@ -759,7 +788,7 @@ class acc_AllocatedExpenses extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може да се добави само към тред на покупка/продажба
-    	if($firstDoc->getInstance() instanceof sales_Sales || $firstDoc->getInstance() instanceof purchase_Purchases){
+    	if($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases')){
     		return TRUE;
     	}
     	

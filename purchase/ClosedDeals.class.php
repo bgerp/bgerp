@@ -189,8 +189,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
 	    		$originRec = $origin->fetch();
-    			
-	    		if($originRec->state == 'active' && $origin->getInstance() instanceof purchase_Purchases){
+	    		
+	    		if($originRec->state == 'active' && $origin->isInstanceOf('purchase_Purchases')){
 	    			
 	    			// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    			// потребителя да има по-големи права за да създаде документа
@@ -214,8 +214,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     	 
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	// Може само към нишка, породена от продажба
-    	if(!($firstDoc->getInstance() instanceof purchase_Purchases)) return FALSE;
+    	// Може само към нишка, породена от покупка
+    	if(!$firstDoc->isInstanceOf('purchase_Purchases')) return FALSE;
     	 
     	return TRUE;
     }

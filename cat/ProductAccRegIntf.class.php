@@ -125,24 +125,15 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща параметрите на артикула
-     * @param mixed $id - ид или запис на артикул
+     * Връща стойността на параметъра с това име
      *
-     * @return array $res - параметрите на артикула
-     * 					['weight']          -  Тегло
-     * 					['width']           -  Широчина
-     * 					['volume']          -  Обем
-     * 					['thickness']       -  Дебелина
-     * 					['length']          -  Дължина
-     * 					['height']          -  Височина
-     * 					['tolerance']       -  Толеранс
-     * 					['transportWeight'] -  Транспортно тегло
-     * 					['transportVolume'] -  Транспортен обем
-     * 					['term']            -  Срок
+     * @param string $id   - ид на записа
+     * @param string $name - име на параметъра
+     * @return mixed - стойност или FALSE ако няма
      */
-    public function getParams()
+    public static function getParamValue($id, $name)
     {
-    	return $this->class->getParams();
+    	return $this->class->getParamValue($id, $name);
     }
     
     
@@ -156,15 +147,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	public function getVolume($productId, $packagingId = NULL)
     {
     	return $this->class->getVolume($productId, $packagingId);
-    }
-    
-    
-    /**
-     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
-     */
-    public function getPolicy()
-    {
-    	return $this->class->getPolicy();
     }
     
     

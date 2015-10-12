@@ -13,14 +13,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class marketing_Inquiries2 extends core_Embedder
+class marketing_Inquiries2 extends embed_Manager
 {
     
 	
 	/**
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
-	public $innerObjectInterface = 'cat_ProductDriverIntf';
+	public $driverInterface = 'cat_ProductDriverIntf';
+	
+	
+	/**
+	 * Как се казва полето за избор на вътрешния клас
+	 */
+	public $driverClassField = 'innerClass';
 	
 
 	/**
@@ -182,7 +188,7 @@ class marketing_Inquiries2 extends core_Embedder
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие,formOrder=46');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие');
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
     	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none');
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none');
@@ -209,8 +215,40 @@ class marketing_Inquiries2 extends core_Embedder
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if(!$data->form->rec->innerClass){
-    		$data->form->setField('title', 'input=hidden');
+    	$form = &$data->form;
+    	$params = $data->driverParams;
+    	
+    	if(!$form->rec->innerClass){
+    		$form->setField('title', 'input=hidden');
+    	}
+    	
+    	$caption = 'Количества|*';
+    	if(isset($data->Driver)){
+    		$measureId = $data->Driver->getDefaultUom($params['measureId']);
+    		$uom = cat_UoM::getShortName($measureId);
+    		
+    		if(isset($params['moq'])){
+    			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($params['moq']);
+    			$caption .= " <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
+    		}
+    	}
+    	
+    	// Добавяме полета за количество според параметрите на продукта
+    	if(!isset($params['quantities'])){
+    		$conf = core_Packs::getConfig('marketing');
+    		$params['quantities'] = $conf->MARKETING_INQUIRY_QUANTITIES;
+    	}
+    	
+    	for($i = 1; $i <= $params['quantities']; $i++){
+    		if($form->getField("quantity{$i}", FALSE)){
+    			$form->setField("quantity{$i}", "input,quantityField,formOrder=4{$i},unit={$uom},caption={$caption}->Количество|* {$i}");
+    		} else {
+    			$form->FNC("quantity{$i}", 'double', "caption={$caption}->Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
+    		}
+    		
+    		if(isset($params['moq'])){
+    			$form->setFieldTypeParams("quantity{$i}", array('min' => $params['moq']));
+    		}
     	}
     }
     
@@ -277,10 +315,10 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     	 
     	// До всяко количество се слага unit с мярката на продукта
-    	$Driver = $mvc->getDriver($rec);
-    	
-    	$uomId = $Driver->getDriverUom($rec->params);
-    	$shortName = cat_UoM::getShortName($uomId);
+    	if($Driver = $mvc->getDriver($rec->id)){
+    		$uomId = $Driver->getDefaultUom($rec->params['measureId']);
+    		$shortName = cat_UoM::getShortName($uomId);
+    	}
     	
     	if($fields['-single']){
     		foreach (range(1, 3) as $i){
@@ -369,15 +407,16 @@ class marketing_Inquiries2 extends core_Embedder
     
     		Mode::push('text', 'plain');
     
-    		$Driver = $this->getDriver($rec);
+    		$Driver = $this->getDriver($rec->id);
     		
     		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
     		
     		// Рендиране на бодито
-    		$this->renderInquiryParams($tplAlt, $rec->innerForm, $Driver);
+    		$this->renderInquiryParams($tplAlt, $rec, $Driver);
     		$rowPlain = $this->recToVerbal($rec, $fields);
     	
     		$tplAlt->placeObject($rowPlain);
+    		
     		$this->renderQuantities($rowPlain->quantities, $tplAlt, 'QUANTITY_ROW');
     		$PML->AltBody = $tplAlt->getContent();
     
@@ -386,7 +425,7 @@ class marketing_Inquiries2 extends core_Embedder
     		// Рендиране на алт бодито
     		Mode::push('text', 'xhtml');
     		$tpl = getTplFromFile($this->emailNotificationFile);
-    		$this->renderInquiryParams($tpl, $rec->innerForm, $Driver);
+    		$this->renderInquiryParams($tpl, $rec, $Driver);
     		$row = $this->recToVerbal($rec, $fields);
     		$tpl->placeObject($row);
     		$this->renderQuantities($row->quantities, $tpl, 'QUANTITY_ROW');
@@ -426,8 +465,8 @@ class marketing_Inquiries2 extends core_Embedder
     		// Име на фирма/лице/име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
-    		$files = $this->getAttachedFiles($rec);
-    		 
+    		$files = $this->getAttachedFiles($rec, $Driver);
+    		
     		// Ако има прикачени файлове, добавяме ги
     		if(count($files)){
 	    		foreach ($files as $fh => $name){
@@ -455,17 +494,17 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Връща прикачените файлове
      */
-    public function getAttachedFiles($rec)
+   private function getAttachedFiles($rec, $Driver)
     {
     	$res = array();
     	
-    	$Driver = $this->getDriver($rec);
-    	$form = $this->getForm();
-    	$Driver->addEmbeddedFields($form);
+    	$fieldset = $this->getForm();
+    	$Driver->addFields($fieldset);
+    	$params = $fieldset->selectFields();
     	
-    	$arr = (array)$rec->innerForm;
+    	$arr = (array)$rec;
     	foreach ($arr as $name => $value){
-    		if($form->getFieldType($name, FALSE) instanceof type_Richtext){
+    		if($fieldset->getFieldType($name, FALSE) instanceof type_Richtext){
     			$files = fileman_RichTextPlg::getFiles($value);
     			$res = array_merge($res, $files);
     		}
@@ -482,20 +521,18 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	$recs = (array)$recs;
     	
-    	$form = $this->getForm();
-    	$fieldsBefore = arr::make(array_keys($form->selectFields()), TRUE);
-    	$Driver->addEmbeddedFields($form);
-    	$fieldsAfter = arr::make(array_keys($form->selectFields()), TRUE);
-    	
-    	$params = array_diff_assoc($fieldsAfter, $fieldsBefore);
+    	$fieldset = cls::get('core_Fieldset');
+    	$fieldset->FLD('title', 'varchar', 'caption=Заглавие');
+    	$Driver->addFields($fieldset);
+    	$params = $fieldset->selectFields();
     	$params = array('title' => 'title') + $params;
     	
     	$dataRow = $tpl->getBlock('DATA_ROW');
     	 
-    	foreach ($params as $name){
+    	foreach ($params as $name => $fld){
     		if(empty($recs[$name])) continue;
-    		$value = $form->getFieldType($name)->toVerbal($recs[$name]);
-    		$dataRow->replace(tr($form->getField($name)->caption), 'CAPTION');
+    		$value = $fieldset->getFieldType($name)->toVerbal($recs[$name]);
+    		$dataRow->replace(tr($fieldset->getField($name)->caption), 'CAPTION');
     		$dataRow->replace($value, 'VALUE');
     		$dataRow->removePlaces();
     		$dataRow->append2master();
@@ -509,7 +546,7 @@ class marketing_Inquiries2 extends core_Embedder
     private function getTitle($id)
     {
     	$rec = $this->fetchRec($id);
-    	$Driver = $this->getDriver($id);
+    	$Driver = $this->getDriver($rec->id);
     	 
     	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
     	
@@ -554,7 +591,7 @@ class marketing_Inquiries2 extends core_Embedder
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
     		$conf = core_Packs::getConfig('marketing');
     		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
-    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), "ef_icon=img/16/email_forward.png,warning=Сигурни ли сте че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}',title=Препращане на имейла с запитването на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'");
+    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла с запитването на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
     		}
     	}
     }
@@ -670,20 +707,28 @@ class marketing_Inquiries2 extends core_Embedder
     	$form->rec->params = $params;
     	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	$data = (object)array('form' => $form);
-    	$Driver = $this->getDriver($form->rec);
-    	$Driver->setDriverParams($params);
     	
-    	parent::on_AfterPrepareEditForm($this, $data);
+    	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
+    		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
+    		$data->Driver = $Driver;
+    		
+    		$Driver->addFields($data->form);
+    		$data->driverParams = $params;
+    		$this->invoke('AfterPrepareEditForm', array(&$data, &$data));
+    		
+    		$form->input();
+    		$this->invoke('AfterInputEditForm', array(&$form));
+    	
+    		if(isset($form->rec->title)){
+    			$form->setField('title', 'input=hidden');
+    		}
+    	}
+    	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
-    	$Driver = $this->getDriver($form->rec);
-    	$form->input();
-    	self::on_AfterInputEditForm($this, $form);
     	
     	if(isset($form->rec->title)){
     		$form->setField('title', 'input=hidden');
     	}
-    	
-    	$Driver->checkEmbeddedForm($form);
     	
     	// След събмит на формата
     	if($form->isSubmitted()){
@@ -696,8 +741,6 @@ class marketing_Inquiries2 extends core_Embedder
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
     		}
-    		
-    		$form->rec->innerForm = clone $form->rec;
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
@@ -743,32 +786,6 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     	
     	return $tpl;
-    }
-    
-
-    /**
-     * След подготовка на ембеднатата форма
-     */
-    public static function on_AfterPrepareEmbeddedForm(core_Mvc $mvc, core_Form &$form)
-    {
-    	$Driver = $mvc->getDriver($form->rec);
-    	
-    	$uom = cat_UoM::getShortName($Driver->getDriverUom());
-    	
-    	// Добавяме полета за количество според параметрите на продукта
-    	$params = $Driver->getDriverParams();
-    	if(!isset($params['quantities'])){
-    		$conf = core_Packs::getConfig('marketing');
-    		$params['quantities'] = $conf->MARKETING_INQUIRY_QUANTITIES;
-    	}
-    	
-    	for($i = 1; $i <= $params['quantities']; $i++){
-    		if($form->getField("quantity{$i}", FALSE)){
-    			$form->setField("quantity{$i}", "input,quantityField,formOrder=4{$i},unit={$uom}");
-    		} else {
-    			$form->FNC("quantity{$i}", 'double', "caption=Количества->Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
-    		}
-    	}
     }
     
     

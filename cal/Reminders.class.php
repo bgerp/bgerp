@@ -393,6 +393,11 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
+
+    	if (isset($data->rec->timeStart)){
+    		$data->row->timeStart = dt::mysql2verbal($data->rec->timeStart, 'smartTime');
+    	}
+    	
     	if($data->rec->repetitionType == 'days' ) {
     		if($data->rec->repetitionEach == '1'){
     			$data->row->each = 'всеки';
@@ -464,6 +469,10 @@ class cal_Reminders extends core_Master
     		$data->row->each = '';
 	    	$data->row->repetitionType = '';
 	    	$data->row->repetitionTypeMonth = '';
+    	}
+    	
+    	if(isset($data->row->nextStartTime)) {
+    		$data->row->nextStartTime = dt::mysql2verbal($data->rec->nextStartTime, 'smartTime');
     	}
     }
 
@@ -541,8 +550,6 @@ class cal_Reminders extends core_Master
     	if ($newRec->notifySent === 'yes') {
     		$newRec->notifySent = 'no';
     	}
-    	
-        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
  
     

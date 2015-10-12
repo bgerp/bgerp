@@ -52,7 +52,7 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, crm_plg_UpdateContragentData, plg_Printing, Sale=sales_Sales,
-                    doc_plg_HidePrices, doc_plg_TplManager, doc_ActivatePlg';
+                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg';
     
     
     /**
@@ -70,7 +70,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кой е основния детайл
      */
-    protected $mainDetail = 'sales_ProformaDetails';
+    public $mainDetail = 'sales_ProformaDetails';
     
     
     /**
@@ -130,7 +130,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Икона за фактура
      */
-    public $singleIcon = 'img/16/invoice.png';
+    public $singleIcon = 'img/16/proforma.png';
     
     
     /**
@@ -180,7 +180,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	 
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     
@@ -211,7 +211,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'paymentMethodId', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
+    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
     		$data->form->setField($fld, 'input=hidden');
     	}
     	
@@ -346,7 +346,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->getInstance() instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
+    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active'){
     		
     		return TRUE;
     	}

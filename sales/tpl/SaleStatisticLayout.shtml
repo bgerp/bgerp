@@ -1,0 +1,63 @@
+<div class="scrolling-holder">
+    <div class="sale-summary">
+       <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+          <tr>
+             <td class = 'sum-th'>
+                 |Поръчано|*, [#currencyId#]
+             </td>
+             <td class = 'sum-th'>
+                 |Доставено|*, [#currencyId#]
+             </td>
+             <td class = 'sum-th'>
+                 |Платено|*, [#currencyId#]
+             </td>
+             <td class = 'sum-th'>
+                 |Фактурирано|*, [#currencyId#]
+             </td>
+             <td class = 'sum-th'>
+                 |Информация|*
+             </td>
+          </tr>
+          <tr>
+              <td class = 'nowrap'>[#amountDeal#]</td>
+              <td class = 'nowrap'>[#amountDelivered#] </td>
+              <td class = 'nowrap'>[#amountPaid#]</td>
+              <td class = 'nowrap'>[#amountInvoiced#]</td>
+              <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
+                  <!--ET_BEGIN paymentState-->
+                  <span style='font-weight:normal'>|Плащане|*</span>: [#paymentState#]<br>
+                  <!--ET_END paymentState-->
+                  <!--ET_BEGIN initiatorId-->
+                  <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
+                  <!--ET_END initiatorId-->
+                  <!--ET_BEGIN dealerId-->
+                  <span style='font-weight:normal'>|Дилър|*</span>: [#dealerId#]<br>
+                  <!--ET_END dealerId-->
+                  <!--ET_BEGIN originId-->
+                  <span style='font-weight:normal'>|Към|*</span>: [#originId#]
+                  <!--ET_END originId-->
+              </td>
+           </tr>
+           <tr>
+              <td class = 'sum-th'>
+                 |Салдо|*, [#currencyId#]
+              </td>
+             <td class = 'sum-th'>
+                |За доставяне|*, [#currencyId#]
+             </td>
+             <td class = 'sum-th'>
+                |За плащане|*, [#currencyId#]
+            </td>
+           <td class = 'sum-th'>
+             |За фактуриране|*, |ДДС|*
+          </td>
+          </tr>
+          <tr>
+            <td>[#amountBl#]</td>
+            <td>[#amountToDeliver#]</td>
+            <td>[#amountToPay#]</td>
+            <td>[#amountToInvoice#]</td>
+          </tr>
+       </table>
+    </div>
+</div>

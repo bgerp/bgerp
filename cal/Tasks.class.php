@@ -969,8 +969,6 @@ class cal_Tasks extends core_Master
     	if ($newRec->notifySent === 'yes') {
     		$newRec->notifySent = 'no';
     	}
-    	
-        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
     
     
@@ -2025,7 +2023,7 @@ class cal_Tasks extends core_Master
    
     
     /**
-     * Правим нотификация на всички шернати потребители
+     * Правим нотификация на всички шернати потребители,
      * че е стартирана задачата
      */
     static public function doNotificationForActiveTasks($activatedTasks)

@@ -186,7 +186,7 @@ class store_Racks extends core_Master
         $data->listFilter->title = 'Търсене на продукт в склада';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=productId, allowEmpty=true)', 'caption=Продукт');
         
         $data->listFilter->showFields = 'productIdFilter';
         
@@ -349,7 +349,7 @@ class store_Racks extends core_Master
                         for ($testColumn = 1; $testColumn <= $currentColumns; $testColumn++) {
                             if (isset($palletsInStoreArr[$rec->id][$mvc->rackRowConv($testRow)][$testColumn]['productId'])) {
                                 $productId = $palletsInStoreArr[$rec->id][$mvc->rackRowConv($testRow)][$testColumn]['productId'];
-                                $catProductId = store_Products::fetchField($productId, 'name');
+                                $catProductId = store_Products::fetchField($productId, 'productId');
                                 $productGroups = cat_Products::fetchField($catProductId, 'groups');
                                 $productGroupsArr = keylist::toArray($productGroups);
                                 

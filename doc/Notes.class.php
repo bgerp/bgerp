@@ -155,12 +155,18 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'subject, body, sharedUsers';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,changable');
-        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory,changable');
+        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory');
     }
     
     
@@ -210,5 +216,37 @@ class doc_Notes extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#] / <!--ET_END LastSelectedVersionDate--><!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_BEGIN FirstSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
+        				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#] <!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN LastSelectedVersion-->[#LastSelectedVersion#] / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSIONREMOVE-->"),
+        				   'handle' => array('name' => 'Ref №', 'val' =>"[#handle#]"));
+        
+        $hideArr = array();
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['*'] = '*';
+        }
+        
+        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
     }
 }

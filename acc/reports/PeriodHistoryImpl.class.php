@@ -251,7 +251,12 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 		if(empty($data)) return;
 		
 		$tpl = $this->getReportLayout();
-		$tpl->replace($this->title, 'TITLE');
+		
+		$explodeTitle = explode(" » ", $this->title);
+			
+		$title = tr("|{$explodeTitle[1]}|*");
+
+		$tpl->replace($title, 'TITLE');
 		
 		// Рендираме статичната форма
 		$this->prependStaticForm($tpl, 'FORM');
@@ -378,7 +383,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
                 $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
                 $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-				$data->pager = $pager;
+				$data->Pager = $pager;
 
 				$data->Pager->itemsCount = count($data->recs);
 			}

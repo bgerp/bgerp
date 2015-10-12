@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Покупки
@@ -266,6 +266,17 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->activityCenterId)){
+    		$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
+    	}
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
@@ -436,7 +447,6 @@ class purchase_Purchases extends deals_DealMaster
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId           = $dRec->classId;
             $p->productId         = $dRec->productId;
             $p->packagingId       = $dRec->packagingId;
             $p->discount          = $dRec->discount;
@@ -447,15 +457,14 @@ class purchase_Purchases extends deals_DealMaster
             $p->uomId             = $dRec->uomId;
             $p->notes			  = $dRec->notes;
             
-            $ProductMan = cls::get('cat_Products');
-            $info = $ProductMan->getProductInfo($p->productId);
-            $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
-            $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
+            $info = cat_Products::getProductInfo($p->productId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
         	$push = TRUE;
-            $index = $p->classId . "|" . $p->productId;
+            $index = $p->productId;
             $shipped = $result->get('shippedPacks');
             	
             $inPack = $p->quantityInPack;
@@ -567,5 +576,23 @@ class purchase_Purchases extends deals_DealMaster
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	// Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
+    	core_Lg::pop();
+    	$statisticTpl = getTplFromFile('purchase/tpl/PurchaseStatisticLayout.shtml');
+    	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
+    	
+    	// Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
+    	$data->row->paymentState = $mvc->getVerbal($data->rec, 'paymentState');
+    	
+    	// Отново вкарваме езика на шаблона в сесията
+    	core_Lg::push($data->rec->tplLang);
     }
 }

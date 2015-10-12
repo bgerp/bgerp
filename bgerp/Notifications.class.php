@@ -117,7 +117,7 @@ class bgerp_Notifications extends core_Manager
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         if (!haveRole('debug') && $userId == core_Users::getCurrent()) return;
         
-        // Ако има такова съобщение - само му вдигаме флага че е активно
+        // Ако има такова съобщение - само му вдигаме флага, че е активно
         $query = bgerp_Notifications::getQuery();
         $r = $query->fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
@@ -396,6 +396,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             $cnt = 0;
         }
+
         
         return $cnt;
     }
@@ -568,19 +569,67 @@ class bgerp_Notifications extends core_Manager
      */
     function act_NotificationsCnt()
     {
+
+        
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
             // Броя на нотифиакциите
             $notifCnt = static::getOpenCnt();
             
+            $res = array();
+
             // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'notificationsCnt';
-            $resObj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj = new stdClass();
+            $obj->func = 'notificationsCnt';
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
             
-            return array($resObj);
+            $res[] = $obj;
+
+            // Ако има увеличаване - пускаме звук
+            $lastCnt = Mode::get('NotificationsCnt');
+
+            if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
+                
+                $newNotifCnt = $notifCnt - $lastCnt;
+                    
+                if ($newNotifCnt == 1) {
+                    $notifStr = $newNotifCnt . ' ' . tr('ново известие');
+                } else {
+                    $notifStr = $newNotifCnt . ' ' . tr('нови известия');
+                }
+                
+                $notifyArr = array('title' => $notifStr, 'blinkTimes' => 2);
+                
+                // Добавяме и звук, ако е зададено
+                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
+                if ($notifSound != 'none') {
+                    $notifyArr['soundOgg'] = sbf("sounds/{$notifSound}.ogg", '');
+                    $notifyArr['soundMp3'] = sbf("sounds/{$notifSound}.mp3", '');
+                }
+                
+                $obj = new stdClass();
+                $obj->func = 'Notify';
+                $obj->arg = $notifyArr;
+                $res[] = $obj;
+            }
+            
+            // Записваме в сесията последно изпратените нотификации, ако има промяна
+            if($notifCnt != $lastCnt) {
+                if(core_Users::getCurrent()) {
+                    Mode::setPermanent('NotificationsCnt', $notifCnt);
+                } else {
+                    Mode::setPermanent('NotificationsCnt', NULL);
+                }
+            }
+
+            return $res;
         }
+    }
+
+    function act_BP()
+    {
+        bp(Mode::get('NotificationsCnt'), core_Users::getCurrent());
     }
     
     

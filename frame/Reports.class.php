@@ -204,7 +204,7 @@ class frame_Reports extends core_Embedder
             	// Ако сме минали зададеното време за обновяване на кеша на данните при чернова
                 if(dt::addSecs(self::KEEP_INNER_STATE_IN_DRAFT, $rec->modifiedOn) < dt::now()){
                 	
-                	// Обновяваме записа така че на ново да се извлече вътрешното състояние
+                	// Обновяваме записа, така че на ново да се извлече вътрешното състояние
                 	unset($rec->data);
                 	$mvc->save($rec);
                }
@@ -437,7 +437,7 @@ class frame_Reports extends core_Embedder
     	$rec->state = ($when < $rec->earlyActivationOn) ? 'pending' : 'active';
     	$this->save($rec, 'state');
     	 
-    	// Ако сме го активирали, генерираме събитие че е бил активиран
+    	// Ако сме го активирали, генерираме събитие, че е бил активиран
     	if($rec->state == 'active'){
     		$this->invoke('AfterActivation', array($rec));
     	}

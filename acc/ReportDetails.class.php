@@ -104,14 +104,19 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
-        $accounts = arr::make($data->masterMvc->balanceRefAccounts);
-        
+    	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
+    	$data->canSeePrices = haveRole('ceo,accMaster');
+    	
         // Полета за таблицата
         $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума");
+        if($data->canSeePrices === FALSE){
+        	unset($data->listFields['blPrice'],$data->listFields['blAmount']);
+        }
+        
         $data->limitFields = arr::make("item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от");
         
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
-        // Създава се с new за да сме сигурни че обекта е нова празна инстанция
+        // Създава се с new за да сме сигурни, че обекта е нова празна инстанция
         $data->reportTableMvc = new core_Mvc;
         $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
         $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
@@ -127,6 +132,12 @@ class acc_ReportDetails extends core_Manager
         // Ако мастъра не е перо, няма какво да се показва
         if(empty($items)) {
         	$data->renderReports = FALSE;
+        	return;
+        }
+        
+        // Ако баланса е заключен не показваме нищо
+        if(core_Locks::isLocked('RecalcBalances')){
+        	$data->balanceIsRecalculating = TRUE;
         	return;
         }
         
@@ -150,7 +161,7 @@ class acc_ReportDetails extends core_Manager
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
         $attr['title'] = tr("Хронологична справка");
-       
+        
         foreach ($data->recs as $dRec){
             @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
         	
@@ -242,7 +253,16 @@ class acc_ReportDetails extends core_Manager
      */
     private function renderBalanceReports(&$data)
     {
-        $tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+    	$tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+    	
+    	// Ако баланса се преизчислява в момента, показваме подходящо съобщение
+    	if($data->balanceIsRecalculating === TRUE){
+    		$warning = "<span class='red'>" . tr('Баланса се преизчислява в момента|*! |Моля изчакайте|*.') . "</span>";
+        	$tpl->append($warning, 'CONTENT');
+        	
+        	return $tpl;
+        }
+    	
         if(isset($data->balanceRec->periodId)){
         	$tpl->replace(acc_Periods::getVerbal($data->balanceRec->periodId, 'title'), 'periodId');
         }
@@ -302,12 +322,14 @@ class acc_ReportDetails extends core_Manager
                 	
                 	$tableHtml = $table->get($rows, $fields);
                 	
-                	$colspan = count($fields) - 1;
-                	$totalRow = $Double->toVerbal($total);
-                	$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
-                	$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
-                	$tableHtml->replace($totalHtml, 'ROW_AFTER');
-                	$tableHtml->removeBlocks;
+                	if($data->canSeePrices !== FALSE){
+                		$colspan = count($fields) - 1;
+                		$totalRow = $Double->toVerbal($total);
+                		$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
+                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
+                		$tableHtml->replace($totalHtml, 'ROW_AFTER');
+                		$tableHtml->removeBlocks;
+                	}
                 	
                 	// Добавяне на таблицата в шаблона
                 	$content->append($tableHtml);
@@ -339,7 +361,7 @@ class acc_ReportDetails extends core_Manager
                 }
             }
            
-            if($count > 1){
+            if($count > 1 && $data->canSeePrices !== FALSE){
             	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
             	$tpl->append($lastRow, 'CONTENT');
             }

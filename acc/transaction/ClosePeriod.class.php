@@ -275,7 +275,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     			if($accIds[$rec->accountId] != '700'){
     				if($rec->blQuantity < 0){
     					
-    					// Ако имаме кредитно салдо, правим такова к-во че да го занулим
+    					// Ако имаме кредитно салдо, правим такова к-во, че да го занулим
     					$quantity = abs($rec->blQuantity);
     				} else {
     					$quantity = $rec->blQuantity;
@@ -628,7 +628,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     					continue;
     				} else {
     					
-    					// Иначе прихвърляме толкова че да остане минимум зададеното салдо
+    					// Иначе прихвърляме толкова, че да остане минимум зададеното салдо
     					$amount -= $rec->amountKeepBalance;
     				}
     			}
@@ -654,7 +654,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
     	$rec605 = $bQuery->fetch();
     	
-    	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604);
+    	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604, $this->periodRec->end);
     	
     	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
     	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;

@@ -218,7 +218,8 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 					
 					// Ориджина трябва да е задание за производство
 					$originDoc = doc_Containers::getDocument($rec->originId);
-					if(!($originDoc->getInstance() instanceof planning_Jobs)){
+					
+					if(!$originDoc->isInstanceOf('planning_Jobs')){
 						$requiredRoles = 'no_one';
 					} else {
 						
@@ -315,14 +316,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		
 		// Извличаме информацията за ресурсите в рецептата
 		$bomInfo = cat_Boms::getResourceInfo($bomId);
-		$productManId = cat_Products::getClassId();
 		
 		// За всеки ресурс
 		foreach($bomInfo['resources'] as $resource){
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
-			$dRec->classId        = $productManId;
 			$dRec->productId      = $resource->productId;
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;

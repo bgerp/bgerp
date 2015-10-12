@@ -82,13 +82,8 @@
                             </table>
                         </div>
                     </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
                 </td>
             </tr>
         </tbody>
     </table>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -307,7 +307,7 @@ class core_Manager extends core_Mvc
             // Записваме данните
             $id = $this->save($rec);
             
-            $msg = ($data->cmd == 'Add') ? 'Нов запис' : 'Редактиране';
+            $msg = ($data->cmd == 'Add') ? 'Създаване' : 'Редактиране';
             
             $this->logInAct($msg, $rec);
             
@@ -955,8 +955,6 @@ class core_Manager extends core_Mvc
         }
         
         $select = new ET('');
-        
-        $this->logDebug("ajaxGetOptions", NULL, 7);
         
         $options = $this->fetchOptions($q);
         

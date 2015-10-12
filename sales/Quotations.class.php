@@ -110,6 +110,14 @@ class sales_Quotations extends core_Master
     
 
     /**
+     * Кой е главния детайл
+     *
+     * @var string - име на клас
+     */
+    public $mainDetail = 'sales_QuotationsDetails';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Оферта';
@@ -270,7 +278,7 @@ class sales_Quotations extends core_Master
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
-       if($rec->originId && empty($rec->id)){
+       if(isset($rec->originId)){
        	
        		// Ако офертата има ориджин
        		$data->form->setField('row1,row2,row3', 'input');
@@ -291,8 +299,8 @@ class sales_Quotations extends core_Master
        				}
        			}
        			
-       			$Policy = $origin->getPolicy();
-       			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, $origin->getInstance()->getClassId())->price;
+       			$Policy = cls::get('price_ListToCustomers');
+       			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that)->price;
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
@@ -329,11 +337,14 @@ class sales_Quotations extends core_Master
 	    			$warning = '';
 	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
 	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
-	    				$warning = 'warning=Сигурнили сте че искате да създадете продажба?';
+	    				$warning = "Сигурни ли сте, че искате да създадете продажба?";
 	    				$title = 'Създаване на продажба от офертата';
+	    				$efIcon = 'img/16/star_2.png';
+	    			} else {
+	    				$efIcon = 'img/16/cart_go.png';
 	    			}
 	    			
-	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), "{$warning}", "ef_icon=img/16/star_2.png,title={$title}");
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), array('warning' => $warning), "ef_icon={$efIcon},title={$title}");
 	    		}
 	    	}
 	    }
@@ -391,7 +402,7 @@ class sales_Quotations extends core_Master
     		
     		$dRows = array($rec->row1, $rec->row2, $rec->row3);
     		if(($dRows[0] || $dRows[1] || $dRows[2])){
-    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $dRows);
+    			sales_QuotationsDetails::insertFromSpecification($rec, $origin, $dRows);
 			}
     	}
     }
@@ -668,19 +679,7 @@ class sales_Quotations extends core_Master
      */
     public function getUsedDocs_($id)
     {
-    	$res = array();
-    	$dQuery = $this->sales_QuotationsDetails->getQuery();
-    	$dQuery->EXT('state', 'sales_Quotations', 'externalKey=quotationId');
-    	$dQuery->where("#quotationId = '{$id}'");
-    	$dQuery->groupBy('productId,classId');
-    	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-    		}
-    	}
-    	
-    	return $res;
+    	return deals_Helper::getUsedDocs($this, $id);
     }
     
     
@@ -787,7 +786,7 @@ class sales_Quotations extends core_Master
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите
-	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
 	        	// и ги нормализираме
 	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
 	        }
@@ -815,6 +814,8 @@ class sales_Quotations extends core_Master
      */
     private function createSale($rec)
     {
+    	$templateId = sales_Sales::getDefaultTemplate((object)array('folderId' => $rec->folderId));
+    	
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
     					'currencyRate'       => $rec->currencyRate,
@@ -824,6 +825,7 @@ class sales_Quotations extends core_Master
     					'chargeVat'          => $rec->chargeVat,
     					'note'				 => $rec->others,
     					'originId'			 => $rec->containerId,
+    					'template'			 => $templateId,
     					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
     	);
     	
@@ -845,7 +847,7 @@ class sales_Quotations extends core_Master
     	
     	// Опитваме се да намерим съществуваща чернова продажба
     	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
-    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
     	}
     	
     	// Ако няма създаваме нова
@@ -857,7 +859,7 @@ class sales_Quotations extends core_Master
     	
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){
-    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
+    		sales_Sales::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
     	}
     	
     	// Записваме, че потребителя е разглеждал този списък
@@ -890,7 +892,7 @@ class sales_Quotations extends core_Master
     		
     		$products = (array)$form->rec;
     		foreach ($products as $index => $quantity){
-    			list($productId, $classId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
+    			list($productId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
     			$quantityInPack = str_replace('_', '.', $quantityInPack);
     			
     			// При опционален продукт без к-во се продължава
@@ -898,16 +900,16 @@ class sales_Quotations extends core_Master
     			$quantity = $quantity * $quantityInPack;
     			
     			// Опитваме се да намерим записа съотвестващ на това количество
-    			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
+    			$where = "#quotationId = {$id} AND #productId = {$productId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
     			$where .= ($packagingId) ? " AND #packagingId = {$packagingId}" : " AND #packagingId IS NULL";
     			$dRec = sales_QuotationsDetails::fetch($where);
     			
     			if(!$dRec){
     				
     				// Ако няма (к-то е друго) се намира първия срещнат
-    				$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
+    				$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
     				
-    				// Тогава приемаме че подаденото количество е количество за опаковка
+    				// Тогава приемаме, че подаденото количество е количество за опаковка
     				$dRec->packQuantity = $quantity;
     			} else {
     				
@@ -916,7 +918,7 @@ class sales_Quotations extends core_Master
     			}
     			
     			// Добавяме детайла към офертата
-    			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+    			sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
     		}
     		 
     		// Редирект към сингъла на новосъздадената продажба
@@ -940,7 +942,7 @@ class sales_Quotations extends core_Master
     {
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на продажба от оферта';
-    	$form->info = tr('Моля уточнете точните количества');
+    	$form->info = tr('Моля уточнете количествата');
     	$filteredProducts = $this->filterProducts($id);
     	
     	foreach ($filteredProducts as $index => $product){
@@ -989,10 +991,10 @@ class sales_Quotations extends core_Master
     	
     	while ($rec = $query->fetch()){
     		$rec->quantityInPack = str_replace('.', '_', $rec->quantityInPack);
-    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|{$rec->packagingId}|{$rec->quantityInPack}";
+    		$index = "{$rec->productId}|{$rec->optional}|{$rec->packagingId}|{$rec->quantityInPack}";
     		
     		if(!array_key_exists($index, $products)){
-    			$title = cls::get($rec->classId)->getTitleById($rec->productId);
+    			$title = cat_Products::getTitleById($rec->productId);
     			if($rec->packagingId){
     				$title .= " / " . cat_UoM::getTitleById($rec->packagingId);
     			}

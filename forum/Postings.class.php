@@ -278,7 +278,7 @@ class forum_Postings extends core_Detail {
 		// Рендираме темата
 		$layout = $this->renderTheme($data);
 		
-		// Записваме че темата е посетена в лога
+		// Записваме, че темата е посетена в лога
 		if(core_Packs::fetch("#name = 'vislog'")) {
             $cnt = vislog_History::add($data->row->title, TRUE);
             

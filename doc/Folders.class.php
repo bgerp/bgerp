@@ -992,51 +992,54 @@ class doc_Folders extends core_Master
         $query->orWhere("#title IS NULL");
         
         while($rec = $query->fetch()) {
-            
-            // Ако има папка без собственик
-            if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
-                $resArr['inCharge']++;
-                $rec->inCharge = $currUser;
-                self::save($rec);
-            }
-            
-            // Ако липсва coverClass, да е на несортираните
-            if (!isset($rec->coverClass)) {
-                $resArr['coverClass']++;
-                $rec->coverClass = $unsortedFolderId;
-                self::save($rec);
-            }
-            
-            // Ако няма coverId
-            if (!isset($rec->coverId)) {
-                $resArr['coverId']++;
+            try {
+                // Ако има папка без собственик
+                if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
+                    $resArr['inCharge']++;
+                    $rec->inCharge = $currUser;
+                    self::save($rec);
+                }
                 
-                // Ако не е несортирани
-                if ($rec->coverClass != $unsortedFolderId) {
+                // Ако липсва coverClass, да е на несортираните
+                if (!isset($rec->coverClass)) {
                     $resArr['coverClass']++;
                     $rec->coverClass = $unsortedFolderId;
                     self::save($rec);
                 }
                 
-                // Създаваме документ и използваме id-то за coverId
-                $unRec = new stdClass();
-                $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
-                $unRec->inCharge = $currUser;
-                $unRec->folderId = $rec->id;
-                $rec->coverId = $unsortedFolders::save($unRec);
-                self::save($rec);
+                // Ако няма coverId
+                if (!isset($rec->coverId)) {
+                    $resArr['coverId']++;
+                    
+                    // Ако не е несортирани
+                    if ($rec->coverClass != $unsortedFolderId) {
+                        $resArr['coverClass']++;
+                        $rec->coverClass = $unsortedFolderId;
+                        self::save($rec);
+                    }
+                    
+                    // Създаваме документ и използваме id-то за coverId
+                    $unRec = new stdClass();
+                    $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+                    $unRec->inCharge = $currUser;
+                    $unRec->folderId = $rec->id;
+                    $rec->coverId = $unsortedFolders::save($unRec);
+                    self::save($rec);
+                }
+                
+                // Ако няма заглвиет, използваме заглавието от документа
+                if (!isset($rec->title)) {
+                    $resArr['title']++;
+                    $coverMvc = cls::get($rec->coverClass);
+                    $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
+                    self::save($rec);
+                }
+                
+                // Обновяваме папката
+                self::updateFolderByContent($rec->id);
+            } catch (Exception $e) {
+                reportException($e, NULL, TRUE);
             }
-            
-            // Ако няма заглвиет, използваме заглавието от документа
-            if (!isset($rec->title)) {
-                $resArr['title']++;
-                $coverMvc = cls::get($rec->coverClass);
-                $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
-                self::save($rec);
-            }
-            
-            // Обновяваме папката
-            self::updateFolderByContent($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг

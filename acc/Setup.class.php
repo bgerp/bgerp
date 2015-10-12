@@ -4,7 +4,7 @@
 /**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
-defIfNot('ACC_DAYS_BEFORO_MAKE_PERIOD_PENDING', '');
+defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
 
 
 
@@ -108,6 +108,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     	'migrate::updateClosedItems3',
+    	'migrate::fixExpenses',
     );
     
     
@@ -117,7 +118,7 @@ class acc_Setup extends core_ProtoSetup
     var $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
         'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
-    	'ACC_DAYS_BEFORO_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
+    	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
     );
     
     
@@ -125,8 +126,9 @@ class acc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-        'acc',
-        array('accMaster', 'acc')
+    	array('accJournal'),
+    	array('acc', 'accJournal'),
+        array('accMaster', 'acc'),
     );
     
     
@@ -324,6 +326,21 @@ class acc_Setup extends core_ProtoSetup
     		$iRec->closedOn = $closedOn;
     		$iRec->closedOn = dt::verbal2mysql($iRec->closedOn, FALSE);
     		cls::get('acc_Items')->save_($iRec, 'closedOn');
+    	}
+    }
+    
+    
+    /**
+     * Миграция на разпределението на разходите
+     */
+    function fixExpenses()
+    {
+    	$query = acc_AllocatedExpenses::getQuery();
+    	$query->where('#currencyId IS NULL AND #rate IS NULL');
+    	while($rec = $query->fetch()){
+    		$rec->currencyId = 'BGN';
+    		$rec->rate = 1;
+    		acc_AllocatedExpenses::save($rec);
     	}
     }
 }

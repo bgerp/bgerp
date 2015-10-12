@@ -78,12 +78,12 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
 			
     		foreach ($rec->details as $dRec) {
-    			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$pInfo = cat_Products::getProductInfo($dRec->productId);
     			$transfer = FALSE;
     			
     			if(isset($pInfo->meta['fixedAsset'])){
     				$reason = 'Приети ДА';
-    				$debitArr = array('613', array($dRec->classId, $dRec->productId),
+    				$debitArr = array('613', array('cat_Products', $dRec->productId),
     									'quantity' => $dRec->quantity,);
     			} else {
     				$transfer = TRUE;
@@ -92,7 +92,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     				$debitArr = array(
     							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
     							array('hr_Departments', $centerId),
-    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
+    							array('cat_Products', $dRec->productId), // Перо 1 - Артикул
     							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
     					);
     				$reason = 'Приети услуги и нескладируеми консумативи';
@@ -119,7 +119,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     			if($transfer === TRUE){
     				$pInfo = cat_Products::getProductInfo($dRec->productId);
     				if(isset($pInfo->meta['canConvert'])){
-    					$newArr = array('61101', array($dRec->classId , $dRec->productId),
+    					$newArr = array('61101', array('cat_Products', $dRec->productId),
     							'quantity' => $dRec->quantity);
     				} else {
     					$newArr = array('61102');

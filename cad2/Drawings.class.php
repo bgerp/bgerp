@@ -113,6 +113,10 @@ class cad2_Drawings extends embed_Manager {
         $tpl->append('<div class="clearfix21"></div>');
 
         $tpl->append($svg->render());
+
+        $tpl->append('<div class="clearfix21"></div>');
+
+        $tpl->append($svg->debug);
     }
 
 

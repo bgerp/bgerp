@@ -162,11 +162,11 @@ class bulmar_InvoiceExport extends core_Manager {
     	$dQuery->where("#invoiceId = {$rec->id}");
     	
     	while($dRec = $dQuery->fetch()){
-    		if(empty($this->cache[$dRec->classId][$dRec->productId])){
-    			$this->cache[$dRec->classId][$dRec->productId] = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    		if(empty($this->cache[$dRec->productId])){
+    			$this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
     		}
     		
-    		$pInfo = $this->cache[$dRec->classId][$dRec->productId];
+    		$pInfo = $this->cache[$dRec->productId];
     		if(empty($pInfo->meta['canStore'])){
     			$byProducts -= $dRec->amount * (1 - $dRec->discount);
     		}

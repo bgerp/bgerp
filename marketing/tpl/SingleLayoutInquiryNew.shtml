@@ -1,8 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-    
     <div><b>[#innerClass#]</b>: [#title#]</div>
-     
     [#innerState#]
     </div>
     

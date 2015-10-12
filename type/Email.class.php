@@ -196,6 +196,8 @@ class type_Email extends type_Varchar {
         
         $domain = empty($domain) ? FALSE : trim($domain);
         
+        $domain = rtrim($domain, '\'"<>;,');
+        
         return $domain;
     }
 

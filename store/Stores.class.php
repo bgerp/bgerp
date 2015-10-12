@@ -313,9 +313,8 @@ class store_Stores extends core_Master
     	foreach ($recs as &$dRec){
     		$productPlace = acc_Lists::getPosition($dRec->accountNum, 'cat_ProductAccRegIntf');
     		$itemRec = acc_Items::fetch($dRec->{"ent{$productPlace}Id"});
-    		$ProductMan = cls::get($itemRec->classId);
     		
-    		$packs = $ProductMan->getPacks($itemRec->objectId);
+    		$packs = cat_Products::getPacks($itemRec->objectId);
     		$basePackId = key($packs);
     		$data->uomNames[$dRec->id] = cat_UoM::getTitleById($basePackId);
     		

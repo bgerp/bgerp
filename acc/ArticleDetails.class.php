@@ -116,19 +116,19 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
         $this->FLD('reason', 'varchar', 'caption=Информация');
         
-        $this->FLD('debitAccId', 'acc_type_Account(remember)',
-            'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember,refreshForm,silent');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember,refreshForm,silent');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember,refreshForm,silent');
+        $this->FLD('debitAccId', 'acc_type_Account(remember,allowEmpty)',
+            'silent,caption=Дебит->Сметка и пера,mandatory,input,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount', 'tdClass=articleCell,silent');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember,refreshForm,silent,input=none');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember,refreshForm,silent,input=none');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember,refreshForm,silent,input=none');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
-        $this->FLD('creditAccId', 'acc_type_Account(remember)',
-            'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,refreshForm,silent');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,refreshForm,silent');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,refreshForm,silent');
+        $this->FLD('creditAccId', 'acc_type_Account(remember,allowEmpty)',
+            'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,silent');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,refreshForm,silent,input=none');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,refreshForm,silent,input=none');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,refreshForm,silent,input=none');
         $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
@@ -172,52 +172,6 @@ class acc_ArticleDetails extends doc_Detail
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
-            
-            $data->toolbar->removeBtn('btnAdd');
-            
-            return;
-        }
-        
-        $query = acc_ArticleDetails::getQuery();
-        $query->where("#articleId = {$data->masterId}");
-        $query->orderBy("id", "DESC");
-        $lastRec = $query->fetch();
-        
-        expect($data->masterId);
-        $form = cls::get('core_Form');
-        
-        $form->method = 'GET';
-        $form->action = array (
-            $mvc, 'add',
-        );
-        $form->view = 'horizontal';
-        $form->FLD('debitAccId', 'acc_type_Account(allowEmpty)',
-            'silent,caption=Дебит,mandatory');
-        $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
-            'silent,caption=Кредит,mandatory');
-        
-        $form->setDefault('debitAccId', $lastRec->debitAccId);
-        $form->setDefault('creditAccId', $lastRec->creditAccId);
-        $form->FLD('articleId', 'int', 'input=hidden');
-        $form->setHidden('articleId', $data->masterId);
-        
-        $form->FLD('ret_url', 'varchar(1024)', 'input=hidden');
-        $form->setHidden('ret_url', toUrl(getCurrentUrl(), 'local'));
-        
-        $form->title = 'Нов запис в журнала';
-        
-        $form->toolbar->addSbBtn('Нов', '', '', "id=btnAdd", 'ef_icon = img/16/star_2.png, title=Добавяне на нов запис');
-        
-        $data->accSelectToolbar = $form;
-    }
-    
-    
-    /**
      * Извиква се след рендиране на Toolbar-а
      */
     protected static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
@@ -240,22 +194,27 @@ class acc_ArticleDetails extends doc_Detail
         $form = $data->form;
         $rec = $form->rec;
         
-        if ((!$rec->debitAccId) || (!$rec->creditAccId)) {
-            
-            Redirect(array('acc_Articles', 'single', $rec->articleId), FALSE, "Не са избрани сметки за дебит и кредит.");
-        }
-        
-        $form->setReadOnly('debitAccId');
-        $form->setReadOnly('creditAccId');
-        
         $form->setField('debitAccId', 'caption=Дебит->Сметка');
         $form->setField('creditAccId', 'caption=Кредит->Сметка');
         
-        $debitAcc = acc_Accounts::getAccountInfo($rec->debitAccId);
-        $creditAcc = acc_Accounts::getAccountInfo($rec->creditAccId);
+        if(isset($rec->debitAccId)){
+        	$debitAcc = acc_Accounts::getAccountInfo($rec->debitAccId);
+        } else {
+        	$form->setField('debitQuantity', 'input=none');
+        	$form->setField('debitPrice', 'input=none');
+        	$form->setField('amount', 'input=none');
+        }
+        
+        if(isset($rec->creditAccId)){
+        	$creditAcc = acc_Accounts::getAccountInfo($rec->creditAccId);
+        } else {
+        	$form->setField('creditQuantity', 'input=none');
+        	$form->setField('creditPrice', 'input=none');
+        	$form->setField('amount', 'input=none');
+        }
         
         $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
-        
+         
         $quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
         ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
         
@@ -268,13 +227,7 @@ class acc_ArticleDetails extends doc_Detail
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
             $acc = ${"{$type}Acc"};
-            
-            // Скриваме всички полета за пера, и после показваме само тези, за които съответната
-            // (дебит или кредит) сметка има аналитичност.
-            $form->setField("{$type}Ent1", 'input=none');
-            $form->setField("{$type}Ent2", 'input=none');
-            $form->setField("{$type}Ent3", 'input=none');
-            
+            if(!isset($acc)) continue;
             
             foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {

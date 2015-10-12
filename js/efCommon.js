@@ -596,7 +596,7 @@ function rp(text, textarea, newLine) {
 /*
  * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
  */
-function crateRicheditTable(textarea, newLine, tableCol, tableRow) {
+function createRicheditTable(textarea, newLine, tableCol, tableRow) {
     if (tableRow < 2 || tableRow > 10 || tableCol < 2 || tableCol > 10) return;
     var version = getIEVersion();
     if ((version == 8 || version == 9) && typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange) {
@@ -1659,33 +1659,33 @@ function appendQuote(id, line) {
 
 	quoteId = id;
 	quoteLine = line;
-
+	
     // Ако не е дефиниран
     if (typeof sessionStorage === "undefined") return;
-
+    
     // Вземаме времето от сесията
     selTime = sessionStorage.getItem('selTime');
-
+    
     // Вземаме текущото време
     now = new Date().getTime();
-
+    
     // Махаме 5s
     now = now - 5000;
-
+    
     // Ако вече е нагласен или не е изтекъл
 	if ((!quoteText) && (selTime > now)) {
-
+		
         // Вземаме текста
         text = sessionStorage.getItem('selText');
-
+    	
         if (text) {
-
+        	
             // Вземаме манипулатора на документа
             selHandle = sessionStorage.getItem('selHandle');
-
+            
             // Стринга, който ще добавим
-            quoteText = "\n[bQuote";
-
+            quoteText = "[bQuote";
+            
             // Ако има манипулато, го добавяме
             if (selHandle) {
             	quoteText += "=" + selHandle + "]";
@@ -1698,18 +1698,36 @@ function appendQuote(id, line) {
 
     if (quoteText) {
         var textVal = get$(id).value;
-
+        
         // Добавяме към данните
         if (textVal && line) {
         	var splited = textVal.split("\n");
-        	splited.splice(line, 0, quoteText);
+        	splited.splice(line, 0, "\n" + quoteText);
         	get$(id).value = splited.join("\n");
         } else {
-        	get$(id).value += quoteText;
+        	get$(id).value += quoteText + "\n";
         }
+    }
+    
+    if (!line) {
+    	moveCursorToEnd(get$(id));
     }
 }
 
+
+/**
+ * Премества курсора в края на полето
+ */
+function moveCursorToEnd(el) {
+    if (typeof el.selectionStart == "number") {
+        el.selectionStart = el.selectionEnd = el.value.length;
+    } else if (typeof el.createTextRange != "undefined") {
+        el.focus();
+        var range = el.createTextRange();
+        range.collapse(false);
+        range.select();
+    }
+}
 
 /**
  * Добавя скрито инпут поле Cmd със стойност refresh
@@ -2039,7 +2057,7 @@ function checkForHiddenGroups() {
 function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
-		  if ($(e.target).is(".invert-checkbox")) {
+		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {
@@ -2049,6 +2067,19 @@ function keylistActions(el) {
 		  }
 	 });
 }
+
+function sumOfChildrenWidth() {
+	if($('body').hasClass('narrow') && $('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
+		
+		var sum=0;
+		$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
+		$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
+		
+		var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
+		$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+	}
+}
+
 
 /**
  *  скриваме/показваме прилежащата на елемента група
@@ -2893,7 +2924,7 @@ function render_Notify(data) {
 	// подготвяме фав иконките
 	var newIcon = prepareFavIcon(data.favicon);
 	var oldIcon = prepareFavIcon(oldIconPath);
-
+	
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
@@ -2902,7 +2933,7 @@ function render_Notify(data) {
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
 			restoreTitle(oldTitle);
-			restoreFavIcon(oldIcon);
+			setFavIcon(oldIcon);
 		}, 600);
 
 		counter++;
@@ -2936,9 +2967,12 @@ function restoreTitle(oldTitle) {
 /**
  * връща необходимия за смяна на фав иконата таг
  * @param iconPath - пътя до картинката
- * @returns icon
+ * @returns object|false
  */
 function prepareFavIcon(iconPath) {
+	
+	if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
+	
 	var icon = document.createElement('link');
 	icon.type = 'image/x-icon';
 	icon.rel = 'shortcut icon';
@@ -2953,16 +2987,9 @@ function prepareFavIcon(iconPath) {
  * @param icon - иконата, която ще задаваме
  */
 function setFavIcon(icon){
-	$('head').append(icon);
-}
-
-
-/**
- * задава старата фав икона
- * @param oldIcon - иконата, която ще задаваме
- */
-function restoreFavIcon(oldIcon) {
-	$('head').append(oldIcon);
+	if (icon) {
+		$('head').append(icon);
+	}
 }
 
 
@@ -3893,6 +3920,7 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
+runOnLoad(sumOfChildrenWidth);
 runOnLoad(editCopiedTextBeforePaste);
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);

@@ -1,18 +1,18 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <table>
-        <tr>
-            <td>
                 <div class='document-title'>|Корекция на стойности|* №[#id#]</div>
-                <div style='margin-top:10px'>|Вальор|*: [#valior#]</div>
-                <div style='margin-top:5px'>|Корекция|*: [#action#]</div>
-                <div style='margin-top:5px'>|Разпределяне по|*: [#allocateBy#]</div>
-                <div style='margin-top:5px'>|Основна сделка|*: [#dealOriginId#]</div>
-                <div style='margin-top:5px'>|Кореспондираща сделка|*: [#correspondingDealOriginId#]</div>
-                <div style='margin-top:5px'>|Сума|*: <b>[#amount#]</b> <span class='cCode'>[#baseCurrencyCode#]</span> [#vatType#]</div>
-                <div style='margin-top:15px'>[#PRODUCTS_TABLE#]</div>
-            </td>
-        </tr>
-    </table>
+                <div class='fleft' style='width: 50%'>
+                    <div style='margin-top:10px;'>|Вальор|*: <b>[#valior#]</b></div>
+                    <div style='margin-top:5px;'>|Основна сделка|*: [#dealOriginId#]</div>
+                    <div style='margin-top:5px;'>|Кореспондираща сделка|*: [#correspondingDealOriginId#]</div>
+                </div>
+                <div class='fright' style='width: 50%'>
+	                <div style='margin-top:5px;'>|Корекция|*: <b>[#action#]</b></div>
+	                <div style='margin-top:5px;'>|Разпределяне по|*: <b>[#allocateBy#]</b></div>
+	                <div style='margin-top:5px;'>|Сума|*: <b>[#amount#]</b> <span class='cCode'>[#baseCurrencyCode#]</span> [#vatType#]</div>
+	            </div>
+	            <div class='clearfix21'></div>
+                <div class='full-width-holder' style='margin-top: 15px;'>[#PRODUCTS_TABLE#]</div>
+                
    <!--ET_BEGIN notes-->
    <div style='margin-top:10px'>
    <b>|Забележки|*</b>:

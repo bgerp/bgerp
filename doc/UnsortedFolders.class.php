@@ -725,7 +725,7 @@ class doc_UnsortedFolders extends core_Master
     public function getDocButtonsInFolder($id)
     {
     	$res = array();
-    	$rec = $this->fetch($id);
+    	$rec = $this->fetchRec($id);
     	if($rec->showDocumentsAsButtons){
     		$res = keylist::toArray($rec->showDocumentsAsButtons);
     	} else {
@@ -733,7 +733,7 @@ class doc_UnsortedFolders extends core_Master
     	}
     	
     	// Ако има клас с името на проекта, връщаме и него
-    	if($defClassId = core_Classes::fetchField("#title = '{$rec->name}'", 'id')){
+    	if($defClassId = core_Classes::fetchField(array("#title = '[#1#]'", $rec->name), 'id')){
     		$res[] = $defClassId;
     	}
     	

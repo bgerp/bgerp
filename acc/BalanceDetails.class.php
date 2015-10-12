@@ -86,7 +86,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Кой има достъп до хронологичната справка
      */
-    public $canHistory = 'powerUser';
+    public $canHistory = 'ceo,accJournal';
     
     
     /**
@@ -106,7 +106,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public $title = 'Детайли на баланса';
     
-    //var $listItemsPerPage = 20;
+    
     /**
      * Описание на модела
      */
@@ -839,7 +839,10 @@ class acc_BalanceDetails extends core_Detail
                 foreach ($l0 as $ent1 => $l1) {
                     foreach ($l1 as $ent2 => $l2) {
                         foreach ($l2 as $ent3 => $rec) {
-                            $rec['balanceId'] = $balanceId;
+                        	
+                        	// Детайлите на текущия баланс ги записваме под системно ид -1
+                        	// След като всички данни са записани, ще се ъпдейтне индекса
+                            $rec['balanceId'] = '-1';
                             
                             // Ако има сума закръгляме я до втория знак преди запис
                             foreach (array('blAmount', 'baseAmount') as $fld){

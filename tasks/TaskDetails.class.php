@@ -243,7 +243,7 @@ abstract class tasks_TaskDetails extends doc_Detail
     	if($status !== FALSE) {
     		$masterId = NULL;
     		
-    		// При постъпването на определени събития ще нотофицираме драйвера че са станали
+    		// При постъпването на определени събития ще нотофицираме драйвера, че са станали
     		switch(strtolower($event)) {
     			case 'afterprepareeditform':
     				$masterId = $args[0]->form->rec->{$this->masterKey};
@@ -277,6 +277,8 @@ abstract class tasks_TaskDetails extends doc_Detail
     
     		// Ако е намерен мастър и той има драйвер
     		if(isset($masterId) && $Driver = $this->Master->getDriver($masterId)){
+    			
+    			array_unshift($args, $this);
     			
     			// Викаме определения метод, който ще предаде данните за обработка на драйвера
     			call_user_func_array(array($Driver, $method),  $args);

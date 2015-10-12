@@ -125,15 +125,9 @@
          <!--ET_END SALE_INFO-->
     </table>
      <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-          <b>|Производствени задачи|*</b> [#ADD_BTN#]
+          <b>[#TASKS_LINK#]</b> [#ADD_BTN#]
      </div>
-    	<div class="clearfix21 portal planning" style="background-color:transparent">
+     <div class="clearfix21 portal planning" style="background-color:transparent">
             [#Tasks#]
-          </div>
-    <!--ET_BEGIN shareLog-->
-    <div class='sharing-history clearfix21'>
-        <span class='sharing-history-title'>|Споделяне|*</span>
-        [#shareLog#]
-    </div>
-    <!--ET_END shareLog-->
-</div>
+     </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

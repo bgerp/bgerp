@@ -275,6 +275,13 @@ class core_DateTime
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = TRUE, $callRecursive = TRUE)
     {
+        // Опцията "относително време" да не работи в абсолутен или печатен режим
+        if( Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            if($mask == 'smartTime') {
+                $mask = "d.m.y H:i";
+            }
+        }
+
         $origMask = $mask;
         if($mysqlDate === NULL) {
             $mysqlDate = self::verbal2mysql();
@@ -373,7 +380,7 @@ class core_DateTime
             
             $color = static::getColorByTime($mysqlDate);
           
-            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)", $lg, FALSE, FALSE);
+            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i:s (l)", $lg, FALSE, FALSE);
             $title = "  title='{$title}'";
             
             $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" $title>{$verbDate}</span>";
@@ -573,7 +580,7 @@ class core_DateTime
                     $year = date('Y');
                 }
 
-                // Ако годината е под 30, то приемаме че е 20??, ако е под 100, приемаме че е 19??
+                // Ако годината е под 30, то приемаме, че е 20??, ако е под 100, приемаме, че е 19??
                 if(strlen($year) == 2) {
                     if($year <= 30) {
                         $year = 2000 + $year;

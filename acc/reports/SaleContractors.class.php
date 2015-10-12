@@ -79,7 +79,7 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         $form->fields['orderField']->type->options['creditAmount'] = "Сума";
         
         $form->setDefault('orderField', 'creditAmount');
-        // Задаваме че ще филтрираме по перо
+        // Задаваме, че ще филтрираме по перо
         $form->setDefault('action', 'group');
 
         $form->setDefault('orderBy', 'desc');
@@ -235,7 +235,10 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
     {
 		$tpl = $this->getReportLayout();
 
-        $tpl->replace($this->title, 'TITLE');
+		$explodeTitle = explode(" » ", $this->title);
+		
+		$title = tr("|{$explodeTitle[1]}|*");
+        $tpl->replace($title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
 
         $tpl->placeObject($data->row);

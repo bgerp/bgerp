@@ -57,6 +57,7 @@ class cash_Setup extends core_ProtoSetup
         	'cash_Rko',
         	'cash_InternalMoneyTransfer',
         	'cash_ExchangeDocument',
+    		'migrate::updateDocumentStates'
         );
 
         
@@ -113,5 +114,33 @@ class cash_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на старите документи
+     */
+    function updateDocumentStates()
+    {
+    	$documents = array('cash_Pko', 'cash_Rko', 'cash_InternalMoneyTransfer', 'cash_ExchangeDocument');
+    	core_App::setTimeLimit(150);
+    	
+    	foreach ($documents as $doc){
+    		try{
+    			$Doc = cls::get($doc);
+    			$Doc->setupMvc();
+    			
+    			$query = $Doc->getQuery();
+    			$query->where("#state = 'closed'");
+    			$query->show('state');
+    			
+    			while($rec = $query->fetch()){
+    				$rec->state = 'active';
+    				$Doc->save_($rec, 'state');
+    			}
+    		} catch(core_exception_Expect $e){
+    			
+    		}
+    	}
     }
 }

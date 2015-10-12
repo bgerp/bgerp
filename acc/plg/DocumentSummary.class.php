@@ -8,14 +8,14 @@
  *
  * За Обобщението: Показва в малка таблица над списъчния изглед обобщена
  * информация за намерените резултати като брой и други.
- * За да се посочи в модела че на дадено поле трябва да се извади
+ * За да се посочи в модела, че на дадено поле трябва да се извади
  * обобщаваща информация е нужно да се дефинира параметър "summary="
  *
  *
  * Възможни стойности на 'summary':
  * summary = amount - Служи за обобщение на числово поле което представлява
  * парична сума. Обощения резултат се показва в неговата равностойност
- * в основната валута за периода. По дефолт се приема че полето в което
+ * в основната валута за периода. По дефолт се приема, че полето в което
  * е описано в коя валута е сумата е 'currencyId'. Ако полето се казва
  * другояче се дефинира константата 'filterCurrencyField' със стойност
  * името на полето съдържащо валутата.
@@ -25,7 +25,7 @@
  *
  * За Филтър формата:
  * Създава филтър форма която филтрира документите по зададен времеви период
- * и пълнотекстото поле (@see plg_Search). По дефолт приема че полето
+ * и пълнотекстото поле (@see plg_Search). По дефолт приема, че полето
  * по която дата ще се търси е "valior". За документи където полето
  * се казва по друг начин се дефинира константата 'filterDateField' която
  * показва по кое поле ще се филтрира
@@ -247,16 +247,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             switch($fld->summary) {
                 case "amount" :
-                    if($currencyId = $rec->{$mvc->filterCurrencyField}){
-                        (is_numeric($currencyId)) ? $code = currency_Currencies::getCodeById($currencyId) : $code = $currencyId;
-                        $baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
-                    } else {
-                        
-                        // Ако няма стойнсот за валутата по обобщение се приема
-                        // че сумата е в основната валута за периода
-                        $baseAmount = $rec->{$fld->name};
-                    }
-                    
+                	$baseAmount = $rec->{$fld->name};
+                	if($mvc->amountIsInNotInBaseCurrency === TRUE && isset($rec->rate)){
+                		$baseAmount *= $rec->rate;
+                	}
+                	
                     $res[$fld->name]->amount += $baseAmount;
                     $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
                     break;

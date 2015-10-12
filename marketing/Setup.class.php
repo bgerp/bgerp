@@ -2,13 +2,13 @@
 
 
 /**
- * Имейл от който да се изпрати нотифициращ имейл че е направено запитване
+ * Имейл от който да се изпрати нотифициращ имейл, че е направено запитване
  */
 defIfNot('MARKETING_INQUIRE_FROM_EMAIL', '');
 
 
 /**
- * Имейл на който да се изпрати нотифициращ имейл че е направено запитване
+ * Имейл на който да се изпрати нотифициращ имейл, че е направено запитване
  */
 defIfNot('MARKETING_INQUIRE_TO_EMAIL', '');
 
@@ -64,7 +64,7 @@ class marketing_Setup extends core_ProtoSetup
 	var $configDescription = array(
 			'MARKETING_INQUIRE_FROM_EMAIL'  => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
 			'MARKETING_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
-			'MARKETING_INQUIRY_QUANTITIES'          => array('int', 'caption=Брой количества във запитването'),
+			'MARKETING_INQUIRY_QUANTITIES'  => array('int', 'caption=Брой количества във запитването'),
 	);
 	
 	
@@ -76,7 +76,8 @@ class marketing_Setup extends core_ProtoSetup
             'marketing_Bulletins',
             'marketing_BulletinSubscribers',
             'migrate::updateBulletinsRecs5',
-            'migrate::updateBulletinsBrid'
+            'migrate::updateBulletinsBrid',
+    		'migrate::updateInquiries',
         );
 
         
@@ -166,5 +167,39 @@ class marketing_Setup extends core_ProtoSetup
         } catch (Exception $e) {
             marketing_BulletinSubscribers::logErr('Грешка при миграция');
         }
+    }
+    
+    
+    /**
+     * Миграция на запитванията
+     */
+    public function updateInquiries()
+    {
+    	if(!marketing_Inquiries2::count()) return;
+    	
+    	$Inquiries = cls::get('marketing_Inquiries2');
+    	$Inquiries->setupMvc();
+    	
+    	core_App::setTimeLimit(700);
+    	
+    	$query = $Inquiries->getQuery();
+    	$query->FLD('innerForm', "blob(1000000, serialize, compress)", "caption=Филтър,input=none,column=none");
+    	$query->orderBy('id', 'ASC');
+    	
+    	while($rec = $query->fetch()){
+    		if(isset($rec->innerForm->info)){
+    			$rec->info = $rec->innerForm->info;
+    		}
+    		
+    		if(isset($rec->innerForm->measureId)){
+    			$rec->measureId = $rec->innerForm->measureId;
+    		}
+    		
+    		try{
+    			$Inquiries->save_($rec);
+    		} catch(core_exception_Expect $e){
+    			
+    		}
+    	}
     }
 }

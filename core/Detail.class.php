@@ -45,6 +45,14 @@ class core_Detail extends core_Manager
         if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
             $mvc->Master = cls::get($mvc->masterClass);
         }
+        
+        // Проверяваме дали мастър ключа има индекс за търсене
+        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($mvc->masterKey))));
+        if(!isset($mvc->dbIndexes[$indexName])){
+        	
+        	// Ако мастър ключа не е индексиран, добавяме го като индекс
+        	$mvc->setDbIndex($mvc->masterKey);
+        }
     }
     
     
@@ -232,13 +240,21 @@ class core_Detail extends core_Manager
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
         $title = $data->masterMvc->getTitleById($data->masterId);
+        $title = str::limitLen($title, 32);
+        
+        $url = $data->masterMvc->getSingleUrlArray($data->masterId);
+
+        if(count($url)) {
+            $title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'style' => 'color:#BBFFFF;'));
+        }
+
         if ($data->singleTitle) {
             $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
        
         }
  
         $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-        $data->form->title .= "|* <b style='color:#ffffcc;'>" . str::limitLen($title, 32) . "</b>";
+        $data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
  
         return $data;
     }

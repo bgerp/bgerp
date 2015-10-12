@@ -58,12 +58,12 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 		$dQuery = planning_ReturnNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
-			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+			$pInfo = cat_Products::getProductInfo($dRec->productId);
 			$creditArr = NULL;
 			
 			if($rec->useResourceAccounts == 'yes'){
 				
-				$creditArr = array('61101', array($dRec->classId, $dRec->productId),
+				$creditArr = array('61101', array('cat_Products', $dRec->productId),
 								  'quantity' => $dRec->quantity);
 				
 				$reason = 'Връщане на материал от производството';
@@ -93,7 +93,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 			
 			$entry = array('debit' => array(321,
 								array('store_Stores', $rec->storeId),
-								array($dRec->classId, $dRec->productId),
+								array('cat_Products', $dRec->productId),
 								'quantity' => $dRec->quantity),
 							  'credit' => $creditArr,
 						   'reason' => $reason);
@@ -106,7 +106,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 			$entries[] = $entry;
 		}
 		
-		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		// Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);

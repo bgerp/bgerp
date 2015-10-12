@@ -533,7 +533,7 @@ abstract class deals_ClosedDeals extends core_Master
         }
         
         // От списъка с приключените пера, премахваме това на приключения документ, така че да може
-        // приключването да се оттегля/възстановява въпреки че има в нея приключено перо
+        // приключването да се оттегля/възстановява въпреки, че има в нея приключено перо
         $dealItemId = acc_Items::fetchItem($rec->docClassId, $rec->docId)->id;
         unset($closedItems[$dealItemId]);
         

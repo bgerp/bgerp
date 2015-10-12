@@ -213,7 +213,7 @@ class core_Lg extends core_Manager
         if ($rec) {
             $this->dict[$key][$lg] = $rec->translated;
         } else {
-            // Ако и в базата нямаме превода, тогава приемаме 
+            // Ако и в базата нямаме превода, тогава приемаме, 
             // че превода не променя ключовия стринг
             if (!$translated) {
                 $translated = $kstring;

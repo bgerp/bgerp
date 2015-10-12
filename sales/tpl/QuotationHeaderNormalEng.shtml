@@ -61,12 +61,12 @@
 	            <td> 
 	                <ol id='conditions'>
 	                	<!--ET_BEGIN validFor-->
-			            <li> Valid untill: <b>[#validFor#] (till [#validDate#])</b></li>
-			             <!--ET_END validFor-->
+			            <li>Valid untill: <b>[#validFor#] (till [#validDate#])</b></li>
+			            <!--ET_END validFor-->
 			             
-			             <!--ET_BEGIN paymentMethodId-->
+			            <!--ET_BEGIN paymentMethodId-->
 			            <li>Payment method: <b>[#paymentMethodId#]</b></li>
-				         <!--ET_END paymentMethodId-->
+				        <!--ET_END paymentMethodId-->
 				        <!--ET_BEGIN deliveryTermId-->
 				        <li>Delivery term: <b>[#deliveryTermId#]</b></li>
 				        <!--ET_END deliveryTermId-->

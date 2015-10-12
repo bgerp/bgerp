@@ -102,7 +102,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId,type');
+        $this->setDbUnique('noteId,productId,type');
     }
     
     
@@ -129,8 +129,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$classId = cat_Products::getClassId();
-    	
     	if(isset($rec->id)){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
     	} else {
@@ -139,7 +137,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	$form->setOptions('productId', $products);
-    	$form->setDefault('classId', $classId);
     }
     
     
@@ -246,7 +243,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Рендираме таблицата с вложените материали
-    	$data->listFields['productId'] = '|Материали|* ' . "<small style='font-weight:normal'>( |вложени от склад|*: {$data->masterData->row->inputStoreId} )</small>";
+    	$data->listFields['productId'] = '|Суровини и материали|* ' . "<small style='font-weight:normal'>( |вложени от склад|*: {$data->masterData->row->inputStoreId} )</small>";
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
@@ -258,7 +255,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Рендираме таблицата с отпадъците
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
-    		$data->listFields['productId'] = "Отпадък|* <small style='font-weight:normal'>( |остава в незавършеното производство|* )</small>";
+    		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
     		$detailsPop = $table->get($data->popArr, $data->listFields);
     		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
     		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
