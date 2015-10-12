@@ -1002,7 +1002,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId && $rec->folderId && doc_Folders::haveRightToFolder($rec->folderId)) {
+        if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
         	error('403 Недостъпен ресурс');
         }
         
