@@ -1002,8 +1002,8 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId && $rec->folderId) {
-        	expect(doc_Folders::haveRightToFolder($rec->folderId));
+        if(!$rec->threadId && $rec->folderId && doc_Folders::haveRightToFolder($rec->folderId)) {
+        	error('403 Недостъпен ресурс');
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
@@ -1113,7 +1113,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      */
     static function on_AfterInputEditForm($mvc, $form)
-    {   
+    {  
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
@@ -1123,7 +1123,7 @@ class doc_DocumentPlg extends core_Plugin
         		$title .= ' |в|* ' . $t;
         	}
         }
-        
+     
         $rec = $form->rec;
         
         $in = ' |в|* ';
@@ -2198,14 +2198,20 @@ class doc_DocumentPlg extends core_Plugin
     	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
     	if(count($docs)){
 	    	foreach ($docs as $doc){
-	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+                $mvc = is_object($doc['mvc']) ? $doc['mvc']->className : $mvc;
+	    		$res[$mvc . '-' . $doc['rec']->id] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
 	    	}
     	}
     	
+        // Ако ориджина е от друг тред, добавяме и него
     	if(isset($rec->originId)){
-    		$document = doc_Containers::getDocument($rec->originId);
-    		$res[] = (object)array('class' => $document->getInstance(), 'id' => $document->that);
+            $cRec = doc_Containers::fetch($rec->originId);
+            if($cRec->threadId != $rec->threadId) {
+                $document = doc_Containers::getDocument($rec->originId);
+                $res[$document->getInstance()->className . '-' . $document->that] = (object)array('class' => $document->getInstance(), 'id' => $document->that);
+            }
     	}
+
     }
     
     

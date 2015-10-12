@@ -104,7 +104,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':',mandatory'));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
-		$form->FLD('palletsCount', 'int', 'caption=Брой колети/палети');
+		$form->FLD('palletsCount', 'int', 'caption=Kолети/палети,unit=бр.');
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
 		$form->setDefault('weight', $rec->weightInput);
 		$form->setDefault('volume', $rec->volumeInput);
