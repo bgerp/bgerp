@@ -611,6 +611,9 @@ a.bookmark-external-url {
   -webkit-overflow-scrolling: touch; }
   .narrow #main-container > div.tab-control > div.tab-row .row-holder {
     text-align: justify;
+        /*
+     * 3
+     */
     white-space: nowrap;
     height: 28px; }
   .narrow #main-container > div.tab-control > div.tab-row .tab {
