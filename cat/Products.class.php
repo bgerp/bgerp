@@ -266,7 +266,7 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
 		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none');
@@ -420,6 +420,16 @@ class cat_Products extends embed_Manager {
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
            
+        	if(empty($rec->name)){
+        		if($Driver = $mvc->getDriver($rec)){
+        			$rec->name = $Driver->getProductTitle($rec);
+        		}
+        	}
+        	
+        	if(empty($rec->name)){
+        		$form->setError('name', 'Моля задайте наименование на артикула');
+        	}
+        	
         	if(!empty($rec->code)) {
         		if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
         			$form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
@@ -1446,22 +1456,6 @@ class cat_Products extends embed_Manager {
     	} else {
     		return 'img/16/error-red.png';
     	}
-    }
-    
-    
-    /**
-     * Връща хендлъра на изображението представящо артикула, ако има такова
-     *
-     * @param mixed $id - ид или запис
-     * @return fileman_FileType $hnd - файлов хендлър на изображението
-     */
-    public static function getProductImage($id)
-    {
-    	$self = cls::get(get_called_class());
-    	$rec = static::fetchRec($id);
-    	$Driver = $self->getDriver($rec->id);
-    	
-    	return $Driver->getProductImage($rec);
     }
     
     
