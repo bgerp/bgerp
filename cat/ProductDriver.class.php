@@ -310,6 +310,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	/**
 	 * Връща дефолтното име на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return NULL|string
 	 */
 	public function getProductTitle($rec)
 	{

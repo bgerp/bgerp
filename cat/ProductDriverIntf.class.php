@@ -155,6 +155,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	/**
 	 * Връща дефолтното име на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return NULL|string
 	 */
 	public function getProductTitle($rec)
 	{
