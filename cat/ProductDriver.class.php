@@ -310,11 +310,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 			['quantity'] - К-во за което е рецептата
 	 * 			['expenses'] - % режийни разходи
 	 * 			['materials'] array
-	 * 				 ['code']         string  - Код на материала
-	 * 				 ['baseQuantity'] double  - Начално количество на вложения материал
-	 * 				 ['propQuantity'] double  - Пропорционално количество на вложения материал
-	 * 				 ['waste']        boolean - Дали материала е отпадък
-	 * 				 ['stageName']    string  - Име на производствения етап
+	 * 				 o code          string  - Код на материала
+     * 				 o baseQuantity  double  - Начално количество на вложения материал
+     * 				 o propQuantity  double  - Пропорционално количество на вложения материал
+     * 				 o waste         boolean - Дали материала е отпадък
+     * 				 o stageName']   string  - Име на производствения етап
 	 * 				
 	 */
 	public function getDefaultBom($rec)
