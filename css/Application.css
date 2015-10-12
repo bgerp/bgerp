@@ -912,7 +912,7 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
   .portal .state-closed {
-    background: none !important; }
+    background-color: transparent !important; }
 
 .portal.planning table.listTable th {
   border: 1px solid #cccccc;
