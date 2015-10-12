@@ -85,13 +85,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
-	 * @param stdClass $rec - запис
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 * @return stdClass - подготвените данни за описанието
+	 * @param stdClass $data
+	 * @return void
 	 */
-	public function prepareProductDescription($rec, $documentType = 'public')
+	public function prepareProductDescription(&$data)
 	{
-		return $this->class->prepareProductDescription($rec, $documentType);
+		return $this->class->prepareProductDescription($data);
 	}
 	
 	

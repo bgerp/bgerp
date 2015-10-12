@@ -1165,6 +1165,11 @@ class cat_Products extends embed_Manager {
     {
     	$rec->name = static::getDisplayName($rec);
     	
+    	// Ако артикула е частен, показваме му хендлъра
+    	if($rec->isPublic == 'no'){
+    		$rec->code = static::getHandle($rec);
+    	}
+    	
     	return parent::getRecTitle($rec, $escaped);
     }
     
@@ -1203,12 +1208,14 @@ class cat_Products extends embed_Manager {
     {
     	$rec = static::fetchRec($id);
     	
+    	$res = static::getProductDescShort($rec, $time);
+    	$showDescription = FALSE;
+    	
     	switch($mode){
     		case 'detailed' :
-    			$res = static::getProductDesc($rec, $time);
+    			$showDescription = TRUE;
     			break;
     		case 'short' :
-    			$res = static::getProductDescShort($rec, $time);
     			break;
     		default :
     			// Проверяваме имали кеширани данни. Целта е ако артикула е бил частен
@@ -1218,13 +1225,12 @@ class cat_Products extends embed_Manager {
     			
     			// Ако има кеширани данни или артикула не е публичен, взимаме подрогното описания
     			if(isset($isCached) || $rec->isPublic == 'no'){
-    				$res = static::getProductDesc($rec, $time);
-    			} else {
-    				
-    				// Иначе краткото
-    				$res = static::getProductDescShort($rec, $time);
+    				$showDescription = TRUE;
     			}
-    			break;
+    	}
+    	
+    	if($showDescription === TRUE){
+    		$res .= "<br><span style='font-size:0.9em'>" . static::getProductDesc($rec, $time) . "</span>";
     	}
     	
     	return $res;

@@ -157,13 +157,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
-	 * @param stdClass $rec - запис
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 * @return stdClass - подготвените данни за описанието
+	 * @param stdClass $data
+	 * @return void
 	 */
-	public function prepareProductDescription($rec, $documentType = 'public')
+	public function prepareProductDescription(&$data)
 	{
-		return (object)array();
+		
 	}
 	
 	
@@ -197,18 +196,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return $this->icon;
 	}
-	
-	
-	/**
-	 * Рендира данните за показване на артикула
-	 * 
-	 * @param stdClass $data
-	 * @return core_ET
-	 */
-	public function renderProductDescription($data)
-	{
-		return new core_ET("");
-	}
 
 
 	/**
@@ -221,23 +208,20 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
-		$data->Embedder = $Embedder;
-		$nTpl = $Driver->renderSingleDescription($data);
-	
+		$nTpl = $Driver->renderProductDescription($data);
 		$tpl->append($nTpl, 'innerState');
 	}
 	
 	
 	/**
-	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 * Рендиране на описанието на драйвера
 	 *
 	 * @param stdClass $data
 	 * @return core_ET $tpl
 	 */
-	protected function renderSingleDescription($data)
+	protected function renderProductDescription($data)
 	{
-		$tpl = new ET(tr("|*<fieldset class='detail-info'>
-                    <legend class='groupTitle'>|Информация|*</legend>
+		$tpl = new ET(tr("|*
                     <div class='groupList'>
                         <b>{$this->singleTitle}</b>
 						<table class = 'no-border'>
@@ -246,10 +230,8 @@ abstract class cat_ProductDriver extends core_BaseClass
 						</table>
 					<div>
 					[#ROW_AFTER#]
-				</fieldset>
 				"));
 		
-		//$driverFields = cat_Products::getDriverFields($this);
         $form = cls::get('core_Form');
         $this->addFields($form);
 		$driverFields = $form->fields;

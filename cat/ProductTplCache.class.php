@@ -188,7 +188,16 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-			$cacheRec->cache = $Driver->prepareProductDescription($pRec, $documentType);
+			
+			$data = new stdClass();
+			$data->rec = $pRec;
+			$data->row = cat_Products::recToVerbal($data->rec);
+			$data->documentType = $documentType;
+			$data->Embedder = cls::get('cat_Products');
+			$data->isSingle = FALSE;
+			$data->noChange = TRUE;
+			$Driver->prepareProductDescription($data);
+			$cacheRec->cache = $data;
 			
 			// Записваме кеша само ако е подадено валидно време
 			if(isset($cacheRec->time)){

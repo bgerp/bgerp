@@ -1,17 +1,15 @@
-<fieldset class='detail-info' style='margin-bottom:10px;' id="[#DetailName#]">
-    <legend class='groupTitle'>[#TITLE#]</legend>
-    <div class='groupList'>
-    	[#NO_ROWS#]
-        <table class='no-border small-padding'>
-		    <!--ET_BEGIN param-->
-		    [#param#]
-		    <tr>
-		    	<td>&nbsp;-&nbsp;</td>
-		        <td>[#paramId#]:</td>
-		        <td style = "text-indent: 7px">[#paramValue#]</td>
-		        <td style = "text-indent: 3px"> [#tools#]</td>
-		    </tr>
-		    <!--ET_END param-->
-		</table>
-    </div>
-</fieldset>
+<legend class='groupTitle'>[#TITLE#]</legend>
+  <div class='groupList'>
+    [#NO_ROWS#]
+    <table class='no-border small-padding'>
+		<!--ET_BEGIN param-->
+		[#param#]
+		<tr>
+		    <td>&nbsp;-&nbsp;</td>
+		    <td>[#paramId#]:</td>
+		    <td style = "text-indent: 7px">[#paramValue#]</td>
+		    <td style = "text-indent: 3px"> [#tools#]</td>
+		 </tr>
+		<!--ET_END param-->
+	</table>
+</div>
