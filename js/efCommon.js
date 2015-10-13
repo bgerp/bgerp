@@ -517,7 +517,7 @@ popupWindows = new Array();
 // Отваря диалогов прозорец
 function openWindow(url, name, args) {
     // Записваме всички popup прозорци в глобален масив
-    popupWindows[name] = window.open(url, name, args);
+    popupWindows[name] = window.open(url, '_blank', args);
 
     var popup = popupWindows[name];
 
