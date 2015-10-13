@@ -494,10 +494,6 @@ class eshop_Products extends core_Master
     		$newArr['title'] .= ($rec->code) ? " (" . $this->getVerbal($rec, 'code'). ")" : "";
     	}
     	
-    	if(isset($newArr['measureId'])){
-    		$newArr['measureId'] = cat_UoM::fetchBySinonim($newArr['measureId'])->id;
-    	}
-    	
     	return $newArr;
     }
 
