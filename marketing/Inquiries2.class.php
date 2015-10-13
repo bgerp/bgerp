@@ -224,7 +224,8 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		$measureId = $data->Driver->getDefaultUom($params['measureId']);
+    		$measureName = $data->Driver->getDefaultUom($params['measureId']);
+    		$measureId = cat_UoM::fetchBySinonim($measureName)->id;
     		$uom = cat_UoM::getShortName($measureId);
     		
     		if(isset($params['moq'])){
