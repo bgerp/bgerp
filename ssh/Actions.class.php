@@ -88,13 +88,20 @@ class ssh_Actions
      * @param string $command
      * @param string $output [optionаl]
      * @param string $errors [optionаl]
+     * @param string $callBackUrl [optionаl]
      */
-    public function exec($command, $callBackUrl=NULL, &$output=NULL, &$errors=NULL)
+    public function exec($command, &$output=NULL, &$errors=NULL, $callBackUrl=NULL)
     {
 		// Ако имаме callBackUrl изпълняваме командата асинхронно
+		if ($callBackUrl) {
+		    $cmd = "( " . $command . " ; wget --spider -q --no-check-certificate '" . $callBackUrl . "' > /dev/null 2>/dev/null) > /dev/null 2>/dev/null &";
+		} else {
+		    // Изпълняваме го синхронно
+		    $cmd = $command . " 2>&1";
+		}
 		
         // Изпълняваме командата
-        $stream = ssh2_exec($this->connection, $command);
+        $stream = ssh2_exec($this->connection, $cmd);
         $errorStream = ssh2_fetch_stream($stream, SSH2_STREAM_STDERR);
         
         stream_set_blocking($stream, true);
