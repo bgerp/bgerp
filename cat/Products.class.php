@@ -1208,29 +1208,25 @@ class cat_Products extends embed_Manager {
     {
     	$rec = static::fetchRec($id);
     	
-    	$res = static::getProductDescShort($rec, $time);
-    	$showDescription = FALSE;
-    	
     	switch($mode){
     		case 'detailed' :
-    			$showDescription = TRUE;
+    			$res = static::getProductDesc($rec, $time);
     			break;
-    		case 'short' :
+    		case 'short':
+    			$res = static::getProductDescShort($rec, $time);
     			break;
     		default :
     			// Проверяваме имали кеширани данни. Целта е ако артикула е бил частен
     			// и вече е кеширан, ако в последствие се направи публичен във въпросния документ
     			// да си се показва с подробното описание, докато не се инвалидира кеша
     			$isCached = cat_ProductTplCache::getCache($rec->id, $time);
+    			$res = static::getProductDescShort($rec, $time);
     			
     			// Ако има кеширани данни или артикула не е публичен, взимаме подрогното описания
     			if(isset($isCached) || $rec->isPublic == 'no'){
-    				$showDescription = TRUE;
+    				$res = static::getProductDesc($rec, $time);
     			}
-    	}
-    	
-    	if($showDescription === TRUE){
-    		$res .= "<br><span style='font-size:0.9em'>" . static::getProductDesc($rec, $time) . "</span>";
+    			break;
     	}
     	
     	return $res;

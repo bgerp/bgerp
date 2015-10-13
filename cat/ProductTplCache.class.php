@@ -209,7 +209,12 @@ class cat_ProductTplCache extends core_Master
 		
 		$tpl = new core_ET();
 		if($Driver){
-			$tpl = $Driver->renderProductDescription($cache);
+			$name = cat_Products::getVerbal($cache->rec, 'name');
+			$name = ht::createLinkRef($name, cat_Products::getSingleUrlArray($cache->rec->id));
+			
+			$tpl = new ET("[#name#]<br><span style='font-size:0.9em'>[#desc#]</span>");
+			$tpl->replace($name, 'name');
+			$tpl->replace($Driver->renderProductDescription($cache), 'desc');
 			$tpl->removeBlocks();
 		} else {
 			$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
