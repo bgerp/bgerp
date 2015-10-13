@@ -16,20 +16,6 @@
  */
 class core_Tabs extends core_BaseClass
 {
-    
-	/**
-	 * Максимален брой сиволи в заглавията на табовете в широк режим
-	 * Ако този брой е надвишен, генерира се комбо-бокс
-	 */
-	var $maxTabsWide = 140;
-
-	/**
-	 * Максимален брой сиволи в заглавията на табовете в тесен режим
-	 * Ако този брой е надвишен - генерира се комбо-бокс
-	 */
-	var $maxTabsNarrow = 26;
-    
-    
 	/**
 	 * Масив с табове
 	 */
@@ -99,13 +85,6 @@ class core_Tabs extends core_BaseClass
 			$sumLen += mb_strlen(strip_tags(trim($caption))) + 1;
 		}
 
-		if(Mode::is('screenMode', 'narrow')) {
-			$isOptionList = $this->maxTabsNarrow < $sumLen;
-		} else {
-			$isOptionList = $this->maxTabsWide < $sumLen;
-		}
-
-
         //      ,       
         if (!$selectedTab) {
             $selectedTab = Request::get('selectedTab');
@@ -133,34 +112,29 @@ class core_Tabs extends core_BaseClass
 
             $tabClass = $this->classes[$tab];
             
-            if ($isOptionList) {
-                if(!$url) continue;
-                $options[$url] = $title;
-            } else {
-                if ($url) {
-                    $url = ht::escapeAttr($url);
-                    $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
-                    $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
-                    if($selected) {
-                        $head .= $hintBtn;
-                    }
-                } else {
-                    $head .= "<div class='tab {$selected}'>";
-                    $head .= "<span class='tab-title  {$tabClass}'>{$title}</span>";
+            if ($url) {
+                $url = ht::escapeAttr($url);
+                $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
+                $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                if($selected) {
+                    $head .= $hintBtn;
                 }
-                
-                $head .= "</div>\n";
+            } else {
+                $head .= "<div class='tab {$selected}'>";
+                $head .= "<span class='tab-title  {$tabClass}'>{$title}</span>";
             }
+            
+            $head .= "</div>\n";
+           
         }
         
-        if ($isOptionList) {
-            $head = new ET("<div class='tab selected'>[#1#]</div>{$hintBtn}\n", ht::createSelectMenu($options, $selectedUrl, 0, array('class' => "tab-control")));
-        }
+      
  
         $html = "<div class='tab-control {$this->htmlClass}'>\n";
-        $html .= "<div class='tab-row'>\n";
+        $html .= "<div class='tab-row'><div class='row-holder'>\n";
         $html .= "[#1#]\n";
-        $html .= "</div>\n";
+        $html .= "</div></div>\n";
+        
         if($this->htmlId) {
             $idAttr = " id=\"{$this->htmlId}\"";
         }

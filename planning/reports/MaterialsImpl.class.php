@@ -170,7 +170,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        		 
 	        		$obj = &$data->recs[$index];
 	        		$obj->quantity += $quantity;
-	        		$obj->store += $store;
+	        		$obj->store[] = $store;
 	        	}
 	        	
 	    }
@@ -288,7 +288,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     
         $data->listFields = array(
         		'id' => 'Име (код)',
-        		'quantity' => 'Бройка',
+        		'quantity' => 'Количество',
         		'store' => 'На склад',
         		);
     }

@@ -306,16 +306,37 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return array();
 	}
-
-
+	
+	
 	/**
-	 * Връща хендлъра на изображението представящо артикула, ако има такова
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 * Връща дефолтното име на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return NULL|string
 	 */
-	public static function getProductImage($id)
+	public function getProductTitle($rec)
 	{
-		return;
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща данни за дефолтната рецепта за артикула
+	 * 
+	 * @param stdClass $rec - запис
+	 * @return FALSE|array
+	 * 			['quantity'] - К-во за което е рецептата
+	 * 			['expenses'] - % режийни разходи
+	 * 			['materials'] array
+	 * 				 ['code']         string  - Код на материала
+	 * 				 ['baseQuantity'] double  - Начално количество на вложения материал
+	 * 				 ['propQuantity'] double  - Пропорционално количество на вложения материал
+	 * 				 ['waste']        boolean - Дали материала е отпадък
+	 * 				 ['stageName']    string  - Име на производствения етап
+	 * 				
+	 */
+	public function getDefaultBom($rec)
+	{
+		return FALSE;
 	}
 }

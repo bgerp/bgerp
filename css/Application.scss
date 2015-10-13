@@ -1019,7 +1019,11 @@ div.acc-detail {
 		    width:1%;
 		}
     }
+    .state-closed {
+        background: none !important;
+    }
 }
+
 .portal.planning table.listTable th {
     border: 1px solid #ccc;
     &:first-child {

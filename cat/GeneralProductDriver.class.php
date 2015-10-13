@@ -265,18 +265,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща хендлъра на изображението представящо артикула, ако има такова
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return fileman_FileType $hnd - файлов хендлър на изображението
-	 */
-	public static function getProductImage($rec)
-	{
-		return $rec->photo;
-	}
-	
-	
-	/**
 	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
 	 * @param int $measureId - мярка

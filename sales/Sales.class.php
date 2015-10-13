@@ -14,8 +14,11 @@
  */
 class sales_Sales extends deals_DealMaster
 {
+	
+	
 	const AGGREGATOR_TYPE = 'sale';
     
+	
     /**
      * Заглавие
      */
@@ -735,6 +738,24 @@ class sales_Sales extends deals_DealMaster
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	// Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
+    	core_Lg::pop();
+    	$statisticTpl = getTplFromFile('sales/tpl/SaleStatisticLayout.shtml');
+    	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
+    	
+    	// Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
+    	$data->row->paymentState = $mvc->getVerbal($data->rec, 'paymentState');
+    	
+    	// Отново вкарваме езика на шаблона в сесията
+    	core_Lg::push($data->rec->tplLang);
     }
     
     

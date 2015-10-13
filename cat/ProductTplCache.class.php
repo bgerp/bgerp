@@ -182,7 +182,7 @@ class cat_ProductTplCache extends core_Master
 		$Driver = cat_Products::getDriver($productId);
 		
 		// Ако има кеширан изглед за тази дата връщаме го
-		if(!$cache){
+		if(!$cache && $Driver){
 	
 			// Ако няма генерираме наново и го кешираме
 			$cacheRec = new stdClass();
@@ -198,11 +198,12 @@ class cat_ProductTplCache extends core_Master
 			$cache = $cacheRec->cache;
 		}
 		
+		$tpl = new core_ET();
 		if($Driver){
 			$tpl = $Driver->renderProductDescription($cache);
 			$tpl->removeBlocks();
 		} else {
-			$tpl = new ET(tr("<span class='red'>|Проблем с показването|*</span>"));
+			$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
 		}
 		
 		// Връщаме намерения изглед

@@ -214,7 +214,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 				    $obj->quantityToDelivered += abs($product->quantityDelivered - $product->quantity);
 				    $obj->dateSale = $dateSale[$product->productId];
 				    $obj->sales[] = $product->saleId;
-				    $obj->store += $store;
+				    $obj->store[] = $store;
 			        		
 			    }
 			}
