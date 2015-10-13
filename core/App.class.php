@@ -871,7 +871,9 @@ class core_App
     /**
      * Връща относително или пълно URL до папката на index.php
      *
-     * @param boolean $absolute;
+     * @param boolean $absolute
+     * @param boolean $forceHttpHost
+     * 
      * @return string
      */
     public static function getBoot($absolute = FALSE, $forceHttpHost = FALSE)
