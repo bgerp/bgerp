@@ -1165,11 +1165,6 @@ class cat_Products extends embed_Manager {
     {
     	$rec->name = static::getDisplayName($rec);
     	
-    	// Ако артикула е частен, показваме му хендлъра
-    	if($rec->isPublic == 'no'){
-    		$rec->code = static::getHandle($rec);
-    	}
-    	
     	return parent::getRecTitle($rec, $escaped);
     }
     
