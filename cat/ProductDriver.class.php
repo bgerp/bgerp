@@ -223,9 +223,8 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		$tpl = new ET(tr("|*
                     <div class='groupList'>
-                        <b>{$this->singleTitle}</b>
-						<table class = 'no-border'>
-                            
+                        <div class='richtext' style='margin-top: 5px;'>{$this->singleTitle}</div>
+						<table class = 'no-border small-padding'>
 							[#INFO#]
 						</table>
 					<div>
@@ -246,7 +245,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                         list($group, $caption) = explode('->', $caption);
                         if($group != $lastGroup) {
                             $group = tr($group);
-                            $dhtml = "<tr><td colspan='2' style='padding-left:0px;padding-top:5px;font-weight:bold;'><b>{$group}</b></td></td</tr>";
+                            $dhtml = "<tr><td colspan='3' style='padding-left:0px;padding-top:5px;'>{$group}</td></td</tr>";
                             $tpl->append($dhtml, 'INFO');
                         }
 
@@ -255,7 +254,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 
                     $caption = tr($caption);
 					
-					$dhtml = "<tr><td>{$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
+					$dhtml = "<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
 					$tpl->append($dhtml, 'INFO');
 				}
 			}

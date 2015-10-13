@@ -1225,7 +1225,9 @@ td.portal-date {
 .small-padding td {
     padding: 3px !important;
 }
-
+.groupList .small-padding td {
+	padding: 2px 3px 0!important;
+}
 .document-settings {
     display: inline-block;
     height: 16px;
