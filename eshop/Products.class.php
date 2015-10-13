@@ -184,12 +184,18 @@ class eshop_Products extends core_Master
             	$title = tr('Изпратете запитване за производство');
             	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
             	$lg = cms_Content::getLang();
-            	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	if(cls::load($rec->coDriver, TRUE)){
+            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	}
             }
         }
 
         if($fields['-list']) {
             $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
+        }
+        
+        if(!cls::load($rec->coDriver, TRUE)){
+        	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
         }
     }
 
@@ -492,10 +498,6 @@ class eshop_Products extends core_Master
     	if(empty($newArr['title'])){
     		$newArr['title'] = $this->getVerbal($rec, 'name');
     		$newArr['title'] .= ($rec->code) ? " (" . $this->getVerbal($rec, 'code'). ")" : "";
-    	}
-    	
-    	if(isset($newArr['measureId'])){
-    		$newArr['measureId'] = cat_UoM::fetchBySinonim($newArr['measureId'])->id;
     	}
     	
     	return $newArr;

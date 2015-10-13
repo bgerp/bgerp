@@ -58,6 +58,9 @@ class deals_plg_DpInvoice extends core_Plugin
         
         //if(empty($aggreedDownpayment)) return;
         
+        $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,before=dpAmount,unit=|*{$rec->currencyId} |без ДДС|*");
+        $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,before=dpAmount,unit=|*{$rec->currencyId} |без ДДС|*");
+        
         if(empty($form->rec->id)){
         	
         	// Поставяне на дефолт стойностти
@@ -67,12 +70,20 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	// Ако има детайл не показваме секцията за аванс
         	if($Detail->fetchField("#{$Detail->masterKey} = {$rec->id}", 'id')){
-        		return;
+        		$form->setField('amountAccrued', 'input=none');
         	}
         	
         	// При приспадане ако има сума я показваме положителна
         	if($rec->dpOperation == 'deducted'){
         		$rec->dpAmount *= -1;
+        	}
+        	
+        	if(isset($rec->dpAmount)){
+        		if($rec->dpOperation == 'accrued'){
+        			$form->setDefault('amountAccrued', $rec->dpAmount);
+        		} elseif($rec->dpOperation == 'deducted'){
+        			$form->setDefault('amountDeducted', $rec->dpAmount);
+        		}
         	}
         }
         
@@ -86,14 +97,8 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	$form->rec->dpAmount = $dpAmount;
         }
-        
-        // Показване на полетата за авансовите плащания
-		$form->setField('dpAmount',"input,unit=|*{$rec->currencyId} |без ДДС|*");
-        $form->setField('dpOperation','input');
-        
-        if($form->rec->dpOperation == 'accrued'){
-        	//$form->setField('dueDate', 'input=none');
-        } elseif($form->rec->dpOperation == 'none'){
+       
+        if($form->rec->dpOperation == 'none'){
         	unset($form->rec->dpAmount);
         }
     }
@@ -139,10 +144,19 @@ class deals_plg_DpInvoice extends core_Plugin
     		}
     	}
     	
-    	// Слагане на изчислените дефолти
-    	if(isset($dpAmount)){
-    		$dpAmount = self::getDpWithoutVat($dpAmount, $form->rec);
-    		$form->setDefault('dpAmount', $dpAmount);
+    	$dpAmount = self::getDpWithoutVat($dpAmount, $form->rec);
+    	switch($dpOperation){
+    		case 'accrued':
+    			if(isset($dpAmount)){
+    				$form->setDefault('amountAccrued', $dpAmount);
+    			}
+    			break;
+    		case 'deducted':
+    			if($dpAmount){
+    				$form->setDefault('amountDeducted', $dpAmount);
+    			}
+    			break;
+    		case 'none';
     	}
     	
     	if($dpOperation){
@@ -173,41 +187,52 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	$invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
 	    	$deductedDp = $form->dealInfo->get('downpaymentDeducted');
         	
-	    	if(isset($rec->dpOperation) && $rec->dpOperation !== 'none' && !isset($rec->dpAmount)){
-	    		$form->setError('dpAmount', 'Ако е избрано начисляване/приспадане трябва да има сума');
+	    	if(isset($rec->amountAccrued) && isset($rec->amountDeducted)){
+	    		$form->setError('amountAccrued,amountDeducted', 'Не може едновременно да се начислява и да се приспада аванс');
 	    		return;
 	    	}
 	    	
-        	if($rec->dpOperation === 'accrued'){
-        		
-        		$downpayment = (empty($actualDp)) ? $aggreedDp  : $actualDp;
-        		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-        		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
-    				$vat = 0;
-    			}
-        		
-        		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
-        		
-        		if($rec->dpAmount > $downpayment){
-        			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*";
-        			
-	            	$form->setWarning('dpAmount', $warning);
-	            }
-        	} elseif($rec->dpOperation === 'deducted'){
-        		
-        		if(empty($invoicedDp)){
-        			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
-        		} else {
-        			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
-        				$form->setWarning('dpAmount', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
-        			}
-        		}
-
-        		if(!$form->gotErrors()){
-        			$rec->dpAmount *= -1;
-        		}
-        	}
-        	
+	    	$rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
+	    	
+	    	$rec->dpOperation = 'none';
+	    	if(isset($rec->amountAccrued)){
+	    		$rec->dpOperation = 'accrued';
+	    		$downpayment = (empty($actualDp)) ? $aggreedDp  : $actualDp;
+	    		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+	    		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+	    			$vat = 0;
+	    		}
+	    		
+	    		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
+	    		
+	    		if($rec->dpAmount > $downpayment){
+	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*";
+	    			 
+	    			$form->setWarning('amountAccrued', $warning);
+	    		}
+	    	}
+	    	
+	    	if(isset($rec->amountDeducted)){
+	    		$rec->dpOperation = 'deducted';
+	    		if(empty($invoicedDp)){
+	    			$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
+	    		} else {
+	    			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
+	    				$form->setWarning('amountDeducted', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
+	    			}
+	    		}
+	    		
+	    		if(!$form->gotErrors()){
+	    			$rec->dpAmount *= -1;
+	    		}
+	    	}
+	    	
+	    	// Обновяваме данните на мастър-записа при редакция
+	    	if(isset($rec->id)){
+	    		$mvc->updateMaster($rec, FALSE);
+	    	}
+	    	
+        	return;
         	if($rec->dpOperation && !$form->gotErrors()){
         		$rec->dpAmount = $rec->dpAmount * $rec->rate;
         		if($rec->dpAmount == 0){
