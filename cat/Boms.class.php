@@ -692,7 +692,7 @@ class cat_Boms extends core_Master
      * @param int $productId - ид на артикул
      * @return void
      */
-    public static function createDefaultBom($productId)
+    public static function createDefault($productId)
     {
     	$pRec = cat_Products::fetch($productId);
     	$Driver = cat_Products::getDriver($productId);
