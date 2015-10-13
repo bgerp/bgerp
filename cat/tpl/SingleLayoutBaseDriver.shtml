@@ -6,28 +6,11 @@
     </div>
 </div>
 <!--ET_END image-->
-
-<!--ET_BEGIN INFORMATION-->
-[#INFORMATION#]
-<fieldset class="detail-info">
-    <legend class="groupTitle">|Информация|*</legend>
-    <div class="groupList">
-        <table class='no-border'>
-            <tr>
-                <td class='dt'>|Мярка|*:</td>
-                <td> [#measureId#]</td>
-            </tr>
-        </table>
-    </div>
-</fieldset>
-<!--ET_END INFORMATION-->
+<div class="groupList"><span class='quiet'>|Мярка|*:</span> [#measureId#]</div>
 
 <!--ET_BEGIN info-->
-<fieldset class="detail-info">
-    <legend class="groupTitle">|Описание|*</legend>
-    <div class="groupList">[#info#]</div>
-</fieldset>
-<!--ET_END info-->
+<div class="groupList richtext" style='margin-top:8px;margin-bottom:8px'>[#info#]</div>
+<!--ET_BEGIN info-->
 
 <!--ET_BEGIN PARAMS-->
 [#PARAMS#]

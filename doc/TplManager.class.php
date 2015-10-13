@@ -300,19 +300,46 @@ class doc_TplManager extends core_Master
     
     
     /**
+     * Връща първия шаблон за документа на езика на ордижнина му, ако има
+     * 
+     * @param mixed $class  - класа
+     * @param int $originId - ориджина на записа
+     * @return FALSE|int    - намерения шаблон
+     */
+    public static function getTplByOriginLang($class, $originId)
+    {
+    	if(isset($originId)){
+    		$origin = doc_Containers::getDocument($originId);
+    		if($origin->getInstance()->hasPlugin('doc_plg_TplManager')){
+    			$templateLang = doc_TplManager::fetchField($origin->fetchField('template'), 'lang');
+    			$templates = doc_TplManager::getTemplates($class, $templateLang);
+    			
+    			return key($templates);
+    		}
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
      * Връща всички активни шаблони за посочения мениджър
      * @param int $classId - ид на клас
      * @return array $options - опции за шаблоните на документа
      */
-    public static function getTemplates($classId)
+    public static function getTemplates($classId, $lang = NULL)
     {
     	$options = array();
+    	$classId = cls::get($classId)->getClassId();
     	expect(core_Classes::fetch($classId));
     	
     	// Извличане на всички активни шаблони за документа
     	$query = static::getQuery();
     	$query->where("#docClassId = {$classId}");
     	$query->where("#state = 'active'");
+    	if(isset($lang)){
+    		$query->where("#lang = '{$lang}'");
+    	}
     	
     	while($rec = $query->fetch()){
     		$options[$rec->id] = $rec->name;

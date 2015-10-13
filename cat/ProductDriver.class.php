@@ -157,13 +157,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
-	 * @param stdClass $rec - запис
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 * @return stdClass - подготвените данни за описанието
+	 * @param stdClass $data
+	 * @return void
 	 */
-	public function prepareProductDescription($rec, $documentType = 'public')
+	public function prepareProductDescription(&$data)
 	{
-		return (object)array();
+		
 	}
 	
 	
@@ -197,18 +196,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return $this->icon;
 	}
-	
-	
-	/**
-	 * Рендира данните за показване на артикула
-	 * 
-	 * @param stdClass $data
-	 * @return core_ET
-	 */
-	public function renderProductDescription($data)
-	{
-		return new core_ET("");
-	}
 
 
 	/**
@@ -221,35 +208,29 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
-		$data->Embedder = $Embedder;
-		$nTpl = $Driver->renderSingleDescription($data);
-	
+		$nTpl = $Driver->renderProductDescription($data);
 		$tpl->append($nTpl, 'innerState');
 	}
 	
 	
 	/**
-	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 * Рендиране на описанието на драйвера
 	 *
 	 * @param stdClass $data
 	 * @return core_ET $tpl
 	 */
-	protected function renderSingleDescription($data)
+	protected function renderProductDescription($data)
 	{
-		$tpl = new ET(tr("|*<fieldset class='detail-info'>
-                    <legend class='groupTitle'>|Информация|*</legend>
+		$tpl = new ET(tr("|*
                     <div class='groupList'>
-                        <b>{$this->singleTitle}</b>
-						<table class = 'no-border'>
-                            
+                        <div class='richtext' style='margin-top: 5px;'>{$this->singleTitle}</div>
+						<table class = 'no-border small-padding'>
 							[#INFO#]
 						</table>
 					<div>
 					[#ROW_AFTER#]
-				</fieldset>
 				"));
 		
-		//$driverFields = cat_Products::getDriverFields($this);
         $form = cls::get('core_Form');
         $this->addFields($form);
 		$driverFields = $form->fields;
@@ -264,7 +245,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                         list($group, $caption) = explode('->', $caption);
                         if($group != $lastGroup) {
                             $group = tr($group);
-                            $dhtml = "<tr><td colspan='2' style='padding-left:0px;padding-top:5px;font-weight:bold;'><b>{$group}</b></td></td</tr>";
+                            $dhtml = "<tr><td colspan='3' style='padding-left:0px;padding-top:5px;'>{$group}</td></td</tr>";
                             $tpl->append($dhtml, 'INFO');
                         }
 
@@ -273,7 +254,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 
                     $caption = tr($caption);
 					
-					$dhtml = "<tr><td>{$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
+					$dhtml = "<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
 					$tpl->append($dhtml, 'INFO');
 				}
 			}
@@ -306,16 +287,37 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return array();
 	}
-
-
+	
+	
 	/**
-	 * Връща хендлъра на изображението представящо артикула, ако има такова
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 * Връща дефолтното име на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return NULL|string
 	 */
-	public static function getProductImage($id)
+	public function getProductTitle($rec)
 	{
-		return;
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща данни за дефолтната рецепта за артикула
+	 * 
+	 * @param stdClass $rec - запис
+	 * @return FALSE|array
+	 * 			['quantity'] - К-во за което е рецептата
+	 * 			['expenses'] - % режийни разходи
+	 * 			['materials'] array
+	 * 				 o code          string  - Код на материала
+     * 				 o baseQuantity  double  - Начално количество на вложения материал
+     * 				 o propQuantity  double  - Пропорционално количество на вложения материал
+     * 				 o waste         boolean - Дали материала е отпадък
+     * 				 o stageName']   string  - Име на производствения етап
+	 * 				
+	 */
+	public function getDefaultBom($rec)
+	{
+		return FALSE;
 	}
 }
