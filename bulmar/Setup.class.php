@@ -130,22 +130,4 @@ class bulmar_Setup extends core_ProtoSetup
     		'BULMAR_INV_AV_OPERATION'                => array("varchar(10)", "caption=Експорт на изходящи фактури->Сч. Операция на авансово плащане"),
     		'BULMAR_INV_CREDIT_AV'                   => array("varchar(10)", "caption=Експорт на изходящи фактури->Кредитна сметка за авансово плащане"),
     		);
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    { 
-        $html = parent::install();
-        
-        // Добавяме импортиращия драйвър в core_Classes
-        $html .= core_Classes::add('bulmar_InvoiceExport');
-        
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('exportInvoices', 'Експортирани фактури', 'csv,txt,text,', '10MB', 'user', 'ceo');
-        
-        return $html;
-    }
 }

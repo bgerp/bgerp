@@ -249,6 +249,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
         $Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
+        $Bucket->createBucket('exportInvoices', 'Експортирани фактури', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
