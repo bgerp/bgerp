@@ -7,7 +7,7 @@
         </div>
     </div>
     <!--ET_BEGIN repos-->
-    <div style='padding:10px;'>
+    <div style='padding: 6px 10px 10px;'>
         <div>[#repos#]</div>
     </div>
     <!--ET_END repos-->

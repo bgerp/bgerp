@@ -24,7 +24,7 @@
         </div>
     </div>
     <!--ET_BEGIN description--> 
-    <div style='padding:10px;'>
+    <div style='padding:6px 10px 10px;'>
         <div>[#description#]</div>
     </div>
     <!--ET_END description--> 

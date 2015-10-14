@@ -2285,6 +2285,10 @@ a.lang {
   font-family: sans-serif;
   line-height: 1.4em; }
 
+h3.richtext-title {
+  margin-top: 0 !important;
+  color: #333333; }
+
 pre.rich-text {
   font-family: Courier New, monospace;
   padding: 10px;
