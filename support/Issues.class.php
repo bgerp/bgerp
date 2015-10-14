@@ -122,7 +122,7 @@ class support_Issues extends core_Master
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
     				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc';
-
+    
     
     /**
      * Дали може да бъде само в началото на нишка
@@ -178,25 +178,31 @@ class support_Issues extends core_Master
     var $newBtnGroup = "10.1|Поддръжка";
 	
     
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'typeId, title, description, assign, componentId, priority, sharedUsers';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent, changable');
-        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent, changable");
-        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory, changable");
-        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
+        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent');
+        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent");
+        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
+        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент');
         
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
-        $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет, changable');
+        $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
 
         // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none, changable');
+        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители, changable');
+        $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
         
         // Контактни данни
         $this->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');
