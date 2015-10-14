@@ -629,6 +629,10 @@ a.bookmark-external-url {
       padding-top: 1px;
       display: block; }
 
+.narrow div.alphabet div.tab-row .tab {
+  min-height: 15px;
+  line-height: 15px; }
+
 .narrow .tab-title {
   display: inline-block !important; }
 

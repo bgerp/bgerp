@@ -14,6 +14,8 @@
  */
 class email_Returned extends email_ServiceEmails
 {
+    
+    
     /**
      * Заглавие на таблицата
      */
@@ -41,10 +43,18 @@ class email_Returned extends email_ServiceEmails
                 $mime->getHeader('To', '*');
 
         if (!preg_match('/^.+\+returned=([a-z]+)@/i', $soup, $matches)) {
+            
             return;
         }
         
         $mid = $matches[1];
+        
+        // Правим проверка да не е обратна разписка за получено писмо
+        // Някои сървъри отговарят на `Return-Path`
+        if (email_Receipts::isForReceipts($mime->textPart)) {
+            
+            return email_Receipts::process($mime, $accId, $uid, $mid);
+        }
         
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
@@ -66,5 +76,4 @@ class email_Returned extends email_ServiceEmails
 
         return $isReturnedMail;
     }
-     
 }

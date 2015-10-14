@@ -224,14 +224,14 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	
 	    	if(isset($rec->amountDeducted)){
 	    		$rec->dpOperation = 'deducted';
+
 	    		if(empty($invoicedDp) || $invoicedDp == $deductedDp){
 	    			$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
 	    		} else {
 	    			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
-	    				$downpayment = round(($invoicedDp - $deductedDp) / $rec->rate);
-	    				
+						$downpayment = round(($invoicedDp - $deductedDp) / $rec->rate);
 	    				$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$downpayment} {$rec->currencyId}</b> |{$warningUnit}|*");
-	    			}
+					}
 	    		}
 	    		
 	    		if(!$form->gotErrors()){
