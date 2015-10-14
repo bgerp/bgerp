@@ -326,15 +326,53 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
-			
+				
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
-			
+				
 			// Изчисляваме к-то според наличните данни
 			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
 			
-			// Добавяме детайла
-			$details[] = $dRec;
+			// Намираме артикулите, които могат да се влагат като този артикул
+			$quantities = array();
+			$query = planning_ObjectResources::getQuery();
+			$query->where("#likeProductId = {$resource->productId} AND #objectId IS NOT NULL");
+			$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
+			$query->where("#state = 'active'");
+			$query->show("objectId");
+			while($oRec = $query->fetch()){
+				$quantities[$oRec->objectId] = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$oRec->objectId}", 'quantity');
+			}
+				
+			// Ако има такива
+			if(count($quantities)){
+			
+				// Намираме този с най-голямо количество в избрания склад
+				arsort($quantities);
+				$productId = key($quantities);
+				
+				// Заместваме оригиналния артикул с него
+				$dRec->productId = $productId;
+				$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
+				$dRec->quantityInPack = 1;
+				$dRec->measureId = $dRec->packagingId;
+				
+				$quantity = $dRec->quantity;
+				if($convAmount = cat_UoM::convertValue($dRec->quantity, $pInfo->productRec->measureId, $dRec->measureId)){
+					$quantity = $convAmount;
+				}
+					
+				$dRec->quantity = $quantity;
+			}
+			
+			$index = "{$dRec->productId}|$dRec->type";
+			if(!isset($details[$index])){
+				$details[$index] = $dRec;
+			} else {
+				$d = &$details[$index];
+				
+				$d->quantity += $dRec->quantity;
+			}
 		}
 		
 		// Връщаме генерираните детайли
