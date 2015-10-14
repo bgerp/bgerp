@@ -51,7 +51,7 @@ function setArrowPosition(){
 	//заради разликата в големината на картинката в двата изгледа
 	var offset = 2;
 	if($('body').hasClass('narrow')) {
-		offset=0;
+		offset=2;
 	}
 	
 	leftOffet = parseInt(leftOffet) - parseInt(leftOffetBlock) - offset;
