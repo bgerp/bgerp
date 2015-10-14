@@ -687,9 +687,15 @@ a.bookmark-external-url {
     }
 }
 
+.narrow div.alphabet div.tab-row .tab{
+    min-height: 15px;
+    line-height: 15px;
+}
+
 .narrow .tab-title {
 	display: inline-block !important;
 }
+
 .headerInfo{
     display:inline-block;
     float: left;
