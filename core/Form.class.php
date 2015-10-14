@@ -860,14 +860,15 @@ class core_Form extends core_FieldSet
                 
                 $tpl->append($fld, 'FIELDS');
             }
-        }
-        
-        // Заменяме състоянието на секциите
-        foreach($fsArr as $id => $state) { 
-            if(!$state) {
-                $tpl->append("\n tr.fs{$id} {display:none;}", "STYLES");
+
+            // Заменяме състоянието на секциите
+            foreach($fsArr as $id => $state) { 
+                if(!$state) {
+                    $tpl->append("\n tr.fs{$id} {display:none;}", "STYLES");
+                }
             }
         }
+        
 
         return $tpl;
     }
