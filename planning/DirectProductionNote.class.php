@@ -145,7 +145,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 		
-		$this->setField('storeId', 'caption=Складове->Засклажане в');
+		$this->setField('storeId', 'caption=Складове->Заприхождаване в');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Вложено от, mandatory,after=storeId');
 		
 		$this->setField('deadline', 'input=none');
