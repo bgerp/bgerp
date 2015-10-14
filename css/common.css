@@ -1638,9 +1638,17 @@ td.keylist-group {
   .keylistCategory .hidden {
     display: none !important; }
 
-  .opened td.keylist-group > div .plus {
+.formGroup img {
+  float: right;
+  display: none;
+  position: relative;
+  top: 2px; }
+
+  .opened td.keylist-group > div .plus,
+  .formGroup .plus {
     display: none; }
-  .opened td.keylist-group > div .minus {
+  .opened td.keylist-group > div .minus,
+  .formGroup .minus {
     display: inline-block; }
 
   .closed td.keylist-group > div .minus {

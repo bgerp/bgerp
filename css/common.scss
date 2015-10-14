@@ -1741,6 +1741,8 @@ td.keylist-group{
     }
 }
 
+
+
 .narrow .keylistCategory . img{
     position: relative;
     top: 2px;
@@ -1756,8 +1758,14 @@ td.keylist-group{
         display: none !important;
     }
 }
+.formGroup img {
+    float: right;
+    display: none;
+    position: relative;
+    top: 2px;
+}
 
-.opened td.keylist-group > div {
+.opened td.keylist-group > div, .formGroup {
 	.plus {
 		display: none;
 	}

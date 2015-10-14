@@ -785,7 +785,12 @@ class core_Form extends core_FieldSet
             $tpl = new ET('<table class="vFormField">[#FIELDS#]</table>');
             
             $fsId = 0; $fsArr = array(); $fsClass = '';
+
+            $minusUrl = sbf("img/16/toggle2.png", "");
+            $minusImg =  ht::createElement("img", array('src' => $minusUrl,  'class' => 'btns-icon minus'));
             
+            $plusUrl = sbf("img/16/toggle1.png", "");
+            $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
             foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
@@ -806,7 +811,7 @@ class core_Form extends core_FieldSet
                     }
                     
                     if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
-                        $headerRow .= "<div class=\"formGroup\">{$space}$caption</div>";
+                        $headerRow .= "<div class=\"formGroup\" >{$space}$caption  {$minusImg} {$plusImg}</div>";
                         $space .= "&nbsp;&nbsp;&nbsp;";
                        
                     }
@@ -817,7 +822,7 @@ class core_Form extends core_FieldSet
                 if($headerRow) {
                     $fsId++;
                     $fsClass  = " class='fs{$fsId}'";
-                    $dataAttr = " style='cursor: pointer;' onclick=\"event.preventDefault();$('.fs{$fsId}').toggle();return false;\"[#FS{$fsId}_STATE#]";
+                    $dataAttr = " class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"event.preventDefault();$('.fs{$fsId}').fadeToggle('slow');$(this).find('.btns-icon').toggle();return false;\"[#FS{$fsId}_STATE#]";
                 } elseif($emptyRow > 0) {
                     $fsClass  = '';
                     $dataAttr = '';
@@ -832,6 +837,7 @@ class core_Form extends core_FieldSet
                         $fsArr[$fsId] = FALSE;
                     }
                 }
+               
                 
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
@@ -860,11 +866,15 @@ class core_Form extends core_FieldSet
                 
                 $tpl->append($fld, 'FIELDS');
             }
-
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $state) { 
                 if(!$state) {
-                    $tpl->append("\n tr.fs{$id} {display:none;}", "STYLES");
+                    $tpl->append("\n tr.fs{$id} {display:none;}
+                    \n  .fs-toggle{$id} .btns-icon.minus { display: none;}
+                    \n    .fs-toggle{$id} .btns-icon.plus { display: inline-block;}
+                    
+                    ", "STYLES");
+                   
                 }
             }
         }
