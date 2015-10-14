@@ -406,6 +406,10 @@ class callcenter_Talks extends core_Master
     {
         $conf = core_Packs::getConfig('callcenter');
         
+        $url = toUrl(getCurrentUrl());
+        
+        self::logInfo('BEGIN: ' . $url);
+        
         // Масив с грешките
         $errArr = array();
         
@@ -592,6 +596,10 @@ class callcenter_Talks extends core_Master
     function act_RegisterEndCall()
     {
         $conf = core_Packs::getConfig('callcenter');
+        
+        $url = toUrl(getCurrentUrl());
+        
+        self::logInfo('END: ' . $url);
         
         // Масив с грешките
         $errArr = array();

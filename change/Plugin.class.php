@@ -578,11 +578,8 @@ class change_Plugin extends core_Plugin
      */
     function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
-        // Ако нямаме права да редактираме, да не се показва линка
-        if (!$mvc->haveRightFor('changerec', $id)) return ;
-        
         // URL' то за промяна
-        $changeUrl = array($mvc, 'changefields', $id, 'ret_url' => TRUE);
+        $changeUrl = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
         
         // Иконата за промяна
         $editSbf = sbf("img/16/edit.png");
