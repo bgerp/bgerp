@@ -380,7 +380,7 @@ function toggleFormGroup(id)
 	} else {
 		$('.fs' + id).fadeOut('slow');
 	}
-	$('.fs-toggle' + id).find('.btns-icon').toggle();
+	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 }
 
 

@@ -786,9 +786,6 @@ class core_Form extends core_FieldSet
             
             $fsId = 0; $fsArr = array(); $fsClass = '';
 
-            $minusUrl = sbf("img/16/toggle2.png", "");
-            $minusImg =  ht::createElement("img", array('src' => $minusUrl,  'class' => 'btns-icon minus'));
-            
             $plusUrl = sbf("img/16/toggle1.png", "");
             $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
             foreach ($fields as $name => $field) {
@@ -811,7 +808,7 @@ class core_Form extends core_FieldSet
                     }
                     
                     if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
-                        $headerRow .= "<div class=\"formGroup\" >{$space}$caption  {$minusImg} {$plusImg}</div>";
+                        $headerRow .= "<div class=\"formGroup\" >{$space}$caption {$plusImg}</div>";
                         $space .= "&nbsp;&nbsp;&nbsp;";
                        
                     }
