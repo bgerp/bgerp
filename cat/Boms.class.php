@@ -256,6 +256,8 @@ class cat_Boms extends core_Master
     	
     				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
     				$dRec = (object)array('bomId' => $rec->id,
+    									  'packagingId' => cat_Products::getProductInfo($rec->{"resourceId{$i}"})->productRec->measureId,
+    									  'quantityInPack' => 1,
 				    					  'type' => 'input',
 				    					  'resourceId' => $rec->{"resourceId{$i}"},
 				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
