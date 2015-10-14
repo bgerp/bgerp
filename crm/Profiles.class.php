@@ -1094,7 +1094,7 @@ class crm_Profiles extends core_Master
         // Ако сме в мобилен режим, да не е хинт
         $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         if($paramType == 'unit') {
-            $defaultStr = "|<br>|По подразбиране|*: ";
+            $defaultStr = "|*<br>|По подразбиране|*: ";
         } else {
             $defaultStr = 'По подразбиране|*: ';
         }
