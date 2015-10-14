@@ -822,7 +822,7 @@ class core_Form extends core_FieldSet
                 if($headerRow) {
                     $fsId++;
                     $fsClass  = " class='fs{$fsId}'";
-                    $dataAttr = " class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"event.preventDefault();$('.fs{$fsId}').fadeToggle('slow');$(this).find('.btns-icon').toggle();return false;\"[#FS{$fsId}_STATE#]";
+                    $dataAttr = " class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$fsId});\"[#FS{$fsId}_STATE#]";
                 } elseif($emptyRow > 0) {
                     $fsClass  = '';
                     $dataAttr = '';

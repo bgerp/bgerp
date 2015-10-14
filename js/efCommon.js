@@ -356,6 +356,35 @@ function comboSelectOnChange(id, value, suffix) {
 }
 
 
+// масив, който съдържа вече инициализираните comboselect елементи
+var comboBoxInited = [];
+
+
+/**
+ * Скрива и показва групите във формите 
+ * @param id на групата
+ */
+function toggleFormGroup(id) 
+{
+	if($('.fs' + id).css('display') == 'none') {
+		$('.fs' + id).fadeIn('slow');
+		if($('.fs' + id).find('input.combo').length){
+			$('.fs' + id).find('input.combo').each(function(){
+				var idComboBox = $(this).attr('id');
+				if(!comboBoxInited[idComboBox]){
+					comboBoxInit(idComboBox, '_comboSelect');
+					comboBoxInited[idComboBox] = true;
+				}
+			});
+		}
+	} else {
+		$('.fs' + id).fadeOut('slow');
+	}
+	$('.fs-toggle' + id).find('.btns-icon').toggle();
+}
+
+
+
 /**
  * Присвоява стойност за блока с опции на SELECT елемент, като отчита проблемите на IE
  */
@@ -2058,6 +2087,10 @@ function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
+			  // ако групата е затворена, я отваряме
+			  if($('.keylistCategory').hasClass('closed')) {
+				  toggleKeylistGroups(e.target);
+			  }
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {
