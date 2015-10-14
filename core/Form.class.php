@@ -829,7 +829,7 @@ class core_Form extends core_FieldSet
                 }
 
                 if($fsClass) {
-                    if($field->mandatory || ($vars[$name] && !count($field->options) == 1)) {
+                    if($field->mandatory || $field->formSection == 'open' || ($vars[$name] && !count($field->options) == 1 && $field->formSection != 'close') ) {
                    
                         expect($name != 'currency', count($field->options) != 1, $field, $vars);
                         $fsArr[$fsId] .= $name . ' ';
