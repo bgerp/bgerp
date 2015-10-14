@@ -14,11 +14,25 @@
  */
 class email_Receipts extends email_ServiceEmails
 {
+    
+    
     /**
      * Заглавие на таблицата
      */
     var $title = "Обратни разписки за получаване на имейл";
-
+    
+    
+    /**
+     * Масив с думи, които НЕ трябва да съществуват в стринга
+     */
+    protected static $negativeWordsArr = array('fail', 'sorry', 'rejected', 'not be delivered', "couldn't be delivered");
+    
+    
+    /**
+     * Масив с думи, които трябва да съществуват в стринга
+     */
+    protected static $positiveWordsArr = array('delivered to the user');
+    
     
     /**
      * Описание на модела
@@ -28,24 +42,29 @@ class email_Receipts extends email_ServiceEmails
         $this->addFields();  
     }
     
-
+    
     /**
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
      */
-    static function process($mime, $accId, $uid)
+    static function process($mime, $accId, $uid, $forcedMid = FALSE)
     {
-        // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
-        $soup = $mime->getHeader('X-Original-To', '*') .
-                $mime->getHeader('Delivered-To', '*') .
-                $mime->getHeader('To', '*');
-
-        if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
-            return;
+        if ($forcedMid === FALSE) {
+            // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
+            $soup = $mime->getHeader('X-Original-To', '*') .
+                    $mime->getHeader('Delivered-To', '*') .
+                    $mime->getHeader('To', '*');
+    
+            if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
+                
+                return;
+            }
+            
+            $mid = $matches[1];
+        } else {
+            $mid = $forcedMid;
         }
         
-        $mid = $matches[1];
-
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
 
@@ -67,5 +86,33 @@ class email_Receipts extends email_ServiceEmails
 
         return $isReceipt;
     }
-     
+    
+    
+    /**
+     * Проверява подадения текст, дали може да е обратна разписка
+     * 
+     * @param string $text
+     * 
+     * @return boolean
+     */
+    public static function isForReceipts($text)
+    {
+        // При наличие на някоя от негативните думи, прекратяваме
+        foreach (self::$negativeWordsArr as $negativeWord) {
+            if (stripos($text, $negativeWord)) {
+                
+                return FALSE;
+            }
+        }
+        
+        // Ако открием съвпадение с някоя дума, от позитивните думи
+        foreach (self::$positiveWordsArr as $positveWord) {
+            if (stripos($text, $positveWord)) {
+                
+                return TRUE;
+            }
+        }
+        
+        return FALSE;
+    }
 }
