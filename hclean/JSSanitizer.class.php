@@ -57,7 +57,8 @@ class hclean_JSSanitizer extends core_Manager
         // Вземаме съдържанието на линка
         $content = static::getHtmlFromLink($htmlLink);
         
- 
+        $content = i18n_Charset::convertToUtf8($content, array(), TRUE);
+        
         // Конфигурационни константи
         $conf = core_Packs::getConfig('hclean');        
         
