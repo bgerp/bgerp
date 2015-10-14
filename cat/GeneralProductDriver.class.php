@@ -248,8 +248,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		if(!isset($measureId)){
 			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
-			$defMeasure = (!empty($defMeasure)) ? $defMeasure : cat_UoM::fetchBySinonim('pcs')->id;
+			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
 			$measureName = cat_UoM::getShortName($defMeasure);
+			
 			
 			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
 			return $measureName;
