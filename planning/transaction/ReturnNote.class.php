@@ -63,19 +63,9 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 			
 			if($rec->useResourceAccounts == 'yes'){
 				
-				$convertProductId = $dRec->productId;
-				$convertQuantity = $dRec->quantity;
-				if($likeProductId = planning_ObjectResources::fetchField("#objectId = {$dRec->productId}", 'likeProductId')){
-					$convertProductId = $likeProductId;
-					$mProdMeasureId = $pInfo->productRec->measureId;
-					$lProdMeasureId = cat_Products::getProductInfo($likeProductId)->productRec->measureId;
-					if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
-						$convertQuantity = $convAmount;
-					}
-				}
-				
-				$creditArr = array('61101', array('cat_Products', $convertProductId),
-								  'quantity' => $convertQuantity);
+				$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
+				$creditArr = array('61101', array('cat_Products', $convInfo->productId),
+								  'quantity' => $convInfo->quantity);
 				
 				$reason = 'Връщане на материал от производството';
 			} 

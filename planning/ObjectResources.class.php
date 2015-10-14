@@ -354,4 +354,31 @@ class planning_ObjectResources extends core_Manager
     	
     	return $selfValue;
     }
+    
+    
+    /**
+     * Връща информацията даден артикул като
+     * кой може да се вложи и в какво количество
+     * 
+     * @param int $productId - ид на артикул
+     * @param sdtClass
+     * 			o productId - ид на артикула, в който ще се вложи (ако няма такъв се влага в себе си)
+     * 			o quantity  - количеството
+     */
+    public static function getConvertedInfo($productId, $quantity)
+    {
+    	$convertProductId = $productId;
+    	$convertQuantity = $quantity;
+    	
+    	if($likeProductId = planning_ObjectResources::fetchField("#objectId = {$productId}", 'likeProductId')){
+    		$convertProductId = $likeProductId;
+    		$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    		$lProdMeasureId = cat_Products::getProductInfo($likeProductId)->productRec->measureId;
+    		if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
+    			$convertQuantity = $convAmount;
+    		}
+    	}
+    	
+    	return (object)array('productId' => $convertProductId, 'quantity' => $convertQuantity);
+    }
 }
