@@ -351,6 +351,33 @@ class support_Issues extends core_Master
     
     
     /**
+     * 
+     * 
+     * @param stdObject $rec
+     */
+    public static function prepareBodyAndSubject($rec)
+    {
+        if ($rec->id) return ;
+        
+        if (!$rec->threadId) return ;
+        
+        $clsId = core_Classes::getId(get_called_class());
+        
+        if (!$clsId) return ;
+        
+        $cid = doc_Containers::fetchField("#threadId = {$rec->threadId} AND #docClass = {$clsId}");
+        
+        //Добавяме в полето Относно отговор на съобщението
+        $oDoc = doc_Containers::getDocument($cid);
+        $oRow = $oDoc->getDocumentRow();
+        $for = tr('|За|*: ');
+        $rec->subject = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        
+        $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
+    }
+    
+    
+    /**
      * Връща последно използвания тип от потребителя или от екипа му
      * 
      * @param integer $systemId

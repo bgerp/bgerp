@@ -148,7 +148,7 @@ class support_Resolutions extends core_Master
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+        $this->FLD('subject', 'varchar', 'caption=Относно, mandatory, input=hidden');
         $this->FLD('body', 'richtext(rows=10,bucket=Support)', 'caption=Коментар,mandatory');
     }
     
@@ -220,16 +220,6 @@ class support_Resolutions extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        
-        $data->row->subject = tr("Резолюция|*: {$data->row->subject}");
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
     public static function on_BeforeActivation($mvc, &$rec)
     {
         // Вземаме записа 
@@ -255,5 +245,19 @@ class support_Resolutions extends core_Master
     {
         // Премахваме бутона за добанвяне на нов запис в листовия изглед
         $data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param support_Corrections $mvc
+     * @param stdObject $data
+     */
+    static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $rec = $data->form->rec;
+        
+        support_Issues::prepareBodyAndSubject($rec);
     }
 }
