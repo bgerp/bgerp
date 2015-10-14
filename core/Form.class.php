@@ -602,7 +602,7 @@ class core_Form extends core_FieldSet
                 }
             }
             
-            $fieldsLayout = $this->renderFieldsLayout($fields);
+            $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             
             
             // Създаваме input - елементите
@@ -762,7 +762,7 @@ class core_Form extends core_FieldSet
     /**
      * Подготвя шаблона за инпут-полетата
      */
-    function renderFieldsLayout($fields)
+    function renderFieldsLayout($fields, $vars)
     {
     	if ($this->fieldsLayout) return new ET($this->fieldsLayout);
         
@@ -783,6 +783,8 @@ class core_Form extends core_FieldSet
             $lastCaptionArr = array();
             
             $tpl = new ET('<table class="vFormField">[#FIELDS#]</table>');
+            
+            $fsId = 0; $fsArr = array(); $fsClass = '';
             
             foreach ($fields as $name => $field) {
                 
@@ -806,10 +808,30 @@ class core_Form extends core_FieldSet
                     if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
                         $headerRow .= "<div class=\"formGroup\">{$space}$caption</div>";
                         $space .= "&nbsp;&nbsp;&nbsp;";
+                       
                     }
                 }
                 
                 $lastCaptionArr = $captionArr;
+
+                if($headerRow) {
+                    $fsId++;
+                    $fsClass  = " class='fs{$fsId}'";
+                    $dataAttr = " style='cursor: pointer;' onclick=\"event.preventDefault();$('.fs{$fsId}').toggle();return false;\"[#FS{$fsId}_STATE#]";
+                } elseif($emptyRow > 0) {
+                    $fsClass  = '';
+                    $dataAttr = '';
+                }
+
+                if($fsClass) {
+                    if($field->mandatory || ($vars[$name] && !count($field->options) == 1)) {
+                   
+                        expect($name != 'currency', count($field->options) != 1, $field, $vars);
+                        $fsArr[$fsId] .= $name . ' ';
+                    } elseif(!$fsArr[$fsId]) {
+                        $fsArr[$fsId] = FALSE;
+                    }
+                }
                 
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
@@ -817,20 +839,20 @@ class core_Form extends core_FieldSet
                     }
                     
                     if ($headerRow) {
-                        $tpl->append("\n<tr><td>$headerRow</td></tr>", 'FIELDS');
+                        $tpl->append(new ET("\n<tr{$dataAttr}><td>$headerRow</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr{$fsClass}><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
                     $fld->replace($field->unit ? (', ' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 } else {
                     if ($emptyRow > 0) {
-                        $tpl->append("\n<tr><td colspan=2></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr{$fsClass}><td colspan=2></td></tr>", 'FIELDS');
                     }
                     
                     if ($headerRow) {
-                        $tpl->append("\n<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
+                        $tpl->append(new ET("\n<tr{$dataAttr}><td colspan=2>$headerRow</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
+                    $fld = new ET("\n<tr{$fsClass}><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
                     
                     $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
@@ -840,6 +862,13 @@ class core_Form extends core_FieldSet
             }
         }
         
+        // Заменяме състоянието на секциите
+        foreach($fsArr as $id => $state) { 
+            if(!$state) {
+                $tpl->append("\n tr.fs{$id} {display:none;}", "STYLES");
+            }
+        }
+
         return $tpl;
     }
     
