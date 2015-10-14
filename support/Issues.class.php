@@ -183,20 +183,20 @@ class support_Issues extends core_Master
      */
     function description()
     {
-        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent');
-        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent");
-        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
+        $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent, changable');
+        $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent, changable");
+        $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory, changable");
         $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
         
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
-        $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
+        $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет, changable');
 
         // Възлагане на задача (за doc_AssignPlg)
         $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none, changable');
         
         // Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители, changable');
         
         // Контактни данни
         $this->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');

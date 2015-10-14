@@ -92,7 +92,13 @@ class support_Corrections extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'body, sharedUsers';
     
     
     /**
