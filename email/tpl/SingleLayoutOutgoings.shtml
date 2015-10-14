@@ -68,28 +68,13 @@
                                         <td><b>[#emailCc#]</b></td>
                                     </tr>
                                     <!--ET_END emailCc-->
-                                    <!--ET_BEGIN tel-->          
-                                    <tr>
-                                        <td class='aright'>|Тел.|*:</td>
-                                        <td>[#tel#]</td>
-                                    </tr>
-                                    <!--ET_END tel-->
+                                  
                                     <!--ET_BEGIN fax-->          
                                     <tr>
                                         <td class='aright'>|Факс|*:</td>
                                         <td>[#fax#]</td>
                                     </tr>
                                     <!--ET_END fax-->
-                                    <!--ET_BEGIN address-->          
-                                    <tr>
-                                        <td class='aright vtop'>|Адрес|*:</td>
-                                        <td>
-                                            [#address#]
-                                            <div>[#pcode#] [#place#]</div>
-                                            <div>[#country#]</div>
-                                        </td>
-                                    </tr>
-                                    <!--ET_END address-->
                                 </table>
                             </td>
                         </tr>
