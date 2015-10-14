@@ -1741,6 +1741,8 @@ td.keylist-group{
     }
 }
 
+
+
 .narrow .keylistCategory . img{
     position: relative;
     top: 2px;
@@ -1756,8 +1758,14 @@ td.keylist-group{
         display: none !important;
     }
 }
+.formGroup img {
+    float: right;
+    display: none;
+    position: relative;
+    top: 2px;
+}
 
-.opened td.keylist-group > div {
+.opened td.keylist-group > div, .formGroup {
 	.plus {
 		display: none;
 	}
@@ -2456,7 +2464,11 @@ a.lang {
 	font-family: sans-serif;
 	line-height: 1.4em;
 }
-
+h3.richtext-title {
+    margin-top: 0!important;
+    color: #333;
+}
+    
 pre.rich-text {
     font-family: Courier New,monospace;
     padding: 10px;

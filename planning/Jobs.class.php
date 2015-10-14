@@ -514,7 +514,8 @@ class planning_Jobs extends core_Master
     function getUsedDocs_($id)
     {
     	$rec = $this->fetchRec($id);
-    	$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $rec->productId);
+    	$cid = cat_Products::fetchField($rec->productId, 'containerId');
+    	$res[$cid] = $cid;
     
     	return $res;
     }

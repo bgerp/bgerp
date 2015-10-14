@@ -66,7 +66,7 @@ class blast_Lists extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'bgerp_PersonalizationSourceIntf';
+    var $interfaces = 'bgerp_PersonalizationSourceIntf, doc_DocumentIntf';
     
     
     /**

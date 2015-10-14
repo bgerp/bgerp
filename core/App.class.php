@@ -844,6 +844,10 @@ class core_App
             case 'absolute' :
                 $url = rtrim(static::getBoot(TRUE), '/') . $pre . $urlQuery;
                 break;
+                
+            case 'absolute-force' :
+                $url = rtrim(static::getBoot(TRUE, TRUE), '/') . $pre . $urlQuery;
+                break;
         }
 
         
@@ -867,10 +871,12 @@ class core_App
     /**
      * Връща относително или пълно URL до папката на index.php
      *
-     * @param boolean $absolute;
+     * @param boolean $absolute
+     * @param boolean $forceHttpHost
+     * 
      * @return string
      */
-    public static function getBoot($absolute = FALSE)
+    public static function getBoot($absolute = FALSE, $forceHttpHost = FALSE)
     {
         static $relativeWebRoot = NULL;
 
@@ -883,9 +889,12 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            defIfNot('BGERP_ABSOLUTE_HTTP_HOST', $_SERVER['HTTP_HOST']);
+            if(defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;             
+            } else {
+                $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $dirName;                           
+            }
             
-            $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
         } else {
 
             $scriptName = $_SERVER['SCRIPT_NAME'];

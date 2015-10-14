@@ -92,7 +92,13 @@ class support_Ratings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'body, sharedUsers';
     
     
     /**
@@ -142,7 +148,7 @@ class support_Ratings extends core_Master
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+        $this->FLD('subject', 'varchar', 'caption=Относно, mandatory, input=hidden');
         $this->FLD('body', 'richtext(rows=10,bucket=Support)', 'caption=Коментар,mandatory');
     }
     
@@ -214,19 +220,23 @@ class support_Ratings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        
-        $data->row->subject = tr("Оценка|*: {$data->row->subject}");
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Премахваме бутона за добанвяне на нов запис в листовия изглед
         $data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param support_Corrections $mvc
+     * @param stdObject $data
+     */
+    static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $rec = $data->form->rec;
+        
+        support_Issues::prepareBodyAndSubject($rec);
     }
 }

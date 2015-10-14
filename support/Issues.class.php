@@ -122,7 +122,7 @@ class support_Issues extends core_Master
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
     				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc';
-
+    
     
     /**
      * Дали може да бъде само в началото на нишка
@@ -178,6 +178,12 @@ class support_Issues extends core_Master
     var $newBtnGroup = "10.1|Поддръжка";
 	
     
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'typeId, title, description, assign, componentId, priority, sharedUsers';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -186,14 +192,14 @@ class support_Issues extends core_Master
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent");
         $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
-        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
+        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент');
         
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
 
         // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none, changable');
+        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
@@ -347,6 +353,33 @@ class support_Issues extends core_Master
 		}
 		
     	return $tpl;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param stdObject $rec
+     */
+    public static function prepareBodyAndSubject($rec)
+    {
+        if ($rec->id) return ;
+        
+        if (!$rec->threadId) return ;
+        
+        $clsId = core_Classes::getId(get_called_class());
+        
+        if (!$clsId) return ;
+        
+        $cid = doc_Containers::fetchField("#threadId = {$rec->threadId} AND #docClass = {$clsId}");
+        
+        //Добавяме в полето Относно отговор на съобщението
+        $oDoc = doc_Containers::getDocument($cid);
+        $oRow = $oDoc->getDocumentRow();
+        $for = tr('|За|*: ');
+        $rec->subject = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        
+        $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
     }
     
     

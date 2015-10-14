@@ -147,7 +147,7 @@ class bgerp_plg_Export extends core_Plugin
                 $name = $Driver->getExportedFileName();
                
                 // Записваме файла в системата
-                $fh = fileman::absorbStr($content, 'exportInvoices', $name);
+                $fh = fileman::absorbStr($content, 'exportCsv', $name);
                 	
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
                 return redirect(array('fileman_Files', 'single', $fh), FALSE, 'Файлът е експортиран успешно');

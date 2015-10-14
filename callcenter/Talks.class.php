@@ -2035,11 +2035,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме абсолютния линк
-        $url = toUrl($urlArr, 'absolute');
-        
-        // Фикс за Reload
-        // TODO може да се премахне
-        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
+        $url = toUrl($urlArr, 'absolute-force');
         
         $url = escapeshellarg($url);
         
@@ -2064,11 +2060,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме абсолютния линк
-        $url = toUrl($urlArr, 'absolute');
-        
-        // Фикс за Reload
-        // TODO може да се премахне
-        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
+        $url = toUrl($urlArr, 'absolute-force');
         
         $url = escapeshellarg($url);
         

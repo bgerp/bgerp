@@ -270,6 +270,13 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
+    		if(empty($form->rec->vatReason)){
+    			if(!drdata_Countries::isEu($form->rec->contragentCountryId)){
+    				$form->setDefault('vatReason', 'чл.28 от ЗДДС – износ на стоки извън ЕС');
+    			}elseif(isset($form->rec->contragentVatNo) && $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    				$form->setDefault('vatReason', 'чл.53 от ЗДДС – вътреобщностна доставка на стоки');
+    			}
+    		}
     		$form->setField('vatReason', 'mandatory');
     	}
     	

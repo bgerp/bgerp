@@ -1,11 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div  class='clearfix21 antetka'>
-        <div class='clearfix21'>    
-            <small><b>[#subject#]</b></small>
-        </div>
-    </div>
     <!--ET_BEGIN body--> 
-    <div style='padding:10px;'>
+    <div style='padding:6px 10px 10px;'>
         <div>[#body#]</div>
     </div>
     <!--ET_END body--> 
