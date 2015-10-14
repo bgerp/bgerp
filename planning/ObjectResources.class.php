@@ -174,6 +174,14 @@ class planning_ObjectResources extends core_Manager
     				// Ако артикула е вложим, но не е участвал в документ - махаме го
     				if(empty($consumedProducts[$id])){
     					unset($products[$id]);
+    				} else {
+    						
+    					// Ако мярката на артикула е от друг тип - също го мяхаме
+    					// Артикул може да бъде заместван само с артикул с подобна мярка
+    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
+    					if(empty($sameTypeMeasures[$mId])){
+    						unset($products[$id]);
+    					}
     				}
     			} else {
     				unset($products[$id]);

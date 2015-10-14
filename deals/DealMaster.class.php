@@ -945,7 +945,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     }
     
-    
+   
     /**
      * Ако с тази сделка е приключена друга сделка
      */
@@ -960,7 +960,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$closedIds = array();
     	if(count($closedDeals)){
-    
+    		
     		// За всяка от тях, включително и този документ
     		foreach ($closedDeals as $doc){
     
@@ -973,23 +973,19 @@ abstract class deals_DealMaster extends deals_DealBase
     			$products = (array)$dealInfo->get('products');
     			if(count($products)){
     				foreach ($products as $p){
-    
-    					// Обединяваме множествата на договорените им продукти
-    					$index = $p->productId;
-    					$d = &$details[$index];
-    					$d = (object)$d;
-    
-    					$d->productId = $p->productId;
-    					$d->uomId     = $p->uomId;
-    					$d->quantity += $p->quantity;
-    					$d->price     = ($d->price) ? ($d->price + $p->price) / 2 : $p->price;
-    					if(!empty($d->discount) || !empty($p->discount)){
-    						$d->discount = ($d->discount) ? ($d->discount + $p->discount) / 2 : $p->discount;
+    					if(!isset($details[$p->productId])){
+    						$details[$p->productId] = new stdClass();
+    						$details[$p->productId]->productId = $p->productId;
     					}
-    
-    					$info = cat_Products::getProductInfo($p->productId);
-    					$p->quantityInPack = ($info->packagings[$p->packagingId]) ? $info->packagings[$p->packagingId]->quantity : 1;
     					
+    					$d = &$details[$p->productId];
+    					$d->price = max($d->price, $p->price);
+    					$d->quantity += $p->quantity;
+    					$d->sumAmounts += $p->quantity * $p->price * (1 - $p->discount);
+    					
+						$info = cat_Products::getProductInfo($p->productId);
+    					$p->quantityInPack = ($info->packagings[$p->packagingId]) ? $info->packagings[$p->packagingId]->quantity : 1;
+    						
     					if(empty($d->packagingId)){
     						$d->packagingId = $p->packagingId;
     						$d->quantityInPack = $p->quantityInPack;
@@ -999,21 +995,30 @@ abstract class deals_DealMaster extends deals_DealBase
     							$d->quantityInPack = $p->quantityInPack;
     						}
     					}
+    					continue;
     				}
     			}
     		}
     	}
     	 
+    	if(count($details)){
+    		foreach ($details as &$det){
+    			$discount = 1 - $det->sumAmounts / ($det->quantity * $det->price);
+    			if($discount){
+    				$det->discount = round(abs($discount), 6);
+    			}
+    		}
+    	}
+    	
     	$Detail = $mvc->mainDetail;
     	
     	// Изтриваме досегашните детайли на сделката
     	$mvc->$Detail->delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
-    	 
-    	// Записваме новите
+    	
     	if(count($details)){
-    		foreach ($details as $d1){
-    			$d1->{$mvc->$Detail->masterKey} = $rec->id;
-    			$mvc->$Detail->save($d1);
+    		foreach ($details as &$det1){
+    			$det1->{$mvc->$Detail->masterKey} = $rec->id;
+    			$Detail::save($det1);
     		}
     	}
     	
