@@ -215,10 +215,10 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	if(isset($rec->amountDeducted)){
 	    		$rec->dpOperation = 'deducted';
 	    		if(empty($invoicedDp)){
-	    			$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
+	    			$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
 	    		} else {
 	    			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
-	    				$form->setWarning('amountDeducted', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
+	    				$form->setWarning('amountDeducted', 'Въведеният за приспадане аванс е по-голям от начисления по сделката');
 	    			}
 	    		}
 	    		
