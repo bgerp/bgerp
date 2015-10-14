@@ -240,7 +240,7 @@ class doclog_Documents extends core_Manager
         
         $this->setDbIndex('containerId');
         
-        $this->setDbUnique('mid');
+        $this->setDbUnique('containerId, action, mid');
     } 
     
     
@@ -1999,8 +1999,18 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
             $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
-            $data[$rec->containerId]->summary[$used] += count($rec->data->{$used});
             $data[$rec->containerId]->containerId = $rec->containerId;
+        }
+        
+        $contQuery = doc_Containers::getQuery();
+        $contQuery->where("#threadId = {$threadId}");
+        while ($cRec = $contQuery->fetch()) {
+            if (!isset($data[$cRec->id])) {
+                $data[$cRec->id] = new stdClass();
+                $data[$cRec->id]->containerId = $cRec->id;
+            }
+            
+            $data[$cRec->id]->summary[$used] = doclog_Used::getUsedCount($cRec->id);
         }
         
         return $data;
@@ -2533,51 +2543,19 @@ class doclog_Documents extends core_Manager
         // Името на таба
         $data->TabCaption = 'Използване';
         
-        // Екшъна
-        $action = static::ACTION_USED;
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
         
-        // Вземаме записите
-        $recs = static::getRecs($cid, $action);
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
         
-        // Ако няма записи не се изпълнява
-        if (empty($recs)) {
-            
+        $data->rows = doclog_Used::prepareRecsFor($cid, $data->pager);
+        
+        if (empty($data->rows)) {
+        
             // Бутона да не е линк
             $data->disabled = TRUE;
-            
-            return ;
         }
-        
-        $rows = array();
-        
-        foreach ($recs as $rec) {
-            krsort($rec->data->{$action});
-        }
-        
-        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
-        
-    	foreach ($dataRecsArr as $d){
-    		
-    		$class = $d->class;
-    		$row = new stdClass();
-    		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
-    		$state = $class::fetchField($d->id, 'state');
-    		if ($class::haveRightFor('single', $d->id)) {
-    		    $singleUrl = array($class, 'single', $d->id);
-    		} else {
-    		    $singleUrl = array();
-    		}
-    		
-    		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
-        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
-        	$row->author = $d->author;
-        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
-        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
-        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
-        	$rows[] = $row;
-    	}
-        
-        $data->rows = $rows;
     }
     
     
@@ -2596,7 +2574,7 @@ class doclog_Documents extends core_Manager
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $sendTpl = $inst->get($data->rows, 'lastUsedOn=Последно, link=Документ, author=От');
+        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, containerId=Документ, createdBy=От');
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');

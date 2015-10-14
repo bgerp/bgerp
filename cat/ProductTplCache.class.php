@@ -162,7 +162,25 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public static function getCache($productId, $time)
 	{
-		return self::fetchField("#productId = {$productId} AND #time = '{$time}'", 'cache');
+		// Кога артикула е бил последно модифициран
+		$productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
+		
+		// Намираме кешираните данни
+		$res = array($productModifiedOn => NULL);
+		$query = self::getQuery();
+		$query->where("#productId = {$productId} AND #time <= '{$time}'");
+		$query->orderBy('time', 'DESC');
+		while($rec = $query->fetch()){
+			$res[$rec->time] = $rec->cache;
+		}
+		
+		// За всяко от времената на модификация на артикула за които има кеш + последното модифициране
+		// намираме това което е най-близо до датата за която проверяваме, връщаме намерения кеш, ако
+		// върнатата дата е последната модификация на артикула за която няма кеш връща се NULL, което ще
+		// доведе до кеширане на изгледа
+		foreach ($res as $cTime => $cache){
+			if($cTime <= $time) return $cache;
+		}
 	}
 	
 	
@@ -186,21 +204,43 @@ class cat_ProductTplCache extends core_Master
 	
 			// Ако няма генерираме наново и го кешираме
 			$cacheRec = new stdClass();
-			$cacheRec->time = $time;
+			$cacheRec->time = $pRec->modifiedOn;
 			$cacheRec->productId = $productId;
-			$cacheRec->cache = $Driver->prepareProductDescription($pRec, $documentType);
 			
-			// Записваме кеша само ако е подадено валидно време
-			if(isset($cacheRec->time)){
-				self::save($cacheRec);
-			}
+			$data = new stdClass();
+			$data->rec = $pRec;
+			$data->row = cat_Products::recToVerbal($data->rec);
+			$data->documentType = $documentType;
+			$data->Embedder = cls::get('cat_Products');
+			$data->isSingle = FALSE;
+			$data->noChange = TRUE;
+			$Driver->prepareProductDescription($data);
+			$cacheRec->cache = $data;
+			
+			self::save($cacheRec);
 			
 			$cache = $cacheRec->cache;
 		}
 		
 		$tpl = new core_ET();
 		if($Driver){
-			$tpl = $Driver->renderProductDescription($cache);
+			
+			// Ако артикула е частен добавяме му хендлъра + броя модификации в кеша
+			$name = cat_Products::getVerbal($cache->rec, 'name');
+			if($pRec->isPublic == 'no'){
+				$handle = cat_Products::getHandle($pRec);
+				$name .= " ({$handle}";
+				$count = self::count("#productId = {$pRec->id}");
+				if($count > 1){
+					$name .= "v{$count}";
+				}
+				$name .= ")";
+			}
+			
+			$name = ht::createLinkRef($name, cat_Products::getSingleUrlArray($cache->rec->id));
+			$tpl = new ET("[#name#]<br><span style='font-size:0.9em'>[#desc#]</span>");
+			$tpl->replace($name, 'name');
+			$tpl->replace($Driver->renderProductDescription($cache), 'desc');
 			$tpl->removeBlocks();
 		} else {
 			$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));

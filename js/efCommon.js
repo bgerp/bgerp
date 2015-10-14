@@ -517,7 +517,7 @@ popupWindows = new Array();
 // Отваря диалогов прозорец
 function openWindow(url, name, args) {
     // Записваме всички popup прозорци в глобален масив
-    popupWindows[name] = window.open(url, name, args);
+    popupWindows[name] = window.open(url, '_blank', args);
 
     var popup = popupWindows[name];
 
@@ -2067,6 +2067,19 @@ function keylistActions(el) {
 		  }
 	 });
 }
+
+function sumOfChildrenWidth() {
+	if($('body').hasClass('narrow') && $('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
+		
+		var sum=0;
+		$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
+		$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
+		
+		var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
+		$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+	}
+}
+
 
 /**
  *  скриваме/показваме прилежащата на елемента група
@@ -3907,6 +3920,7 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
+runOnLoad(sumOfChildrenWidth);
 runOnLoad(editCopiedTextBeforePaste);
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);

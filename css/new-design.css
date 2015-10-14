@@ -257,7 +257,7 @@ body {
 
 .narrow #main-container > .tab-control > .tab-row {
   top: 44px;
-  padding: 0 13px; }
+  padding: 3px 13px 1px; }
 
 .userInfo {
   margin-right: 10px;
@@ -581,7 +581,7 @@ a.bookmark-external-url {
 #main-container  div.tab-control div.tab-page {
   border: none; }
 
-#main-container > div.tab-control > div.tab-row > .tab {
+#main-container > div.tab-control > div.tab-row > .row-holder .tab {
   font-family: arial;
   display: inline-block;
   height: 18px;
@@ -599,24 +599,38 @@ a.bookmark-external-url {
   background-color: transparent !important;
   border-bottom: none;
   border-left: none; }
-  #main-container > div.tab-control > div.tab-row > .tab.selected {
+  #main-container > div.tab-control > div.tab-row > .row-holder .tab.selected {
     background-color: #dddddd !important; }
-    #main-container > div.tab-control > div.tab-row > .tab.selected a {
+    #main-container > div.tab-control > div.tab-row > .row-holder .tab.selected a {
       color: #333333 !important; }
-  #main-container > div.tab-control > div.tab-row > .tab a {
+  #main-container > div.tab-control > div.tab-row > .row-holder .tab a {
     color: white; }
 
-.narrow #main-container > div.tab-control > div.tab-row > .tab {
-  border: none;
-  margin: 5px 2px 3px;
-  padding: 0 !important;
-  border-radius: 3px;
-  font-size: 0.8em; }
-  .narrow #main-container > div.tab-control > div.tab-row > .tab a,
-  .narrow #main-container > div.tab-control > div.tab-row > .tab span {
-    margin: 0px 2px 3px;
-    display: block;
-    line-height: normal; }
+.narrow #main-container > div.tab-control > div.tab-row {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; }
+  .narrow #main-container > div.tab-control > div.tab-row .row-holder {
+    text-align: justify;
+        /*
+     * 3
+     */
+    white-space: nowrap;
+    height: 28px; }
+  .narrow #main-container > div.tab-control > div.tab-row .tab {
+    border: none;
+    margin: 5px 2px 5px;
+    padding: 0 !important;
+    border-radius: 3px;
+    font-size: 0.8em;
+    height: auto; }
+    .narrow #main-container > div.tab-control > div.tab-row .tab a,
+    .narrow #main-container > div.tab-control > div.tab-row .tab span {
+      margin: 0px 2px 3px;
+      padding-top: 1px;
+      display: block; }
+
+.narrow .tab-title {
+  display: inline-block !important; }
 
 .headerInfo {
   display: inline-block;

@@ -23,6 +23,12 @@ class cms_Articles extends core_Master
     
     
     /**
+     * Заглавие
+     */
+    var $singleTitle = "Публична статия";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, plg_AutoFilter, change_Plugin';
@@ -194,22 +200,6 @@ class cms_Articles extends core_Master
         if(trim($rec->body) && $fields['-list'] && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), NULL, 'ef_icon=img/16/monitor.png');
         }
-        
-        // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
-        
-        // Ако листваме
-        if(!arr::haveSection($fields, '-list')) return;
-        
-        // Определяме в кое поле ще показваме инструментите
-        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
-        
-        // Ако полето е обект
-        if (is_object($row->$field)) {
-            
-            // Добавяме линк, който води до промяна на записа
-            $row->$field->append($mvc->getChangeLink($rec->id), 'TOOLS');
-        }
     }
 
 
@@ -229,7 +219,7 @@ class cms_Articles extends core_Master
         }
 		
         $id = Request::get('id', 'int'); 
-         
+        
         if(!$id || !is_numeric($id)) { 
             $menuId =  Mode::get('cMenuId');
 
@@ -343,8 +333,10 @@ class cms_Articles extends core_Master
             
             $l->title = $title;
             
-            // Вземаме линка за промяна на записа
-            $l->editLink = $this->getChangeLink($rec1->id);
+            if ($this->haveRightFor('changerec', $rec1)) {
+                // Вземаме линка за промяна на записа
+                $l->editLink = $this->getChangeLink($rec1->id);
+            }
 
             $navData->links[] = $l;
 
@@ -439,9 +431,6 @@ class cms_Articles extends core_Master
      */
     static function getChangeLink($id, $title=FALSE)
     {
-        // Ако нямаме права да редактираме, да не се показва линка
-        if (!static::haveRightFor('changerec', $id)) return ;
-        
         // URL' то за промяна
         $changeUrl = array('cms_Articles', 'changefields', $id, 'ret_url' => TRUE);
         

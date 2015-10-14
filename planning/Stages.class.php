@@ -153,4 +153,19 @@ class planning_Stages extends core_Manager
 			}
 		}
 	}
+	
+	
+	/**
+	 * Форсиране на етап, ако няма създава нов, иначе връща съществуващия
+	 * 
+	 * @param string $name - името на етапа
+	 * @return int $id - ид-то на етапа
+	 */
+	public static function force($name)
+	{
+		$id = static::fetchField(array("#name = '[#1#]'", $name), 'id');
+		if($id) return $id;
+		
+		return static::save((object)array('name' => $name));
+	}
 }

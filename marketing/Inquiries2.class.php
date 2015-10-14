@@ -211,9 +211,12 @@ class marketing_Inquiries2 extends embed_Manager
 
 
     /**
-     * Преди показване на форма за добавяне/промяна
+     * Разширява формата за редакция
+     * 
+     * @param stdClass $data
+     * @return void
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    private function expandEditForm(&$data)
     {
     	$form = &$data->form;
     	$params = $data->driverParams;
@@ -221,35 +224,45 @@ class marketing_Inquiries2 extends embed_Manager
     	if(!$form->rec->innerClass){
     		$form->setField('title', 'input=hidden');
     	}
-    	
+    	 
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		$measureId = $data->Driver->getDefaultUom($params['measureId']);
+    		$measureName = $data->Driver->getDefaultUom($params['measureId']);
+    		$measureId = cat_UoM::fetchBySinonim($measureName)->id;
     		$uom = cat_UoM::getShortName($measureId);
-    		
+    	
     		if(isset($params['moq'])){
     			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($params['moq']);
     			$caption .= " <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
     		}
     	}
-    	
+    	 
     	// Добавяме полета за количество според параметрите на продукта
     	if(!isset($params['quantities'])){
     		$conf = core_Packs::getConfig('marketing');
     		$params['quantities'] = $conf->MARKETING_INQUIRY_QUANTITIES;
     	}
-    	
+    	 
     	for($i = 1; $i <= $params['quantities']; $i++){
     		if($form->getField("quantity{$i}", FALSE)){
     			$form->setField("quantity{$i}", "input,quantityField,formOrder=4{$i},unit={$uom},caption={$caption}->Количество|* {$i}");
     		} else {
     			$form->FNC("quantity{$i}", 'double', "caption={$caption}->Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
     		}
-    		
+    	
     		if(isset($params['moq'])){
     			$form->setFieldTypeParams("quantity{$i}", array('min' => $params['moq']));
     		}
     	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$mvc->expandEditForm($data);
     }
     
     
@@ -316,7 +329,8 @@ class marketing_Inquiries2 extends embed_Manager
     	 
     	// До всяко количество се слага unit с мярката на продукта
     	if($Driver = $mvc->getDriver($rec->id)){
-    		$uomId = $Driver->getDefaultUom($rec->params['measureId']);
+    		$uomName = $Driver->getDefaultUom($rec->params['measureId']);
+    		$uomId = cat_UoM::fetchBySinonim($uomName)->id;
     		$shortName = cat_UoM::getShortName($uomId);
     	}
     	
@@ -701,7 +715,6 @@ class marketing_Inquiries2 extends embed_Manager
     	$Source = new core_ObjectReference($inqCls, $inqId);
     	expect($Source->haveInterface('marketing_InquirySourceIntf'));
     	$params = $Source->getCustomizationParams();
-    	
     	$form = $this->prepareForm($drvId);
     	
     	$form->rec->params = $params;
@@ -714,7 +727,9 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$Driver->addFields($data->form);
     		$data->driverParams = $params;
-    		$this->invoke('AfterPrepareEditForm', array(&$data, &$data));
+    		$this->expandEditForm($data);
+    		
+    		$Driver->invoke('AfterPrepareEditForm', array($this, &$data, &$data));
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));

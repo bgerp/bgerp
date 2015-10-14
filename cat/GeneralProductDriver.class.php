@@ -63,7 +63,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			$form->setField('photo', 'input=none');
-			$form->setDefault('measureId', $Driver->getDefaultUom($data->driverParams['measureId']));
+			$measureName = $Driver->getDefaultUom($data->driverParams['measureId']);
+			$form->setDefault('measureId', cat_UoM::fetchBySinonim($measureName)->id);
 			$form->setField('measureId', 'display=hidden');
 		}
 		
@@ -141,49 +142,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
 	{
-		if($data->rec->photo){
-			$size = array(280, 150);
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
-		}
-		
-		$data->prepareForPublicDocument = $Driver->prepareForPublicDocument;
-		$data->masterId = $data->rec->id;
-		$data->masterClassId = cat_Products::getClassId();
-		
-		// Рендираме параметрите, само ако не е към запитване
-		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
-			cat_products_Params::prepareParams($data);
-		}
-		
-		return $data;
-	}
-	
-	
-	/**
-	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
-	 * 
-	 * @param stdClass $data
-	 * @return core_ET $tpl
-	 */
-	protected function renderSingleDescription($data)
-	{
-		// Ако не е зададен шаблон, взимаме дефолтния
-		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
-		$tpl->placeObject($data->row);
-		
-		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
-		if(!cls::haveInterface('cat_ProductAccRegIntf', $data->Embedder)){
-			$data->noChange = TRUE;
-		}
-		
-		// Рендираме параметрите винаги ако сме към артикул или ако има записи
-		if($data->noChange !== TRUE || count($data->params)){
-			$paramTpl = cat_products_Params::renderParams($data);
-			$tpl->append($paramTpl, 'PARAMS');
-		}
-		
-		return $tpl;
+		$data->Embedder = $Embedder;
+		$data->isSingle = TRUE;
+		$Driver->prepareProductDescription($data);
 	}
 	
 	
@@ -203,24 +164,24 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
-	 * @param stdClass $rec - запис
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 * @return stdClass - подготвените данни за описанието
+	 * @param stdClass $data
+	 * @return stdClass
 	 */
-	public function prepareProductDescription($rec, $documentType = 'public')
+	public function prepareProductDescription(&$data)
 	{
-		$data = new stdClass();
-		$data->rec = $rec;
-		$data->row = cat_Products::recToVerbal($data->rec);
-		
-		if($documentType == 'public'){
-			$this->prepareForPublicDocument = TRUE;
+		if($data->rec->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
 		}
 		
-		$this->invoke('AfterPrepareSingle', array(cls::get('cat_Products'), &$data, &$data));
-		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
-	
-		return $data;
+		$data->masterId = $data->rec->id;
+		$data->masterClassId = cat_Products::getClassId();
+		
+		// Рендираме параметрите, само ако не е към запитване
+		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $data->Embedder)){
+			cat_products_Params::prepareParams($data);
+		}
 	}
 	
 	
@@ -232,19 +193,32 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderProductDescription($data)
 	{
-		$data->noChange = TRUE;
-		$tpl = new ET("[#innerState#]");
+		// Ако не е зададен шаблон, взимаме дефолтния
+		$layout = ($data->isSingle !== TRUE) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
+		$tpl = getTplFromFile($layout);
+		$tpl->placeObject($data->row);
 		
-		$this->invoke('AfterRenderSingle', array(cls::get('cat_Products'), &$tpl, $data));
-		$title = cat_Products::getShortHyperlink($data->masterId);
-		$tpl->replace($title, "TITLE");
-	
-		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-	
-		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-		$wrapTpl->append($tpl, 'paramBody');
-	
-		return $wrapTpl;
+		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
+		if(!cls::haveInterface('cat_ProductAccRegIntf', $data->Embedder)){
+			$data->noChange = TRUE;
+		}
+		
+		// Рендираме параметрите винаги ако сме към артикул или ако има записи
+		if($data->noChange !== TRUE || count($data->params)){
+			$paramTpl = cat_products_Params::renderParams($data);
+			$tpl->append($paramTpl, 'PARAMS');
+		}
+		
+		if($data->isSingle !== TRUE){
+			$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
+			
+			$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
+			$wrapTpl->append($tpl, 'paramBody');
+			
+			return $wrapTpl;
+		}
+		
+		return $tpl;
 	}
 	
 	
@@ -265,18 +239,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща хендлъра на изображението представящо артикула, ако има такова
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return fileman_FileType $hnd - файлов хендлър на изображението
-	 */
-	public static function getProductImage($rec)
-	{
-		return $rec->photo;
-	}
-	
-	
-	/**
 	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
 	 * @param int $measureId - мярка
@@ -286,9 +248,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		if(!isset($measureId)){
 			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
-			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
+			$defMeasure = (!empty($defMeasure)) ? $defMeasure : cat_UoM::fetchBySinonim('pcs')->id;
 			$measureName = cat_UoM::getShortName($defMeasure);
-			
 			
 			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
 			return $measureName;

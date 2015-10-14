@@ -434,17 +434,15 @@ class doc_DocumentPlg extends core_Plugin
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
         if($rec->state == 'active' || $rec->state == 'rejected'){
-        	$usedDocuments = $mvc->getUsedDocs($rec->id);
-	    	if(count($usedDocuments)){
-	    		$Log = cls::get('doclog_Documents');
-	    		foreach($usedDocuments as $used){
-	    			if($rec->state == 'rejected'){
-	    				$Log::cancelUsed($used->class, $used->id, $mvc, $rec->id);
-	    			} else {
-	    				$Log::used($used->class, $used->id, $mvc, $rec->id);
-	    			}
-	    		}
-	    	}
+            
+            $usedDocuments = $mvc->getUsedDocs($rec->id);
+            foreach((array)$usedDocuments as $usedCid){
+                if($rec->state == 'rejected'){
+                    doclog_Used::remove($containerId, $usedCid);
+                } else {
+                    doclog_Used::add($containerId, $usedCid);
+                }
+            }
         }
     }
     
@@ -1002,7 +1000,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId && $rec->folderId && doc_Folders::haveRightToFolder($rec->folderId)) {
+        if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
         	error('403 Недостъпен ресурс');
         }
         
@@ -2198,20 +2196,16 @@ class doc_DocumentPlg extends core_Plugin
     	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
     	if(count($docs)){
 	    	foreach ($docs as $doc){
-                $mvc = is_object($doc['mvc']) ? $doc['mvc']->className : $mvc;
-	    		$res[$mvc . '-' . $doc['rec']->id] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+	    	    if (isset($doc['rec']->containerId)) {
+	    	        $res[$doc['rec']->containerId] = $doc['rec']->containerId;
+	    	    }
 	    	}
     	}
     	
         // Ако ориджина е от друг тред, добавяме и него
     	if(isset($rec->originId)){
-            $cRec = doc_Containers::fetch($rec->originId);
-            if($cRec->threadId != $rec->threadId) {
-                $document = doc_Containers::getDocument($rec->originId);
-                $res[$document->getInstance()->className . '-' . $document->that] = (object)array('class' => $document->getInstance(), 'id' => $document->that);
-            }
+            $res[$rec->originId] = $rec->originId;
     	}
-
     }
     
     
@@ -2355,7 +2349,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add')
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields')
             || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';

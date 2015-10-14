@@ -260,7 +260,7 @@ class cat_products_Params extends doc_Detail
         $query->where("#productId = {$data->masterId}");
     	
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-    	if($data->prepareForPublicDocument === TRUE){
+    	if($data->documentType === 'public'){
     		$query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
     		$query->where("#showInPublicDocuments = 'yes'");
     	}

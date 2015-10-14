@@ -414,9 +414,7 @@ abstract class deals_Helper
 	 * @param int $id - ид на документа
 	 * @param string $productFld - името на полето в което е ид-то на артикула
 	 * 
-	 * @return арраъ $res - масив с използваните документи
-	 * 					['class'] - Инстанция на документа
-	 * 					['id'] - Ид на документа
+	 * @return array
 	 */
 	public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
 	{
@@ -428,7 +426,8 @@ abstract class deals_Helper
 		$dQuery->where("#{$Detail->masterKey} = '{$id}'");
 		$dQuery->groupBy($productFld);
 		while($dRec = $dQuery->fetch()){
-			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->{$productFld});
+		    $cid = cat_Products::fetchField($dRec->{$productFld}, 'containerId');
+			$res[$cid] = $cid;
 		}
 		
 		return $res;

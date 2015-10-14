@@ -40,6 +40,7 @@ function initDateInput(inputName, opt)
 
  	if(dateInput.tagName == 'INPUT' || dateInput.tagName == 'SELECT') {
 		dateInputBtn.style.height = (dateInput.offsetHeight ) + 'px';
+		dateInputBtn.style.position = 'relative';
 	}
 
 	dateInputBtn.style.visibility = 'visible';

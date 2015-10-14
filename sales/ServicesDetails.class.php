@@ -132,14 +132,8 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-            
-                if($data->masterData->rec->state == 'draft') {
-                    $time = NULL;
-                } else {
-                    $time = $data->masterData->rec->modifiedOn;
-                }
 
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
 
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";

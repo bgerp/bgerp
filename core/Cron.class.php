@@ -259,7 +259,7 @@ class core_Cron extends core_Manager
                 fopen(toUrl(array(
                             'Act' => 'ProcessRun',
                             'id' => str::addHash($rec->id)
-                        ), 'absolute'), 'r');
+                        ), 'absolute-force'), 'r');
             
             } else {
                 // echo "NO";
