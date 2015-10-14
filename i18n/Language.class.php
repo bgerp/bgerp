@@ -29,7 +29,7 @@ class i18n_Language {
     static function detect($text, $prefLangArr = array())
     {
         $res = self::getLgRates($text);
-        
+
         if (!count($res)) {
 
             return ;
@@ -58,6 +58,9 @@ class i18n_Language {
         self::prepareLgAnalyzer();
         
         $rate = array();
+
+        // Премахваме .com
+        $text = str_replace(array('.com', '.COM'), array(), $text);
         
         // Намираме масива от текста
         $arr = self::makeLgArray(mb_substr($text, 0, 1000));
@@ -65,7 +68,7 @@ class i18n_Language {
         foreach(self::$lgAnalyzer as $lg => $dict) {
             
             foreach($dict as $w => $f) {
-                if($arr[$w]) {
+                if($arr[$w]) { if($arr[$w])
                     $rate[$lg] +=   sqrt($f * $arr[$w]);
                 }
             }
@@ -470,6 +473,20 @@ class i18n_Language {
                 bKmhveQ4kpWSn+oalVFb1ZFm1/u5PwmLzv9hN9UppUXWJAHHuvAR6LF4cFojAtkL/SL3Hcg7kjNzeG26
                 AbZTo+AxvsK/G6QtelbguZ0uvl7MNquLnj93Ba0mzjLAmUd1pYlXge/xqFM0A/uoxL9fbK5a+QrisAb/
                 hEZEeV2wL1FvyKroRYzFP/3f//3/MCC8xA==')));
+
+            foreach(array('bg', 'ru', 'mk', 'sr') as $lg) {
+                foreach(self::$lgAnalyzer[$lg] as $word => $rate) {
+                    $word = str::utf2ascii($word);
+                    if(strlen($word) > 4) {
+                        if($word{0} == '*') {
+                            $word = '*' . substr($word, strlen($word)-3, 3);
+                        } else {
+                            $word = substr($word, 0, 3) . '*';
+                        }
+                    }
+                    self::$lgAnalyzer[$lg][$word] = $rate/2;
+                }
+            }
         }
     }
 }
