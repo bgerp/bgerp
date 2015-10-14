@@ -62,10 +62,20 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 			$debitArr = NULL;
 			
 			if($rec->useResourceAccounts == 'yes'){
+				$convertProductId = $dRec->productId;
+				$convertQuantity = $dRec->quantity;
+				if($likeProductId = planning_ObjectResources::fetchField("#objectId = {$dRec->productId}", 'likeProductId')){
+					$convertProductId = $likeProductId;
+					$mProdMeasureId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
+					$lProdMeasureId = cat_Products::getProductInfo($likeProductId)->productRec->measureId;
+					if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
+						$convertQuantity = $convAmount;
+					}
+				}
 				
 				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-				$debitArr = array('61101', array('cat_Products', $dRec->productId),
-								  'quantity' => $dRec->quantity);
+				$debitArr = array('61101', array('cat_Products', $convertProductId),
+								  'quantity' => $convertQuantity);
 				
 				$reason = 'Влагане на материал в производството';
 			} 

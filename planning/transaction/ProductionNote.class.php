@@ -114,6 +114,18 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							if($res->type == 'input'){
 								
 								$pInfo = cat_Products::getProductInfo($res->productId);
+								$convertProductId = $res->productId;
+								$convertQuantity = $res->finalQuantity;
+								
+								if($likeProductId = planning_ObjectResources::fetchField("#objectId = {$res->productId}", 'likeProductId')){
+									$convertProductId = $likeProductId;
+									
+									$mProdMeasureId = $pInfo->productRec->measureId;
+									$lProdMeasureId = cat_Products::getProductInfo($likeProductId)->productRec->measureId;
+									if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
+										$convertQuantity = $convAmount;
+									}
+								}
 								
 								$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($pInfo->meta['canStore'])) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложени материали в производството на артикул');
 								
@@ -121,8 +133,8 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'debit' => array('321', array('store_Stores', $rec->storeId),
 															  array('cat_Products', $dRec->productId),
 												'quantity' => $pQuantity),
-										'credit' => array('61101', array('cat_Products', $res->productId),
-												'quantity' => $res->finalQuantity),
+										'credit' => array('61101', array('cat_Products', $convertProductId),
+												'quantity' => $convertQuantity),
 										'reason' => $reason,
 								);
 							} else {
@@ -133,10 +145,21 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + ($res->propQuantity / $resourceInfo['quantity']));
 								$resQuantity = core_Math::roundNumber($resQuantity);
 								
+								$convertProductId = $res->productId;
+								$convertQuantity = $resQuantity;
+								if($likeProductId = planning_ObjectResources::fetchField("#objectId = {$res->productId}", 'likeProductId')){
+									$convertProductId = $likeProductId;
+									$mProdMeasureId = cat_Products::getProductInfo($res->productId)->productRec->measureId;
+									$lProdMeasureId = cat_Products::getProductInfo($likeProductId)->productRec->measureId;
+									if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
+										$convertQuantity = $convAmount;
+									}
+								}
+								
 								$entry = array(
 										'amount' => $amount,
-										'debit' => array('61101', array('cat_Products', $res->productId),
-														'quantity' => $resQuantity),
+										'debit' => array('61101', array('cat_Products', $convertProductId),
+														'quantity' => $convertQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array('cat_Products', $dRec->productId),
 															'quantity' => $pQuantity),

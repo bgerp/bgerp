@@ -89,11 +89,11 @@ class planning_ObjectResources extends core_Manager
     function description()
     {
     	$this->FLD('objectId', 'key(mvc=cat_Products,select=name)', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като,mandatory');
+    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Влагане като,mandatory,silent');
     	
     	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
-    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,input=none');
+    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Отношение,silent,input=none,notNull,value=1');
     	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност,input=none');
     	
     	// Поставяне на уникални индекси
@@ -121,6 +121,7 @@ class planning_ObjectResources extends core_Manager
     	// Добавяме възможностите за избор на заместващи артикули за влагане
     	if(count($products)){
     		$products = array('' => '') + $products;
+    		
     		$form->setOptions('likeProductId', $products);
     	} else {
     		$form->setReadOnly('likeProductId');
@@ -173,14 +174,6 @@ class planning_ObjectResources extends core_Manager
     				// Ако артикула е вложим, но не е участвал в документ - махаме го
     				if(empty($consumedProducts[$id])){
     					unset($products[$id]);
-    				} else {
-    						
-    					// Ако мярката на артикула е от друг тип - също го мяхаме
-    					// Артикул може да бъде заместван само с артикул с подобна мярка
-    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
-    					if(empty($sameTypeMeasures[$mId])){
-    						unset($products[$id]);
-    					}
     				}
     			} else {
     				unset($products[$id]);
