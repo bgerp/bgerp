@@ -120,11 +120,12 @@ abstract class deals_DealBase extends core_Master
 				// Игнорираме черновите и оттеглените документи
 				continue;
 			}
-	
+			
 			if ($d->haveInterface('bgerp_DealIntf')) {
 				try{
 					$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
-				} catch(Exception $e){
+					
+				} catch(core_exception_Expect $e){
 					$this->logErr('Проблем с пушването на данните на бизнес документ - ' . $e->getMessage(), $dealRec->id);
 				}
 			}
