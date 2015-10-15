@@ -432,4 +432,45 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	
+	/**
+	 * 
+	 * @param core_Detail $mvc
+	 * @param unknown $masterId
+	 * @param unknown $id
+	 * @param unknown $productId
+	 * @param unknown $packagingId
+	 * @param unknown $price
+	 * @param unknown $discount
+	 * @param string $tolerance
+	 * @param string $term
+	 */
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL)
+	{
+		$cond = "#{$mvc->masterKey} = $masterId";
+		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
+		
+		if($mvc->getField('tolerance', FALSE)){
+			$vars['tolerance'] = $tolerance;
+		}
+		if($mvc->getField('term', FALSE)){
+			$vars['term'] = $term;
+		}
+		
+		foreach ($vars as $key => $var){
+			if(isset($var)){
+				$cond .= " AND #{$key} = {$var}";
+			} else {
+				$cond .= " AND #{$key} IS NULL";
+			}
+		}
+		
+		if($id){
+			$cond .= " AND #id != {$id}";
+		}
+		
+		return $mvc->fetch($cond);
+	}
 }

@@ -39,6 +39,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+		
+		$mvc->setDbUnique("{$mvc->masterKey},productId,packagingId,price,quantity,discount");
 	}
 	
 	
@@ -86,7 +88,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	{
 		$rec = &$form->rec;
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-		$update = FALSE;
 	
 		if($form->rec->productId){
 			$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
@@ -121,26 +122,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			
 			if($roundQuantity != $rec->packQuantity){
 				$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-				 
-				// Ако не е чекнат игнора, не продължаваме за да не се изчислят данните
-				if(!Request::get('Ignore')){
-					return;
-				}
-				 
-				// Закръгляме количеството
 				$rec->packQuantity = $roundQuantity;
-			}
-	
-			if(empty($rec->id)){
-				$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #productId = {$rec->productId}";
-				if($form->getField('packagingId', FALSE)){
-					$where .= ($rec->packagingId) ? " AND #packagingId={$rec->packagingId}" : " IS NULL";
-				}
-				if($pRec = $mvc->fetch($where)){
-					$form->setWarning("productId", "Има вече такъв продукт. Искате ли да го обновите?");
-					$rec->id = $pRec->id;
-					$update = TRUE;
-				}
 			}
 	
 			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
@@ -178,14 +160,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
 				} else {
 						
-					// Ако се обновява вече съществуващ запис
-					if($pRec){
-						$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-					}
-						
 					// Ако се обновява запис се взима цената от него, ако не от политиката
-					$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
-					$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+					$rec->price = $policyInfo->price;
+					$rec->packPrice = $policyInfo->price * $rec->quantityInPack;
 				}
 				
 				if($policyInfo->discount && empty($rec->discount)){
@@ -195,14 +172,16 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			} else {
 				// Изчисляване цената за единица продукт в осн. мярка
 				$rec->price  = $rec->packPrice  / $rec->quantityInPack;
-				
-				// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
-				if(!$update || ($update && Request::get('Ignore'))){
-					$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-				}
+				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 			}
-			
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+			
+			// Ако има такъв запис, сетваме грешка
+			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount);
+			if($exRec){
+				$form->setError('productId,packagingId,packPrice,discount', 'Вече съществува запис със същите данни');
+				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+			}
 			
 			// При редакция, ако е променена опаковката слагаме преудпреждение
 			if($rec->id){
