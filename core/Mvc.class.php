@@ -984,6 +984,9 @@ class core_Mvc extends core_FieldSet
                     		}
                     	}
                     } catch(core_exception_Expect $e){
+                        
+                        reportException($e, NULL, TRUE);
+                        
                     	if($mfAttr->field){
                     		$html .= "<li class='debug-error'>Проблем при обновяване на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
                     	} else {
@@ -1043,6 +1046,9 @@ class core_Mvc extends core_FieldSet
                     		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                     	}
                     } catch(core_exception_Expect $e){
+                        
+                        reportException($e, NULL, TRUE);
+                        
                     	$html .= "<li class='debug-error'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
                     }
                 }
