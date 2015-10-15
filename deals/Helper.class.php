@@ -344,6 +344,10 @@ abstract class deals_Helper
 	 */
 	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
+		if(empty($packQuantity)){
+			$packQuantity = 1;
+		}
+		
 		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			

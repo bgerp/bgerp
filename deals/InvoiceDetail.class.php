@@ -59,7 +59,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
-		$mvc->FLD('quantity', 'double', 'caption=К-во,mandatory','tdClass=small-field');
+		$mvc->FLD('quantity', 'double', 'caption=К-во','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
@@ -367,10 +367,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 	
 		if ($form->isSubmitted() && !$form->gotErrors()) {
-	
-			// Извличане на информация за продукта - количество в опаковка, единична цена
-			$rec = &$form->rec;
-	
+			if(empty($rec->quantity)){
+				$rec->quantity = 1;
+			}
+			
 			// Закръгляме количеството спрямо допустимото от мярката
 			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
 			

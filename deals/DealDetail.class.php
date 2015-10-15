@@ -92,7 +92,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('price', 'double', 'caption=Цена,input=none');
     	
     	// Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input');
     	$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
     	
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
@@ -204,6 +204,7 @@ abstract class deals_DealDetail extends doc_Detail
     protected static function inputDocForm(core_Mvc $mvc, core_Form $form)
     {
     	$rec = &$form->rec;
+    	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
     	
@@ -227,8 +228,10 @@ abstract class deals_DealDetail extends doc_Detail
     	if ($form->isSubmitted() && !$form->gotErrors()) {
     	
     		// Извличане на информация за продукта - количество в опаковка, единична цена
-    		$rec = &$form->rec;
-    	
+    		if(empty($rec->packQuantity)){
+    			$rec->packQuantity = 1;
+    		}
+    		
     		// Закръгляме количеството спрямо допустимото от мярката
     		$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId);
     		if($roundQuantity == 0){
