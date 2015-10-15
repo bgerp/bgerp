@@ -2518,6 +2518,27 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
     {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        // Ако има повече от една версия
+        if ($row->LastVersion != 0.1) {
+            // Полета, които ще се показват
+            $headerRes = change_Plugin::getDateAndVersionRow();
+        }
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['*'] = '*';
+        }
+        
+        $tableRows = $mvc->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
     }
     
     
@@ -2546,7 +2567,9 @@ class doc_DocumentPlg extends core_Plugin
         if ($isNarrow) {
             $res = new ET('');
         } else {
-            $res = new ET("<tr>[#1#]</tr><tr>[#2#]</tr>");
+            $one = '_1_FIRST_TR';
+            $two = '_2_SECOND_TR';
+            $res = new ET("<tr>[#{$one}#]</tr><tr>[#{$two}#]</tr>");
         }
         
         $haveVal = FALSE;
@@ -2569,8 +2592,8 @@ class doc_DocumentPlg extends core_Plugin
                 $res->append("</tr>");
             } else {
                 $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
-                $res->append($name, '1');
-                $res->append($val, '2');
+                $res->append($name, $one);
+                $res->append($val, $two);
             }
         }
         

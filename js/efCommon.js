@@ -1734,7 +1734,7 @@ function appendQuote(id, line) {
         	splited.splice(line, 0, "\n" + quoteText);
         	get$(id).value = splited.join("\n");
         } else {
-        	get$(id).value += quoteText + "\n";
+        	get$(id).value += "\n" + quoteText + "\n\n";
         }
     }
     

@@ -344,6 +344,10 @@ abstract class deals_Helper
 	 */
 	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
+		if(empty($packQuantity)){
+			$packQuantity = 1;
+		}
+		
 		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
@@ -431,5 +435,47 @@ abstract class deals_Helper
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Проверява имали такъв запис 
+	 * 
+	 * @param core_Detail $mvc
+	 * @param int $masterId
+	 * @param int $id
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $price
+	 * @param NULL|double $discount
+	 * @param NULL|double $tolerance
+	 * @param NULL|int $term
+	 * @return FALSE|stdClass
+	 */
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL)
+	{
+		$cond = "#{$mvc->masterKey} = $masterId";
+		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
+		
+		if($mvc->getField('tolerance', FALSE)){
+			$vars['tolerance'] = $tolerance;
+		}
+		if($mvc->getField('term', FALSE)){
+			$vars['term'] = $term;
+		}
+		
+		foreach ($vars as $key => $var){
+			if(isset($var)){
+				$cond .= " AND #{$key} = {$var}";
+			} else {
+				$cond .= " AND #{$key} IS NULL";
+			}
+		}
+		
+		if($id){
+			$cond .= " AND #id != {$id}";
+		}
+		
+		return $mvc->fetch($cond);
 	}
 }

@@ -103,7 +103,7 @@ class frame_CsvLib
 				}
 			} else {
 				if(!empty($rec->{"ent{$i}Id"})){
-					$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+					$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleNum');
 				}
 			}
 		}
@@ -111,7 +111,7 @@ class frame_CsvLib
 		// Вербалното представяне на перата
 		foreach (range(1, 6) as $i){
 			if(!empty($rec->{"item{$i}"})){
-				$rows->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'title');
+				$rows->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleNum');
 			}
 		}
 		
