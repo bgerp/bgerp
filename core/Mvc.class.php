@@ -751,7 +751,9 @@ class core_Mvc extends core_FieldSet
                     }
                 }
             } else {
+
                 $fields = FALSE;
+
                 return TRUE;
             }
         }
@@ -760,22 +762,25 @@ class core_Mvc extends core_FieldSet
             $fieldSetFlag = TRUE;
             $cond = $rec->id ? "#id != $rec->id" : '';
 
-            foreach($fArr as $fName) {
+            foreach($fArr as $fName) {  
+                if(!isset($rec->{$fName})) {
+                    $fieldSetFlag = FALSE;
+                    break;
+                }
 
                 $field = $this->getField($fName);
 
-                if(isset($rec->{$fName})){
-                	$value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull, $field->value);
-                	$cond .= ($cond ? " AND " : "") . "#{$fName} = {$value}";
-                } else {
-                	$cond .= ($cond ? " AND " : "") . "#{$fName} IS NULL";
-                }
+                $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull, $field->value);
+
+                $cond .= ($cond ? " AND " : "") . "#{$fName} = {$value}";
             }
- 			
+ 
             // Ако всички полета от множеството са сетнати, правим проверка, дали подобен запис съществува
             if($fieldSetFlag && ($exRec = $this->fetch($cond))) {
-				$fields = $fArr;
-				return FALSE;
+
+                $fields = $fArr;
+
+                return FALSE;
             }
         }
 
