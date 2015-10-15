@@ -144,52 +144,26 @@ class planning_ObjectResources extends core_Manager
     	
     	// Намираме всички артикули, които са били влагане в производството от документи
     	$consumedProducts = array();
-    	$cQuery = planning_ConsumptionNoteDetails::getQuery();
-    	$cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalKey=noteId');
-    	$cQuery->where("#state = 'active'");
-    	$cQuery->show('productId');
-    	while ($cRec = $cQuery->fetch()){
-    		$consumedProducts[$cRec->productId] = $cRec->productId;
-    	}
-    	 
-    	$dQuery = planning_DirectProductNoteDetails::getQuery();
-    	$dQuery->EXT('state', 'planning_DirectProductionNote', 'externalKey=noteId');
-    	$dQuery->where("#state = 'active'");
-    	$dQuery->where("#type = 'input'");
-    	while ($dRec = $dQuery->fetch()){
-    		$consumedProducts[$dRec->productId] = $dRec->productId;
-    	}
-    	 
-    	// Не може да се избере текущия артикул
+    	$consumedProducts = cat_Products::getByProperty('canConvert');
     	unset($consumedProducts[$rec->objectId]);
-    	 
-    	// Намираме всички вложими артикули
-    	$products = cat_Products::getByproperty('canConvert');
     	
-    	if(count($products)){
-    		foreach ($products as $id => $p){
-    			 
+    	if(count($consumedProducts)){
+    		foreach ($consumedProducts as $id => $p){
+    	
     			if(!is_object($p)){
-    	
-    				// Ако артикула е вложим, но не е участвал в документ - махаме го
-    				if(empty($consumedProducts[$id])){
+    				// Ако мярката на артикула е от друг тип - също го мяхаме
+    				// Артикул може да бъде заместван само с артикул с подобна мярка
+    				$mId = cat_Products::getProductInfo($id)->productRec->measureId;
+    				if(empty($sameTypeMeasures[$mId])){
     					unset($products[$id]);
-    				} else {
-    						
-    					// Ако мярката на артикула е от друг тип - също го мяхаме
-    					// Артикул може да бъде заместван само с артикул с подобна мярка
-    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
-    					if(empty($sameTypeMeasures[$mId])){
-    						unset($products[$id]);
-    					}
     				}
     			} else {
-    				unset($products[$id]);
+    				unset($consumedProducts[$id]);
     			}
     		}
     	}
     	
-    	return $products;
+    	return $consumedProducts;
     }
     
     
