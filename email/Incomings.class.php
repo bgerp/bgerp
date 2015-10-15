@@ -406,6 +406,7 @@ class email_Incomings extends core_Master
         } catch (core_exception_Expect $exp) {
             // Обща грешка
             $status = 'error';
+            reportException($e, NULL, TRUE);
         }
         
         // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
