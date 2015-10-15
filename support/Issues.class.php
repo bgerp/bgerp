@@ -1022,4 +1022,62 @@ class support_Issues extends core_Master
             support_Components::markAsUsed($rec->componentId);
         }
     }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array();
+        
+        if ($row->systemId) {
+            $headerRes['systemId'] =  array('name' => tr('Система'), 'val' =>"[#systemId#]");
+        }
+        
+        if ($row->componentId) {
+            $headerRes['componentId'] =  array('name' => tr('Компонент'), 'val' =>"[#componentId#]");
+        }
+        
+        $headerRes['typeId'] =  array('name' => tr('Тип'), 'val' =>"[#typeId#]");
+        
+        if ($row->priority) {
+            $headerRes['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
+        }
+        
+        if ($row->assign) {
+            $headerRes['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " <i>[#assign#]</i> " . tr('от') . " <i>[#assignedBy#]</i> " . tr('в') . " [#assignedOn#]");
+        }
+    
+        // Ако има повече от една версия
+        if ($row->LastVersion != 0.1) {
+            // Полета, които ще се показват
+            $headerRes += change_Plugin::getDateAndVersionRow();
+        }
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['date'] = 'date';
+            $hideArr['version'] = 'version';
+        }
+        
+        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
+    }
 }
