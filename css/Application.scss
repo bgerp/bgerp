@@ -4703,6 +4703,17 @@ body.narrow {
     color:black;
 }
 
+.narrow div.tab-control div.tab-row .tab {
+	font-size: 0.7em;
+	padding: 3px 2px;
+	&.selected {
+	   padding: 3px 2px 4px;
+	   .tooltip-button img {
+	       width: 10px;
+	       height: 10px;
+	   }
+	}
+}
 
 
 /* край на стилове за външната част при потребител контрактор */
