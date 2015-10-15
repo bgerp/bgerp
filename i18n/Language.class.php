@@ -68,7 +68,7 @@ class i18n_Language {
         foreach(self::$lgAnalyzer as $lg => $dict) {
             
             foreach($dict as $w => $f) {
-                if($arr[$w]) { if($arr[$w])
+                if($arr[$w]) {
                     $rate[$lg] +=   sqrt($f * $arr[$w]);
                 }
             }
