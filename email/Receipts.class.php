@@ -25,7 +25,7 @@ class email_Receipts extends email_ServiceEmails
     /**
      * Масив с думи, които НЕ трябва да съществуват в стринга
      */
-    protected static $negativeWordsArr = array('fail', 'sorry', 'rejected', 'not be delivered', "couldn't be delivered");
+    protected static $negativeWordsArr = array('fail', 'sorry', 'rejected', 'not be delivered', "couldn t be delivered");
     
     
     /**
@@ -89,17 +89,38 @@ class email_Receipts extends email_ServiceEmails
     
     
     /**
+     * Проверява дали трябва да е обрабтна разписак
+     * 
+     * @param email_Mime $mime
+     */
+    public static function isForReceipts($mime)
+    {
+        $isGoodTextPart = self::checkTextPart($mime->textPart);
+        
+        // Ако съдържа някои от позитивните или отрицателните думи
+        if (!is_null($isGoodTextPart)) return $isGoodTextPart;
+        
+        // Проверяваме и хедърите за специфични маркери
+        $isGoodHeader = self::checkHeader($mime);
+        
+        return $isGoodHeader;
+    }
+    
+    
+    /**
      * Проверява подадения текст, дали може да е обратна разписка
      * 
      * @param string $text
      * 
-     * @return boolean
+     * @return boolean|NULL
      */
-    public static function isForReceipts($text)
+    protected static function checkTextPart($text)
     {
+        $text = plg_Search::normalizeText($text);
+        
         // При наличие на някоя от негативните думи, прекратяваме
         foreach (self::$negativeWordsArr as $negativeWord) {
-            if (stripos($text, $negativeWord)) {
+            if (stripos($text, $negativeWord) !== FALSE) {
                 
                 return FALSE;
             }
@@ -107,11 +128,28 @@ class email_Receipts extends email_ServiceEmails
         
         // Ако открием съвпадение с някоя дума, от позитивните думи
         foreach (self::$positiveWordsArr as $positveWord) {
-            if (stripos($text, $positveWord)) {
+            if (stripos($text, $positveWord) !== FALSE) {
                 
                 return TRUE;
             }
         }
+    }
+    
+    
+    /**
+     * Проверява хедърите, дали може да е обратна разписка
+     * 
+     * @param email_Mime $mime
+     * 
+     * @return boolean
+     */
+    protected static function checkHeader($mime)
+    {
+        $autoSubmitted = $mime->getHeader('Auto-Submitted', '*');
+        $autoSubmitted = strtolower($autoSubmitted);
+        $autoSubmitted = trim($autoSubmitted);
+        
+        if ($autoSubmitted == 'auto-replied') return TRUE;
         
         return FALSE;
     }
