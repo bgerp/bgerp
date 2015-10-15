@@ -220,6 +220,22 @@ class doc_Notes extends core_Master
     
     
     /**
+     * 
+     * 
+     * @param doc_Notes $mvc
+     * @param object $res
+     * @param object $data
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        if ($data->row->LastVersion != '0.1') {
+            $data->row->currentVersionInHeader = $data->row->LastSelectedVersion ? $data->row->LastSelectedVersion : $data->row->FirstSelectedVersion;
+            $data->row->currentVersionInHeader = $data->row->currentVersionInHeader ? $data->row->currentVersionInHeader : $data->row->LastVersion;
+        }
+    }
+    
+    
+    /**
      * Интерфейсен метод, който връща антетката на документа
      * 
      * @param stdObject $rec
@@ -233,11 +249,13 @@ class doc_Notes extends core_Master
     {
         $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
         
-        $headerRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#] / <!--ET_END LastSelectedVersionDate--><!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_BEGIN FirstSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
-        				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#] <!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN LastSelectedVersion-->[#LastSelectedVersion#] / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSIONREMOVE-->"),
-        				   'handle' => array('name' => 'Ref №', 'val' =>"[#handle#]"));
+        $headerRes = change_Plugin::getDateAndVersionRow();
+        
+        $headerRes['handle'] =  array('name' => 'Ref №', 'val' =>"[#handle#]");
         
         $hideArr = array();
+        
+        // Да се скрият всички полета, ако няма избрана версия
         if (!$row->FirstSelectedVersion) {
             $hideArr['*'] = '*';
         }

@@ -39,6 +39,20 @@ class change_Plugin extends core_Plugin
     
     
     /**
+     * 
+     * 
+     * @return array
+     */
+    public static function getDateAndVersionRow()
+    {
+        $rowRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#] / <!--ET_END LastSelectedVersionDate--><!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_BEGIN FirstSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
+            				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#] <!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN LastSelectedVersion-->[#LastSelectedVersion#] / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSIONREMOVE-->"));
+        
+        return $rowRes;
+    }
+    
+    
+    /**
      * Добавя бутони за контиране или сторниране към единичния изглед на документа
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
@@ -439,15 +453,12 @@ class change_Plugin extends core_Plugin
             }
         } else {
             
-            // Ако има само една версия, да не се показва
-            if ($lastVerDocArr['versionStr'] != '0.1') {
-                // Добавяме в друга променлива
-                $data->row->LastVersion = $lastVerDocArr['versionStr'];
-                
-                // Ако е върната дата
-                if ($lastVerDocArr['createdOn']) {
-                    $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
-                }
+            // Добавяме в друга променлива
+            $data->row->LastVersion = $lastVerDocArr['versionStr'];
+            
+            // Ако е върната дата
+            if ($lastVerDocArr['createdOn']) {
+                $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         }
         
