@@ -434,18 +434,19 @@ abstract class deals_Helper
 	}
 	
 	
-	
 	/**
+	 * Проверява имали такъв запис 
 	 * 
 	 * @param core_Detail $mvc
-	 * @param unknown $masterId
-	 * @param unknown $id
-	 * @param unknown $productId
-	 * @param unknown $packagingId
-	 * @param unknown $price
-	 * @param unknown $discount
-	 * @param string $tolerance
-	 * @param string $term
+	 * @param int $masterId
+	 * @param int $id
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $price
+	 * @param NULL|double $discount
+	 * @param NULL|double $tolerance
+	 * @param NULL|int $term
+	 * @return FALSE|stdClass
 	 */
 	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL)
 	{
