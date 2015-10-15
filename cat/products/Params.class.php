@@ -141,10 +141,8 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
-        $masterTitle = cat_Products::getTitleById($form->rec->productId);
         
     	if(!$form->rec->id){
-    		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->id);
@@ -225,15 +223,8 @@ class cat_products_Params extends doc_Detail
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $tpl->replace(get_called_class(), 'DetailName');
         
-        $title = tr('Параметри');
-        if(cat_Params::haveRightFor('list') && $data->noChange !== TRUE){
-        	$title = ht::createLink($title, array('cat_Params', 'list'));
-        }
-        
-        $tpl->append($title, 'TITLE');
-        
         if($data->noChange !== TRUE){
-        	$tpl->append($data->changeBtn, 'TITLE');
+        	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
         foreach((array)$data->params as $row) {

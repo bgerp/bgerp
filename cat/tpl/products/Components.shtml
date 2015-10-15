@@ -1,4 +1,4 @@
-<legend class='groupTitle'><span class='quiet'>|Параметри|*</span> [#addParamBtn#]</legend>
+<legend class='groupTitle'><span class='quiet'>|Компоненти|*</span> [#addComponentBtn#]</legend>
   <div class='groupList'>
     [#NO_ROWS#]
     <table class='no-border small-padding'>
@@ -6,8 +6,8 @@
 		[#param#]
 		<tr>
 		    <td>&nbsp;-&nbsp;</td>
-		    <td>[#paramId#]:</td>
-		    <td style = "text-indent: 7px">[#paramValue#]</td>
+		    <td>[#componentId#]:</td>
+		    <td style = "text-indent: 7px">[#quantity#]</td>
 		    <td style = "text-indent: 3px"> [#tools#]</td>
 		 </tr>
 		<!--ET_END param-->

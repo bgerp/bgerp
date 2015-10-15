@@ -181,6 +181,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		// Рендираме параметрите, само ако не е към запитване
 		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $data->Embedder)){
 			cat_products_Params::prepareParams($data);
+			cat_products_Components::prepareComponents($data);
 		}
 	}
 	
@@ -207,6 +208,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		if($data->noChange !== TRUE || count($data->params)){
 			$paramTpl = cat_products_Params::renderParams($data);
 			$tpl->append($paramTpl, 'PARAMS');
+		}
+		
+		// Рендираме параметрите винаги ако сме към артикул или ако има записи
+		if($data->noChange !== TRUE || count($data->components)){
+			$componentTpl = cat_products_Components::renderComponents($data);
+			$tpl->append($componentTpl, 'COMPONENTS');
 		}
 		
 		if($data->isSingle !== TRUE){
