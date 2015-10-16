@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -1102,7 +1102,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
     	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
-    	$form->info = '<b>Контиране на извършени на момента действия</b> (опционално):';
+    	$form->info = tr('|*<b>|Контиране на извършени на момента действия|*</b> (|опционално|*):');
     	
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
@@ -1156,7 +1156,6 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Контиране на документа
     		$this->conto($id);
     		 
-    		// Записваме, че потребителя е разглеждал този списък
     		$this->logInfo("Активиране/Контиране на сделка", $id);
     		
     		// Редирект
