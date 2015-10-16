@@ -1,11 +1,11 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 
-    <!--ET_BEGIN description--> 
     <div style='padding:6px 10px 10px;'>
     	<h3 class='richtext-title'>[#title#]</h3>
-        <div>[#description#]</div>
+    	<!--ET_BEGIN description--> 
+        	<div>[#description#]</div>
+        <!--ET_END description--> 
     </div>
-    <!--ET_END description--> 
     <!--ET_BEGIN bottomAntetka-->
     [#bottomAntetka#]
     <div class='bottom-antetka'>
