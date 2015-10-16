@@ -7,12 +7,13 @@
 </div>
 <!--ET_END image-->
 
+<div class="groupList" style='margin-bottom:5px'><span class='quiet'>|Мярка|*:</span> [#measureId#]</div>
+
 <!--ET_BEGIN COMPONENTS-->
 <div>
 [#COMPONENTS#]
 </div>
 <!--ET_END COMPONENTS-->
-<div class="groupList"><span class='quiet'>|Мярка|*:</span> [#measureId#]</div>
 
 <!--ET_BEGIN info-->
 <div class="groupList richtext" style='margin-top:8px;margin-bottom:8px'>[#info#]</div>
