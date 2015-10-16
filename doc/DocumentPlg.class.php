@@ -2591,7 +2591,7 @@ class doc_DocumentPlg extends core_Plugin
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $name = new ET("<th class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</th>");
                 $res->append($name, $one);
                 $res->append($val, $two);
             }
