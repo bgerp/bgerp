@@ -381,6 +381,8 @@ function toggleFormGroup(id)
 		$('.fs' + id).fadeOut('slow');
 	}
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
+	$('.fs-toggle' + id).toggleClass('openToggleRow');
+	
 }
 
 
