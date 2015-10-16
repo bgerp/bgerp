@@ -870,6 +870,8 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
+  .portal:not(.detail-info) .state-closed {
+    background-color: transparent !important; }
   .portal .legend {
     position: absolute;
     top: -16px;
@@ -911,8 +913,6 @@ div.acc-detail {
       vertical-align: top !important; }
     .portal table.listTable .portal-date {
       width: 1%; }
-  .portal:not('.detail-info').state-closed {
-    background-color: transparent !important; }
 
 .portal.planning table.listTable th {
   border: 1px solid #cccccc;
