@@ -2585,7 +2585,7 @@ class doc_DocumentPlg extends core_Plugin
             $val = new ET("<td>{$value['val']}</td>");
             
             if ($isNarrow) {
-                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
                 $res->append("<tr>");
                 $res->append($name);
                 $res->append($val);
