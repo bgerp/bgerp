@@ -1019,7 +1019,7 @@ div.acc-detail {
 		    width:1%;
 		}
     }
-    .state-closed {
+    &:not('.detail-info').state-closed {
         background-color: transparent !important;
     }
 }

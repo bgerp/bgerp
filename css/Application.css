@@ -911,7 +911,7 @@ div.acc-detail {
       vertical-align: top !important; }
     .portal table.listTable .portal-date {
       width: 1%; }
-  .portal .state-closed {
+  .portal:not('.detail-info').state-closed {
     background-color: transparent !important; }
 
 .portal.planning table.listTable th {
