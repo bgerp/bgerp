@@ -208,7 +208,7 @@ class doc_Comments extends core_Master
                 }
             }
             
-            $defaultShared = $mvc->getDefaultShared($cid);
+            $defaultShared = $mvc->getDefaultShared($rec, $cid);
             $data->form->setDefault('sharedUsers', $defaultShared);
         }
     }

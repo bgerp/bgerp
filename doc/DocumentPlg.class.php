@@ -2611,13 +2611,13 @@ class doc_DocumentPlg extends core_Plugin
      * @param NULL|array $res
      * @param integer $cid
      */
-    function on_AfterGetDefaultShared($mvc, &$res, $cid)
+    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
     {
         $res = arr::make($res, TRUE);
         
-        if (!$cid) return ;
+        if (!$originId) return ;
         
-        $document = doc_Containers::getDocument($cid);
+        $document = doc_Containers::getDocument($originId);
         $dRec = $document->fetch();
         
         $createdBy = NULL;
