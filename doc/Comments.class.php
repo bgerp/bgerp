@@ -207,6 +207,9 @@ class doc_Comments extends core_Master
                     $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
                 }
             }
+            
+            $defaultShared = $mvc->getDefaultShared($rec, $cid);
+            $data->form->setDefault('sharedUsers', $defaultShared);
         }
     }
     

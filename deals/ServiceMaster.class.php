@@ -105,13 +105,15 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		$aggregatedDealInfo = $origin->getAggregateDealInfo();
 		$agreedProducts = $aggregatedDealInfo->get('products');
-	
+		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
+		
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $product) {
 				$info = cat_Products::getProductInfo($product->productId);
+				$delivered = $shippedProducts[$product->productId]->quantity;
 				
 				// Колко остава за експедиране от продукта
-				$toShip = $product->quantity - $product->quantityDelivered;
+				$toShip = $product->quantity - $delivered;
 				 
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;

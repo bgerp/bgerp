@@ -266,13 +266,17 @@ class email_Router extends core_Manager
      * Добавя правило ако е с по-висок приоритет от всички налични правила със същия ключ и тип.
      *
      * @param stdClass $rule запис на модела email_Router
+     * @param boolean $updateRec
      */
-    static function saveRule($rule)
+    static function saveRule($rule, $updateRec = TRUE)
     {
         $query = static::getQuery();
         $query->orderBy('priority', 'DESC');
         
         $rec = $query->fetch(array("#key = '[#1#]' AND #type = '[#2#]'", $rule->key, $rule->type));
+        
+        // Ако няма да се обновява записа и има такъв запис, не променяме стойността
+        if (!$updateRec && $rec->id) return ;
         
         if (strcmp("{$rec->priority}", "{$rule->priority}") < 0) {
             // Досегашното правило за тази двойка <type, key> е с по-нисък приоритет

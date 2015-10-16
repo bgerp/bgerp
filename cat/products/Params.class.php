@@ -153,7 +153,6 @@ class cat_products_Params extends doc_Detail
 	        }
 	        $form->setOptions('paramId', $options);
     	} else {
-    		$form->title = "Редактиране на параметър към|* <b>{$masterTitle}</b>";
     		$form->setReadOnly('paramId');
     	}
     	

@@ -1622,33 +1622,45 @@ td.keylist-group {
     padding: 4px !important;
     font-size: 0.95em;
     margin-top: 1px;
-    cursor: pointer; }
-    td.keylist-group > div img {
-      float: right;
+    cursor: pointer;
+    position: relative; }
+    td.keylist-group > div .minus,
+    td.keylist-group > div .plus {
+      position: absolute;
+      right: 3px;
+      top: 5px;
       display: none; }
+    td.keylist-group > div .invert-checkbox {
+      float: left;
+      display: block;
+      margin-right: 5px; }
+    td.keylist-group > div .hidden {
+      display: none !important; }
 
-.narrow .keylistCategory . img {
-  position: relative;
-  top: 2px; }
+.formGroup {
+  position: relative; }
+  .formGroup img {
+    display: inline-block;
+    position: absolute;
+    top: 7px;
+    right: 5px; }
 
-  .keylistCategory .invert-checkbox {
-    float: left;
-    display: block;
-    margin-right: 5px; }
-  .keylistCategory .hidden {
-    display: none !important; }
+  .narrow td.keylist-group .minus,
+  .narrow td.keylist-group .plus {
+    top: 7px; }
+  .narrow td.keylist-group .invert-checkbox {
+    position: relative;
+    top: 2px; }
 
-.formGroup img {
-  float: right;
-  display: none;
-  position: relative;
-  top: 2px; }
+.hiddenFormRow {
+  display: none; }
 
-  .opened td.keylist-group > div .plus,
-  .formGroup .plus {
+    .openToggleRow .formGroup .btns-icon {
+      display: none !important; }
+
+  .opened td.keylist-group > div .plus {
     display: none; }
-  .opened td.keylist-group > div .minus,
-  .formGroup .minus {
+  .opened td.keylist-group > div .minus {
     display: inline-block; }
 
   .closed td.keylist-group > div .minus {

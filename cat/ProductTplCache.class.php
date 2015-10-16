@@ -235,6 +235,8 @@ class cat_ProductTplCache extends core_Master
 					$name .= "v{$count}";
 				}
 				$name .= ")";
+			} else {
+				$name .= " (" . cat_Products::getVerbal($cache->rec, 'code') . ")";
 			}
 			
 			$name = ht::createLinkRef($name, cat_Products::getSingleUrlArray($cache->rec->id));

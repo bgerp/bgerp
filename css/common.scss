@@ -1734,38 +1734,58 @@ td.keylist-group{
 	    font-size: 0.95em;
 	    margin-top: 1px;
 	    cursor: pointer; 
-	    img {
-	       float: right;
+	    position: relative;
+	  
+	    .minus, .plus {
+	       position: absolute;
+	       right: 3px;
+           top: 5px;
 	       display: none;
 	    } 
+	    .invert-checkbox {
+	       float: left;
+	       display: block;
+	       margin-right: 5px;
+	    }
+	     .hidden {
+	        display: none !important;
+	    }
     }
 }
 
-
-
-.narrow .keylistCategory . img{
-    position: relative;
-    top: 2px;
-}
-
-.keylistCategory{
-	.invert-checkbox {
-	   float: left;
-	   display: block;
-	   margin-right: 5px;
+.formGroup {
+	position: relative;
+	img {
+	    display: inline-block;
+	    position: absolute;
+	    top: 7px;
+	    right: 5px;
 	}
-	 .hidden {
-        display: none !important;
-    }
-}
-.formGroup img {
-    float: right;
-    display: none;
-    position: relative;
-    top: 2px;
 }
 
-.opened td.keylist-group > div, .formGroup {
+.narrow td.keylist-group {
+    .minus, .plus  {
+        top: 7px;
+    }
+    .invert-checkbox {
+       position: relative;
+       top: 2px;
+    }
+}
+
+.hiddenFormRow {
+	display: none;
+}
+
+.openToggleRow {
+    .formGroup {
+        .btns-icon{
+		   display: none !important;
+	    }
+    }
+}
+
+.opened td.keylist-group > div {
 	.plus {
 		display: none;
 	}

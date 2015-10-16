@@ -973,6 +973,9 @@ div.acc-detail {
 	@include border-radius(5px);
 	background-color: white;
 	position: relative;
+	&:not(.detail-info) .state-closed {
+        background-color: transparent !important;
+    }
 	.legend {
 		position: absolute;
 		top: -16px;
@@ -1019,9 +1022,7 @@ div.acc-detail {
 		    width:1%;
 		}
     }
-    .state-closed {
-        background-color: transparent !important;
-    }
+    
 }
 
 .portal.planning table.listTable th {

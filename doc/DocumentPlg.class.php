@@ -2585,13 +2585,13 @@ class doc_DocumentPlg extends core_Plugin
             $val = new ET("<td>{$value['val']}</td>");
             
             if ($isNarrow) {
-                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
                 $res->append("<tr>");
                 $res->append($name);
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $name = new ET("<th class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</th>");
                 $res->append($name, $one);
                 $res->append($val, $two);
             }
@@ -2599,6 +2599,39 @@ class doc_DocumentPlg extends core_Plugin
         
         if (!$haveVal) {
             $res = NULL;
+        }
+    }
+    
+    
+    /**
+     * Връща споделените потребители по подразбиране.
+     * Ако създаделе не е текущият потребител, тогава се връща.
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer $cid
+     */
+    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
+    {
+        $res = arr::make($res, TRUE);
+        
+        if (!$originId) return ;
+        
+        $document = doc_Containers::getDocument($originId);
+        $dRec = $document->fetch();
+        
+        $createdBy = NULL;
+        
+        if ($dRec->createdBy > 0) {
+            $createdBy = $dRec->createdBy;
+        } elseif ($dRec->modifiedBy > 0) {
+            $createdBy = $dRec->modifiedBy;
+        }
+        
+        if (isset($createdBy)) {
+            if ($createdBy != core_Users::getCurrent()) {
+                $res[$createdBy] = $createdBy;
+            }
         }
     }
 }
