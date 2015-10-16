@@ -288,4 +288,37 @@ class doc_SharablePlg extends core_Plugin
     {
         doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
+    
+    
+    /**
+     * Връща споделените потребители по подразбиране.
+     * Ако създаделе не е текущият потребител, тогава се връща.
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer $cid
+     */
+    function on_AfterGetDefaultShared($mvc, &$res, $cid)
+    {
+        $res = arr::make($res, TRUE);
+        
+        if (!$cid) return ;
+        
+        $document = doc_Containers::getDocument($cid);
+        $dRec = $document->fetch();
+        
+        $createdBy = NULL;
+        
+        if ($dRec->createdBy > 0) {
+            $createdBy = $dRec->createdBy;
+        } elseif ($dRec->modifiedBy > 0) {
+            $createdBy = $dRec->modifiedBy;
+        }
+        
+        if (isset($createdBy)) {
+            if ($createdBy != core_Users::getCurrent()) {
+                $res[$createdBy] = $createdBy;
+            }
+        }
+    }
 }
