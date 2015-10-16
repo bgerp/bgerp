@@ -662,4 +662,45 @@ class blast_Lists extends core_Master
         
         return $rec->lg;
     }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array();
+        
+        $allFieldsArr = array('title' => 'Заглавие',
+        						'keyField' => 'Ключово поле',
+        						'allFields' => 'Всички полета',
+        						'DetailsCnt' => 'Брой имейли',
+        						'lg' => 'Език',
+        						'lastUsedOn' => 'Последна употреба'
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $headerRes[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        $headerRes[$fieldName] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+        
+        $tableRows = $this->prepareHeaderLines($headerRes);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
+    }
 }
