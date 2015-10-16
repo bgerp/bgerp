@@ -444,6 +444,7 @@ class purchase_Purchases extends deals_DealMaster
             $result->setIfNot('shippedValior', $rec->valior);
         }
         
+        $agreed = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
