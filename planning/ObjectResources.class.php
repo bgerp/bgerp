@@ -68,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,likeProductId=Влагане като';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като,conversionRate=Отношение';
     
     
     /**
@@ -93,8 +93,7 @@ class planning_ObjectResources extends core_Manager
     	
     	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
-    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Отношение,silent,input=none,notNull,value=1');
-    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност,input=none');
+    	$this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('objectId');
@@ -146,22 +145,6 @@ class planning_ObjectResources extends core_Manager
     	$consumedProducts = array();
     	$consumedProducts = cat_Products::getByProperty('canConvert');
     	unset($consumedProducts[$rec->objectId]);
-    	
-    	if(count($consumedProducts)){
-    		foreach ($consumedProducts as $id => $p){
-    	
-    			if(!is_object($p)){
-    				// Ако мярката на артикула е от друг тип - също го мяхаме
-    				// Артикул може да бъде заместван само с артикул с подобна мярка
-    				$mId = cat_Products::getProductInfo($id)->productRec->measureId;
-    				if(empty($sameTypeMeasures[$mId])){
-    					unset($products[$id]);
-    				}
-    			} else {
-    				unset($consumedProducts[$id]);
-    			}
-    		}
-    	}
     	
     	return $consumedProducts;
     }
@@ -288,6 +271,10 @@ class planning_ObjectResources extends core_Manager
     	if(isset($rec->likeProductId)){
     		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
     	}
+    	
+    	if(!$rec->conversionRate){
+    		$row->conversionRate = 1;
+    	}
     }
     
     
@@ -352,12 +339,17 @@ class planning_ObjectResources extends core_Manager
     	$convertProductId = $productId;
     	$convertQuantity = $quantity;
     	
-    	if($likeProductId = planning_ObjectResources::fetchField("#objectId = {$productId}", 'likeProductId')){
-    		$convertProductId = $likeProductId;
-    		$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
-    		$lProdMeasureId = cat_Products::getProductInfo($likeProductId)->productRec->measureId;
-    		if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
-    			$convertQuantity = $convAmount;
+    	if($info = planning_ObjectResources::fetch("#objectId = {$productId}")){
+    		$convertProductId = $info->likeProductId;
+    		
+    		if(empty($info->conversionRate)){
+    			$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    			$lProdMeasureId = cat_Products::getProductInfo($info->likeProductId)->productRec->measureId;
+    			if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
+    				$convertQuantity = $convAmount;
+    			}
+    		} else {
+    			$convertQuantity = $info->conversionRate * $convertQuantity;
     		}
     	}
     	
