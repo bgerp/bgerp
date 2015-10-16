@@ -1,7 +1,7 @@
 <legend class='groupTitle'><span class='quiet'>|Компоненти|*</span> [#addComponentBtn#]</legend>
   <div class='groupList'>
     [#NO_ROWS#]
-    <table class='no-border small-padding'>
+    <table class='no-border small-padding' style='margin-bottom:5px'>
 		<!--ET_BEGIN param-->
 		[#param#]
 		<tr>

@@ -6,18 +6,18 @@
     </div>
 </div>
 <!--ET_END image-->
+
+<!--ET_BEGIN COMPONENTS-->
+<div>
+[#COMPONENTS#]
+</div>
+<!--ET_END COMPONENTS-->
 <div class="groupList"><span class='quiet'>|Мярка|*:</span> [#measureId#]</div>
 
 <!--ET_BEGIN info-->
 <div class="groupList richtext" style='margin-top:8px;margin-bottom:8px'>[#info#]</div>
-<!--ET_BEGIN info-->
+<!--ET_END info-->
 
 <!--ET_BEGIN PARAMS-->
 [#PARAMS#]
 <!--ET_END PARAMS-->
-
-<!--ET_BEGIN COMPONENTS-->
-<div style='margin-top:5px'>
-[#COMPONENTS#]
-</div>
-<!--ET_END COMPONENTS-->
