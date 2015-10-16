@@ -478,4 +478,58 @@ abstract class deals_Helper
 		
 		return $mvc->fetch($cond);
 	}
+	
+	
+	/**
+	 * Сумиране на записи от бизнес документи по артикули
+	 * 
+	 * @param $arrays - масив от масиви със детайли на бизнес документи
+	 * @return array
+	 */
+	public static function normalizeProducts($arrays)
+	{
+		$combined = array();
+		$indexArr = arr::make($indexArr);
+		
+		if(is_array($arrays)){
+			foreach ($arrays as $arr){
+				if(is_array($arr)){
+					foreach ($arr as $p){
+						$index = $p->productId;
+						
+						if(!isset($combined[$index])){
+							$combined[$index] = new stdClass();
+							$combined[$index]->productId = $p->productId;
+						}
+					
+						$d = &$combined[$index];
+						$d->price = max($d->price, $p->price);
+						$d->quantity += $p->quantity;
+						$d->sumAmounts += $p->quantity * $p->price * (1 - $p->discount);
+						
+						if(empty($d->packagingId)){
+							$d->packagingId = $p->packagingId;
+							$d->quantityInPack = $p->quantityInPack;
+						} else {
+							if($p->quantityInPack < $d->quantityInPack){
+								$d->packagingId = $p->packagingId;
+								$d->quantityInPack = $p->quantityInPack;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(count($combined)){
+			foreach ($combined as &$det){
+				$discount = 1 - $det->sumAmounts / ($det->quantity * $det->price);
+				if($discount){
+					$det->discount = abs($discount);
+				}
+			}
+		}
+		
+		return $combined;
+	}
 }

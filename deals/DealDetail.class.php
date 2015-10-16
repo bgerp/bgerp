@@ -82,8 +82,6 @@ abstract class deals_DealDetail extends doc_Detail
     	// Количество в основна мярка
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
     	
-    	$mvc->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
-    	
     	// Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
     	// няма стойност, приема се за единица.
     	$mvc->FLD('quantityInPack', 'double', 'input=none');
@@ -391,14 +389,5 @@ abstract class deals_DealDetail extends doc_Detail
     	}
     	
     	return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
-    }
-    
-    
-    /**
-     * Изпълнява се преди запис на клониран детайл
-     */
-    public static function on_BeforeSaveClonedDetail($mvc, &$rec)
-    {
-    	unset($rec->quantityDelivered);
     }
 }

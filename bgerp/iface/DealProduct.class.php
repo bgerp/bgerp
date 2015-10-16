@@ -13,12 +13,7 @@
  */
 class bgerp_iface_DealProduct
 {
-    /**
-     * Продукт-мениджър (наследник на @link core_Manager)
-     *
-     * @var int|string|core_Manager
-     */
-    public $classId;
+
     
     /**
      * Първичен ключ на продукт (в рамките на мениджъра му)
@@ -49,13 +44,6 @@ class bgerp_iface_DealProduct
      * @var double
      */
     public $quantity;
-    
-    /**
-     * Количество
-     *
-     * @var double
-     */
-    public $quantityDelivered;
     
     /**
      * Количество
@@ -107,47 +95,4 @@ class bgerp_iface_DealProduct
      * Забележки
      */
     public $notes;
-    
-    
-    /**
-     * Първичния ключ на мениджъра на продукта
-     *
-     * @return int key(mvc=core_Classes)
-     */
-    public function getClassId()
-    {
-        return cls::get($this->classId)->getClassId();
-    }
-    
-    
-    /**
-     * Проверява дали два продукта от сделка са съпоставими
-     *
-     * Съпоставими са продуктите от един и същ мениджър и първичен ключ и се търгуват в една и
-     * съща опаковка.
-     *
-     * @param bgerp_iface_DealProduct $p продукта, с който сравняваме
-     * @return boolean
-     */
-    public function isEqual(bgerp_iface_DealProduct $p)
-    {
-        return $this->isIdentifiedBy($p->productId, $p->getClassId(), $p->packagingId);
-    }
-    
-    
-    /**
-     * Проверява дали два продукта от сделка са съпоставими
-     *
-     * Съпоставими са продуктите от един и същ мениджър и първичен ключ и се търгуват в една и
-     * съща опаковка.
-     *
-     * @param bgerp_iface_DealProduct $p продукта, с който сравняваме
-     * @return boolean
-     */
-    public function isIdentifiedBy($productId, $classId, $packagingId)
-    {
-        return $classId == $this->getClassId() &&
-        $productId == $this->productId &&
-        $packagingId == $this->packagingId;
-    }
 }

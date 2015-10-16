@@ -183,7 +183,7 @@ abstract class store_DocumentMaster extends core_Master
     	return $this->save($rec);
     }
     
-
+    
     /**
      * След създаване на запис в модела
      */
@@ -200,15 +200,17 @@ abstract class store_DocumentMaster extends core_Master
     
     		$aggregatedDealInfo = $origin->getAggregateDealInfo();
     		$agreedProducts = $aggregatedDealInfo->get('products');
+    		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
     		$Detail = $mvc->mainDetail;
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $product) {
     				$info = cat_Products::getProductInfo($product->productId);
-    				 
+    				$delivered = $shippedProducts[$product->productId]->quantity;
+    				
     				// Колко остава за експедиране от продукта
-    				$toShip = $product->quantity - $product->quantityDelivered;
-    				 
+    				$toShip = $product->quantity - $delivered;
+    				
     				// Пропускат се експедираните и нескладируемите продукти
     				if (!isset($info->meta['canStore']) || ($toShip <= 0)) continue;
     				 
@@ -225,7 +227,7 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->volume      = $product->volume;
     				$shipProduct->quantityInPack = $product->quantityInPack;
     				 
-    				$mvc->$Detail->save($shipProduct);
+    				$Detail::save($shipProduct);
     			}
     		}
     	}

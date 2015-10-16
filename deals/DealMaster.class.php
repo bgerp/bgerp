@@ -923,26 +923,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
-    	
-    	$dQuery = $mvc->$Detail->getQuery();
-    	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
-    	
-    	// Намираме всички експедирани продукти, и обновяваме на договорените колко са експедирани
-    	$shippedProducts = $aggregateDealInfo->get('shippedProducts');
-    	while($product = $dQuery->fetch()){
-    		$delivered = 0;
-    		if(count($shippedProducts)){
-    			foreach ($shippedProducts as $key => $shipped){
-    				if($product->productId == $shipped->productId){
-    					$delivered = $shipped->quantity;
-    					break;
-    				}
-    			}
-    		}
-    		
-    		$product->quantityDelivered = $delivered;
-    		$mvc->$Detail->save($product);
-    	}
     }
     
    
@@ -972,49 +952,16 @@ abstract class deals_DealMaster extends deals_DealBase
     			
     			$products = (array)$dealInfo->get('products');
     			if(count($products)){
-    				foreach ($products as $p){
-    					if(!isset($details[$p->productId])){
-    						$details[$p->productId] = new stdClass();
-    						$details[$p->productId]->productId = $p->productId;
-    					}
-    					
-    					$d = &$details[$p->productId];
-    					$d->price = max($d->price, $p->price);
-    					$d->quantity += $p->quantity;
-    					$d->sumAmounts += $p->quantity * $p->price * (1 - $p->discount);
-    					
-						$info = cat_Products::getProductInfo($p->productId);
-    					$p->quantityInPack = ($info->packagings[$p->packagingId]) ? $info->packagings[$p->packagingId]->quantity : 1;
-    						
-    					if(empty($d->packagingId)){
-    						$d->packagingId = $p->packagingId;
-    						$d->quantityInPack = $p->quantityInPack;
-    					} else {
-    						if($p->quantityInPack < $d->quantityInPack){
-    							$d->packagingId = $p->packagingId;
-    							$d->quantityInPack = $p->quantityInPack;
-    						}
-    					}
-    					continue;
-    				}
+    				$details[] = $products;
     			}
     		}
     	}
-    	 
-    	if(count($details)){
-    		foreach ($details as &$det){
-    			$discount = 1 - $det->sumAmounts / ($det->quantity * $det->price);
-    			if($discount){
-    				$det->discount = round(abs($discount), 6);
-    			}
-    		}
-    	}
-    	
-    	$Detail = $mvc->mainDetail;
-    	
+
     	// Изтриваме досегашните детайли на сделката
-    	$mvc->$Detail->delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
+    	$Detail = $mvc->mainDetail;
+    	$Detail::delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
     	
+    	$details = deals_Helper::normalizeProducts($details);
     	if(count($details)){
     		foreach ($details as &$det1){
     			$det1->{$mvc->$Detail->masterKey} = $rec->id;

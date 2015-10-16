@@ -469,9 +469,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getShippedProducts($id, $accs = '321,302,601,602,60010,60020', $groupByStore = FALSE)
     {
     	$res = array();
-    	$query = purchase_PurchasesDetails::getQuery();
-    	$query->where("#requestId = '{$id}'");
-    	$query->show('id, productId, quantityDelivered');
     
     	// Намираме всички транзакции с перо сделката
     	$jRecs = self::getEntries($id);

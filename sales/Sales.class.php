@@ -550,22 +550,16 @@ class sales_Sales extends deals_DealMaster
             $result->setIfNot('shippedValior', $rec->valior);
         }
         
+        $aggreed = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            
-            $p->productId         = $dRec->productId;
-            $p->packagingId       = $dRec->packagingId;
-            $p->discount          = $dRec->discount;
-            $p->quantity          = $dRec->quantity;
-            $p->quantityInPack    = $dRec->quantityInPack;
-            $p->quantityDelivered = $dRec->quantityDelivered;
-            $p->price             = $dRec->price;
-            $p->notes			  = $dRec->notes;
-            
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
+            	$p->{$fld} = $dRec->{$fld};
+            }
             $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
             $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
             
-            $result->push('products', $p);
+            $agreed[] = $p;
             
             $push = TRUE;
             $index = $p->productId;
@@ -584,6 +578,8 @@ class sales_Sales extends deals_DealMaster
             }
          }
          
+         $agreed = deals_Helper::normalizeProducts(array($agreed));
+         $result->set('products', $agreed);
          $result->set('contoActions', $actions);
          $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
     }
