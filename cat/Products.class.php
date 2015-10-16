@@ -1214,12 +1214,14 @@ class cat_Products extends embed_Manager {
     			// Проверяваме имали кеширани данни. Целта е ако артикула е бил частен
     			// и вече е кеширан, ако в последствие се направи публичен във въпросния документ
     			// да си се показва с подробното описание, докато не се инвалидира кеша
-    			$isCached = cat_ProductTplCache::getCache($rec->id, $time);
-    			$res = static::getProductDescShort($rec, $time);
+    			//$isCached = cat_ProductTplCache::getCache($rec->id, $time);
+    			//$res = static::getProductDescShort($rec, $time);
     			
     			// Ако има кеширани данни или артикула не е публичен, взимаме подрогното описания
-    			if(isset($isCached) || $rec->isPublic == 'no'){
+    			if($rec->isPublic == 'no'){
     				$res = static::getProductDesc($rec, $time);
+    			} else {
+    				$res = static::getProductDescShort($rec, $time);
     			}
     			break;
     	}
