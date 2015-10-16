@@ -24,6 +24,12 @@
                             <td>[#allFields#]</td>
                         </tr>
                         <!--ET_END allFields-->
+                        <!--ET_BEGIN DetailsCnt-->          
+                        <tr>
+                            <td  class='aright' style='white-space: nowrap;'>|Брой имейли|*:</td>
+                            <td>[#DetailsCnt#]</td>
+                        </tr>
+                        <!--ET_END DetailsCnt-->
                         <!--ET_BEGIN lg-->          
                         <tr>
                             <td  class='aright' style='white-space: nowrap;'>|Език|*:</td>

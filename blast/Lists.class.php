@@ -402,6 +402,23 @@ class blast_Lists extends core_Master
         return $csv;
     }
     
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $cnt = blast_ListDetails::getCnt($rec->id);
+        
+        $Int = cls::get('type_Int');
+        $row->DetailsCnt = $Int->toVerbal($cnt);
+    }
+    
+    
     /**
      * Преобразува стринга с полета в масив с инстанции на класовете
      *
