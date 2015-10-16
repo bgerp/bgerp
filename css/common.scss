@@ -1734,19 +1734,18 @@ td.keylist-group{
 	    font-size: 0.95em;
 	    margin-top: 1px;
 	    cursor: pointer; 
-	    img {
-	       float: right;
+	    position: relative;
+	  
+	    .minus, .plus {
+	       position: absolute;
+	       right: 3px;
+           top: 5px;
 	       display: none;
 	    } 
     }
 }
 
 
-
-.narrow .keylistCategory . img{
-    position: relative;
-    top: 2px;
-}
 
 .keylistCategory{
 	.invert-checkbox {
@@ -1758,14 +1757,34 @@ td.keylist-group{
         display: none !important;
     }
 }
-.formGroup img {
-    float: right;
-    display: none;
-    position: relative;
-    top: 2px;
+
+.formGroup {
+	position: relative;
+	img {
+	    display: inline-block;
+	    position: absolute;
+	    top: 7px;
+	    right: 5px;
+	}
 }
 
-.opened td.keylist-group > div, .formGroup {
+.narrow .formGroup img {
+    top: 9px;
+}
+
+.hiddenFormRow {
+	display: none;
+}
+
+.openToggleRow {
+    .formGroup {
+        .btns-icon{
+		   display: none !important;
+	    }
+    }
+}
+
+.opened td.keylist-group > div {
 	.plus {
 		display: none;
 	}

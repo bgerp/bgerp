@@ -818,8 +818,8 @@ class core_Form extends core_FieldSet
 
                 if($headerRow) {
                     $fsId++;
-                    $fsClass  = " class='fs{$fsId}'";
-                    $dataAttr = " class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$fsId});\"[#FS{$fsId}_STATE#]";
+                    $fsClass  = " class='fs{$fsId} [#FS{$fsId}#]'";
+                    $dataAttr = " class='fs-toggle{$fsId} [#FS{$fsId}_STATE#]' style='cursor: pointer;' onclick=\"toggleFormGroup({$fsId});\"";
                 } elseif($emptyRow > 0) {
                     $fsClass  = '';
                     $dataAttr = '';
@@ -835,22 +835,23 @@ class core_Form extends core_FieldSet
                     }
                 }
                
-                
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
+                       
                     }
                     
                     if ($headerRow) {
                         $tpl->append(new ET("\n<tr{$dataAttr}><td>$headerRow</td></tr>"), 'FIELDS');
                     }
                     $fld = new ET("\n<tr{$fsClass}><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
+                  
                     $fld->replace($field->unit ? (', ' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 } else {
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr{$fsClass}><td colspan=2></td></tr>", 'FIELDS');
-                    }
+                    } 
                     
                     if ($headerRow) {
                         $tpl->append(new ET("\n<tr{$dataAttr}><td colspan=2>$headerRow</td></tr>"), 'FIELDS');
@@ -866,12 +867,11 @@ class core_Form extends core_FieldSet
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $state) { 
                 if(!$state) {
-                    $tpl->append("\n tr.fs{$id} {display:none;}
-                    \n  .fs-toggle{$id} .btns-icon.minus { display: none;}
-                    \n    .fs-toggle{$id} .btns-icon.plus { display: inline-block;}
+                    $tpl->replace(" hiddenFormRow", "FS{$id}");
                     
-                    ", "STYLES");
                    
+                } else {
+                    $tpl->replace(" openToggleRow", "FS{$id}_STATE");
                 }
             }
         }
