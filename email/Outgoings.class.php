@@ -581,7 +581,7 @@ class email_Outgoings extends core_Master
         if ($successEmailsStr) {
             $successArr = type_Emails::toArray($successEmailsStr);
             
-            $priority = email_Router::dateToPriority(dt::now(), 'low', 'asc');
+            $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
             
             foreach ($successArr as $successEmail) {
                 $recObj = (object)array(
