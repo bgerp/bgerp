@@ -820,6 +820,9 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+a.linkInTitle {
+  color: #004488 !important; }
+
 .smallLinkWithWithIcon {
   display: inline-block;
   width: 12px;
