@@ -1742,19 +1742,14 @@ td.keylist-group{
            top: 5px;
 	       display: none;
 	    } 
-    }
-}
-
-
-
-.keylistCategory{
-	.invert-checkbox {
-	   float: left;
-	   display: block;
-	   margin-right: 5px;
-	}
-	 .hidden {
-        display: none !important;
+	    .invert-checkbox {
+	       float: left;
+	       display: block;
+	       margin-right: 5px;
+	    }
+	     .hidden {
+	        display: none !important;
+	    }
     }
 }
 
@@ -1768,8 +1763,14 @@ td.keylist-group{
 	}
 }
 
-.narrow .formGroup img {
-    top: 9px;
+.narrow td.keylist-group {
+    .minus, .plus  {
+        top: 7px;
+    }
+    .invert-checkbox {
+       position: relative;
+       top: 2px;
+    }
 }
 
 .hiddenFormRow {
