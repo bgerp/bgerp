@@ -806,7 +806,7 @@ class crm_Companies extends core_Master
      */
     public static function createRoutingRules($emails, $objectId)
     {
-        // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
+        // Приоритетът на всички правила, генериране след запис на визитка е среден и нарастващ с времето
         $priority = email_Router::dateToPriority(dt::now(), 'mid', 'asc');
 
         // Нормализираме параметъра $emails - да стане масив от валидни имейл адреси

@@ -527,7 +527,8 @@ class email_Outgoings extends core_Master
         
         // Ако има успешно изпращане
         if ($success) {
-            $msg = '|Успешно изпратено до|*: ' . implode(', ', $success);
+            $successEmailsStr = implode(', ', $success);
+            $msg = '|Успешно изпратено до|*: ' . $successEmailsStr;
             $statusType = 'notice';
             
             // Добавяме статус
@@ -574,6 +575,26 @@ class email_Outgoings extends core_Master
             
             // Записваме
             $inst->save($nRec, $saveArray);
+        }
+        
+        // Добавя FROM правила за всички имейли, за които няма никакви правила
+        if ($successEmailsStr) {
+            $successArr = type_Emails::toArray($successEmailsStr);
+            
+            $priority = email_Router::dateToPriority(dt::now(), 'low', 'asc');
+            
+            foreach ($successArr as $successEmail) {
+                $recObj = (object)array(
+                        'type' => email_Router::RuleFrom,
+                        'key' => email_Router::getRoutingKey($successEmail, NULL, email_Router::RuleFrom),
+                        'priority' => $priority,
+                        'objectType' => 'document',
+                        'objectId' => $rec->containerId
+                    );
+                
+                // Създаване на `From` правило
+                email_Router::saveRule($recObj, FALSE);
+            }
         }
         
         // Ако има провалено изпращане
