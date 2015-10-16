@@ -97,9 +97,8 @@ class pos_Favourites extends core_Manager {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$ProductMan = cls::get('cat_Products');
     	
-    	$form->setOptions('productId', array('' => '') + $ProductMan->getByProperty('canSell'));
+    	$form->setOptions('productId', array('' => '') + cat_Products::getByProperty('canSell'));
     }
     
     
@@ -109,9 +108,8 @@ class pos_Favourites extends core_Manager {
     protected static function on_AfterInputEditForm($mvc, $form)
     {
     	if(isset($form->rec->productId)){
-    		$ProductMan = cls::get('cat_Products');
     		
-    		$packs = $ProductMan->getPacks($form->rec->productId);
+    		$packs = cat_Products::getPacks($form->rec->productId);
     		$form->setOptions('packagingId', $packs);
     	} else {
     		$form->setReadOnly('packagingId');
