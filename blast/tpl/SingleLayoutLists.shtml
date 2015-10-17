@@ -4,47 +4,8 @@
         <div class='docBgIcon' style='[#iconStyle#]'>|Списък за масово разпращане|* - <b>[#ident#]</b></div>
     </div>
     <div class='scrolling-holder'>
-        <div class='antetka small'>
-                    <table class='top-table'>
-                        <!--ET_BEGIN title-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Заглавие|*:</td>
-                            <td><b>[#title#]</b></td>
-                        </tr>
-                        <!--ET_END title-->
-                        <!--ET_BEGIN keyField-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Ключово поле|*:</td>
-                            <td><b>[#keyField#]</b></td>
-                        </tr>
-                        <!--ET_END keyField-->
-                        <!--ET_BEGIN allFields-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Всички полета|*:</td>
-                            <td>[#allFields#]</td>
-                        </tr>
-                        <!--ET_END allFields-->
-                        <!--ET_BEGIN lg-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Език|*:</td>
-                            <td>[#lg#]</td>
-                        </tr>
-                        <!--ET_END lg-->
-                        <!--ET_BEGIN lastUsedOn-->          
-                        <tr>
-                            <td class='aright' style='white-space: nowrap;'>|Последна употреба|*:</td>
-                            <td>[#lastUsedOn#]</td>
-                        </tr>
-                        <!--ET_END lastUsedOn-->
-                        <!--ET_BEGIN createdOn-->          
-                        <tr>
-                            <td class='aright' style='white-space: nowrap;'>|Създаване|*:</td>
-                            <td>[#createdBy#], [#createdOn#]</td>
-                        </tr>
-                        <!--ET_END createdOn-->
-                    </table>
-            <div style='clear: both;'></div>
-        </div>
+    	[#LetterHead#]
+    	
         <div style='clear: both;'></div>
         <div class='clear_l f_left block_subtitle mt_50px'>
         </div>

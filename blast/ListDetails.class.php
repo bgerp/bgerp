@@ -126,6 +126,26 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Връща броя на записите
+     * 
+     * @param integer $listId
+     * @param NULL|string $state
+     * 
+     * @return integer
+     */
+    public static function getCnt($listId, $state = NULL)
+    {
+        $query = self::getQuery();
+        $query->where("#listId = {$listId}");
+        if ($state) {
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        return (int)$query->count();
+    }
+    
+    
+    /**
      * Извиква се преди подготовката на колоните
      */
     static function on_BeforePrepareListFields($mvc, &$res, $data)

@@ -265,4 +265,32 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 		return $measureId;
 	}
+
+
+    /**
+     * Изпълнява се след създаване на нов продукт
+     */
+    public static function on_AfterCreate(cat_ProductDriver $Driver, embed_Manager $Embedder, $pRec, $fields = NULL, $mode = NULL)
+    {
+        if($pRec->proto) {
+            
+            // Прехвърляне на компонентите, ако има
+            $query = cat_products_Components::getQuery();
+            while($rec = $query->fetch("#productId = {$pRec->proto}")) {
+                $newRec = clone($rec);
+                unset($newRec->id);
+                $newRec->productId = $pRec->id;
+                cat_products_Components::save($newRec);
+            }
+            
+            // Прехвърляне на параметрите, ако има
+            $query = cat_products_Params::getQuery();
+            while($rec = $query->fetch("#productId = {$pRec->proto}")) {
+                $newRec = clone($rec);
+                unset($newRec->id);
+                $newRec->productId = $pRec->id;
+                cat_products_Params::save($newRec);
+            }
+        }
+    }
 }

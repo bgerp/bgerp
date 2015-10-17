@@ -751,6 +751,9 @@ input.linkWithIcon,
 a.linkWithIcon {
   padding-left: 25px !important; }
 
+a.linkInTitle {
+  color: #222222 !important; }
+
 .portal-filter .button,
 .portal-filter .button:focus {
   border: none !important;

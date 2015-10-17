@@ -186,6 +186,7 @@ class cat_products_Components extends doc_Detail
     {
     	$form = &$data->form;
     	$convertable = cat_Products::getByProperty('canConvert');
+    	unset($convertable[$form->rec->productId]);
     	$form->setOptions('componentId', array('' => '') + $convertable);
     	
     	if(isset($form->rec->componentId)){
@@ -204,5 +205,28 @@ class cat_products_Components extends doc_Detail
     	$masterMvc = cls::get('cat_Products');
     		
     	return $masterMvc;
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    {
+    	if($requiredRoles == 'no_one') return;
+    	 
+    	if (($action == 'add' || $action == 'delete') && isset($rec->productId)) {
+    		$state = cat_Products::fetchField($rec->productId, 'state');
+    		if($state != 'active' && $state != 'draft'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    
+    	// Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
+    		if(!cat_Products::haveRightFor('single', $rec->productId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
 }

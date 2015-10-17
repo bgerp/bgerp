@@ -266,12 +266,14 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
+		
+        $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
-		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
         
@@ -311,6 +313,39 @@ class cat_Products extends embed_Manager {
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->driverClassField)){
     		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=measureId|meta");
+            if(!$form->rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $form->rec->{$driverField})) {
+                
+                $cQuery = cat_Categories::getQuery();
+                $cArr = array();
+                while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
+                    $cArr[] = $cRec->folderId;
+                }
+
+                if(count($cArr)) {
+                    
+                    $catList = implode(',', $cArr);
+
+                    $query = self::getQuery();
+                    $opt = array();  
+                    while($pRec = $query->fetch("#{$driverField} = {$drvId} AND #state = 'active' AND #folderId IN ({$catList})")) {
+                        $opt[$pRec->id] = $pRec->name;
+                    }
+ 
+                    if(count($opt)) {
+                        $form->setField('proto', 'input');
+                        $form->setOptions('proto', $opt);
+
+                        if($proto = Request::get('proto', 'int')) {
+                            if($pRec = self::fetch($proto)) {
+                                $Cmd = Request::get('Cmd');
+                                if($Cmd['refresh'] && is_array($pRec->driverRec)) {
+                                    Request::push($pRec->driverRec); 
+                                }                      
+                            }
+                        }
+                    }
+                }
+            }
     	}
     	
     	// Всички позволени мерки
@@ -1214,12 +1249,14 @@ class cat_Products extends embed_Manager {
     			// Проверяваме имали кеширани данни. Целта е ако артикула е бил частен
     			// и вече е кеширан, ако в последствие се направи публичен във въпросния документ
     			// да си се показва с подробното описание, докато не се инвалидира кеша
-    			$isCached = cat_ProductTplCache::getCache($rec->id, $time);
-    			$res = static::getProductDescShort($rec, $time);
+    			//$isCached = cat_ProductTplCache::getCache($rec->id, $time);
+    			//$res = static::getProductDescShort($rec, $time);
     			
     			// Ако има кеширани данни или артикула не е публичен, взимаме подрогното описания
-    			if(isset($isCached) || $rec->isPublic == 'no'){
+    			if($rec->isPublic == 'no'){
     				$res = static::getProductDesc($rec, $time);
+    			} else {
+    				$res = static::getProductDescShort($rec, $time);
     			}
     			break;
     	}

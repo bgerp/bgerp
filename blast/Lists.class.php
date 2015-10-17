@@ -402,6 +402,23 @@ class blast_Lists extends core_Master
         return $csv;
     }
     
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $cnt = blast_ListDetails::getCnt($rec->id);
+        
+        $Int = cls::get('type_Int');
+        $row->DetailsCnt = $Int->toVerbal($cnt);
+    }
+    
+    
     /**
      * Преобразува стринга с полета в масив с инстанции на класовете
      *
@@ -644,5 +661,46 @@ class blast_Lists extends core_Master
         $rec = $this->fetch($id);
         
         return $rec->lg;
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array();
+        
+        $allFieldsArr = array('title' => 'Заглавие',
+        						'keyField' => 'Ключово поле',
+        						'allFields' => 'Всички полета',
+        						'DetailsCnt' => 'Брой имейли',
+        						'lg' => 'Език',
+        						'lastUsedOn' => 'Последна употреба'
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $headerRes[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        $headerRes[$fieldName] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+        
+        $tableRows = $this->prepareHeaderLines($headerRes);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
     }
 }
