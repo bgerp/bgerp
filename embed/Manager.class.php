@@ -262,7 +262,12 @@ class embed_Manager extends core_Master
                 case 'afterrectoverbal': 
                     $driverClass = $args[1]->{$this->driverClassField};
                     break;
-                    
+                
+                case 'aftercreate':
+                case 'afterupdate':
+                    $driverClass = $args[0]->{$this->driverClassField};
+                    break;
+
                 case 'aftergetrequiredroles':
                     if(is_object($args[2])) {
                         $driverClass = $args[2]->{$this->driverClassField};
@@ -310,7 +315,7 @@ class embed_Manager extends core_Master
             		
             		// Добавяме ембедъра към аргументите на ивента
             		array_unshift($args, $this);
-            		
+            		 
             		// Генерираме същото събитие в драйвера за да може да го прихване при нужда
             		$status2 = $driver->invoke($event, $args);
             		
