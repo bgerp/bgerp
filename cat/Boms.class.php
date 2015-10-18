@@ -216,7 +216,7 @@ class cat_Boms extends core_Master
     					$right = "за {$form->rec->quantity} {$shortUom}";
     				}
     				 
-    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|К-ва|*");
+    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|Количества|*");
     			}
     		}
     	}

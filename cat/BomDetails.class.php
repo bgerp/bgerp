@@ -169,7 +169,7 @@ class cat_BomDetails extends doc_Detail
     	$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
     	$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
     		
-    	$propCaption = "|За|* |{$quantity}|* {$shortUom}";
+    	$propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
     	$form->setField('propQuantity', "caption={$propCaption}");
     }
     
