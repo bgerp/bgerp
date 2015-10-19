@@ -183,16 +183,16 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(no=Не, yes=Да)', 'caption=Препращане, input=hidden');
         
         //Данни за адресата
-        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent, formSection=open');
-        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%, formSection=open');
-        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, formSection=open');
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData, formSection=open');
-        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData, formSection=open');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent, formSection=open');
-        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData, formSection=open');
-        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode, formSection=open');
-        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData, formSection=open');
-        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData, formSection=open');
+        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
+        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
+        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent');
+        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
+        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode');
+        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData');
     }
     
     
