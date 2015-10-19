@@ -12,3 +12,4 @@ title_EN,varchar,,titleEN,,,no
 Толеранс,percent,,tolerance,,,no
 Срок,time,,term,,,no
 Широчина,size,,width,,,yes
+Режийни разходи,percent,,expenses,,,no
