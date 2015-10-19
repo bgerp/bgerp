@@ -354,7 +354,7 @@ class cat_products_Packagings extends doc_Detail
         }
         $wrapTpl->append($title, 'TITLE');
         
-        if ($data->addUrl) {
+        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
         	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка/мярка');
         	$tpl->append($addBtn, 'TITLE');
         }
