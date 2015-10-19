@@ -24,7 +24,7 @@ class doc_SharablePlg extends core_Plugin
         
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', FALSE)) {
-            $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,formSection=open');
+            $mvc->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
         }
         // Поле за първите виждания на документа от потребителите с които той е споделен
         if (!$mvc->getField('sharedViews', FALSE)) {
