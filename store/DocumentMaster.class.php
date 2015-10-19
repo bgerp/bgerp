@@ -183,7 +183,11 @@ abstract class store_DocumentMaster extends core_Master
     	return $this->save($rec);
     }
     
-    
+    function act_Test()
+    {
+    	$rec = $this->fetch(2109);
+    	self::on_AfterCreate($this, $rec);
+    }
     /**
      * След създаване на запис в модела
      */
@@ -201,15 +205,16 @@ abstract class store_DocumentMaster extends core_Master
     		$aggregatedDealInfo = $origin->getAggregateDealInfo();
     		$agreedProducts = $aggregatedDealInfo->get('products');
     		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
+    		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
     		$Detail = $mvc->mainDetail;
     		
     		if(count($agreedProducts)){
-    			foreach ($agreedProducts as $product) {
+    			foreach ($agreedProducts as $index => $product) {
     				$info = cat_Products::getProductInfo($product->productId);
-    				$delivered = $shippedProducts[$product->productId]->quantity;
     				
-    				// Колко остава за експедиране от продукта
-    				$toShip = $product->quantity - $delivered;
+    				$toShip = $normalizedProducts[$index]->quantity;
+    				$price = $normalizedProducts[$index]->price;
+    				$discount = $normalizedProducts[$index]->discount;
     				
     				// Пропускат се експедираните и нескладируемите продукти
     				if (!isset($info->meta['canStore']) || ($toShip <= 0)) continue;
@@ -219,14 +224,13 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->productId   = $product->productId;
     				$shipProduct->packagingId = $product->packagingId;
     				$shipProduct->quantity    = $toShip;
-    				$shipProduct->price       = $product->price;
-    				$shipProduct->uomId       = $product->uomId;
-    				$shipProduct->discount    = $product->discount;
+    				$shipProduct->price       = $price;
+    				$shipProduct->discount    = $discount;
     				$shipProduct->weight      = $product->weight;
     				$shipProduct->notes       = $product->notes;
     				$shipProduct->volume      = $product->volume;
     				$shipProduct->quantityInPack = $product->quantityInPack;
-    				 
+    				
     				$Detail::save($shipProduct);
     			}
     		}
