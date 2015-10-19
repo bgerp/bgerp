@@ -2,14 +2,14 @@
   <div class='groupList'>
     [#NO_ROWS#]
     <table class='no-border small-padding' style='margin-bottom:5px'>
-		<!--ET_BEGIN param-->
-		[#param#]
+		<!--ET_BEGIN component-->
+		[#component#]
 		<tr>
 		    <td>&nbsp;-&nbsp;</td>
 		    <td>[#componentId#]:</td>
 		    <td style = "text-indent: 7px">[#quantity#]</td>
 		    <td style = "text-indent: 3px"> [#tools#]</td>
 		 </tr>
-		<!--ET_END param-->
+		<!--ET_END component-->
 	</table>
 </div>
