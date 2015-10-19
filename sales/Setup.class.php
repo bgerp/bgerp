@@ -64,13 +64,13 @@ defIfNot('SALE_FISC_PRINTER_DRIVER', '');
 /**
  * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
  */
-defIfNot('SALES_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – вътреобщностна доставка на стоки');
+defIfNot('SALES_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
 
 
 /**
  * Основание за неначисляване на ДДС за контрагент извън ЕС
  */
-defIfNot('SALES_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ на стоки извън ЕС');
+defIfNot('SALES_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
 
 
 /**

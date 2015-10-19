@@ -153,7 +153,7 @@ class cat_products_Components extends doc_Detail
     			unset($row->tools);
     		}
     		 
-    		$block = clone $tpl->getBlock('param');
+    		$block = clone $tpl->getBlock('component');
     		$block->placeObject($row);
     		$block->removeBlocks();
     		$block->append2Master();

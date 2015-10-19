@@ -784,7 +784,7 @@ class core_Form extends core_FieldSet
             
             $tpl = new ET('<table class="vFormField">[#FIELDS#]</table>');
             
-            $fsId = 0; $fsArr = array(); $fsClass = '';
+            $fsId = 0; $fsArr = array(); $fsRow = '';
 
             $plusUrl = sbf("img/16/toggle1.png", "");
             $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
@@ -808,7 +808,7 @@ class core_Form extends core_FieldSet
                     }
                     
                     if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
-                        $headerRow .= "<div class=\"formGroup\" >{$space}$caption {$plusImg}</div>";
+                        $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
                         $space .= "&nbsp;&nbsp;&nbsp;";
                        
                     }
@@ -818,45 +818,43 @@ class core_Form extends core_FieldSet
 
                 if($headerRow) {
                     $fsId++;
-                    $fsClass  = " class='fs{$fsId} [#FS{$fsId}#]'";
-                    $dataAttr = " class='fs-toggle{$fsId} [#FS{$fsId}_STATE#]' style='cursor: pointer;' onclick=\"toggleFormGroup({$fsId});\"";
+                    $fsRow  = " [#FS_ROW{$fsId}#]";
+                    $fsHead = " [#FS_HEAD{$fsId}#]";
+                    $headerRow .= "[#FS_IMAGE{$fsId}#]</div>";
                 } elseif($emptyRow > 0) {
-                    $fsClass  = '';
-                    $dataAttr = '';
+                    $fsRow  = '';
+                    $fsHead = '';
                 }
 
-                if($fsClass) {
-                    if($field->mandatory || $field->formSection == 'open' || ($vars[$name] && !count($field->options) == 1 && $field->formSection != 'close') ) {
-                   
-                        expect($name != 'currency', count($field->options) != 1, $field, $vars);
-                        $fsArr[$fsId] .= $name . ' ';
-                    } elseif(!$fsArr[$fsId]) {
+                if($fsRow) {
+                    if($field->autohide == 'any' || ($field->autohide == 'autohide' && empty($vars[$name])) ) {
                         $fsArr[$fsId] = FALSE;
+                    } elseif(!$fsArr[$fsId]) {
+                        $fsArr[$fsId] .= $name . ' ';
                     }
                 }
                
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
-                       
                     }
-                    
+
                     if ($headerRow) {
-                        $tpl->append(new ET("\n<tr{$dataAttr}><td>$headerRow</td></tr>"), 'FIELDS');
+                        $tpl->append(new ET("\n<tr{$fsHead}><td>{$headerRow}</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr{$fsClass}><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr{$fsRow}><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
                   
                     $fld->replace($field->unit ? (', ' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 } else {
                     if ($emptyRow > 0) {
-                        $tpl->append("\n<tr{$fsClass}><td colspan=2></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr{$fsRow}><td colspan=2></td></tr>", 'FIELDS');
                     } 
                     
                     if ($headerRow) {
-                        $tpl->append(new ET("\n<tr{$dataAttr}><td colspan=2>$headerRow</td></tr>"), 'FIELDS');
+                        $tpl->append(new ET("\n<tr{$fsHead}><td colspan=2>{$headerRow}</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr{$fsClass}><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
+                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
                     
                     $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
@@ -864,15 +862,15 @@ class core_Form extends core_FieldSet
                 
                 $tpl->append($fld, 'FIELDS');
             }
+            
+            
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $state) { 
                 if(!$state) {
-                    $tpl->replace(" hiddenFormRow", "FS{$id}");
-                    
-                   
-                } else {
-                    $tpl->replace(" openToggleRow", "FS{$id}_STATE");
-                }
+                    $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
+                    $tpl->replace(" class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
+                    $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
+                } 
             }
         }
         

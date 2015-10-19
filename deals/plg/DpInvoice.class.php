@@ -55,8 +55,8 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $unit = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? 'с ДДС' : 'без ДДС';
         
-        $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
-        $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
+        $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
+        $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,autohide,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
         
         if(empty($form->rec->id)){
         	

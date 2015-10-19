@@ -54,7 +54,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
 		$form->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,input');
 
 		$form->FLD('orderState', 'set(active=Активно,draft=Чакащо,closed=Приключено,rejected=Оттеглено)', 'caption=Състояние,formOrder=110000,maxColumns=2');
-		$form->FLD('orderBy', 'enum(,ASC=Възходящ,DESC=Низходящ)', 'caption=Подредба->Тип,formOrder=110001,formSection=open');
+		$form->FLD('orderBy', 'enum(,ASC=Възходящ,DESC=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
 		
 		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}

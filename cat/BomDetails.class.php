@@ -129,8 +129,6 @@ class cat_BomDetails extends doc_Detail
     	
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
-    	
-    	$this->setDbUnique('bomId,resourceId');
     }
     
     
@@ -154,8 +152,10 @@ class cat_BomDetails extends doc_Detail
     {
     	$form = &$data->form;
     	$typeCaption = ($form->rec->type == 'input') ? 'материал' : 'отпадък';
+    	$matCaption = ($form->rec->type == 'input') ? 'Материал' : 'Отпадък';
     	$action = ($form->rec->id) ? 'Редактиране' : 'Добавяне';
     	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
     	$metas = ($form->rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
@@ -169,7 +169,7 @@ class cat_BomDetails extends doc_Detail
     	$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
     	$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
     		
-    	$propCaption = "|За|* |{$quantity}|* {$shortUom}";
+    	$propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
     	$form->setField('propQuantity', "caption={$propCaption}");
     }
     
@@ -253,16 +253,23 @@ class cat_BomDetails extends doc_Detail
     			$notAllowed = array();
     			$mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
     			if(isset($notAllowed[$rec->resourceId])){
-    				$form->setError('resourceId', "Материала не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+    				$form->setError('resourceId', "Материалът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
     			}
     		}
     		
     		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
     			$selfValue = planning_ObjectResources::getSelfValue($rec->resourceId);
-    			
     			if(!isset($selfValue)){
-    				$form->setError('resourceId', 'Отпадакът не може да му се определи себестойност');
+    				$form->setWarning('resourceId', 'Отпадакът няма себестойност');
+    			}
+    		} else {
+    			
+    			// Материалът може да се използва само веднъж в дадения етап
+    			$cond = "#bomId = {$rec->bomId} AND #id != '{$rec->id}' AND #resourceId = {$rec->resourceId}";
+    			$cond .= (empty($rec->stageId)) ? " AND #stageId IS NULL" : " AND #stageId = '{$rec->stageId}'";
+    			if(self::fetchField($cond)){
+    				$form->setError('resourceId,stageId', 'Материалът вече се използва в този етап');
     			}
     		}
     		

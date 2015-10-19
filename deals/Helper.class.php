@@ -486,34 +486,42 @@ abstract class deals_Helper
 	 * @param $arrays - масив от масиви със детайли на бизнес документи
 	 * @return array
 	 */
-	public static function normalizeProducts($arrays)
+	public static function normalizeProducts($arrays, $subtractArrs = array())
 	{
 		$combined = array();
 		$indexArr = arr::make($indexArr);
 		
-		if(is_array($arrays)){
-			foreach ($arrays as $arr){
-				if(is_array($arr)){
-					foreach ($arr as $p){
-						$index = $p->productId;
-						
-						if(!isset($combined[$index])){
-							$combined[$index] = new stdClass();
-							$combined[$index]->productId = $p->productId;
-						}
-					
-						$d = &$combined[$index];
-						$d->price = max($d->price, $p->price);
-						$d->quantity += $p->quantity;
-						$d->sumAmounts += $p->quantity * $p->price * (1 - $p->discount);
-						
-						if(empty($d->packagingId)){
-							$d->packagingId = $p->packagingId;
-							$d->quantityInPack = $p->quantityInPack;
-						} else {
-							if($p->quantityInPack < $d->quantityInPack){
+		foreach (array('arrays', 'subtractArrs') as $parameter){
+			$var = ${$parameter};
+			
+			if(is_array($var)){
+				foreach ($var as $arr){
+					if(is_array($arr)){
+						foreach ($arr as $p){
+							$index = $p->productId;
+			
+							if(!isset($combined[$index])){
+								$combined[$index] = new stdClass();
+								$combined[$index]->productId = $p->productId;
+							}
+								
+							$d = &$combined[$index];
+							$d->price = max($d->price, $p->price);
+			
+							$sign = ($parameter == 'arrays') ? 1 : -1;
+							
+							//@TODO да може да е -
+							$d->quantity += $sign * $p->quantity;
+							$d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
+			
+							if(empty($d->packagingId)){
 								$d->packagingId = $p->packagingId;
 								$d->quantityInPack = $p->quantityInPack;
+							} else {
+								if($p->quantityInPack < $d->quantityInPack){
+									$d->packagingId = $p->packagingId;
+									$d->quantityInPack = $p->quantityInPack;
+								}
 							}
 						}
 					}
@@ -523,13 +531,14 @@ abstract class deals_Helper
 		
 		if(count($combined)){
 			foreach ($combined as &$det){
-				$discount = 1 - $det->sumAmounts / ($det->quantity * $det->price);
+				
+				@$discount = 1 - $det->sumAmounts / ($det->quantity * $det->price);
 				if($discount){
 					$det->discount = abs($discount);
 				}
 			}
 		}
-		
+		//bp($combined);
 		return $combined;
 	}
 }

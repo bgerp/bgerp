@@ -26,7 +26,7 @@ class change_Plugin extends core_Plugin
         if (!$mvc->fields['version']) {
             
             // Добавяме
-            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,width=100%');
+            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%');
         }
         
         // Ако няма добавено поле за подверсия
