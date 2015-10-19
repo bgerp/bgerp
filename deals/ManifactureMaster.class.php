@@ -61,10 +61,11 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+	        $row->storeId = store_Stores::getHyperlink($rec->storeId);
+	    }
 		
 		if($fields['-single']){
-			
 			$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
 			if($storeLocation){
 				$row->storeLocation = crm_Locations::getAddress($storeLocation);
@@ -72,7 +73,7 @@ abstract class deals_ManifactureMaster extends core_Master
 			
 			$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		}
-		 
+		
 		if($fields['-list']){
 			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->title = $mvc->getLink($rec->id, 0);
