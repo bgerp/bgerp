@@ -66,7 +66,7 @@ class cat_ProductTplCache extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, productId, time';
+	public $listFields = 'id, productId, time, type, documentType';
 	
 	
 	/**
@@ -87,6 +87,9 @@ class cat_ProductTplCache extends core_Master
 	function description()
 	{
 		$this->FLD("productId", "key(mvc=cat_Products,select=name)", "input=none,caption=Артикул");
+		$this->FLD("type", "enum(title=Заглавие,description=Описание)", "input=none,caption=Тип");
+		$this->FLD("documentType", "enum(public=Външни документи,internal=Вътрешни документи)", "input=none,caption=Документ тип");
+		
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime", "input=none,caption=Дата");
 	}
@@ -98,8 +101,12 @@ class cat_ProductTplCache extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-single'])){
-			$Driver = cls::get('cat_Products')->getDriver($rec->productId);
-			$row->cache = $Driver->renderProductDescription($rec->cache);
+			if($rec->type == 'description'){
+				$Driver = cls::get('cat_Products')->getDriver($rec->productId);
+				$row->cache = $Driver->renderProductDescription($rec->cache);
+			} else {
+				$row->cache = cls::get('type_Varchar')->toVerbal($rec->cache);
+			}
 		}
 	}
 
@@ -160,7 +167,7 @@ class cat_ProductTplCache extends core_Master
 	 * @param datetime $time - време
 	 * @return mixed
 	 */
-	public static function getCache($productId, $time)
+	public static function getCache($productId, $time, $type, $documentType)
 	{
 		// Кога артикула е бил последно модифициран
 		$productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
@@ -168,7 +175,7 @@ class cat_ProductTplCache extends core_Master
 		// Намираме кешираните данни
 		$res = array($productModifiedOn => NULL);
 		$query = self::getQuery();
-		$query->where("#productId = {$productId} AND #time <= '{$time}'");
+		$query->where("#productId = {$productId} AND #type = '{$type}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
 		$query->orderBy('time', 'DESC');
 		while($rec = $query->fetch()){
 			$res[$rec->time] = $rec->cache;
@@ -185,27 +192,94 @@ class cat_ProductTplCache extends core_Master
 	
 	
 	/**
-	 * Кеширане на изгледа на спецификацията
-	 *
-	 * @param mixed $id - ид/запис
-	 * @param datetime $time - време
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 * @return core_ET - кеширания шаблон
+	 * Кешира заглавието на артикула
+	 * 
+	 * @param int $productId
+	 * @param datetime $time
+	 * @param enum(internal,public) $documentType
+	 * @return string - заглавието на артикула
 	 */
-	public static function cacheTpl($productId, $time, $documentType = 'public')
+	public static function cacheTitle($productId, $time, $documentType)
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		
-		$cache = self::getCache($pRec->id, $time);
+		$name = self::getCache($pRec->id, $time, 'title', $documentType);
+		
+		if(!$name){
+			$cacheRec = new stdClass();
+			
+			// Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
+			if(!self::count(("#productId = {$productId} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))){
+				$cacheRec->time = $time;
+			} else {
+				
+				// Ако записваме нов кеш той е с датата на модифициране на артикула
+				$cacheRec->time = $pRec->modifiedOn;
+			}
+			
+			$cacheRec->productId = $productId;
+			$cacheRec->type = 'title';
+			$cacheRec->documentType = $documentType;
+			
+			$cacheRec->cache = cat_Products::getVerbal($pRec, 'name');
+			self::save($cacheRec);
+			
+			$name = $cacheRec->cache;
+		}
+		
+		// Ако артикула е частен добавяме му хендлъра + броя модификации в кеша
+		$name = $name;
+		if($pRec->isPublic == 'no'){
+			$handle = cat_Products::getHandle($pRec);
+			$name .= " ({$handle}";
+			$count = self::count("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+			if($count > 1){
+				$name .= "<small>v{$count}</small>";
+			}
+			$name .= ")";
+		} else {
+			$name .= " (" . cat_Products::getVerbal($cache->rec, 'code') . ")";
+		}
+			
+		$name = ht::createLinkRef($name, cat_Products::getSingleUrlArray($pRec->id));
+		
+		return $name;
+	}
+	
+	
+	/**
+	 * Кешира описанието на артикула
+	 * 
+	 * @param int $productId
+	 * @param datetime $time
+	 * @param enum(public,internal) $documentType
+	 * @return core_ET
+	 */
+	public static function cacheDescription($productId, $time, $documentType)
+	{
+		$pRec = cat_Products::fetchRec($productId);
+		
+		$cache = self::getCache($pRec->id, $time, 'description', $documentType);
 		$Driver = cat_Products::getDriver($productId);
 		
 		// Ако има кеширан изглед за тази дата връщаме го
 		if(!$cache && $Driver){
-	
+			
 			// Ако няма генерираме наново и го кешираме
 			$cacheRec = new stdClass();
-			$cacheRec->time = $pRec->modifiedOn;
+			
+			// Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
+			if(!self::count(("#productId = {$productId} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))){
+				$cacheRec->time = $time;
+			} else {
+				
+				// Ако записваме нов кеш той е с датата на модифициране на артикула
+				$cacheRec->time = $pRec->modifiedOn;
+			}
+			
 			$cacheRec->productId = $productId;
+			$cacheRec->type = 'description';
+			$cacheRec->documentType = $documentType;
 			
 			$data = new stdClass();
 			$data->rec = $pRec;
@@ -222,28 +296,8 @@ class cat_ProductTplCache extends core_Master
 			$cache = $cacheRec->cache;
 		}
 		
-		$tpl = new core_ET();
 		if($Driver){
-			
-			// Ако артикула е частен добавяме му хендлъра + броя модификации в кеша
-			$name = cat_Products::getVerbal($cache->rec, 'name');
-			if($pRec->isPublic == 'no'){
-				$handle = cat_Products::getHandle($pRec);
-				$name .= " ({$handle}";
-				$count = self::count("#productId = {$pRec->id}");
-				if($count > 1){
-					$name .= "v{$count}";
-				}
-				$name .= ")";
-			} else {
-				$name .= " (" . cat_Products::getVerbal($cache->rec, 'code') . ")";
-			}
-			
-			$name = ht::createLinkRef($name, cat_Products::getSingleUrlArray($cache->rec->id));
-			$tpl = new ET("[#name#]<br><span style='font-size:0.9em'>[#desc#]</span>");
-			$tpl->replace($name, 'name');
-			$tpl->replace($Driver->renderProductDescription($cache), 'desc');
-			$tpl->removeBlocks();
+			$tpl = $Driver->renderProductDescription($cache);
 		} else {
 			$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
 		}
