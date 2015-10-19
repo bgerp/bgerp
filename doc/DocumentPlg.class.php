@@ -2521,7 +2521,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
         
         // Ако има повече от една версия
-        if ($row->LastVersion != 0.1) {
+        if (isset($row->LastVersion) && ($row->LastVersion != 0.1)) {
             // Полета, които ще се показват
             $headerRes = change_Plugin::getDateAndVersionRow();
         }
