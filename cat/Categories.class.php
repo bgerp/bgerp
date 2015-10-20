@@ -26,13 +26,13 @@ class cat_Categories extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Категории на артикулите";
+    public $title = "Категории на артикулите";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Каталог";
+    public $pageMenu = "Каталог";
     
     
     /**
@@ -44,103 +44,109 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,meta=Свойства';
+    public $listFields = 'id,name,meta=Свойства';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt, info';
+    public $searchFields = 'sysId, name, productCnt, info';
+    
+    
+    /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Категория";
+    public $singleTitle = "Категория";
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/category-icon.png';
+    public $singleIcon = 'img/16/category-icon.png';
     
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'cat,ceo,sales,purchase';
+    public $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'cat,ceo';
+    public $canWrite = 'cat,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
+    public $canDelete = 'cat,ceo';
     
     
     /**
      * Клас за елемента на обграждащия <div>
      */
-    var $cssClass = 'folder-cover';
+    public $cssClass = 'folder-cover';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
+    public $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
     
     
     /**
@@ -219,7 +225,7 @@ class cat_Categories extends core_Master
      * Връща keylist от id-та на групи, съответстващи на даден стрингов
      * списък от sysId-та, разделени със запетайки
      */
-    static function getKeylistBySysIds($list, $strict = FALSE)
+    public static function getKeylistBySysIds($list, $strict = FALSE)
     {
         $sysArr = arr::make($list);
         
@@ -261,7 +267,7 @@ class cat_Categories extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = "cat/csv/Categories.csv";
         $fields = array(
