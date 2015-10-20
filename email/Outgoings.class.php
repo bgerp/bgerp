@@ -609,7 +609,7 @@ class email_Outgoings extends core_Master
         // Ако има провалено изпращане
         if ($failure) {
             $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
-            $statusType = 'warning';
+            $statusType = 'error';
             
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
