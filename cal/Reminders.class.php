@@ -184,7 +184,7 @@ class cal_Reminders extends core_Master
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
         
         // Начало на напомнянето
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Време->Начало, silent,changable');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
         
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
@@ -207,7 +207,7 @@ class cal_Reminders extends core_Master
         $this->FLD('weekDayNames', 'varchar(12)', 'caption=Име на деня,notNull,input=none');
         
         // Кога е следващото стартирване на напомнянето?
-        $this->FLD('nextStartTime', 'datetime', 'caption=Следващо напомняне,input=none');
+        $this->FLD('nextStartTime', 'datetime(format=smartTime)', 'caption=Следващо напомняне,input=none');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -393,11 +393,6 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-
-    	if (isset($data->rec->timeStart)){
-    		$data->row->timeStart = dt::mysql2verbal($data->rec->timeStart, 'smartTime');
-    	}
-    	
     	if($data->rec->repetitionType == 'days' ) {
     		if($data->rec->repetitionEach == '1'){
     			$data->row->each = 'всеки';
@@ -469,10 +464,6 @@ class cal_Reminders extends core_Master
     		$data->row->each = '';
 	    	$data->row->repetitionType = '';
 	    	$data->row->repetitionTypeMonth = '';
-    	}
-    	
-    	if(isset($data->row->nextStartTime)) {
-    		$data->row->nextStartTime = dt::mysql2verbal($data->rec->nextStartTime, 'smartTime');
     	}
     }
 
