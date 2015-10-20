@@ -104,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
+    public $listFields = 'tools=Пулт, stageId, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
     
     
     /**
@@ -121,9 +121,8 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
     	
-    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack,mandatory');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
-    	$this->FNC('measureId', 'varchar', 'caption=Мярка,smartCenter');
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
     	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
@@ -232,9 +231,8 @@ class cat_BomDetails extends doc_Detail
     	if(isset($rec->resourceId)){
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
-    		$form->setDefault('measureId', $pInfo->productRec->measureId);
     		
-    		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
+    		$packs = cat_Products::getPacks($rec->resourceId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     		
@@ -298,10 +296,9 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
-    	$row->measureId = cat_UoM::getTitleById($rec->packagingId);
     	
     	// Показваме подробната информация за опаковката при нужда
-    	deals_Helper::getPackInfo($row->measureId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
+    	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;

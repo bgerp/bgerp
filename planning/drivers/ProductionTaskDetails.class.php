@@ -44,7 +44,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'employees,fixedAsset';
+    public $lastUsedKeys = 'employees,fixedAsset';
     
     
     /**
@@ -77,12 +77,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD('code', 'bigint', 'caption=Код,input=none');
+    	$this->FLD('code', 'bigint', 'caption=Код,input=none,smartCenter');
     	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
     	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
-    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none');
+    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,smartCenter');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
     	 
     	$this->setDbUnique('code');
     }
@@ -183,10 +183,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
-    	}
-    	
-    	if(isset($row->code)){
-    		$row->code = "<div class='centered'>{$row->code}</div>";
     	}
     }
 }
