@@ -2968,7 +2968,9 @@ var blinkerWorking = false;
  */
 function render_Notify(data) {
 	if(blinkerWorking) return;
-
+	if(!data.blinkTimes){
+		data.blinkTimes = 5;
+	}
 	render_Sound(data);
 	blinkerWorking = true;
 	var counter = 1;
