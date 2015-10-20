@@ -438,19 +438,12 @@ class email_Outgoings extends core_Master
             // Добавяме изпращача
             $action['data']->sendedBy = core_Users::getCurrent();
             
-            // Пушваме екшъна
-            doclog_Documents::pushAction($action);
-            
-            // Подготовка на текста на писмото (HTML & plain text)
-            $rec->__mid = NULL;
-            $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
-            $rec->text = static::getEmailText($rec, $lg);
-            $rec->text = core_ET::unEscape($rec->text);
-            
             // Генериране на прикачените документи
             $rec->documentsFh = array();
             
             try {
+                $convertStatus = TRUE;
+                
                 foreach ($docsArr as $attachDoc) {
                     // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                     // файл със съдържанието на документа в желания формат
@@ -468,31 +461,47 @@ class email_Outgoings extends core_Master
                     //Записваме прикачените файлове
                     $rec->documents = keylist::fromArray($documents);
                 }
-            
-                // ... и накрая - изпращане.
-                $status = email_Sent::sendOne(
-                    $options->boxFrom,
-                    $emailTo,
-                    $rec->subject,
-                    $rec,
-                    array(
-                        'encoding' => $options->encoding
-                    ),
-                    $emailsCc
-                );
             } catch (core_exception_Expect $e) {
-                self::logErr("Грешка при изпращане на имейл: " . $e->getMessage(), $rec->id);
-                $status = FALSE;
+                self::logErr("Грешка при генериране на файловете: " . $e->getMessage(), $rec->id);
+                $convertStatus = FALSE;
             }
             
-            // Записваме историята
-            doclog_Documents::flushActions();
-            
-            // Ако възникне грешка при изпращане
-            if (!$status) {
+            if ($convertStatus) {
+                // Пушваме екшъна
+                doclog_Documents::pushAction($action);
                 
-                // Записваме имейла, като върнат
-                doclog_Documents::returned($rec->__mid);
+                // Подготовка на текста на писмото (HTML & plain text)
+                $rec->__mid = NULL;
+                $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
+                $rec->text = static::getEmailText($rec, $lg);
+                $rec->text = core_ET::unEscape($rec->text);
+                
+                try {
+                    // ... и накрая - изпращане.
+                    $status = email_Sent::sendOne(
+                        $options->boxFrom,
+                        $emailTo,
+                        $rec->subject,
+                        $rec,
+                        array(
+                            'encoding' => $options->encoding
+                        ),
+                        $emailsCc
+                    );
+                } catch (core_exception_Expect $e) {
+                    self::logErr("Грешка при изпращане на имейл: " . $e->getMessage(), $rec->id);
+                    $status = FALSE;
+                }
+                
+                // Записваме историята
+                doclog_Documents::flushActions();
+                
+                // Ако възникне грешка при изпращане
+                if (!$status) {
+                    
+                    // Записваме имейла, като върнат
+                    doclog_Documents::returned($rec->__mid);
+                }
             }
             
             // Стринга с имейлите, до които е изпратено
@@ -600,7 +609,7 @@ class email_Outgoings extends core_Master
         // Ако има провалено изпращане
         if ($failure) {
             $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
-            $statusType = 'warning';
+            $statusType = 'error';
             
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);

@@ -80,7 +80,7 @@ class plg_Sorting extends core_Plugin
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
         	
         	// Ако сме в режим принтиране не правим нищо
-        	if(Mode::is('printing')) return;
+        	if (Mode::is('printing') || Mode::is('pdf')) return;
         	
             foreach($data->plg_Sorting->fields as $field => $direction) {
                 
