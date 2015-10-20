@@ -2285,6 +2285,89 @@ class cal_Tasks extends core_Master
     		
     		return $res;
     	}
- 	
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array();
+        
+        $headerRes['shareLog'] =  array('name' => tr('Отговорници'), 'val' =>"[#shareLog#]");
+        
+        if ($row->progressBar || $row->progress){
+            $headerRes['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
+        }
+        
+        $headerRes['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
+        
+        if ($row->timeStart){
+            $headerRes['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
+        }
+        
+        if ($row->timeDuration){
+            $headerRes['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
+        }
+        
+        if ($row->timeEnd){
+            $headerRes['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
+        }
+        
+        if ($row->workingTime){
+            $headerRes['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
+        }
+        
+        if ($row->afterTask){
+            $headerRes['afterTask'] =  array('name' => tr('Започване след задача'), 'val' =>"[#afterTask#]");
+        }
+        
+        if ($row->afterTaskProgress){
+            $headerRes['afterTaskProgress'] =  array('name' => tr('Прогрес на задачата'), 'val' =>"[#afterTaskProgress#]");
+        }
+        
+        if ($row->expectationTimeStart){
+            $headerRes['expectationTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectationTimeStart#]");
+        }
+        
+        if ($row->expectationTimeEnd){
+            $headerRes['expectationTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectationTimeEnd#]");
+        }
+        
+        if ($row->timeClosed){
+            $headerRes['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
+        }
+        
+        // Ако има повече от една версия
+        if (isset($row->LastVersion) && $row->LastVersion != 0.1) {
+            // Полета, които ще се показват
+            $headerRes += change_Plugin::getDateAndVersionRow();
+        }
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['date'] = 'date';
+            $hideArr['version'] = 'version';
+        }
+        
+        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
     }
 }

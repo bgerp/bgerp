@@ -1,54 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div class='antetka' style='line-height:150%;'>
-        <b>[#title#]</b><br>
-        <div class="small">
-            <table class='full-width'>
-                <tr>
-                    <td>
-                        <div>
-                            |Приоритет|*: [#priority#]
-                        </div>
-                        <div>
-                            |Отговорници|*: [#shareLog#]
-                        </div>
-                        <!--ET_BEGIN timeStart-->
-                        |Начало|*: [#timeStart#]<br>
-                        <!--ET_END timeStart-->
-                        <!--ET_BEGIN timeDuration-->
-                        |Продължителност|*: [#timeDuration#]<br>
-                        <!--ET_END timeDuration-->
-                        <!--ET_BEGIN timeEnd-->
-                        |Краен срок|*: [#timeEnd#] [#remainingTime#]<br>                   
-                        <!--ET_END timeEnd-->
-                       
-                    </td>
-                    <!--ET_BEGIN dependsInfo-->
-                    [#dependsInfo#]
-                    <td style='padding-left:30px;max-width:45%;'>
-                        |Прогрес|*: [#progressBar#] [#progress#] <br>
-                        <!--ET_BEGIN workingTime-->
-                        |Отработено време|*: [#workingTime#] <br>                   
-                        <!--ET_END workingTime-->
-                        <!--ET_BEGIN afterTask-->
-                        |Започване след задача|*: [#afterTask#]<br>
-                        <!--ET_END afterTask-->
-                        <!--ET_BEGIN afterTaskProgress-->
-                        |Прогрес на задачата|*: [#afterTaskProgress#]<br>
-                        <!--ET_END afterTaskProgress-->
-                        <!--ET_BEGIN expectationTimeStart-->
-                        |Очаквано начало|*: [#expectationTimeStart#] <br>                   
-                        <!--ET_END expectationTimeStart-->
-                        <!--ET_BEGIN expectationTimeEnd-->
-                        |Очакван край|*: [#expectationTimeEnd#] <br>                   
-                        <!--ET_END expectationTimeEnd-->
-                        <!--ET_BEGIN timeClosed-->
-                        |Приключено на|*: [#timeClosed#] <br>                   
-                        <!--ET_END timeClosed-->
-                        <!--ET_END dependsInfo-->
-                    </td>
-                </tr>
-            </table>
-        </div>
+    <div style='padding-top:10px;'>
+    	<h3 class='richtext-title'>[#title#]</h3>
+    	[#description#]
     </div>
-    <div style='padding-top:10px;'>[#description#]</div>
-    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
