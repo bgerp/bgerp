@@ -2444,8 +2444,17 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
-        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop;
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+
+        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop . $isThisDoc;
         
+        // Добавка за да работи сортирането на детайли
+        $dHnd = $mvc->getHandle($id);
+        if(Request::get('docId') == $dHnd) {
+           $cacheStr .= Request::get('Sort');
+        }
+
         if ($res) {
             $cacheStr .= $res;
         }
