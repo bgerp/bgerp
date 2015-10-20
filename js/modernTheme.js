@@ -35,6 +35,10 @@ function initElements() {
             setViewportWidth(viewportWidth);
         });
 	}
+	// за всяко кликане на линк, ще променяме бисквитката
+	$('#nav-panel li a').on('click', function(e){
+		setMenuCookie();
+	});
 }
 
 
@@ -68,7 +72,10 @@ function setMenuCookie(){
 		if ($(this).attr('data-menuid') != 'undefined')
 			openMenus += $(this).attr('data-menuId') + ",";
 	});
-	menuState += " " + openMenus;
+	
+	var verticalOffset = $('#nav-panel').scrollTop();
+	menuState += " " + openMenus +  ":"  + verticalOffset;
+	
 	setCookie('menuInformation', menuState);
 }
 
@@ -82,9 +89,10 @@ function openSubmenus() {
 	var menuInfo = getCookie('menuInformation');
     if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
-    	var endPos = menuInfo.length ;
+    	var endPos = menuInfo.indexOf(':');
+    	menuScroll = menuInfo.substring(endPos+1);
     	menuInfo = menuInfo.substring(startPos, endPos);
-
+    	
     	menuArray = menuInfo.split(',');
 
         $.each(menuArray, function( index, value ) {
@@ -92,6 +100,8 @@ function openSubmenus() {
         	$("li[data-menuid='" + value + "']").addClass('open');
         	$("li[data-menuid='" + value + "']").find('ul').css('display', 'block');
         });
+        
+        $('#nav-panel').scrollTop(menuScroll);
     }
 }
 
