@@ -31,6 +31,12 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Име на документа в бързия бутон за добавяне в папката
+	 */
+	public $buttonInFolderTitle = 'Произвеждане';
+	
+	
+	/**
 	 * Абревиатура
 	 */
 	public $abbr = 'Mpn';
