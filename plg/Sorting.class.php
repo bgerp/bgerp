@@ -123,11 +123,18 @@ class plg_Sorting extends core_Plugin
                 		$currUrl["#"] = $mvc->Master->getHandle($data->masterId);
                 	}
                 }
-               
-                $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
-                ht::escapeAttr(toUrl($currUrl)) .
-                "' ><img  src=" . sbf($img) .
-                " width='16' height='16' alt='sort'></a></div>";
+                 
+                if(isset($mvc->fields[$field]) && $mvc->fields[$field]->type->getTdClass() == 'rightCol') {
+                    $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
+                    ht::escapeAttr(toUrl($currUrl)) .
+                    "' ><img  src=" . sbf($img) .
+                    " width='16' height='16' alt='sort'></a>" . "<div class='l'>|{$lastF}|*</div></div>";  
+                } else {
+                    $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
+                    ht::escapeAttr(toUrl($currUrl)) .
+                    "' ><img  src=" . sbf($img) .
+                    " width='16' height='16' alt='sort'></a></div>";
+                }
                
                 $data->listFields[$field] = implode('->', $fArr);
             }
