@@ -294,6 +294,9 @@ class cal_Reminders extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {  
     	if ($form->isSubmitted()) {
+    	    
+    	    $now = dt::now();
+    	    
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
                 $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
