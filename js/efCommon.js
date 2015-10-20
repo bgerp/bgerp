@@ -2038,6 +2038,29 @@ function centerNumericElements() {
 
 
 /**
+ * Подравняване на числата в средата
+ */
+function smartCenter() {
+		if(!$("div.maxwidth").length) return;
+		
+        var smartCenterWidth = [];
+    	$("div.maxwidth").css('display', 'inline-block');
+		$("div.maxwidth").each(function() {
+        	if(!smartCenterWidth[$(this).attr('data-col')] || smartCenterWidth[$(this).attr('data-col')] < $(this).width()){
+        		smartCenterWidth[$(this).attr('data-col')] = $(this).width();
+            }
+        });
+    	
+        for (key in smartCenterWidth) {
+        	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] );
+        }
+        
+        $(".maxwidth").css('margin', "0 auto");
+        $(".maxwidth").css('display', "block");
+}
+
+
+/**
  * Решава кои keylist групи трябва да са отворени при зареждане на страницата
  */
 function checkForHiddenGroups() {
@@ -3955,6 +3978,7 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
+runOnLoad(smartCenter);
 runOnLoad(sumOfChildrenWidth);
 runOnLoad(editCopiedTextBeforePaste);
 runOnLoad(showTooltip);

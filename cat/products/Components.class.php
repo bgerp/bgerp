@@ -128,7 +128,7 @@ class cat_products_Components extends doc_Detail
      */
     public static function renderComponents($data)
     {
-    	if($data->addCompUrl) {
+    	if($data->addCompUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
     		$data->addCompUrl = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addCompUrl, FALSE, 'title=Добавяне на нов компонент');
     	}
    

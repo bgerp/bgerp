@@ -92,6 +92,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::replaceResources4',
     		'migrate::replacePackagings',
     		'migrate::updateProductsNew',
+    		'migrate::deleteCache',
         );
 
 
@@ -761,5 +762,14 @@ class cat_Setup extends core_ProtoSetup
     			
     		}
     	}
+    }
+    
+    
+    /**
+     * Изчистване на кеша на артикулите
+     */
+    public function deleteCache()
+    {
+    	cat_ProductTplCache::truncate();
     }
 }

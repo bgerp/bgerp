@@ -813,7 +813,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			$row->$fld = ' ';
 			
-			if(!Mode::is('text', 'xhtml')){
+			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
 					$row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId);
 				}

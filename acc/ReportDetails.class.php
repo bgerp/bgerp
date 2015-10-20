@@ -268,7 +268,7 @@ class acc_ReportDetails extends core_Manager
         }
         
         $limitTitle = tr("Лимити");
-        if(acc_Limits::haveRightFor('list')){
+        if(acc_Limits::haveRightFor('list') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
         	$limitTitle = ht::createLink($limitTitle, array('acc_Limits', 'list'), FALSE, 'title=Към счетоводните лимити');
         }
         $tpl->replace($limitTitle, 'LIMIT_LINK');
@@ -376,7 +376,8 @@ class acc_ReportDetails extends core_Manager
         }
         
         // Ако потребителя може да добавя счетоводни лимити
-        if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId()))){
+        if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId())) 
+                && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
         	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
         	$btn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново ограничение на перото');
         	$tpl->append($btn, 'BTN_LIMITS');

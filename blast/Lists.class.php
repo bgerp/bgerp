@@ -683,7 +683,7 @@ class blast_Lists extends core_Master
         $allFieldsArr = array('title' => 'Заглавие',
         						'keyField' => 'Ключово поле',
         						'allFields' => 'Всички полета',
-        						'DetailsCnt' => 'Брой имейли',
+        						'DetailsCnt' => 'Брой абонати',
         						'lg' => 'Език',
         						'lastUsedOn' => 'Последна употреба'
                             );

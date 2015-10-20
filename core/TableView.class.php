@@ -201,8 +201,15 @@ class core_TableView extends core_BaseClass
                     }
                     
                     // Шаблон за реда
-                    $row .= "<td{$attr}>[#{$place}#]</td>";
                     
+                   if($this->mvc->fields[$place]->smartCenter){
+                       static $dataCol;
+                       $dataCol++;
+                       $row .= "<td{$attr}><div class='maxwidth' data-col='{$dataCol}'>[#{$place}#]</div></td>";
+                   }  else {
+                       $row .= "<td{$attr}>[#{$place}#]</td>";
+                   }
+                   
                     $colspan++;
                 } else {
                     // Допълнителни цели редове, ако колоната няма заглавие

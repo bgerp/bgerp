@@ -662,7 +662,7 @@ class price_ListRules extends core_Detail
 		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
 		
 		$title = 'Себестойности';
-		if($data->priceLists->addUrl){
+		if($data->priceLists->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
 			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->priceLists->addUrl, FALSE, 'title=Добавяне на нова себестойност');
 		}
 		

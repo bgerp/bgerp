@@ -921,4 +921,37 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	$mvc->renderQuantities($data->row->quantities, $tpl, 'QUANTITY_ROW');
     }
+    
+    
+    /**
+     * Връща данните за запитванията
+     * 
+     * @param integer $id    - id' то на записа
+     * @param email   $email - Имейл
+     *
+     * @return NULL|object
+     */
+    static function getContragentData($id)
+    {
+        if (!$id) return ;
+        
+        $rec = self::fetch($id);
+        
+        $contrData = new stdClass();
+        
+        $contrData->person = $rec->name;
+        $contrData->company = $rec->company;
+        $contrData->tel = $rec->tel;
+        $contrData->pCode = $rec->pCode;
+        $contrData->place = $rec->place;
+        $contrData->address = $rec->address;
+        $contrData->email = $rec->email;
+        $contrData->countryId = $rec->country;
+        
+        if ($contrData->countryId) {
+            $contrData->country = self::getVerbal($rec, 'country');
+        }
+        
+        return $contrData;
+    }
 }

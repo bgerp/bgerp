@@ -462,7 +462,7 @@ class cat_Boms extends core_Master
         	$row->primeCost = $Double->toVerbal($rec->primeCost);
         	$row->primeCost .= tr("|* ( |за|* {$row->quantityForPrice} {$shortUom} )");
         	 
-        	if(haveRole('ceo, acc, cat, price')){
+        	if(haveRole('ceo, acc, cat, price') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
         		$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
         	}
     	}
