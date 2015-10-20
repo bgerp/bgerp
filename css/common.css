@@ -2898,13 +2898,15 @@ span.cng {
   display: inline-block;
   text-align: left; }
 
-td.rightCol {
+td.rightCol,
+th.rightCol {
   white-space: nowrap;
-  text-align: right; }
+  text-align: right !important; }
 
-td.leftCol {
+td.leftCol,
+th.leftCol {
   white-space: nowrap;
-  text-align: left; }
+  text-align: left !important; }
 
 td.centerCol {
   white-space: nowrap;
