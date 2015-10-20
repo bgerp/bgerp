@@ -1356,7 +1356,7 @@ class doc_Threads extends core_Manager
         			foreach ($managersIds as $classId){
         				$Cls = cls::get($classId);
         				if($Cls->haveRightFor('add', (object)array('folderId' => $data->folderId))){
-        					$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        					$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
         				}
         			}
         		}
