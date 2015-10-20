@@ -184,7 +184,7 @@ class cal_Reminders extends core_Master
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
         
         // Начало на напомнянето
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Време->Начало, silent,changable');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
         
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
@@ -207,7 +207,7 @@ class cal_Reminders extends core_Master
         $this->FLD('weekDayNames', 'varchar(12)', 'caption=Име на деня,notNull,input=none');
         
         // Кога е следващото стартирване на напомнянето?
-        $this->FLD('nextStartTime', 'datetime', 'caption=Следващо напомняне,input=none');
+        $this->FLD('nextStartTime', 'datetime(format=smartTime)', 'caption=Следващо напомняне,input=none');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -294,6 +294,9 @@ class cal_Reminders extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {  
     	if ($form->isSubmitted()) {
+    	    
+    	    $now = dt::now();
+    	    
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
                 $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
@@ -393,11 +396,6 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-
-    	if (isset($data->rec->timeStart)){
-    		$data->row->timeStart = dt::mysql2verbal($data->rec->timeStart, 'smartTime');
-    	}
-    	
     	if($data->rec->repetitionType == 'days' ) {
     		if($data->rec->repetitionEach == '1'){
     			$data->row->each = 'всеки';
@@ -469,10 +467,6 @@ class cal_Reminders extends core_Master
     		$data->row->each = '';
 	    	$data->row->repetitionType = '';
 	    	$data->row->repetitionTypeMonth = '';
-    	}
-    	
-    	if(isset($data->row->nextStartTime)) {
-    		$data->row->nextStartTime = dt::mysql2verbal($data->rec->nextStartTime, 'smartTime');
     	}
     }
 
@@ -972,6 +966,64 @@ class cal_Reminders extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');
     }
-
-       
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array();
+        
+        $headerRes['shareLog'] =  array('name' => tr('Споделяне'), 'val' =>"[#shareLog#]");
+        
+        $allFieldsArr = array('priority' => 'Приоритет',
+        						'timeStart' => 'Начало',
+        						'action' => 'Действие',
+        						'timePreviously' => 'Предварително',
+        						'nextStartTime' => 'Следващо напомняне',
+        						'rem' => 'Напомняне',
+        						'repetitionTypeMonth' => 'Съблюдаване на',
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $headerRes[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        if ($row->repetitionEach){
+            $headerRes['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+        }
+        
+        // Ако има повече от една версия
+        if (isset($row->LastVersion) && $row->LastVersion != 0.1) {
+            // Полета, които ще се показват
+            $headerRes += change_Plugin::getDateAndVersionRow();
+        }
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['date'] = 'date';
+            $hideArr['version'] = 'version';
+        }
+        
+        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
+    }
 }

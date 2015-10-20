@@ -33,7 +33,7 @@ class cat_Boms extends core_Master
      */
     var $title = "Технологични рецепти";
     
-    
+   
     /**
      * Неща, подлежащи на начално зареждане
      */
@@ -68,6 +68,13 @@ class cat_Boms extends core_Master
      * Детайла, на модела
      */
     var $details = 'cat_BomDetails';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'cat_BomDetails';
     
     
     /**
@@ -137,7 +144,7 @@ class cat_Boms extends core_Master
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
-    	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
+    	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
@@ -189,6 +196,10 @@ class cat_Boms extends core_Master
     	
     	// При създаване на нова рецепта
     	if(empty($form->rec->id)){
+    		if($expenses = cat_Products::getParamValue($form->rec->productId, 'expenses')){
+    			$form->setDefault('expenses', $expenses);
+    		}
+    		
     		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
     		
     		$alreadyUsedResources = array();
@@ -411,7 +422,7 @@ class cat_Boms extends core_Master
      */
     function getDocumentRow($id)
     {
-    	$rec = $this->fetch($id);
+    	$rec = $this->fetchRec($id);
     	
     	$row = new stdClass();
     	$row->title = $this->getRecTitle($rec);
@@ -503,8 +514,8 @@ class cat_Boms extends core_Master
     	
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
-    	$amounts = (object)array('base' => 0, 'prop' => 0);
-    	
+    	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
+    	//bp($rInfo);
     	// За всеки ресурс
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
@@ -516,17 +527,18 @@ class cat_Boms extends core_Master
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
     			
+    			$base = $dRec->baseQuantity * $selfValue * $sign / $rInfo['quantity'];
+    			$prop = $dRec->propQuantity * $selfValue * $sign / $rInfo['quantity'];
+    			
+    			$amounts->expenses += $base * $dRec->expensePercent + $prop * $dRec->expensePercent;
+    			$base *= (1 + $dRec->expensePercent);
+    			$prop *= (1 + $dRec->expensePercent);
+    			
     			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $dRec->baseQuantity * $selfValue * $sign;
-    			$amounts->prop += $dRec->propQuantity * $selfValue * $sign;
+    			$amounts->base += $base;
+    			$amounts->prop += $prop;
     		}
     	}
-    	
-    	$amounts->base /= $rInfo['quantity'];
-    	$amounts->prop /= $rInfo['quantity'];
-    	
-    	$amounts->base *= (1 + $rec->expenses);
-    	$amounts->prop *= (1 + $rec->expenses);
     	
     	// Връщаме изчислените суми
     	return $amounts;
@@ -565,6 +577,7 @@ class cat_Boms extends core_Master
     		$arr = array();
     		$arr['productId']      = $dRec->resourceId;
     		$arr['type']           = $dRec->type;
+    		$arr['expensePercent'] = $dRec->expensePercent;
     		$arr['packagingId']    = $dRec->packagingId;
     		$arr['quantityInPack'] = $dRec->quantityInPack;
     		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;

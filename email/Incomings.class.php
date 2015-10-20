@@ -810,50 +810,56 @@ class email_Incomings extends core_Master
      */
     protected static function checkEmailIsFromGoodList($email, $threadId, $folderId)
     {
-        static $threadEmailsArr = FALSE;
+        static $threadEmailsArr = array();
         static $checkedEmailsArr = array();
-        static $contrDataEmailsArr = FALSE;
+        static $contrDataEmailsArr = array();
         
         // Всички изпратени имейли в нишката
-        if ($threadEmailsArr === FALSE) {
-            $threadEmailsArr = array();
+        if (!isset($threadEmailsArr[$threadId])) {
+            $threadEmailsArr[$threadId] = array();
             $emailRecsArr = doclog_Documents::getRecs(NULL, doclog_Documents::ACTION_SEND, $threadId);
             
             foreach ($emailRecsArr as $emailRecArr) {
-                $to = $emailRecArr->data->to;
-                $threadEmailsArr[$to] = $to;
+                
+                $toArr = type_Emails::toArray($emailRecArr->data->to);
+                $ccArr = type_Emails::toArray($emailRecArr->data->cc);
+                $allArr = array_merge((array)$toArr, (array)$ccArr);
+                
+                foreach ($allArr as $emailStr) {
+                    $threadEmailsArr[$threadId][$emailStr] = $emailStr;
+                }
             }
         }
         
         $email = trim($email);
         $email = strtolower($email);
         
-        if (!isset($checkedEmailsArr[$email])) {
+        if (!isset($checkedEmailsArr[$threadId][$email])) {
             // Дали е в изпратените имейли
-            $checked = self::checkEmailIsExist($email, $threadEmailsArr, TRUE);
+            $checked = self::checkEmailIsExist($email, $threadEmailsArr[$threadId], TRUE);
             
             if (!$checked) {
                 // Ако папката е на котрагент, проверява в техните имейли
                 if ($folderId) {
                     $cover = doc_Folders::getCover($folderId);
             		if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)){
-            			if ($contrDataEmailsArr === FALSE) {
+            			if (!isset($contrDataEmailsArr[$folderId])) {
             			    $contrData = $cover->getContragentData();
-            			    $contrDataEmailsArr = type_Emails::toArray($contrData->groupEmails);
+            			    $contrDataEmailsArr[$folderId] = type_Emails::toArray($contrData->groupEmails);
             			}
-            			$checkedEmailsArr[$email] = self::checkEmailIsExist($email, $contrDataEmailsArr, TRUE);
+            			$checkedEmailsArr[$threadId][$email] = self::checkEmailIsExist($email, $contrDataEmailsArr[$folderId], TRUE);
             		}
                 }
             } else {
-                $checkedEmailsArr[$email] = TRUE;
+                $checkedEmailsArr[$threadId][$email] = TRUE;
             }
         }
         
-        if (!isset($checkedEmailsArr[$email])) {
-            $checkedEmailsArr[$email] = !(boolean)$threadEmailsArr;
+        if (!isset($checkedEmailsArr[$threadId][$email])) {
+            $checkedEmailsArr[$threadId][$email] = !(boolean)$threadEmailsArr[$threadId];
         }
         
-        return $checkedEmailsArr[$email];
+        return $checkedEmailsArr[$threadId][$email];
     }
     
     

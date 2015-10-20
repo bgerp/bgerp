@@ -367,4 +367,21 @@ class store_Stores extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	$res[] = planning_ConsumptionNotes::getClassId();
+    	$res[] = planning_ProductionNotes::getClassId();
+    	$res[] = store_Transfers::getClassId();
+    	
+    	return $res;
+    }
 }

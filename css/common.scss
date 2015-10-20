@@ -2505,6 +2505,7 @@ pre.rich-text {
     white-space: pre-wrap;
 	overflow: auto; 
 	font-size: 0.97em;
+	margin: 0;
 }
 
 .narrow pre.rich-text {
@@ -2667,7 +2668,6 @@ div.richtext ol ol ol {
 }
 
 .quote-title {
-	margin-top: 1em;
 	margin-bottom: 0.1em;
 }
 

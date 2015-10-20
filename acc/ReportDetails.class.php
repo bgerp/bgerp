@@ -118,12 +118,12 @@ class acc_ReportDetails extends core_Manager
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
         // Създава се с new за да сме сигурни, че обекта е нова празна инстанция
         $data->reportTableMvc = new core_Mvc;
-        $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
-        $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('limitQuantity', 'double', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('createdBy', 'double', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('blPrice', 'int', 'tdClass=accCell');
+        $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell,smartCenter');
+        $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('limitQuantity', 'double', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('createdBy', 'double', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('blPrice', 'int', 'tdclass=accCell,smartCenter');
         $data->total = 0;
         
         // Перото с което мастъра фигурира в счетоводството

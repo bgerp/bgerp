@@ -24,6 +24,10 @@
             [#SETTINGS#]
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Настройки|*</legend>
+				<!--ET_BEGIN useAsProto-->
+					<div class="groupList"><span class='quiet'>|Използване на артикулите като прототипи|*</span>: [#useAsProto#]</div>
+				<!--ET_END useAsProto-->
+				
 				<!--ET_BEGIN measures-->
 					<div class="groupList"><span class='quiet'>|Мерки|*</span>: [#measures#]</div>
 				<!--ET_END measures-->

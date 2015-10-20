@@ -2323,7 +2323,8 @@ pre.rich-text {
   border: solid 1px #dddddd;
   white-space: pre-wrap;
   overflow: auto;
-  font-size: 0.97em; }
+  font-size: 0.97em;
+  margin: 0; }
 
 .narrow pre.rich-text {
   font-size: 0.9em;
@@ -2464,7 +2465,6 @@ div.richtext ol ol ol {
   padding-left: 5px; }
 
 .quote-title {
-  margin-top: 1em;
   margin-bottom: 0.1em; }
 
 .document .inlineRichTable.listTable {

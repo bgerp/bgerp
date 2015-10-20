@@ -1,40 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div class='antetka' style='line-height:150%;'>
-        <b>[#title#]</b><br>
-        <div class="small">
-            <div class='block_left'>
-                <div class='reminder-half'>
-                    <div>|Приоритет|*: [#priority#]</div>
-                    <!--ET_BEGIN timeStart-->
-                    <div>|Начало|*: [#timeStart#]</div>
-                    <!--ET_END timeStart-->
-                    <div>|Действие|*: [#action#]</div>
-                    <!--ET_BEGIN timePreviously-->
-                    <div>|Предварително|*: [#timePreviously#]</div>
-                    <!--ET_END timePreviously-->
-                </div>
-                <div class='reminder-half'>
-                    <div>|Споделяне|*: [#shareLog#]</div>
-                    <!--ET_BEGIN repetition--> 
-                    <div>
-                        <!--ET_BEGIN nextStartTime-->|Следващо напомняне|*: [#nextStartTime#]<!--ET_END nextStartTime--> 
-                        <!--ET_BEGIN rem-->|Напомняне|*: [#rem#]<!--ET_END rem--> 
-                    </div>
-                    <!--ET_END repetition-->
-                    <!--ET_BEGIN repetitionEach-->   
-                    <div>
-                        <!--ET_BEGIN each-->|Повторение|* [#each#]<!--ET_END each--> 
-                        <!--ET_BEGIN repetitionEach-->[#repetitionEach#]<!--ET_END repetitionEach-->
-                        <!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->
-                    </div>
-                    <!--ET_END repetitionEach-->
-                    <!--ET_BEGIN repetitionTypeMonth-->
-                    <div>|Съблюдаване на|* [#repetitionTypeMonth#]</div>
-                    <!--ET_END repetitionTypeMonth-->
-                </div>
-                <div class='clearfix21'></div>
-            </div>
-        </div>
+    <div style='padding:6px 10px 10px;'>
+    	<h3 class='richtext-title'>[#title#]</h3>
+    	[#description#]
     </div>
-    <div style='padding-top:10px;'>[#description#]</div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

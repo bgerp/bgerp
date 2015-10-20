@@ -326,6 +326,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
+			$dRec->expensePercent = $resource->expensePercent;
 				
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
@@ -436,6 +437,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$nRec->resourceId     = $dRec->productId;
 			$nRec->type           = $dRec->type;
 			$nRec->propQuantity   = $dRec->quantity;
+			$nRec->expensePercent = $dRec->expensePercent;
 			$nRec->packagingId    = $dRec->packagingId;
 			$nRec->quantityInPack = $dRec->quantityInPack;
 			

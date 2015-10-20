@@ -712,8 +712,7 @@ div.acc-detail {
   float: none; }
 
 .accCell {
-  padding-left: 10px !important;
-  width: 130px; }
+  padding-left: 15px !important; }
 
 .itemClass {
   min-width: 210px; }
@@ -838,10 +837,6 @@ div.acc-detail {
         .detail-info.acc-summary table.listTable tr:first-child th:nth-child(2) {
           text-align: left;
           padding-left: 10px; }
-        .detail-info.acc-summary table.listTable tr:first-child th:nth-last-child(1),
-        .detail-info.acc-summary table.listTable tr:first-child th:nth-last-child(2) {
-          text-align: right;
-          padding-right: 4px; }
     .detail-info.acc-summary .feather-title {
       text-align: left;
       float: left;

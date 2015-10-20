@@ -315,36 +315,21 @@ class cat_Products extends embed_Manager {
     		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=measureId|meta");
             if(!$form->rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $form->rec->{$driverField})) {
                 
-                $cQuery = cat_Categories::getQuery();
-                $cArr = array();
-                while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
-                    $cArr[] = $cRec->folderId;
-                }
-
-                if(count($cArr)) {
-                    
-                    $catList = implode(',', $cArr);
-
-                    $query = self::getQuery();
-                    $opt = array();  
-                    while($pRec = $query->fetch("#{$driverField} = {$drvId} AND #state = 'active' AND #folderId IN ({$catList})")) {
-                        $opt[$pRec->id] = $pRec->name;
-                    }
- 
-                    if(count($opt)) {
-                        $form->setField('proto', 'input');
-                        $form->setOptions('proto', $opt);
-
-                        if($proto = Request::get('proto', 'int')) {
-                            if($pRec = self::fetch($proto)) {
-                                $Cmd = Request::get('Cmd');
-                                if($Cmd['refresh'] && is_array($pRec->driverRec)) {
-                                    Request::push($pRec->driverRec); 
-                                }                      
-                            }
-                        }
-                    }
-                }
+            	$protoProducts = cat_Categories::getProtoOptions($drvId);
+            	
+            	if(count($protoProducts)){
+            		$form->setField('proto', 'input');
+            		$form->setOptions('proto', $protoProducts);
+            		
+            		if($proto = Request::get('proto', 'int')) {
+            			if($pRec = self::fetch($proto)) {
+            				$Cmd = Request::get('Cmd');
+            				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
+            					Request::push($pRec->driverRec);
+            				}
+            			}
+            		}
+            	}
             }
     	}
     	
@@ -1442,10 +1427,10 @@ class cat_Products extends embed_Manager {
     	if($data->rec->state == 'active'){
     		if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state != 'rejected'")){
     			if(cat_Boms::haveRightFor('single', $bRec)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула');
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула,order=19');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,order=19,title=Създаване на нова технологична рецепта');
     		}
     	}
     }
