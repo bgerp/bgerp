@@ -385,6 +385,9 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		if($bomId = cat_Products::getLastActiveBom($rec->productId)->id){
+    			$row->bomId = cat_Boms::getLink($bomId, 0);
+    		}
     		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);

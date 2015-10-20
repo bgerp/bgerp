@@ -68,7 +68,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity,expensePercent';
     
         
     /**
@@ -86,7 +86,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'productId';
+    protected $hideListFieldsIfEmpty = 'productId,expensePercent';
     
     
     /**
@@ -100,6 +100,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         parent::setDetailFields($this);
         $this->FLD('conversionRate', 'double', 'input=none');
+        $this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,type');
@@ -136,6 +137,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$products = array('' => '') + cat_Products::getByProperty($metas);
     	}
     	
+    	$form->setDefault('expensePercent', $data->masterRec->expenses);
     	$form->setOptions('productId', $products);
     }
     
@@ -159,6 +161,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     	
     		if($form->isSubmitted()){
+    			if(!isset($rec->expensePercent)){
+    				$rec->expensePercent = planning_DirectProductionNote::fetchField($rec->noteId, 'expenses');
+    			}
+    			
     			if(isset($storeInfo->warning)){
     				$form->setWarning('packQuantity', $storeInfo->warning);
     			}
@@ -245,6 +251,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	// Рендираме таблицата с вложените материали
     	$data->listFields['productId'] = '|Суровини и материали|* ' . "<small style='font-weight:normal'>( |вложени от склад|*: {$data->masterData->row->inputStoreId} )</small>";
     	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
+    	
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	

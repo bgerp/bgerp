@@ -104,13 +104,13 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity';
+    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'baseQuantity';
+    protected $hideListFieldsIfEmpty = 'baseQuantity,expensePercent';
     
     
     /**
@@ -125,6 +125,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	$this->FNC('measureId', 'varchar', 'caption=Мярка,smartCenter');
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
+    	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
     	
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
@@ -171,6 +172,10 @@ class cat_BomDetails extends doc_Detail
     		
     	$propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
     	$form->setField('propQuantity', "caption={$propCaption}");
+    	
+    	if($data->masterRec->expenses){
+    		$form->setDefault('expensePercent', $data->masterRec->expenses);
+    	}
     }
     
     
@@ -243,6 +248,10 @@ class cat_BomDetails extends doc_Detail
     	
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
+    		
+    		if(!isset($rec->expensePercent)){
+    			$rec->expensePercent = cat_Boms::fetchField($rec->bomId, 'expenses');
+    		}
     		
     		if(isset($rec->resourceId)){
     			

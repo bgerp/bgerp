@@ -72,6 +72,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		$dQuery->orderBy("id", 'ASC');
 		
 		$errorArr = array();
+		$expenses = 0;
 		
 		while($dRec = $dQuery->fetch()){
 			unset($entry);
@@ -153,8 +154,8 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					}
 					
 					// Ако има режийни разходи за разпределение
-					if(isset($resourceInfo['expenses'])){
-						$costAmount = $resourceInfo['expenses'] * $bomAmount;
+					if($priceObj->expenses){
+						$costAmount = $priceObj->expenses;
 						$costAmount = round($costAmount, 2);
 						
 						if($costAmount){
