@@ -47,7 +47,7 @@
                                             <tbody>
                                                 <!--ET_BEGIN contragentVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>№ |по ЗДДС|*:</small></td>
+                                                    <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
@@ -66,7 +66,7 @@
                                             <tbody>
                                                 <!--ET_BEGIN MyCompanyVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>№ |по ЗДДС|*:</small></td>
+                                                    <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END MyCompanyVatNo-->
