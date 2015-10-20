@@ -50,7 +50,7 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,meta=Свойства';
+    public $listFields = 'id,name,meta=Свойства,useAsProto=Прототипи';
     
     
     /**
