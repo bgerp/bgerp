@@ -315,36 +315,21 @@ class cat_Products extends embed_Manager {
     		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=measureId|meta");
             if(!$form->rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $form->rec->{$driverField})) {
                 
-                $cQuery = cat_Categories::getQuery();
-                $cArr = array();
-                while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
-                    $cArr[] = $cRec->folderId;
-                }
-
-                if(count($cArr)) {
-                    
-                    $catList = implode(',', $cArr);
-
-                    $query = self::getQuery();
-                    $opt = array();  
-                    while($pRec = $query->fetch("#{$driverField} = {$drvId} AND #state = 'active' AND #folderId IN ({$catList})")) {
-                        $opt[$pRec->id] = $pRec->name;
-                    }
- 
-                    if(count($opt)) {
-                        $form->setField('proto', 'input');
-                        $form->setOptions('proto', $opt);
-
-                        if($proto = Request::get('proto', 'int')) {
-                            if($pRec = self::fetch($proto)) {
-                                $Cmd = Request::get('Cmd');
-                                if($Cmd['refresh'] && is_array($pRec->driverRec)) {
-                                    Request::push($pRec->driverRec); 
-                                }                      
-                            }
-                        }
-                    }
-                }
+            	$protoProducts = cat_Categories::getProtoOptions($drvId);
+            	
+            	if(count($protoProducts)){
+            		$form->setField('proto', 'input');
+            		$form->setOptions('proto', $protoProducts);
+            		
+            		if($proto = Request::get('proto', 'int')) {
+            			if($pRec = self::fetch($proto)) {
+            				$Cmd = Request::get('Cmd');
+            				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
+            					Request::push($pRec->driverRec);
+            				}
+            			}
+            		}
+            	}
             }
     	}
     	
