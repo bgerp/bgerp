@@ -296,7 +296,7 @@ class planning_Jobs extends core_Master
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
     		}
     	}
 
