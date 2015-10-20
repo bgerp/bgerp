@@ -348,12 +348,15 @@ class cat_Categories extends core_Master
      */
     public static function getProtoOptions($driverId)
     {
-    	$cQuery = self::getQuery();
     	$opt = $cArr = array();
+    	
+    	// В кои категории може да има прототипни артикули
+    	$cQuery = self::getQuery();
     	while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
     		$cArr[] = $cRec->folderId;
     	}
     	
+    	// Ако има такива, извличаме активните артикули със същия драйвер
     	if(count($cArr)) {
     		$catList = implode(',', $cArr);
     		$Products = cls::get('cat_Products');
@@ -364,6 +367,7 @@ class cat_Categories extends core_Master
     		}
     	}
     	
+    	// Връщаме готовите опции
     	return $opt;
     }
 }
