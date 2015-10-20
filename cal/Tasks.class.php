@@ -208,14 +208,14 @@ class cal_Tasks extends core_Master
         $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory,changable');
 
         // Начало на задачата
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
             'caption=Времена->Начало, silent, changable, tdClass=leftColImportant');
 
         // Продължителност на задачата
         $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable');
 
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Времена->Край,changable, tdClass=leftColImportant');
 
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -233,16 +233,16 @@ class cal_Tasks extends core_Master
         $this->FLD('expectationTimeEnd', 'datetime(format=smartTime)', 'caption=Времена->Очакван край,input=none');
 
         // Очаквано начало на задачата
-        $this->FLD('expectationTimeStart', 'datetime', 'caption=Времена->Очаквано начало,input=none');
+        $this->FLD('expectationTimeStart', 'datetime(format=smartTime)', 'caption=Времена->Очаквано начало,input=none');
 
         // Изчислен старт  на задачата
-        $this->FLD('timeCalc', 'datetime', 'caption=Времена->Изчислен старт,input=none');
+        $this->FLD('timeCalc', 'datetime(format=smartTime)', 'caption=Времена->Изчислен старт,input=none');
 
         // Точното време на активация на задачата
-        $this->FLD('timeActivated', 'datetime', 'caption=Времена->Активирана на,input=none');
+        $this->FLD('timeActivated', 'datetime(format=smartTime)', 'caption=Времена->Активирана на,input=none');
 
         // Точното време на затваряне
-        $this->FLD('timeClosed', 'datetime', 'caption=Времена->Затворена на,input=none');
+        $this->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
     }
 
 
@@ -303,32 +303,22 @@ class cal_Tasks extends core_Master
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {
             // я парвим хипервръзка към календара- дневен изглед
-            $row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
             // Ако имаме само крайна дата на задачата
         } elseif ($rec->timeEnd && !$rec->timeStart) {
             // я правим хипервръзка към календара - дневен изглед
-            $row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
             // Ако задачата е с начало и край едновременно
         } elseif ($rec->timeStart && $rec->timeEnd) {
             // и двете ги правим хипервръзка към календара - дневен изглед
-            $row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-            $row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
         }
 
         // && $rec->remainingTime > 0
-        if (($rec->timeDuration || $rec->timeEnd)) {
-            
-        	$row->expectationTimeEnd = dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime');
-        } else {
-        	
+        if (!$rec->timeDuration && !$rec->timeEnd) {
             $row->expectationTimeEnd = '';
         }
-
-        if ($rec->timeClosed) {
-        	
-            $row->timeClosed = dt::mysql2verbal($rec->timeClosed, 'smartTime');
-        }
-
     }
 
 
@@ -933,15 +923,11 @@ class cal_Tasks extends core_Master
         	$row->expectationTimeEnd = "";
         }
         
-        if (!$rec->timeStart) {
-        	$row->expectationTimeStart = dt::mysql2verbal($rec->expectationTimeStart, 'smartTime');
-        } else {
+        if ($rec->timeStart) {
         	$row->expectationTimeStart = '';
         }
         
-        if (!$rec->timeEnd) {
-        	$row->expectationTimeEnd = dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime');
-        } else {
+        if ($rec->timeEnd) {
         	$row->expectationTimeEnd = '';
         }
     }
