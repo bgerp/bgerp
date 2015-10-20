@@ -100,8 +100,9 @@ function openSubmenus() {
         	$("li[data-menuid='" + value + "']").addClass('open');
         	$("li[data-menuid='" + value + "']").find('ul').css('display', 'block');
         });
-        
-        $('#nav-panel').scrollTop(menuScroll);
+        if(menuScroll){
+        	$('#nav-panel').scrollTop(menuScroll);
+        }
     }
 }
 
