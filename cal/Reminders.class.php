@@ -972,6 +972,64 @@ class cal_Reminders extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');
     }
-
-       
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документа
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return core_ET
+     * 
+     * @see doc_DocumentIntf
+     */
+    function getLetterHead($rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = array();
+        
+        $headerRes['shareLog'] =  array('name' => tr('Споделяне'), 'val' =>"[#shareLog#]");
+        
+        $allFieldsArr = array('priority' => 'Приоритет',
+        						'timeStart' => 'Начало',
+        						'action' => 'Действие',
+        						'timePreviously' => 'Предварително',
+        						'nextStartTime' => 'Следващо напомняне',
+        						'rem' => 'Напомняне',
+        						'repetitionTypeMonth' => 'Съблюдаване на',
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $headerRes[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        if ($row->repetitionEach){
+            $headerRes['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+        }
+        
+        // Ако има повече от една версия
+        if (isset($row->LastVersion) && $row->LastVersion != 0.1) {
+            // Полета, които ще се показват
+            $headerRes += change_Plugin::getDateAndVersionRow();
+        }
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        if (!$row->FirstSelectedVersion) {
+            $hideArr['date'] = 'date';
+            $hideArr['version'] = 'version';
+        }
+        
+        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
+    }
 }
