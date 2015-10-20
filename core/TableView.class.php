@@ -156,6 +156,9 @@ class core_TableView extends core_BaseClass
 
                     if (is_object($this->mvc->fields[$place]->type)) {
                         $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
+                        if($this->mvc->fields[$place]->smartCenter) {
+                            $tdClass = '';
+                        }
                     } else {
                         $tdClass = '';
                     }
@@ -235,9 +238,8 @@ class core_TableView extends core_BaseClass
                 foreach ($headerRow as $h) {
                     $attr = array();
  
-                    if ( $lastRowFlag) {
-                        if(isset($this->mvc->fields[$place]) && !$this->mvc->fields[$place]->smartCenter) {
-                            $tdClass = $this->mvc->fields[$place]->type->getTdClass();
+                    if($lastRowFlag) {
+                        if($h->tdClass) {
                             $attr['class'] = $h->tdClass;;
                         }
                     }
