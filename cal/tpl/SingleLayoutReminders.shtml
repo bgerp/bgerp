@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div style='padding-top:10px;'>
+    <div style='padding:6px 10px 10px;'>
     	<h3 class='richtext-title'>[#title#]</h3>
     	[#description#]
     </div>
