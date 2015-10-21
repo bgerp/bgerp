@@ -1,6 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <h2 style='line-height:26px; margin-bottom: 10px;'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
-    <!--ET_BEGIN originId--><div style="font-style: italic">|Генериран от|* [#originId#]</div>    <!--ET_END originId-->
+    <h2 style='line-height:26px; margin-bottom: 3px;'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
+    <!--ET_BEGIN proto--><div class='quiet'><small>|Прототип|*: [#proto#]</small></div><!--ET_END proto--> 
+    <!--ET_BEGIN originId--><div style="font-style: italic">|Генериран от|* [#originId#]</div> <!--ET_END originId-->
     
     <fieldset class="detail-info">
     <legend class="groupTitle">|Описание|*</legend>

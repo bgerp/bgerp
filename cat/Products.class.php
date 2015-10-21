@@ -1123,6 +1123,10 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     		}
+    		
+    		if(isset($rec->proto)){
+    			$row->proto = $mvc->getHyperlink($rec->proto);
+    		}
     	}
     }
     
@@ -1238,10 +1242,11 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if($showDescription === TRUE){
+    		$titleTpl = "<b>{$titleTpl}</b>";
     		$descTpl = static::getProductDesc($rec, $time, $documentType);
     	}
     	
-    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><span style='font-size:0.9em'>[#desc#]</span><!--ET_END desc-->");
+    	$tpl = new ET("$titleTpl<!--ET_BEGIN desc--><br><span style='font-size:0.8em'>[#desc#]</span><!--ET_END desc-->");
     	$tpl->replace($titleTpl, 'name');
     	$tpl->replace($descTpl, 'desc');
     	
