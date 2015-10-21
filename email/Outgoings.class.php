@@ -1559,11 +1559,36 @@ class email_Outgoings extends core_Master
         $contragentData = NULL;
         
         if (!$isForwarding) {
+            
+            if ($rec->threadId) {
+                $contragentData = doc_Threads::getContragentData($rec->threadId);
+            }
+            
             if ($rec->originId) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
-                $contragentData = $oDoc->getContragentData();
-            } elseif ($rec->threadId) {
-                $contragentData = doc_Threads::getContragentData($rec->threadId);
+                $oContragentData = $oDoc->getContragentData();
+                
+                if ($oContragentData->person) {
+                    $contragentData->person = ($contragentData->person) ? $contragentData->person : $oContragentData->person;
+                }
+                
+                if ($oContragentData->replyToEmail) {
+                    $contragentData->replyToEmail = ($contragentData->replyToEmail) ? $contragentData->replyToEmail : $oContragentData->replyToEmail;
+                }
+                
+                // Добавяме имейла от originId на мястото да другия имейл
+                if ($oContragentData->email) {
+                    if ($contragentData->email) {
+                        $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
+                        $contragentData->groupEmails .= $contragentData->email;
+                        $contragentData->email = $oContragentData->email;
+                    }
+                }
+                
+                if ($oContragentData->groupEmails) {
+                    $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
+                    $contragentData->groupEmails .= $oContragentData->groupEmails;
+                }
             }
         }
         
