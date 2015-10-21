@@ -60,6 +60,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
+		$rec = &$form->rec;
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			$form->setField('photo', 'input=none');
@@ -68,21 +69,71 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setField('measureId', 'display=hidden');
 		}
 		
-		if($form->rec->folderId && empty($form->rec->id)){
-			$cover = doc_Folders::getCover($form->rec->folderId);
-			if($cover->haveInterface('cat_ProductFolderCoverIntf')){
+		// Само при добавянето на нов артикул
+		if(empty($rec->id)){
+			$refreshFields = array();
+			
+			// Имали дефолтни параметри
+			$defaultParams = $Driver->getDefaultParams($rec);
+			foreach ($defaultParams as $id => $value){
 				
-				// Всеки дефолтен параметър, добавяме го като поле във формата за по лесно добавяне
-				// Въведените стойностти след запис ще се запишат в детайла на продуктовите параметри
-				$defaultParams = $cover->getDefaultProductParams();
-					
-				foreach ($defaultParams as $id){
-					$paramRec = cat_Params::fetch($id);
-					$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},categoryParams,before=meta");
-					$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
+				// Всеки дефолтен параметър го добавяме към формата
+				$paramRec = cat_Params::fetch($id);
+				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},categoryParams,before=meta");
+				$Type = cat_Params::getParamTypeClass($id, 'cat_Params');
+				$form->setFieldType("paramcat{$id}", $Type);
+				
+				//@TODO workaround за рефреш на полетата от тип cat_type_UoM
+				if($Type instanceof cat_type_Uom){
+					$refreshFields["paramcat{$id}[lP]"] = "paramcat{$id}[lP]";
+				} else {
+					$refreshFields["paramcat{$id}"] = "paramcat{$id}";
+				}
+				
+				// Ако има дефолтна стойност, задаваме и нея
+				if(isset($value)){
+					$form->setDefault("paramcat{$id}", $value);
 				}
 			}
+			
+			$refreshFields = implode('|', $refreshFields);
+			$form->setField($Embedder->driverClassField, "removeAndRefreshForm=proto|{$refreshFields}");
+			$form->setField('proto', "removeAndRefreshForm={$refreshFields}");
 		}
+	}
+	
+	
+	/**
+	 * Връща масив с дефолтните параметри за записа
+	 * Ако артикула има прототип взимаме неговите параметри, 
+	 * ако няма тези от корицата му
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	private function getDefaultParams($rec)
+	{
+		$res = array();
+		
+		if($rec->proto){
+			
+			// Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
+			$paramQuery = cat_products_Params::getQuery();
+			$paramQuery->where("#productId = {$rec->proto}");
+			while($pRec = $paramQuery->fetch()){
+				$res[$pRec->paramId] = $pRec->paramValue;
+			}
+		} else {
+			
+			// Иначе взимаме параметрите от корицата му, ако можем
+			$cover = doc_Folders::getCover($rec->folderId);
+			if($cover->haveInterface('cat_ProductFolderCoverIntf')){
+				$res = $cover->getDefaultProductParams();
+			}
+		}
+		
+		// Връщаме намерените параметри (ако има);
+		return $res;	
 	}
 	
 	
@@ -281,15 +332,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 unset($newRec->id);
                 $newRec->productId = $pRec->id;
                 cat_products_Components::save($newRec);
-            }
-            
-            // Прехвърляне на параметрите, ако има
-            $query = cat_products_Params::getQuery();
-            while($rec = $query->fetch("#productId = {$pRec->proto}")) {
-                $newRec = clone($rec);
-                unset($newRec->id);
-                $newRec->productId = $pRec->id;
-                cat_products_Params::save($newRec);
             }
         }
     }
