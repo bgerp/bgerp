@@ -97,7 +97,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			}
 			
 			$refreshFields = implode('|', $refreshFields);
-			$form->setField($Embedder->driverClassField, "removeAndRefreshForm=proto|{$refreshFields}");
+			$remFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm') . "|" . $refreshFields;
+			$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$remFields}");
 			$form->setField('proto', "removeAndRefreshForm={$refreshFields}");
 		}
 	}
