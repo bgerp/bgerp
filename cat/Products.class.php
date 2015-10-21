@@ -1240,13 +1240,12 @@ class cat_Products extends embed_Manager {
     			$showDescription = ($rec->isPublic == 'no') ? TRUE : FALSE;
     			break;
     	}
-    	
+    	$titleTpl = "<b>{$titleTpl}</b>";
     	if($showDescription === TRUE){
-    		$titleTpl = "<b>{$titleTpl}</b>";
     		$descTpl = static::getProductDesc($rec, $time, $documentType);
     	}
     	
-    	$tpl = new ET("$titleTpl<!--ET_BEGIN desc--><br><span style='font-size:0.8em'>[#desc#]</span><!--ET_END desc-->");
+    	$tpl = new ET("$titleTpl<!--ET_BEGIN desc--><br><span style='font-size:0.85em'>[#desc#]</span><!--ET_END desc-->");
     	$tpl->replace($titleTpl, 'name');
     	$tpl->replace($descTpl, 'desc');
     	
