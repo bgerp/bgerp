@@ -52,6 +52,7 @@ class dec_Setup extends core_ProtoSetup
 			'dec_Statements',
    			'dec_DeclarationTypes',
 			'dec_Materials',
+   			'migrate::saveDecTplToTplManager'
         );
 
         
@@ -70,6 +71,57 @@ class dec_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за вземане на id от стария dec_DeclarationType  модел
+     */
+    function saveDecTplToTplManager()
+    {
+    	try {
+    		if (!cls::load('dec_Declarations', TRUE)) return ;
+    		$dec = cls::get('dec_Declarations');
+    		$decTypes = cls::get('dec_DeclarationTypes');
+
+    		$query = $dec->getQuery();
+    		$queryTypes = $decTypes->getQuery();
+    		
+    		$query->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+    
+    		while ($oldRec = $queryTypes->fetch()){
+    		
+    			if (doc_TplManager::fetchField("#name = '{$oldRec->name}'",'id')) continue;
+    			
+    			$lg = i18n_Language::detect($oldRec->script);
+    		
+    			$tplRec = new stdClass();
+    			
+    			$tplRec->name = $oldRec->name;
+    			$tplRec->docClassId = $dec->getClassId();
+    			$tplRec->content = $oldRec->script; 
+    			$tplRec->lang = $lg;
+    			$tplRec->toggleFields = array('masterFld' => NULL);
+    			
+    			doc_TplManager::save($tplRec);
+    	
+    			
+    			$newId = doc_TplManager::fetchField("#name = '{$oldRec->name}'",'id');
+    			$dic[$oldRec->id] = $newId;
+    			$b[$oldRec->id][$lg] = $oldRec->name;
+    		}
+
+    		while ($rec = $query->fetch()) {
+    			if (!$rec->typeId) continue;
+    			
+    			$rec->template = $dic[$rec->typeId];
+    			
+    			dec_Declarations::Save($rec, 'template');
+    		}
+    		
+    	} catch (Exception $e) {
+            dec_Declarations::logErr('Грешка при миграция');
+        }
     }
 
 }
