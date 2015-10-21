@@ -1613,7 +1613,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
     	$me = get_called_class();
     	$form = cls::get('core_Form');
-    	$form->title = "|Избор на чернова|* " . mb_strtolower($this->singleTitle);
+    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle);
     	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
     	$form->setOptions('dealId', $options);
     	
@@ -1628,7 +1628,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	$quotationId = Request::get('quotationId', 'int');
     	$rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
     	
-    	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор на документа');
+    	$forceUrl = $retUrl;
+    	$forceUrl['force'] = TRUE;
+    	
+    	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
+    	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());
