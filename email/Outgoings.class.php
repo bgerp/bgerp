@@ -1729,12 +1729,10 @@ class email_Outgoings extends core_Master
         //Вземаме класа, за който се създава съответния имейл
         $document = doc_Containers::getDocument($originId);
         
-        //Името на класа
-        $className = $document->className;
-        
         //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейл-а
-        if (cls::haveInterface('email_DocumentIntf', $className)) {
-            $body = $className::getDefaultEmailBody($document->that, $forward);
+        if (cls::haveInterface('email_DocumentIntf', $document->className)) {
+            $intf = cls::getInterface('email_DocumentIntf', $document->className);
+            $body = $intf->class->getDefaultEmailBody($document->that, $forward);
         }
         
         return $body;
