@@ -269,6 +269,8 @@ class cat_Categories extends core_Master
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
+        $res .= core_Classes::add($mvc);
+        
         $file = "cat/csv/Categories.csv";
         $fields = array(
             0 => "name",
