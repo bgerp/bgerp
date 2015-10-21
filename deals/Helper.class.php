@@ -506,7 +506,7 @@ abstract class deals_Helper
 							}
 								
 							$d = &$combined[$index];
-							$d->price = max($d->price, $p->price);
+							$d->discount = max($d->discount, $p->discount);
 			
 							$sign = ($parameter == 'arrays') ? 1 : -1;
 							
@@ -531,14 +531,13 @@ abstract class deals_Helper
 		
 		if(count($combined)){
 			foreach ($combined as &$det){
-				
-				@$discount = 1 - $det->sumAmounts / ($det->quantity * $det->price);
-				if($discount){
-					$det->discount = abs($discount);
+				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
+				if($det->price < 0){
+					$det->price = 0;
 				}
 			}
 		}
-		//bp($combined);
+		
 		return $combined;
 	}
 }
