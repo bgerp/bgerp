@@ -224,7 +224,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$tpl = new ET(tr("|*
                     <div class='groupList'>
                         <div class='richtext' style='margin-top: 5px;'>{$this->singleTitle}</div>
-						<table class = 'no-border small-padding'>
+						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
 					<div>
