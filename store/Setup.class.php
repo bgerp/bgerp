@@ -61,6 +61,7 @@ class store_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var  $managers = array(
+    		'migrate::truncateCacheProducts1',
             'store_Stores',
             'store_Movements',
             'store_Pallets',
@@ -185,5 +186,24 @@ class store_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Изтриване на кеш
+     */
+    public function truncateCacheProducts1()
+    {
+    	try{
+    		if(cls::load('store_Products', TRUE)){
+    			$Products = cls::get('store_Products');
+    			
+    			if($Products->db->tableExists($Products->dbTableName)) {
+    				store_Products::truncate();
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e, NULL, NULL);
+    	}
     }
 }
