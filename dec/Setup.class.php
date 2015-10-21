@@ -87,7 +87,7 @@ class dec_Setup extends core_ProtoSetup
     		$query = $dec->getQuery();
     		$queryTypes = $decTypes->getQuery();
     		
-    		$query->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+    		$dec->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
     
     		while ($oldRec = $queryTypes->fetch()){
     		
