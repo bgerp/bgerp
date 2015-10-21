@@ -675,7 +675,7 @@ class type_Keylist extends core_Type {
     {
         $arr = explode('|', trim($list, '|'));
         asort($arr);
-        $list = implode('|', $arr);
+        $list = '|' . implode('|', $arr) . '|';
 
         return $list;
     }
