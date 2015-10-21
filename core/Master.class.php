@@ -389,12 +389,13 @@ class core_Master extends core_Manager
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
 					$method = ($selectedTop ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
-					
-					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
-					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
-						
-					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
-					$detailsTpl->append($tabHtml);
+					if ($this->{$selectedTop} && method_exists($this->{$selectedTop}, $method)) {
+					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
+    					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
+    						
+    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
+    					$detailsTpl->append($tabHtml);
+					}
 				}
 				
 				// Проверяваме имали избран детайл от долния таб
@@ -408,18 +409,21 @@ class core_Master extends core_Manager
 				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
 					$method = ($selectedBottom ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
-					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
 					
-					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
-					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
-						$tabHtml = $selectedHtml;
-					} else {
-						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
-					}
-
-					if($tabHtml){
-						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-						$detailsTpl->append($tabHtml);
+					if ($this->{$selectedBottom} && method_exists($this->{$selectedBottom}, $method)) {
+    					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+    					
+    					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
+    					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
+    						$tabHtml = $selectedHtml;
+    					} else {
+    						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+    					}
+    
+    					if($tabHtml){
+    						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+    						$detailsTpl->append($tabHtml);
+    					}
 					}
 				}
                
