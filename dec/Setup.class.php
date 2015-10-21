@@ -120,7 +120,7 @@ class dec_Setup extends core_ProtoSetup
     		}
     		
     	} catch (Exception $e) {
-            dec_Declarations::logErr('Грешка при миграция');
+            dec_Declarations::logErr('Грешка при миграция' . $e->getMessage());
         }
     }
 
