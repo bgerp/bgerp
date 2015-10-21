@@ -4119,6 +4119,9 @@ body.narrow {
     .footerDocTable {
         display: table !important;
     }
+    .no-print {
+        display: none;
+    }
 }
 
 .narrow .external{

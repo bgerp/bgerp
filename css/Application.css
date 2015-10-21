@@ -3779,6 +3779,8 @@ only screen and (max-width: 320px) {
     display: block !important; }
   .external .footerDocTable {
     display: table !important; }
+  .external .no-print {
+    display: none; }
 
   .narrow .external .scrolling-holder {
     display: block;
