@@ -845,9 +845,14 @@ class sales_Quotations extends core_Master
     	expect($rec->state = 'active');
     	expect($items = $this->getItems($id));
     	
-    	// Опитваме се да намерим съществуваща чернова продажба
-    	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
-    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
+    	$force = Request::get('force', 'int');
+    	
+    	// Ако не форсираме нова продажба
+    	if(!$force){
+    		// Опитваме се да намерим съществуваща чернова продажба
+    		if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
+    			Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
+    		}
     	}
     	
     	// Ако няма създаваме нова
