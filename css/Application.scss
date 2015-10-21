@@ -4304,6 +4304,9 @@ body.narrow {
     .footerDocTable {
         display: table !important;
     }
+    table.listTable > tbody > tr > td {
+        vertical-align: top;
+    }
 }
 
 .printing {

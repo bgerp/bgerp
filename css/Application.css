@@ -3960,7 +3960,10 @@ only screen and (max-width: 320px) {
     display: table-row !important; }
 
   .footerDocTable {
-    display: table !important; } }
+    display: table !important; }
+
+  table.listTable > tbody > tr > td {
+    vertical-align: top; } }
 
   .printing .specialLink {
     font-weight: bold; }
