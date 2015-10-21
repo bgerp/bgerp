@@ -799,7 +799,7 @@ class cat_Boms extends core_Master
     			
     			// Ако има проблем, репортваме
     			core_Statuses::newStatus(tr('Проблем при създаването на нова базова рецепта'), 'error');
-    			reportException($e, NULL, TRUE);
+    			reportException($e);
     		}
     	}
     }

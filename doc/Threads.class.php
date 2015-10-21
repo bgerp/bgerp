@@ -272,7 +272,7 @@ class doc_Threads extends core_Manager
                 // Обновяваме нишката
                 self::updateThread($rec->id);
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         
@@ -337,7 +337,7 @@ class doc_Threads extends core_Manager
                     continue;
                 }
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         

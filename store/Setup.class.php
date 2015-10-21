@@ -203,7 +203,7 @@ class store_Setup extends core_ProtoSetup
     			}
     		}
     	} catch(core_exception_Expect $e){
-    		reportException($e, NULL, NULL);
+    		reportException($e);
     	}
     }
 }

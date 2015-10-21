@@ -102,7 +102,7 @@ class doclog_Setup extends core_ProtoSetup
                 doclog_Documents::removeHistoryFromCache($threadId);
             } catch (Exception $e) {
                 
-                reportException($e, NULL, TRUE);
+                reportException($e);
                 
                 continue;
             }
