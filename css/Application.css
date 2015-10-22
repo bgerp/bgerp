@@ -3816,9 +3816,6 @@ only screen and (max-width: 320px) {
     max-width: 87px;
     max-height: 87px; }
 
-  .antetka {
-    width: 98% !important; }
-
   .richtext-message {
     padding-left: 10px; }
 
@@ -4014,7 +4011,15 @@ only screen and (max-width: 320px) {
   .printing .innerTable td {
     vertical-align: top; }
   .printing .antetka {
-    border: none; }
+    margin: 5px 0;
+    border: none;
+    padding: 0;
+    width: 100%; }
+    .printing .antetka .top-table {
+      border-collapse: collapse; }
+      .printing .antetka .top-table td {
+        border: 1px solid #cccccc;
+        padding: 3px; }
   .printing .linkWithIcon {
     background-image: none !important;
     padding-left: 0 !important; }

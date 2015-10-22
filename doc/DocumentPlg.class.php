@@ -2591,7 +2591,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td>{$value['val']}</td>");
+            $val = new ET("<td><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
@@ -2600,7 +2600,7 @@ class doc_DocumentPlg extends core_Plugin
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<th class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</th>");
+                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</td>");
                 $res->append($name, $one);
                 $res->append($val, $two);
             }
