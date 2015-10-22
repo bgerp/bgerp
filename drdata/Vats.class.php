@@ -527,8 +527,8 @@ class drdata_Vats extends core_Manager
         $rec->description = 'Проверка на VAT номера';
         $rec->controller = $mvc->className;
         $rec->action = 'checkVats';
-        $rec->period = 5;
-        $rec->offset = 0;
+        $rec->period = 10;
+        $rec->offset = rand(0,8);
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
