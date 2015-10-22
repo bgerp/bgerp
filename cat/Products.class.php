@@ -1280,7 +1280,7 @@ class cat_Products extends embed_Manager {
     	$rec = self::fetchRec($id);
     	 
     	// Какво е к-то от последната активна рецепта
-    	return cat_Boms::fetch("#productId = {$rec->id} AND #state != 'rejected'");
+    	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
     }
     
     
