@@ -322,7 +322,7 @@ class cat_BomDetails extends doc_Detail
     	if($mvc->haveRightFor('edit', $rec)){
     		$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
     		if(count($convertableOptions)){
-    			$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/arrow_down3.png,title=Избор на заместващ материал');
+    			$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
     		}
     	}
     }
