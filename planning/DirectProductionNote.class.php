@@ -336,13 +336,10 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			
 			// Намираме артикулите, които могат да се влагат като този артикул
 			$quantities = array();
-			$query = planning_ObjectResources::getQuery();
-			$query->where("#likeProductId = {$resource->productId} AND #objectId IS NOT NULL");
-			$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
-			$query->where("#state = 'active'");
-			$query->show("objectId");
-			while($oRec = $query->fetch()){
-				$quantities[$oRec->objectId] = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$oRec->objectId}", 'quantity');
+			
+			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
+			foreach ($convertableProducts as $prodId => $prodName){
+				$quantities[$prodId] = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$prodId}", 'quantity');
 			}
 				
 			// Ако има такива
