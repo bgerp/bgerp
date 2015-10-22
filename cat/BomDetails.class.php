@@ -104,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
+    public $listFields = 'tools=Пулт, stageId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
     
     
     /**
@@ -124,11 +124,12 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
-    	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
+    	$this->FLD("position", 'int', 'caption=Позиция,smartCenter');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
-    	
+    	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Количество->Режийни');
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество,smartCenter');
+    	$this->FLD('showInProduct', 'enum(hide=Не се показва,title=Заглавие,description=Заглавие + описание,components=Заглавие + описание + компоненти)', 'caption=Показване в артикулa->Избор,notNull,value=hide,remember');
     }
     
     
@@ -186,6 +187,10 @@ class cat_BomDetails extends doc_Detail
     	
     	if($data->masterRec->expenses){
     		$form->setDefault('expensePercent', $data->masterRec->expenses);
+    	}
+    	
+    	if($rec->type == 'pop'){
+    		$form->setField('showInProduct', 'input=none');
     	}
     }
     
@@ -382,5 +387,24 @@ class cat_BomDetails extends doc_Detail
     
     		return ($a->order > $b->order) ? 1 : -1;
     	});
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(isset($rec->position)){
+    		$query = $mvc->getQuery();
+    		$cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
+    		$cond .= (isset($rec->stageId)) ? "#stageId = {$rec->stageId}" : "#stageId IS NULL";
+    		
+    		$query->where($cond);
+    		while($rec = $query->fetch()){
+    			$rec->position++;
+    			$mvc->save_($rec, 'position');
+    		}
+    	}
     }
 }

@@ -155,6 +155,22 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
+	 * Подготовка за рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
+	{
+		$data->Embedder = $Embedder;
+		$data->isSingle = TRUE;
+		$Driver->prepareProductDescription($data);
+	}
+	
+	
+	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
 	 * @param stdClass $data
@@ -162,7 +178,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function prepareProductDescription(&$data)
 	{
-		
+		// Ако ще показваме компонентите
+		if($data->showComponents !== FALSE){
+			$data->componentsArray = cat_Boms::getComponents($data->rec->id);
+		}
 	}
 	
 	
@@ -210,6 +229,8 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		$nTpl = $Driver->renderProductDescription($data);
 		$tpl->append($nTpl, 'innerState');
+		$componentTpl = cat_Products::renderComponents($data->componentsArray);
+		$tpl->append($componentTpl, 'COMPONENTS');
 	}
 	
 	
@@ -229,6 +250,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 						</table>
 					<div>
 					[#ROW_AFTER#]
+					[#COMPONENTS#]
 				"));
 		
         $form = cls::get('core_Form');

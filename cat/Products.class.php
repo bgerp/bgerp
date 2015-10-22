@@ -1137,11 +1137,11 @@ class cat_Products extends embed_Manager {
      * @param mixed $id - ид/запис
      * @return mixed - подробното описанието на артикула
      */
-    public static function getProductDesc($id, $time = NULL, $documentType = 'public')
+    public static function getProductDesc($id, $time = NULL, $documentType = 'public', $showComponents = TRUE)
     {
     	$rec = static::fetchRec($id);
     	
-    	return cat_ProductTplCache::cacheDescription($rec->id, $time, $documentType);
+    	return cat_ProductTplCache::cacheDescription($rec->id, $time, $documentType, $showComponents);
     }
     
     
@@ -1280,7 +1280,7 @@ class cat_Products extends embed_Manager {
     	$rec = self::fetchRec($id);
     	 
     	// Какво е к-то от последната активна рецепта
-    	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return cat_Boms::fetch("#productId = {$rec->id} AND #state != 'rejected'");
     }
     
     
@@ -1842,6 +1842,33 @@ class cat_Products extends embed_Manager {
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Рендира компонентите на един артикул
+     * 
+     * @param array $components - компонентите на артикула
+     * @return core_ET - шаблона на компонентите
+     */
+    public static function renderComponents($components)
+    {
+    	if(!count($components)) return;
     	
+    	$compTpl = getTplFromFile('cat/tpl/Components.shtml');
+    	$block = $compTpl->getBlock('COMP');
+    	foreach ($components as $obj){
+    		$bTpl = clone $block;
+    		$bTpl->placeArray(array('componentTitle'       => $obj->title, 
+    								'componentDescription' => $obj->description,
+    								'componentCode'        => $obj->code,
+    								'componentQuantity'    => $obj->quantity,
+    								'componentMeasureId'   => $obj->measureId));
+    		$bTpl->removeBlocks();
+    		$bTpl->append2Master();
+    	}
+    	$compTpl->removeBlocks();
+    	
+    	return $compTpl;
     }
 }

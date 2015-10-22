@@ -1,0 +1,16 @@
+<div class='product-component-holder'>
+	<div>|Включва|*:</div>
+	<ul class='product-component-list'>
+	<!--ET_BEGIN COMP-->
+	[#COMP#]
+		<li>
+			<div class='product-component-title'>[#componentCode#] <b>[#componentTitle#]</b> [#componentQuantity#] [#componentMeasureId#]</div>
+			<!--ET_BEGIN componentDescription-->
+			<div class='product-component-description'>
+			[#componentDescription#]
+			</div>
+			<!--ET_END componentDescription-->
+		</li>
+	<!--ET_END COMP-->
+	</ul>
+</div>

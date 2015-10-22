@@ -803,4 +803,53 @@ class cat_Boms extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Връща компонентите за показване на артикула
+     *
+     * @param int $productId - ид на артикул
+     * @return array
+     * 			o int title -  заглавието на компонента
+     * 			o html description - описанието му
+     * 			o array components - неговите компоненти, ако има
+     */
+    public static function getComponents($productId)
+    {
+    	$res = array();
+    	
+    	// Имали последна активна рецепта артикула?
+    	$rec = cat_Products::getLastActiveBom($productId);
+    	if(!$rec) return $res;
+    	
+    	// Кои детайли от нея ще показваме като компоненти
+    	$dQuery = cat_BomDetails::getQuery();
+    	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
+    	
+    	// За всеки
+    	while($dRec = $dQuery->fetch()){
+    		$obj = new stdClass();
+    	
+    		// Заглавието на компонента
+    		$title = cat_Products::getProductDescShort($dRec->resourceId);
+    		$title = strip_tags($title);
+    		$title = trim($title, '&nbsp;');
+    		$obj->title = $title;
+    		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
+    		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
+    		$obj->code = 10.4;
+    		
+    		// Описанието му, ако е зададено да се показва
+    		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
+    			$showComponents = ($dRec->showInProduct == 'components') ? TRUE : FALSE;
+    			$obj->description  = cat_Products::getProductDesc($dRec->resourceId, NULL, 'public', $showComponents)->getContent();
+    		}
+    	
+    		// Добавяме обекта
+    		$res[] = $obj;
+    	}
+    	
+    	return $res;
+    }
 }
