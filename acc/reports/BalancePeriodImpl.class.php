@@ -66,7 +66,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	$form->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,mandatory');
     	
     
-    	$form->FLD('orderField', "enum(,debitAmount=Дебит,creditAmount=Кредит,blAmount=Крайнo салдо)", 'caption=Подредба->Сума,formOrder=110000');
+    	$form->FLD('orderField', "enum(debitAmount=Дебит,creditAmount=Кредит,blAmount=Крайнo салдо)", 'caption=Подредба->Сума,formOrder=110000');
     	//$form->FLD('filterField', "enum()", 'caption=Подредба->Перо,formOrder=110000');
     	
     	$form->FLD('compare', "enum(,yes=Да)", 'caption=Предходна година->Сравни,formOrder=110001,maxRadio=1');
@@ -145,6 +145,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 		    				$form->setReadOnly("grouping{$i}");
 		    			}
 		    		}
+		    			$form->setHidden("feat{$i}");
+		    			$form->setHidden("grouping{$i}");
 		    	}
 	    	}
     	} 
@@ -209,7 +211,9 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 			
 			$bDetails->filterQuery($cloneQuery, $balanceId, $accSysId, NULL, $item1Id, $item2Id,$item3Id);
 			//$cloneQuery->where("#ent1Id IS NULL AND #ent2Id IS NULL AND #ent3Id IS NULL");
-			$cloneQuery->XPR('sumAmount', 'double', "SUM(#{$data->rec->orderField})");
+			if ($data->rec->orderField) {
+				$cloneQuery->XPR('sumAmount', 'double', "SUM(#{$data->rec->orderField})");
+			}
 			
 			$date = dt::mysql2timestamp($pRec->end);
 			$year = date('Y', $date);
@@ -335,7 +339,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	// @todo да не се ползва threadId  за константа
     	if($data->recs) {
     		// слагаме бутони на къстам тулбара
-    		$btnList = ht::createBtn('Таблица', array(
+    		/*$btnList = ht::createBtn('Таблица', array(
     				'doc_Containers',
     				'list',
     				'threadId' => Request::get('threadId', 'int'),
@@ -354,7 +358,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     		), NULL, NULL,
     				'ef_icon = img/16/chart_bar.png');
     	
-    		$tpl->replace($btnChart, 'buttonChart');
+    		$tpl->replace($btnChart, 'buttonChart');*/
     	}
     	
     	// подготвяме данните за графиката
