@@ -138,6 +138,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $resStatus[] = $resObj;
         
+        jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
+        
         // Стойности на плейсхолдера
         $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
         
