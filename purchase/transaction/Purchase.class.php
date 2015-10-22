@@ -509,7 +509,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	}
     	
     	foreach ($res as &$r){
-    		$r->price = $r->amount / $r->quantity;
+    		if($r->quantity){
+    			$r->price = $r->amount / $r->quantity;
+    		}
     	}
     	
     	// Връщаме масив със всички експедирани продукти по тази сделка
