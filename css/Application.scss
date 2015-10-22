@@ -4164,9 +4164,6 @@ body.narrow {
         max-width: 87px;
         max-height: 87px;
     }
-	.antetka{
-        width: 98% !important;
-	}
 	.richtext-message {
 	   padding-left: 10px;
 	}
@@ -4376,7 +4373,17 @@ body.narrow {
 	   vertical-align: top;
 	} 
 	.antetka{
+	   margin: 5px 0;
 	   border: none;
+	   padding: 0;
+	   width: 100%;
+	   .top-table {
+	       border-collapse: collapse;
+	       td{
+	           border: 1px solid #ccc;
+	           padding: 3px;
+	       }
+	   }
 	}
     .linkWithIcon{
        background-image: none !important;
