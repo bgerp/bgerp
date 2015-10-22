@@ -104,6 +104,8 @@ class cat_ProductTplCache extends core_Master
 			if($rec->type == 'description'){
 				$Driver = cls::get('cat_Products')->getDriver($rec->productId);
 				$row->cache = $Driver->renderProductDescription($rec->cache);
+				$componentTpl = cat_Products::renderComponents($rec->cache->componentsArray);
+				$row->cache->append($componentTpl, 'COMPONENTS');
 			} else {
 				$row->cache = cls::get('type_Varchar')->toVerbal($rec->cache);
 			}
@@ -222,7 +224,10 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec->documentType = $documentType;
 			
 			$cacheRec->cache = cat_Products::getVerbal($pRec, 'name');
-			self::save($cacheRec);
+			
+			if($time){
+				self::save($cacheRec);
+			}
 			
 			$name = $cacheRec->cache;
 		}
@@ -255,13 +260,13 @@ class cat_ProductTplCache extends core_Master
 	 * @param enum(public,internal) $documentType
 	 * @return core_ET
 	 */
-	public static function cacheDescription($productId, $time, $documentType)
+	public static function cacheDescription($productId, $time, $documentType, $showComponents = TRUE)
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		
 		$cache = self::getCache($pRec->id, $time, 'description', $documentType);
 		$Driver = cat_Products::getDriver($productId);
-		
+	
 		// Ако има кеширан изглед за тази дата връщаме го
 		if(!$cache && $Driver){
 			
@@ -282,6 +287,7 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec->documentType = $documentType;
 			
 			$data = new stdClass();
+			$data->showComponents = $showComponents;
 			$data->rec = $pRec;
 			$data->row = cat_Products::recToVerbal($data->rec);
 			$data->documentType = $documentType;
@@ -291,13 +297,17 @@ class cat_ProductTplCache extends core_Master
 			$Driver->prepareProductDescription($data);
 			$cacheRec->cache = $data;
 			
-			self::save($cacheRec);
+			if($time){
+				self::save($cacheRec);
+			}
 			
 			$cache = $cacheRec->cache;
 		}
 		
 		if($Driver){
 			$tpl = $Driver->renderProductDescription($cache);
+			$componentTpl = cat_Products::renderComponents($cache->componentsArray);
+			$tpl->append($componentTpl, 'COMPONENTS');
 		} else {
 			$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
 		}

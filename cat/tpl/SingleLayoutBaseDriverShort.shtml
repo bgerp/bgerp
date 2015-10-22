@@ -15,9 +15,4 @@
 [#PARAMS#]
 </div>
 <!--ET_END PARAMS-->
-
-<!--ET_BEGIN COMPONENTS-->
-<div style='margin-top:5px'>
 [#COMPONENTS#]
-</div>
-<!--ET_END COMPONENTS-->

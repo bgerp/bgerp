@@ -2042,7 +2042,6 @@ function centerNumericElements() {
  */
 function smartCenter() {
 		if(!$("div.maxwidth").length) return;
-		
         var smartCenterWidth = [];
     	$("div.maxwidth").css('display', 'inline-block');
 		$("div.maxwidth").each(function() {
@@ -2052,7 +2051,7 @@ function smartCenter() {
         });
     	
         for (key in smartCenterWidth) {
-        	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] );
+        	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
         $(".maxwidth").css('margin', "0 auto");
@@ -2937,6 +2936,16 @@ function render_notificationsCnt(data) {
 function render_prepareContextMenu() {
     prepareContextMenu();
 }
+
+
+/**
+* Функция, която извиква подготвянето на smartCenter
+* Може да се комбинира с efae
+*/
+function render_smartCenter() {
+   smartCenter();
+}
+
 
 
 /**

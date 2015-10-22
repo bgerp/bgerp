@@ -185,22 +185,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Подготовка за рендиране на единичния изглед
-	 *
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $res
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
-	{
-		$data->Embedder = $Embedder;
-		$data->isSingle = TRUE;
-		$Driver->prepareProductDescription($data);
-	}
-	
-	
-	/**
 	 * Връща стойността на параметъра с това име
 	 * 
 	 * @param string $id   - ид на записа
@@ -221,6 +205,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function prepareProductDescription(&$data)
 	{
+		parent::prepareProductDescription($data);
+		
 		if($data->rec->photo){
 			$size = array(280, 150);
 			$Fancybox = cls::get('fancybox_Fancybox');
@@ -233,7 +219,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		// Рендираме параметрите, само ако не е към запитване
 		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $data->Embedder)){
 			cat_products_Params::prepareParams($data);
-			cat_products_Components::prepareComponents($data);
 		}
 	}
 	
@@ -260,12 +245,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		if($data->noChange !== TRUE || count($data->params)){
 			$paramTpl = cat_products_Params::renderParams($data);
 			$tpl->append($paramTpl, 'PARAMS');
-		}
-		
-		// Рендираме параметрите винаги ако сме към артикул или ако има записи
-		if($data->noChange !== TRUE || count($data->components)){
-			$componentTpl = cat_products_Components::renderComponents($data);
-			$tpl->append($componentTpl, 'COMPONENTS');
 		}
 		
 		if($data->isSingle !== TRUE){
@@ -317,23 +296,4 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 		return $measureId;
 	}
-
-
-    /**
-     * Изпълнява се след създаване на нов продукт
-     */
-    public static function on_AfterCreate(cat_ProductDriver $Driver, embed_Manager $Embedder, $pRec, $fields = NULL, $mode = NULL)
-    {
-        if($pRec->proto) {
-            
-            // Прехвърляне на компонентите, ако има
-            $query = cat_products_Components::getQuery();
-            while($rec = $query->fetch("#productId = {$pRec->proto}")) {
-                $newRec = clone($rec);
-                unset($newRec->id);
-                $newRec->productId = $pRec->id;
-                cat_products_Components::save($newRec);
-            }
-        }
-    }
 }
