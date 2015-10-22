@@ -1218,12 +1218,15 @@ td.portal-date {
 	   white-space: nowrap;
 	}
 }
+
 .small-padding td {
     padding: 3px !important;
 }
+
 .groupList .small-padding td {
 	padding: 2px 3px 0!important;
 }
+
 .document-settings {
     display: inline-block;
     height: 16px;
@@ -1273,6 +1276,10 @@ td.portal-date {
 
 .centered {
     text-align: center;
+}
+
+.lighterBold {
+	color: #666;
 }
 
 .selectRows .listTable > tbody > tr > td:first-child {
@@ -4119,6 +4126,9 @@ body.narrow {
     .footerDocTable {
         display: table !important;
     }
+    .no-print {
+        display: none;
+    }
 }
 
 .narrow .external{
@@ -4300,6 +4310,9 @@ body.narrow {
     }
     .footerDocTable {
         display: table !important;
+    }
+    table.listTable > tbody > tr > td {
+        vertical-align: top;
     }
 }
 

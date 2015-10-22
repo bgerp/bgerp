@@ -151,18 +151,30 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$typeCaption = ($form->rec->type == 'input') ? 'материал' : 'отпадък';
-    	$matCaption = ($form->rec->type == 'input') ? 'Материал' : 'Отпадък';
-    	$action = ($form->rec->id) ? 'Редактиране' : 'Добавяне';
-    	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	$form->FNC('likeProductId', 'key(mvc=cat_Products)', 'input=hidden');
+    	$form->setDefault('likeProductId', Request::get('likeProductId', 'int'));
+    	
+    	$rec = &$form->rec;
+    	$typeCaption = ($rec->type == 'input') ? 'материал' : 'отпадък';
+    	$matCaption = ($rec->type == 'input') ? 'Материал' : 'Отпадък';
+    	$action = ($rec->id) ? 'Редактиране' : 'Добавяне';
+    	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$rec->bomId}<b>";
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
-    	$metas = ($form->rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
-    	$products = cat_Products::getByProperty($metas);
+    	$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
     	
+    	$products = cat_Products::getByProperty($metas);
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
+    	
+    	$likeProductId = $form->rec->likeProductId;
+    	if(isset($rec->id) && isset($likeProductId)){
+    		$convertable = planning_ObjectResources::fetchConvertableProducts($likeProductId);
+    		$convertable = array('x' => (object)array('title' => tr('Заместващи'), 'group' => TRUE)) + $convertable;
+    		$convertable = array($likeProductId => $products[$likeProductId]) + $convertable;
+    		$form->setOptions('resourceId', $convertable);
+    	}
     	
     	$form->setDefault('type', 'input');
     	$quantity = $data->masterRec->quantity;
@@ -305,6 +317,13 @@ class cat_BomDetails extends doc_Detail
     	
     	if(empty($rec->stageId)){
     		$row->stageId = tr("Без етап");
+    	}
+    	
+    	if($mvc->haveRightFor('edit', $rec)){
+    		$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
+    		if(count($convertableOptions)){
+    			$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/arrow_down3.png,title=Избор на заместващ материал');
+    		}
     	}
     }
     

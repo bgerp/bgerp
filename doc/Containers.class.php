@@ -1569,7 +1569,7 @@ class doc_Containers extends core_Manager
                     $resArr['updateContainers']++;
                 }
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         
@@ -1623,7 +1623,7 @@ class doc_Containers extends core_Manager
                     continue;
                 }
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         

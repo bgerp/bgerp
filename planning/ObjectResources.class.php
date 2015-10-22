@@ -355,4 +355,27 @@ class planning_ObjectResources extends core_Manager
     	
     	return (object)array('productId' => $convertProductId, 'quantity' => $convertQuantity);
     }
+    
+    
+    /**
+     * Връща масив със всички артикули, които могат да се влагат като друг артикул
+     * 
+     * @param int $productId - ид на продукта, като който ще се влагат
+     * @return array - намерените артикули
+     */
+    public static function fetchConvertableProducts($productId)
+    {
+    	$res = array();
+    	
+    	$query = self::getQuery();
+    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL");
+    	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
+    	$query->where("#state = 'active'");
+    	$query->show("objectId");
+    	while($rec = $query->fetch()){
+    		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
+    	}
+    	
+    	return $res;
+    }
 }

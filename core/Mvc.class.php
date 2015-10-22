@@ -990,7 +990,7 @@ class core_Mvc extends core_FieldSet
                     	}
                     } catch(core_exception_Expect $e){
                         
-                        reportException($e, NULL, TRUE);
+                        reportException($e);
                         
                     	if($mfAttr->field){
                     		$html .= "<li class='debug-error'>Проблем при обновяване на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
@@ -1052,7 +1052,7 @@ class core_Mvc extends core_FieldSet
                     	}
                     } catch(core_exception_Expect $e){
                         
-                        reportException($e, NULL, TRUE);
+                        reportException($e);
                         
                     	$html .= "<li class='debug-error'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
                     }

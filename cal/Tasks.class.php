@@ -882,17 +882,8 @@ class cal_Tasks extends core_Master
             $mvc->currentTab = 'Задачи';
         }
     }
-
-
-    /**
-     * След рендиране на единичния изглед
-     */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        $tpl->removeBlock('shareLog');
-    }
-
-
+    
+    
 	/**
      * След подготовка на сингъла
      */
@@ -2289,8 +2280,6 @@ class cal_Tasks extends core_Master
         $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
         
         $headerRes = array();
-        
-        $headerRes['shareLog'] =  array('name' => tr('Отговорници'), 'val' =>"[#shareLog#]");
         
         if ($row->progressBar || $row->progress){
             $headerRes['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");

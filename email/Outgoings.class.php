@@ -1559,11 +1559,36 @@ class email_Outgoings extends core_Master
         $contragentData = NULL;
         
         if (!$isForwarding) {
+            
+            if ($rec->threadId) {
+                $contragentData = doc_Threads::getContragentData($rec->threadId);
+            }
+            
             if ($rec->originId) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
-                $contragentData = $oDoc->getContragentData();
-            } elseif ($rec->threadId) {
-                $contragentData = doc_Threads::getContragentData($rec->threadId);
+                $oContragentData = $oDoc->getContragentData();
+                
+                if ($oContragentData->person) {
+                    $contragentData->person = ($contragentData->person) ? $contragentData->person : $oContragentData->person;
+                }
+                
+                if ($oContragentData->replyToEmail) {
+                    $contragentData->replyToEmail = ($contragentData->replyToEmail) ? $contragentData->replyToEmail : $oContragentData->replyToEmail;
+                }
+                
+                // Добавяме имейла от originId на мястото да другия имейл
+                if ($oContragentData->email) {
+                    if ($contragentData->email) {
+                        $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
+                        $contragentData->groupEmails .= $contragentData->email;
+                        $contragentData->email = $oContragentData->email;
+                    }
+                }
+                
+                if ($oContragentData->groupEmails) {
+                    $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
+                    $contragentData->groupEmails .= $oContragentData->groupEmails;
+                }
             }
         }
         
@@ -1729,12 +1754,10 @@ class email_Outgoings extends core_Master
         //Вземаме класа, за който се създава съответния имейл
         $document = doc_Containers::getDocument($originId);
         
-        //Името на класа
-        $className = $document->className;
-        
         //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейл-а
-        if (cls::haveInterface('email_DocumentIntf', $className)) {
-            $body = $className::getDefaultEmailBody($document->that, $forward);
+        if (cls::haveInterface('email_DocumentIntf', $document->className)) {
+            $intf = cls::getInterface('email_DocumentIntf', $document->className);
+            $body = $intf->class->getDefaultEmailBody($document->that, $forward);
         }
         
         return $body;

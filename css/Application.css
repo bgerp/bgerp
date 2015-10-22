@@ -1129,6 +1129,9 @@ td.portal-date {
 .centered {
   text-align: center; }
 
+.lighterBold {
+  color: #666666; }
+
 .selectRows .listTable > tbody > tr > td:first-child {
   text-align: center; }
 
@@ -3779,6 +3782,8 @@ only screen and (max-width: 320px) {
     display: block !important; }
   .external .footerDocTable {
     display: table !important; }
+  .external .no-print {
+    display: none; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3958,7 +3963,10 @@ only screen and (max-width: 320px) {
     display: table-row !important; }
 
   .footerDocTable {
-    display: table !important; } }
+    display: table !important; }
+
+  table.listTable > tbody > tr > td {
+    vertical-align: top; } }
 
   .printing .specialLink {
     font-weight: bold; }

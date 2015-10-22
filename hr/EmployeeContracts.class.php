@@ -567,7 +567,7 @@ class hr_EmployeeContracts extends core_Master
         
         ");
         
-        $res->replace($mvc->renderSingleLayout($data), 'blank');
+        //$res->replace($mvc->renderSingleLayout($data), 'blank');
         
         $res->replace($contract, 'contract');
         

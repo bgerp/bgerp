@@ -828,8 +828,10 @@ class core_Form extends core_FieldSet
 
                 if($fsRow) {
                     if($field->autohide == 'any' || ($field->autohide == 'autohide' && empty($vars[$name])) ) {
-                        $fsArr[$fsId] = FALSE;
-                    } elseif(!$fsArr[$fsId]) {
+                    	if(!$fsArr[$fsId]){
+                    		$fsArr[$fsId] = FALSE;
+                    	}
+                    } else {
                         $fsArr[$fsId] .= $name . ' ';
                     }
                 }
@@ -862,7 +864,6 @@ class core_Form extends core_FieldSet
                 
                 $tpl->append($fld, 'FIELDS');
             }
-            
             
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $state) { 

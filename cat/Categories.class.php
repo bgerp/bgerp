@@ -269,6 +269,8 @@ class cat_Categories extends core_Master
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
+        $res .= core_Classes::add($mvc);
+        
         $file = "cat/csv/Categories.csv";
         $fields = array(
             0 => "name",
@@ -325,16 +327,20 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
      * универсален артикул, създаден в папката на корицата
      *
      * @param int $id - ид на корицата
-     * @return array $params - масив с дефолтни параметри
+     * @return array $params - масив с дефолтни параметри И техните стойности
+     * 				<ид_параметър> => <дефолтна_стойност>
      */
     public function getDefaultProductParams($id)
     {
     	$rec = $this->fetchRec($id);
     	$params = keylist::toArray($rec->params);
+    	foreach($params as $paramId => &$value){
+    		$value = NULL;
+    	}
     	
     	return $params;
     }

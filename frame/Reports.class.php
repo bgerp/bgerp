@@ -23,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
                       
     
     /**
@@ -35,7 +35,7 @@ class frame_Reports extends core_Embedder
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf,email_DocumentIntf';
    
     
     /**
@@ -311,6 +311,20 @@ class frame_Reports extends core_Embedder
 		$row->recTitle = $row->title;
 		
         return $row;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+    	$handle = static::getHandle($id);
+    	$tpl = new ET(tr('Моля запознайте се с нашата справка ') . ': #[#handle#]');
+    	$tpl->append($handle, 'handle');
+    
+    	return $tpl->getContent();
     }
     
     

@@ -155,7 +155,12 @@ class core_TableView extends core_BaseClass
                     $class = '';
 
                     if (is_object($this->mvc->fields[$place]->type)) {
-                        $class = $this->mvc->fields[$place]->type->getTdClass();
+                        $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
+                        if($this->mvc->fields[$place]->smartCenter) {
+                            $tdClass = '';
+                        }
+                    } else {
+                        $tdClass = '';
                     }
                     
                     if($this->mvc->fields[$place]->tdClass) {
@@ -197,6 +202,7 @@ class core_TableView extends core_BaseClass
                             }
                             $header[$i][$last + 1]->name = $name;
                             $header[$i][$last + 1]->rowspan = $rowspan;
+                            $header[$i][$last + 1]->tdClass = $tdClass;
                         }
                     }
                     
@@ -222,13 +228,22 @@ class core_TableView extends core_BaseClass
         
         if (count($header)) {
             foreach ($header as $i => $headerRow) {
-                if ($i == count($header)) {
+                if ($i == count($header)-1) {
                     $lastRowStart = $curTH;     // Започва последният хедър
+                    $lastRowFlag = TRUE;
                 }
-                
+               
+                $headerRowCnt = count($headerRow);
+                $j = 0;
                 foreach ($headerRow as $h) {
                     $attr = array();
-                    
+ 
+                    if($lastRowFlag) {
+                        if($h->tdClass) {
+                            $attr['class'] = $h->tdClass;;
+                        }
+                    }
+
                     if ($h->rowspan > 1) {
                         $attr['rowspan'] = $h->rowspan;
                     }
@@ -236,8 +251,8 @@ class core_TableView extends core_BaseClass
                     if ($h->colspan > 1) {
                         $attr['colspan'] = $h->colspan;
                     }
-                    $th = ht::createElement('th', $attr, $h->name);
-                    
+                    $th = ht::createElement('th', $attr, $h->name);  
+             
                     $hr[$i] .= $th->getContent();
                     
                     $curTH++;

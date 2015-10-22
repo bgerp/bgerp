@@ -180,7 +180,7 @@ class doclog_Used extends core_Manager
                 doclog_Documents::removeHistoryFromCache($threadId);
             } catch (Exception $e) {
                 
-                reportException($e, NULL, TRUE);
+                reportException($e);
                 
                 continue;
             }

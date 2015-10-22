@@ -1038,7 +1038,7 @@ class doc_Folders extends core_Master
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         
