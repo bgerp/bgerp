@@ -389,7 +389,7 @@ class core_Master extends core_Manager
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
 					$method = ($selectedTop ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
-					if ($this->{$selectedTop} && method_exists($this->{$selectedTop}, $method)) {
+					if ($this->{$selectedTop} && is_callable(array($this->{$selectedTop}, $method))) {
 					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
     					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
     						
@@ -410,7 +410,7 @@ class core_Master extends core_Manager
 				if($selectedBottom){
 					$method = ($selectedBottom ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
 					
-					if ($this->{$selectedBottom} && method_exists($this->{$selectedBottom}, $method)) {
+					if ($this->{$selectedBottom} && is_callable(array($this->{$selectedBottom}, $method))) {
     					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
     					
     					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб

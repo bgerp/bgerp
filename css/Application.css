@@ -1129,6 +1129,9 @@ td.portal-date {
 .centered {
   text-align: center; }
 
+.lighterBold {
+  color: #666666; }
+
 .selectRows .listTable > tbody > tr > td:first-child {
   text-align: center; }
 
