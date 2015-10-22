@@ -301,10 +301,8 @@ class dec_Declarations extends core_Master
     		}
 
     		$row->products = "<ol>";
-	       		
 		       	foreach($classProduct as $iProduct=>$name){
-		    		$ProductMan = cls::get($name[0]);
-		        	$productName = $ProductMan::getTitleById($name[1]);
+		        	$productName = cat_Products::getTitleById($name[0]);
 		        	$row->products .= "<li>".$productName."</li>";
 			}
 			$row->products .= "</ol>";
