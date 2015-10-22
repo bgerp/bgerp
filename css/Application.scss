@@ -664,6 +664,27 @@ div.productImage {
 	padding: 10px  8px  8px 0;
 	float: left;
 }
+.product-component-list {
+	margin: 0;
+	list-style: inside;
+	padding: 4px 0 0px 10px;
+	border-left: 1px solid #ccc;
+	
+}
+
+.product-component-holder {
+	padding-left: 0px;
+    margin-left: 25px;
+}
+
+.component-title {
+	padding: 5px 0;
+	font-style: italic;
+}
+
+.display-table .product-component-holder {
+	margin-left: 10px;
+}
 /*край на стилове за cat*/
 
 
