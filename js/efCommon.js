@@ -2042,7 +2042,6 @@ function centerNumericElements() {
  */
 function smartCenter() {
 		if(!$("div.maxwidth").length) return;
-		
         var smartCenterWidth = [];
     	$("div.maxwidth").css('display', 'inline-block');
 		$("div.maxwidth").each(function() {
@@ -2937,6 +2936,16 @@ function render_notificationsCnt(data) {
 function render_prepareContextMenu() {
     prepareContextMenu();
 }
+
+
+/**
+* Функция, която извиква подготвянето на smartCenter
+* Може да се комбинира с efae
+*/
+function render_smartCenter() {
+   smartCenter();
+}
+
 
 
 /**
