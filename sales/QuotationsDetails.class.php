@@ -166,17 +166,18 @@ class sales_QuotationsDetails extends doc_Detail {
     	$total->discAmount = 0;
     	$data->notOptionalHaveOneQuantity = TRUE;
     	$data->optionalHaveOneQuantity = TRUE;
+    	$pcsUom = cat_UoM::fetchBySinonim('pcs')->id;
     	
     	if(count($recs)){
 	    	foreach ($recs as $id => $rec){
 	    		if($rec->optional == 'no'){
-	    			if($rec->packQuantity != 1) {
+	    			if($rec->packQuantity != 1 || $rec->packagingId != $pcsUom) {
 	    				$data->notOptionalHaveOneQuantity = FALSE;
 	    			}
 	    			
 	    			$notOptional[$id] = $rec;
 	    		}  else {
-	    			if($rec->packQuantity != 1) {
+	    			if($rec->packQuantity != 1 || $rec->packagingId != $pcsUom) {
 	    				$data->optionalHaveOneQuantity = FALSE;
 	    			}
 	    			
