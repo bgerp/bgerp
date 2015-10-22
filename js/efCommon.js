@@ -2052,7 +2052,7 @@ function smartCenter() {
         });
     	
         for (key in smartCenterWidth) {
-        	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] );
+        	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
         $(".maxwidth").css('margin', "0 auto");
