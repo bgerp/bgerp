@@ -4311,6 +4311,9 @@ body.narrow {
     table.listTable > tbody > tr > td {
         vertical-align: top;
     }
+    .richtext a {
+       text-decoration: underline;
+    }
 }
 
 .printing {
