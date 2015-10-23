@@ -808,16 +808,6 @@ class cat_Boms extends core_Master
     	}
     }
     
-    function act_Test()
-    {
-    	$id = 1126;
-    	
-    	$res = array();
-    	static::prepareComponents($id, $res);
-    	bp($res);
-    	
-    }
-    
     
     /**
      * Подготвя обект от компонентите на даден артикул
