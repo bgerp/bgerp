@@ -1,0 +1,57 @@
+<p class='table-detail-header' style='margin-top:10px'><b>[#TITLE#] |продукти и услуги|*</b> (|цените са в|* [#MISC#])</p>
+<div class='scrolling-holder'>
+    <table  class = 'products-table' style='width:100%;'>
+        <tr>
+            <th style='width:4%;'>№</th>
+            <th>|Описание|*</th>
+            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
+        </tr>
+        [#ROWS#]
+        <!--ET_BEGIN ROW-->
+        [#ROW#]
+        <tr class='[#TR_CLASS#]'>
+            <td class = '[#rowspanId#]'>
+                <div class='offer-rowtools-id nowrap'>[#tools#]<span>[#index#]</span></div>
+            </td>
+            <!--ET_BEGIN productId-->
+            <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
+            <!--ET_END productId-->
+            <td class='misc-info quote-col[#OPT#] nowrap centered vtop'>
+                [#packagingId#]
+            </td>
+        </tr>
+        <!--ET_END ROW-->
+        </table>
+        <table class='products-table' style='margin-bottom: 20px; margin-top:10px;'>
+        <!--ET_BEGIN totalPlace-->
+        [#totalPlace#]
+        <!--ET_BEGIN SUMMARY-->
+        [#SUMMARY#]
+        <tr>
+             <th style='width: 20%;'>|Стойност|*</th>
+             <th style='width: 20%;'>[#discountTitle#] [#discountPercent#] </th>
+             <th style='width: 20%;'>[#netTitle#]</th>
+             <th style='width: 20%;'>|ДДС|* [#vat#]</th>
+             <th style='width: 20%;'>|Общо|*</th>
+        </tr>
+        <tr style='font-weight: bold;'>
+            <td class='centered dark-gray'>[#value#]</td>
+            <td class='centered'><span class='discount'>[#discountValue#]</span></td>
+            <td class='centered dark-gray'>[#neto#]</td>
+            <td class='centered dark-gray'>[#vatAmount#]</td>
+            <td class='centered'>[#total#]</td>
+        </tr>
+        <!--ET_BEGIN sayWords-->
+        <tr>
+            <td colspan="5" class='aright'>
+                |С думи|*: [#sayWords#]    
+            </td>
+        </tr>
+        <!--ET_END sayWords-->
+        <!--ET_END SUMMARY-->
+        <!--ET_END totalPlace-->
+    </table>   
+    <div class='quotation-detail-add-btn'>
+        [#ADD_BTN#]
+        </div> 
+</div>
