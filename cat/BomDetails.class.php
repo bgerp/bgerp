@@ -104,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
+    public $listFields = 'tools=Пулт, stageId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни';
     
     
     /**

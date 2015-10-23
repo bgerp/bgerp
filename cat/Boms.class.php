@@ -351,11 +351,13 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
+    		
+    		if($cRec->productId){
+    			$pRec = cat_Products::fetch($cRec->productId);
+    			$pRec->modifiedOn = dt::now();
+    			cat_Products::save($pRec);
+    		}
     	}
-    	
-    	$pRec = cat_Products::fetch($rec->productId);
-    	$pRec->modifiedOn = dt::now();
-    	cat_Products::save($pRec);
     }
     
     
