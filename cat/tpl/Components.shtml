@@ -1,13 +1,12 @@
 <div class='component-title'>|Включва|*:</div>
 <div class='product-component-holder'>
+	<!--ET_BEGIN componentStage-->
+    <div class='product-component-stage'>[#componentStage#]</div>
+    <!--ET_END componentStage-->
 	<ul class='product-component-list'>
 	<!--ET_BEGIN COMP-->
 	[#COMP#]
 		<li>
-			<!--ET_BEGIN componentStage-->
-			<div class='product-component-stage'>[#componentStage#]</div>
-			<!--ET_END componentStage-->
-			
 			<div class='product-component-title'>[#componentCode#] <b>[#componentTitle#]</b>: [#componentQuantity#] [#componentMeasureId#]</div>
 			<!--ET_BEGIN componentDescription-->
 			<div class='product-component-description'>

@@ -600,14 +600,19 @@ div.productImage {
   border-left: 1px solid #cccccc; }
 
 .product-component-title {
-  margin: 0px 0 5px; }
+  margin: 0px 0 3px; }
 
 .product-component-holder {
   padding-left: 0px;
-  margin-left: 25px; }
+  margin-left: 20px; }
+
+.product-component-stage {
+  background-color: #eeeeee;
+  padding: 5px;
+  border: 1px solid #cccccc; }
 
 .general-product-description .richtext {
-  margin: 2px 0; }
+  margin: 0 0 2px; }
 
 .component-title {
   padding: 5px 0;

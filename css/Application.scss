@@ -664,6 +664,7 @@ div.productImage {
 	padding: 10px  8px  8px 0;
 	float: left;
 }
+
 .product-component-list {
 	margin: 0;
 	list-style: disc;
@@ -672,16 +673,22 @@ div.productImage {
 }
 
 .product-component-title {
-	margin: 0px 0 5px;
+	margin: 0px 0 3px;
 }
 
 .product-component-holder {
 	padding-left: 0px;
-    margin-left: 25px;
+    margin-left: 20px;
+}
+
+.product-component-stage {
+	background-color: #eee;
+	padding: 5px;
+	border: 1px solid #ccc;
 }
 
 .general-product-description .richtext {
-	margin: 2px 0;
+	margin: 0 0 2px;
 }
 
 .component-title {
