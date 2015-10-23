@@ -4,7 +4,11 @@
 	<!--ET_BEGIN COMP-->
 	[#COMP#]
 		<li>
-			<div class='product-component-title'><b>[#componentTitle#]</b>: [#componentQuantity#] [#componentMeasureId#]</div>
+			<!--ET_BEGIN componentStage-->
+			<div class='product-component-stage'>[#componentStage#]</div>
+			<!--ET_END componentStage-->
+			
+			<div class='product-component-title'>[#componentCode#] <b>[#componentTitle#]</b>: [#componentQuantity#] [#componentMeasureId#]</div>
 			<!--ET_BEGIN componentDescription-->
 			<div class='product-component-description'>
 			[#componentDescription#]
