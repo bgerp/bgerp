@@ -81,6 +81,8 @@ class dec_Setup extends core_ProtoSetup
     	try {
     		if (!cls::load('dec_Declarations', TRUE)) return ;
     		$dec = cls::get('dec_Declarations');
+    		
+    		if (!cls::load('dec_DeclarationTypes', TRUE)) return ;
     		$decTypes = cls::get('dec_DeclarationTypes');
 
     		$query = $dec->getQuery();
