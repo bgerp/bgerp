@@ -1,4 +1,6 @@
+<!--ET_BEGIN TITLE-->
 <div style='margin-bottom: 5px;' class='product-title'>[#TITLE#]</div>
+<!--ET_END TITLE-->
 <!--ET_BEGIN image-->
 <div class="productImage">
     [#image#]

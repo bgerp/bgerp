@@ -595,13 +595,19 @@ div.productImage {
 
 .product-component-list {
   margin: 0;
-  list-style: inside;
-  padding: 4px 0 0px 10px;
+  list-style: disc;
+  padding: 4px 0 0px 25px;
   border-left: 1px solid #cccccc; }
+
+.product-component-title {
+  margin: 0px 0 5px; }
 
 .product-component-holder {
   padding-left: 0px;
   margin-left: 25px; }
+
+.general-product-description .richtext {
+  margin: 2px 0; }
 
 .component-title {
   padding: 5px 0;
