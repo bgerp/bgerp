@@ -360,21 +360,35 @@ class hr_EmployeeContracts extends core_Master
         //tuk
         //$row->num = $data->rec->id;
         
-        $row->employeeRec         = crm_Persons::fetch($rec->personId);
-        $row->employeeRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->personId}");
+        $employeeRec = crm_Persons::fetch($rec->personId);
         
-        if(!$row->employeeRec->egn) {
-            unset($row->employeeRec->egn);
+        foreach($employeeRec as $fld => $value) {
+        	$row->{"employeeRec_{$fld}"} = $value;
+        }
+
+        $row->employeeRec_idCard = crm_ext_IdCards::fetch("#personId = '{$rec->personId}'");
+        
+        if(!$employeeRec->egn) {
+            unset($row->employeeRec_egn);
+        }
+       
+        $employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
+        
+        foreach($employerRec as $fld => $value) {
+        	$row->{"employerRec_{$fld}"} = $value;
         }
         
-        $row->employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
+        $managerRec = crm_Persons::fetch($rec->managerId);
         
-        $row->managerRec = crm_Persons::fetch($rec->managerId);
-        $row->managerRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
-        $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$row->employerRec->id}");
+        foreach($managerRec as $fld => $value) {
+        	$row->{"managerRec_{$fld}"} = $value;
+        }
         
-        if(!$row->managerRec->egn) {
-            unset($row->managerRec->egn);
+        $row->managerRec_idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
+        $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$employerRec->id}");
+
+        if(!$managerRec->egn) {
+            unset($row->managerRec_egn);
         }
         
         // Взимаме данните за Длъжността
@@ -420,14 +434,14 @@ class hr_EmployeeContracts extends core_Master
         
         // Национална класификация на професиите и длъжностите
         $row->professionsRec = new stdClass();
-        $row->professionsRec->nkpd = bglocal_NKPD::getTitleById($nkpd);
+        $row->professionsRec_nkpd = bglocal_NKPD::getTitleById($nkpd);
         
         // Национална класификация на икономическите дейности 
         $row->departmentRec = new stdClass();
-        $row->departmentRec->nkid = $department->nkid;
+        $row->departmentRec_nkid = $department->nkid;
         
         // Вид на структурата
-        $row->departmentRec->type = $department->type;
+        $row->departmentRec_type = $department->type;
         
         // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);
@@ -438,15 +452,15 @@ class hr_EmployeeContracts extends core_Master
         if($houres % 2 !== 0){
             $min = round(($houres - round($houres)) * 60);
             
-            $row->shiftRec->weekhours =  round($houres) . " часа" . " и " . $min . " мин.";
+            $row->shiftRec_weekhours =  round($houres) . " часа" . " и " . $min . " мин.";
         } else {
             // да добавя и минитуте
-            $row->shiftRec->weekhours =  $houres . " часа";
+            $row->shiftRec_weekhours =  $houres . " часа";
         }
         
         // Продължителността на договора
         $row->term = (int)$rec->term;
-        
+
         $res = $data;
     }
     
