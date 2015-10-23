@@ -994,7 +994,7 @@ class cal_Reminders extends core_Master
         }
         
         // Ако има повече от една версия
-        if (isset($row->LastVersion) && $row->LastVersion != 0.1) {
+        if (isset($row->FirstSelectedVersion) && $row->LastVersion != 0.1) {
             // Полета, които ще се показват
             $headerRes += change_Plugin::getDateAndVersionRow();
         }
