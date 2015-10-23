@@ -2411,14 +2411,18 @@ class doclog_Documents extends core_Manager
         // Ако не сме задали да не се проверява 
         if ($action === FALSE) {
             
-            // Вземаме записа, ако има такъв
-            $rec = static::fetch(array("#mid = '[#1#]'", $mid));
+            $query = self::getQuery();
+            $query->where(array("#mid = '[#1#]'", $mid));
             
-            // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
-                
-                return FALSE;
+            // Трябва да има един такъв екшън
+            while ($rec = $query->fetch()) {
+                if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_USED))) {
+                    
+                    return $rec;
+                }
             }
+            
+            return FALSE;
         } else {
             
             // Акшъна по подразбиране да е send
