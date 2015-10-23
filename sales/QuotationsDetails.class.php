@@ -537,8 +537,18 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Шаблон за задължителните продукти
     	$templateFile = ($data->countNotOptional && $data->notOptionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
+    	if($data->countNotOptional == 1 && $data->notOptionalHaveOneQuantity){
+    		$templateFile = 'sales/tpl/LayoutQuoteDetailsShortest.shtml';
+    		
+    		//$data->masterData->row
+    		//$others = "<li>tol</li>";
+    		
+    	}
+    	
     	$dTpl = getTplFromFile($templateFile);
     	 
+    	
+    	
     	// Шаблон за опционалните продукти
     	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
     	$oTpl = getTplFromFile($optionalTemplateFile);
