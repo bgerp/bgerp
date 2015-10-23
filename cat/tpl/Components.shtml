@@ -10,6 +10,11 @@
 			[#componentDescription#]
 			</div>
 			<!--ET_END componentDescription-->
+			<!--ET_BEGIN componentComponents-->
+			<div class='product-component-components'>
+			[#componentComponents#]
+			</div>
+			<!--ET_END componentComponents-->
 		</li>
 	<!--ET_END COMP-->
 	</ul>
