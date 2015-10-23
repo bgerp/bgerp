@@ -19,11 +19,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Помощен масив за мапиране на полета изпозлвани в deals_Helper
 	 */
-	public $map = array( 'rateFld'     => 'rate',
-								'chargeVat'   => 'vatRate',
-								'quantityFld' => 'quantity',
-								'valior'      => 'date',
-								'alwaysHideVat' => TRUE,);
+	public $map = array( 'rateFld'       => 'rate',
+						 'chargeVat'     => 'vatRate',
+						 'quantityFld'   => 'quantity',
+						 'valior'        => 'date',
+						 'alwaysHideVat' => TRUE,);
 	
 
 	/**
@@ -286,8 +286,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$row = parent::recToVerbal_($rec, $fields);
 		
 		$mvc = cls::get(get_called_class());
+		$modifiedOn = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'modifiedOn');
 		
-		$row->productId = cat_Products::getProductDescShort($rec->productId);
+		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $modifiedOn, 'short');
 		if($rec->notes){
 			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
 		}
