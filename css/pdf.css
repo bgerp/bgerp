@@ -29,3 +29,4 @@ samp {
 .footerDocTable {
   display: table !important; }
 
+tr {page-break-inside: avoid;}
