@@ -280,7 +280,7 @@ class cms_Articles extends core_Master
         $cnt = 0;
         
         
-        if(($q = Request::get('q')) && $manuId > 0 && !$rec) {  
+        if(($q = Request::get('q')) && $menuId > 0 && !$rec) {  
             $rec = new stdClass();
             $navData->q = $q;
             $rec->menuId = $menuId;
