@@ -181,6 +181,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if($rec->productId){
+        	
         	$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
         	if(!empty($tolerance)){
         		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
@@ -213,12 +214,19 @@ abstract class deals_DealDetail extends doc_Detail
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
     		
     		if(isset($mvc->LastPricePolicy)){
     			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
+    		}
+    		
+    		if(!isset($productInfo->meta['canStore'])){
+    			$form->setField('packagingId', 'input=hidden');
+    			$measureShort = cat_UoM::getShortName($form->rec->packagingId);
+    			$form->setField('packQuantity', "unit={$measureShort}");
     		}
     	} else {
     		$form->setReadOnly('packagingId');

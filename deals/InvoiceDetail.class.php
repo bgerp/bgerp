@@ -355,7 +355,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
-				
+			$form->setDefault('packagingId', key($packs));
+			
+			//
+			if(!isset($productInfo->meta['canStore'])){
+				$form->setField('packagingId', 'input=hidden');
+				$measureShort = cat_UoM::getShortName($form->rec->packagingId);
+				$form->setField('quantity', "unit={$measureShort}");
+			}
+			
 			if(isset($mvc->LastPricePolicy)){
 				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
 					
