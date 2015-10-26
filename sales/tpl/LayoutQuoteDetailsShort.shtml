@@ -4,7 +4,6 @@
         <tr>
             <th style='width:4%;'>№</th>
             <th>|Описание|*</th>
-            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
             <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
         </tr>
         [#ROWS#]
@@ -17,9 +16,6 @@
             <!--ET_BEGIN productId-->
             <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
             <!--ET_END productId-->
-            <td class='misc-info quote-col[#OPT#] nowrap centered vtop'>
-                [#packagingId#]
-            </td>
             <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
                 <b>[#amount#]</b>
                  <!--ET_BEGIN discount-->
