@@ -280,7 +280,7 @@ class cms_Articles extends core_Master
         $cnt = 0;
         
         
-        if(($q = Request::get('q')) && !$rec) {  
+        if(($q = Request::get('q')) && $manuId > 0 && !$rec) {  
             $rec = new stdClass();
             $navData->q = $q;
             $rec->menuId = $menuId;
@@ -416,26 +416,6 @@ class cms_Articles extends core_Master
     
 
     /**
-     * Търсене в статиите
-     */
-    function act_Search()
-    {
-        Mode::set('wrapper', 'cms_page_External');
-        
-		if(Mode::is('screenMode', 'narrow')) {
-            Mode::set('cmsLayout', 'cms/themes/default/ArticlesNarrow.shtml');
-        } else {
-            Mode::set('cmsLayout', 'cms/themes/default/Articles.shtml');
-        }
-
-        expect($menuId = Request::get('menuId', 'int'));
-        $search = Request::get('search');
-
-    }
-
-
-
-    /**
      * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editLink} )
      * $data->new = {$caption, $url}
      * 
@@ -470,19 +450,15 @@ class cms_Articles extends core_Master
             $navTpl->append( "</div>");
         }
         
-        $searchForm = cls::get('core_Form', array('method' => 'GET'));
-
-        $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
- 		
-        $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');
-		
-        $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
-        $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
-
-        $searchForm->setHidden('menuId', $data->menuId);
-  
-
-		$navTpl->prepend($searchForm->renderHtml());
+        if($data->menuId > 0 && self::count("#menuId = {$data->menuId}") > 10) {
+            $searchForm = cls::get('core_Form', array('method' => 'GET'));
+            $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
+            $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');
+            $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
+            $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
+            $searchForm->setHidden('menuId', $data->menuId);
+            $navTpl->prepend($searchForm->renderHtml());
+        }
 
 
         return $navTpl;
