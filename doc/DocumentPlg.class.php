@@ -269,11 +269,15 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             if(isset($data->rejQuery)) {
                 $data->rejectedCnt = $data->rejQuery->count();
-                
+
                 if($data->rejectedCnt) {
+                    $data->rejQuery->orderBy('#modifiedOn', 'DESC');
+                    $data->rejQuery->limit(1);
+                    $lastRec = $data->rejQuery->fetch();
+                    $color = dt::getColorByTime($lastRec->modifiedOn);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
-                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, "id=binBtn,class=btn-bin fright,order=50,row=2", "ef_icon = img/16/bin_closed.png,style=color:#{$color};" );
                 }
             }
         }
@@ -751,6 +755,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = 'rejected';
         
         $res = static::updateDocumentState($mvc, $rec);
+          doc_Threads::setModification($rec->threadId);
     }
     
     
@@ -775,6 +780,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = $rec->brState;
         
         $res = static::updateDocumentState($mvc, $rec);
+        doc_Threads::setModification($rec->threadId);
     }
 
 

@@ -24,23 +24,18 @@ class plg_Rejected extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-        if(!isset($mvc->fields['state'])) {
-            $mvc->FLD('state',
-                'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
-                'caption=Състояние,column=none,input=none,notNull');
-        }
+        $mvc->FLD('state', 'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
+                'caption=Състояние,column=none,input=none,notNull,forceField');
         
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
 
-        if(!isset($mvc->fields['exState'])) {
-            $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull");
-        }
+        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull,forceField");
         
-        if(!isset($mvc->fields['lastUsedOn'])) {
-            $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-        }
+        $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
+
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Последна модифициране,input=none,column=none,forceField');
 
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
     }
@@ -89,9 +84,13 @@ class plg_Rejected extends core_Plugin
             $rejCnt = $data->rejQuery->count();
 
             if($rejCnt) {
+                $data->rejQuery->orderBy('#modifiedOn', 'DESC', TRUE);
+                $data->rejQuery->limit(1);
+                $lastRec = $data->rejQuery->fetch();
+                $color = dt::getColorByTime($lastRec->modifiedOn);
                 $curUrl = getCurrentUrl();
                 $curUrl['Rejected'] = 1;
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,row=2,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  'ef_icon = img/16/bin_closed.png');
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,row=2,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
             }
         }
         if(Request::get('Rejected')) {
@@ -121,6 +120,7 @@ class plg_Rejected extends core_Plugin
         
         $rec->exState = $rec->state;
         $rec->state = 'rejected';
+        $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
 
         $mvc->logInfo('reject', $rec->id);
@@ -146,6 +146,7 @@ class plg_Rejected extends core_Plugin
         }
         
         $rec->state = $rec->exState;
+        $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
     }
 
