@@ -1050,5 +1050,17 @@ abstract class deals_InvoiceMaster extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'add' && isset($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$state = $origin->rec()->state;
+    		if($state != 'active'){bp();
+    			$res = 'no_one';
+    		} else {
+    			if(!($origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports)){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
 }

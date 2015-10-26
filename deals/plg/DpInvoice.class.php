@@ -50,6 +50,7 @@ class deals_plg_DpInvoice extends core_Plugin
        
         // Намиране на пораждащия се документ
         $origin         = $mvc->getOrigin($rec);
+        if(!core_Cls::existsMethod($origin->getInstance(), 'getAggregateDealInfo')) return;
         $dealInfo       = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
         

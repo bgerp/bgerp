@@ -186,6 +186,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	}
 	
 	
+	/**
+	 * Преди рендиране на таблицата
+	 */
 	public static function on_BeforeRenderListTable($mvc, &$res, $data)
 	{
 		if(!count($data->rows)) return;
