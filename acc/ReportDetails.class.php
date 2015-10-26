@@ -58,10 +58,7 @@ class acc_ReportDetails extends core_Manager
             $this->prepareBalanceReports($data);
             $data->Order = 1;
         } else {
-            
-            // Ако няма права дисейлбваме таба
-            $data->disabled = TRUE;
-            $data->Order = 80;
+        	$data->renderReports = FALSE;
         }
         
         // Име на таба

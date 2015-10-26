@@ -607,7 +607,7 @@ class change_Plugin extends core_Plugin
         } else {
             
             // Ако не е подадено заглавиет, създаваме линк с иконата
-            $res = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+            $res = ht::createLink('<img src=' . $editSbf . ' width="16" height="16">', $changeUrl);
         }
     }
     
