@@ -619,9 +619,11 @@ class pear_Vcard
     protected static function initFromParsed($cardinfo)
     {
         $vcards = array();
-
-        foreach ($cardinfo['VCARD'] as $c) {
-            $vcards[] = new self($c);
+        
+        if ($cardinfo['VCARD']) {
+            foreach ((array)$cardinfo['VCARD'] as $c) {
+                $vcards[] = new self($c);
+            }
         }
 
         return $vcards;
