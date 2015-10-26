@@ -1264,7 +1264,7 @@ class cat_Products extends embed_Manager {
     	$tpl->replace($title, 'name');
     	$tpl->replace($descriptionTpl, 'desc');
     	
-    	return $tpl->getContent();
+    	return $tpl;
     }
     
     

@@ -640,6 +640,7 @@ class blogm_Articles extends core_Master {
 
         if($data->q) {
         	plg_Search::applySearch($data->q, $data->query);
+            vislog_History::add("Търсене в блога: {$q}");
         }
         
         if($data->archive) {  
