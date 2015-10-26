@@ -97,7 +97,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::replaceResources4',
     		'migrate::replacePackagings',
     		'migrate::updateProductsNew',
-    		'migrate::deleteCache',
+    		'migrate::deleteCache1',
         );
 
 
@@ -774,7 +774,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Изчистване на кеша на артикулите
      */
-    public function deleteCache()
+    public function deleteCache1()
     {
     	cat_ProductTplCache::truncate();
     }
