@@ -61,7 +61,7 @@ class deals_plg_DpInvoice extends core_Plugin
         if(empty($form->rec->id)){
         	
         	// Поставяне на дефолт стойностти
-        	self::getDefaultDpData($form);
+        	self::getDefaultDpData($form, $mvc);
         } else {
         	$Detail = cls::get($mvc->mainDetail);
         	
@@ -115,7 +115,7 @@ class deals_plg_DpInvoice extends core_Plugin
      * 
      * @param core_Form $form
      */
-    private static function getDefaultDpData(core_Form &$form)
+    private static function getDefaultDpData(core_Form &$form, $mvc)
     {   
     	// Договореното до момента
     	$aggreedDp  = $form->dealInfo->get('agreedDownpayment');
@@ -123,8 +123,13 @@ class deals_plg_DpInvoice extends core_Plugin
     	$invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
     	$deductedDp = $form->dealInfo->get('downpaymentDeducted');
     	
-    	// Ако има платен аванс ръководим се по него, ако няма по договорения
-    	$downpayment = (empty($actualDp)) ? $aggreedDp : $actualDp;
+    	if($mvc instanceof sales_Proformas){
+    		// Ако има платен аванс ръководим се по него, ако няма по договорения
+    		$downpayment = (empty($actualDp)) ? $aggreedDp : $actualDp;
+    	} else {
+    		// Ако има платен аванс ръководим се по него, ако няма по договорения
+    		$downpayment = (empty($actualDp)) ? NULL : $actualDp;
+    	}
     	
     	// Ако няма авансово плащане на задаваме дефолти
     	if(!isset($downpayment)) {

@@ -198,7 +198,7 @@ class cash_Rko extends core_Master
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Контиран)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');

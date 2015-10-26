@@ -280,9 +280,9 @@ class plg_Search extends core_Plugin
     /**
      * Maркира текста, отговарящ на заявката
      */
-    static function highlight($text, $query)
+    static function highlight($text, $query, $class = 'document')
     {  
-    	jquery_Jquery::run($text, "\n $('.document').highlight('{$query}');", TRUE);
+    	jquery_Jquery::run($text, "\n $('.{$class}').highlight('{$query}');", TRUE);
     	
         return $text; 
     }
