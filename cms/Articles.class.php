@@ -284,9 +284,10 @@ class cms_Articles extends core_Master
             $rec = new stdClass();
             $navData->q = $q;
             $rec->menuId = $menuId;
+            $lArr = array('a', 'a', 'a');
 
             $query1 = self::getQuery();
-            $query1->where("#menuId = {$menuId}");
+            $query1->where("#menuId = {$menuId} AND #state = 'active'");
 
             plg_Search::applySearch($q, $query1);
 
@@ -305,6 +306,12 @@ class cms_Articles extends core_Master
                 $title = ht::createLink($title, $url);
                 $content->append("<h3>" . $title . "</h3>");
             }
+
+            if(!$title) {
+                $content->append("<p><i>" . tr("Няма намерени резултати") . "</i></p>");
+            }
+
+            vislog_History::add("Търсене в статиите: {$q}");
         }  
 
 
@@ -317,7 +324,7 @@ class cms_Articles extends core_Master
             $cnt++;
             
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
-
+ 
             if($lArr) {
                 if($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) continue;
             }
