@@ -359,6 +359,18 @@ class sales_Quotations extends core_Master
     	if($data->sales_QuotationsDetails->summary){
     		$data->row = (object)((array)$data->row + (array)$data->sales_QuotationsDetails->summary);
     	}
+    	
+    	$dData = $data->sales_QuotationsDetails;
+    	if($dData->countNotOptional && $dData->notOptionalHaveOneQuantity){
+    		$firstProductRow = $dData->rows[key($dData->rows)][0];
+    		if(isset($firstProductRow->tolerance)){
+    			$data->row->others .= "<li>" . tr('Толеранс:') ." {$firstProductRow->tolerance}</li>";
+    		}
+    		
+    		if(isset($firstProductRow->term)){
+    			$data->row->others .= "<li>" . tr('Срок:') ." {$firstProductRow->term}</li>";
+    		}
+    	}
     }
     
     

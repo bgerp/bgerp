@@ -127,9 +127,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		} else {
 			
 			// Иначе взимаме параметрите от корицата му, ако можем
-			$cover = doc_Folders::getCover($rec->folderId);
-			if($cover->haveInterface('cat_ProductFolderCoverIntf')){
-				$res = $cover->getDefaultProductParams();
+			if(isset($rec->folderId)){
+				$cover = doc_Folders::getCover($rec->folderId);
+				if($cover->haveInterface('cat_ProductFolderCoverIntf')){
+					$res = $cover->getDefaultProductParams();
+				}
 			}
 		}
 		
