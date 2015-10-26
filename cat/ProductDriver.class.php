@@ -166,7 +166,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		$data->Embedder = $Embedder;
 		$data->isSingle = TRUE;
+		$data->documentType = 'internal';
 		$Driver->prepareProductDescription($data);
+		
+		$data->components = array();
+		cat_Boms::prepareComponents($data->rec->id, $data->components, $data->documentType);
 	}
 	
 	
@@ -178,10 +182,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function prepareProductDescription(&$data)
 	{
-		// Ако ще показваме компонентите
-		if($data->showComponents !== FALSE){
-			$data->componentsArray = cat_Boms::getComponents($data->rec->id);
-		}
 	}
 	
 	
@@ -229,8 +229,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		$nTpl = $Driver->renderProductDescription($data);
 		$tpl->append($nTpl, 'innerState');
-		$componentTpl = cat_Products::renderComponents($data->componentsArray);
-		$tpl->append($componentTpl, 'COMPONENTS');
+		
+		if(count($data->components)){
+			$componentTpl = cat_Products::renderComponents($data->components);
+			$tpl->append($componentTpl, 'COMPONENTS');
+		}
 	}
 	
 	

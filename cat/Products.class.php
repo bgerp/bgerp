@@ -1193,21 +1193,6 @@ class cat_Products extends embed_Manager {
     }
     
     
-    /**
-     * Връща заглавието на артикула като линк
-     *
-     * @param mixed $id - ид/запис
-     * @param mixed $time - време
-     * @return mixed - описанието на артикула
-     */
-    public static function getProductDescShort($id, $time = NULL, $documentType = 'public')
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	return cat_ProductTplCache::cacheTitle($rec->id, $time, $documentType);
-    }
-    
-    
 	/**
 	 * Връща информацията за артикула според зададения режим:
 	 * 		- автоматично : ако артикула е частен се връща детайлното описание, иначе краткото
@@ -1226,7 +1211,23 @@ class cat_Products extends embed_Manager {
     public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public')
     {
     	$rec = static::fetchRec($id);
-    	$titleTpl = static::getProductDescShort($rec, $time, $documentType);
+    	
+    	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType);
+    	if(!$title){
+    		$title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType);
+    	}
+    	
+    	// Ако е частен показваме за код хендлъра му + версията в кеша
+    	if($rec->isPublic == 'no'){
+    		$handle = cat_Products::getHandle($rec);
+    		$title .= " ({$handle}";
+    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+    		if($count > 1){
+    			$title .= "<small>v{$count}</small>";
+    		}
+    		$title .= ")";
+    	}
+    	
     	$showDescription = FALSE;
     	
     	switch($mode){
@@ -1241,14 +1242,27 @@ class cat_Products extends embed_Manager {
     			break;
     	}
     	
+    	// Ако ще показваме описание подготвяме го
     	if($showDescription === TRUE){
-    	    $titleTpl = "<b>{$titleTpl}</b>";
-    		$descTpl = static::getProductDesc($rec, $time, $documentType);
+    	    $title = "<b>{$title}</b>";
+    	    
+    	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType);
+    	    if(!$data){
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
+    	    }
+    	    
+    	    $descriptionTpl = cat_Products::renderDescription($data);
     	}
     	
-    	$tpl = new ET("$titleTpl<!--ET_BEGIN desc--><br><span style='font-size:0.85em'>[#desc#]</span><!--ET_END desc-->");
-    	$tpl->replace($titleTpl, 'name');
-    	$tpl->replace($descTpl, 'desc');
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		$singleUrl = static::getSingleUrlArray($rec->id);
+    		$title = ht::createLinkRef($title, $singleUrl);
+    	}
+    	
+    	// Връщаме шаблона с подготвените данни
+    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><span style='font-size:0.85em'>[#desc#]</span><!--ET_END desc-->");
+    	$tpl->replace($title, 'name');
+    	$tpl->replace($descriptionTpl, 'desc');
     	
     	return $tpl->getContent();
     }
@@ -1846,12 +1860,77 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Връща готовото описание на артикула
+     * 
+     * @param mixed $id
+     * @param enum(public,internal) $documentType
+     * @return core_ET
+     */
+    public static function getDescription($id, $documentType = 'public')
+    {
+    	$data = static::prepareDescription($id, $documentType);
+    	
+    	return static::renderDescription($data);
+    }
+    
+    
+    /**
+     * Подготвя описанието на артикула
+     * 
+     * @param int $id
+     * @param enum(public,internal) $documentType
+     * @return stdClass - подготвеното описание
+     */
+    public static function prepareDescription($id, $documentType = 'public')
+    {
+    	$Driver = static::getDriver($id);
+    	$data = new stdClass();
+    	
+    	if($Driver){
+    		$data->rec = static::fetchRec($id);
+    		$data->row = cat_Products::recToVerbal($data->rec);
+    		$data->documentType = $documentType;
+    		$data->Embedder = cls::get('cat_Products');
+    		$data->isSingle = FALSE;
+    		$data->noChange = TRUE;
+    		$Driver->prepareProductDescription($data);
+    	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Рендира описанието на артикула
+     * 
+     * @param stdClass $data 
+     * @return core_ET
+     */
+    private static function renderDescription($data)
+    {
+    	if($data->rec){
+    		$Driver = static::getDriver($data->rec);
+    	}
+    	
+    	if($Driver){
+    		$tpl = $Driver->renderProductDescription($data);
+    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$tpl->append($componentTpl, 'COMPONENTS');
+    	} else {
+    		$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
+    	}
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
      * Рендира компонентите на един артикул
      * 
      * @param array $components - компонентите на артикула
      * @return core_ET - шаблона на компонентите
      */
-    public static function renderComponents($components)
+    public static function renderComponents($components, $makeLinks = TRUE)
     {
     	if(!count($components)) return;
     	
@@ -1859,11 +1938,25 @@ class cat_Products extends embed_Manager {
     	$block = $compTpl->getBlock('COMP');
     	foreach ($components as $obj){
     		$bTpl = clone $block;
+    		if($obj->code === '0') unset($obj->code);
+    		
+    		// Ако ще показваме компонента като линк, го правим такъв
+    		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$singleUrl = cat_Products::getSingleUrlArray($obj->componentId);
+    			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
+    		}
+    		
     		$bTpl->placeArray(array('componentTitle'       => $obj->title, 
     								'componentDescription' => $obj->description,
     								'componentCode'        => $obj->code,
+    								'componentStage'       => $obj->stageName,
     								'componentQuantity'    => $obj->quantity,
     								'componentMeasureId'   => $obj->measureId));
+    		
+    		if(count($obj->components)){
+    			$bTpl->append(static::renderComponents($obj->components), 'componentComponents');
+    		}
+    		
     		$bTpl->removeBlocks();
     		$bTpl->append2Master();
     	}

@@ -61,7 +61,6 @@ class store_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var  $managers = array(
-    		'migrate::truncateCacheProducts1',
             'store_Stores',
             'store_Movements',
             'store_Pallets',

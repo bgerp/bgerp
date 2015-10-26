@@ -351,6 +351,12 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
+    		
+    		if($cRec->productId){
+    			$pRec = cat_Products::fetch($cRec->productId);
+    			$pRec->modifiedOn = dt::now();
+    			cat_Products::save($pRec);
+    		}
     	}
     }
     
@@ -806,18 +812,16 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Връща компонентите за показване на артикула
-     *
-     * @param int $productId - ид на артикул
-     * @return array
-     * 			o int title -  заглавието на компонента
-     * 			o html description - описанието му
-     * 			o array components - неговите компоненти, ако има
+     * Подготвя обект от компонентите на даден артикул
+     * 
+     * @param int $productId
+     * @param array $res
+     * @param int $level
+     * @param string $code
+     * @return void
      */
-    public static function getComponents($productId)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
     {
-    	$res = array();
-    	
     	// Имали последна активна рецепта артикула?
     	$rec = cat_Products::getLastActiveBom($productId);
     	if(!$rec) return $res;
@@ -826,30 +830,49 @@ class cat_Boms extends core_Master
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
     	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
+    	$level++;
     	
     	// За всеки
     	while($dRec = $dQuery->fetch()){
     		$obj = new stdClass();
-    	
-    		// Заглавието на компонента
-    		$title = cat_Products::getProductDescShort($dRec->resourceId);
-    		$title = strip_tags($title);
-    		$title = trim($title, '&nbsp;');
-    		$obj->title = $title;
+    		$obj->componentId = $dRec->resourceId;
+    		
+    		$obj->code = $code . "." . (($dRec->position) ? $dRec->position : 0);
+    		$obj->code = trim($obj->code, '.');
+    		$obj->title = cat_Products::getTitleById($dRec->resourceId);
     		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
-    		$obj->code = 10.4;
+    		$obj->stageName = planning_Stages::getTitleById($dRec->stageId);
     		
-    		// Описанието му, ако е зададено да се показва
+    		$stageOrder = ($dRec->stageId) ? planning_Stages::fetchField($dRec->stageId, 'order') : 0;
+    		$obj->order = (($stageOrder) ? $stageOrder : $obj->stageName) . "." . $obj->code;
+    		
+    		// Ако показваме описанието, показваме го
     		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
-    			$showComponents = ($dRec->showInProduct == 'components') ? TRUE : FALSE;
-    			$obj->description  = cat_Products::getProductDesc($dRec->resourceId, NULL, 'public', $showComponents)->getContent();
+    			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
     		}
-    	
-    		// Добавяме обекта
+    		
+    		// Ако има компоненти и сме в допустимото ниво, викаме функцията рекурсивно
+    		if($dRec->showInProduct == 'components'){
+    			if($level < core_Packs::getConfigValue('cat', 'CAT_BOM_MAX_COMPONENTS_LEVEL')){
+    				$obj->components = array();
+    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    			}
+    		}
+    		
     		$res[] = $obj;
     	}
     	
-    	return $res;
+    	// Сортираме по етапа и кода
+    	arr::order($res, 'order', 'ASC');
+    	
+    	// Премахваме повтарящите се етапи
+    	foreach ($res as $index => &$r){
+    		if(isset($r->stageName)){
+    			if($res[$index - 1]->stageName === $r->stageName){
+    				unset($r->stageName);
+    			}
+    		}
+    	}
     }
 }

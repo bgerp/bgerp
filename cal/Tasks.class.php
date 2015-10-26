@@ -297,9 +297,6 @@ class cal_Tasks extends core_Master
 
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
 
-        $row->timeStart = str_replace('00:00', '', $row->timeStart);
-        $row->timeEnd = str_replace('00:00', '', $row->timeEnd);
-
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {
             // я парвим хипервръзка към календара- дневен изглед
@@ -313,11 +310,6 @@ class cal_Tasks extends core_Master
             // и двете ги правим хипервръзка към календара - дневен изглед
             $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
             $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-        }
-
-        // && $rec->remainingTime > 0
-        if (!$rec->timeDuration && !$rec->timeEnd) {
-            $row->expectationTimeEnd = '';
         }
     }
 
@@ -882,47 +874,7 @@ class cal_Tasks extends core_Master
             $mvc->currentTab = 'Задачи';
         }
     }
-    
-    
-	/**
-     * След подготовка на сингъла
-     */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
-    {
-        $row = &$data->row;
-        $rec = &$data->rec;
-        
-        if ($rec->afterTaskProgress == "0") {
-            
-            $row->afterTaskProgress = "";
-        }
-        
-        if ($rec->state == 'closed') {
-        	$row->expectationTimeEnd = "";
-        	
-        	if(!$rec->timeClosed) {
-        		$row->timeClosed = "";
-        	}
-        }
-        
-        if ($rec->state == 'draft') { 
-        	$row->expectationTimeEnd = "";
-        }
-        
-        // тука може би е добре да има миграция ?!?
-        if ($rec->state == 'active' && !$rec->expectationTimeEnd) {
-        	$row->expectationTimeEnd = "";
-        }
-        
-        if ($rec->timeStart) {
-        	$row->expectationTimeStart = '';
-        }
-        
-        if ($rec->timeEnd) {
-        	$row->expectationTimeEnd = '';
-        }
-    }
-    
+
     
     /**
      * Прихваща извикването на AfterInputChanges в change_Plugin
@@ -1818,7 +1770,7 @@ class cal_Tasks extends core_Master
     	
     		if ($rec->timeStart) {
     			$timeStart = $rec->timeStart;
-    		} else {
+    		} else { 
     			$timeStart = $rec->expectationTimeStart;
     		}
     		
@@ -2041,7 +1993,7 @@ class cal_Tasks extends core_Master
     {
     	// сега
     	$now = dt::verbal2mysql(); 
-    	//if ($rec->id == 37) {
+    	
         // ако задачата има id следователно може да е зависима от други
     	if($rec->id) {
     	    $query = cal_TaskConditions::getQuery();
@@ -2109,9 +2061,9 @@ class cal_Tasks extends core_Master
 	    		
 	    // ако задачата има край
 	    // можем да кажем кога е началото й
-	    } elseif ($timeEnd && !$timeStart) {
+	    } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
 	    	$expEnd = $timeEnd;
-	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expEnd) - $rec->timeDuration);
+	    	$expStart = self::fetchField($rec->id, "modifiedOn");
 	    		
 	    // ако има и начало и край
 	    // то очакваните начало и край са тези
@@ -2131,11 +2083,7 @@ class cal_Tasks extends core_Master
 	    
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
-    	
-        //bp($rec,$rec->expectationTimeStart, $rec->expectationTimeEnd);
-    	//}
-    	//return $expEnd;
-    	//self::save($rec, 'expectationTimeStart, expectationTimeEnd');
+
     }
         
     static function act_Test()
@@ -2311,12 +2259,21 @@ class cal_Tasks extends core_Master
             $headerRes['afterTaskProgress'] =  array('name' => tr('Прогрес на задачата'), 'val' =>"[#afterTaskProgress#]");
         }
         
+        
         if ($row->expectationTimeStart){
             $headerRes['expectationTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectationTimeStart#]");
         }
         
-        if ($row->expectationTimeEnd){
+        if ($rec->timeStart) {
+        	unset($headerRes['expectationTimeStart']);
+        }
+        
+        if ($row->expectationTimeEnd){ 
             $headerRes['expectationTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectationTimeEnd#]");
+        }
+        
+        if ($rec->timeEnd) {
+        	unset($headerRes['expectationTimeEnd']);
         }
         
         if ($row->timeClosed){

@@ -104,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent';
+    public $listFields = 'tools=Пулт, stageId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни';
     
     
     /**
@@ -121,10 +121,10 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
     	
-    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
-    	$this->FLD("position", 'int', 'caption=Позиция,smartCenter');
+    	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
     	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Количество->Режийни');
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
@@ -330,6 +330,10 @@ class cat_BomDetails extends doc_Detail
     			$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
     		}
     	}
+    	
+    	if($rec->position === 0){
+    		unset($row->position);
+    	}
     }
     
     
@@ -374,18 +378,28 @@ class cat_BomDetails extends doc_Detail
     		} else {
     			$rec->order = 0;
     		}
-    		$rec->order .= $rec->id;
+    		
+    		if(!$rec->position){
+    			$rec->position = 0;
+    		}
+    		//$rec->order .= $rec->id;
     	}
-    	 
+    
     	if($data->masterData->rec->state != 'draft'){
     		unset($data->listFields['tools']);
     	}
     	
     	// Сортираме по подредбата на производствения етап
     	usort($recs, function($a, $b) {
-    		if($a->order == $b->order)  return 0;
-    
-    		return ($a->order > $b->order) ? 1 : -1;
+    		if($a->order == $b->order) return 0;
+    		
+    		return ($a->order < $b->order) ? 1 : -1;
+    	});
+    	
+    	// Сортираме по подредбата на производствения етап
+    	usort($recs, function($a, $b) {
+    		if($a->position == $b->position)  return 0;
+    		return ($a->position > $b->position) ? 1 : -1;
     	});
     }
     

@@ -209,6 +209,11 @@ class frame_Reports extends core_Embedder
                 	$mvc->save($rec);
                }
             }
+
+            $now = dt::now();
+            if($rec->earlyActivationOn < $now) {
+            	unset($row->earlyActivationOn);
+            }
            
             if($rec->state == 'active' || $rec->state == 'rejected'){
             	unset($row->earlyActivationOn);
@@ -226,8 +231,11 @@ class frame_Reports extends core_Embedder
     		
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
-    		$rec->earlyActivationOn = $Source->getEarlyActivation();
+
+            $rec->earlyActivationOn = $Source->getEarlyActivation();
+
     		$rec->state = 'draft';
+    		
     		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
@@ -474,7 +482,7 @@ class frame_Reports extends core_Embedder
     		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
     }
-    
+
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
