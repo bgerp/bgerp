@@ -125,6 +125,11 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     {
     	$form->setField('packagingId','input=hidden');
     	parent::inputDocForm($mvc, $form);
+    	
+    	if(isset($form->rec->packagingId)){
+    		$measureShort = cat_UoM::getShortName($form->rec->packagingId);
+    		$form->setField('packQuantity', "unit={$measureShort}");
+    	}
     }
     
     
