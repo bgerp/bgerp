@@ -169,8 +169,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$data->documentType = 'internal';
 		$Driver->prepareProductDescription($data);
 		
-		$data->components = array();
-		cat_Boms::prepareComponents($data->rec->id, $data->components, $data->documentType);
+        if($Embedder->className == 'cat_Products') {
+            $data->components = array();
+            cat_Boms::prepareComponents($data->rec->id, $data->components, $data->documentType);
+        }
 	}
 	
 	
