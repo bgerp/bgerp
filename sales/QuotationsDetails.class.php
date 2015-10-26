@@ -343,7 +343,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($form->isSubmitted()){
-    		if(empty($form->rec->packQuantity)){
+    		if(!isset($form->rec->packQuantity)){
     			$form->rec->packQuantity = 1;
     		}
     		

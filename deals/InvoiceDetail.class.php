@@ -59,7 +59,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
-		$mvc->FLD('quantity', 'double', 'caption=К-во','tdClass=small-field');
+		$mvc->FLD('quantity', 'double(decimals=5)', 'caption=К-во','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
@@ -179,7 +179,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						$dRec->changedPrice = TRUE;
 					}
 				}
-			} 
+			}
 		}
 		
 		deals_Helper::fillRecs($this->Master, $recs, $rec, $this->map);
@@ -204,7 +204,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach (array('Quantity' => 'quantity', 'Price' => 'packPrice', 'Amount' => 'amount') as $key => $fld){
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
-					if($rec->$fld < 0){
+					if($rec->$fld < 0){ 
+						$row->$fld = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
 						$row->$fld = "<span style='color:red'>{$row->$fld}</span>";
 					} elseif($rec->$fld > 0){
 						$row->$fld = "<span style='color:green'>+{$row->$fld}</span>";
@@ -379,7 +380,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 	
 		if ($form->isSubmitted() && !$form->gotErrors()) {
-			if(empty($rec->quantity)){
+			if(!isset($rec->quantity)){
 				$rec->quantity = 1;
 			}
 			

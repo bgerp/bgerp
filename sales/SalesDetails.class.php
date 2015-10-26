@@ -161,7 +161,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    public static function on_BeforeRenderListTable1($mvc, &$tpl, $data)
     {
     	$rows = &$data->rows;
     	 
