@@ -29,4 +29,6 @@ samp {
 .footerDocTable {
   display: table !important; }
 
-thead { display: table-header-group }
+thead {
+  display: table-header-group; }
+
