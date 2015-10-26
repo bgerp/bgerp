@@ -223,6 +223,7 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     		}
     		
+    		// Ако артикула не е складируем, скриваме полето за мярка
     		if(!isset($productInfo->meta['canStore'])){
     			$form->setField('packagingId', 'input=hidden');
     			$measureShort = cat_UoM::getShortName($form->rec->packagingId);
