@@ -4,7 +4,7 @@
         [#NAVIGATION#] 
     </div>
     <!--ET_END NAVIGATION-->
-    <div class='eightcol cms-last' style='margin-right:2%;'>
+    <div class='eightcol cms-last searchContent' style='margin-right:2%;'>
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]

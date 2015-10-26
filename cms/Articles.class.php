@@ -276,8 +276,38 @@ class cms_Articles extends core_Master
         $query->orderBy("#level");
 
         $navData = new stdClass();
-        
+
         $cnt = 0;
+        
+        
+        if(($q = Request::get('q')) && !$rec) {  
+            $rec = new stdClass();
+            $navData->q = $q;
+            $rec->menuId = $menuId;
+
+            $query1 = self::getQuery();
+            $query1->where("#menuId = {$menuId}");
+
+            plg_Search::applySearch($q, $query1);
+
+
+            $q1 = type_Varchar::escape($q);
+            $content->append("<h1 style='margin-top:0'>Търсене на \"{$q1}\"</h1>");
+            
+            while($r = $query1->fetch()) {
+                $title = str::cut($r->body, '[h1]', '[/h1]');
+                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                    $title = $r->title;
+                }
+                $title = type_Varchar::escape($title);
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+                $title = ht::createLink($title, $url);
+                $content->append("<h3>" . $title . "</h3>");
+            }
+        }  
+
+
 
         while($rec1 = $query->fetch("#state = 'active'")) {
             
@@ -312,7 +342,6 @@ class cms_Articles extends core_Master
                 $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
                 $content->prepend($ptitle, 'PAGE_TITLE');
-                
             }
 
             $l = new stdClass();
@@ -339,11 +368,18 @@ class cms_Articles extends core_Master
             }
 
             $navData->links[] = $l;
-
         }
         
+        // Оцветяваме ако има търсене
+        if($q && isset($rec->id)) {
+            plg_Search::highlight($content, $q, 'searchContent');
+        }
+   
+        $navData->menuId = $rec->menuId;
+
         if(self::haveRightFor('add')) {
-            $navData->addLink = ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
+            $navData->addLink = ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 
+                'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
 		
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
@@ -356,13 +392,12 @@ class cms_Articles extends core_Master
         $content->replace($desc, 'META_DESCRIPTION');
 
         if($ogp){
-        	
-        	  // Генерираме ограф мета таговете
-        	  $ogpHtml = ograph_Factory::generateOgraph($ogp);
-        	  $content->append($ogpHtml);
+            // Генерираме ограф мета таговете
+            $ogpHtml = ograph_Factory::generateOgraph($ogp);
+            $content->append($ogpHtml);
         }
         
-        if($rec) {
+        if($rec && $rec->id) {
             if(core_Packs::fetch("#name = 'vislog'")) {
                 vislog_History::add($rec->title);
             }
@@ -375,9 +410,29 @@ class cms_Articles extends core_Master
         // Страницата да се кешира в браузъра за 1 час
         Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
         
-
         return $content; 
     }
+
+    
+
+    /**
+     * Търсене в статиите
+     */
+    function act_Search()
+    {
+        Mode::set('wrapper', 'cms_page_External');
+        
+		if(Mode::is('screenMode', 'narrow')) {
+            Mode::set('cmsLayout', 'cms/themes/default/ArticlesNarrow.shtml');
+        } else {
+            Mode::set('cmsLayout', 'cms/themes/default/Articles.shtml');
+        }
+
+        expect($menuId = Request::get('menuId', 'int'));
+        $search = Request::get('search');
+
+    }
+
 
 
     /**
@@ -414,6 +469,21 @@ class cms_Articles extends core_Master
             $navTpl->append($data->addLink);
             $navTpl->append( "</div>");
         }
+        
+        $searchForm = cls::get('core_Form', array('method' => 'GET'));
+
+        $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
+ 		
+        $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');
+		
+        $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
+        $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
+
+        $searchForm->setHidden('menuId', $data->menuId);
+  
+
+		$navTpl->prepend($searchForm->renderHtml());
+
 
         return $navTpl;
     }
@@ -514,7 +584,6 @@ class cms_Articles extends core_Master
             $roles = 'no_one';
         }
     }
-
 
 
     /**********************************************************************************************************
