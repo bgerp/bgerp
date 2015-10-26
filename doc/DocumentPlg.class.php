@@ -2535,17 +2535,12 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
         
-        // Ако има повече от една версия
-        if (isset($row->FirstSelectedVersion) && ($row->LastVersion != 0.1)) {
-            // Полета, които ще се показват
-            $headerRes = change_Plugin::getDateAndVersionRow();
-        }
+        $headerRes = $mvc->getFieldForLetterHead($rec, $row);
+        
         $hideArr = array();
         
         // Ако няма избрана версия, да се скрива антетката във външната част
-        if (!$row->FirstSelectedVersion) {
-            $hideArr['*'] = '*';
-        }
+        $hideArr = $mvc->getHideArrForLetterHead($rec, $row);
         
         $tableRows = $mvc->prepareHeaderLines($headerRes, $hideArr);
         
@@ -2554,6 +2549,62 @@ class doc_DocumentPlg extends core_Plugin
         $res->placeObject($row);
         
         return $res;
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = arr::make($res);
+        
+        // Ако няма избрана версия, да не се показва във вътрешната част
+        if (!$row->FirstSelectedVersion) {
+            $res['internal']['versionAndDate'] = TRUE;
+            $res['internal']['date'] = TRUE;
+            $res['internal']['version'] = TRUE;
+        }
+        
+        // Ако има само една версия или няма версии, да не се показват версиите във външната част
+        if (!(isset($row->FirstSelectedVersion)) || $row->LastVersion == '0.1') {
+            $res['external']['versionAndDate'] = TRUE;
+            $res['external']['date'] = TRUE;
+            $res['external']['version'] = TRUE;
+            
+        }
+        
+        $res['internal']['ident'] = TRUE;
+        $res['internal']['createdBy'] = TRUE;
+        $res['internal']['createdOn'] = TRUE;
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
+        $title = tr($title);
+        $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
+        
+        // Полета, които ще се показват
+        $resArr += change_Plugin::getDateAndVersionRow();
+        
+        $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
+        $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
     }
     
     
@@ -2568,11 +2619,9 @@ class doc_DocumentPlg extends core_Plugin
      * @param array $hideInInternal - кои полета да се скриват, при вътрешно показване
      * Отговаря на ключа на $headerArr
      */
-    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideInInternal = array())
+    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideArr = array())
     {
         if (!$headerArr) return ;
-        
-        $hideInInternal = arr::make($hideInInternal, TRUE);
         
         // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
         $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
@@ -2591,7 +2640,9 @@ class doc_DocumentPlg extends core_Plugin
         
         foreach ((array)$headerArr as $key => $value) {
             
-            if ($isInternal && (($hideInInternal[$key]) || $hideInInternal['*'])) continue;
+            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
+            
+            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
             
             $haveVal = TRUE;
             

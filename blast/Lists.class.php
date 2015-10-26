@@ -665,20 +665,16 @@ class blast_Lists extends core_Master
     
     
     /**
-     * Интерфейсен метод, който връща антетката на документа
+     * Добавя допълнителни полетата в антетката
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
-     * 
-     * @return core_ET
-     * 
-     * @see doc_DocumentIntf
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
      */
-    function getLetterHead($rec, $row)
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
-        
-        $headerRes = array();
+        $resArr = arr::make($resArr);
         
         $allFieldsArr = array('title' => 'Заглавие',
         						'keyField' => 'Ключово поле',
@@ -689,18 +685,26 @@ class blast_Lists extends core_Master
                             );
         foreach ($allFieldsArr as $fieldName => $val) {
             if ($row->{$fieldName}) {
-                $headerRes[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
             }
         }
         
-        $headerRes[$fieldName] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+        $resArr['created'] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = arr::make($res);
         
-        $tableRows = $this->prepareHeaderLines($headerRes);
-        
-        $res->replace($tableRows, 'TableRow');
-        
-        $res->placeObject($row);
-        
-        return $res;
+        $res['external']['created'] = TRUE;
     }
 }
