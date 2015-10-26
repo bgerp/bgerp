@@ -1025,59 +1025,31 @@ class support_Issues extends core_Master
     
     
     /**
-     * Интерфейсен метод, който връща антетката на документа
+     * Добавя допълнителни полетата в антетката
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
-     * 
-     * @return core_ET
-     * 
-     * @see doc_DocumentIntf
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
      */
-    function getLetterHead($rec, $row)
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
-        
-        $headerRes = array();
-        
         if ($row->systemId) {
-            $headerRes['systemId'] =  array('name' => tr('Система'), 'val' =>"[#systemId#]");
+            $resArr['systemId'] =  array('name' => tr('Система'), 'val' =>"[#systemId#]");
         }
         
         if ($row->componentId) {
-            $headerRes['componentId'] =  array('name' => tr('Компонент'), 'val' =>"[#componentId#]");
+            $resArr['componentId'] =  array('name' => tr('Компонент'), 'val' =>"[#componentId#]");
         }
         
-        $headerRes['typeId'] =  array('name' => tr('Тип'), 'val' =>"[#typeId#]");
+        $resArr['typeId'] =  array('name' => tr('Тип'), 'val' =>"[#typeId#]");
         
         if ($row->priority) {
-            $headerRes['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
+            $resArr['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
         }
         
         if ($row->assign) {
-            $headerRes['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " <i>[#assign#]</i> " . tr('от') . " <i>[#assignedBy#]</i> " . tr('в') . " [#assignedOn#]");
+            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " <i>[#assign#]</i> " . tr('от') . " <i>[#assignedBy#]</i> " . tr('в') . " [#assignedOn#]");
         }
-    
-        // Ако има повече от една версия
-        if (isset($row->FirstSelectedVersion) && $row->LastVersion != 0.1) {
-            // Полета, които ще се показват
-            $headerRes += change_Plugin::getDateAndVersionRow();
-        }
-        
-        $hideArr = array();
-        
-        // Ако няма избрана версия, да се скрива антетката във външната част
-        if (!$row->FirstSelectedVersion) {
-            $hideArr['date'] = 'date';
-            $hideArr['version'] = 'version';
-        }
-        
-        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
-        
-        $res->replace($tableRows, 'TableRow');
-        
-        $res->placeObject($row);
-        
-        return $res;
     }
 }

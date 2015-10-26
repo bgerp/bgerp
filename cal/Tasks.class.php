@@ -2214,92 +2214,66 @@ class cal_Tasks extends core_Master
     
     
     /**
-     * Интерфейсен метод, който връща антетката на документа
+     * Добавя допълнителни полетата в антетката
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
-     * 
-     * @return core_ET
-     * 
-     * @see doc_DocumentIntf
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
      */
-    function getLetterHead($rec, $row)
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
-        
-        $headerRes = array();
+        $resArr = arr::make($resArr);
         
         if ($row->progressBar || $row->progress){
-            $headerRes['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
+            $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
-        $headerRes['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
+        $resArr['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
         
         if ($row->timeStart){
-            $headerRes['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
+            $resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
         }
         
         if ($row->timeDuration){
-            $headerRes['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
+            $resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
         }
         
         if ($row->timeEnd){
-            $headerRes['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
+            $resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
         }
         
         if ($row->workingTime){
-            $headerRes['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
+            $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
         }
         
         if ($row->afterTask){
-            $headerRes['afterTask'] =  array('name' => tr('Започване след задача'), 'val' =>"[#afterTask#]");
+            $resArr['afterTask'] =  array('name' => tr('Започване след задача'), 'val' =>"[#afterTask#]");
         }
         
         if ($row->afterTaskProgress){
-            $headerRes['afterTaskProgress'] =  array('name' => tr('Прогрес на задачата'), 'val' =>"[#afterTaskProgress#]");
+            $resArr['afterTaskProgress'] =  array('name' => tr('Прогрес на задачата'), 'val' =>"[#afterTaskProgress#]");
         }
         
         
         if ($row->expectationTimeStart){
-            $headerRes['expectationTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectationTimeStart#]");
+            $resArr['expectationTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectationTimeStart#]");
         }
         
         if ($rec->timeStart) {
-        	unset($headerRes['expectationTimeStart']);
+        	unset($resArr['expectationTimeStart']);
         }
         
         if ($row->expectationTimeEnd){ 
-            $headerRes['expectationTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectationTimeEnd#]");
+            $resArr['expectationTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectationTimeEnd#]");
         }
         
         if ($rec->timeEnd) {
-        	unset($headerRes['expectationTimeEnd']);
+        	unset($resArr['expectationTimeEnd']);
         }
         
         if ($row->timeClosed){
-            $headerRes['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
+            $resArr['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
         }
-        
-        // Ако има повече от една версия
-        if (isset($row->FirstSelectedVersion) && $row->LastVersion != 0.1) {
-            // Полета, които ще се показват
-            $headerRes += change_Plugin::getDateAndVersionRow();
-        }
-        
-        $hideArr = array();
-        
-        // Ако няма избрана версия, да се скрива антетката във външната част
-        if (!$row->FirstSelectedVersion) {
-            $hideArr['date'] = 'date';
-            $hideArr['version'] = 'version';
-        }
-        
-        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
-        
-        $res->replace($tableRows, 'TableRow');
-        
-        $res->placeObject($row);
-        
-        return $res;
     }
 }
