@@ -56,7 +56,7 @@ abstract class deals_ServiceMaster extends core_Master
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
+				'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');

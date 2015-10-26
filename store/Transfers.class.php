@@ -164,7 +164,7 @@ class store_Transfers extends core_Master
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 
             'caption=Статус, input=none'
         );
     }
