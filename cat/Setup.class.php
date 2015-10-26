@@ -129,7 +129,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
     		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
     		'CAT_DEFAULT_MEASURE_ID' => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
-    		'CAT_BOM_MAX_COMPONENTS_LEVEL' => array("int(min=0)", 'caption=Показване на компонентите при вложени рецепти->Макс. брой'),
+    		'CAT_BOM_MAX_COMPONENTS_LEVEL' => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     );
 
     
