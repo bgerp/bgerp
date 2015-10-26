@@ -179,13 +179,16 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						$dRec->changedPrice = TRUE;
 					}
 				}
-			} 
+			}
 		}
 		
 		deals_Helper::fillRecs($this->Master, $recs, $rec, $this->map);
 	}
 	
 	
+	/**
+	 * Преди рендиране на таблицата
+	 */
 	public static function on_BeforeRenderListTable($mvc, &$res, $data)
 	{
 		if(!count($data->rows)) return;
@@ -201,7 +204,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach (array('Quantity' => 'quantity', 'Price' => 'packPrice', 'Amount' => 'amount') as $key => $fld){
 				if($rec->{"changed{$key}"} === TRUE){
 					$changed = TRUE;
-					if($rec->$fld < 0){
+					if($rec->$fld < 0){ 
+						$row->$fld = $mvc->getFieldType($fld)->toVerbal($rec->{$fld});
 						$row->$fld = "<span style='color:red'>{$row->$fld}</span>";
 					} elseif($rec->$fld > 0){
 						$row->$fld = "<span style='color:green'>+{$row->$fld}</span>";
@@ -376,7 +380,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 	
 		if ($form->isSubmitted() && !$form->gotErrors()) {
-			if(empty($rec->quantity)){
+			if(!isset($rec->quantity)){
 				$rec->quantity = 1;
 			}
 			

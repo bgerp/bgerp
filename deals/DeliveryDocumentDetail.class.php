@@ -109,7 +109,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		}
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
-			if(empty($rec->packQuantity)){
+			if(!isset($rec->packQuantity)){
 				$rec->packQuantity = 1;
 			}
 			

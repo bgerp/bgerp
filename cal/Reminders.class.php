@@ -960,20 +960,16 @@ class cal_Reminders extends core_Master
     
     
     /**
-     * Интерфейсен метод, който връща антетката на документа
+     * Добавя допълнителни полетата в антетката
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
-     * 
-     * @return core_ET
-     * 
-     * @see doc_DocumentIntf
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
      */
-    function getLetterHead($rec, $row)
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
-        
-        $headerRes = array();
+        $resArr = arr::make($resArr);
         
         $allFieldsArr = array('priority' => 'Приоритет',
         						'timeStart' => 'Начало',
@@ -985,34 +981,12 @@ class cal_Reminders extends core_Master
                             );
         foreach ($allFieldsArr as $fieldName => $val) {
             if ($row->{$fieldName}) {
-                $headerRes[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
             }
         }
         
         if ($row->repetitionEach){
-            $headerRes['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+            $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }
-        
-        // Ако има повече от една версия
-        if (isset($row->FirstSelectedVersion) && $row->LastVersion != 0.1) {
-            // Полета, които ще се показват
-            $headerRes += change_Plugin::getDateAndVersionRow();
-        }
-        
-        $hideArr = array();
-        
-        // Ако няма избрана версия, да се скрива антетката във външната част
-        if (!$row->FirstSelectedVersion) {
-            $hideArr['date'] = 'date';
-            $hideArr['version'] = 'version';
-        }
-        
-        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
-        
-        $res->replace($tableRows, 'TableRow');
-        
-        $res->placeObject($row);
-        
-        return $res;
     }
 }

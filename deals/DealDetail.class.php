@@ -236,7 +236,7 @@ abstract class deals_DealDetail extends doc_Detail
     	if ($form->isSubmitted() && !$form->gotErrors()) {
     	
     		// Извличане на информация за продукта - количество в опаковка, единична цена
-    		if(empty($rec->packQuantity)){
+    		if(!isset($rec->packQuantity)){
     			$rec->packQuantity = 1;
     		}
     		

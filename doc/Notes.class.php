@@ -236,35 +236,44 @@ class doc_Notes extends core_Master
     
     
     /**
-     * Интерфейсен метод, който връща антетката на документа
+     * Добавя допълнителни полетата в антетката
      * 
-     * @param stdObject $rec
-     * @param stdObject $row
-     * 
-     * @return core_ET
-     * 
-     * @see doc_DocumentIntf
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
      */
-    function getLetterHead($rec, $row)
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        $resArr = arr::make($resArr);
         
-        $headerRes = change_Plugin::getDateAndVersionRow();
-        
-        $headerRes['handle'] =  array('name' => 'Ref №', 'val' =>"[#handle#]");
-        
+        $resArr['handle'] =  array('name' => 'Ref №', 'val' =>"[#handle#]");
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function getHideArrForLetterHead($rec, $row)
+    {
         $hideArr = array();
         
-        // Да се скрият всички полета, ако няма избрана версия
-        if (!$row->FirstSelectedVersion) {
-            $hideArr['*'] = '*';
+        // Ако има само една версия, тогава да не се показва във вътрешната част
+        if($row->LastVersion == '0.1') {
+            $hideArr['internal']['versionAndDate'] = TRUE;
+            $hideArr['internal']['date'] = TRUE;
+            $hideArr['internal']['version'] = TRUE;
         }
         
-        $tableRows = $this->prepareHeaderLines($headerRes, $hideArr);
-        $res->replace($tableRows, 'TableRow');
+        $hideArr['internal']['ident'] = TRUE;
+        $hideArr['internal']['createdBy'] = TRUE;
+        $hideArr['internal']['createdOn'] = TRUE;
         
-        $res->placeObject($row);
-        
-        return $res;
+        return $hideArr;
     }
 }

@@ -475,7 +475,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	}
 	   	
 	   	$dQuery->where("#quantity = 0");
-	   	 
+	   	
 	   	// Ако има поне едно 0-во к-во документа, не може да се активира
 	   	if($dQuery->fetch()){
 	   		$res = FALSE;
@@ -1048,6 +1048,18 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($action == 'reject' && isset($rec)){
     		if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$state = $origin->rec()->state;
+    		if($state != 'active'){bp();
+    			$res = 'no_one';
+    		} else {
+    			if(!($origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }

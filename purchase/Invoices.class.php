@@ -165,6 +165,19 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+		$origin = $mvc->getOrigin($data->form->rec);
+    	if($origin->isInstanceOf('findeals_AdvanceReports')){
+    		$data->form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
+    		$data->form->setField('vatRate', 'input');
+    		$data->form->setDefault('vatRate', 'separate');
+    		
+    		if(isset($data->form->rec->id)){
+    			if(purchase_InvoiceDetails::fetch("#invoiceId = {$data->form->rec->id}")){
+    				$data->form->setReadOnly('vatRate');
+    			}
+    		}
+    	}
+    	
     	parent::prepareInvoiceForm($mvc, $data);
     	
     	if($data->aggregateInfo){
@@ -357,6 +370,30 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	if(empty($rec->number)){
     		return Redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
+    	}
+    }
+    
+    
+    /**
+     * След създаване
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+		$origin = $mvc->getOrigin($rec);
+    	if($origin->isInstanceOf('findeals_AdvanceReports')){
+    		$aQuery = findeals_AdvanceReportDetails::getQuery();
+    		$aQuery->where("#reportId = {$origin->that}");
+    		while($aRec = $aQuery->fetch()){
+    			$dRec = new stdClass();
+    			$dRec->productId      = $aRec->productId;
+    			$dRec->packagingId    = cat_Products::fetchField($dRec->productId, 'measureId');
+    			$dRec->quantityInPack = 1;
+    			$dRec->quantity       = $aRec->quantity;
+    			$dRec->price          = $aRec->amount / $dRec->quantity;
+    			$dRec->invoiceId      = $rec->id;
+    			 
+    			purchase_InvoiceDetails::save($dRec);
+    		}
     	}
     }
 }
