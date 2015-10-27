@@ -1462,17 +1462,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Рендира изглед за задание
-     */
-    public function renderJobView($id, $time = NULL)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	return cat_Products::getAutoProductDesc($id, $time, 'detailed', 'internal');
-    }
-    
-    
-    /**
      * Връща хендлъра на изображението представящо артикула, ако има такова
      * 
      * @param mixed $id - ид или запис
