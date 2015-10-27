@@ -501,6 +501,11 @@ class thumb_Img
      */
     public function getUrl($mode = 'auto')
     {
+    	if ($mode == 'forced') {
+    		// Предизвикваме взимането на път от конфигурацията
+    		unset($this->thumbPath);
+    	}
+    	
         $path = $this->getThumbPath();
         
         if(!file_exists($path) || (filemtime($path) + $this->expirationTime < time())) {
