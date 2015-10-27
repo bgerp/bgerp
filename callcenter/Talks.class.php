@@ -1124,7 +1124,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме грешката
-            self::logErr($err, $id);
+            log_Debug::add(get_called_class(), $id, $err);
         }
     }
     
