@@ -829,7 +829,7 @@ class marketing_Inquiries2 extends embed_Manager
     			try{
     				expect($personRec || $personId, "Няма визитка на контрактор {$personId}");
     			} catch(core_exception_Expect $e){
-    				$e->logError();
+    				crm_Persons::logErr('Няма визитка на контрактор', $personId);
     			}
     			 
     			// иначе отива в личната папка на лицето
