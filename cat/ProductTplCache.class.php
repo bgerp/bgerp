@@ -244,7 +244,7 @@ class cat_ProductTplCache extends core_Master
 		$data = cat_Products::prepareDescription($pRec->id, $documentType);
 		
 		$data->components = array();
-		cat_Boms::prepareComponents($pRec->id, $data->components, $documentType);
+		cat_Products::prepareComponents($pRec->id, $data->components, $documentType);
 		
 		$cacheRec = new stdClass();
 		
