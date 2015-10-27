@@ -6,6 +6,7 @@
     <fieldset class="detail-info">
     <legend class="groupTitle">|Описание|*</legend>
      [#innerState#]
+     [#COMPONENTS#]
     </fieldset>
     
     <!--ET_BEGIN groups-->
