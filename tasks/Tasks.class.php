@@ -757,4 +757,27 @@ class tasks_Tasks extends embed_Manager
     	
     	return $data;
     }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        if(cls::load($rec->driverClass, TRUE)){
+			if($Driver = cls::get($rec->driverClass)){
+				if (method_exists($Driver, 'prepareFieldLetterHeaded')) {
+				    $fieldArr = $Driver->prepareFieldLetterHeaded($rec, $row);
+				    $resArr = array_merge($resArr, $fieldArr);
+				}
+			}
+		}
+    }
 }
