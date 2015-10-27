@@ -97,7 +97,7 @@ class ssh_Actions
 		    $cmd = "( " . $command . " ; wget --spider -q --no-check-certificate '" . $callBackUrl . "' > /dev/null 2>/dev/null) > /dev/null 2>/dev/null &";
 		} else {
 		    // Изпълняваме го синхронно
-		    $cmd = $command . " 2>&1";
+		    $cmd = $command;
 		}
 		
         // Изпълняваме командата

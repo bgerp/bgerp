@@ -2225,7 +2225,7 @@ class cal_Tasks extends core_Master
     {
         $resArr = arr::make($resArr);
         
-        if ($row->progressBar || $row->progress){
+        if ($row->progressBar || $row->progress) {
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
@@ -2235,19 +2235,19 @@ class cal_Tasks extends core_Master
             $resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
         }
         
-        if ($row->timeDuration){
+        if ($row->timeDuration) {
             $resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
         }
         
-        if ($row->timeEnd){
+        if ($row->timeEnd) {
             $resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
         }
         
-        if ($row->workingTime){
+        if ($row->workingTime) {
             $resArr['workingTime'] =  array('name' => tr('Отработено време'), 'val' =>"[#workingTime#]");
         }
         
-        if ($row->afterTask){
+        if ($row->afterTask) {
             $resArr['afterTask'] =  array('name' => tr('Започване след задача'), 'val' =>"[#afterTask#]");
         }
         
@@ -2256,7 +2256,7 @@ class cal_Tasks extends core_Master
         }
         
         
-        if ($row->expectationTimeStart){
+        if ($row->expectationTimeStart) {
             $resArr['expectationTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectationTimeStart#]");
         }
         
@@ -2272,7 +2272,12 @@ class cal_Tasks extends core_Master
         	unset($resArr['expectationTimeEnd']);
         }
         
-        if ($row->timeClosed){
+        if (!$rec->timeStart && !$rec->timeEnd) {
+        	unset($resArr['expectationTimeStart']);
+        	unset($resArr['expectationTimeEnd']);
+        }
+        
+        if ($row->timeClosed) {
             $resArr['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
         }
     }
