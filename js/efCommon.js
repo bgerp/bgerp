@@ -1909,8 +1909,9 @@ function editCopiedTextBeforePaste() {
 				// прави замяната в тези стрингове
 				current = current.replace(regExp ,replacedStr[i]);
 			}
-
-			current = '<table>' + current + "</table>";
+			if(current.indexOf('<table>') == -1){
+				current = '<table>' + current + "</table>";
+			}
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
 		}
