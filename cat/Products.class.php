@@ -49,7 +49,7 @@ class cat_Products extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping,
                      cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups';
     
     
@@ -210,12 +210,6 @@ class cat_Products extends embed_Manager {
 	 * @var string
 	 */
 	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
-	
-	
-	/**
-	 * Какво може да се прави със избраните
-	 */
-	public $doWithSelected = 'changemeta=Свойства';
 	
 	
 	/**
@@ -1001,6 +995,8 @@ class cat_Products extends embed_Manager {
     	// Подготвяме опциите
     	$options = array($measureId => cat_UoM::getTitleById($measureId)) + $options;
     	$firstVal = $options[$baseId];
+    	
+    	// Подсигуряваме се че основната опаковка/мярка е първа в списъка
     	unset($options[$baseId]);
     	$options = array($baseId => $firstVal) + $options;
     	
@@ -1157,10 +1153,7 @@ class cat_Products extends embed_Manager {
     	$lg = core_Lg::getCurrent();
     	
     	if($lg != 'bg'){
-    		if(!empty($rec->intName)){
-    			
-    			return $rec->intName;
-    		}
+    		if(!empty($rec->intName)) return $rec->intName;
     	}
     	
     	return $rec->name;
@@ -1683,150 +1676,6 @@ class cat_Products extends embed_Manager {
     	
     	// Връщаме сумата
     	return $amount;
-    }
-    
-    
-    /**
-     * Смяна статута на 'rejected'
-     *
-     * @return core_Redirect
-     */
-    function act_changemeta()
-    {
-    	$this->requireRightFor('edit');
-    
-    	// Създаване на формата
-    	$form = cls::get('core_Form');
-    	$form->FNC('id', 'int', 'input=hidden,silent');
-    	$form->FNC('Selected', 'text', 'input=hidden,silent');
-    	$form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
-    	$form->input(NULL, 'silent');
-    	$rec = $form->rec;
-    
-    	expect($rec->id || $rec->Selected, $rec);
-    
-    	$selArr = arr::make($rec->Selected);
-    	if($id) {
-    		$selArr[] = $id;
-    	}
-    
-    	$metas = $this->getFieldType('meta')->suggestions;
-    	$canDelMetas = $canAddMetas = array();
-    
-    	// Премахване на лишите или недостъпните id-та
-    	foreach($selArr as $i => $ind) {
-    		$obj = (object) array('id' => $ind);
-    
-    		if(!is_numeric($ind) || !$this->haveRightFor('edit', $obj)) {
-    			unset($selArr[$i]);
-    		}
-    
-    		$metaArr = type_Set::toArray($this->fetchField($ind, 'meta'));
-    		foreach($metaArr as $m) {
-    			if($metas[$m]) {
-    				$canDelMetas[$m]++;
-    			}
-    		}
-    
-    		foreach($metas as $m => $caption) {
-    			if(!$metaArr[$m]) {
-    				$canAddMetas[$m]++;
-    			}
-    		}
-    	}
-    		
-    	$selArrCnt = count($selArr);
-    	expect($selArrCnt);
-    	reset($selArr);
-    
-    	if($selArrCnt == 1) {
-    		$selOneKey = key($selArr);
-    	}
-    
-    	if($selArrCnt == 1) {
-    		$id = $selArr[$selOneKey];
-    		$metas = $this->fetchField($id, 'meta');
-    		$form->title = 'Промяна в свойствата на |*<i style="color:#ffffaa">' .  $this->getTitleById($selArr[0]) . '</i>';
-    		$form->FNC('meta', $this->getFieldType('meta'), 'caption=Свойства,input');
-    		$form->setDefault('meta', $metas);
-    	} else {
-    		$form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($this->title);
-    
-    		if(count($canAddMetas)) {
-    			$addType = cls::get('type_Set');
-    
-    			foreach($canAddMetas as $g => $cnt) {
-    				$addType->suggestions[$g] = $metas[$g] . " ({$cnt})";
-    			}
-    				$form->FNC('addMetas', $addType, 'caption=Добавяне->Свойства,input');
-    			}
-    
-    			if(count($canDelMetas)) {
-    				$delType = cls::get('type_Set');
-    				foreach($canDelMetas as $g => $cnt) {
-    					$delType->suggestions[$g] = $metas[$g] . " ({$cnt})";
-    				}
-    				$form->FNC('delMetas', $delType, 'caption=Премахване->Свойства,input');
-    			}
-    		}
-    
-    		$form->toolbar->addSbBtn('Запис');
-    		if($selArrCnt == 1) {
-    			$retUrl = array($this, 'single', $selArr[$selOneKey]);
-    		} else {
-    			$retUrl = array($this, 'list');
-    		}
-    		
-    		$form->toolbar->addBtn('Отказ', $retUrl);
-    
-    		$form->input();
-    
-    		if($form->isSubmitted()) {
-    		$rec = $form->rec;
-    
-    		$changed = 0;
-    
-    		if($selArrCnt == 1) {
-    			$obj = new stdClass();
-    			$obj->id = $id;
-    			$obj->meta = $rec->meta;
-    
-    			if($groups != $rec->meta) {
-    				$this->save($obj, 'meta');
-    				$changed = 1;
-    			}
-    		} else {
-    			foreach($selArr as $id) {
-    				$exGroups = $groups = type_Set::toArray($this->fetchField($id, 'meta'));
-    					
-    				$groups = array_merge($groups, arr::make($rec->addMetas, TRUE));
-    				$groups = array_diff($groups, arr::make($rec->delMetas, TRUE));
-    					
-    				$obj = new stdClass();
-    				$obj->id = $id;
-    				$obj->meta = cls::get('type_Set')->fromVerbal($groups);
-    					
-    				if($groups != $exGroups) {
-    					$this->save($obj, 'meta');
-    					$changed++;
-    				}
-    			}
-    		}
-    
-    		if(!$changed) {
-    			$msg = tr("Не бяха променени свойства");
-    		} elseif($changed == 1) {
-    			$msg = tr("Бяха променени свойствата на 1 " . mb_strtolower($this->singleTitle));
-    		} else {
-    			$msg = tr("Бяха променени свойствата на|* {$changed} "  . mb_strtolower($this->title));
-    		}
-    
-    		$res = new Redirect($retUrl, $msg);
-    	} else {
-    		$res = $this->renderWrapping($form->renderHtml());
-    	}
-    	
-    	return $res;
     }
     
     
