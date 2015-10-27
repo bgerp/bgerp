@@ -408,8 +408,8 @@ class marketing_Inquiries2 extends embed_Manager
     		$fields = $this->selectFields();
     
     		// Изпращане на имейл с phpmailer
-    		$PML = cls::get('phpmailer_Instance');
-    
+    		$PML = email_Accounts::getPML($sentFrom);
+    		    
     	   /*
     		* Ако не е зададено е 8bit
     		* Проблема се появява при дълъг стринг - без интервали и на кирилица.
