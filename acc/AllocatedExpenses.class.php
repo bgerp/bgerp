@@ -407,7 +407,7 @@ class acc_AllocatedExpenses extends core_Master
     	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
     		
     		// Вземаме всички заскладени артикули
-    		$entries = sales_transaction_Sale::getEntries($firstDoc->that);
+    		$entries = purchase_transaction_Purchase::getEntries($firstDoc->that);
     		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, '321', TRUE);
     	} else {
     		
