@@ -424,11 +424,13 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('activityCenterId', $rec->activityCenterId);
         
         purchase_transaction_Purchase::clearCache();
+        $entries = purchase_transaction_Purchase::getEntries($rec->id);
+        
         $result->set('agreedDownpayment', $downPayment);
-        $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($rec->id));
-        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($rec->id));
-        $result->set('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($rec->id));
-        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($rec->id));
+        $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($entries));
+        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($entries));
+        $result->set('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($entries));
+        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries));
         
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
@@ -477,7 +479,7 @@ class purchase_Purchases extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($rec->id));
+        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries));
     }
     
     
