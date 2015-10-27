@@ -674,6 +674,9 @@ class doc_DocumentPlg extends core_Plugin
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
                 }
+                
+                doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
+                $mvc->logInAct('Оттегляне', $rec);
             }
             
             // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
@@ -693,12 +696,8 @@ class doc_DocumentPlg extends core_Plugin
             
             $res['afterReject'] = 1;
             
-            doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-           
             $res = new Redirect($res); //'OK';
 
-            $mvc->logInAct('Оттегляне', $rec);
-            
             return FALSE;
         }
         
@@ -717,6 +716,8 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
+                
+                $mvc->logInAct('Възстановяване', $rec);
             }
             
             // Пренасочваме контрола
@@ -725,8 +726,6 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
-            
-            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }

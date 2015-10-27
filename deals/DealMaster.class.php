@@ -923,6 +923,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
+    	
+    	deals_OpenDeals::saveRec($rec, $mvc);
     }
     
    

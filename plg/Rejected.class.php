@@ -123,7 +123,7 @@ class plg_Rejected extends core_Plugin
         $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
 
-        $mvc->logInfo('reject', $rec->id);
+        $mvc->logInfo('Оттегляне', $rec->id);
     }
     
     
