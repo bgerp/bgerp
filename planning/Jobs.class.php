@@ -393,7 +393,7 @@ class planning_Jobs extends core_Master
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
     		
-    		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $rec->modifiedOn, 'detailed', 'internal');
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
