@@ -2055,7 +2055,7 @@ function smartCenter() {
         }
         
         $(".maxwidth").css('margin', "0 auto");
-        $(".maxwidth").css('display', "flex");
+        $(".maxwidth").css('display', "block");
 }
 
 
