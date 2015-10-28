@@ -657,6 +657,10 @@ class support_Issues extends core_Master
         
         if (!$data->form->rec->id) {
             Request::setProtected('srcId, srcClass');
+            
+            $data->form->FNC('SrcId', 'int', 'input=hidden');
+            $data->form->FNC('SrcClass', 'varchar', 'input=hidden');
+            
             if ($srcId = Request::get('srcId', 'int')) {
                 if ($srcClass = Request::get('srcClass')) {
                     if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
@@ -666,6 +670,9 @@ class support_Issues extends core_Master
                         
                         $data->form->setDefault('title', $defTitle);
                         $data->form->setDefault('description', $defBody);
+                        
+                        $data->form->setDefault('SrcId', $srcId);
+                        $data->form->setDefault('SrcClass', $srcClass);
                     }
                 }
             }
@@ -1020,6 +1027,11 @@ class support_Issues extends core_Master
     {
         if ($rec->componentId) {
             support_Components::markAsUsed($rec->componentId);
+        }
+        
+        if ($rec->SrcId && $rec->SrcClass && cls::haveInterface('support_IssueCreateIntf', $rec->SrcClass)) {
+            $srcInst = cls::getInterface('support_IssueCreateIntf', $rec->SrcClass);
+            $srcInst->afterCreateIssue($rec->SrcId);
         }
     }
     
