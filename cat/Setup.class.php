@@ -787,6 +787,9 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Ъпдейтва параметрите
+     */
     function updateParams()
     {
     	$map = array('size'    => 'cond_type_Double',
