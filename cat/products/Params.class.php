@@ -66,22 +66,25 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да добавя
      */
     var $canAdd = 'ceo,cat';
     
+    
     /**
-     * Кой може да качва файлове
+     * Кой може да листва
      */
     var $canList = 'ceo,cat';
+    
+    
     /**
-     * Кой може да качва файлове
+     * Кой може да редактира
      */
     var $canEdit = 'ceo,cat';
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да изтрива
      */
     var $canDelete = 'ceo,cat';
     
