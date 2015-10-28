@@ -124,13 +124,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
     	$deductedDp = $form->dealInfo->get('downpaymentDeducted');
     	
-    	if($mvc instanceof sales_Proformas){
-    		// Ако има платен аванс ръководим се по него, ако няма по договорения
-    		$downpayment = (empty($actualDp)) ? $aggreedDp : $actualDp;
-    	} else {
-    		// Ако има платен аванс ръководим се по него, ако няма по договорения
-    		$downpayment = (empty($actualDp)) ? NULL : $actualDp;
-    	}
+    	$downpayment = (empty($actualDp)) ? NULL : $actualDp;
     	
     	// Ако няма авансово плащане на задаваме дефолти
     	if(!isset($downpayment)) {

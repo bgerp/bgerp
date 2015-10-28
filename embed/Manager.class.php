@@ -306,6 +306,9 @@ class embed_Manager extends core_Master
                 case 'aftergetsearchkeywords';
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
+                case 'beforesaveclonerec':
+                	$driverClass = $args[1]->{$this->driverClassField};
+                	break;
             }
 
             // Ако има избран драйвер

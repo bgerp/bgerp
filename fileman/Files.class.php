@@ -574,7 +574,7 @@ class fileman_Files extends core_Master
         $act = $class->getActionForAddFile();
         
         // Други допълнителни данни
-        $bucketId = Request::get('bucketId');
+        $bucketId = Request::get('bucketId', 'int');
         $callback = Request::get('callback');
         
         $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
