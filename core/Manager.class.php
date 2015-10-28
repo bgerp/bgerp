@@ -1119,7 +1119,10 @@ class core_Manager extends core_Mvc
         
         // Ако заявката не е по AJAX и няма нищо записано в лога, записваме екшъна
         if (!Request::get('ajax_mode') && !count(log_Data::$toAdd)) {
-            self::logInfo($act, Request::get('id', 'int'), 180);
+            $id = Request::get('id');
+            $id = is_int($id) ? $id : NULL;
+            
+            self::logInfo($act, $id, 180);
         }
         
         return $res;
