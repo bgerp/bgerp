@@ -1482,7 +1482,6 @@ function setThreadElemWidth() {
 	var offsetWidth = 45;
     var threadWidth = parseInt($(window).width()) - offsetWidth;
     $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
-    $('.docStatistic').css('maxWidth', threadWidth);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
@@ -2127,14 +2126,20 @@ function keylistActions(el) {
 }
 
 function sumOfChildrenWidth() {
-	if($('body').hasClass('narrow') && $('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
-		
-		var sum=0;
-		$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
-		$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
-		
-		var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
-		$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+	if($('body').hasClass('narrow')){
+		if ($('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
+			var sum=0;
+			$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
+			$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
+			
+			var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
+			$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+		}
+		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
+			var sum=0;
+			$('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sum += $(this).width() + 5; });
+			$('.docStatistic').css('min-width', sum);
+		}
 	}
 }
 
