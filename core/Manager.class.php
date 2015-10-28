@@ -1122,6 +1122,8 @@ class core_Manager extends core_Mvc
             $id = Request::get('id');
             if (!is_numeric($id) || $id <= 0) {
                 $id = NULL;
+            } else {
+                $id = (int) $id;
             }
             
             self::logInfo($act, $id, 180);
