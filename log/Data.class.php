@@ -141,10 +141,8 @@ class log_Data extends core_Manager
         }
         
         if (isset($objectId)) {
-            if (!is_numeric($objectId) || $objectId <= 0) {
+            if (!is_numeric($objectId)) {
                 $objectId = NULL;
-            } else {
-                $objectId = (int) $objectId;
             }
         }
         
