@@ -1891,13 +1891,16 @@ function editCopiedTextBeforePaste() {
 		body_element.appendChild(htmlDiv);
 
 		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
-
+		
+		//В клонирания елемент сменяме стиловете, за да избегнем отделните редове, ако имаме елементи със smartCenter
+		$(htmlDiv).find('.maxwidth').css('display', 'inline');
+		
 		// временна променлива, в която ще заменстваме
 		var current = htmlDiv.innerHTML.toString();
-
+		
 		//намира всеки стринг, който отгоравя на израза
 		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
-
+		
 		if(matchedStr){
 			var replacedStr = new Array();
 
@@ -1913,6 +1916,7 @@ function editCopiedTextBeforePaste() {
 			}
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
+			$('maxwidth').css("display", 'block');
 		}
 
 		window.setTimeout(function() {
@@ -2054,8 +2058,9 @@ function smartCenter() {
         	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
-        $(".maxwidth").css('margin', "0 auto");
         $(".maxwidth").css('display', "block");
+        $(".maxwidth").css('margin', "0 auto");
+        
 }
 
 
