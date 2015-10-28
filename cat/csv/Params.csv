@@ -1,15 +1,14 @@
-Дължина,size,,length,,,yes
-Височина,size,,height,,,yes
-Тегло,weight,,weight,,,no
-Дебелина,size,,thickness,,,yes
-Обем,volume,,volume,,,no
-Плътност,density,,density,,,no
-Цвят,varchar,,color,,,yes
-Н. такси,double,лв,bTax,,,no
-Транспортно Тегло,weight,,transportWeight,,,no
-Транспортен Обем,volume,,transportVolume,,,no
-title_EN,varchar,,titleEN,,,no
-Толеранс,percent,,tolerance,,,no
-Срок,time,,term,,,no
-Широчина,size,,width,,,yes
-Режийни разходи,percent,,expenses,,,no
+Дължина,cond_type_Double,см,length,,,yes
+Височина,cond_type_Double,см,height,,,yes
+Тегло,cond_type_Double,кг,weight,,,no
+Дебелина,cond_type_Double,см,thickness,,,yes
+Обем,cond_type_Double,куб.м,volume,,,no
+Обем,cond_type_Double,л,volumel,,,no
+Плътност,cond_type_Double,кг/м3,density,,,no
+Цвят,cond_type_Varchar,,color,,,yes
+Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no
+Транспортен Обем,cond_type_Double,кг,transportVolume,,,no
+Толеранс,cond_type_Percent,,tolerance,,,no
+Срок,cond_type_Time,,term,,,no
+Широчина,cond_type_Double,см,width,,,yes
+Режийни разходи,cond_type_Percent,,expenses,,,no

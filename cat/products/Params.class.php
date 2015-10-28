@@ -38,7 +38,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'paramId, paramValue, tools=Пулт';
+    var $listFields = 'productId, paramId, paramValue, tools=Пулт';
     
     
     /**
@@ -70,7 +70,10 @@ class cat_products_Params extends doc_Detail
      */
     var $canAdd = 'ceo,cat';
     
-    
+    /**
+     * Кой може да качва файлове
+     */
+    var $canList = 'ceo,cat';
     /**
      * Кой може да качва файлове
      */
@@ -96,7 +99,7 @@ class cat_products_Params extends doc_Detail
     {
     	$this->FLD('productId', 'key(mvc=cat_Products)', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
+        $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('productId,paramId');
     }
@@ -122,15 +125,16 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($paramRec = cat_Params::fetch($rec->paramId)){
-	    	if($paramRec->type != 'enum'){
-	           $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
-	           $row->paramValue = $Type->toVerbal($rec->paramValue);
-	        }
-	        
-	        if($paramRec->type != 'percent'){
-	           $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
-	        }
+    	$paramRec = cat_Params::fetch($rec->paramId);
+    	
+    	if($Driver = cat_Params::getDriver($rec->paramId)){
+    		if($Type = $Driver->getType($paramRec)){
+    			$row->paramValue = $Type->toVerbal(trim($rec->paramValue));
+    		}
+    	}
+    	
+    	if(!empty($paramRec->suffix)){
+    		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
     	}
     }
     
@@ -157,9 +161,20 @@ class cat_products_Params extends doc_Detail
     	}
     	
         if($form->rec->paramId){
-        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($form->rec->paramId, 'cat_Params');
-        } else {
-        	$form->setField('paramValue', 'input=hidden');
+        	if($Driver = cat_Params::getDriver($form->rec->paramId)){
+        		$form->setField('paramValue', 'input');
+        		$pRec = cat_Params::fetch($form->rec->paramId);
+        		if($Type = $Driver->getType($pRec)){
+        			$form->setFieldType('paramValue', $Type);
+        			
+        			if(!empty($pRec->suffix)){
+        				$suffix = cat_Params::getVerbal($pRec, 'suffix');
+        				$form->setField('paramValue', "unit={$suffix}");
+        			}
+        		}
+        	} else {
+        		$form->setError('paramId', 'Има проблем при зареждането на типа');
+        	}
         }
     }
 
