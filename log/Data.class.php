@@ -140,6 +140,12 @@ class log_Data extends core_Manager
             $className = cls::getClassName($className);
         }
         
+        if (isset($objectId)) {
+            if (!is_numeric($objectId)) {
+                $objectId = NULL;
+            }
+        }
+        
         $toAdd = array();
         $toAdd['type'] = $type;
         $toAdd['message'] = $message;

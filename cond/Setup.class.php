@@ -79,6 +79,12 @@ class cond_Setup  extends core_ProtoSetup
         );
 
 
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Material,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod";
+    
+    
 	/**
      * Инсталиране на пакета
      * @TODO Да се премахне след като кода се разнесе до всички бранчове

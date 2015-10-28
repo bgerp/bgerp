@@ -154,8 +154,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
     	if($Detail->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
-    		$tpl->append($ht, 'ADD_BTN');
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    			$tpl->append($ht, 'ADD_BTN');
+    		}
     	} 
     }
     
@@ -208,5 +210,71 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     	 
     	// Добавяме новите ключови думи към старите
     	$res = " " . $res . " " . $detailsKeywords;
+    }
+    
+    
+    /**
+     * Връща полетата, които ще се показват в антетката
+     * 
+     * @param stdObject $rec
+     * @param stdObject $row
+     * 
+     * @return array
+     */
+    public static function prepareFieldLetterHeaded($rec, $row)
+    {
+        $resArr = array();
+        
+        if ($row->timeStart) {
+            $resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
+        }
+        
+        if ($row->timeDuration) {
+            $resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
+        }
+        
+        if ($row->timeEnd) {
+            $resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
+        }
+        
+        if ($row->expectedTimeStart) {
+            $resArr['expectedTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectedTimeStart#]");
+        }
+        
+        if ($row->expectedTimeEnd) {
+            $resArr['expectedTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectedTimeEnd#]");
+        }
+        
+        $resArr['totalQuantity'] =  array('name' => tr('Общо к-во'), 'val' =>"[#totalQuantity#]");
+        
+        if ($row->totalWeight) {
+            $resArr['totalWeight'] =  array('name' => tr('Общо тегло'), 'val' =>"[#totalWeight#]");
+        }
+        
+        if ($row->fixedAssets) {
+            $resArr['fixedAssets'] =  array('name' => tr('Машини'), 'val' =>"[#fixedAssets#]");
+        }
+        
+        $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
+        
+        if ($row->originId) {
+            $resArr['originId'] =  array('name' => tr('Към задание'), 'val' =>"[#originId#]");
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Преди клонирането на записа
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @param stdClass $nRec
+     */
+    public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec, &$nRec)
+    {
+    	unset($nRec->totalWeight);
     }
 }

@@ -168,11 +168,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$data->isSingle = TRUE;
 		$data->documentType = 'internal';
 		$Driver->prepareProductDescription($data);
-		
-        if($Embedder->className == 'cat_Products') {
-            $data->components = array();
-            cat_Boms::prepareComponents($data->rec->id, $data->components, $data->documentType);
-        }
 	}
 	
 	
@@ -231,11 +226,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		$nTpl = $Driver->renderProductDescription($data);
 		$tpl->append($nTpl, 'innerState');
-		
-		if(count($data->components)){
-			$componentTpl = cat_Products::renderComponents($data->components);
-			$tpl->append($componentTpl, 'COMPONENTS');
-		}
 	}
 	
 	

@@ -127,6 +127,7 @@ abstract class deals_DealBase extends core_Master
 					
 				} catch(core_exception_Expect $e){
 					$this->logErr('Проблем с пушването на данните на бизнес документ - ' . $e->getMessage(), $dealRec->id);
+					reportException($e);
 				}
 			}
 		}

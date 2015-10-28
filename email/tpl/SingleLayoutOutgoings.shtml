@@ -5,13 +5,6 @@
 				<div class="small">
                     <table class='top-table' style='width:100%'>
                         <tr>
-                            <td colspan='2'>
-                                <b>
-                                    <!--ET_BEGIN subject-->[#subject#]<!--ET_END subject-->
-                                </b>
-                            </td>
-                        </tr>
-                        <tr>
                             <td class='vtop'>
                                 <table class='top-table'>
                                     <!--ET_BEGIN handle-->          
@@ -87,6 +80,7 @@
     <div style='clear: both;'></div>
     <!--ET_BEGIN body--> 
     <div style='padding:6px 10px 10px;'>
+    <!--ET_BEGIN subject--><h3 class='richtext-title'>[#subject#]</h3><!--ET_END subject-->
         <div>[#body#]</div>
     </div>
     

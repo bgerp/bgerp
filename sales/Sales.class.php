@@ -529,11 +529,13 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('bankAccountId', $rec->bankAccountId);
         
         sales_transaction_Sale::clearCache();
+        $entries = sales_transaction_Sale::getEntries($rec->id);
+        
         $result->set('agreedDownpayment', $downPayment);
-        $result->set('downpayment', sales_transaction_Sale::getDownpayment($rec->id));
-        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($rec->id));
-        $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($rec->id));
-        $result->set('blAmount', sales_transaction_Sale::getBlAmount($rec->id));
+        $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
+        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($entries));
+        $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($entries));
+        $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
         
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
@@ -581,7 +583,7 @@ class sales_Sales extends deals_DealMaster
          $agreed = deals_Helper::normalizeProducts(array($agreed));
          $result->set('products', $agreed);
          $result->set('contoActions', $actions);
-         $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($rec->id));
+         $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($entries));
     }
     
     

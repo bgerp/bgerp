@@ -181,15 +181,18 @@ class tasks_Tasks extends embed_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	$blue = new color_Object("#2244cc");
+    	
+    	$red = new color_Object("#FF0000");
+    	$blue = new color_Object("green");
     	$grey = new color_Object("#bbb");
     	
     	$progressPx = min(100, round(100 * $rec->progress));
     	$progressRemainPx = 100 - $progressPx;
     	
-    	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+    	$color = ($rec->progress <= 1) ? $blue : $red;
+    	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
     
-    	$grey->setGradient($blue, $rec->progress);
+    	$grey->setGradient($color, $rec->progress);
     	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
     	
     	$row->name = $mvc->getLink($rec->id, 0);
@@ -207,27 +210,26 @@ class tasks_Tasks extends embed_Manager
     		}
     	}
     	
-    	$grey->setGradient($blue, $rec->progress);
-    	
-    	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-    	
     	$row->timeStart = str_replace('00:00', '', $row->timeStart);
     	$row->timeEnd = str_replace('00:00', '', $row->timeEnd);
     	
-    	// Ако имаме само начална дата на задачата
-    	if ($rec->timeStart && !$rec->timeEnd) {
-    		// я парвим хипервръзка към календара- дневен изглед
-    		$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		// Ако имаме само крайна дата на задачата
-    	} elseif ($rec->timeEnd && !$rec->timeStart) {
-    		// я правим хипервръзка към календара - дневен изглед
-    		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		// Ако задачата е с начало и край едновременно
-    	} elseif ($rec->timeStart && $rec->timeEnd) {
-    		// и двете ги правим хипервръзка към календара - дневен изглед
-    		$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		// Ако имаме само начална дата на задачата
+    		if ($rec->timeStart && !$rec->timeEnd) {
+    			// я парвим хипервръзка към календара- дневен изглед
+    			$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    			// Ако имаме само крайна дата на задачата
+    		} elseif ($rec->timeEnd && !$rec->timeStart) {
+    			// я правим хипервръзка към календара - дневен изглед
+    			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    			// Ако задачата е с начало и край едновременно
+    		} elseif ($rec->timeStart && $rec->timeEnd) {
+    			// и двете ги правим хипервръзка към календара - дневен изглед
+    			$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
     	}
+    	
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
@@ -235,17 +237,20 @@ class tasks_Tasks extends embed_Manager
     		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
     	}
     	
-    	if (isset($rec->expectedTimeStart)) {
-    		$row->expectedTimeStart = ht::createLink(dt::mysql2verbal($rec->expectedTimeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    	}
-    	
-    	if (isset($expectedTimeEnd)) {
-    		$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		if (isset($rec->expectedTimeStart)) {
+    			$row->expectedTimeStart = ht::createLink(dt::mysql2verbal($rec->expectedTimeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
+    		 
+    		if (isset($expectedTimeEnd)) {
+    			$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
     	}
     	
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$row->originId = $origin->getLink(0);
+    		$originId = (!Mode::is('text', 'xhtml') && !Mode::is('printing')) ? $origin->getLink(0) : "#" . $origin->getHandle();
+    		$row->originId = $originId;
     	}
     }
     
@@ -756,5 +761,41 @@ class tasks_Tasks extends embed_Manager
     	parent::prepareSingle_($data);
     	
     	return $data;
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        if(cls::load($rec->driverClass, TRUE)){
+			if($Driver = cls::get($rec->driverClass)){
+				if (method_exists($Driver, 'prepareFieldLetterHeaded')) {
+				    $fieldArr = $Driver->prepareFieldLetterHeaded($rec, $row);
+				    $resArr = array_merge($resArr, $fieldArr);
+				}
+			}
+		}
+    }
+    
+    
+    /**
+     * Преди клонирането на запис
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param stdClass $nRec
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	unset($nRec->progress);
     }
 }

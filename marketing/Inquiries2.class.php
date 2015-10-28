@@ -395,21 +395,21 @@ class marketing_Inquiries2 extends embed_Manager
     	// Взимат се нужните константи от пакета 'marketing'
     	$conf = core_Packs::getConfig('marketing');
     	$emailsTo = $conf->MARKETING_INQUIRE_TO_EMAIL;
-    	$sentFrom = $conf->MARKETING_INQUIRE_FROM_EMAIL;
+    	$sentFromBox = $conf->MARKETING_INQUIRE_FROM_EMAIL;
     	
     	// Ако са зададено изходящ и входящ имейл се изпраща нотифициращ имейл
-    	if($emailsTo && $sentFrom){
+    	if($emailsTo && $sentFromBox){
     
     		// Имейла съответстващ на избраната кутия
-    		$sentFrom = email_Inboxes::fetchField($sentFrom, 'email');
+    		$sentFrom = email_Inboxes::fetchField($sentFromBox, 'email');
     		
     		// Тяло на имейла html и text
     
     		$fields = $this->selectFields();
     
     		// Изпращане на имейл с phpmailer
-    		$PML = cls::get('phpmailer_Instance');
-    
+    		$PML = email_Accounts::getPML($sentFrom);
+    		    
     	   /*
     		* Ако не е зададено е 8bit
     		* Проблема се появява при дълъг стринг - без интервали и на кирилица.
@@ -497,8 +497,28 @@ class marketing_Inquiries2 extends embed_Manager
     		// От кой адрес е изпратен
     		$PML->SetFrom($sentFrom);
     		
+    		if ($sendStatus = $PML->Send()) {
+    		    // Задаваме екшъна за изпращането
+                doclog_Documents::pushAction(
+                    array(
+                        'containerId' => $rec->containerId,
+                        'threadId' => $rec->threadId,
+                        'action' => doclog_Documents::ACTION_SEND,
+                        'data' => (object)array(
+                            'sendedBy' => core_Users::getCurrent(),
+                            'from' => $sentFromBox,
+                            'to' => $emailsTo
+                        )
+                    )
+                );
+                
+                doclog_Documents::flushActions();
+    		} else {
+    		    marketing_Inquiries2::logErr('Грешка при изпращане', $rec->id);
+    		}
+    		
     		// Изпращане
-    		return $PML->Send();
+    		return $sendStatus;
     	}
     	 
     	return TRUE;
@@ -829,7 +849,7 @@ class marketing_Inquiries2 extends embed_Manager
     			try{
     				expect($personRec || $personId, "Няма визитка на контрактор {$personId}");
     			} catch(core_exception_Expect $e){
-    				$e->logError();
+    				crm_Persons::logErr('Няма визитка на контрактор', $personId);
     			}
     			 
     			// иначе отива в личната папка на лицето

@@ -49,7 +49,7 @@ class cat_Products extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping,
                      cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups';
     
     
@@ -210,12 +210,6 @@ class cat_Products extends embed_Manager {
 	 * @var string
 	 */
 	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
-	
-	
-	/**
-	 * Какво може да се прави със избраните
-	 */
-	public $doWithSelected = 'changemeta=Свойства';
 	
 	
 	/**
@@ -1001,6 +995,8 @@ class cat_Products extends embed_Manager {
     	// Подготвяме опциите
     	$options = array($measureId => cat_UoM::getTitleById($measureId)) + $options;
     	$firstVal = $options[$baseId];
+    	
+    	// Подсигуряваме се че основната опаковка/мярка е първа в списъка
     	unset($options[$baseId]);
     	$options = array($baseId => $firstVal) + $options;
     	
@@ -1132,20 +1128,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща подробното описанието на артикула
-     *
-     * @param mixed $id - ид/запис
-     * @return mixed - подробното описанието на артикула
-     */
-    public static function getProductDesc($id, $time = NULL, $documentType = 'public', $showComponents = TRUE)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	return cat_ProductTplCache::cacheDescription($rec->id, $time, $documentType, $showComponents);
-    }
-    
-    
-    /**
      * Връща името с което ще показваме артикула според езика в сесията
      * Ако езика не е български поакзваме интернационалното име иначе зададеното
      * 
@@ -1157,10 +1139,7 @@ class cat_Products extends embed_Manager {
     	$lg = core_Lg::getCurrent();
     	
     	if($lg != 'bg'){
-    		if(!empty($rec->intName)){
-    			
-    			return $rec->intName;
-    		}
+    		if(!empty($rec->intName)) return $rec->intName;
     	}
     	
     	return $rec->name;
@@ -1469,17 +1448,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Рендира изглед за задание
-     */
-    public function renderJobView($id, $time = NULL)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	return cat_Products::getAutoProductDesc($id, $time, 'detailed', 'internal');
-    }
-    
-    
-    /**
      * Връща хендлъра на изображението представящо артикула, ако има такова
      * 
      * @param mixed $id - ид или запис
@@ -1687,150 +1655,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Смяна статута на 'rejected'
-     *
-     * @return core_Redirect
-     */
-    function act_changemeta()
-    {
-    	$this->requireRightFor('edit');
-    
-    	// Създаване на формата
-    	$form = cls::get('core_Form');
-    	$form->FNC('id', 'int', 'input=hidden,silent');
-    	$form->FNC('Selected', 'text', 'input=hidden,silent');
-    	$form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
-    	$form->input(NULL, 'silent');
-    	$rec = $form->rec;
-    
-    	expect($rec->id || $rec->Selected, $rec);
-    
-    	$selArr = arr::make($rec->Selected);
-    	if($id) {
-    		$selArr[] = $id;
-    	}
-    
-    	$metas = $this->getFieldType('meta')->suggestions;
-    	$canDelMetas = $canAddMetas = array();
-    
-    	// Премахване на лишите или недостъпните id-та
-    	foreach($selArr as $i => $ind) {
-    		$obj = (object) array('id' => $ind);
-    
-    		if(!is_numeric($ind) || !$this->haveRightFor('edit', $obj)) {
-    			unset($selArr[$i]);
-    		}
-    
-    		$metaArr = type_Set::toArray($this->fetchField($ind, 'meta'));
-    		foreach($metaArr as $m) {
-    			if($metas[$m]) {
-    				$canDelMetas[$m]++;
-    			}
-    		}
-    
-    		foreach($metas as $m => $caption) {
-    			if(!$metaArr[$m]) {
-    				$canAddMetas[$m]++;
-    			}
-    		}
-    	}
-    		
-    	$selArrCnt = count($selArr);
-    	expect($selArrCnt);
-    	reset($selArr);
-    
-    	if($selArrCnt == 1) {
-    		$selOneKey = key($selArr);
-    	}
-    
-    	if($selArrCnt == 1) {
-    		$id = $selArr[$selOneKey];
-    		$metas = $this->fetchField($id, 'meta');
-    		$form->title = 'Промяна в свойствата на |*<i style="color:#ffffaa">' .  $this->getTitleById($selArr[0]) . '</i>';
-    		$form->FNC('meta', $this->getFieldType('meta'), 'caption=Свойства,input');
-    		$form->setDefault('meta', $metas);
-    	} else {
-    		$form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($this->title);
-    
-    		if(count($canAddMetas)) {
-    			$addType = cls::get('type_Set');
-    
-    			foreach($canAddMetas as $g => $cnt) {
-    				$addType->suggestions[$g] = $metas[$g] . " ({$cnt})";
-    			}
-    				$form->FNC('addMetas', $addType, 'caption=Добавяне->Свойства,input');
-    			}
-    
-    			if(count($canDelMetas)) {
-    				$delType = cls::get('type_Set');
-    				foreach($canDelMetas as $g => $cnt) {
-    					$delType->suggestions[$g] = $metas[$g] . " ({$cnt})";
-    				}
-    				$form->FNC('delMetas', $delType, 'caption=Премахване->Свойства,input');
-    			}
-    		}
-    
-    		$form->toolbar->addSbBtn('Запис');
-    		if($selArrCnt == 1) {
-    			$retUrl = array($this, 'single', $selArr[$selOneKey]);
-    		} else {
-    			$retUrl = array($this, 'list');
-    		}
-    		
-    		$form->toolbar->addBtn('Отказ', $retUrl);
-    
-    		$form->input();
-    
-    		if($form->isSubmitted()) {
-    		$rec = $form->rec;
-    
-    		$changed = 0;
-    
-    		if($selArrCnt == 1) {
-    			$obj = new stdClass();
-    			$obj->id = $id;
-    			$obj->meta = $rec->meta;
-    
-    			if($groups != $rec->meta) {
-    				$this->save($obj, 'meta');
-    				$changed = 1;
-    			}
-    		} else {
-    			foreach($selArr as $id) {
-    				$exGroups = $groups = type_Set::toArray($this->fetchField($id, 'meta'));
-    					
-    				$groups = array_merge($groups, arr::make($rec->addMetas, TRUE));
-    				$groups = array_diff($groups, arr::make($rec->delMetas, TRUE));
-    					
-    				$obj = new stdClass();
-    				$obj->id = $id;
-    				$obj->meta = cls::get('type_Set')->fromVerbal($groups);
-    					
-    				if($groups != $exGroups) {
-    					$this->save($obj, 'meta');
-    					$changed++;
-    				}
-    			}
-    		}
-    
-    		if(!$changed) {
-    			$msg = tr("Не бяха променени свойства");
-    		} elseif($changed == 1) {
-    			$msg = tr("Бяха променени свойствата на 1 " . mb_strtolower($this->singleTitle));
-    		} else {
-    			$msg = tr("Бяха променени свойствата на|* {$changed} "  . mb_strtolower($this->title));
-    		}
-    
-    		$res = new Redirect($retUrl, $msg);
-    	} else {
-    		$res = $this->renderWrapping($form->renderHtml());
-    	}
-    	
-    	return $res;
-    }
-    
-    
-    /**
      * Какви материали са нужни за производството на 'n' бройки от подадения артикул
      * 
      * @param int $id          - ид
@@ -1963,5 +1787,93 @@ class cat_Products extends embed_Manager {
     	$compTpl->removeBlocks();
     	
     	return $compTpl;
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$data->components = array();
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	if(count($data->components)){
+    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$tpl->append($componentTpl, 'COMPONENTS');
+    	}
+    }
+    
+    
+    /**
+     * Подготвя обект от компонентите на даден артикул
+     *
+     * @param int $productId
+     * @param array $res
+     * @param int $level
+     * @param string $code
+     * @return void
+     */
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
+    {
+    	// Имали последна активна рецепта артикула?
+    	$rec = cat_Products::getLastActiveBom($productId);
+    	if(!$rec) return $res;
+    	 
+    	// Кои детайли от нея ще показваме като компоненти
+    	$dQuery = cat_BomDetails::getQuery();
+    	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
+    	$level++;
+    	 
+    	// За всеки
+    	while($dRec = $dQuery->fetch()){
+    		$obj = new stdClass();
+    		$obj->componentId = $dRec->resourceId;
+    
+    		$obj->code = $code . "." . (($dRec->position) ? $dRec->position : 0);
+    		$obj->code = trim($obj->code, '.');
+    		$obj->title = cat_Products::getTitleById($dRec->resourceId);
+    		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
+    		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
+    		$obj->stageName = planning_Stages::getTitleById($dRec->stageId);
+    
+    		$stageOrder = ($dRec->stageId) ? planning_Stages::fetchField($dRec->stageId, 'order') : 0;
+    		$obj->order = (($stageOrder) ? $stageOrder : $obj->stageName) . "." . $obj->code;
+    
+    		// Ако показваме описанието, показваме го
+    		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
+    			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    		}
+    
+    		// Ако има компоненти и сме в допустимото ниво, викаме функцията рекурсивно
+    		if($dRec->showInProduct == 'components'){
+    			if($level < core_Packs::getConfigValue('cat', 'CAT_BOM_MAX_COMPONENTS_LEVEL')){
+    				$obj->components = array();
+    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    			}
+    		}
+    
+    		$res[] = $obj;
+    	}
+    	 
+    	// Сортираме по етапа и кода
+    	arr::order($res, 'order', 'ASC');
+    	 
+    	// Премахваме повтарящите се етапи
+    	foreach ($res as $index => &$r){
+    		if(isset($r->stageName)){
+    			if($res[$index - 1]->stageName === $r->stageName){
+    				unset($r->stageName);
+    			}
+    		}
+    	}
     }
 }

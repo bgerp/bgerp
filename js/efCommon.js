@@ -1482,7 +1482,6 @@ function setThreadElemWidth() {
 	var offsetWidth = 45;
     var threadWidth = parseInt($(window).width()) - offsetWidth;
     $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
-    $('.docStatistic').css('maxWidth', threadWidth);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
@@ -1892,13 +1891,16 @@ function editCopiedTextBeforePaste() {
 		body_element.appendChild(htmlDiv);
 
 		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
-
+		
+		//В клонирания елемент сменяме стиловете, за да избегнем отделните редове, ако имаме елементи със smartCenter
+		$(htmlDiv).find('.maxwidth').css('display', 'inline');
+		
 		// временна променлива, в която ще заменстваме
 		var current = htmlDiv.innerHTML.toString();
-
+		
 		//намира всеки стринг, който отгоравя на израза
 		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
-
+		
 		if(matchedStr){
 			var replacedStr = new Array();
 
@@ -1909,10 +1911,12 @@ function editCopiedTextBeforePaste() {
 				// прави замяната в тези стрингове
 				current = current.replace(regExp ,replacedStr[i]);
 			}
-
-			current = '<table>' + current + "</table>";
+			if(current.indexOf('<table>') == -1){
+				current = '<table>' + current + "</table>";
+			}
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
+			$('maxwidth').css("display", 'block');
 		}
 
 		window.setTimeout(function() {
@@ -2054,8 +2058,9 @@ function smartCenter() {
         	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
-        $(".maxwidth").css('margin', "0 auto");
         $(".maxwidth").css('display', "block");
+        $(".maxwidth").css('margin', "0 auto");
+        
 }
 
 
@@ -2126,14 +2131,20 @@ function keylistActions(el) {
 }
 
 function sumOfChildrenWidth() {
-	if($('body').hasClass('narrow') && $('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
-		
-		var sum=0;
-		$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
-		$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
-		
-		var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
-		$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+	if($('body').hasClass('narrow')){
+		if ($('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
+			var sum=0;
+			$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
+			$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
+			
+			var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
+			$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+		}
+		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
+			var sum=0;
+			$('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sum += $(this).width() + 5; });
+			$('.docStatistic').css('min-width', sum);
+		}
 	}
 }
 

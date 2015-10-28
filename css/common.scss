@@ -1684,7 +1684,7 @@ td.formElement {
 	background-image: none;
 	border: solid 1px $gray4;
 	border-top: none;
-	padding: 9px 6px 3px 6px !important;
+	padding: 3px 6px 3px 6px !important;
     background-color: #ffffee;
     input {
 	    margin-right: 5px;
@@ -2116,17 +2116,17 @@ div.alphabet div.tab-page {
 		z-index: 1;
 		white-space: nowrap;
 		position: relative;
-		padding:0;
+		padding:0 !important;
 		@include border-radius4(5px, 5px, 0, 0);
 		a {
 			display: inline-block;
 			color: #048;
-			padding: 4px 5px 4px 5px;
+			padding: 4px 5px 4px 5px !important;
 			@include border-radius4(5px, 5px, 0, 0);
 		}
 		span {
 			display: inline-block;
-			padding: 4px 5px 4px 5px;
+			padding: 4px 5px 4px 5px !important;
 		}
 		&:hover a {
 			background-color: $beige !important;
@@ -2154,7 +2154,7 @@ div.alphabet div.tab-page {
 }
 
 .narrow .single-thread .document div.alphabet div.tab-row {
-	padding-bottom: 1px
+	padding-bottom: 0px
 }
 
 .narrow .single-thread .document div.alphabet div.tab-row .tab select {

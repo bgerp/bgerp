@@ -1054,10 +1054,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($action == 'add' && isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
     		$state = $origin->rec()->state;
-    		if($state != 'active'){bp();
+    		if($state != 'active'){
     			$res = 'no_one';
     		} else {
-    			if(!($origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports)){
+    			if(!($origin->getInstance() instanceof deals_DealMaster || $origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports)){
     				$res = 'no_one';
     			}
     		}

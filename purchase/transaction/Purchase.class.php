@@ -379,15 +379,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща записите от журнала за това перо
      */
-    protected static function getEntries($id)
+    public static function getEntries($id)
     {
-    	// Кешираме записите за перото, ако не са извлечени
-    	if(empty(self::$cache[$id])){
-    		self::$cache[$id] = acc_Journal::getEntries(array('purchase_Purchases', $id));
-    	}
-    
     	// Връщане на кешираните записи
-    	return self::$cache[$id];
+    	return acc_Journal::getEntries(array('purchase_Purchases', $id));
     }
     
     
@@ -405,8 +400,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getDownpayment($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    	
     	return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'debit')->amount;
     }
     
@@ -416,8 +409,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getPaidAmount($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    	
     	$paid = acc_Balances::getBlAmounts($jRecs, '501,503,481', 'credit')->amount;
     	
     	return $paid;
@@ -427,10 +418,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Колко е платеното по сделка
      */
-    public static function getBlAmount($id)
+    public static function getBlAmount($jRecs)
     {
-    	$jRecs = static::getEntries($id);
-    	
     	$paid = acc_Balances::getBlAmounts($jRecs, '401')->amount;
     	$paid += acc_Balances::getBlAmounts($jRecs, '402')->amount;
     	
@@ -443,8 +432,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getDeliveryAmount($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    
     	$delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit')->amount;
     	$delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912')->amount;
     
@@ -457,8 +444,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getAmountToInvoice($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    
     	return acc_Balances::getBlAmounts($jRecs, '4530')->amount;
     }
     
@@ -466,12 +451,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($id, $accs = '321,302,601,602,60010,60020', $groupByStore = FALSE)
+    public static function getShippedProducts($jRecs, $accs = '321,302,601,602,60010,60020', $groupByStore = FALSE)
     {
     	$res = array();
-    
-    	// Намираме всички транзакции с перо сделката
-    	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
     	$dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit');

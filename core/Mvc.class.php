@@ -1292,7 +1292,7 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logInfo($action, $objectId = NULL, $lifeDays = 90)
+    public static function logInfo($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
         log_Data::add('info', $action, $className, $objectId, $lifeDays);

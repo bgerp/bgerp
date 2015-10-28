@@ -1579,7 +1579,7 @@ input:focus[type=button] {
   background-image: none;
   border: solid 1px #bbbbbb;
   border-top: none;
-  padding: 9px 6px 3px 6px !important;
+  padding: 3px 6px 3px 6px !important;
   background-color: #ffffee; }
   .narrow .vertical .formToolbar input {
     margin-right: 5px; }
@@ -1967,20 +1967,20 @@ div.alphabet div.tab-page {
     z-index: 1;
     white-space: nowrap;
     position: relative;
-    padding: 0;
+    padding: 0 !important;
     -moz-border-radius: 5px 5px 0 0;
     -webkit-border-radius: 5px 5px 0 0;
     border-radius: 5px 5px 0 0; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab a {
       display: inline-block;
       color: #004488;
-      padding: 4px 5px 4px 5px;
+      padding: 4px 5px 4px 5px !important;
       -moz-border-radius: 5px 5px 0 0;
       -webkit-border-radius: 5px 5px 0 0;
       border-radius: 5px 5px 0 0; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab span {
       display: inline-block;
-      padding: 4px 5px 4px 5px; }
+      padding: 4px 5px 4px 5px !important; }
     .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover a {
       background-color: #ffffcc !important;
       color: #004488 !important; }
@@ -2001,7 +2001,7 @@ div.alphabet div.tab-page {
   background-color: #e0ffe0 !important; }
 
 .narrow .single-thread .document div.alphabet div.tab-row {
-  padding-bottom: 1px; }
+  padding-bottom: 0px; }
 
 .narrow .single-thread .document div.alphabet div.tab-row .tab select {
   margin: 4px; }
