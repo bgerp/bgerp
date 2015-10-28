@@ -684,7 +684,7 @@ class cat_Setup extends core_ProtoSetup
     				}
     			} else {
     				if($Det->className == 'cat_BomDetails'){
-    					if(!isset($dRec->resourceId)) continue;
+    					if(!$dRec->resourceId) continue;
     						
     					if(empty($measureArr[$dRec->resourceId])){
     						$measureArr[$dRec->resourceId] = cat_Products::fetchField($dRec->resourceId, 'measureId');
