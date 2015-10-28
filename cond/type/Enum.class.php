@@ -29,6 +29,21 @@ class cond_type_Enum extends cond_type_Proto
 	
 	
 	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cond_type_Proto $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareEditForm(cond_type_Proto $Driver, embed_Manager $Embedder, &$data)
+	{
+		if(isset($data->form->rec->lastUsedOn)){
+			$data->form->setReadOnly('options');
+		}
+	}
+	
+	
+	/**
 	 * Връща инстанция на типа
 	 *
 	 * @param int $paramId - ид на параметър
