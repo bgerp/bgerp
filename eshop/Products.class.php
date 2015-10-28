@@ -148,7 +148,8 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams,silent');
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto,silent');
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
         $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
         $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
 
@@ -182,10 +183,10 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
+            	Request::setProtected('drvId,coParams,inqCls,inqId,proto,lg');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
-            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'proto' => $rec->proto, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             	}
             }
         }
@@ -527,6 +528,13 @@ class eshop_Products extends core_Master
     	if($form->rec->coDriver){
     		$params = "measureId =" . PHP_EOL . "moq =" . PHP_EOL . "quantities =";
     		$form->setDefault('coParams', $params);
+    		
+    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    		 
+    		if(count($protoProducts)){
+    			$form->setField('proto', 'input');
+    			$form->setOptions('proto', $protoProducts);
+    		}
     	}
     }
 }
