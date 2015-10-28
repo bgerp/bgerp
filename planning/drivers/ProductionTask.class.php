@@ -263,4 +263,18 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         
         return $resArr;
     }
+    
+    
+    /**
+     * Преди клонирането на записа
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $rec
+     * @param stdClass $nRec
+     */
+    public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec, &$nRec)
+    {
+    	unset($nRec->totalWeight);
+    }
 }

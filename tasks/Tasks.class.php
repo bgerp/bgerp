@@ -786,4 +786,17 @@ class tasks_Tasks extends embed_Manager
 			}
 		}
     }
+    
+    
+    /**
+     * Преди клонирането на запис
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param stdClass $nRec
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	unset($nRec->progress);
+    }
 }
