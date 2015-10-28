@@ -1128,20 +1128,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща подробното описанието на артикула
-     *
-     * @param mixed $id - ид/запис
-     * @return mixed - подробното описанието на артикула
-     */
-    public static function getProductDesc($id, $time = NULL, $documentType = 'public', $showComponents = TRUE)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	return cat_ProductTplCache::cacheDescription($rec->id, $time, $documentType, $showComponents);
-    }
-    
-    
-    /**
      * Връща името с което ще показваме артикула според езика в сесията
      * Ако езика не е български поакзваме интернационалното име иначе зададеното
      * 
