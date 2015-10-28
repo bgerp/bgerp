@@ -154,8 +154,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
     	if($Detail->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
-    		$tpl->append($ht, 'ADD_BTN');
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    			$tpl->append($ht, 'ADD_BTN');
+    		}
     	} 
     }
     

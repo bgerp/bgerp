@@ -235,7 +235,9 @@ class tasks_TaskConditions extends doc_Detail
     	}
     	
     	if(isset($rec->dependsOn)){
-    		$row->progress .= " " . tasks_Tasks::getLink($rec->dependsOn, 0);
+    		$depends = (!Mode::is('text', 'xhtml') && !Mode::is('printing')) ? tasks_Tasks::getLink($rec->dependsOn, 0) : "#" . tasks_Tasks::getHandle($rec->dependsOn);
+    		
+    		$row->progress .= " " . $depends;
     	}
     	$row->progress = "<div style='text-align:center;'>{$row->progress}</div>";
     	$row->ROW_ATTR['class'] .= " state-active";

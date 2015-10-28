@@ -169,8 +169,11 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->fixedAsset)){
-    		$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
-    		$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
+    		
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
+    			$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
+    		}
     	}
     	 
     	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
