@@ -1384,7 +1384,7 @@ class email_Outgoings extends core_Master
         if (!$isEditing && !$isCloning) {
             
             // Ако се препраща в нова нишка
-            if (($isForwarding) && ($folderId = Request::get('folderId'))) {
+            if (($isForwarding) && ($folderId = Request::get('folderId', 'int'))) {
                 $rec->folderId = $folderId;
                 unset($rec->threadId);
             }

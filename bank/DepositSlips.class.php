@@ -240,7 +240,7 @@ class bank_DepositSlips extends core_Master
     public static function canAddToThread($threadId)
     {
         // Ако няма ориджин в урл-то, документа не може да се добави към нишката
-        $originId = Request::get('originId');
+        $originId = Request::get('originId', 'int');
         
         if(empty($originId)) return FALSE;
         

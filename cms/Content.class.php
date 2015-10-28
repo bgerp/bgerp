@@ -218,7 +218,7 @@ class cms_Content extends core_Manager
         
         $cMenuId = Mode::get('cMenuId');
         if(!$cMenuId) {
-            $cMenuId = Request::get('cMenuId');
+            $cMenuId = Request::get('cMenuId', 'int');
             Mode::set('cMenuId', $cMenuId);
         }
         
