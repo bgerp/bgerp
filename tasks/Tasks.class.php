@@ -181,15 +181,18 @@ class tasks_Tasks extends embed_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	$blue = new color_Object("#2244cc");
+    	
+    	$red = new color_Object("#FF0000");
+    	$blue = new color_Object("green");
     	$grey = new color_Object("#bbb");
     	
     	$progressPx = min(100, round(100 * $rec->progress));
     	$progressRemainPx = 100 - $progressPx;
     	
-    	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+    	$color = ($rec->progress <= 1) ? $blue : $red;
+    	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
     
-    	$grey->setGradient($blue, $rec->progress);
+    	$grey->setGradient($color, $rec->progress);
     	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
     	
     	$row->name = $mvc->getLink($rec->id, 0);
@@ -206,10 +209,6 @@ class tasks_Tasks extends embed_Manager
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
     		}
     	}
-    	
-    	$grey->setGradient($blue, $rec->progress);
-    	
-    	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
     	
     	$row->timeStart = str_replace('00:00', '', $row->timeStart);
     	$row->timeEnd = str_replace('00:00', '', $row->timeEnd);
