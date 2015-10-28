@@ -1,10 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div  class='clearfix21 antetka'>
-        <!--ET_BEGIN subject-->          
-        <div style='margin-bottom:10px;'>
-            |Относно|*: <b>[#subject#]</b>
-        </div>
-        <!--ET_END subject-->
         <div class="em-holder" style='float:left;margin-right:10px;'>
             <div class="small">
                 <table class='top-table'>
@@ -52,9 +47,15 @@
         <div class="clearfix21"></div>
     </div>
     <div style='clear: both;'></div>
-    <!--ET_BEGIN textPart--> 
-    <div style='padding:5px;margin-top:10px;'>
+
+   
+    <div style='padding:6px 10px 10px;'>
+        <!--ET_BEGIN subject-->          
+        <h3 class='richtext-title'>|Относно|*: [#subject#]</h3>
+        <!--ET_END subject-->
+        <!--ET_BEGIN textPart--> 
         <div>[#textPart#]</div>
+        <!--ET_END textPart--> 
     </div>
-    <!--ET_END textPart--> 
+   
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
