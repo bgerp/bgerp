@@ -39,7 +39,7 @@ class cat_Params extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,typeExt,driverClass,lastUsedOn';
+    var $listFields = 'tools=Пулт,typeExt,driverClass=Тип,lastUsedOn';
     
     
     /**
@@ -156,7 +156,8 @@ class cat_Params extends embed_Manager
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
-    	//bp($data->form->rec);
+    	$data->form->setField('driverClass', 'caption=Тип');
+    	
     	if($data->form->rec->sysId){
     		$data->form->setReadOnly('name');
     		$data->form->setReadOnly('type');
