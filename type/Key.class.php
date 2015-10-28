@@ -107,12 +107,12 @@ class type_Key extends type_Int
     {
         if(empty($value)) return NULL;
         
-        $key = self::getKeyFromTitle($value);
-        
+        $key = (int) self::getKeyFromTitle($value);
+         
         $oValue = $value;
         
         if (!isset($key)) {
-            
+         
             $mvc = &cls::get($this->params['mvc']);
             
             $maxSuggestions = $this->getMaxSuggestions();
@@ -130,6 +130,8 @@ class type_Key extends type_Int
                 $options = $this->prepareOptions();
             }
             
+            $value = NULL;
+
             if (($selOptCache !== FALSE) && count((array)$selOptCache)) {
                 foreach((array)$selOptCache as $id => $titleArr) {
                     
@@ -158,7 +160,7 @@ class type_Key extends type_Int
             
             return FALSE;
         } else {
-            
+ 
             return $value;
         }
     }
