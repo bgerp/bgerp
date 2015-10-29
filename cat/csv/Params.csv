@@ -7,7 +7,7 @@
 Плътност,cond_type_Double,кг/м3,density,,,no
 Цвят,cond_type_Varchar,,color,,,yes
 Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no
-Транспортен Обем,cond_type_Double,кг,transportVolume,,,no
+Транспортен Обем,cond_type_Double,куб.м,transportVolume,,,no
 Толеранс,cond_type_Percent,,tolerance,,,no
 Срок,cond_type_Time,,term,,,no
 Широчина,cond_type_Double,см,width,,,yes

@@ -58,7 +58,7 @@ abstract class cond_type_Proto extends core_BaseClass
     			$Type->fromVerbal($rec->default);
     			
     			if(strlen($Type->error)){
-    				$form->setError('default', 'Стойността по подразбиране не е допустима за типа');
+    				$form->setError('default', 'Стойността по подразбиране не е от допустимите опции');
     			}
     		}
     	}

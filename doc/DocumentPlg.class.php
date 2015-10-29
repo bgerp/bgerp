@@ -2627,7 +2627,7 @@ class doc_DocumentPlg extends core_Plugin
         // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
         $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
         
-        $isNarrow = Mode::is('screenMode', 'narrow');
+        $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
         
         if ($isNarrow) {
             $res = new ET('');

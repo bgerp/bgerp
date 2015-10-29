@@ -183,7 +183,7 @@ class doc_Threads extends core_Manager
      */
     function logInAct($msg, $rec = NULL, $type = 'info')
     {
-        if (($type == 'info') && ($folderId = Request::get('folderId')) && ($msg == 'Листване')) {
+        if (($type == 'info') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
             doc_Folders::logInfo('Разглеждане на папка', $folderId);
         } else {
             parent::logInAct($msg, $rec, $type);
@@ -1969,7 +1969,7 @@ class doc_Threads extends core_Manager
     function on_BeforePrepareListPager($mvc, &$res, &$data)
     {
         // id на папката
-        $folderId = Request::get('folderId');
+        $folderId = Request::get('folderId', 'int');
         
         $key = doc_Folders::getSettingsKey($folderId);
         $vals = core_Settings::fetchKey($key);

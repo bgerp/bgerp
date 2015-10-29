@@ -169,7 +169,7 @@ class doc_Containers extends core_Manager
      */
     function logInAct($msg, $rec = NULL, $type = 'info')
     {
-        if (($type == 'info') && ($threadId = Request::get('threadId')) && ($msg == 'Листване')) {
+        if (($type == 'info') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
             doc_Threads::logInfo('Разглеждане на нишка', $threadId);
         } else {
             parent::logInAct($msg, $rec, $type);
