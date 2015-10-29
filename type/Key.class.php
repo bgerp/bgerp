@@ -142,7 +142,7 @@ class type_Key extends type_Int
                 }
             }
         } else {
-            $value = (int) $key;
+            $value = $key;
         }
         
         $rec = $this->fetchVal($value);
