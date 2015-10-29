@@ -71,6 +71,20 @@ class type_CustomKey extends type_Key
     
     /**
      * 
+     * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        
+        return $key;
+    }
+    
+    
+    /**
+     * 
      * @param mixed $keyValue
      * @return stdClass
      */

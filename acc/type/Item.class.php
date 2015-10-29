@@ -177,6 +177,20 @@ class acc_type_Item extends type_Key
     /**
      * 
      * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        
+        return $key;
+    }
+    
+    
+    /**
+     * 
+     * 
      * @param string $value
      * 
      * @return object
