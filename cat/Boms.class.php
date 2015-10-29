@@ -71,6 +71,12 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+    
+    /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      * (@see plg_Clone)
      */

@@ -1754,7 +1754,7 @@ class cat_Products extends embed_Manager {
      * @param array $components - компонентите на артикула
      * @return core_ET - шаблона на компонентите
      */
-    public static function renderComponents($components, $makeLinks = TRUE)
+    public static function renderComponents($components, $makeLinks = TRUE, $showDescription = TRUE)
     {
     	if(!count($components)) return;
     	
@@ -1770,15 +1770,21 @@ class cat_Products extends embed_Manager {
     			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
     		}
     		
-    		$bTpl->placeArray(array('componentTitle'       => $obj->title, 
-    								'componentDescription' => $obj->description,
-    								'componentCode'        => $obj->code,
-    								'componentStage'       => $obj->stageName,
-    								'componentQuantity'    => $obj->quantity,
-    								'componentMeasureId'   => $obj->measureId));
+    		$arr = array('componentTitle'       => $obj->title, 
+    				     'componentDescription' => $obj->description,
+    					 'titleClass'           => $obj->titleClass,
+    					 'componentCode'        => $obj->code,
+    					 'componentStage'       => $obj->stageName,
+    					 'componentQuantity'    => $obj->quantity,
+    					 'componentMeasureId'   => $obj->measureId);
     		
+    		if($showDescription === FALSE){
+    			unset($arr['componentDescription']);
+    		}
+    		
+    		$bTpl->placeArray($arr);
     		if(count($obj->components)){
-    			$bTpl->append(static::renderComponents($obj->components), 'componentComponents');
+    			$bTpl->append(static::renderComponents($obj->components, $makeLinks, $showDescription), 'componentComponents');
     		}
     		
     		$bTpl->removeBlocks();
@@ -1795,8 +1801,8 @@ class cat_Products extends embed_Manager {
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    	//$data->components = array();
+    	//cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
     }
     
     
@@ -1830,9 +1836,9 @@ class cat_Products extends embed_Manager {
     	// Кои детайли от нея ще показваме като компоненти
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
-    	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
+    	//$dQuery->where("#type != 'stage'");
     	$level++;
-    	 
+    	
     	// За всеки
     	while($dRec = $dQuery->fetch()){
     		$obj = new stdClass();
@@ -1843,35 +1849,34 @@ class cat_Products extends embed_Manager {
     		$obj->title = cat_Products::getTitleById($dRec->resourceId);
     		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
-    		$obj->stageName = planning_Stages::getTitleById($dRec->stageId);
-    
-    		$stageOrder = ($dRec->stageId) ? planning_Stages::fetchField($dRec->stageId, 'order') : 0;
-    		$obj->order = (($stageOrder) ? $stageOrder : $obj->stageName) . "." . $obj->code;
-    
+    		
     		// Ако показваме описанието, показваме го
-    		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
+    		if($dRec->type != 'stage'){
+    			$obj->titleClass = 'product-component-title';
     			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    		}
-    
-    		// Ако има компоненти и сме в допустимото ниво, викаме функцията рекурсивно
-    		if($dRec->showInProduct == 'components'){
-    			if($level < core_Packs::getConfigValue('cat', 'CAT_BOM_MAX_COMPONENTS_LEVEL')){
-    				$obj->components = array();
-    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
-    			}
+    			
+    			$obj->components = array();
+    			self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    		} else {
+    			$obj->titleClass = 'product-component-stage';
     		}
     
     		$res[] = $obj;
     	}
     	 
+    	if($rec->id == 104){
+    		//bp($res);
+    	}
     	// Сортираме по етапа и кода
-    	arr::order($res, 'order', 'ASC');
+    	arr::order($res, 'stageName', 'ASC');
     	 
     	// Премахваме повтарящите се етапи
     	foreach ($res as $index => &$r){
     		if(isset($r->stageName)){
-    			if($res[$index - 1]->stageName === $r->stageName){
-    				unset($r->stageName);
+    			foreach ($res as $index1 => &$r1){
+    				if($r1->stageName === $r->stageName && $index != $index1){
+    					//unset($r1->stageName);
+    				}
     			}
     		}
     	}
