@@ -134,6 +134,20 @@ class type_User extends type_Key
     
     
     /**
+     * 
+     * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        
+        return $key;
+    }
+    
+    
+    /**
      * Рендира HTML инпут поле
      */
     function renderInput_($name, $value = "", &$attr = array())
