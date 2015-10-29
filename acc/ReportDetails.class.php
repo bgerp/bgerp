@@ -102,7 +102,7 @@ class acc_ReportDetails extends core_Manager
     private function prepareBalanceReports(&$data)
     {
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
-    	$data->canSeePrices = haveRole('ceo,accMaster');
+    	$data->canSeePrices = haveRole('ceo,accJournal');
     	
         // Полета за таблицата
         $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума");
