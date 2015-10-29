@@ -142,6 +142,8 @@ class type_User extends type_Key
      */
     public function prepareKey($key)
     {
+        // Позволените са латински букви, цифри и _ - \W
+        $key = preg_replace('/[^A-Z0-9\_]/i', '', $key);
         
         return $key;
     }

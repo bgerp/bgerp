@@ -175,6 +175,7 @@ class type_Key extends type_Int
      */
     public function prepareKey($key)
     {
+        // Само числа
         $key = (int) $key;
         
         return $key;

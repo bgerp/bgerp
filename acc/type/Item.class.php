@@ -183,6 +183,8 @@ class acc_type_Item extends type_Key
      */
     public function prepareKey($key)
     {
+        // Позволените са латински букви, цифри и .
+        $key = preg_replace('/[^A-Z0-9\.]/i', '', $key);
         
         return $key;
     }

@@ -78,6 +78,7 @@ class type_CustomKey extends type_Key
      */
     public function prepareKey($key)
     {
+        // Всичко стойности са допустими
         
         return $key;
     }
