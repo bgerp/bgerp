@@ -39,7 +39,7 @@ class acc_AllocatedExpenses extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools, acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices';
+                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank ';
     
     
     /**

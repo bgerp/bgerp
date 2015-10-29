@@ -33,7 +33,7 @@ class planning_Stages extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, planning_Wrapper, plg_Printing, plg_Sorting';
+	public $loadList = 'plg_RowTools, planning_Wrapper, plg_Printing, plg_Sorting, bgerp_plg_Blank';
 	
 	
 	/**

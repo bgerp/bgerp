@@ -27,7 +27,7 @@ class acc_Journal extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing, plg_Search,
-                     acc_Wrapper, plg_Sorting';
+                     acc_Wrapper, plg_Sorting, bgerp_plg_Blank';
     
     
     /**
