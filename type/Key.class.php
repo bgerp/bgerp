@@ -107,8 +107,8 @@ class type_Key extends type_Int
     {
         if(empty($value)) return NULL;
         
-        $key = (int) self::getKeyFromTitle($value);
-         
+        $key = self::getKeyFromTitle($value);
+        
         $oValue = $value;
         
         if (!isset($key)) {
@@ -142,7 +142,7 @@ class type_Key extends type_Int
                 }
             }
         } else {
-            $value = $key;
+            $value = (int) $key;
         }
         
         $rec = $this->fetchVal($value);
