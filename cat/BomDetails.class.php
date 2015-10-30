@@ -38,7 +38,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_LastUsedKeys, plg_SaveAndNew, plg_GroupByField, plg_AlignDecimals2';
+    var $loadList = 'plg_Modified, plg_RowTools, cat_Wrapper, plg_LastUsedKeys, plg_SaveAndNew, plg_AlignDecimals2';
     
     
     /**
@@ -48,9 +48,9 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * По кое поле да се групират записите
+     * Кои полета да се извличат при изтриване
      */
-    //var $groupByField = 'parentId';
+    public $fetchFieldsBeforeDelete = 'id,bomId,type';
     
     
     /**
@@ -104,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, parentId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни';
+    public $listFields = 'id,tools=Пулт, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни,modifiedOn';
     
     
     /**
@@ -118,21 +118,17 @@ class cat_BomDetails extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('parentId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Етап');
+    	$this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember');
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
-    	$this->FLD('dType', 'enum(product=Артикул,components=Артикул с компоненти,stage=Етап)', 'caption=Тип,remember,input=none');
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество,smartCenter');
     	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Количество->Режийни');
-    	
-    	//$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
-    	//$this->FLD('showInProduct', 'enum(hide=Не се показва,title=Заглавие,description=Заглавие + описание,components=Заглавие + описание + компоненти)', 'caption=Показване в артикулa->Избор,notNull,value=hide,remember');
     }
     
     
@@ -172,7 +168,7 @@ class cat_BomDetails extends doc_Detail
     	} else {
     		
     		// При добавяне на етап да се избират само Инстантни (производими, нескладируеми) артикули
-    		$products = cat_Products::getByProperty('canManifacture', 'canStore');
+    		$products = cat_Products::getByProperty('canConvert,canManifacture', 'canStore');
     	}
     	
     	unset($products[$data->masterRec->productId]);
@@ -204,19 +200,15 @@ class cat_BomDetails extends doc_Detail
     	$query->where("#bomId = {$rec->bomId} AND #type = 'stage'");
     	$query->show('resourceId');
     	while($dRec = $query->fetch()){
-    		$stages[$dRec->resourceId] = cat_Products::getTitleById($dRec->resourceId, FALSE);
+    		$stages[$dRec->id] = cat_Products::getTitleById($dRec->resourceId, FALSE);
     	}
-    	unset($stages[$rec->resourceId]);
+    	unset($stages[$rec->id]);
     	
     	// Добавяме намерените етапи за опции на етапите
     	if(count($stages)){
-    		$form->setOptions('parentId', $stages);
+    		$form->setOptions('parentId', array('' => '') + $stages);
     	} else {
     		$form->setReadOnly('parentId');
-    	}
-    	
-    	if(isset($rec->id) && cat_Products::getLastActiveBom($rec->resourceId)){
-    		$form->setReadOnly('resourceId');
     	}
     }
     
@@ -329,6 +321,28 @@ class cat_BomDetails extends doc_Detail
     		}
     		
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+    		
+    		// Ако има артикул със същата позиция, или няма позиция добавяме нова
+    		if(!isset($rec->position)){
+    			$rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			$canAdd = TRUE;
+    			
+    			$parent = $rec->parentId;
+    			while($parent && ($pRec = $mvc->fetch($parent, "parentId,resourceId"))) {
+    				if($rec->resourceId == $pRec->resourceId){
+    					$canAdd = FALSE;
+    					break;
+    				}
+    				$parent = $pRec->parentId;
+    			}
+    			
+    			if($canAdd === FALSE){
+    				$form->setError('parentId,resourceId', 'Артикула не може да се повтаря в нивото');
+    			}
+    		}
     	}
     }
     
@@ -338,16 +352,17 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
-    	
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	
-    	$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
-    	$row->ROW_ATTR['title'] = ($rec->type != 'input' && $rec->type != 'stage') ? tr('Отпадък') : NULL;
-    	
     	if($rec->type == 'stage'){
-    		$row->resourceId = "<b>[етап]</b> " . $row->resourceId;
+    		$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
+    		$row->ROW_ATTR['style'] = 'background-color:#DCDCDC';
+    		$row->ROW_ATTR['title'] = tr('Eтап');
+    	} else {
+    		$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
+    		$row->ROW_ATTR['title'] = ($rec->type != 'input' && $rec->type != 'stage') ? tr('Отпадък') : NULL;
+    		$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	}
     	
     	if($mvc->haveRightFor('edit', $rec)){
@@ -357,24 +372,15 @@ class cat_BomDetails extends doc_Detail
     		}
     	}
     	
-    	if($rec->position === 0){
-    		unset($row->position);
+    	// Генерираме кода
+    	$position = $row->position;
+    	$parent = $rec->parentId;
+    	while($parent && ($pRec = $mvc->fetch($parent, "parentId,position"))) {
+    		$pPos = $mvc->getFieldType('position')->toVerbal($pRec->position);
+    		$position = $pPos . '.' . $position;
+    		$parent = $pRec->parentId;
     	}
-    	
-    	if($rec->type != 'stage'){
-    		
-    		$componentsArr = array();
-    		cat_Products::prepareComponents($rec->resourceId, $componentsArr, 'internal');
-    		if(count($componentsArr)){
-    			$components = cat_Products::renderComponents($componentsArr);
-    		}
-    		
-    		$tpl = new core_ET("[#resourceId#]
-    							<!--ET_BEGIN description--><br>
-    							<!--ET_BEGIN components--><span style='font-size:0.85em'>[#components#]</span><!--ET_BEGIN components-->");
-    		$tpl->placeArray(array('resourceId' => $row->resourceId, 'description' => $description, 'components' => $components));
-    		$row->resourceId = $tpl;
-    	}
+    	$row->position = "<span style='float:left'>{$position}</span>";
     }
     
     
@@ -411,51 +417,12 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
     	if(!count($data->recs)) return;
-    	 
-    	$recs = &$data->recs;
-    	arr::orderA($recs, 'id');
-    	foreach ($recs as &$rec){
-    		
-    		if(!$rec->position){
-    			$rec->position = 0;
-    		}
-    		//$rec->order .= $rec->id;
-    	}
-    
+    	
+    	static::orderBomDetails($data->recs, $outArr);
+    	$data->recs = $outArr;
+    	
     	if($data->masterData->rec->state != 'draft'){
     		//unset($data->listFields['tools']);
-    	}
-    	
-    	// Сортираме по подредбата на производствения етап
-    	/*usort($recs, function($a, $b) {
-    		if($a->position == $b->position)  return 0;
-    		return ($a->position > $b->position) ? 1 : -1;
-    	});*/
-    }
-    
-    
-    /**
-     * Изпълнява се след създаване на нов запис
-     */
-    public static function on_AfterCreate111($mvc, $rec)
-    {
-		if($rec->type == 'stage'){
-			$title = cat_Products::getTitleById($rec->resourceId);
-			core_Statuses::newStatus($title, 'warning');
-    		$activeBom = cat_Products::getLastActiveBom($rec->resourceId);
-    		if($activeBom){
-    			$dQuery = $mvc->getQuery();
-    			$dQuery->where("#bomId = '{$activeBom->id}'");
-    			while($dRec = $dQuery->fetch()){
-    				unset($dRec->id);
-    				$dRec->bomId = $rec->bomId;
-    				if(empty($dRec->parentId)){
-    					$dRec->parentId = $rec->resourceId;
-    				}
-    				
-    				$mvc->save_($dRec);
-    			}
-    		}
     	}
     }
     
@@ -468,46 +435,168 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if(empty($rec->id) && isset($rec->type)){
+    	// Ако сме добавили нов етап
+    	if(empty($rec->id) && $rec->type == 'stage'){
     		$rec->stageAdded = TRUE;
     	}
     }
     
     
     /**
+     * Намира следващия най-голямa позиция за нивото
+     * 
+     * @param int $bomId
+     * @param int $parentId
+     * @return int
+     */
+    private function getDefaultPosition($bomId, $parentId)
+    {
+    	$query = $this->getQuery();
+    	$cond = "#bomId = {$bomId} AND ";
+    	$cond .= (isset($parentId)) ? "#parentId = {$parentId}" : '#parentId IS NULL';
+    	$query->where($cond);
+    	$query->XPR('maxPosition', 'int', "MAX(#position)");
+    	$position = $query->fetch()->maxPosition;
+    	$position += 1;
+    	
+    	return $position;
+    }
+    
+    /**
      * Извиква се след успешен запис в модела
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+    	// Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
     	if(isset($rec->position)){
     		$query = $mvc->getQuery();
     		$cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
     		$cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
     		
     		$query->where($cond);
-    		while($rec = $query->fetch()){
-    			$rec->position++;
-    			$mvc->save_($rec, 'position');
+    		while($nRec = $query->fetch()){
+    			$nRec->position++;
+    			$mvc->save_($nRec, 'position');
     		}
     	}
     	
+    	// Ако сме добавили нов етап
     	if($rec->stageAdded === TRUE){
-    		$title = cat_Products::getTitleById($rec->resourceId);
-    		core_Statuses::newStatus($title, 'warning');
-    		$activeBom = cat_Products::getLastActiveBom($rec->resourceId);
+    		static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
+    	}
+    }
+    
+    
+    /**
+     * Добавя компонентите на един етап към рецепта
+     * 
+     * @param int $productId   - ид на артикул
+     * @param int $toBomId     - ид на рецепта към която го добавяме
+     * @param int $componentId - на кой ред в рецептата е артикула
+     * @return void
+     */
+    public static function addProductComponents($productId, $toBomId, $componentId)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	$activeBom = cat_Products::getLastActiveBom($productId);
+    	
+    	// Ако етапа има рецепта
+    	if($activeBom){
+    		 
+    		// Извличаме и детайлите
+    		$dQuery = $me->getQuery();
+    		$dQuery->where("#bomId = '{$activeBom->id}'");
+    		$dRecs = $dQuery->fetchAll();
     		
-    		if($activeBom){
-    			$dQuery = $mvc->getQuery();
-    			$dQuery->where("#bomId = '{$activeBom->id}'");
-    			while($dRec = $dQuery->fetch()){
-    				unset($dRec->id);
-    				$dRec->bomId = $rec->bomId;
-    				if(empty($dRec->parentId)){
-    					$dRec->parentId = $rec->resourceId;
-    				}
-    					 
-    				$mvc->save_($dRec);
+    		// Подреждаме ги
+    		self::orderBomDetails($dRecs, $outArr);
+    		$cu = core_Users::getCurrent();
+    		
+    		// Копираме всеки запис
+    		foreach ($outArr as $dRec){
+    			unset($dRec->id);
+    			$dRec->modidiedOn = dt::now();
+    			$dRec->modifiedBy = $cu;
+    			$dRec->bomId = $toBomId;
+    			if(empty($dRec->parentId)){
+    				$dRec->parentId = $componentId;
+    			} else {
+    					
+    				// Ако реда има етап, намираме на кой ред в новата рецепта съответства стария етап
+    				$parentResource = $me->fetchField("#bomId = {$activeBom->id} AND #id = {$dRec->parentId}", 'resourceId');
+    				$dRec->parentId = $me->fetchField("#bomId = {$toBomId} AND #resourceId = {$parentResource}", 'id');
     			}
+    		
+    			// Добавяме записа
+    			$me->save_($dRec);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подрежда записите от детайла на рецептата по етапи
+     * 
+     * @param array $inArr  - масив от записи
+     * @param array $outArr - подредения масив
+     * @param int $parentId - кой е текущия баща
+     * @return void		
+     */
+    public static function orderBomDetails(&$inArr, &$outArr, $parentId = NULL)
+    {
+    	// Временен масив
+    	$tmpArr = array();
+    	
+    	// Оставяме само тези записи с баща посочения етап
+    	if(is_array($inArr)){
+    		foreach ($inArr as $rec){
+    			if($rec->parentId == $parentId){
+    				$tmpArr[$rec->id] = $rec;
+    			}
+    		}
+    	}
+    	
+    	// Сортираме ги по позицията им, ако е еднаква, сортираме по датата на последната модификация
+    	usort($tmpArr, function($a, $b) {
+    		if($a->position == $b->position) {
+    			return ($a->modifiedOn > $b->modifiedOn) ? -1 : 1;
+    		}
+    		return ($a->position < $b->position) ? -1 : 1;
+    	});
+    	
+    	// За всеки от тях
+    	$cnt = 1;
+    	foreach ($tmpArr as &$tRec){
+    		
+    		// Ако позицията му е различна от текущата опресняваме я
+    		// така се подсигуряваме че позициите са последователни числа
+    		if($tRec->position != $cnt){
+    			$tRec->position = $cnt;
+    			cls::get(get_called_class())->save_($tRec);
+    		}
+    		
+    		// Добавяме реда в изходящия масив
+    		$outArr[$tRec->id] = $tRec;
+    		$cnt++;
+    		
+    		// Ако реда е етап, викаме рекурсивно като филтрираме само записите с етап ид-то на етапа
+    		if($tRec->type == 'stage'){
+    			static::orderBomDetails($inArr, $outArr, $tRec->id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	// Ако изтриваме етап, изтриваме всичките редове от този етап
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		if($rec->type == 'stage'){
+    			$mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
     		}
     	}
     }
