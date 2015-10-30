@@ -810,7 +810,6 @@ class core_Form extends core_FieldSet
                     if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
                         $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
                         $space .= "&nbsp;&nbsp;&nbsp;";
-                       
                     }
                 }
                 
@@ -837,6 +836,7 @@ class core_Form extends core_FieldSet
                 }
                
                 if (Mode::is('screenMode', 'narrow')) {
+
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
                     }
@@ -844,11 +844,12 @@ class core_Form extends core_FieldSet
                     if ($headerRow) {
                         $tpl->append(new ET("\n<tr{$fsHead}><td>{$headerRow}</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr{$fsRow}><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
-                  
-                    $fld->replace($field->unit ? (', ' . tr($field->unit)) : '', 'UNIT');
-                    $fld->replace($caption, 'CAPTION');
+                    
+                    $unit = $field->unit ? (', ' . tr($field->unit)) : '';
+
+                    $fld = new ET("\n<tr{$fsRow}><td nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
+
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr{$fsRow}><td colspan=2></td></tr>", 'FIELDS');
                     } 
@@ -856,13 +857,18 @@ class core_Form extends core_FieldSet
                     if ($headerRow) {
                         $tpl->append(new ET("\n<tr{$fsHead}><td colspan=2>{$headerRow}</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
                     
-                    $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
-                    $fld->replace($caption, 'CAPTION');
+                    $unit = $field->unit ? ('&nbsp;' . tr($field->unit)) : '';
+
+                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement'>[#{$field->name}#]{$unit}</td></tr>");
                 }
-                
-                $tpl->append($fld, 'FIELDS');
+
+                if($field->inlineTo) {
+                    $fld = new ET("{$caption} [#{$field->name}#]{$unit}");
+                    $tpl->prepend($fld, $field->inlineTo);  
+                } else {
+                    $tpl->append($fld, 'FIELDS');
+                }
             }
             
             // Заменяме състоянието на секциите
