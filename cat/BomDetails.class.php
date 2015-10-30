@@ -104,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,tools=Пулт, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни,modifiedOn';
+    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни';
     
     
     /**
@@ -156,7 +156,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$rec = &$form->rec;
     	$typeCaption = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
-    	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Етап');
+    	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
     	$action = ($rec->id) ? 'Редактиране' : 'Добавяне';
     	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$rec->bomId}<b>";
     	$form->setField('resourceId', "caption={$matCaption}");
@@ -356,8 +356,7 @@ class cat_BomDetails extends doc_Detail
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	
     	if($rec->type == 'stage'){
-    		$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
-    		$row->ROW_ATTR['style'] = 'background-color:#DCDCDC';
+    		$row->ROW_ATTR['style'] = 'background-color:#DFDFDF';
     		$row->ROW_ATTR['title'] = tr('Eтап');
     	} else {
     		$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
@@ -377,10 +376,10 @@ class cat_BomDetails extends doc_Detail
     	$parent = $rec->parentId;
     	while($parent && ($pRec = $mvc->fetch($parent, "parentId,position"))) {
     		$pPos = $mvc->getFieldType('position')->toVerbal($pRec->position);
-    		$position = $pPos . '.' . $position;
+    		$position = "{$pPos}.{$position}";
     		$parent = $pRec->parentId;
     	}
-    	$row->position = "<span style='float:left'>{$position}</span>";
+    	$row->position = "<span style='float:left;font-weight:bold'>{$position}</span>";
     }
     
     

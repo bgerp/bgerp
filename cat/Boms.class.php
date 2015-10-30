@@ -173,9 +173,6 @@ class cat_Boms extends core_Master
     		$dQuery->where("#bomId = '{$rec->id}'");
     		while($dRec = $dQuery->fetch()){
     			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
-    			if($dRec->stageId){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
-    			}
     		}
     		
     		$res = " " . $res . " " . $detailsKeywords;
@@ -669,9 +666,6 @@ class cat_Boms extends core_Master
     			$d->propQuantity   = $Double->fromVerbal($d->propQuantity);
     			$d->quantityInPack = $Double->fromVerbal($d->quantityInPack);
     			expect($d->baseQuantity || $d->propQuantity);
-    			if($d->stageId){
-    				expect(planning_Stages::fetch($d->stageId));
-    			}
     		}
     	}
     	
@@ -759,7 +753,6 @@ class cat_Boms extends core_Master
     				}
     				
     				// Форсираме производствения етап
-    				$nRec->stageId = planning_Stages::force($matRec->stage);
     				$details[] = $nRec;
     				
     				if($nRec->type == 'input'){
