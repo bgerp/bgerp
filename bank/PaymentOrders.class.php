@@ -32,7 +32,7 @@ class bank_PaymentOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_DocumentSummary, plg_Search,
-         plg_Sorting,doc_DocumentPlg, plg_Printing,doc_plg_MultiPrint, bgerp_plg_Blank, doc_ActivatePlg, doc_EmailCreatePlg';
+         plg_Sorting,doc_DocumentPlg, plg_Printing,doc_plg_MultiPrint, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
