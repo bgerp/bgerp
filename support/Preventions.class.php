@@ -144,6 +144,12 @@ class support_Preventions extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()

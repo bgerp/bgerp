@@ -161,6 +161,12 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
