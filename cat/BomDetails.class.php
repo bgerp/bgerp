@@ -364,14 +364,16 @@ class cat_BomDetails extends doc_Detail
     		$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	}
     	
-    	if($mvc->haveRightFor('edit', $rec)){
-    		$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
-    		if(count($convertableOptions)){
-    			$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		if($mvc->haveRightFor('edit', $rec)){
+    			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
+    			if(count($convertableOptions)){
+    				$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
+    			}
     		}
     	}
     	
-    	// Генерираме кода
+    	// Генерираме кода според позицията на артикула и етапите
     	$position = $row->position;
     	$parent = $rec->parentId;
     	while($parent && ($pRec = $mvc->fetch($parent, "parentId,position"))) {
@@ -379,6 +381,7 @@ class cat_BomDetails extends doc_Detail
     		$position = "{$pPos}.{$position}";
     		$parent = $pRec->parentId;
     	}
+    	
     	$row->position = "<span style='float:left;font-weight:bold'>{$position}</span>";
     }
     
