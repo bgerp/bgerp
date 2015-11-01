@@ -145,6 +145,12 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
