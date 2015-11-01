@@ -2596,6 +2596,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
+        if (!$mvc->showLetterHead) return ;
+        
         $resArr = arr::make($resArr);
         $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
         $title = tr($title);
@@ -2627,7 +2629,7 @@ class doc_DocumentPlg extends core_Plugin
         // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
         $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
         
-        $isNarrow = Mode::is('screenMode', 'narrow');
+        $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
         
         if ($isNarrow) {
             $res = new ET('');

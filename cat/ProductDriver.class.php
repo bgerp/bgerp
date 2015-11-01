@@ -236,10 +236,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @return core_ET $tpl
 	 */
 	protected function renderProductDescription($data)
-	{
+	{   
+        $title = tr($this->singleTitle);
+
 		$tpl = new ET(tr("|*
                     <div class='groupList'>
-                        <div class='richtext' style='margin-top: 5px;'>{$this->singleTitle}</div>
+                        <div class='richtext' style='margin-top: 5px; font-weight:bold;'>{$title}</div>
 						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
@@ -260,9 +262,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 
                     if(strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
+                        $group = tr($group);
                         if($group != $lastGroup) {
-                            $group = tr($group);
-                            $dhtml = "<tr><td colspan='3' style='padding-left:0px;padding-top:5px;'>{$group}</td></td</tr>";
+                            
+                            $dhtml = "<tr><td colspan='3' style='padding-top:10px !important; text-decoration:underline; padding-left:0'>{$group}</td></tr>";
                             $tpl->append($dhtml, 'INFO');
                         }
 
@@ -270,13 +273,19 @@ abstract class cat_ProductDriver extends core_BaseClass
                     }
 
                     $caption = tr($caption);
+                    $unit = tr($field->unit);
 					
-					$dhtml = "<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
-					$tpl->append($dhtml, 'INFO');
+                    if($field->inlineTo) {
+                        $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
+                        $tpl->prepend($dhtml, $field->inlineTo);
+                    } else {
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#$name#]</td</tr>");
+                        $tpl->append($dhtml, 'INFO');
+                    }
 				}
 			}
 		}
-		
+
 		return $tpl;
 	}
 	

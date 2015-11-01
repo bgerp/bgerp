@@ -849,6 +849,10 @@ class crm_Profiles extends core_Master
 				}
 			}
 			
+            if (core_Users::haveRole('no_one', $userId)) {
+                $attr['style'] .= " text-decoration: underline red;"; 
+            }
+
 			if ($userRec->lastActivityTime) {
 				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
 			}

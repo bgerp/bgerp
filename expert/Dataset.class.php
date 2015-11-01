@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @link
  */
-class expert_Dataset extends core_Mvc {
+class expert_Dataset extends core_BaseClass {
     
     
     /**
@@ -60,7 +60,7 @@ class expert_Dataset extends core_Mvc {
         expect(!$rule->condVars[$rule->name] && !$rule->exprVars[$rule->name]);
 
         
-        if(isset($this->rules[$name][$id])) {
+        if(isset($this->rules[$name][$id])) { 
             $this->log[] = "Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
         }
 
@@ -281,19 +281,5 @@ class expert_Dataset extends core_Mvc {
 
 
         return $this->vars;
-    }
-
-
-    function act_Test()
-    {
-      
-        $this('p', '$a+$b+$c');
-        $this('a', '$p-$b-$c');
-        $this('b', '$p-$a-$c');
-        $this('c', '$p-$a-$b');
-        $this('c_opt[]', '$p');
-        $this('c_opt[]', 'arr::make("as,as")');
-
-        bp($this->run(array('p' => 33, 'a'=>11, 'b' => 11)), $this);
     }
 }

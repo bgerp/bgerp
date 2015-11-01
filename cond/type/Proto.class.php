@@ -53,12 +53,12 @@ abstract class cond_type_Proto extends core_BaseClass
     		$rec = &$form->rec;
     		
     		// Проверка дали дефолтната стойност е допустима за типа
-    		if(isset($rec->default)){
+    		if(!empty($rec->default)){
     			$Type = $Driver->getType($rec);
     			$Type->fromVerbal($rec->default);
     			
     			if(strlen($Type->error)){
-    				$form->setError('default', 'Стойността по подразбиране не е допустима за типа');
+    				$form->setError('default', 'Стойността по подразбиране не е от допустимите опции');
     			}
     		}
     	}

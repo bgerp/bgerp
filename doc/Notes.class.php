@@ -161,6 +161,12 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -268,6 +274,7 @@ class doc_Notes extends core_Master
             $hideArr['internal']['versionAndDate'] = TRUE;
             $hideArr['internal']['date'] = TRUE;
             $hideArr['internal']['version'] = TRUE;
+            $hideArr['internal']['handle'] = TRUE;
         }
         
         $hideArr['internal']['ident'] = TRUE;

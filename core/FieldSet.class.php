@@ -165,13 +165,22 @@ class core_FieldSet extends core_BaseClass
      * Задава параметри на едно поле от модела.
      */
     function setField($names, $params, $newField = FALSE)
-    {
+    { $namesS = $names;
         $params = arr::make($params, TRUE);
         $names = arr::make($names, TRUE);
         
+        $params['after'] = explode('|', $params['after']);
+        $params['before'] = explode('|', $params['before']);
+        
+        $paramsS = $params;
+
         foreach ($names as $name => $caption) {
             
-             if ($newField && isset($this->fields[$name])) {
+            $params = $paramsS;
+            
+            $mustOrder = $params['mustOrder'];
+
+            if ($newField && isset($this->fields[$name])) {
                 
                 if($params['forceField']) return;
 
@@ -180,8 +189,10 @@ class core_FieldSet extends core_BaseClass
                 error("@Несъществуващо поле", "'{$name}'", $this->fields);
             } elseif(!isset($this->fields[$name])) {
                 $this->fields[$name] = new stdClass();
+                $mustOrder = TRUE;
             }
-             
+
+
             foreach ($params as $member => $value) {
                 // Ако има - задаваме suggestions (предложенията в падащото меню)
                 if($member == 'suggestions') {
@@ -209,19 +220,19 @@ class core_FieldSet extends core_BaseClass
             // Слага полета с еднаква група последователно, независимо от реда на постъпването им
             if(strpos($this->fields[$name]->caption, '->')) {
                 list($group, $caption) = explode('->', $this->fields[$name]->caption);
-
-                if(isset($this->lastFroGroup[$group]) && !isset($params['before']) && !isset($params['after'])) {
-                    $params['after'] = $this->lastFroGroup[$group];
+               
+                if(isset($this->lastFroGroup[$group]) ) { //&& !count($params['before']) && !count($params['after'])
+                    $params['after'][] = $this->lastFroGroup[$group];  
                 }
                 $this->lastFroGroup[$group] = $name;
             }
            
-            if(isset($params['before']) || isset($params['after'])) {
+            if(count($params['before']) || count($params['after']) && $mustOrder) {
                 $newFields = array();
                 $isSet = FALSE;
                 foreach($this->fields as $exName => $exFld) {
                     
-                    if($params['before'] == $exName) {
+                    if(in_array($exName, $params['before'])) {
                         $isSet = TRUE;
                         $newFields[$name] = &$this->fields[$name];
                     }
@@ -230,15 +241,44 @@ class core_FieldSet extends core_BaseClass
                         $newFields[$exName] = &$this->fields[$exName];
                     }
 
-                    if($params['after'] == $exName) {
+                    if(in_array($exName, $params['after'])) {
                         $newFields[$name] = &$this->fields[$name];
                         $isSet = TRUE;
                     }
-
                 }
                 $this->fields = $newFields;
             }
-            
+
+
+            // Проверяваме дали има предишни полета, които трябва да се подредят преди или след това поле
+            if($mustOrder) {
+                $firstArr = $secondArr = $before = $after = array();
+                $second = FALSE;
+                foreach($this->fields as $exName => $exFld) {
+                    if($name == $exName) {
+                        $second = TRUE;
+                        continue;
+                    }
+                    if(in_array($name, $exFld->before)) {
+                        $before[$exName] = &$this->fields[$exName];
+                        continue;
+                    }
+                    if(in_array($name, $exFld->after)) {
+                        $after[$exName] = &$this->fields[$exName];
+                        continue;
+                    }
+                    if(!$second) {
+                        $firstArr[$exName] = &$this->fields[$exName];
+                    } else {
+                        $secondArr[$exName] = &$this->fields[$exName];
+                    }
+                }
+
+                if(count($before) || count($after)) {
+                    $me = array($name => $this->fields[$name]);  
+                    $this->fields = $firstArr + $before + $me + $after + $secondArr;
+                }
+            }
         }
     }
     

@@ -142,7 +142,7 @@ class type_Key extends type_Int
                 }
             }
         } else {
-            $value = $key;
+            $value = $this->prepareKey($key);
         }
         
         $rec = $this->fetchVal($value);
@@ -163,6 +163,22 @@ class type_Key extends type_Int
  
             return $value;
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string|int|NULL $key
+     * 
+     * @return integer
+     */
+    public function prepareKey($key)
+    {
+        // Само числа
+        $key = (int) $key;
+        
+        return $key;
     }
     
     
