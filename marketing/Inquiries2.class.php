@@ -281,7 +281,7 @@ class marketing_Inquiries2 extends embed_Manager
     		foreach ($quantities as $name => $fld){
     			if(isset($form->rec->{$name})){
     				$form->rec->quantities[] = $form->rec->{$name};
-    				unset($form->rec->{$name});
+    				//unset($form->rec->{$name});
     			}
     		}
     	}
