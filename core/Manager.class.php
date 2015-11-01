@@ -103,8 +103,8 @@ class core_Manager extends core_Mvc
         }
         
         $linkArr = array();
-        
-        if (self::haveRightFor('list', $objId)) {
+
+        if ($inst->haveRightFor('list', $objId)) {
             $linkArr = array(get_called_class(), 'list', $objId);
         }
         
