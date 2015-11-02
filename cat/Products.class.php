@@ -1757,7 +1757,9 @@ class cat_Products extends embed_Manager {
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			$singleUrl = cat_Products::getSingleUrlArray($obj->componentId);
-    			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
+    			if($obj->type != 'stage'){
+    				$obj->title = ht::createLinkRef($obj->title, $singleUrl);
+    			}
     		}
     		
     		$arr = array('componentTitle'       => $obj->title, 
@@ -1838,6 +1840,7 @@ class cat_Products extends embed_Manager {
     		$obj->title = cat_Products::getTitleById($dRec->resourceId);
     		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
+    		$obj->type = $dRec->type;
     		
     		// Ако показваме описанието, показваме го
     		if($dRec->type != 'stage'){
