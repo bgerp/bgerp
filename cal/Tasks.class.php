@@ -178,6 +178,13 @@ class cal_Tasks extends core_Master
 
     public $filterFieldDateFrom = 'timeStart';
     public $filterFieldDateTo = 'timeEnd';
+    
+    
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
 
     /**
      * Предефинирани подредби на листовия изглед

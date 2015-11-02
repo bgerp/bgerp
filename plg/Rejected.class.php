@@ -35,7 +35,7 @@ class plg_Rejected extends core_Plugin
         
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
 
-        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Последна модифициране,input=none,column=none,forceField');
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Последно модифициране,input=none,column=none,forceField');
 
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
     }

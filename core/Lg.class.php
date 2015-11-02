@@ -133,9 +133,14 @@ class core_Lg extends core_Manager
      */
     function translate($kstring, $key = FALSE, $lg = NULL)
     {
-        // Празните стрингове не се превеждат
-        if (is_Object($kstring) || !trim($kstring)) return $kstring;
+        // Празните стрингове и обектите не се превеждат
+        if (is_object($kstring) || !trim($kstring)) return $kstring;
         
+        // Ако не е зададен език, превеждаме на текущия
+        if (!$lg) {
+            $lg = core_Lg::getCurrent();
+        }
+
         if (!$key) {
             // Разбиваме стринга на участъци, който са разделени със символа '|'
             $strArr = explode('|', $kstring);
@@ -143,7 +148,7 @@ class core_Lg extends core_Manager
             if (count($strArr) > 1) {
                 $translated = '';
                 
-                // Ако последната или първата фраза за празни - махаме ги
+                // Ако последната или първата фраза са празни - махаме ги
                 if($strArr[count($strArr)-1] == '') {
                     unset($strArr[count($strArr)-1]);
                 }
@@ -154,24 +159,39 @@ class core_Lg extends core_Manager
                 
                 foreach ($strArr as $i => $phrase) {
                     
-                    // Две черти една до друга, ескейпват една
+                    // Две черти една до друга означават, че последващата фраза е превод на английски на предходната
                     if ($phrase === '') {
-                        $translated .= '|';
+                        $followEn = TRUE; 
                         continue;
                     }
-                    
-                    $isFirst = FALSE;
-                    
+                                        
                     // Ако фразата започва с '*' не се превежда
                     if ($phrase{0} === '*') {
-                        $translated .= substr($phrase, 1);
+                        $translated[] = substr($phrase, 1);
                         continue;
                     }
 
-                    $translated .= $this->translate($phrase);
+                    if($followEn) {
+                        if($lg == 'en') {
+                            $this->dict[static::prepareKey($translated[count($translated)-1])]['en'] = $phrase;
+                            $translated[count($translated)-1] = $phrase;
+                        }
+                        $followEn = FALSE;
+                        continue;
+                    }
+                    
+                    $ascii = (mb_detect_encoding($phrase, 'ASCII', TRUE) == 'ASCII');
+
+                    if($ascii && (!preg_match("/[a-z]/i", $phrase) || $lg != 'en') ) {
+                        $translated[] = $phrase;
+                    }  else {
+                        $translated[] = $this->translate($phrase);
+                    }
+
+                    
                 }
                 
-                return $translated;
+                return implode('', $translated);
             }
             
             $key = $kstring;
@@ -182,10 +202,6 @@ class core_Lg extends core_Manager
         
         $key = static::prepareKey($key);
         
-        // Ако не е зададен език, превеждаме на текущия
-        if (!$lg) {
-            $lg = core_LG::getCurrent();
-        }
         
         if(!count($this->dict)) {
             $this->dict = core_Cache::get('translation', $lg, 2 * 60 * 24, array('core_Lg'));
@@ -201,39 +217,45 @@ class core_Lg extends core_Manager
         }
         
         // Ако имаме превода в речника, го връщаме
-        if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
-        
-        // Попълваме речника от базата
-        $rec = $this->fetch(array(
-                "#kstring = '[#1#]' AND #lg = '[#2#]'",
-                $key,
-                $lg
-            ));
-        
-        if ($rec) {
-            $this->dict[$key][$lg] = $rec->translated;
+        if (isset($this->dict[$key][$lg])) {
+            $res = $this->dict[$key][$lg];
         } else {
-            // Ако и в базата нямаме превода, тогава приемаме, 
-            // че превода не променя ключовия стринг
-            if (!$translated) {
-                $translated = $kstring;
+        
+            // Попълваме речника от базата
+            $rec = $this->fetch(array(
+                    "#kstring = '[#1#]' AND #lg = '[#2#]'",
+                    $key,
+                    $lg
+                ));
+            
+            if ($rec) {
+                $this->dict[$key][$lg] = $rec->translated;
+            } else {
+                // Ако и в базата нямаме превода, тогава приемаме, 
+                // че превода не променя ключовия стринг
+                if (!$translated) {
+                    $translated = $kstring;
+                }
+                
+                $rec = new stdClass();
+                $rec->kstring = $key;
+                $rec->translated = $translated;
+                $rec->lg = $lg;
+                
+                // Записваме в модела
+                $this->save($rec);
+                
+                // Записваме в кеш-масива
+                $this->dict[$key][$lg] = $rec->translated;
             }
-            
-            $rec = new stdClass();
-            $rec->kstring = $key;
-            $rec->translated = $translated;
-            $rec->lg = $lg;
-            
-            // Записваме в модела
-            $this->save($rec);
-            
-            // Записваме в кеш-масива
-            $this->dict[$key][$lg] = $rec->translated;
+
+            $res = $rec->translated;
         }
         
-        return $rec->translated;
+        return $res;
     }
-    
+
+
     
     /**
      * Връща текущия език

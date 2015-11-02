@@ -798,10 +798,10 @@ class core_Form extends core_FieldSet
                 $headerRow = $space = '';
                 
                 foreach ($captionArr as $id => $c) {
-                    $caption = tr($c);
+                    $captionArr[$id] = $caption = $c = tr($c);
                     
                     // Удебеляваме имената на задължителните полета
-                    if ($field->mandatory) {
+                    if ($field->mandatory || ($id != ($captionArrCount - 1))) {
                         $caption = "<b>$caption</b>";
                     } else {
                         $caption = "$caption";
@@ -864,7 +864,7 @@ class core_Form extends core_FieldSet
                 }
 
                 if($field->inlineTo) {
-                    $fld = new ET("{$caption} [#{$field->name}#]{$unit}");
+                    $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
                     $tpl->prepend($fld, $field->inlineTo);  
                 } else {
                     $tpl->append($fld, 'FIELDS');
@@ -1147,7 +1147,7 @@ class core_Form extends core_FieldSet
         // Премахваме дублиращи се съобщения
         if(is_array($this->errors)) {
             foreach($this->errors as $errRec) {
-                if($errRec->msg == $msg) {
+                if(($errRec->msg == $msg) && ($ignorable == $errRec->ignorable)) {
                     $msg = FALSE;
                 }
             }

@@ -184,6 +184,12 @@ class support_Issues extends core_Master
     public $changableFields = 'typeId, title, description, assign, componentId, priority, sharedUsers';
     
     
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
