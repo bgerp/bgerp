@@ -1791,8 +1791,8 @@ class cat_Products extends embed_Manager {
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	//$data->components = array();
-    	//cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    	$data->components = array();
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
     }
     
     
@@ -1826,16 +1826,15 @@ class cat_Products extends embed_Manager {
     	// Кои детайли от нея ще показваме като компоненти
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
-    	//$dQuery->where("#type != 'stage'");
+    	$dRecs = $dQuery->fetchAll();
+    	cat_BomDetails::orderBomDetails($dRecs, $outArr);
     	$level++;
     	
     	// За всеки
-    	while($dRec = $dQuery->fetch()){
+    	foreach ($outArr as $dRec){
     		$obj = new stdClass();
     		$obj->componentId = $dRec->resourceId;
-    
-    		$obj->code = $code . "." . (($dRec->position) ? $dRec->position : 0);
-    		$obj->code = trim($obj->code, '.');
+    		$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
     		$obj->title = cat_Products::getTitleById($dRec->resourceId);
     		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
@@ -1852,23 +1851,6 @@ class cat_Products extends embed_Manager {
     		}
     
     		$res[] = $obj;
-    	}
-    	 
-    	if($rec->id == 104){
-    		//bp($res);
-    	}
-    	// Сортираме по етапа и кода
-    	arr::order($res, 'stageName', 'ASC');
-    	 
-    	// Премахваме повтарящите се етапи
-    	foreach ($res as $index => &$r){
-    		if(isset($r->stageName)){
-    			foreach ($res as $index1 => &$r1){
-    				if($r1->stageName === $r->stageName && $index != $index1){
-    					//unset($r1->stageName);
-    				}
-    			}
-    		}
     	}
     }
 }

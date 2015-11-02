@@ -532,7 +532,7 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако сме добавили нов етап
     	if($rec->stageAdded === TRUE){
-    		//static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
+    		static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
     	}
     }
     
