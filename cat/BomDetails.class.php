@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на етапи детайл на технологична рецепта
+ * Мениджър на детайл на технологичната рецепта
  *
  *
  * @category  bgerp
@@ -20,7 +20,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $title = "Етапи на технологичните рецепти";
+    var $title = "Детайл на технологичната рецепта";
     
     
     /**
@@ -158,7 +158,7 @@ class cat_BomDetails extends doc_Detail
     	$typeCaption = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
     	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
     	$action = ($rec->id) ? 'Редактиране' : 'Добавяне';
-    	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$rec->bomId}<b>";
+    	$form->title = "|{$action}|* на |{$typeCaption}|* |към|* <b>|{$mvc->Master->singleTitle}|* №{$rec->bomId}<b>";
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
