@@ -328,22 +328,73 @@ class cat_BomDetails extends doc_Detail
     		}
     		
     		if(!$form->gotErrors()){
+    			
+    			// Пътя към този артикул
+    			$thisPath = $mvc->getProductPath($rec);
+    			unset($thisPath[0]);
+    			
     			$canAdd = TRUE;
-    			
-    			$parent = $rec->parentId;
-    			while($parent && ($pRec = $mvc->fetch($parent, "parentId,resourceId"))) {
-    				if($rec->resourceId == $pRec->resourceId){
-    					$canAdd = FALSE;
-    					break;
+    			if(isset($rec->parentId)){
+    				
+    				// Ако добавяме етап
+    				if($rec->type == 'stage'){
+    					$bom = cat_Products::getLastActiveBom($rec->resourceId);
+    					if(isset($bom)){
+    						
+    						// и има детайли
+    						$detailsToAdd = $mvc->getOrderedBomDetails($bom->id);
+    						if(is_array($detailsToAdd)){
+    							
+    							// Ако някой от артикулите в пътя който сме се повтаря в пътя на детайла
+    							// който ще наливаме забраняваме да се добавя артикула
+    							foreach ($detailsToAdd as $det){
+    								$path = $mvc->getProductPath($det);
+    									
+    								$intersected = array_intersect($thisPath, $path);
+    								if(count($intersected)){
+    									$canAdd = FALSE;
+    									break;
+    								}
+    							}
+    							
+    							if(in_array($rec->resourceId, $path)){
+    								$canAdd = FALSE;
+    							}
+    						}
+    					}
     				}
-    				$parent = $pRec->parentId;
-    			}
-    			
-    			if($canAdd === FALSE){
-    				$form->setError('parentId,resourceId', 'Артикула не може да се повтаря в нивото');
+    				
+    				// Ако артикула не може да се избере сетваме грешка
+    				if($canAdd === FALSE){
+    					$form->setError('parentId,resourceId', 'Артикула не може да се повтаря в нивото');
+    				}
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща масив с пътя на един запис
+     * 
+     * @param stdClass $rec - запис
+     * @param string $position - дали да върнем позициите или ид-та на артикули
+     * @return array - масив с последователноста на пътя на записа в позиции или ид-та на артикули
+     */
+    private function getProductPath($rec, $position = FALSE)
+    {
+    	$path = array();
+    	$path[] = ($position) ? $rec->position : $rec->resourceId;
+    	
+    	$parent = $rec->parentId;
+    	while($parent && ($pRec = $this->fetch($parent, "parentId,position,resourceId"))) {
+    		$path[] = ($position) ? $pRec->position : $pRec->resourceId;
+    		$parent = $pRec->parentId;
+    	}
+    	
+    	$path = array_reverse($path, TRUE);
+    	
+    	return $path;
     }
     
     
@@ -374,13 +425,8 @@ class cat_BomDetails extends doc_Detail
     	}
     	
     	// Генерираме кода според позицията на артикула и етапите
-    	$position = $row->position;
-    	$parent = $rec->parentId;
-    	while($parent && ($pRec = $mvc->fetch($parent, "parentId,position"))) {
-    		$pPos = $mvc->getFieldType('position')->toVerbal($pRec->position);
-    		$position = "{$pPos}.{$position}";
-    		$parent = $pRec->parentId;
-    	}
+    	$codePath = $mvc->getProductPath($rec, TRUE);
+    	$position = implode('.', $codePath);
     	
     	$row->position = "<span style='float:left;font-weight:bold'>{$position}</span>";
     }
@@ -464,6 +510,7 @@ class cat_BomDetails extends doc_Detail
     	return $position;
     }
     
+    
     /**
      * Извиква се след успешен запис в модела
      */
@@ -490,6 +537,26 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Връща подредените детайли на рецептата
+     * 
+     * @param int $id - ид
+     * @return array - подредените записи
+     */
+    private function getOrderedBomDetails($id)
+    {
+    	// Извличаме и детайлите
+    	$dQuery = $this->getQuery();
+    	$dQuery->where("#bomId = '{$id}'");
+    	$dRecs = $dQuery->fetchAll();
+    	
+    	// Подреждаме ги
+    	self::orderBomDetails($dRecs, $outArr);
+    	
+    	return $outArr;
+    }
+    
+    
+    /**
      * Добавя компонентите на един етап към рецепта
      * 
      * @param int $productId   - ид на артикул
@@ -501,18 +568,12 @@ class cat_BomDetails extends doc_Detail
     {
     	$me = cls::get(get_called_class());
     	
+    	// Коя е последната активна рецепта за артикула
     	$activeBom = cat_Products::getLastActiveBom($productId);
     	
     	// Ако етапа има рецепта
     	if($activeBom){
-    		 
-    		// Извличаме и детайлите
-    		$dQuery = $me->getQuery();
-    		$dQuery->where("#bomId = '{$activeBom->id}'");
-    		$dRecs = $dQuery->fetchAll();
-    		
-    		// Подреждаме ги
-    		self::orderBomDetails($dRecs, $outArr);
+    		$outArr = $me->getOrderedBomDetails($activeBom->id);
     		$cu = core_Users::getCurrent();
     		
     		// Копираме всеки запис
