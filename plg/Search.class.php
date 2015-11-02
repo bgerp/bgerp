@@ -29,7 +29,7 @@ class plg_Search extends core_Plugin
     {
         // Добавя поле за ключовите думи към обекта
         if (!isset($mvc->fields['searchKeywords'])) {
-            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
+            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none,single=none,input=none');
         }
         
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
