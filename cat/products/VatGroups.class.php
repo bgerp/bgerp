@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_VatGroups extends core_Detail
+class cat_products_VatGroups extends core_Manager
 {
     
     
@@ -150,18 +150,18 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Подготовка на файловете
      */
-    public static function prepareVatGroups($data)
+    public function prepareVatGroups($data)
     {   
     	$now  = dt::now(TRUE);
     	$currentGroup = NULL;
     	$data->recs = $data->rows = array();
     	
-    	$query = static::getQuery();
+    	$query = $this->getQuery();
         $query->where("#productId = {$data->masterId}");
         $query->orderBy("#validFrom", 'DESC');
         while($rec = $query->fetch()){
         	$data->recs[$rec->id] = $rec;
-        	$data->rows[$rec->id] = static::recToVerbal($rec);
+        	$data->rows[$rec->id] = $this->recToVerbal($rec);
         }
         
         if(count($data->rows)) {
@@ -180,7 +180,7 @@ class cat_products_VatGroups extends core_Detail
         }
         
         if(static::haveRightFor('add', (object)array('productId' => $data->masterId))){
-        	$data->addUrl = array(get_called_class(), 'add', 'productId' => $data->masterId, 'ret_url' => array('cat_products', 'single', $data->masterId));
+        	$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
         }
     }
     
@@ -188,7 +188,7 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Рендиране на файловете
      */
-    public static function renderVatGroups($data)
+    public function renderVatGroups($data)
     {
     	$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
     	$table = cls::get('core_TableView', array('mvc' => $this));
