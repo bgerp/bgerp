@@ -531,7 +531,7 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако сме добавили нов етап
     	if($rec->stageAdded === TRUE){
-    		static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
+    		//static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
     	}
     }
     
@@ -647,6 +647,30 @@ class cat_BomDetails extends doc_Detail
     		if($tRec->type == 'stage'){
     			static::orderBomDetails($inArr, $outArr, $tRec->id);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Преди клонирането на детайлите
+     */
+    public static function on_BeforeCloneDetails($mvc, &$details)
+    {
+    	// Подсигуряваме се че са подредени
+    	static::orderBomDetails($details, $outArr);
+    	$details = $outArr;
+    }
+    
+    
+    /**
+     * Преди запис на клониран детайл
+     */
+    public static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+    	// Ако има баща подсигуряваме се че ще го заменим с клонирания му запис
+    	if(isset($rec->parentId)){
+    		$parentResource = $mvc->fetchField("#bomId = {$oldRec->bomId} AND #id = {$rec->parentId}", 'resourceId');
+    		$rec->parentId = $mvc->fetchField("#bomId = {$rec->bomId} AND #resourceId = {$parentResource}", 'id');
     	}
     }
     
