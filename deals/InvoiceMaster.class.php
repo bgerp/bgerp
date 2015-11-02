@@ -968,7 +968,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$Detail = $this->mainDetail;
     	
     	$dQuery = $Detail::getQuery();
-    	$dQuery->where("#invoiceId = {$rec->id}");
+    	$dQuery->where("#invoiceId = '{$rec->id}'");
     
     	// Намираме всички фактурирани досега продукти
     	$invoiced = $aggregator->get('invoicedProducts');
