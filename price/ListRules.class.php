@@ -638,7 +638,7 @@ class price_ListRules extends core_Detail
 		// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
 		if($this->haveRightFor('add', (object)array('productId' => $pRec->id))){
 			$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 
-											  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => array('cat_Products', 'single', $pRec->id));
+											  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => TRUE);
 		}
 		
 		$query = static::getQuery();
