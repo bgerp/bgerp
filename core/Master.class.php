@@ -477,7 +477,7 @@ class core_Master extends core_Manager
                     if($field->inlineTo) {
                         $fieldsHtml = str_replace("[#{$field->inlineTo}_inline#]", " {$caption} [#{$field}#]{$unit}", $fieldsHtml);
                     } else {
-                        $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}[#{$field}_inline#]</td></tr><!--ET_END {$field}-->";
+                        $fieldsHtml .= "\n<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}[#{$field}_inline#]</td></tr><!--ET_END {$field}-->";
                     }
                 }
             }
