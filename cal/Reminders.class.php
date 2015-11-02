@@ -161,6 +161,12 @@ class cal_Reminders extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

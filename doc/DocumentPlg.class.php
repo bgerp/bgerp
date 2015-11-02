@@ -2596,6 +2596,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
+        if (!$mvc->showLetterHead) return ;
+        
         $resArr = arr::make($resArr);
         $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
         $title = tr($title);

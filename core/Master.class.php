@@ -459,19 +459,26 @@ class core_Master extends core_Manager
                 foreach($data->singleFields as $field => $caption) {
                     if(strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
+                        $group = tr($group);
                         $fieldsHtml .= "\n<!--ET_BEGIN {$field}-->";
                         if($group != $lastGroup) {
-                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>" . tr($group) . "</td></tr>\n";
+                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>{$group}</td></tr>\n";
                         }
                         $lastGroup = $group;
                     } else {
                         $lastGroup = '';
                     }
+                    
+                    $caption = tr($caption);
 
                     $unit = $this->fields[$field]->unit;
-                    if($unit) $unit = ' ' . $unit;
-
-                    $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}</td></tr><!--ET_END {$field}-->";
+                    if($unit) $unit = ' ' . tr($unit);
+                    
+                    if($field->inlineTo) {
+                        $fieldsHtml = str_replace("[#{$field->inlineTo}_inline#]", " {$caption} [#{$field}#]{$unit}", $fieldsHtml);
+                    } else {
+                        $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}[#{$field}_inline#]</td></tr><!--ET_END {$field}-->";
+                    }
                 }
             }
             
