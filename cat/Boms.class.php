@@ -404,14 +404,6 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(($action == 'add') && isset($rec->productId) && $res != 'no_one'){
-    		
-    		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
@@ -524,7 +516,7 @@ class cat_Boms extends core_Master
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
     	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
-    	//bp($rInfo);
+    	
     	// За всеки ресурс
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
@@ -807,5 +799,80 @@ class cat_Boms extends core_Master
     			reportException($e);
     		}
     	}
+    }
+    
+    
+    /**
+     * Подготвяне на рецептите за един артикул
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareBoms(&$data)
+    {
+    	$data->rows = array();
+    	$data->hideToolsCol = TRUE;
+    	
+    	// Намираме неоттеглените задания
+    	$query = cat_Boms::getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	$query->where("#state != 'rejected'");
+    	$query->orderBy("id", 'DESC');
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		if($this->haveRightFor('edit', $rec)){
+    			$data->hideToolsCol = FALSE;
+    		}
+    	}
+    	 
+    	$masterInfo = cat_Products::getProductInfo($data->masterId);
+    	$data->TabCaption = 'Рецепти';
+    	$data->Tab = 'top';
+    	 
+    	// Проверяваме можем ли да добавяме нови рецепти
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
+    	}
+    	 
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на рецептите на един артикул
+     * 
+     * @param stdClass $data
+     * @return core_ET
+     */
+    public function renderBoms($data)
+    {
+    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	 $title = tr('Технологични рецепти');
+    	 $tpl->append($title, 'title');
+    	 
+    	 if(isset($data->addUrl)){
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова технологична рецепта');
+    	 	$tpl->append($addBtn, 'title');
+    	 }
+    	 
+    	 $listFields = arr::make('tools=Пулт,title=Документ,quantity=За количество,createdBy=Oт,createdOn=На');
+    	 if($data->hideToolsCol){
+    	 	unset($listFields['tools']);
+    	 }
+    	 
+    	 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $details = $table->get($data->rows, $listFields);
+    	 
+    	 // Ако артикула не е производим, показваме в детайла
+    	 if($data->notManifacturable === TRUE){
+    	 	$tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ")</span>", 'title');
+    	 	$tpl->append("state-rejected", 'TAB_STATE');
+    	 }
+    	 
+    	 $tpl->replace($details, 'content');
+    	 
+    	 return $tpl;
     }
 }

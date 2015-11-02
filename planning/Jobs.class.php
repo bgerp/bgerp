@@ -289,15 +289,8 @@ class planning_Jobs extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	// Поставяме бутон за създаване на рецепта
-    	if($rec->state == 'active' || $rec->state == 'wakeup' || $rec->state == 'stopped'){
-    		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
-    			if(cat_Boms::haveRightFor('single', $bId)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
-    			}
-    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
-    		}
+    	if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
+    		$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
     	}
 
     	// Бутон за добавяне на документ за бързо производство
@@ -662,9 +655,6 @@ class planning_Jobs extends core_Master
     {
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $title = tr('Задания за производство');
-    	 if($this->haveRightFor('list')){
-    	 	$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Към всички задания');
-    	 }
     	 $tpl->append($title, 'title');
     	 
     	 if(isset($data->addUrl)){
