@@ -295,20 +295,26 @@ class plg_Clone extends core_Plugin
     				// Клонираме записа и го свързваме към новия запис
     				$query = $Detail->getQuery();
     				$query->where("#{$Detail->masterKey} = {$rec->id}");
+    				$details = $query->fetchAll();
     				
-    				while($dRec = $query->fetch()){
-    					$dRec->{$Detail->masterKey} = $nRec->id;
-    					unset($dRec->id);
+    				$Detail->invoke('BeforeCloneDetails', array(&$details));
+    				
+    				if(is_array($details)){
+    					foreach($details as $dRec){
+    						$oldRec = clone $dRec;
+    						$dRec->{$Detail->masterKey} = $nRec->id;
+    						unset($dRec->id);
+    							
+    						$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
+    							
+    						if($Detail->isUnique($dRec, $fields)){
     					
-    					$Detail->invoke('BeforeSaveClonedDetail', array($dRec));
-    					
-    					if($Detail->isUnique($dRec, $fields)){
-    						
-    						// Записваме клонирания детайл
-    						$Detail->save($dRec);
-    					} else {
-    						$notClones = TRUE;
-    					} 
+    							// Записваме клонирания детайл
+    							$Detail->save($dRec);
+    						} else {
+    							$notClones = TRUE;
+    						}
+    					}
     				}
     			}
     			
