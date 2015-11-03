@@ -152,6 +152,11 @@ class blast_BlockedEmails extends core_Manager
         if (!$rec) {
             $rec = new stdClass();
             $rec->state = $state;
+            $save = NULL;
+        } else {
+            $save = array();
+            $save['email'] = 'email';
+            $save['lastSent'] = 'lastSent';
         }
         
         $rec->email = $email;
@@ -159,9 +164,10 @@ class blast_BlockedEmails extends core_Manager
         
         if ($rec->state != 'blocked') {
             $rec->state = $state;
+            $save['state'] = 'state';
         }
         
-        return self::save($rec);
+        return self::save($rec, $save);
     }
     
     
