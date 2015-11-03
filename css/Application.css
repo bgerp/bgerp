@@ -1216,7 +1216,7 @@ td.rowtools-column {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView .listTable {
+.wide .singleView div:not(".folder-cover") .listTable {
   min-width: 800px;
   width: 1%; }
 
