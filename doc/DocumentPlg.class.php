@@ -2209,7 +2209,10 @@ class doc_DocumentPlg extends core_Plugin
     	
         // Ако ориджина е от друг тред, добавяме и него
     	if(isset($rec->originId)){
-            $res[$rec->originId] = $rec->originId;
+    	    $cRec = doc_Containers::fetch($rec->originId);
+    	    if($cRec->threadId != $rec->threadId) {
+    	        $res[$rec->originId] = $rec->originId;
+    	    }
     	}
     }
     
