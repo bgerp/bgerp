@@ -1862,13 +1862,45 @@ class cat_Products extends embed_Manager {
     	$id = '1423';
     	$this->createDefaultBom($id);
     }
+    
+    
+    /**
+     * Създава дефолтната рецепта за артикула.
+     * Ако е по прототип клонира и разпъва неговата,
+     * ако не проверява дали от драйвера може да се генерира
+     * 
+     * @param int $id - ид на артикул
+     * @return void;
+     */
     public static function createDefaultBom($id)
     {
     	$rec = static::fetchRec($id);
-    	$Boms = cls::get('cat_Boms');
     	
+    	// Ако не е производим артикула, не правим рецепта
+    	if($rec->canManifacture == 'no') return;
+    	
+    	// Ако има прототипен артикул, клонираме му рецептата и я разпъваме
     	if(isset($rec->proto)){
     		cat_Boms::cloneBom($rec->proto, $rec);
+    	} else {
+    		
+    		// Ако не е прототипен, питаме драйвера може ли да се генерира рецепта
+    		if($Driver = static::getDriver($rec)){
+    			$defaultData = $Driver->getDefaultBom($rec);
+    			//@TODO от драйвера
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Ако артикула е производим, опитваме се да му създадем дефолтна рецепта
+    	if($rec->canManifacture == 'yes'){
+    		static::createDefaultBom($rec);
     	}
     }
 }

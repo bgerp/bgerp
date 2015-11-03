@@ -886,12 +886,11 @@ class cat_Boms extends core_Master
     /**
      * Клонира и разпъва рецептата на един артикул към друг
      * 
-     * @param unknown $fromProductId
-     * @param unknown $toProductId
+     * @param int $fromProductId
+     * @param int $toProductId
      */
     public static function cloneBom($fromProductId, $toProductId)
     {
-    	$me = cls::get(get_called_class());
     	$toProductRec = cat_Products::fetchRec($toProductId);
     	$activeBom = cat_Products::getLastActiveBom($fromProductId);
     	
@@ -902,20 +901,20 @@ class cat_Boms extends core_Master
     		$nRec->threadId  = $toProductRec->threadId;
     		$nRec->productId = $toProductRec->id;
     		$nRec->originId  = $toProductRec->containerId;
-    		$nRec->state     = 'draft';
+    		$nRec->state     = 'active';
     		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
     			unset($nRec->{$fld});
     		}
     		
-    		$nRec->id = 157;
-    		if($me->save($nRec)) {
-    			cat_BomDetails::delete("#bomId = {$nRec->id}");
-    		} else {
+    		//$nRec->id = 157;
+    		//cat_BomDetails::delete("#bomId = {$nRec->id}");
+    		core_Users::forceSystemUser();
+    		if(!static::save($nRec)) {
     			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
     		}
+    		core_Users::cancelSystemUser();
     		
-    		// Клонираме и детайлите на рецептата, разпъвайки ги
-    		cat_BomDetails::cloneDetails($nRec->id, $activeBom->id);
+    		cat_BomDetails::addProductComponents($activeBom->productId, $nRec->id, NULL, TRUE);
     	}
     }
 }

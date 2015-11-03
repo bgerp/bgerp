@@ -455,7 +455,7 @@ class cat_BomDetails extends doc_Detail
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			//$requiredRoles = 'no_one';
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -566,7 +566,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $componentId - на кой ред в рецептата е артикула
      * @return void
      */
-    private static function addProductComponents($productId, $toBomId, $componentId, $recursive = FALSE)
+    public static function addProductComponents($productId, $toBomId, $componentId, $recursive = FALSE)
     {
     	$me = cls::get(get_called_class());
     	
@@ -720,44 +720,6 @@ class cat_BomDetails extends doc_Detail
     		if($rec->id == 1299) bp($rec);
     		if($rec->type == 'stage'){
     			$mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Клонира детайлите на една рецепта
-     * 
-     * @param unknown $toBomId
-     * @param unknown $id
-     */
-    public static function cloneDetails($toBomId, $id)
-    {
-    	// Детайлите, които ще копираме
-    	$detailsToCopy = cat_BomDetails::getOrderedBomDetails($id);
-    	
-    	// За всеки от тях
-    	if(is_array($detailsToCopy)){
-    		foreach ($detailsToCopy as $det){
-    			$expanded = FALSE;
-    			unset($det->id);
-    			$det->bomId = $toBomId;
-    			
-    			// Ако е материал и има компоненти, добавяме го като етап
-    			if($det->type == 'input'){
-    				if($dBomRec = cat_Products::getLastActiveBom($det->resourceId)){
-    					$det->type = 'stage';
-    					cls::get('cat_BomDetails')->save_($det);
-    					
-    					// Ако е добавен като етап, наливаме и неговите компоненти рекурсивно
-    					static::addProductComponents($det->resourceId, $det->bomId, $det->id, TRUE);
-    					$expanded = TRUE;
-    				}
-    			}
-    			
-    			if($expanded === FALSE){
-    				cls::get('cat_BomDetails')->save_($det);
-    			}
     		}
     	}
     }
