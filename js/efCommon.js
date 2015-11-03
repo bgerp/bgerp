@@ -1786,7 +1786,8 @@ function refreshForm(form, removeFields) {
 	if(typeof removeFields != 'undefined') {
 		var fieldsCnt = removeFields.length;
 		for (var i = 0; i < fieldsCnt; i++) {
-			$("[name='" + removeFields[i] + "']").prop('disabled', true);;
+			$("[name='" + removeFields[i] + "']").prop('disabled', true);
+			$("[name^='" + removeFields[i] + "\\[']").prop('disabled', true);
 		}
 	}
     form.submit();
