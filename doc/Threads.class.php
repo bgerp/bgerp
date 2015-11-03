@@ -255,7 +255,7 @@ class doc_Threads extends core_Manager
                     
                     $rec->firstContainerId = $firstCid;
                     
-                    if (self::save($rec)) {
+                    if (self::save($rec, 'firstContainerId')) {
                         $resArr['firstContainerId']++;
                     }
                 }
@@ -264,7 +264,7 @@ class doc_Threads extends core_Manager
                 if (!isset($rec->folderId) && isset($defaultFolderId)) {
                     $rec->folderId = $defaultFolderId;
                     
-                    if (self::save($rec)) {
+                    if (self::save($rec, 'folderId')) {
                         $resArr['folderId']++;
                     }
                 }

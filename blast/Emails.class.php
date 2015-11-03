@@ -384,14 +384,14 @@ class blast_Emails extends core_Master
             if ($rec->state == 'pending') {
                 if (($sec <= 0) || ($sec <= $period)) {
                     $rec->state = 'active';
-                    $this->save($rec);
+                    $this->save($rec, 'state');
                     
                     if (!($sec <= 0)) continue;
                 }
             } elseif ($rec->state == 'active') {
                 if ($sec > $period) {
                     $rec->state = 'pending';
-                    $this->save($rec);
+                    $this->save($rec, 'state');
                 } elseif ($sec) {
                     continue ;
                 }
@@ -407,7 +407,7 @@ class blast_Emails extends core_Master
             if (!$dataArr) {
                 $rec->state = 'closed';
                 $rec->progress = 1;
-                $this->save($rec);
+                $this->save($rec, 'state, progress');
                 continue;
             }
             
