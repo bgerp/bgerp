@@ -110,6 +110,12 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
+    var $canEdit = 'cat,ceo';
+    
+    
+    /**
+     * Кой може да пише?
+     */
     var $canWrite = 'cat,ceo';
     
     
@@ -877,12 +883,19 @@ class cat_Boms extends core_Master
     }
     
     
+    /**
+     * Клонира и разпъва рецептата на един артикул към друг
+     * 
+     * @param unknown $fromProductId
+     * @param unknown $toProductId
+     */
     public static function cloneBom($fromProductId, $toProductId)
     {
     	$me = cls::get(get_called_class());
     	$toProductRec = cat_Products::fetchRec($toProductId);
     	$activeBom = cat_Products::getLastActiveBom($fromProductId);
     	
+    	// Ако има рецепта за клониране
     	if($activeBom){
     		$nRec = clone $activeBom;
     		$nRec->folderId  = $toProductRec->folderId;
@@ -894,41 +907,15 @@ class cat_Boms extends core_Master
     			unset($nRec->{$fld});
     		}
     		
-    		
-    		
-    		
-    		
-    		$nRec->id = 152;
-    		//core_Users::forceSystemUser();
+    		$nRec->id = 157;
     		if($me->save($nRec)) {
     			cat_BomDetails::delete("#bomId = {$nRec->id}");
-    			$me->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
     		} else {
     			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
     		}
     		
-    		$detailsToCopy = cat_BomDetails::getOrderedBomDetails($nRec->id);
-    		//bp($detailsToCopy);
-    		if(is_array($detailsToCopy)){
-    			foreach ($detailsToCopy as $det){
-    				if($det->type != 'stage'){
-    					if($dBomRec = cat_Products::getLastActiveBom($det->resourceId)){
-    						$det->type = 'stage';
-    						$det->stageAdded = TRUE;
-    						cat_BomDetails::save($det);
-    						//bp($dBomRec);
-    					}
-    				}
-    			}
-    		}
-    		
-    		
-    		
-    		
-    		
-    		
-    		
-    		//core_Users::cancelSystemUser();
+    		// Клонираме и детайлите на рецептата, разпъвайки ги
+    		cat_BomDetails::cloneDetails($nRec->id, $activeBom->id);
     	}
     }
 }

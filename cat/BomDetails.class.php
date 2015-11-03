@@ -566,7 +566,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $componentId - на кой ред в рецептата е артикула
      * @return void
      */
-    public static function addProductComponents($productId, $toBomId, $componentId)
+    private static function addProductComponents($productId, $toBomId, $componentId, $recursive = FALSE)
     {
     	$me = cls::get(get_called_class());
     	
@@ -579,19 +579,39 @@ class cat_BomDetails extends doc_Detail
     		$cu = core_Users::getCurrent();
     		
     		// Копираме всеки запис
-    		foreach ($outArr as $dRec){
-    			unset($dRec->id);
-    			$dRec->modidiedOn = dt::now();
-    			$dRec->modifiedBy = $cu;
-    			$dRec->bomId = $toBomId;
-    			if(empty($dRec->parentId)){
-    				$dRec->parentId = $componentId;
-    			} else {
-    				$dRec->parentId = self::getNewParent($activeBom->id, $dRec->parentId, $toBomId);
+    		if(is_array($outArr)){
+    			foreach ($outArr as $dRec){
+    				unset($dRec->id);
+    				$dRec->modidiedOn = dt::now();
+    				$dRec->modifiedBy = $cu;
+    				$dRec->bomId = $toBomId;
+    				if(empty($dRec->parentId)){
+    					$dRec->parentId = $componentId;
+    				} else {
+    					$dRec->parentId = self::getNewParent($activeBom->id, $dRec->parentId, $toBomId);
+    				}
+    			
+    				// Ако ще добавяме рекурсивно, проверяваме дали записа е материал и има компоненти
+    				$addComponents = FALSE;
+    				if($recursive){
+    					
+    					// Ако да правим го етап
+    					if($dRec->type == 'input'){
+    						if($dBomId = cat_Products::getLastActiveBom($dRec->resourceId)){
+    							$dRec->type = 'stage';
+    							$addComponents = TRUE;
+    						}
+    					}
+    				}
+    				
+    				// Добавяме записа
+    				$me->save_($dRec);
+    				
+    				// Ако ще добавим компонентите на материала, викаме рекурсивно
+    				if($addComponents){
+    					static::addProductComponents($dRec->resourceId, $toBomId, $dRec->id, $recursive);
+    				}
     			}
-    		
-    			// Добавяме записа
-    			$me->save_($dRec);
     		}
     	}
     }
@@ -697,8 +717,47 @@ class cat_BomDetails extends doc_Detail
     {
     	// Ако изтриваме етап, изтриваме всичките редове от този етап
     	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		if($rec->id == 1299) bp($rec);
     		if($rec->type == 'stage'){
     			$mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Клонира детайлите на една рецепта
+     * 
+     * @param unknown $toBomId
+     * @param unknown $id
+     */
+    public static function cloneDetails($toBomId, $id)
+    {
+    	// Детайлите, които ще копираме
+    	$detailsToCopy = cat_BomDetails::getOrderedBomDetails($id);
+    	
+    	// За всеки от тях
+    	if(is_array($detailsToCopy)){
+    		foreach ($detailsToCopy as $det){
+    			$expanded = FALSE;
+    			unset($det->id);
+    			$det->bomId = $toBomId;
+    			
+    			// Ако е материал и има компоненти, добавяме го като етап
+    			if($det->type == 'input'){
+    				if($dBomRec = cat_Products::getLastActiveBom($det->resourceId)){
+    					$det->type = 'stage';
+    					cls::get('cat_BomDetails')->save_($det);
+    					
+    					// Ако е добавен като етап, наливаме и неговите компоненти рекурсивно
+    					static::addProductComponents($det->resourceId, $det->bomId, $det->id, TRUE);
+    					$expanded = TRUE;
+    				}
+    			}
+    			
+    			if($expanded === FALSE){
+    				cls::get('cat_BomDetails')->save_($det);
+    			}
     		}
     	}
     }
