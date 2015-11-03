@@ -165,7 +165,7 @@ class core_FieldSet extends core_BaseClass
      * Задава параметри на едно поле от модела.
      */
     function setField($names, $params, $newField = FALSE)
-    { $namesS = $names;
+    {
         $params = arr::make($params, TRUE);
         $names = arr::make($names, TRUE);
         

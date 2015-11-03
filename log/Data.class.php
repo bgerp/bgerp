@@ -317,9 +317,6 @@ class log_Data extends core_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        // Форсираме стартирането на сесията
-        core_Session::forcedStart();
-        
         // Записва в БД всички действия от стека
         self::flush();
     }
