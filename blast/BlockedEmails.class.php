@@ -278,7 +278,7 @@ class blast_BlockedEmails extends core_Manager
             } else {
                 $rec->state = 'error';
             }
-            self::save($rec);
+            self::save($rec, 'lastChecked, state');
         }
     }
     
