@@ -24,12 +24,6 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Заглавие
-     */
-    var $singleTitle = "Материал";
-    
-    
-    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'bomId';
@@ -468,6 +462,7 @@ class cat_BomDetails extends doc_Detail
     {
     	if(!count($data->recs)) return;
     	
+    	// Подреждаме детайлите
     	static::orderBomDetails($data->recs, $outArr);
     	$data->recs = $outArr;
     	

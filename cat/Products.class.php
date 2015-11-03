@@ -240,7 +240,8 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 'meta'    => 'lastDocUser|lastDoc',);
+											 //'meta'    => 'lastDocUser|lastDoc',
+	);
 	
 	
 	/**
@@ -284,7 +285,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируем,
                                 canConvert=Вложим,
                                 fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,mandatory');
+        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -334,7 +335,12 @@ class cat_Products extends embed_Manager {
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
     		
-    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
+    		$defMetas = array();
+    		if(isset($form->rec->proto)){
+    			$defMetas = $mvc->fetchField($form->rec->proto, 'meta');
+    			$defMetas = type_Set::toArray($defMetas);
+    		}
+    		$defMetas = (count($defMetas)) ? $defMetas : $cover->getDefaultMeta();
 
     		if($Driver = $mvc->getDriver($form->rec)){
     			$defMetas = $Driver->getDefaultMetas($defMetas);
@@ -1854,13 +1860,6 @@ class cat_Products extends embed_Manager {
     			$res[] = $obj;
     		}
     	}
-    }
-    
-    
-    function act_Test()
-    {
-    	$id = '1423';
-    	$this->createDefaultBom($id);
     }
     
     
