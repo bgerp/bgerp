@@ -230,6 +230,7 @@ class core_Lg extends core_Manager
             
             if ($rec) {
                 $this->dict[$key][$lg] = $rec->translated;
+                $res = $rec->translated;
             } else {
                 // Ако и в базата нямаме превода, тогава приемаме, 
                 // че превода не променя ключовия стринг
@@ -246,10 +247,10 @@ class core_Lg extends core_Manager
                 $this->save($rec);
                 
                 // Записваме в кеш-масива
-                $this->dict[$key][$lg] = $rec->translated;
+                $this->dict[$key][$lg] = type_Varchar::escape($rec->translated);
+                
+                $res = $this->dict[$key][$lg];
             }
-
-            $res = $rec->translated;
         }
         
         return $res;

@@ -903,16 +903,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
     	
-    	// Репортуваме определени състояния
-    	if($oldPaid > $rec->amountPaid || $oldDelivered > $rec->amountDelivered){
-    		wp($oldPaid,$oldDelivered,$rec);
-    	}
-    	
-    	$dItem = acc_Items::fetchItem($mvc, $rec->id);
-    	if($dItem->state == 'closed'){
-    		wp($dItem, $rec);
-    	}
-    	
     	if(!empty($rec->closedDocuments)){
     		
     		// Ако документа приключва други сделки, събираме им фактурираното и го добавяме към текущата
@@ -1309,7 +1299,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     
     		try{
-    			$Class->save_($rec);
+    			$Class->save_($rec, 'paymentState');
     		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при обновяването

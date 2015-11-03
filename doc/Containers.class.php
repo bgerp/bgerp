@@ -1480,7 +1480,7 @@ class doc_Containers extends core_Manager
                         $rec->folderId = $defaultFolderId;
                     }
                     
-                    if (self::save($rec)) {
+                    if (self::save($rec, 'folderId')) {
                         $resArr['folderId']++;
                     }
                 }
@@ -1496,7 +1496,7 @@ class doc_Containers extends core_Manager
                         $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
                     }
                 
-                    if (self::save($rec)) {
+                    if (self::save($rec, 'threadId')) {
                         $resArr['threadId']++;
                     }
                 }
@@ -1516,7 +1516,7 @@ class doc_Containers extends core_Manager
                                 
                                 $rec->docClass = $cRec->id;
                                 
-                                if (self::save($rec)) {
+                                if (self::save($rec, 'docClass')) {
                                     $resArr['docClass']++;
                                 }
                                 
@@ -1542,7 +1542,7 @@ class doc_Containers extends core_Manager
                             
                             if ($docId) {
                                 $rec->docId = $docId;
-                                if (self::save($rec)) {
+                                if (self::save($rec, 'docId')) {
                                     $resArr['docId']++;
                                 }
                             } else {

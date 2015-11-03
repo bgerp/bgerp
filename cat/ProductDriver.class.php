@@ -256,7 +256,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 
 		if(is_array($driverFields)){
 			foreach ($driverFields as $name => $field){
-				if(isset($data->row->{$name})){
+				if($field->single != 'none' && isset($data->row->{$name})){
 
                     $caption = $field->caption;
 
