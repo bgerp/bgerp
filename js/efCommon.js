@@ -1892,12 +1892,13 @@ function editCopiedTextBeforePaste() {
 
 		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
 		
+		
 		//В клонирания елемент сменяме стиловете, за да избегнем отделните редове, ако имаме елементи със smartCenter
 		$(htmlDiv).find('.maxwidth').css('display', 'inline');
 		
 		// временна променлива, в която ще заменстваме
 		var current = htmlDiv.innerHTML.toString();
-		
+
 		//намира всеки стринг, който отгоравя на израза
 		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
 		
@@ -1916,7 +1917,6 @@ function editCopiedTextBeforePaste() {
 			}
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
-			$('maxwidth').css("display", 'block');
 		}
 
 		window.setTimeout(function() {
@@ -2045,21 +2045,21 @@ function centerNumericElements() {
  * Подравняване на числата в средата
  */
 function smartCenter() {
-		if(!$("div.maxwidth").length) return;
+		if(!$("span.maxwidth").length) return;
         var smartCenterWidth = [];
-    	$("div.maxwidth").css('display', 'inline-block');
-		$("div.maxwidth").each(function() {
+    	$("span.maxwidth").css('display', 'inline-block');
+		$("span.maxwidth").each(function() {
         	if(!smartCenterWidth[$(this).attr('data-col')] || smartCenterWidth[$(this).attr('data-col')] < $(this).width()){
         		smartCenterWidth[$(this).attr('data-col')] = $(this).width();
             }
         });
     	
         for (key in smartCenterWidth) {
-        	$(".maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
+        	$("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
-        $(".maxwidth").css('display', "block");
-        $(".maxwidth").css('margin', "0 auto");
+        $("span.maxwidth").css('display', "block");
+        $("span.maxwidth").css('margin', "0 auto");
         
 }
 
