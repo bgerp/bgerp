@@ -895,11 +895,23 @@ abstract class deals_DealMaster extends deals_DealBase
     	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
     	$Detail = $mvc->mainDetail;
     	
+    	$oldPaid = $rec->amountPaid;
+    	$oldDelivered = $rec->amountDelivered;
     	// Преизчисляваме общо платената и общо експедираната сума
     	$rec->amountPaid      = $aggregateDealInfo->get('amountPaid');
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
     	$rec->amountBl 		  = $aggregateDealInfo->get('blAmount');
     	$rec->amountInvoiced  = $aggregateDealInfo->get('invoicedAmount');
+    	
+    	// Репортуваме определени състояния
+    	if($oldPaid > $rec->amountPaid || $oldDelivered > $rec->amountDelivered){
+    		wp($oldPaid,$oldDelivered,$rec);
+    	}
+    	
+    	$dItem = acc_Items::fetchItem($mvc, $rec->id);
+    	if($dItem->state == 'closed'){
+    		wp($dItem, $rec);
+    	}
     	
     	if(!empty($rec->closedDocuments)){
     		
