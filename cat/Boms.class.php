@@ -875,4 +875,60 @@ class cat_Boms extends core_Master
     	 
     	 return $tpl;
     }
+    
+    
+    public static function cloneBom($fromProductId, $toProductId)
+    {
+    	$me = cls::get(get_called_class());
+    	$toProductRec = cat_Products::fetchRec($toProductId);
+    	$activeBom = cat_Products::getLastActiveBom($fromProductId);
+    	
+    	if($activeBom){
+    		$nRec = clone $activeBom;
+    		$nRec->folderId  = $toProductRec->folderId;
+    		$nRec->threadId  = $toProductRec->threadId;
+    		$nRec->productId = $toProductRec->id;
+    		$nRec->originId  = $toProductRec->containerId;
+    		$nRec->state     = 'draft';
+    		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
+    			unset($nRec->{$fld});
+    		}
+    		
+    		
+    		
+    		
+    		
+    		$nRec->id = 152;
+    		//core_Users::forceSystemUser();
+    		if($me->save($nRec)) {
+    			cat_BomDetails::delete("#bomId = {$nRec->id}");
+    			$me->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
+    		} else {
+    			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+    		}
+    		
+    		$detailsToCopy = cat_BomDetails::getOrderedBomDetails($nRec->id);
+    		//bp($detailsToCopy);
+    		if(is_array($detailsToCopy)){
+    			foreach ($detailsToCopy as $det){
+    				if($det->type != 'stage'){
+    					if($dBomRec = cat_Products::getLastActiveBom($det->resourceId)){
+    						$det->type = 'stage';
+    						$det->stageAdded = TRUE;
+    						cat_BomDetails::save($det);
+    						//bp($dBomRec);
+    					}
+    				}
+    			}
+    		}
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		//core_Users::cancelSystemUser();
+    	}
+    }
 }

@@ -1826,34 +1826,49 @@ class cat_Products extends embed_Manager {
     	if(!$rec) return $res;
     	 
     	// Кои детайли от нея ще показваме като компоненти
-    	$dQuery = cat_BomDetails::getQuery();
-    	$dQuery->where("#bomId = {$rec->id}");
-    	$dRecs = $dQuery->fetchAll();
-    	cat_BomDetails::orderBomDetails($dRecs, $outArr);
+    	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
     	$level++;
     	
     	// За всеки
-    	foreach ($outArr as $dRec){
-    		$obj = new stdClass();
-    		$obj->componentId = $dRec->resourceId;
-    		$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
-    		$obj->title = cat_Products::getTitleById($dRec->resourceId);
-    		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
-    		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
-    		$obj->type = $dRec->type;
+    	if(is_array($details)){
+    		foreach ($details as $dRec){
+    			$obj = new stdClass();
+    			$obj->componentId = $dRec->resourceId;
+    			$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
+    			$obj->title = cat_Products::getTitleById($dRec->resourceId);
+    			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
+    			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
+    			$obj->type = $dRec->type;
     		
-    		// Ако показваме описанието, показваме го
-    		if($dRec->type != 'stage'){
-    			$obj->titleClass = 'product-component-title';
-    			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    			
-    			$obj->components = array();
-    			self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
-    		} else {
-    			$obj->titleClass = 'product-component-stage';
+    			// Ако показваме описанието, показваме го
+    			if($dRec->type != 'stage'){
+    				$obj->titleClass = 'product-component-title';
+    				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    				 
+    				$obj->components = array();
+    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    			} else {
+    				$obj->titleClass = 'product-component-stage';
+    			}
+    		
+    			$res[] = $obj;
     		}
+    	}
+    }
     
-    		$res[] = $obj;
+    
+    function act_Test()
+    {
+    	$id = '1423';
+    	$this->createDefaultBom($id);
+    }
+    public static function createDefaultBom($id)
+    {
+    	$rec = static::fetchRec($id);
+    	$Boms = cls::get('cat_Boms');
+    	
+    	if(isset($rec->proto)){
+    		cat_Boms::cloneBom($rec->proto, $rec);
     	}
     }
 }

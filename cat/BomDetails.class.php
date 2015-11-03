@@ -342,7 +342,7 @@ class cat_BomDetails extends doc_Detail
     					if(isset($bom)){
     						
     						// и има детайли
-    						$detailsToAdd = $mvc->getOrderedBomDetails($bom->id);
+    						$detailsToAdd = self::getOrderedBomDetails($bom->id);
     						if(is_array($detailsToAdd)){
     							
     							// Ако някой от артикулите в пътя който сме се повтаря в пътя на детайла
@@ -419,7 +419,8 @@ class cat_BomDetails extends doc_Detail
     		if($mvc->haveRightFor('edit', $rec)){
     			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
     			if(count($convertableOptions)){
-    				$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
+    				$link = ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
+    				$row->resourceId .= "<span style='float:right'>{$link}</span>";
     			}
     		}
     	}
@@ -454,7 +455,7 @@ class cat_BomDetails extends doc_Detail
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			$requiredRoles = 'no_one';
+    			//$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -543,10 +544,10 @@ class cat_BomDetails extends doc_Detail
      * @param int $id - ид
      * @return array - подредените записи
      */
-    private function getOrderedBomDetails($id)
+    public static function getOrderedBomDetails($id)
     {
     	// Извличаме и детайлите
-    	$dQuery = $this->getQuery();
+    	$dQuery = self::getQuery();
     	$dQuery->where("#bomId = '{$id}'");
     	$dRecs = $dQuery->fetchAll();
     	
@@ -574,7 +575,7 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако етапа има рецепта
     	if($activeBom){
-    		$outArr = $me->getOrderedBomDetails($activeBom->id);
+    		$outArr = static::getOrderedBomDetails($activeBom->id);
     		$cu = core_Users::getCurrent();
     		
     		// Копираме всеки запис
@@ -586,10 +587,7 @@ class cat_BomDetails extends doc_Detail
     			if(empty($dRec->parentId)){
     				$dRec->parentId = $componentId;
     			} else {
-    					
-    				// Ако реда има етап, намираме на кой ред в новата рецепта съответства стария етап
-    				$parentResource = $me->fetchField("#bomId = {$activeBom->id} AND #id = {$dRec->parentId}", 'resourceId');
-    				$dRec->parentId = $me->fetchField("#bomId = {$toBomId} AND #resourceId = {$parentResource}", 'id');
+    				$dRec->parentId = self::getNewParent($activeBom->id, $dRec->parentId, $toBomId);
     			}
     		
     			// Добавяме записа
@@ -607,7 +605,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $parentId - кой е текущия баща
      * @return void		
      */
-    public static function orderBomDetails(&$inArr, &$outArr, $parentId = NULL)
+    private static function orderBomDetails(&$inArr, &$outArr, $parentId = NULL)
     {
     	// Временен масив
     	$tmpArr = array();
@@ -664,14 +662,30 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Намира на кое ид от нова бележка съответства бащата на ред от стара рецепта
+     * 
+     * @param int $oldBomId
+     * @param int $parentId
+     * @param int $newBomId
+     * @return int
+     */
+    private static function getNewParent($oldBomId, $parentId, $newBomId)
+    {
+    	$parentResource = self::fetchField("#bomId = {$oldBomId} AND #id = {$parentId}", 'resourceId');
+    	$newParentId = self::fetchField("#bomId = {$newBomId} AND #resourceId = {$parentResource}", 'id');
+    
+    	return $newParentId;
+    }
+    
+    
+    /**
      * Преди запис на клониран детайл
      */
     public static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Ако има баща подсигуряваме се че ще го заменим с клонирания му запис
     	if(isset($rec->parentId)){
-    		$parentResource = $mvc->fetchField("#bomId = {$oldRec->bomId} AND #id = {$rec->parentId}", 'resourceId');
-    		$rec->parentId = $mvc->fetchField("#bomId = {$rec->bomId} AND #resourceId = {$parentResource}", 'id');
+    		$rec->parentId = self::getNewParent($oldRec->bomId, $rec->parentId, $rec->bomId);
     	}
     }
     

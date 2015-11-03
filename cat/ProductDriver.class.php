@@ -335,11 +335,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 			['quantity'] - К-во за което е рецептата
 	 * 			['expenses'] - % режийни разходи
 	 * 			['materials'] array
-	 * 				 o code          string  - Код на материала
-     * 				 o baseQuantity  double  - Начално количество на вложения материал
-     * 				 o propQuantity  double  - Пропорционално количество на вложения материал
-     * 				 o waste         boolean - Дали материала е отпадък
-     * 				 o stageName']   string  - Име на производствения етап
+	 * 				 o code              string          - Код на материала
+     * 				 o baseQuantity      double          - Начално количество на вложения материал
+     * 				 o propQuantity      double          - Пропорционално количество на вложения материал
+     * 				 o type              input|pop|stage - вида на записа материал|отпадък|етап
+     * 				 o parentResourceId  string          - ид на артикула на етапа
+     * 				 o expenses          double          - % режийни разходи
 	 * 				
 	 */
 	public function getDefaultBom($rec)
