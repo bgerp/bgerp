@@ -2117,7 +2117,7 @@ function keylistActions(el) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
 			  // ако групата е затворена, я отваряме
-			  if($('.keylistCategory').hasClass('closed')) {
+			  if($(e.target).closest('.keylistCategory').hasClass('closed')) {
 				  toggleKeylistGroups(e.target);
 			  }
 			  //инвертираме
@@ -2156,7 +2156,7 @@ function toggleKeylistGroups(el) {
 	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
     var trItems = findElementKeylistGroup(el);
     var element = $(el).closest("tr.keylistCategory");
-
+    console.log('hetre');
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -2192,7 +2192,7 @@ function findElementKeylistGroup(el){
 function inverseCheckBox(el){
 	// сменяме иконката
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
-
+	console.log('invert');
 	var trItems = findElementKeylistGroup(el);
 
 	//инвертираме
