@@ -1391,7 +1391,8 @@ td.rowtools-column {
 	margin-bottom: 0;
 }
 .wide .singleView .listTable {
-	width: 100%;
+	min-width: 800px;
+	width: 1%;
 }
 pre.document {
 	white-space: pre-line;
