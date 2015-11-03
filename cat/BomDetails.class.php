@@ -717,7 +717,6 @@ class cat_BomDetails extends doc_Detail
     {
     	// Ако изтриваме етап, изтриваме всичките редове от този етап
     	foreach ($query->getDeletedRecs() as $id => $rec) {
-    		if($rec->id == 1299) bp($rec);
     		if($rec->type == 'stage'){
     			$mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
     		}
