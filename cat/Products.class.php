@@ -261,7 +261,7 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,removeAndRefreshForm=meta,placeholder=Популярни продукти");
 		
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
@@ -339,14 +339,17 @@ class cat_Products extends embed_Manager {
     		if(isset($form->rec->proto)){
     			$defMetas = $mvc->fetchField($form->rec->proto, 'meta');
     			$defMetas = type_Set::toArray($defMetas);
-    		}
-    		$defMetas = (count($defMetas)) ? $defMetas : $cover->getDefaultMeta();
-
-    		if($Driver = $mvc->getDriver($form->rec)){
-    			$defMetas = $Driver->getDefaultMetas($defMetas);
-    			$measureName = $Driver->getDefaultUom();
-    			$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
+    		} else {
+    			$defMetas = $cover->getDefaultMeta();
     			
+    			if($Driver = $mvc->getDriver($form->rec)){
+    				$defMetas = $Driver->getDefaultMetas($defMetas);
+    				$measureName = $Driver->getDefaultUom();
+    				$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
+    			}
+    		}
+    		
+    		if(count($defMetas)){
     			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
     		}

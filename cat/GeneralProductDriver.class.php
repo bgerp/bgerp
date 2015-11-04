@@ -71,7 +71,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		// Само при добавянето на нов артикул
 		if(empty($rec->id)){
-			$refreshFields = array();
+			$refreshFields = array('param');
 			
 			// Имали дефолтни параметри
 			$defaultParams = $Driver->getDefaultParams($rec);
@@ -80,14 +80,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 				// Всеки дефолтен параметър го добавяме към формата
 				$paramRec = cat_Params::fetch($id);
 				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},categoryParams,before=meta");
-				$Type = cat_Params::getParamTypeClass($id, 'cat_Params');
-				$form->setFieldType("paramcat{$id}", $Type);
+				$form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id));
 				
-				//@TODO workaround за рефреш на полетата от тип cat_type_UoM
-				if($Type instanceof cat_type_Uom){
-					$refreshFields["paramcat{$id}[lP]"] = "paramcat{$id}[lP]";
-				} else {
-					$refreshFields["paramcat{$id}"] = "paramcat{$id}";
+				// Ако параметъра има суфикс, добавяме го след полето
+				if(!empty($paramRec->suffix)){
+					$suffix = cat_Params::getVerbal($paramRec, 'suffix');
+					$form->setField("paramcat{$id}", "unit={$suffix}");
 				}
 				
 				// Ако има дефолтна стойност, задаваме и нея
@@ -97,12 +95,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			}
 			
 			$refreshFields = implode('|', $refreshFields);
+			
 			$remFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm') . "|" . $refreshFields;
 			$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$remFields}");
             
             // Бърз фикс за да работи в запитванията. Там също е добре да се покажат прототипите.
             if($Embedder->className == 'cat_Products') {
-			    $form->setField('proto', "removeAndRefreshForm={$refreshFields}");
+            	$remFields = $form->getFieldParam('proto', 'removeAndRefreshForm') . "|" . $refreshFields;
+			    $form->setField('proto', "removeAndRefreshForm={$remFields}");
             }
 		}
 	}

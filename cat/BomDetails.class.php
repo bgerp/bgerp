@@ -449,7 +449,7 @@ class cat_BomDetails extends doc_Detail
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			$requiredRoles = 'no_one';
+    			//$requiredRoles = 'no_one';
     		}
     	}
     }
