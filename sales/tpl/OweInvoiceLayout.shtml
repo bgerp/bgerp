@@ -1,0 +1,21 @@
+<h1>[#TITLE#]</h1>
+[#FORM#]
+
+<div>
+    <!--ET_BEGIN contragent-->
+       <span>|Клиент|*: <b>[#contragent#]</b></span>
+    <!--ET_END contragent-->
+    <br>
+    <!--ET_BEGIN eic-->
+       <span>|ЗДДС № / EIC|*: <b>[#eic#]</b></span>
+    <!--ET_END eic-->
+
+</div>
+<br>
+[#PAGER#]
+<div class='overflow-scroll'>
+   [#CONTENT#]
+    
+</div>
+[#PAGER#]
+<div style='clear: both;'></div>
