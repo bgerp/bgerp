@@ -1283,7 +1283,7 @@ class cat_Products extends embed_Manager {
     	$rec = self::fetchRec($id);
     	 
     	// Какво е к-то от последната активна рецепта
-    	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return cat_Boms::fetch("#productId = {$rec->id} AND #state != 'rejected'");
     }
     
     
@@ -1845,22 +1845,23 @@ class cat_Products extends embed_Manager {
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
-    			
+    			if($code !== ''){
+    				$obj->code = $code . "." . $obj->code;
+    			}
+    		
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
     			$obj->type = $dRec->type;
     			$obj->level = $level;
+    			$obj->titleClass = 'product-component-title';
     			
     			// Ако показваме описанието, показваме го
     			if($dRec->type != 'stage'){
-    				$obj->titleClass = 'product-component-title';
     				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
     				 
     				$obj->components = array();
     				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
-    			} else {
-    				$obj->titleClass = 'product-component-stage';
     			}
     		
     			$res[] = $obj;
