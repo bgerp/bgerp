@@ -212,7 +212,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = '';
+    var $defClasses = 'sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl';
     
     
 	/**
