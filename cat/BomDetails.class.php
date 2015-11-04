@@ -407,7 +407,7 @@ class cat_BomDetails extends doc_Detail
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	
     	if($rec->type == 'stage'){
-    		$row->ROW_ATTR['style'] = 'background-color:#DFDFDF';
+    		$row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
     		$row->ROW_ATTR['title'] = tr('Eтап');
     	} else {
     		$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
@@ -416,18 +416,23 @@ class cat_BomDetails extends doc_Detail
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		$extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
+    		
     		if($mvc->haveRightFor('edit', $rec)){
     			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
     			if(count($convertableOptions)){
     				$link = ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
-    				$row->resourceId .= "<span style='float:right'>{$link}</span>";
+    				$extraBtnTpl->append($link, 'BTN');
     			}
     		}
     		
+    		// Може ли да се разпъне реда
 	    	if($mvc->haveRightFor('expand', $rec)){
 	    		$link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle-expand.png,title=Направи етап');
-	    		$row->resourceId .= "<span style='float:right'>{$link}</span>";
+	    		$extraBtnTpl->append($link, 'BTN');
 	    	}
+	    	
+	    	$row->resourceId .= $extraBtnTpl;
     	}
     	
     	// Генерираме кода според позицията на артикула и етапите

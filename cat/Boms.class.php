@@ -901,23 +901,18 @@ class cat_Boms extends core_Master
     		$nRec->threadId  = $toProductRec->threadId;
     		$nRec->productId = $toProductRec->id;
     		$nRec->originId  = $toProductRec->containerId;
-    		$nRec->state     = 'active';
+    		$nRec->state     = 'draft';
     		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
     			unset($nRec->{$fld});
     		}
     		
-    		//$nRec->id = 157;
-    		//cat_BomDetails::delete("#bomId = {$nRec->id}");
     		core_Users::forceSystemUser();
     		if(static::save($nRec)) {
     			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
-    			
     		} else {
     			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
     		}
     		core_Users::cancelSystemUser();
-    		
-    		//cat_BomDetails::addProductComponents($activeBom->productId, $nRec->id, NULL);
     	}
     }
 }
