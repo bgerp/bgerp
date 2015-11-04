@@ -25,49 +25,49 @@ class cat_Boms extends core_Master
    /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Технологични рецепти";
+    public $title = "Технологични рецепти";
     
    
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
+    public $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'productId,notes';
+    public $searchFields = 'productId,notes';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'cat_BomDetails';
+    public $details = 'cat_BomDetails';
     
     
     /**
@@ -86,67 +86,67 @@ class cat_Boms extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Технологична рецепта';
+    public $singleTitle = 'Технологична рецепта';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/article.png';
+    public $singleIcon = 'img/16/article.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Bom";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'cat,ceo';
+    public $abbr = "Bom";
     
     
     /**
      * Кой може да пише?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cat,ceo';
+    public $canWrite = 'cat,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cat,ceo';
+    public $canReject = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,cat';
+    public $canList = 'ceo,cat';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,cat';
+    public $canSingle = 'ceo,cat';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
     
     
     /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**

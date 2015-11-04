@@ -62,7 +62,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $singleTitle = 'Детайл на Технологична рецепта';
+    var $singleTitle = 'Детайл на технологична рецепта';
     
     
     /**
@@ -484,7 +484,7 @@ class cat_BomDetails extends doc_Detail
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			//$requiredRoles = 'no_one';
+    			$requiredRoles = 'no_one';
     		}
     	}
     	
@@ -526,10 +526,6 @@ class cat_BomDetails extends doc_Detail
     	// Подреждаме детайлите
     	static::orderBomDetails($data->recs, $outArr);
     	$data->recs = $outArr;
-    	
-    	if($data->masterData->rec->state != 'draft'){
-    		//unset($data->listFields['tools']);
-    	}
     }
     
     
