@@ -1777,7 +1777,7 @@ class cat_Products extends embed_Manager {
     					 'componentCode'        => $obj->code,
     					 'componentStage'       => $obj->stageName,
     					 'componentQuantity'    => $obj->quantity,
-    					 'liClass'				=> $obj->liClass,
+    					 'level'				=> $obj->level,
     					 'componentMeasureId'   => $obj->measureId);
     		
     		if($showDescription === FALSE){
@@ -1849,10 +1849,7 @@ class cat_Products extends embed_Manager {
     			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
     			$obj->type = $dRec->type;
-    			
-    			if($level == 1){
-    				$obj->liClass = 'product-component-first-level';
-    			}
+    			$obj->level = $level;
     			
     			// Ако показваме описанието, показваме го
     			if($dRec->type != 'stage'){
