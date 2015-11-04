@@ -439,7 +439,7 @@ class cat_BomDetails extends doc_Detail
     	$codePath = $mvc->getProductPath($rec, TRUE);
     	$position = implode('.', $codePath);
     	$position = cls::get('type_Varchar')->toVerbal($position);
-    	$row->position = "<span style='float:left;font-weight:bold'>{$position}</span>";
+    	$row->position = "<span>{$position}</span>";
     }
     
     
