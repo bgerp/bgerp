@@ -3833,6 +3833,9 @@ only screen and (max-width: 320px) {
   .no-print {
     display: none; }
 
+  .sidemenu {
+    display: none; }
+
   .blankImage img,
   .qrcode img {
     height: auto; }
