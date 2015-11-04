@@ -200,7 +200,23 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getParams($id, $name = NULL)
 	{
-		return cat_products_Params::fetchParamValue($id, $name);
+		if(isset($name)){
+			
+			return cat_products_Params::fetchParamValue($id, $name);
+		}
+		
+		// Ако не искаме точен параметър връщаме всичките параметри за артикула
+		$foundParams = array();
+		$pQuery = cat_products_Params::getQuery();
+		$pQuery->where("#productId = {$id}");
+		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
+		while($pRec = $pQuery->fetch()){
+			$name = plg_Search::normalizeText($pRec->name);
+			$name = str_replace(' ', '_', $name);
+			$foundParams[$name] = $pRec->paramValue;
+		}
+		
+		return $foundParams;
 	}
 	
 	
