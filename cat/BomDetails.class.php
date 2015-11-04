@@ -130,7 +130,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	
-    	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter');
+    	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество,smartCenter');
@@ -439,7 +439,7 @@ class cat_BomDetails extends doc_Detail
     	$codePath = $mvc->getProductPath($rec, TRUE);
     	$position = implode('.', $codePath);
     	$position = cls::get('type_Varchar')->toVerbal($position);
-    	$row->position = "<span>{$position}</span>";
+    	$row->position = "<b>{$position}</b>";
     }
     
     

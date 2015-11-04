@@ -1761,7 +1761,6 @@ class cat_Products extends embed_Manager {
     	$block = $compTpl->getBlock('COMP');
     	foreach ($components as $obj){
     		$bTpl = clone $block;
-    		if($obj->code === '0') unset($obj->code);
     		
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -1845,6 +1844,7 @@ class cat_Products extends embed_Manager {
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
+    			
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
