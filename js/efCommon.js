@@ -2059,8 +2059,8 @@ function smartCenter() {
         	$("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
-        $("span.maxwidth").css('display', "block");
-        $("span.maxwidth").css('margin', "0 auto");
+        $("span.maxwidth:not('.notcentered')").css('display', "block");
+        $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
         
 }
 

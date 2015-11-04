@@ -1,21 +1,19 @@
 <div class='component-title'>|Включва|*:</div>
 <div class='product-component-holder'>
-	<ul class='product-component-list'>
+	<div class='product-component-list'>
 	<!--ET_BEGIN COMP-->
 	[#COMP#]
-		<li>
-			<div class='[#titleClass#]'>[#componentCode#] <b>[#componentTitle#]</b>: [#componentQuantity#] [#componentMeasureId#]</div>
-			<!--ET_BEGIN componentDescription-->
-			<div class='product-component-description'>
-			[#componentDescription#]
-			</div>
-			<!--ET_END componentDescription-->
-			<!--ET_BEGIN componentComponents-->
-			<div class='product-component-components'>
-			[#componentComponents#]
-			</div>
-			<!--ET_END componentComponents-->
-		</li>
+		<div class='[#titleClass#] level[#level#]'><span class='componentCode maxwidth notcentered' data-col = 'level[#level#]'>[#componentCode#]</span> <span class=''>[#componentTitle#]</span>: [#componentQuantity#] [#componentMeasureId#]</div>
+		<!--ET_BEGIN componentDescription-->
+		<div class='product-component-description'>
+		[#componentDescription#]
+		</div>
+		<!--ET_END componentDescription-->
+		<!--ET_BEGIN componentComponents-->
+		<div class='product-component-components'>
+		[#componentComponents#]
+		</div>
+		<!--ET_END componentComponents-->
 	<!--ET_END COMP-->
-	</ul>
+	</div>
 </div>

@@ -593,18 +593,10 @@ div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
 
-.product-component-list {
-  margin: 0;
-  list-style: disc;
-  padding: 4px 0 0px 25px;
-  border-left: 1px solid #cccccc; }
-
 .product-component-title {
-  margin: 0px 0 3px; }
-
-.product-component-holder {
-  padding-left: 0px;
-  margin-left: 20px; }
+  margin: 5px 0; }
+  .product-component-title .prodTitle {
+    font-weight: bold; }
 
 .product-component-stage {
   background-color: #eeeeee;
@@ -617,6 +609,17 @@ div.productImage {
 .component-title {
   padding: 5px 0;
   font-style: italic; }
+
+.componentCode {
+  margin: 0 5px;
+  display: inline-block; }
+
+.product-component-list .level1 {
+  font-weight: bold;
+  margin: 5px 0; }
+
+.product-component-stage .componentCode {
+  margin-left: 0; }
 
 .display-table .product-component-holder {
   margin-left: 10px; }
