@@ -611,15 +611,18 @@ div.productImage {
   font-style: italic; }
 
 .componentCode {
-  margin: 0 5px;
+  margin: 0 10px 0 0;
   display: inline-block; }
 
 .product-component-list .level1 {
   font-weight: bold;
   margin: 7px 0 3px; }
 
-.product-component-stage .componentCode {
-  margin-left: 0; }
+.product-component-list .level3 {
+  font-size: 0.9em; }
+
+.product-component-list .level3 {
+  font-size: 0.8em; }
 
 .display-table .product-component-holder {
   margin-left: 10px; }

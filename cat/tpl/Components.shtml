@@ -1,19 +1,27 @@
 <div class='component-title'>|Включва|*:</div>
 <div class='product-component-holder'>
-	<div class='product-component-list'>
-	<!--ET_BEGIN COMP-->
-	[#COMP#]
-		<div class='[#titleClass#] level[#level#]'><span class='componentCode maxwidth notcentered' data-col = 'level[#level#]'>[#componentCode#].</span> <span>[#componentTitle#]</span>: [#componentQuantity#] [#componentMeasureId#]</div>
-		<!--ET_BEGIN componentDescription-->
-		<div class='product-component-description'>
-		[#componentDescription#]
-		</div>
-		<!--ET_END componentDescription-->
-		<!--ET_BEGIN componentComponents-->
-		<div class='product-component-components'>
-		[#componentComponents#]
-		</div>
-		<!--ET_END componentComponents-->
-	<!--ET_END COMP-->
-	</div>
+    <table class='product-component-list' style='width: 100%'>
+    <!--ET_BEGIN COMP-->
+    [#COMP#]
+       <tr>
+        <td><div class='[#titleClass#] level[#level#]'><span class='componentCode maxwidth notcentered' data-col = 'level'>[#componentCode#]</span> <span>[#componentTitle#]</span></div></td>
+        <td><span class=' maxwidth notcentered aright' data-col = 'measure'> [#componentQuantity#]</span></td>
+        <td> [#componentMeasureId#]</td>
+        </tr>
+        <!--ET_BEGIN componentDescription-->
+        <tr>
+        <td colspan="3" class='product-component-description'>
+        [#componentDescription#]
+        </td>
+        </tr>
+        <!--ET_END componentDescription-->
+        <!--ET_BEGIN componentComponents-->
+        <tr>
+        <td colspan="3" class='product-component-components'>
+        [#componentComponents#]
+        </td>
+        </tr>
+        <!--ET_END componentComponents-->
+    <!--ET_END COMP-->
+    </table>
 </div>
