@@ -72,6 +72,20 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
+		$driverFields = array_keys($Embedder->getDriverFields($Driver));
+		
+		$driverRefreshedFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm');
+		$driverRefreshedFields = explode('|', $driverRefreshedFields);
+		
+		$refreshFieldsDriver = array_unique(array_merge($driverFields, $driverRefreshedFields));
+		$driverRefreshFields = implode('|', $refreshFieldsDriver);
+		
+		unset($refreshFieldsDriver[array_search('proto', $refreshFieldsDriver)]);
+		$protoRefreshFields = implode('|', $refreshFieldsDriver);
+		
+		// Добавяме при смяна на драйвева или на прототип полетата от драйвера да се рефрешват и те
+		$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$driverRefreshFields}");
+		$form->setField('proto', "removeAndRefreshForm={$protoRefreshFields}");
 		
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
