@@ -1803,7 +1803,7 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    	//cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
     }
     
     
