@@ -60,6 +60,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Заглавие
+     */
+    var $singleTitle = 'Детайл на Технологична рецепта';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'ceo,cat';
@@ -75,6 +81,12 @@ class cat_BomDetails extends doc_Detail
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,cat';
+    
+    
+    /**
+     * Кой има право да разгъва?
+     */
+    var $canExpand = 'ceo,cat';
     
     
     /**
@@ -156,14 +168,8 @@ class cat_BomDetails extends doc_Detail
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
-    	if($rec->type != 'stage'){
-    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
-    		$products = cat_Products::getByProperty($metas);
-    	} else {
-    		
-    		// При добавяне на етап да се избират само Инстантни (производими, нескладируеми) артикули
-    		$products = cat_Products::getByProperty('canConvert,canManifacture', 'canStore');
-    	}
+    	$metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
+    	$products = cat_Products::getByProperty($metas);
     	
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
@@ -417,14 +423,38 @@ class cat_BomDetails extends doc_Detail
     				$row->resourceId .= "<span style='float:right'>{$link}</span>";
     			}
     		}
+    		
+	    	if($mvc->haveRightFor('expand', $rec)){
+	    		$link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle-expand.png,title=Направи етап');
+	    		$row->resourceId .= "<span style='float:right'>{$link}</span>";
+	    	}
     	}
     	
     	// Генерираме кода според позицията на артикула и етапите
     	$codePath = $mvc->getProductPath($rec, TRUE);
     	$position = implode('.', $codePath);
     	$position = cls::get('type_Varchar')->toVerbal($position);
-    	
     	$row->position = "<span style='float:left;font-weight:bold'>{$position}</span>";
+    }
+    
+    
+    /**
+     * Екшън за разпъване на материал като етап с подетапи
+     */
+    function act_Expand()
+    {
+    	$this->requireRightFor('expand');
+    	expect($id = Request::get('id', int));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('expand', $rec);
+    	
+    	$rec->type = 'stage';
+    	$this->save($rec, 'type');
+    	cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
+    	$title = cat_Products::getTitleById($rec->resourceId);
+    	$msg = tr("|*{$title} |вече е етап|*");
+    	
+    	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
     }
     
     
@@ -450,6 +480,32 @@ class cat_BomDetails extends doc_Detail
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
     			//$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// Можели записа да бъде разширен
+    	if($action == 'expand' && isset($rec)){
+    		
+    		// Само материал може да се разпъва
+    		if($rec->type != 'input'){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			// Трябва рецептата да е чернова
+    			$masterState = cat_Boms::fetchField($rec->bomId, 'state');
+    			if($masterState != 'active'){ //@TODO да е чернова
+    				$requiredRoles = 'no_one';
+    			} else {
+    				 
+    				// Артикула трябва да е производим и да има активна рецепта
+    				$canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
+    				if($canManifacture != 'yes'){
+    					$requiredRoles = 'no_one';
+    				} else {
+    					if(!cat_Products::getLastActiveBom($rec->resourceId)){
+    						$requiredRoles = 'no_one';
+    					}
+    				}
+    			}
     		}
     	}
     }
@@ -561,7 +617,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $componentId - на кой ред в рецептата е артикула
      * @return void
      */
-    public static function addProductComponents($productId, $toBomId, $componentId, $recursive = FALSE)
+    public static function addProductComponents($productId, $toBomId, $componentId)
     {
     	$me = cls::get(get_called_class());
     	
@@ -574,8 +630,11 @@ class cat_BomDetails extends doc_Detail
     		$cu = core_Users::getCurrent();
     		
     		// Копираме всеки запис
+    		$map = array();
     		if(is_array($outArr)){
     			foreach ($outArr as $dRec){
+    				$oldId = $dRec->id;
+    				
     				unset($dRec->id);
     				$dRec->modidiedOn = dt::now();
     				$dRec->modifiedBy = $cu;
@@ -583,29 +642,12 @@ class cat_BomDetails extends doc_Detail
     				if(empty($dRec->parentId)){
     					$dRec->parentId = $componentId;
     				} else {
-    					$dRec->parentId = self::getNewParent($activeBom->id, $dRec->parentId, $toBomId);
-    				}
-    			
-    				// Ако ще добавяме рекурсивно, проверяваме дали записа е материал и има компоненти
-    				$addComponents = FALSE;
-    				if($recursive){
-    					
-    					// Ако да правим го етап
-    					if($dRec->type == 'input'){
-    						if($dBomId = cat_Products::getLastActiveBom($dRec->resourceId)){
-    							$dRec->type = 'stage';
-    							$addComponents = TRUE;
-    						}
-    					}
+    					$dRec->parentId = $map[$dRec->parentId];
     				}
     				
     				// Добавяме записа
     				$me->save_($dRec);
-    				
-    				// Ако ще добавим компонентите на материала, викаме рекурсивно
-    				if($addComponents){
-    					static::addProductComponents($dRec->resourceId, $toBomId, $dRec->id, $recursive);
-    				}
+    				$map[$oldId] = $dRec->id;
     			}
     		}
     	}
@@ -666,42 +708,16 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Преди клонирането на детайлите
-     */
-    public static function on_BeforeCloneDetails($mvc, &$details)
-    {
-    	// Подсигуряваме се че са подредени
-    	static::orderBomDetails($details, $outArr);
-    	$details = $outArr;
-    }
-    
-    
-    /**
-     * Намира на кое ид от нова бележка съответства бащата на ред от стара рецепта
+     * Клонира детайлите на рецептата
      * 
-     * @param int $oldBomId
-     * @param int $parentId
-     * @param int $newBomId
-     * @return int
+     * @param int $fromBomId
+     * @param int $toBomId
+     * @return void
      */
-    private static function getNewParent($oldBomId, $parentId, $newBomId)
+    public function cloneDetails($fromBomId, $toBomId)
     {
-    	$parentResource = self::fetchField("#bomId = {$oldBomId} AND #id = {$parentId}", 'resourceId');
-    	$newParentId = self::fetchField("#bomId = {$newBomId} AND #resourceId = {$parentResource}", 'id');
-    
-    	return $newParentId;
-    }
-    
-    
-    /**
-     * Преди запис на клониран детайл
-     */
-    public static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
-    {
-    	// Ако има баща подсигуряваме се че ще го заменим с клонирания му запис
-    	if(isset($rec->parentId)){
-    		$rec->parentId = self::getNewParent($oldRec->bomId, $rec->parentId, $rec->bomId);
-    	}
+    	$fromBomRec = cat_Boms::fetchRec($fromBomId);
+    	cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, NULL);
     }
     
     
