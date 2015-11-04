@@ -834,7 +834,11 @@ class core_Form extends core_FieldSet
                         $fsArr[$fsId] .= $name . ' ';
                     }
                 }
-               
+                
+                $caption = core_ET::escape($caption);
+                $fUnit = tr($field->unit);
+                $fUnit = core_ET::escape($fUnit);
+                
                 if (Mode::is('screenMode', 'narrow')) {
 
                     if ($emptyRow > 0) {
@@ -845,7 +849,7 @@ class core_Form extends core_FieldSet
                         $tpl->append(new ET("\n<tr{$fsHead}><td>{$headerRow}</td></tr>"), 'FIELDS');
                     }
                     
-                    $unit = $field->unit ? (', ' . tr($field->unit)) : '';
+                    $unit = $fUnit ? (', ' . $fUnit) : '';
 
                     $fld = new ET("\n<tr{$fsRow}><td nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
@@ -858,7 +862,7 @@ class core_Form extends core_FieldSet
                         $tpl->append(new ET("\n<tr{$fsHead}><td colspan=2>{$headerRow}</td></tr>"), 'FIELDS');
                     }
                     
-                    $unit = $field->unit ? ('&nbsp;' . tr($field->unit)) : '';
+                    $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
 
                     $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement'>[#{$field->name}#]{$unit}</td></tr>");
                 }

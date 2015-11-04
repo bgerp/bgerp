@@ -1822,7 +1822,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме
-            static::save($rec);
+            static::save($rec, 'dialStatus');
             
             // Добавяме нотификация
             static::addNotification($rec);

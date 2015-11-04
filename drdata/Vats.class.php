@@ -291,7 +291,7 @@ class drdata_Vats extends core_Manager
         foreach ($this->updateOnShutdown as $rec) {
             list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec);
+            $this->save($rec, 'status, info, status');
         }
     }
     
