@@ -3,7 +3,7 @@
 	<div class='product-component-list'>
 	<!--ET_BEGIN COMP-->
 	[#COMP#]
-		<div class='[#titleClass#] level[#level#]'><span class='componentCode maxwidth notcentered' data-col = 'level[#level#]'>[#componentCode#]</span> <span>[#componentTitle#]</span>: [#componentQuantity#] [#componentMeasureId#]</div>
+		<div class='[#titleClass#] level[#level#]'><span class='componentCode maxwidth notcentered' data-col = 'level[#level#]'>[#componentCode#].</span> <span>[#componentTitle#]</span>: [#componentQuantity#] [#componentMeasureId#]</div>
 		<!--ET_BEGIN componentDescription-->
 		<div class='product-component-description'>
 		[#componentDescription#]
