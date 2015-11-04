@@ -205,7 +205,7 @@ class cat_Boms extends core_Master
     	
     	// При създаване на нова рецепта
     	if(empty($form->rec->id)){
-    		if($expenses = cat_Products::getParamValue($form->rec->productId, 'expenses')){
+    		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
     		}
     		

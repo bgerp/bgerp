@@ -191,13 +191,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща стойността на параметъра с това име
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
 	 * 
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
 	 * @param string $id   - ид на записа
-	 * @param string $name - име на параметъра
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParamValue($id, $name)
+	public function getParams($id, $name = NULL)
 	{
 		return cat_products_Params::fetchParamValue($id, $name);
 	}

@@ -430,12 +430,12 @@ class acc_AllocatedExpenses extends core_Master
     				$products[$p->productId]->inStores = $p->inStores;
     			}
     			
-    			$transportWeight = cat_Products::getParamValue($p->productId, 'transportWeight');
+    			$transportWeight = cat_Products::getParams($p->productId, 'transportWeight');
     			if(!empty($transportWeight)){
     				$products[$p->productId]->transportWeight = $transportWeight;
     			}
     			
-    			$transportVolume = cat_Products::getParamValue($p->productId, 'transportVolume');
+    			$transportVolume = cat_Products::getParams($p->productId, 'transportVolume');
     			if(!empty($transportVolume)){
     				$products[$p->productId]->transportVolume = $transportVolume;
     			}

@@ -1015,20 +1015,21 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща стойността на параметъра с това име
-     *
-     * @param string $id   - ид на записа
-     * @param string $name - име на параметъра
-     * @return mixed - стойност или FALSE ако няма
-     */
-    public static function getParamValue($id, $name)
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
+	 */
+    public static function getParams($id, $name = NULL)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
-    		
-    		return $Driver->getParamValue($id, $name);
-    	}
     	
+    		return $Driver->getParams($id, $name);
+    	}
+    	 
     	// Ако няма връщаме FALSE
     	return FALSE;
     }
@@ -1049,7 +1050,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$weight){
-    		$weight = static::getParamValue($productId, 'transportWeight');
+    		$weight = static::getParams($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1071,7 +1072,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$volume){
-    		$volume = static::getParamValue($productId, 'transportVolume');
+    		$volume = static::getParams($productId, 'transportVolume');
     	}
     	
     	return $volume;

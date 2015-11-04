@@ -156,13 +156,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 
 	/**
-	 * Връща стойността на параметъра с това име
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
 	 * @param string $id   - ид на записа
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParamValue($name, $id)
+	public function getParams($id, $name = NULL)
 	{
 		return FALSE;
 	}

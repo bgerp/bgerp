@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
     	$form->setField('quantity', "unit={$uomName}");
     	$form->setSuggestions('tolerance', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
     	
-		if($tolerance = cat_Products::getParamValue($rec->productId, 'tolerance')){
+		if($tolerance = cat_Products::getParams($rec->productId, 'tolerance')){
     		$form->setDefault('tolerance', $tolerance);
     	}
     	
@@ -320,7 +320,7 @@ class planning_Jobs extends core_Master
     		}
     		
     		// Колко е еденичното тегло
-    		if($weight = cat_Products::getParamValue($rec->productId, 'weight')){
+    		if($weight = cat_Products::getParams($rec->productId, 'weight')){
     			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
