@@ -386,9 +386,9 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Добавя полета, по които ще се сортира. Новите са с приоритет
+     * Добавя полета, по които ще се сортира. Приоритетните се добавят отпред
      */
-    function orderBy($fields, $direction = '')
+    function orderBy($fields, $direction = '', $priority = FALSE)
     {
         $fields = arr::make($fields);
         
@@ -422,7 +422,11 @@ class core_Query extends core_FieldSet
                 }
             }
             
-            $this->orderBy[] = $order;
+            if($priority) {
+                array_unshift($this->orderBy, $order);
+            } else {
+                $this->orderBy[] = $order;
+            }
         }
         
         return $this;

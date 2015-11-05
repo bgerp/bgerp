@@ -147,7 +147,7 @@ class blogm_Articles extends core_Master {
         }
 
         if($q = Request::get('q')) {
-            $row->body = plg_Search::highlight($row->body, $q);
+            $row->body = plg_Search::highlight($row->body, $q, 'searchContent');
         }
 
         if($fields['-browse'] || $fields['-article']) {
@@ -640,6 +640,7 @@ class blogm_Articles extends core_Master {
 
         if($data->q) {
         	plg_Search::applySearch($data->q, $data->query);
+            vislog_History::add("Търсене в блога: {$q}");
         }
         
         if($data->archive) {  
@@ -666,7 +667,10 @@ class blogm_Articles extends core_Master {
 
             $row = self::recToVerbal($rec, $fields);
  
-            $url = self::getUrl($rec);
+            $url = self::getUrl($rec);  
+  
+            $url['q'] = $data->q;
+   
             $row->title = ht::createLink($row->title, $url);
 
             $txt = explode("\n", $rec->body, 2);
@@ -822,7 +826,7 @@ class blogm_Articles extends core_Master {
      */
     function prepareSearch_(&$data)
     {
-		$form = cls::get('core_Form');
+        $form = cls::get('core_Form', array('method' => 'GET'));
  		$data->searchForm = $form;
 	}
 	
@@ -837,6 +841,7 @@ class blogm_Articles extends core_Master {
         $data->searchForm->layout->replace(toUrl(array('blogm_Articles' )), 'ACTION');
 		
         $data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
+        $data->searchForm->layout->replace($data->q, 'VALUE');
 
 		return $data->searchForm->renderHtml();
 	}	

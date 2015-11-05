@@ -29,7 +29,7 @@ class plg_Search extends core_Plugin
     {
         // Добавя поле за ключовите думи към обекта
         if (!isset($mvc->fields['searchKeywords'])) {
-            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
+            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none,single=none,input=none');
         }
         
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
@@ -280,9 +280,9 @@ class plg_Search extends core_Plugin
     /**
      * Maркира текста, отговарящ на заявката
      */
-    static function highlight($text, $query)
+    static function highlight($text, $query, $class = 'document')
     {  
-    	jquery_Jquery::run($text, "\n $('.document').highlight('{$query}');", TRUE);
+    	jquery_Jquery::run($text, "\n $('.{$class}').highlight('{$query}');", TRUE);
     	
         return $text; 
     }

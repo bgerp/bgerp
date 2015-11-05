@@ -68,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,likeProductId=Влагане като';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като,conversionRate=Отношение';
     
     
     /**
@@ -89,12 +89,11 @@ class planning_ObjectResources extends core_Manager
     function description()
     {
     	$this->FLD('objectId', 'key(mvc=cat_Products,select=name)', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като,mandatory');
+    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Влагане като,mandatory,silent');
     	
-    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none');
+    	$this->FLD('resourceId', 'int', 'caption=Ресурс,input=none');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
-    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,input=none');
-    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност,input=none');
+    	$this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('objectId');
@@ -121,6 +120,7 @@ class planning_ObjectResources extends core_Manager
     	// Добавяме възможностите за избор на заместващи артикули за влагане
     	if(count($products)){
     		$products = array('' => '') + $products;
+    		
     		$form->setOptions('likeProductId', $products);
     	} else {
     		$form->setReadOnly('likeProductId');
@@ -143,52 +143,10 @@ class planning_ObjectResources extends core_Manager
     	
     	// Намираме всички артикули, които са били влагане в производството от документи
     	$consumedProducts = array();
-    	$cQuery = planning_ConsumptionNoteDetails::getQuery();
-    	$cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalKey=noteId');
-    	$cQuery->where("#state = 'active'");
-    	$cQuery->show('productId');
-    	while ($cRec = $cQuery->fetch()){
-    		$consumedProducts[$cRec->productId] = $cRec->productId;
-    	}
-    	 
-    	$dQuery = planning_DirectProductNoteDetails::getQuery();
-    	$dQuery->EXT('state', 'planning_DirectProductionNote', 'externalKey=noteId');
-    	$dQuery->where("#state = 'active'");
-    	$dQuery->where("#type = 'input'");
-    	while ($dRec = $dQuery->fetch()){
-    		$consumedProducts[$dRec->productId] = $dRec->productId;
-    	}
-    	 
-    	// Не може да се избере текущия артикул
+    	$consumedProducts = cat_Products::getByProperty('canConvert');
     	unset($consumedProducts[$rec->objectId]);
-    	 
-    	// Намираме всички вложими артикули
-    	$products = cat_Products::getByproperty('canConvert');
     	
-    	if(count($products)){
-    		foreach ($products as $id => $p){
-    			 
-    			if(!is_object($p)){
-    	
-    				// Ако артикула е вложим, но не е участвал в документ - махаме го
-    				if(empty($consumedProducts[$id])){
-    					unset($products[$id]);
-    				} else {
-    						
-    					// Ако мярката на артикула е от друг тип - също го мяхаме
-    					// Артикул може да бъде заместван само с артикул с подобна мярка
-    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
-    					if(empty($sameTypeMeasures[$mId])){
-    						unset($products[$id]);
-    					}
-    				}
-    			} else {
-    				unset($products[$id]);
-    			}
-    		}
-    	}
-    	
-    	return $products;
+    	return $consumedProducts;
     }
     
     
@@ -313,6 +271,10 @@ class planning_ObjectResources extends core_Manager
     	if(isset($rec->likeProductId)){
     		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
     	}
+    	
+    	if(!$rec->conversionRate){
+    		$row->conversionRate = 1;
+    	}
     }
     
     
@@ -360,5 +322,60 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	return $selfValue;
+    }
+    
+    
+    /**
+     * Връща информацията даден артикул като
+     * кой може да се вложи и в какво количество
+     * 
+     * @param int $productId - ид на артикул
+     * @param sdtClass
+     * 			o productId - ид на артикула, в който ще се вложи (ако няма такъв се влага в себе си)
+     * 			o quantity  - количеството
+     */
+    public static function getConvertedInfo($productId, $quantity)
+    {
+    	$convertProductId = $productId;
+    	$convertQuantity = $quantity;
+    	
+    	if($info = planning_ObjectResources::fetch("#objectId = {$productId}")){
+    		$convertProductId = $info->likeProductId;
+    		
+    		if(empty($info->conversionRate)){
+    			$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    			$lProdMeasureId = cat_Products::getProductInfo($info->likeProductId)->productRec->measureId;
+    			if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
+    				$convertQuantity = $convAmount;
+    			}
+    		} else {
+    			$convertQuantity = $info->conversionRate * $convertQuantity;
+    		}
+    	}
+    	
+    	return (object)array('productId' => $convertProductId, 'quantity' => $convertQuantity);
+    }
+    
+    
+    /**
+     * Връща масив със всички артикули, които могат да се влагат като друг артикул
+     * 
+     * @param int $productId - ид на продукта, като който ще се влагат
+     * @return array - намерените артикули
+     */
+    public static function fetchConvertableProducts($productId)
+    {
+    	$res = array();
+    	
+    	$query = self::getQuery();
+    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL");
+    	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
+    	$query->where("#state = 'active'");
+    	$query->show("objectId");
+    	while($rec = $query->fetch()){
+    		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
+    	}
+    	
+    	return $res;
     }
 }

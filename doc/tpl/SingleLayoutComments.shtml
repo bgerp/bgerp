@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <!--ET_BEGIN body--> 
-    <div style='padding:10px;'>
+    <div style='padding:6px 10px 10px;'>
         <div>[#body#]</div>
     </div>
     <!--ET_END body-->

@@ -32,7 +32,7 @@ class bank_PaymentOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_DocumentSummary, plg_Search,
-         plg_Sorting,doc_DocumentPlg, plg_Printing,doc_plg_MultiPrint, bgerp_plg_Blank, doc_ActivatePlg, doc_EmailCreatePlg';
+         plg_Sorting,doc_DocumentPlg, plg_Printing,doc_plg_MultiPrint, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
@@ -310,7 +310,7 @@ class bank_PaymentOrders extends core_Master
     public static function canAddToThread($threadId)
     {
         // Ако няма ориджин в урл-то, документа не може да се добави към нишката
-        $originId = Request::get('originId');
+        $originId = Request::get('originId', 'int');
         
         if(empty($originId)) return FALSE;
         

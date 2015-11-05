@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -813,7 +813,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			$row->$fld = ' ';
 			
-			if(!Mode::is('text', 'xhtml')){
+			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
 					$row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId);
 				}
@@ -895,6 +895,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
     	$Detail = $mvc->mainDetail;
     	
+    	$oldPaid = $rec->amountPaid;
+    	$oldDelivered = $rec->amountDelivered;
     	// Преизчисляваме общо платената и общо експедираната сума
     	$rec->amountPaid      = $aggregateDealInfo->get('amountPaid');
     	$rec->amountDelivered = $aggregateDealInfo->get('deliveryAmount');
@@ -924,28 +926,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
     	
-    	$dQuery = $mvc->$Detail->getQuery();
-    	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
-    	
-    	// Намираме всички експедирани продукти, и обновяваме на договорените колко са експедирани
-    	$shippedProducts = $aggregateDealInfo->get('shippedProducts');
-    	while($product = $dQuery->fetch()){
-    		$delivered = 0;
-    		if(count($shippedProducts)){
-    			foreach ($shippedProducts as $key => $shipped){
-    				if($product->productId == $shipped->productId){
-    					$delivered = $shipped->quantity;
-    					break;
-    				}
-    			}
-    		}
-    		
-    		$product->quantityDelivered = $delivered;
-    		$mvc->$Detail->save($product);
-    	}
+    	deals_OpenDeals::saveRec($rec, $mvc);
     }
     
-    
+   
     /**
      * Ако с тази сделка е приключена друга сделка
      */
@@ -960,7 +944,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$closedIds = array();
     	if(count($closedDeals)){
-    
+    		
     		// За всяка от тях, включително и този документ
     		foreach ($closedDeals as $doc){
     
@@ -972,48 +956,20 @@ abstract class deals_DealMaster extends deals_DealBase
     			
     			$products = (array)$dealInfo->get('products');
     			if(count($products)){
-    				foreach ($products as $p){
-    
-    					// Обединяваме множествата на договорените им продукти
-    					$index = $p->productId;
-    					$d = &$details[$index];
-    					$d = (object)$d;
-    
-    					$d->productId = $p->productId;
-    					$d->uomId     = $p->uomId;
-    					$d->quantity += $p->quantity;
-    					$d->price     = ($d->price) ? ($d->price + $p->price) / 2 : $p->price;
-    					if(!empty($d->discount) || !empty($p->discount)){
-    						$d->discount = ($d->discount) ? ($d->discount + $p->discount) / 2 : $p->discount;
-    					}
-    
-    					$info = cat_Products::getProductInfo($p->productId);
-    					$p->quantityInPack = ($info->packagings[$p->packagingId]) ? $info->packagings[$p->packagingId]->quantity : 1;
-    					
-    					if(empty($d->packagingId)){
-    						$d->packagingId = $p->packagingId;
-    						$d->quantityInPack = $p->quantityInPack;
-    					} else {
-    						if($p->quantityInPack < $d->quantityInPack){
-    							$d->packagingId = $p->packagingId;
-    							$d->quantityInPack = $p->quantityInPack;
-    						}
-    					}
-    				}
+    				$details[] = $products;
     			}
     		}
     	}
-    	 
-    	$Detail = $mvc->mainDetail;
-    	
+
     	// Изтриваме досегашните детайли на сделката
-    	$mvc->$Detail->delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
-    	 
-    	// Записваме новите
+    	$Detail = $mvc->mainDetail;
+    	$Detail::delete("#{$mvc->$Detail->masterKey} = {$rec->id}");
+    	
+    	$details = deals_Helper::normalizeProducts($details);
     	if(count($details)){
-    		foreach ($details as $d1){
-    			$d1->{$mvc->$Detail->masterKey} = $rec->id;
-    			$mvc->$Detail->save($d1);
+    		foreach ($details as &$det1){
+    			$det1->{$mvc->$Detail->masterKey} = $rec->id;
+    			$Detail::save($det1);
     		}
     	}
     	
@@ -1150,7 +1106,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
     	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
-    	$form->info = '<b>Контиране на извършени на момента действия</b> (опционално):';
+    	$form->info = tr('|*<b>|Контиране на извършени на момента действия|*</b> (|опционално|*):');
     	
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
@@ -1204,7 +1160,6 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Контиране на документа
     		$this->conto($id);
     		 
-    		// Записваме, че потребителя е разглеждал този списък
     		$this->logInfo("Активиране/Контиране на сделка", $id);
     		
     		// Редирект
@@ -1344,7 +1299,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     
     		try{
-    			$Class->save_($rec);
+    			$Class->save_($rec, 'paymentState');
     		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при обновяването
@@ -1662,7 +1617,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
     	$me = get_called_class();
     	$form = cls::get('core_Form');
-    	$form->title = "|Избор на чернова|* " . mb_strtolower($this->singleTitle);
+    	$form->title = "|Прехвърляне в|* " . mb_strtolower($this->singleTitle);
     	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
     	$form->setOptions('dealId', $options);
     	
@@ -1677,7 +1632,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	$quotationId = Request::get('quotationId', 'int');
     	$rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
     	
-    	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор на документа');
+    	$forceUrl = $retUrl;
+    	$forceUrl['force'] = TRUE;
+    	
+    	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
+    	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());

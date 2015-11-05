@@ -602,7 +602,7 @@ class core_Form extends core_FieldSet
                 }
             }
             
-            $fieldsLayout = $this->renderFieldsLayout($fields);
+            $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             
             
             // Създаваме input - елементите
@@ -762,7 +762,7 @@ class core_Form extends core_FieldSet
     /**
      * Подготвя шаблона за инпут-полетата
      */
-    function renderFieldsLayout($fields)
+    function renderFieldsLayout($fields, $vars)
     {
     	if ($this->fieldsLayout) return new ET($this->fieldsLayout);
         
@@ -784,6 +784,10 @@ class core_Form extends core_FieldSet
             
             $tpl = new ET('<table class="vFormField">[#FIELDS#]</table>');
             
+            $fsId = 0; $fsArr = array(); $fsRow = '';
+
+            $plusUrl = sbf("img/16/toggle1.png", "");
+            $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
             foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
@@ -794,52 +798,94 @@ class core_Form extends core_FieldSet
                 $headerRow = $space = '';
                 
                 foreach ($captionArr as $id => $c) {
-                    $caption = tr($c);
+                    $captionArr[$id] = $caption = $c = tr($c);
                     
                     // Удебеляваме имената на задължителните полета
-                    if ($field->mandatory) {
+                    if ($field->mandatory || ($id != ($captionArrCount - 1))) {
                         $caption = "<b>$caption</b>";
                     } else {
                         $caption = "$caption";
                     }
                     
                     if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
-                        $headerRow .= "<div class=\"formGroup\">{$space}$caption</div>";
+                        $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
                         $space .= "&nbsp;&nbsp;&nbsp;";
                     }
                 }
                 
                 $lastCaptionArr = $captionArr;
+
+                if($headerRow) {
+                    $fsId++;
+                    $fsRow  = " [#FS_ROW{$fsId}#]";
+                    $fsHead = " [#FS_HEAD{$fsId}#]";
+                    $headerRow .= "[#FS_IMAGE{$fsId}#]</div>";
+                } elseif($emptyRow > 0) {
+                    $fsRow  = '';
+                    $fsHead = '';
+                }
+
+                if($fsRow) {
+                    if($field->autohide == 'any' || ($field->autohide == 'autohide' && empty($vars[$name])) ) {
+                    	if(!$fsArr[$fsId]){
+                    		$fsArr[$fsId] = FALSE;
+                    	}
+                    } else {
+                        $fsArr[$fsId] .= $name . ' ';
+                    }
+                }
+                
+                $caption = core_ET::escape($caption);
+                $fUnit = tr($field->unit);
+                $fUnit = core_ET::escape($fUnit);
                 
                 if (Mode::is('screenMode', 'narrow')) {
+
                     if ($emptyRow > 0) {
                         $tpl->append("\n<tr><td></td></tr>", 'FIELDS');
                     }
-                    
+
                     if ($headerRow) {
-                        $tpl->append("\n<tr><td>$headerRow</td></tr>", 'FIELDS');
+                        $tpl->append(new ET("\n<tr{$fsHead}><td>{$headerRow}</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
-                    $fld->replace($field->unit ? (', ' . tr($field->unit)) : '', 'UNIT');
-                    $fld->replace($caption, 'CAPTION');
+                    
+                    $unit = $fUnit ? (', ' . $fUnit) : '';
+
+                    $fld = new ET("\n<tr{$fsRow}><td nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
+
                     if ($emptyRow > 0) {
-                        $tpl->append("\n<tr><td colspan=2></td></tr>", 'FIELDS');
-                    }
+                        $tpl->append("\n<tr{$fsRow}><td colspan=2></td></tr>", 'FIELDS');
+                    } 
                     
                     if ($headerRow) {
-                        $tpl->append("\n<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
+                        $tpl->append(new ET("\n<tr{$fsHead}><td colspan=2>{$headerRow}</td></tr>"), 'FIELDS');
                     }
-                    $fld = new ET("\n<tr><td class='formFieldCaption'>[#CAPTION#]:</td><td class='formElement'>[#{$field->name}#][#UNIT#]</td></tr>");
                     
-                    $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
-                    $fld->replace($caption, 'CAPTION');
+                    $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
+
+                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement'>[#{$field->name}#]{$unit}</td></tr>");
                 }
-                
-                $tpl->append($fld, 'FIELDS');
+
+                if($field->inlineTo) {
+                    $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
+                    $tpl->prepend($fld, $field->inlineTo);  
+                } else {
+                    $tpl->append($fld, 'FIELDS');
+                }
+            }
+            
+            // Заменяме състоянието на секциите
+            foreach($fsArr as $id => $state) { 
+                if(!$state) {
+                    $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
+                    $tpl->replace(" class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
+                    $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
+                } 
             }
         }
         
+
         return $tpl;
     }
     
@@ -1105,7 +1151,7 @@ class core_Form extends core_FieldSet
         // Премахваме дублиращи се съобщения
         if(is_array($this->errors)) {
             foreach($this->errors as $errRec) {
-                if($errRec->msg == $msg) {
+                if(($errRec->msg == $msg) && ($ignorable == $errRec->ignorable)) {
                     $msg = FALSE;
                 }
             }

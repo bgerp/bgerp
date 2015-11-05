@@ -48,11 +48,15 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
     	if($rec->type != 'invoice') {
     		$type = $this->class->getVerbal($rec, 'type');
     		$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
-    	
+    		
     		// Намираме оридиджана на фактурата върху която е ДИ или КИ
     		$origin = $origin->getOrigin();
-    	}
+    	} 
     	 
+    	if($origin->isInstanceOf('findeals_AdvanceReports')){
+    		$origin = $origin->getOrigin();
+    	}
+    	
     	$entries = array();
     
     	if(isset($cloneRec->vatAmount)){

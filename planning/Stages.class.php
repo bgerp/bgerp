@@ -33,7 +33,7 @@ class planning_Stages extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, planning_Wrapper, plg_Printing, plg_Sorting';
+	public $loadList = 'plg_RowTools, planning_Wrapper, plg_Printing, plg_Sorting, bgerp_plg_Blank';
 	
 	
 	/**
@@ -152,5 +152,20 @@ class planning_Stages extends core_Manager
 				$res = 'no_one';
 			}
 		}
+	}
+	
+	
+	/**
+	 * Форсиране на етап, ако няма създава нов, иначе връща съществуващия
+	 * 
+	 * @param string $name - името на етапа
+	 * @return int $id - ид-то на етапа
+	 */
+	public static function force($name)
+	{
+		$id = static::fetchField(array("#name = '[#1#]'", $name), 'id');
+		if($id) return $id;
+		
+		return static::save((object)array('name' => $name));
 	}
 }

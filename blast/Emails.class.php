@@ -384,14 +384,14 @@ class blast_Emails extends core_Master
             if ($rec->state == 'pending') {
                 if (($sec <= 0) || ($sec <= $period)) {
                     $rec->state = 'active';
-                    $this->save($rec);
+                    $this->save($rec, 'state');
                     
                     if (!($sec <= 0)) continue;
                 }
             } elseif ($rec->state == 'active') {
                 if ($sec > $period) {
                     $rec->state = 'pending';
-                    $this->save($rec);
+                    $this->save($rec, 'state');
                 } elseif ($sec) {
                     continue ;
                 }
@@ -407,7 +407,7 @@ class blast_Emails extends core_Master
             if (!$dataArr) {
                 $rec->state = 'closed';
                 $rec->progress = 1;
-                $this->save($rec);
+                $this->save($rec, 'state, progress');
                 continue;
             }
             
@@ -2113,5 +2113,24 @@ class blast_Emails extends core_Master
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите имейли', NULL, '104857600', 'user', 'user');
+    }
+    
+    
+    /**
+     * Реализация интерфейсния метод ::getUsedDocs()
+     * Отбелязва използване на документа в документа за персонализация
+     * 
+     * @param blast_Emails $mvc
+     * @param array $res
+     * @param integer $id
+     */
+    function on_AfterGetUsedDocs($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetch($id);
+        $srcClsInst = cls::get($rec->perSrcClassId);
+        if (cls::haveInterface('doc_DocumentIntf', $srcClsInst)) {
+            $cid = $srcClsInst->fetchField($rec->perSrcObjectId, 'containerId');
+            $res[$cid] = $cid;
+        }
     }
 }

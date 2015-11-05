@@ -344,6 +344,10 @@ abstract class deals_Helper
 	 */
 	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
+		if(empty($packQuantity)){
+			$packQuantity = 1;
+		}
+		
 		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
@@ -414,9 +418,7 @@ abstract class deals_Helper
 	 * @param int $id - ид на документа
 	 * @param string $productFld - името на полето в което е ид-то на артикула
 	 * 
-	 * @return арраъ $res - масив с използваните документи
-	 * 					['class'] - Инстанция на документа
-	 * 					['id'] - Ид на документа
+	 * @return array
 	 */
 	public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
 	{
@@ -428,9 +430,114 @@ abstract class deals_Helper
 		$dQuery->where("#{$Detail->masterKey} = '{$id}'");
 		$dQuery->groupBy($productFld);
 		while($dRec = $dQuery->fetch()){
-			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->{$productFld});
+		    $cid = cat_Products::fetchField($dRec->{$productFld}, 'containerId');
+			$res[$cid] = $cid;
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Проверява имали такъв запис 
+	 * 
+	 * @param core_Detail $mvc
+	 * @param int $masterId
+	 * @param int $id
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $price
+	 * @param NULL|double $discount
+	 * @param NULL|double $tolerance
+	 * @param NULL|int $term
+	 * @return FALSE|stdClass
+	 */
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL)
+	{
+		$cond = "#{$mvc->masterKey} = $masterId";
+		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
+		
+		if($mvc->getField('tolerance', FALSE)){
+			$vars['tolerance'] = $tolerance;
+		}
+		if($mvc->getField('term', FALSE)){
+			$vars['term'] = $term;
+		}
+		
+		foreach ($vars as $key => $var){
+			if(isset($var)){
+				$cond .= " AND #{$key} = {$var}";
+			} else {
+				$cond .= " AND #{$key} IS NULL";
+			}
+		}
+		
+		if($id){
+			$cond .= " AND #id != {$id}";
+		}
+		
+		return $mvc->fetch($cond);
+	}
+	
+	
+	/**
+	 * Сумиране на записи от бизнес документи по артикули
+	 * 
+	 * @param $arrays - масив от масиви със детайли на бизнес документи
+	 * @return array
+	 */
+	public static function normalizeProducts($arrays, $subtractArrs = array())
+	{
+		$combined = array();
+		$indexArr = arr::make($indexArr);
+		
+		foreach (array('arrays', 'subtractArrs') as $parameter){
+			$var = ${$parameter};
+			
+			if(is_array($var)){
+				foreach ($var as $arr){
+					if(is_array($arr)){
+						foreach ($arr as $p){
+							$index = $p->productId;
+			
+							if(!isset($combined[$index])){
+								$combined[$index] = new stdClass();
+								$combined[$index]->productId = $p->productId;
+							}
+								
+							$d = &$combined[$index];
+							$d->discount = max($d->discount, $p->discount);
+			
+							$sign = ($parameter == 'arrays') ? 1 : -1;
+							
+							//@TODO да може да е -
+							$d->quantity += $sign * $p->quantity;
+							$d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
+			
+							if(empty($d->packagingId)){
+								$d->packagingId = $p->packagingId;
+								$d->quantityInPack = $p->quantityInPack;
+							} else {
+								if($p->quantityInPack < $d->quantityInPack){
+									$d->packagingId = $p->packagingId;
+									$d->quantityInPack = $p->quantityInPack;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(count($combined)){
+			foreach ($combined as &$det){
+				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
+				if($det->price < 0){
+					$det->price = 0;
+				}
+			}
+		}
+		
+		return $combined;
 	}
 }

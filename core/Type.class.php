@@ -538,6 +538,7 @@ class core_Type extends core_BaseClass
                 }
                 $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
             }
+            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
         }
  
         // Определяме размера на най-дългия възможен стринг, като най-дългата опция

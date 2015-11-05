@@ -211,9 +211,12 @@ class marketing_Inquiries2 extends embed_Manager
 
 
     /**
-     * Преди показване на форма за добавяне/промяна
+     * Разширява формата за редакция
+     * 
+     * @param stdClass $data
+     * @return void
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    private function expandEditForm(&$data)
     {
     	$form = &$data->form;
     	$params = $data->driverParams;
@@ -221,35 +224,45 @@ class marketing_Inquiries2 extends embed_Manager
     	if(!$form->rec->innerClass){
     		$form->setField('title', 'input=hidden');
     	}
-    	
+    	 
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		$measureId = $data->Driver->getDefaultUom($params['measureId']);
+    		$measureName = $data->Driver->getDefaultUom($params['measureId']);
+    		$measureId = cat_UoM::fetchBySinonim($measureName)->id;
     		$uom = cat_UoM::getShortName($measureId);
-    		
+    	
     		if(isset($params['moq'])){
     			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($params['moq']);
     			$caption .= " <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
     		}
     	}
-    	
+    	 
     	// Добавяме полета за количество според параметрите на продукта
     	if(!isset($params['quantities'])){
     		$conf = core_Packs::getConfig('marketing');
     		$params['quantities'] = $conf->MARKETING_INQUIRY_QUANTITIES;
     	}
-    	
+    	 
     	for($i = 1; $i <= $params['quantities']; $i++){
     		if($form->getField("quantity{$i}", FALSE)){
     			$form->setField("quantity{$i}", "input,quantityField,formOrder=4{$i},unit={$uom},caption={$caption}->Количество|* {$i}");
     		} else {
     			$form->FNC("quantity{$i}", 'double', "caption={$caption}->Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
     		}
-    		
+    	
     		if(isset($params['moq'])){
     			$form->setFieldTypeParams("quantity{$i}", array('min' => $params['moq']));
     		}
     	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$mvc->expandEditForm($data);
     }
     
     
@@ -268,7 +281,7 @@ class marketing_Inquiries2 extends embed_Manager
     		foreach ($quantities as $name => $fld){
     			if(isset($form->rec->{$name})){
     				$form->rec->quantities[] = $form->rec->{$name};
-    				unset($form->rec->{$name});
+    				//unset($form->rec->{$name});
     			}
     		}
     	}
@@ -316,7 +329,8 @@ class marketing_Inquiries2 extends embed_Manager
     	 
     	// До всяко количество се слага unit с мярката на продукта
     	if($Driver = $mvc->getDriver($rec->id)){
-    		$uomId = $Driver->getDefaultUom($rec->params['measureId']);
+    		$uomName = $Driver->getDefaultUom($rec->params['measureId']);
+    		$uomId = cat_UoM::fetchBySinonim($uomName)->id;
     		$shortName = cat_UoM::getShortName($uomId);
     	}
     	
@@ -381,21 +395,21 @@ class marketing_Inquiries2 extends embed_Manager
     	// Взимат се нужните константи от пакета 'marketing'
     	$conf = core_Packs::getConfig('marketing');
     	$emailsTo = $conf->MARKETING_INQUIRE_TO_EMAIL;
-    	$sentFrom = $conf->MARKETING_INQUIRE_FROM_EMAIL;
+    	$sentFromBox = $conf->MARKETING_INQUIRE_FROM_EMAIL;
     	
     	// Ако са зададено изходящ и входящ имейл се изпраща нотифициращ имейл
-    	if($emailsTo && $sentFrom){
+    	if($emailsTo && $sentFromBox){
     
     		// Имейла съответстващ на избраната кутия
-    		$sentFrom = email_Inboxes::fetchField($sentFrom, 'email');
+    		$sentFrom = email_Inboxes::fetchField($sentFromBox, 'email');
     		
     		// Тяло на имейла html и text
     
     		$fields = $this->selectFields();
     
     		// Изпращане на имейл с phpmailer
-    		$PML = cls::get('phpmailer_Instance');
-    
+    		$PML = email_Accounts::getPML($sentFrom);
+    		    
     	   /*
     		* Ако не е зададено е 8bit
     		* Проблема се появява при дълъг стринг - без интервали и на кирилица.
@@ -483,8 +497,28 @@ class marketing_Inquiries2 extends embed_Manager
     		// От кой адрес е изпратен
     		$PML->SetFrom($sentFrom);
     		
+    		if ($sendStatus = $PML->Send()) {
+    		    // Задаваме екшъна за изпращането
+                doclog_Documents::pushAction(
+                    array(
+                        'containerId' => $rec->containerId,
+                        'threadId' => $rec->threadId,
+                        'action' => doclog_Documents::ACTION_SEND,
+                        'data' => (object)array(
+                            'sendedBy' => core_Users::getCurrent(),
+                            'from' => $sentFromBox,
+                            'to' => $emailsTo
+                        )
+                    )
+                );
+                
+                doclog_Documents::flushActions();
+    		} else {
+    		    marketing_Inquiries2::logErr('Грешка при изпращане', $rec->id);
+    		}
+    		
     		// Изпращане
-    		return $PML->Send();
+    		return $sendStatus;
     	}
     	 
     	return TRUE;
@@ -701,7 +735,6 @@ class marketing_Inquiries2 extends embed_Manager
     	$Source = new core_ObjectReference($inqCls, $inqId);
     	expect($Source->haveInterface('marketing_InquirySourceIntf'));
     	$params = $Source->getCustomizationParams();
-    	
     	$form = $this->prepareForm($drvId);
     	
     	$form->rec->params = $params;
@@ -714,7 +747,9 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$Driver->addFields($data->form);
     		$data->driverParams = $params;
-    		$this->invoke('AfterPrepareEditForm', array(&$data, &$data));
+    		$this->expandEditForm($data);
+    		
+    		$Driver->invoke('AfterPrepareEditForm', array($this, &$data, &$data));
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));
@@ -814,7 +849,7 @@ class marketing_Inquiries2 extends embed_Manager
     			try{
     				expect($personRec || $personId, "Няма визитка на контрактор {$personId}");
     			} catch(core_exception_Expect $e){
-    				$e->logError();
+    				crm_Persons::logErr('Няма визитка на контрактор', $personId);
     			}
     			 
     			// иначе отива в личната папка на лицето
@@ -905,5 +940,38 @@ class marketing_Inquiries2 extends embed_Manager
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$mvc->renderQuantities($data->row->quantities, $tpl, 'QUANTITY_ROW');
+    }
+    
+    
+    /**
+     * Връща данните за запитванията
+     * 
+     * @param integer $id    - id' то на записа
+     * @param email   $email - Имейл
+     *
+     * @return NULL|object
+     */
+    static function getContragentData($id)
+    {
+        if (!$id) return ;
+        
+        $rec = self::fetch($id);
+        
+        $contrData = new stdClass();
+        
+        $contrData->person = $rec->name;
+        $contrData->company = $rec->company;
+        $contrData->tel = $rec->tel;
+        $contrData->pCode = $rec->pCode;
+        $contrData->place = $rec->place;
+        $contrData->address = $rec->address;
+        $contrData->email = $rec->email;
+        $contrData->countryId = $rec->country;
+        
+        if ($contrData->countryId) {
+            $contrData->country = self::getVerbal($rec, 'country');
+        }
+        
+        return $contrData;
     }
 }

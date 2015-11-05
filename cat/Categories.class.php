@@ -26,13 +26,13 @@ class cat_Categories extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Категории на артикулите";
+    public $title = "Категории на артикулите";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Каталог";
+    public $pageMenu = "Каталог";
     
     
     /**
@@ -44,103 +44,109 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,meta=Свойства';
+    public $listFields = 'id,name,meta=Свойства,useAsProto=Прототипи';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt, info';
+    public $searchFields = 'sysId, name, productCnt, info';
+    
+    
+    /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Категория";
+    public $singleTitle = "Категория";
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/category-icon.png';
+    public $singleIcon = 'img/16/category-icon.png';
     
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'cat,ceo,sales,purchase';
+    public $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'cat,ceo';
+    public $canWrite = 'cat,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
+    public $canDelete = 'cat,ceo';
     
     
     /**
      * Клас за елемента на обграждащия <div>
      */
-    var $cssClass = 'folder-cover';
+    public $cssClass = 'folder-cover';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
+    public $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
     
     
     /**
@@ -168,6 +174,7 @@ class cat_Categories extends core_Master
         $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
+        $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Маркери,columns=2');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=name,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
@@ -218,7 +225,7 @@ class cat_Categories extends core_Master
      * Връща keylist от id-та на групи, съответстващи на даден стрингов
      * списък от sysId-та, разделени със запетайки
      */
-    static function getKeylistBySysIds($list, $strict = FALSE)
+    public static function getKeylistBySysIds($list, $strict = FALSE)
     {
         $sysArr = arr::make($list);
         
@@ -260,8 +267,10 @@ class cat_Categories extends core_Master
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
+        $res .= core_Classes::add($mvc);
+        
         $file = "cat/csv/Categories.csv";
         $fields = array(
             0 => "name",
@@ -318,17 +327,53 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
      * универсален артикул, създаден в папката на корицата
      *
      * @param int $id - ид на корицата
-     * @return array $params - масив с дефолтни параметри
+     * @return array $params - масив с дефолтни параметри И техните стойности
+     * 				<ид_параметър> => <дефолтна_стойност>
      */
     public function getDefaultProductParams($id)
     {
     	$rec = $this->fetchRec($id);
     	$params = keylist::toArray($rec->params);
+    	foreach($params as $paramId => &$value){
+    		$value = NULL;
+    	}
     	
     	return $params;
+    }
+    
+    
+    /**
+     * Връща възможните за избор прототипни артикули с дадения драйвер
+     * 
+     * @param int $driverId - ид на продуктов драйвер
+     * @return array $opt - прототипните артикули
+     */
+    public static function getProtoOptions($driverId)
+    {
+    	$opt = $cArr = array();
+    	
+    	// В кои категории може да има прототипни артикули
+    	$cQuery = self::getQuery();
+    	while($cRec = $cQuery->fetch("#useAsProto = 'yes'")) {
+    		$cArr[] = $cRec->folderId;
+    	}
+    	
+    	// Ако има такива, извличаме активните артикули със същия драйвер
+    	if(count($cArr)) {
+    		$catList = implode(',', $cArr);
+    		$Products = cls::get('cat_Products');
+    		
+    		$query = cat_Products::getQuery();
+    		while($pRec = $query->fetch("#{$Products->driverClassField} = {$driverId} AND #state = 'active' AND #folderId IN ({$catList})")) {
+    			$opt[$pRec->id] = $pRec->name;
+    		}
+    	}
+    	
+    	// Връщаме готовите опции
+    	return $opt;
     }
 }

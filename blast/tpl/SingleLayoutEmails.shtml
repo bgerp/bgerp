@@ -6,9 +6,7 @@
                     <table class='top-table' style='width: 100%'>
                         <tr>
                             <td colspan='2'>
-                                <b>
-                                    <!--ET_BEGIN subject-->[#subject#]<!--ET_END subject-->
-                                </b>
+                                
                             </td>
                         </tr>
                         <tr>
@@ -92,6 +90,9 @@
             </div>
         </div>
     </div>
+    
+    <!--ET_BEGIN subject--><h3>[#subject#]</h3><!--ET_END subject-->
+    
     <div style='clear: both;'></div>
     <!--ET_BEGIN body-->
     <div style='padding: 10px 0 5px 10px;'>[#body#]</div>

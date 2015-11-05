@@ -253,7 +253,7 @@ class cat_UoM extends core_Manager
      * @param double $value - Стойноста за конвертиране
      * @param int $from - Id на мярката от която ще обръщаме
      * @param int $to - Id на мярката към която конвертираме
-     * @return double - Конвертираната стойност
+     * @return FALSE|double - Конвертираната стойност или FALSE ако мерките са от различен тип
      */
     public static function convertValue($value, $from, $to)
     {
@@ -263,8 +263,8 @@ class cat_UoM extends core_Manager
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
     	
-    	// Очакваме двете мерки да имат една обща основна мярка
-    	expect($baseFromId == $baseToId, "Не може да се конвертира от едната мярка в другата");
+    	if($baseFromId != $baseToId) return FALSE;
+    	
     	$rate = $fromRec->baseUnitRatio / $toRec->baseUnitRatio;
     	
     	// Форматираме резултата да се показва правилно числото

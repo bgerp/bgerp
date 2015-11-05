@@ -26,7 +26,7 @@ div.alphabet div.tab-row .tab.selected{
 }
 
 .narrow div.alphabet div.tab-row .tab.selected{
-	padding: 5px !important;
+	padding: 4px 5px !important;
 }
 
 .tab-row > .tooltip-button{

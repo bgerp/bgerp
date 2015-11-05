@@ -125,7 +125,7 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember,allowEmpty)',
-            'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,silent');
+            'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell,removeAndRefreshForm=creditEnt1|creditEnt2|creditEnt3|creditQuantity|creditPrice|amount,silent');
         $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,refreshForm,silent,input=none');
         $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,refreshForm,silent,input=none');
         $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,refreshForm,silent,input=none');

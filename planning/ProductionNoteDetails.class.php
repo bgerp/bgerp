@@ -74,7 +74,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, jobId, bomId, packagingId, packQuantity, selfValue, amount';
+    public $listFields = 'productId, jobId, bomId, packagingId, packQuantity';
     
         
     /**
@@ -109,21 +109,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
         $this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=Задание');
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none,caption=Рецепта');
         
-        $this->FLD('selfValue', 'double', 'caption=Ед. ст-ст,input=hidden');
-        $this->FNC('amount', 'double', 'caption=Сума');
-        
         $this->setDbUnique('noteId,productId');
-    }
-    
-    
-    /**
-     * Изчисляване на сумата на реда
-     */
-    public static function on_CalcAmount($mvc, $rec)
-    {
-    	if(empty($rec->quantity) || empty($rec->selfValue)) return;
-    	
-    	$rec->amount = $rec->quantity * $rec->selfValue;
     }
     
     
@@ -157,24 +143,16 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     		if(isset($rec->jobId) && isset($rec->bomId)){
     			$showSelfvalue = FALSE;
     		}
-    		
-    		// Себестойността е във основната валута за периода
-    		$masterValior = $mvc->Master->fetchField($form->rec->noteId, 'valior');
-    		$form->setField('selfValue', "unit=" . acc_Periods::getBaseCurrencyCode($masterValior));
-    		
-    		// Скриваме полето за себестойност при нужда
-    		if($showSelfvalue === FALSE){
-    			$form->setField('selfValue', 'input=none');
-    		} else {
-    			$form->setField('selfValue', 'input,mandatory');
-    		}
     	}
     	
     	if($form->isSubmitted()){
     		
-    		// Ако трябва да показваме с-та, но не е попълнена сетваме грешка
-    		if(empty($rec->selfValue) && $showSelfvalue === TRUE){
-    			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>|Ед. ст-ст|</b>');
+    		if(empty($rec->jobId)){
+    			$form->setError('productId', 'Артикулът няма задание');
+    		}
+    		
+    		if(empty($rec->bomId)){
+    			$form->setError('productId', 'Артикулът няма рецепта');
     		}
     	}
     }

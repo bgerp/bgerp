@@ -109,7 +109,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
                 }
-                $all->keylist = "|{$allUsers}|-1|0";
+                $all->keylist = keylist::normalize("|{$allUsers}|-1|0|");
                 $this->options['all_users'] = $all;
             } else {
                 // Показваме само екипите на потребителя
@@ -147,7 +147,7 @@ class type_Users extends type_Keylist
                     if(strpos($teamMembers, '|') === FALSE) {
                         $teamMembers = "{$teamMembers}|{$teamMembers}";
                     }
-                    $this->options[$t . ' team']->keylist = "|{$teamMembers}|";
+                    $this->options[$t . ' team']->keylist = keylist::normalize("|{$teamMembers}|");
                 } else {
                     unset($this->options[$t . ' team']);
                 }

@@ -179,7 +179,7 @@ class fconv_Script
         
         // Възможност за логване на грешките при изпълняване на скрипт
         if ($params['errFilePath']) {
-            $cmdLine .= ' > ' . escapeshellarg($params['errFilePath']) . ' 2>&1';
+            $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
         $this->script .= $this->nl($cmdLine);

@@ -356,6 +356,37 @@ function comboSelectOnChange(id, value, suffix) {
 }
 
 
+// масив, който съдържа вече инициализираните comboselect елементи
+var comboBoxInited = [];
+
+
+/**
+ * Скрива и показва групите във формите 
+ * @param id на групата
+ */
+function toggleFormGroup(id) 
+{
+	if($('.fs' + id).css('display') == 'none') {
+		$('.fs' + id).fadeIn('slow');
+		if($('.fs' + id).find('input.combo').length){
+			$('.fs' + id).find('input.combo').each(function(){
+				var idComboBox = $(this).attr('id');
+				if(!comboBoxInited[idComboBox]){
+					comboBoxInit(idComboBox, '_comboSelect');
+					comboBoxInited[idComboBox] = true;
+				}
+			});
+		}
+	} else {
+		$('.fs' + id).fadeOut('slow');
+	}
+	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
+	$('.fs-toggle' + id).toggleClass('openToggleRow');
+	
+}
+
+
+
 /**
  * Присвоява стойност за блока с опции на SELECT елемент, като отчита проблемите на IE
  */
@@ -517,7 +548,7 @@ popupWindows = new Array();
 // Отваря диалогов прозорец
 function openWindow(url, name, args) {
     // Записваме всички popup прозорци в глобален масив
-    popupWindows[name] = window.open(url, name, args);
+    popupWindows[name] = window.open(url, '_blank', args);
 
     var popup = popupWindows[name];
 
@@ -1451,7 +1482,6 @@ function setThreadElemWidth() {
 	var offsetWidth = 45;
     var threadWidth = parseInt($(window).width()) - offsetWidth;
     $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
-    $('.docStatistic').css('maxWidth', threadWidth);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
@@ -1705,7 +1735,7 @@ function appendQuote(id, line) {
         	splited.splice(line, 0, "\n" + quoteText);
         	get$(id).value = splited.join("\n");
         } else {
-        	get$(id).value += quoteText + "\n";
+        	get$(id).value += "\n" + quoteText + "\n\n";
         }
     }
     
@@ -1756,7 +1786,8 @@ function refreshForm(form, removeFields) {
 	if(typeof removeFields != 'undefined') {
 		var fieldsCnt = removeFields.length;
 		for (var i = 0; i < fieldsCnt; i++) {
-			$("[name='" + removeFields[i] + "']").prop('disabled', true);;
+			$("[name='" + removeFields[i] + "']").prop('disabled', true);
+			$("[name^='" + removeFields[i] + "\\[']").prop('disabled', true);
 		}
 	}
     form.submit();
@@ -1861,13 +1892,17 @@ function editCopiedTextBeforePaste() {
 		body_element.appendChild(htmlDiv);
 
 		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
-
+		
+		
+		//В клонирания елемент сменяме стиловете, за да избегнем отделните редове, ако имаме елементи със smartCenter
+		$(htmlDiv).find('.maxwidth').css('display', 'inline');
+		
 		// временна променлива, в която ще заменстваме
 		var current = htmlDiv.innerHTML.toString();
 
 		//намира всеки стринг, който отгоравя на израза
 		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
-
+		
 		if(matchedStr){
 			var replacedStr = new Array();
 
@@ -1878,8 +1913,9 @@ function editCopiedTextBeforePaste() {
 				// прави замяната в тези стрингове
 				current = current.replace(regExp ,replacedStr[i]);
 			}
-
-			current = '<table>' + current + "</table>";
+			if(current.indexOf('<table>') == -1){
+				current = '<table>' + current + "</table>";
+			}
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
 		}
@@ -2007,6 +2043,29 @@ function centerNumericElements() {
 
 
 /**
+ * Подравняване на числата в средата
+ */
+function smartCenter() {
+		if(!$("span.maxwidth").length) return;
+        var smartCenterWidth = [];
+    	$("span.maxwidth").css('display', 'inline-block');
+		$("span.maxwidth").each(function() {
+        	if(!smartCenterWidth[$(this).attr('data-col')] || smartCenterWidth[$(this).attr('data-col')] < $(this).width()){
+        		smartCenterWidth[$(this).attr('data-col')] = $(this).width();
+            }
+        });
+    	
+        for (key in smartCenterWidth) {
+        	$("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
+        }
+        
+        $("span.maxwidth").css('display', "block");
+        $("span.maxwidth").css('margin', "0 auto");
+        
+}
+
+
+/**
  * Решава кои keylist групи трябва да са отворени при зареждане на страницата
  */
 function checkForHiddenGroups() {
@@ -2058,6 +2117,10 @@ function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
+			  // ако групата е затворена, я отваряме
+			  if($(e.target).closest('.keylistCategory').hasClass('closed')) {
+				  toggleKeylistGroups(e.target);
+			  }
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {
@@ -2069,14 +2132,20 @@ function keylistActions(el) {
 }
 
 function sumOfChildrenWidth() {
-	if($('body').hasClass('narrow') && $('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
-		
-		var sum=0;
-		$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
-		$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
-		
-		var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
-		$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+	if($('body').hasClass('narrow')){
+		if ($('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
+			var sum=0;
+			$('#main-container > div.tab-control > .tab-row .row-holder .tab').each( function(){ sum += $(this).width() + 5; });
+			$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
+			
+			var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
+			$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+		}
+		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
+			var sum=0;
+			$('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sum += $(this).width() + 5; });
+			$('.docStatistic').css('min-width', sum);
+		}
 	}
 }
 
@@ -2088,7 +2157,6 @@ function toggleKeylistGroups(el) {
 	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
     var trItems = findElementKeylistGroup(el);
     var element = $(el).closest("tr.keylistCategory");
-
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -2124,7 +2192,6 @@ function findElementKeylistGroup(el){
 function inverseCheckBox(el){
 	// сменяме иконката
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
-
 	var trItems = findElementKeylistGroup(el);
 
 	//инвертираме
@@ -2882,6 +2949,16 @@ function render_prepareContextMenu() {
 
 
 /**
+* Функция, която извиква подготвянето на smartCenter
+* Може да се комбинира с efae
+*/
+function render_smartCenter() {
+   smartCenter();
+}
+
+
+
+/**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
  *
@@ -2910,7 +2987,9 @@ var blinkerWorking = false;
  */
 function render_Notify(data) {
 	if(blinkerWorking) return;
-
+	if(!data.blinkTimes){
+		data.blinkTimes = 5;
+	}
 	render_Sound(data);
 	blinkerWorking = true;
 	var counter = 1;
@@ -3920,6 +3999,7 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
+runOnLoad(smartCenter);
 runOnLoad(sumOfChildrenWidth);
 runOnLoad(editCopiedTextBeforePaste);
 runOnLoad(showTooltip);

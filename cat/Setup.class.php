@@ -8,6 +8,12 @@ defIfNot('CAT_DEFAULT_MEASURE_ID', '');
 
 
 /**
+ * Показване на компонентите при вложени рецепти, Макс. брой
+ */
+defIfNot('CAT_BOM_MAX_COMPONENTS_LEVEL', 3);
+
+
+/**
  * Колко от последно вложените ресурси да се показват в мастъра на рецептите
  */
 defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
@@ -68,6 +74,12 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'cond=0.1';
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
@@ -91,6 +103,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::replaceResources4',
     		'migrate::replacePackagings',
     		'migrate::updateProductsNew',
+    		'migrate::deleteCache1',
+    		'migrate::updateParams'
         );
 
 
@@ -122,6 +136,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
     		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
     		'CAT_DEFAULT_MEASURE_ID' => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
+    		'CAT_BOM_MAX_COMPONENTS_LEVEL' => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     );
 
     
@@ -669,7 +684,7 @@ class cat_Setup extends core_ProtoSetup
     				}
     			} else {
     				if($Det->className == 'cat_BomDetails'){
-    					if(!isset($dRec->resourceId)) continue;
+    					if(!$dRec->resourceId) continue;
     						
     					if(empty($measureArr[$dRec->resourceId])){
     						$measureArr[$dRec->resourceId] = cat_Products::fetchField($dRec->resourceId, 'measureId');
@@ -759,6 +774,67 @@ class cat_Setup extends core_ProtoSetup
     		} catch(core_exception_Expect $e){
     			
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изчистване на кеша на артикулите
+     */
+    public function deleteCache1()
+    {
+    	cat_ProductTplCache::truncate();
+    }
+    
+    
+    /**
+     * Ъпдейтва параметрите
+     */
+    function updateParams()
+    {
+    	$map = array('size'    => 'cond_type_Double',
+    			'weight'  => 'cond_type_Double',
+    			'volume'  => 'cond_type_Double',
+    			'double'  => 'cond_type_Double',
+    			'int'     => 'cond_type_Int',
+    			'varchar' => 'cond_type_Varchar',
+    			'text'    => 'cond_type_Text',
+    			'date'    => 'cond_type_Date',
+    			'percent' => 'cond_type_Percent',
+    			'enum'    => 'cond_type_Enum',
+    			'density' => 'cond_type_Double',
+    			'time'    => 'cond_type_Time',
+    	);
+    	 
+    	$query = cat_Params::getQuery();
+    	$query->where("#driverClass IS NULL");
+    	 
+    	try{
+    		while($rec = $query->fetch()){
+    			if($rec->id == 21 && $rec->name == 'МПС №'){
+    				$rec->options = 'ВТ 4250 ВВ,ВТ 6249 ВК,ВТ 0507 ВН,ВТ 2130 ВН,ВТ 7009 ВТ,ВТ 7119 АТ,ВТ 4969 ВТ,ВТ 3963 АХ';
+    			}
+    			 
+    			if($rec->type == 'size' && empty($rec->suffix)){
+    				$rec->suffix = 'cm';
+    			}
+    			 
+    			$newClass = $map[$rec->type];
+    			core_Classes::add($newClass);
+    			 
+    			$rec->driverClass = cls::get($newClass)->getClassId();
+    			cls::get('cat_Params')->save_($rec);
+    		}
+    		
+    		$pQuery = cat_products_Params::getQuery();
+    		$pQuery->EXT('type', 'cat_Params', 'externalName=type,externalKey=paramId');
+    		$pQuery->where("#type = 'size'");
+    		while($pRec = $pQuery->fetch()){
+    			$pRec->paramValue *= 100;
+    			cls::get('cat_products_Params')->save_($pRec);
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
     	}
     }
 }

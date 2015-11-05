@@ -93,7 +93,7 @@ class type_Blob extends core_Type {
         $rowsCnt = $len / $rowLen;
 
         for($i = 0; $i < $rowsCnt; $i++) {
-            $offcet = sprintf("%0{$offsetLen}X", $i * $rowLen);
+            $offset = sprintf("%0{$offsetLen}X", $i * $rowLen);
             $str = ''; $hex = '';
             
             for($j = 0; $j<16; $j++) {
@@ -116,7 +116,7 @@ class type_Blob extends core_Type {
                 }
             }
             
-            $res->append(new ET("[#1#]: [#2#] [#3#]\n", $offcet, $str, $hex), 'ROWS');
+            $res->append(new ET("[#1#]: [#2#] [#3#]\n", $offset, $str, $hex), 'ROWS');
         }
         
         return $res;

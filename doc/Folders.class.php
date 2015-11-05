@@ -997,14 +997,14 @@ class doc_Folders extends core_Master
                 if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
                     $resArr['inCharge']++;
                     $rec->inCharge = $currUser;
-                    self::save($rec);
+                    self::save($rec, 'inCharge');
                 }
                 
                 // Ако липсва coverClass, да е на несортираните
                 if (!isset($rec->coverClass)) {
                     $resArr['coverClass']++;
                     $rec->coverClass = $unsortedFolderId;
-                    self::save($rec);
+                    self::save($rec, 'coverClass');
                 }
                 
                 // Ако няма coverId
@@ -1015,7 +1015,7 @@ class doc_Folders extends core_Master
                     if ($rec->coverClass != $unsortedFolderId) {
                         $resArr['coverClass']++;
                         $rec->coverClass = $unsortedFolderId;
-                        self::save($rec);
+                        self::save($rec, 'coverClass');
                     }
                     
                     // Създаваме документ и използваме id-то за coverId
@@ -1024,7 +1024,7 @@ class doc_Folders extends core_Master
                     $unRec->inCharge = $currUser;
                     $unRec->folderId = $rec->id;
                     $rec->coverId = $unsortedFolders::save($unRec);
-                    self::save($rec);
+                    self::save($rec, 'coverId');
                 }
                 
                 // Ако няма заглвиет, използваме заглавието от документа
@@ -1032,13 +1032,13 @@ class doc_Folders extends core_Master
                     $resArr['title']++;
                     $coverMvc = cls::get($rec->coverClass);
                     $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
-                    self::save($rec);
+                    self::save($rec, 'title');
                 }
                 
                 // Обновяваме папката
                 self::updateFolderByContent($rec->id);
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         

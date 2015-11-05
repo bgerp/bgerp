@@ -593,6 +593,34 @@ div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
 
+.product-component-list {
+  margin: 0;
+  list-style: disc;
+  padding: 4px 0 0px 25px;
+  border-left: 1px solid #cccccc; }
+
+.product-component-title {
+  margin: 0px 0 3px; }
+
+.product-component-holder {
+  padding-left: 0px;
+  margin-left: 20px; }
+
+.product-component-stage {
+  background-color: #eeeeee;
+  padding: 5px;
+  border: 1px solid #cccccc; }
+
+.general-product-description .richtext {
+  margin: 0 0 2px; }
+
+.component-title {
+  padding: 5px 0;
+  font-style: italic; }
+
+.display-table .product-component-holder {
+  margin-left: 10px; }
+
 /*
  * край на стилове за cat
  */
@@ -712,8 +740,7 @@ div.acc-detail {
   float: none; }
 
 .accCell {
-  padding-left: 10px !important;
-  width: 130px; }
+  padding-left: 15px !important; }
 
 .itemClass {
   min-width: 210px; }
@@ -838,10 +865,6 @@ div.acc-detail {
         .detail-info.acc-summary table.listTable tr:first-child th:nth-child(2) {
           text-align: left;
           padding-left: 10px; }
-        .detail-info.acc-summary table.listTable tr:first-child th:nth-last-child(1),
-        .detail-info.acc-summary table.listTable tr:first-child th:nth-last-child(2) {
-          text-align: right;
-          padding-right: 4px; }
     .detail-info.acc-summary .feather-title {
       text-align: left;
       float: left;
@@ -870,6 +893,8 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
+  .portal:not(.detail-info) .state-closed {
+    background-color: transparent !important; }
   .portal .legend {
     position: absolute;
     top: -16px;
@@ -1085,6 +1110,9 @@ td.portal-date {
 .small-padding td {
   padding: 3px !important; }
 
+.groupList .small-padding td {
+  padding: 2px 3px 0 !important; }
+
 .document-settings {
   display: inline-block;
   height: 16px;
@@ -1128,6 +1156,9 @@ td.portal-date {
 
 .centered {
   text-align: center; }
+
+.lighterBold {
+  color: #666666; }
 
 .selectRows .listTable > tbody > tr > td:first-child {
   text-align: center; }
@@ -1185,8 +1216,9 @@ td.rowtools-column {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView .listTable {
-  width: 100%; }
+.wide .singleView div:not(".folder-cover") .listTable {
+  min-width: 800px;
+  width: 1%; }
 
 pre.document {
   white-space: pre-line; }
@@ -3779,6 +3811,8 @@ only screen and (max-width: 320px) {
     display: block !important; }
   .external .footerDocTable {
     display: table !important; }
+  .external .no-print {
+    display: none; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3799,6 +3833,9 @@ only screen and (max-width: 320px) {
   .no-print {
     display: none; }
 
+  .sidemenu {
+    display: none; }
+
   .blankImage img,
   .qrcode img {
     height: auto; }
@@ -3810,9 +3847,6 @@ only screen and (max-width: 320px) {
   .qrcode img {
     max-width: 87px;
     max-height: 87px; }
-
-  .antetka {
-    width: 98% !important; }
 
   .richtext-message {
     padding-left: 10px; }
@@ -3958,7 +3992,13 @@ only screen and (max-width: 320px) {
     display: table-row !important; }
 
   .footerDocTable {
-    display: table !important; } }
+    display: table !important; }
+
+  table.listTable > tbody > tr > td {
+    vertical-align: top; }
+
+  .richtext a {
+    text-decoration: underline; } }
 
   .printing .specialLink {
     font-weight: bold; }
@@ -4006,7 +4046,15 @@ only screen and (max-width: 320px) {
   .printing .innerTable td {
     vertical-align: top; }
   .printing .antetka {
-    border: none; }
+    margin: 5px 0;
+    border: none;
+    padding: 0;
+    width: 100%; }
+    .printing .antetka .top-table {
+      border-collapse: collapse; }
+      .printing .antetka .top-table td {
+        border: 1px solid #cccccc;
+        padding: 3px; }
   .printing .linkWithIcon {
     background-image: none !important;
     padding-left: 0 !important; }
@@ -4281,6 +4329,15 @@ only screen and (max-width: 320px) {
   background-color: #ffff99;
   display: table;
   color: black; }
+
+.narrow div.tab-control div.tab-row .tab {
+  font-size: 0.7em;
+  padding: 3px 2px; }
+  .narrow div.tab-control div.tab-row .tab.selected {
+    padding: 3px 2px 4px; }
+    .narrow div.tab-control div.tab-row .tab.selected .tooltip-button img {
+      width: 10px;
+      height: 10px; }
 
 /*
  * край на стилове за външната част при потребител контрактор

@@ -1,8 +1,8 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <h3 class='aleft'>[#subject#]</h3>
     <!--ET_BEGIN body--> 
-    <div style='padding:10px;'>
-        <div>[#body#]</div>
+    <div style='padding:6px 10px 10px;'>
+        <h3 class='richtext-title'>[#subject#]</h3>
+        [#body#]
     </div>
     <!--ET_END body--> 
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

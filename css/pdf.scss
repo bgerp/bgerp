@@ -32,3 +32,7 @@ code, kbd, pre, samp {
 .footerDocTable {
     display: table !important;
 }
+
+thead { 
+	display: table-header-group;
+}

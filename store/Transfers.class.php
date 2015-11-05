@@ -26,6 +26,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Име на документа в бързия бутон за добавяне в папката
+     */
+    public $buttonInFolderTitle = 'Трансфер';
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'St';
@@ -41,7 +47,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 
     
     /**
@@ -158,7 +164,7 @@ class store_Transfers extends core_Master
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 
             'caption=Статус, input=none'
         );
     }
@@ -330,7 +336,8 @@ class store_Transfers extends core_Master
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
     		$sProd = store_Products::fetch($dRec->productId);
-    		$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $sProd->productId);
+    		$cid = cat_Products::fetchField($sProd->productId, 'containerId');
+    		$res[$cid] = $cid;
     	}
     	
     	return $res;

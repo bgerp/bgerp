@@ -155,15 +155,30 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
+	 * Подготовка за рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
+	{
+		$data->Embedder = $Embedder;
+		$data->isSingle = TRUE;
+		$data->documentType = 'internal';
+		$Driver->prepareProductDescription($data);
+	}
+	
+	
+	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
-	 * @param stdClass $rec - запис
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 * @return stdClass - подготвените данни за описанието
+	 * @param stdClass $data
+	 * @return void
 	 */
-	public function prepareProductDescription($rec, $documentType = 'public')
+	public function prepareProductDescription(&$data)
 	{
-		return (object)array();
 	}
 	
 	
@@ -197,18 +212,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return $this->icon;
 	}
-	
-	
-	/**
-	 * Рендира данните за показване на артикула
-	 * 
-	 * @param stdClass $data
-	 * @return core_ET
-	 */
-	public function renderProductDescription($data)
-	{
-		return new core_ET("");
-	}
 
 
 	/**
@@ -221,50 +224,48 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
-		$data->Embedder = $Embedder;
-		$nTpl = $Driver->renderSingleDescription($data);
-	
+		$nTpl = $Driver->renderProductDescription($data);
 		$tpl->append($nTpl, 'innerState');
 	}
 	
 	
 	/**
-	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 * Рендиране на описанието на драйвера
 	 *
 	 * @param stdClass $data
 	 * @return core_ET $tpl
 	 */
-	protected function renderSingleDescription($data)
-	{
-		$tpl = new ET(tr("|*<fieldset class='detail-info'>
-                    <legend class='groupTitle'>|Информация|*</legend>
+	protected function renderProductDescription($data)
+	{   
+        $title = tr($this->singleTitle);
+
+		$tpl = new ET(tr("|*
                     <div class='groupList'>
-                        <b>{$this->singleTitle}</b>
-						<table class = 'no-border'>
-                            
+                        <div class='richtext' style='margin-top: 5px; font-weight:bold;'>{$title}</div>
+						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
 					<div>
 					[#ROW_AFTER#]
-				</fieldset>
+					[#COMPONENTS#]
 				"));
 		
-		//$driverFields = cat_Products::getDriverFields($this);
         $form = cls::get('core_Form');
         $this->addFields($form);
 		$driverFields = $form->fields;
 
 		if(is_array($driverFields)){
 			foreach ($driverFields as $name => $field){
-				if(isset($data->row->{$name})){
+				if($field->single != 'none' && isset($data->row->{$name})){
 
                     $caption = $field->caption;
 
                     if(strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
+                        $group = tr($group);
                         if($group != $lastGroup) {
-                            $group = tr($group);
-                            $dhtml = "<tr><td colspan='2' style='padding-left:0px;padding-top:5px;font-weight:bold;'><b>{$group}</b></td></td</tr>";
+                            
+                            $dhtml = "<tr><td colspan='3' style='padding-top:10px !important; text-decoration:underline; padding-left:0'>{$group}</td></tr>";
                             $tpl->append($dhtml, 'INFO');
                         }
 
@@ -272,13 +273,19 @@ abstract class cat_ProductDriver extends core_BaseClass
                     }
 
                     $caption = tr($caption);
+                    $unit = tr($field->unit);
 					
-					$dhtml = "<tr><td>{$caption}:</td><td style='padding-left:5px'>{$data->row->$name} {$field->unit}</td</tr>";
-					$tpl->append($dhtml, 'INFO');
+                    if($field->inlineTo) {
+                        $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
+                        $tpl->prepend($dhtml, $field->inlineTo);
+                    } else {
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#$name#]</td</tr>");
+                        $tpl->append($dhtml, 'INFO');
+                    }
 				}
 			}
 		}
-		
+
 		return $tpl;
 	}
 	
@@ -306,16 +313,37 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return array();
 	}
-
-
+	
+	
 	/**
-	 * Връща хендлъра на изображението представящо артикула, ако има такова
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 * Връща дефолтното име на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return NULL|string
 	 */
-	public static function getProductImage($id)
+	public function getProductTitle($rec)
 	{
-		return;
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща данни за дефолтната рецепта за артикула
+	 * 
+	 * @param stdClass $rec - запис
+	 * @return FALSE|array
+	 * 			['quantity'] - К-во за което е рецептата
+	 * 			['expenses'] - % режийни разходи
+	 * 			['materials'] array
+	 * 				 o code          string  - Код на материала
+     * 				 o baseQuantity  double  - Начално количество на вложения материал
+     * 				 o propQuantity  double  - Пропорционално количество на вложения материал
+     * 				 o waste         boolean - Дали материала е отпадък
+     * 				 o stageName']   string  - Име на производствения етап
+	 * 				
+	 */
+	public function getDefaultBom($rec)
+	{
+		return FALSE;
 	}
 }

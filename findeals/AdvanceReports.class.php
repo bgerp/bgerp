@@ -168,7 +168,7 @@ class findeals_AdvanceReports extends core_Master
     	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
     	$this->FLD('total', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
     
     	$this->setDbUnique('number');
     }
@@ -425,5 +425,19 @@ class findeals_AdvanceReports extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
     	 
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if(purchase_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+    		$data->toolbar->addBtn('Фактура', array('purchase_Invoices', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/invoice.png,title=Създаване на нова фактура');
+    	}
     }
 }

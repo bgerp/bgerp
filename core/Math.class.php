@@ -42,7 +42,7 @@ class core_Math
         }
 	    
 	    // Плаваща, лимитирана от долу прецизност
-	    $precision =  max($fractionalLen, round($significantDigits - log10($number)));
+	    $precision =  max($fractionalLen, round($significantDigits - log10(abs($number))));
 		
 	    // Закръгляваме
 	    $number = round($number, $precision);

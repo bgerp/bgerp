@@ -138,10 +138,12 @@ class blast_BlockedEmails extends core_Manager
      * Добавя подадения имейл в списъка
      * 
      * @param string $email
+     * @param boolean $update - ok, blocked, error
+     * @param string $state
      * 
      * @return integer|NULL
      */
-    public static function addEmail($email, $update = TRUE)
+    public static function addEmail($email, $update = TRUE, $state = 'ok')
     {
         $rec = self::fetch(array("#email = '[#1#]'", $email));
         
@@ -149,17 +151,23 @@ class blast_BlockedEmails extends core_Manager
         
         if (!$rec) {
             $rec = new stdClass();
-            $rec->state = 'ok';
+            $rec->state = $state;
+            $saveFields = NULL;
+        } else {
+            $saveFields = array();
+            $saveFields['email'] = 'email';
+            $saveFields['lastSent'] = 'lastSent';
         }
         
         $rec->email = $email;
         $rec->lastSent = dt::now();
         
         if ($rec->state != 'blocked') {
-            $rec->state = 'ok';
+            $rec->state = $state;
+            $saveFields['state'] = 'state';
         }
         
-        return self::save($rec);
+        return self::save($rec, $saveFields);
     }
     
     
@@ -270,7 +278,7 @@ class blast_BlockedEmails extends core_Manager
             } else {
                 $rec->state = 'error';
             }
-            self::save($rec);
+            self::save($rec, 'lastChecked, state');
         }
     }
     

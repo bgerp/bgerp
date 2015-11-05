@@ -19,8 +19,8 @@ class email_DocumentIntf extends doc_DocumentIntf
 	/**
      * Връща тялото по подразбиране на имейл-а
      */
-    function getDefaultEmailBody($originId)
+    function getDefaultEmailBody($originId, $forward = FALSE)
     {
-        return $this->class->getDefaultEmailBody($originId);
+        return $this->class->getDefaultEmailBody($originId, $forward);
     }
 }

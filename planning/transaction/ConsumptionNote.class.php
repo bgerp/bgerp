@@ -62,10 +62,11 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 			$debitArr = NULL;
 			
 			if($rec->useResourceAccounts == 'yes'){
+				$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
 				
 				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-				$debitArr = array('61101', array('cat_Products', $dRec->productId),
-								  'quantity' => $dRec->quantity);
+				$debitArr = array('61101', array('cat_Products', $convInfo->productId),
+								  'quantity' => $convInfo->quantity);
 				
 				$reason = 'Влагане на материал в производството';
 			} 

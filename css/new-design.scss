@@ -250,7 +250,7 @@ body {
 }
 
 .narrow #packWrapper {
-    padding: 15px 15px 10px;
+    padding: 20px 15px 10px;
 }
 
 /* позиция на табовете */
@@ -687,9 +687,15 @@ a.bookmark-external-url {
     }
 }
 
+.narrow div.alphabet div.tab-row .tab{
+    min-height: 15px;
+    line-height: 15px;
+}
+
 .narrow .tab-title {
 	display: inline-block !important;
 }
+
 .headerInfo{
     display:inline-block;
     float: left;
@@ -809,6 +815,10 @@ a.button, input[type="button"], input[type="submit"], button {
 
 input.linkWithIcon, a.linkWithIcon {
     padding-left: 25px !important;
+}
+
+a.linkInTitle {
+    color: #222 !important;
 }
 
 .portal-filter .button, .portal-filter .button:focus {

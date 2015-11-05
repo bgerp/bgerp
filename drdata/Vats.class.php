@@ -70,8 +70,16 @@ class drdata_Vats extends core_Manager
      * Колко най-много vat номера да бъдат обновени след залез?
      */
     const MAX_CNT_VATS_FOR_UPDATE = 5;
-
-
+    
+    
+    /**
+     * След колко време да се проверяват unknown статусите
+     * 24*60*60 - 1 ден
+     */
+    static $unknowTTL = 86400;
+    
+    
+    
     /**
      * Заглавие
      */
@@ -109,7 +117,7 @@ class drdata_Vats extends core_Manager
     {
         $this->FLD('vat', 'drdata_vatType(64)', 'caption=VAT');
         $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input2=none');
-        $this->FLD('lastChecked', 'datetime', 'caption=Проверен на,input2=none');
+        $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Проверен на,input2=none');
         $this->FLD('info', 'varchar', 'caption=Информация');
 
         $this->setDbUnique('vat');
@@ -203,9 +211,8 @@ class drdata_Vats extends core_Manager
             }
         } else {
             // Проверяваме дали кеша не е изтекъл
-            $conf = core_Packs::getConfig('drdata');
-            $expDate = dt::addSecs(-$conf->DRDATA_VAT_TTL);
-            $expUnknown = dt::addSecs(-24*60*60);
+            $expDate = dt::subtractSecs(drdata_Setup::get('VAT_TTL'));
+            $expUnknown = dt::subtractSecs(self::$unknowTTL);
             
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа 
             if(($rec->lastChecked < $expDate) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown) ) {
@@ -258,6 +265,7 @@ class drdata_Vats extends core_Manager
                 $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
                 @$result = $client->checkVat($params);
             } catch (Exception $e) {
+                reportException($e);
                 $result = new stdClass();
             }
             
@@ -283,7 +291,7 @@ class drdata_Vats extends core_Manager
         foreach ($this->updateOnShutdown as $rec) {
             list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec);
+            $this->save($rec, 'status, info, status');
         }
     }
     
@@ -478,5 +486,51 @@ class drdata_Vats extends core_Manager
         }
     	
     	return $uic;
+    }
+    
+    
+    /**
+     * Извиква се от крона. Премахва старите статус съобщения
+     */
+    function cron_checkVats()
+    {
+        // За да се стартира on_ShutDown
+        cls::get(get_called_class());
+        
+        $expDate = dt::subtractSecs(drdata_Setup::get('VAT_TTL'));
+        $unknownExpDate = dt::subtractSecs(self::$unknowTTL);
+        
+        $statusUnknown = self::statusUnknown;
+        
+        $query = $this->getQuery();
+        $query->where("#lastChecked <= '{$expDate}'");
+        $query->orWhere("#status = '{$statusUnknown}' AND #lastChecked <= '{$unknownExpDate}'");
+        
+        $query->limit(self::MAX_CNT_VATS_FOR_UPDATE);
+        
+        $query->orderBy('lastChecked', 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            $this->updateOnShutdown[] = $rec;
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'checkVats';
+        $rec->description = 'Проверка на VAT номера';
+        $rec->controller = $mvc->className;
+        $rec->action = 'checkVats';
+        $rec->period = 10;
+        $rec->offset = rand(0,8);
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec);
     }
 }

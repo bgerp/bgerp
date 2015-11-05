@@ -953,7 +953,7 @@ class callcenter_SMS extends core_Master
             
             $rec->status = $status;
             
-            self::save($rec);
+            self::save($rec, 'status');
         }
     }
     

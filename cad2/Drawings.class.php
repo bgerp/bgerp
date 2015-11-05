@@ -17,7 +17,7 @@ class cad2_Drawings extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Clone, plg_Created, cad2_Wrapper';  
+    public $loadList = 'plg_RowTools, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';  
                     
 
     
@@ -39,6 +39,12 @@ class cad2_Drawings extends embed_Manager {
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,name,params=Параметри,createdOn,createdBy';
+    
+    
+    /**
+     * Кой може да го отхвърли?
+     */
+    public $searchFields = 'name';
     
     
     /**
@@ -130,6 +136,10 @@ class cad2_Drawings extends embed_Manager {
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
         $data->query->orderBy("createdOn", 'DESC');
+       
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 
 

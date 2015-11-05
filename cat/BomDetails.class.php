@@ -104,13 +104,13 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity';
+    public $listFields = 'tools=Пулт, stageId, position=№, resourceId, packagingId=Мярка, baseQuantity=Начално,propQuantity,expensePercent=Режийни';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'baseQuantity';
+    protected $hideListFieldsIfEmpty = 'baseQuantity,expensePercent';
     
     
     /**
@@ -121,16 +121,15 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
     	
-    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack,mandatory');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
-    	
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
+    	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
-    	
-    	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество');
-    	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
-    	
-    	$this->setDbUnique('bomId,resourceId');
+    	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Количество->Режийни');
+    	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
+    	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество,smartCenter');
+    	$this->FLD('showInProduct', 'enum(hide=Не се показва,title=Заглавие,description=Заглавие + описание,components=Заглавие + описание + компоненти)', 'caption=Показване в артикулa->Избор,notNull,value=hide,remember');
     }
     
     
@@ -153,24 +152,46 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$typeCaption = ($form->rec->type == 'input') ? 'материал' : 'отпадък';
-    	$action = ($form->rec->id) ? 'Редактиране' : 'Добавяне';
-    	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	$form->FNC('likeProductId', 'key(mvc=cat_Products)', 'input=hidden');
+    	$form->setDefault('likeProductId', Request::get('likeProductId', 'int'));
+    	
+    	$rec = &$form->rec;
+    	$typeCaption = ($rec->type == 'input') ? 'материал' : 'отпадък';
+    	$matCaption = ($rec->type == 'input') ? 'Материал' : 'Отпадък';
+    	$action = ($rec->id) ? 'Редактиране' : 'Добавяне';
+    	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$rec->bomId}<b>";
+    	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
-    	$metas = ($form->rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
-    	$products = cat_Products::getByProperty($metas);
+    	$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
     	
+    	$products = cat_Products::getByProperty($metas);
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
+    	
+    	$likeProductId = $form->rec->likeProductId;
+    	if(isset($rec->id) && isset($likeProductId)){
+    		$convertable = planning_ObjectResources::fetchConvertableProducts($likeProductId);
+    		$convertable = array('x' => (object)array('title' => tr('Заместващи'), 'group' => TRUE)) + $convertable;
+    		$convertable = array($likeProductId => $products[$likeProductId]) + $convertable;
+    		$form->setOptions('resourceId', $convertable);
+    	}
     	
     	$form->setDefault('type', 'input');
     	$quantity = $data->masterRec->quantity;
     	$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
     	$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
     		
-    	$propCaption = "|За|* |{$quantity}|* {$shortUom}";
+    	$propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
     	$form->setField('propQuantity', "caption={$propCaption}");
+    	
+    	if($data->masterRec->expenses){
+    		$form->setDefault('expensePercent', $data->masterRec->expenses);
+    	}
+    	
+    	if($rec->type == 'pop'){
+    		$form->setField('showInProduct', 'input=none');
+    	}
     }
     
     
@@ -227,9 +248,8 @@ class cat_BomDetails extends doc_Detail
     	if(isset($rec->resourceId)){
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
-    		$form->setDefault('measureId', $pInfo->productRec->measureId);
     		
-    		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
+    		$packs = cat_Products::getPacks($rec->resourceId);
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     		
@@ -244,6 +264,10 @@ class cat_BomDetails extends doc_Detail
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
     		
+    		if(!isset($rec->expensePercent)){
+    			$rec->expensePercent = cat_Boms::fetchField($rec->bomId, 'expenses');
+    		}
+    		
     		if(isset($rec->resourceId)){
     			
     			// Ако е избран артикул проверяваме дали артикула от рецептата не се съдържа в него
@@ -253,16 +277,23 @@ class cat_BomDetails extends doc_Detail
     			$notAllowed = array();
     			$mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
     			if(isset($notAllowed[$rec->resourceId])){
-    				$form->setError('resourceId', "Материала не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+    				$form->setError('resourceId', "Материалът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
     			}
     		}
     		
     		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
     			$selfValue = planning_ObjectResources::getSelfValue($rec->resourceId);
-    			
     			if(!isset($selfValue)){
-    				$form->setError('resourceId', 'Отпадакът не може да му се определи себестойност');
+    				$form->setWarning('resourceId', 'Отпадакът няма себестойност');
+    			}
+    		} else {
+    			
+    			// Материалът може да се използва само веднъж в дадения етап
+    			$cond = "#bomId = {$rec->bomId} AND #id != '{$rec->id}' AND #resourceId = {$rec->resourceId}";
+    			$cond .= (empty($rec->stageId)) ? " AND #stageId IS NULL" : " AND #stageId = '{$rec->stageId}'";
+    			if(self::fetchField($cond)){
+    				$form->setError('resourceId,stageId', 'Материалът вече се използва в този етап');
     			}
     		}
     		
@@ -282,16 +313,26 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
-    	$row->measureId = cat_UoM::getTitleById($rec->packagingId);
     	
     	// Показваме подробната информация за опаковката при нужда
-    	deals_Helper::getPackInfo($row->measureId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
+    	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
     	
     	if(empty($rec->stageId)){
     		$row->stageId = tr("Без етап");
+    	}
+    	
+    	if($mvc->haveRightFor('edit', $rec)){
+    		$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
+    		if(count($convertableOptions)){
+    			$row->resourceId .= ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
+    		}
+    	}
+    	
+    	if($rec->position === 0){
+    		unset($row->position);
     	}
     }
     
@@ -337,18 +378,47 @@ class cat_BomDetails extends doc_Detail
     		} else {
     			$rec->order = 0;
     		}
-    		$rec->order .= $rec->id;
+    		
+    		if(!$rec->position){
+    			$rec->position = 0;
+    		}
+    		//$rec->order .= $rec->id;
     	}
-    	 
+    
     	if($data->masterData->rec->state != 'draft'){
     		unset($data->listFields['tools']);
     	}
     	
     	// Сортираме по подредбата на производствения етап
     	usort($recs, function($a, $b) {
-    		if($a->order == $b->order)  return 0;
-    
-    		return ($a->order > $b->order) ? 1 : -1;
+    		if($a->order == $b->order) return 0;
+    		
+    		return ($a->order < $b->order) ? 1 : -1;
     	});
+    	
+    	// Сортираме по подредбата на производствения етап
+    	usort($recs, function($a, $b) {
+    		if($a->position == $b->position)  return 0;
+    		return ($a->position > $b->position) ? 1 : -1;
+    	});
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(isset($rec->position)){
+    		$query = $mvc->getQuery();
+    		$cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
+    		$cond .= (isset($rec->stageId)) ? "#stageId = {$rec->stageId}" : "#stageId IS NULL";
+    		
+    		$query->where($cond);
+    		while($rec = $query->fetch()){
+    			$rec->position++;
+    			$mvc->save_($rec, 'position');
+    		}
+    	}
     }
 }

@@ -96,12 +96,22 @@ class log_Ips extends core_Manager
      */
     public static function getIpId($ip = NULL)
     {
+        $haveSession = FALSE;
+        $Session = cls::get('core_Session');
+        if ($Session->isStarted()) {
+            $haveSession = TRUE;
+        }
+        
         if (!$ip) {
             $ip = core_Users::getRealIpAddr();
         }
         
         if (!self::$ipsArr) {
-            self::$ipsArr = (array) Mode::get('ipsArr');
+            if ($haveSession) {
+                self::$ipsArr = (array) Mode::get('ipsArr');
+            } else {
+                self::$ipsArr = array();
+            }
         }
         
         // Ако в сесията нямада id-то на IP-то, определяме го, записваме в модела и в сесията
@@ -119,7 +129,9 @@ class log_Ips extends core_Manager
                 self::$ipsArr[$ip] = $id;
             }
             
-            Mode::setPermanent('ipsArr', self::$ipsArr);
+            if ($haveSession) {
+                Mode::setPermanent('ipsArr', self::$ipsArr);
+            }
         }
         
         return self::$ipsArr[$ip];

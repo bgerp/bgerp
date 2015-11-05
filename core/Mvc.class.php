@@ -989,6 +989,9 @@ class core_Mvc extends core_FieldSet
                     		}
                     	}
                     } catch(core_exception_Expect $e){
+                        
+                        reportException($e);
+                        
                     	if($mfAttr->field){
                     		$html .= "<li class='debug-error'>Проблем при обновяване на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
                     	} else {
@@ -1048,6 +1051,9 @@ class core_Mvc extends core_FieldSet
                     		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                     	}
                     } catch(core_exception_Expect $e){
+                        
+                        reportException($e);
+                        
                     	$html .= "<li class='debug-error'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
                     }
                 }
@@ -1286,7 +1292,7 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logInfo($action, $objectId = NULL, $lifeDays = 90)
+    public static function logInfo($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
         log_Data::add('info', $action, $className, $objectId, $lifeDays);

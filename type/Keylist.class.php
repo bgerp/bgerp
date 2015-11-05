@@ -55,7 +55,7 @@ class type_Keylist extends core_Type {
         foreach($vals as $v) {
             if($v) {
                 $name = $this->getVerbal($v);
-                if((!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
                 	if($this->params['makeLinks'] === 'short'){
                 		$name = ht::createLinkRef($name, array($mvc, 'Single', $v));
                 	} else {
@@ -452,7 +452,7 @@ class type_Keylist extends core_Type {
             {
                 if(empty($id) && empty($val)) continue;
                 
-                if(!ctype_digit(trim($id))) {
+                if(!is_numeric(trim($id))) {
                     throw new core_exception_Expect("Некоректен списък '{$id}' => '{$val}', '{$res}'");
                 }
                 
@@ -665,5 +665,18 @@ class type_Keylist extends core_Type {
         $arr['add'] = array_diff($lReposArr, $fReposArr);
         
         return $arr;
+    }
+
+
+    /**
+     * Нормализира записа на keylist
+     */
+    static function normalize($list)
+    {
+        $arr = explode('|', trim($list, '|'));
+        asort($arr);
+        $list = '|' . implode('|', $arr) . '|';
+
+        return $list;
     }
 }

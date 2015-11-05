@@ -200,7 +200,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	
-    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, after=place,input=hidden,notNull,default=1');
+    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
@@ -270,7 +270,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
-    		$form->setField('vatReason', 'mandatory');
+    		if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    			$form->setField('vatReason', 'mandatory');
+    		}
     	}
     	
     	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
@@ -426,6 +428,15 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
+    	 
+    		if(empty($rec->vatReason)){
+    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
+    				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
+    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');  
+    			}
+    		}
+    		
     		if($rec->type == 'dc_note'){
     			$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
     			$type = ($rec->dealValue <= 0) ? 'Credit note' : 'Debit note';

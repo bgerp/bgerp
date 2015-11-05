@@ -58,10 +58,7 @@ class acc_ReportDetails extends core_Manager
             $this->prepareBalanceReports($data);
             $data->Order = 1;
         } else {
-            
-            // Ако няма права дисейлбваме таба
-            $data->disabled = TRUE;
-            $data->Order = 80;
+        	$data->renderReports = FALSE;
         }
         
         // Име на таба
@@ -105,7 +102,7 @@ class acc_ReportDetails extends core_Manager
     private function prepareBalanceReports(&$data)
     {
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
-    	$data->canSeePrices = haveRole('ceo,accMaster');
+    	$data->canSeePrices = haveRole('ceo,accJournal');
     	
         // Полета за таблицата
         $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума");
@@ -118,12 +115,12 @@ class acc_ReportDetails extends core_Manager
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
         // Създава се с new за да сме сигурни, че обекта е нова празна инстанция
         $data->reportTableMvc = new core_Mvc;
-        $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
-        $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('limitQuantity', 'double', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('createdBy', 'double', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-        $data->reportTableMvc->FLD('blPrice', 'int', 'tdClass=accCell');
+        $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell,smartCenter');
+        $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('limitQuantity', 'double', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('createdBy', 'double', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell,smartCenter');
+        $data->reportTableMvc->FLD('blPrice', 'int', 'tdclass=accCell,smartCenter');
         $data->total = 0;
         
         // Перото с което мастъра фигурира в счетоводството
@@ -268,7 +265,7 @@ class acc_ReportDetails extends core_Manager
         }
         
         $limitTitle = tr("Лимити");
-        if(acc_Limits::haveRightFor('list')){
+        if(acc_Limits::haveRightFor('list') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
         	$limitTitle = ht::createLink($limitTitle, array('acc_Limits', 'list'), FALSE, 'title=Към счетоводните лимити');
         }
         $tpl->replace($limitTitle, 'LIMIT_LINK');
@@ -376,7 +373,8 @@ class acc_ReportDetails extends core_Manager
         }
         
         // Ако потребителя може да добавя счетоводни лимити
-        if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId()))){
+        if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId())) 
+                && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
         	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
         	$btn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново ограничение на перото');
         	$tpl->append($btn, 'BTN_LIMITS');

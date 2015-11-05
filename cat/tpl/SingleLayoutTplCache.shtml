@@ -2,7 +2,7 @@
     [#SingleToolbar#]
     <div class="no-cover">
         <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|Артикул|* <b style="color:green;">[#productId#]</b></h2>
-    	<div>|Изглед към|* [#time#]</div>
+    	<div>[#type#] |към|* [#time#]</div>
     	<hr>
     	<div style='margin-top:10px'>
     		[#cache#]

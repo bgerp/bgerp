@@ -93,7 +93,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     {
         $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
+        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
     }
         
     
@@ -121,6 +121,11 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     {
     	$form->setField('packagingId','input=hidden');
     	parent::inputDocForm($mvc, $form);
+    	
+    	if(isset($form->rec->packagingId)){
+    		$measureShort = cat_UoM::getShortName($form->rec->packagingId);
+    		$form->setField('packQuantity', "unit={$measureShort}");
+    	}
     }
     
     
@@ -132,14 +137,8 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-            
-                if($data->masterData->rec->state == 'draft') {
-                    $time = NULL;
-                } else {
-                    $time = $data->masterData->rec->modifiedOn;
-                }
 
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
 
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";

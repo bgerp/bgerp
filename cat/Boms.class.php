@@ -33,11 +33,11 @@ class cat_Boms extends core_Master
      */
     var $title = "Технологични рецепти";
     
-    
+   
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
+    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank';
     
     
     /**
@@ -68,6 +68,13 @@ class cat_Boms extends core_Master
      * Детайла, на модела
      */
     var $details = 'cat_BomDetails';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'cat_BomDetails';
     
     
     /**
@@ -137,10 +144,11 @@ class cat_Boms extends core_Master
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
-    	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
+    	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
+    	$this->FLD('hash', 'varchar', 'input=none');
     	
     	$this->setDbIndex('productId');
     }
@@ -188,6 +196,10 @@ class cat_Boms extends core_Master
     	
     	// При създаване на нова рецепта
     	if(empty($form->rec->id)){
+    		if($expenses = cat_Products::getParamValue($form->rec->productId, 'expenses')){
+    			$form->setDefault('expenses', $expenses);
+    		}
+    		
     		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
     		
     		$alreadyUsedResources = array();
@@ -215,7 +227,7 @@ class cat_Boms extends core_Master
     					$right = "за {$form->rec->quantity} {$shortUom}";
     				}
     				 
-    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|К-ва|*");
+    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|Количества|*");
     			}
     		}
     	}
@@ -255,6 +267,8 @@ class cat_Boms extends core_Master
     	
     				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
     				$dRec = (object)array('bomId' => $rec->id,
+    									  'packagingId' => cat_Products::getProductInfo($rec->{"resourceId{$i}"})->productRec->measureId,
+    									  'quantityInPack' => 1,
 				    					  'type' => 'input',
 				    					  'resourceId' => $rec->{"resourceId{$i}"},
 				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
@@ -337,6 +351,12 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
+    		
+    		if($cRec->productId){
+    			$pRec = cat_Products::fetch($cRec->productId);
+    			$pRec->modifiedOn = dt::now();
+    			cat_Products::save($pRec);
+    		}
     	}
     }
     
@@ -408,7 +428,7 @@ class cat_Boms extends core_Master
      */
     function getDocumentRow($id)
     {
-    	$rec = $this->fetch($id);
+    	$rec = $this->fetchRec($id);
     	
     	$row = new stdClass();
     	$row->title = $this->getRecTitle($rec);
@@ -459,7 +479,7 @@ class cat_Boms extends core_Master
         	$row->primeCost = $Double->toVerbal($rec->primeCost);
         	$row->primeCost .= tr("|* ( |за|* {$row->quantityForPrice} {$shortUom} )");
         	 
-        	if(haveRole('ceo, acc, cat, price')){
+        	if(haveRole('ceo, acc, cat, price') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
         		$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
         	}
     	}
@@ -500,8 +520,8 @@ class cat_Boms extends core_Master
     	
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
-    	$amounts = (object)array('base' => 0, 'prop' => 0);
-    	
+    	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
+    	//bp($rInfo);
     	// За всеки ресурс
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
@@ -513,17 +533,18 @@ class cat_Boms extends core_Master
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
     			
+    			$base = $dRec->baseQuantity * $selfValue * $sign / $rInfo['quantity'];
+    			$prop = $dRec->propQuantity * $selfValue * $sign / $rInfo['quantity'];
+    			
+    			$amounts->expenses += $base * $dRec->expensePercent + $prop * $dRec->expensePercent;
+    			$base *= (1 + $dRec->expensePercent);
+    			$prop *= (1 + $dRec->expensePercent);
+    			
     			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $dRec->baseQuantity * $selfValue * $sign;
-    			$amounts->prop += $dRec->propQuantity * $selfValue * $sign;
+    			$amounts->base += $base;
+    			$amounts->prop += $prop;
     		}
     	}
-    	
-    	$amounts->base /= $rInfo['quantity'];
-    	$amounts->prop /= $rInfo['quantity'];
-    	
-    	$amounts->base *= (1 + $rec->expenses);
-    	$amounts->prop *= (1 + $rec->expenses);
     	
     	// Връщаме изчислените суми
     	return $amounts;
@@ -562,6 +583,7 @@ class cat_Boms extends core_Master
     		$arr = array();
     		$arr['productId']      = $dRec->resourceId;
     		$arr['type']           = $dRec->type;
+    		$arr['expensePercent'] = $dRec->expensePercent;
     		$arr['packagingId']    = $dRec->packagingId;
     		$arr['quantityInPack'] = $dRec->quantityInPack;
     		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
@@ -614,7 +636,7 @@ class cat_Boms extends core_Master
     {
     	// Проверка на подадените данни
     	expect($pRec = cat_Products::fetch($productId));
-    	expect($pRec->canManifacture == 'yes');
+    	expect($pRec->canManifacture == 'yes', $pRec);
     	
     	$Double = cls::get('type_Double');
     	$Richtext = cls::get('type_RichText');
@@ -679,5 +701,112 @@ class cat_Boms extends core_Master
     	$this->save($rec, 'modifiedOn');
     	
     	return Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
+    }
+    
+    
+    /**
+     * Създава дефолтната рецепта за артикула.
+     * Проверява за артикула можели да се създаде дефолтна рецепта, 
+     * ако може затваря предишната дефолтна рецепта (ако е различна) и създава нова
+     * активна рецепта с подадените данни.
+     * 
+     * @param int $productId - ид на артикул
+     * @return void
+     */
+    public static function createDefault($productId)
+    {
+    	$pRec = cat_Products::fetch($productId);
+    	$Driver = cat_Products::getDriver($productId);
+    	$bomInfo = $Driver->getDefaultBom($pRec);
+    	
+    	// Ако има информация за дефолтна рецепта
+    	if($bomInfo){
+    		$hash = md5(serialize($bomInfo));
+    		$details = array();
+    		$error = array();
+    		$hasInputMats = FALSE;
+    		
+    		// И има материали
+    		if(is_array($bomInfo['materials'])){
+    			foreach ($bomInfo['materials'] as $matRec){
+    				
+    				// Имали артикул с такъв код
+    				if(!$prod = cat_Products::getByCode($matRec->code)){
+    					$error[$matRec->code] = $matRec->code;
+    					continue;
+    				}
+    				
+    				// Подготвяме детайлите на рецептата
+    				$nRec = new stdClass();
+    				$nRec->resourceId = $prod->productId;
+    				$nRec->baseQuantity = $matRec->baseQuantity;
+    				$nRec->propQuantity = $matRec->propQuantity;
+    				$nRec->quantityInPack = 1;
+    				$nRec->type = ($matRec->waste) ? 'pop' : 'input';
+    				if(isset($prod->packagingId)){
+    					$nRec->packagingId = $prod->packagingId;
+    					if($pRec = cat_products_Packagings::getPack($prod->productId, $prod->packagingId)){
+    						$nRec->quantityInPack= $pRec->quantity;
+    					}
+    				} else {
+    					$nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
+    				}
+    				
+    				// Форсираме производствения етап
+    				$nRec->stageId = planning_Stages::force($matRec->stage);
+    				$details[] = $nRec;
+    				
+    				if($nRec->type == 'input'){
+    					$hasInputMats = TRUE;
+    				}
+    			}
+    		}
+    		
+    		// Ако някой от артикулите липсва, не създаваме нищо
+    		if(count($error)){
+    			$string = implode(',', $error);
+    			$msg = tr("Базовата рецепта не може да бъде създадена|*, |защото материалите с кодове|*: <b>{$string}</b> |не са въведени в системата|*");
+    			core_Statuses::newStatus($msg, 'warning');
+    			return;
+    		}
+    		
+    		// Ако няма вложими материали, не създаваме рецепта
+    		if($hasInputMats === FALSE){
+    			$msg = tr("Базовата рецепта не може да бъде създадена|*, |защото не са подадени вложими материали|*, |а само отпадаци|*");
+    			core_Statuses::newStatus($msg, 'warning');
+    			return;
+    		}
+    		
+    		try{
+    			// Ако има стара активна дефолтна рецепта със същите данни не правим нищо
+    			if($oldRec = static::fetch("#productId = {$productId} AND #state = 'active'  AND #hash IS NOT NULL")){
+    				
+    				// Ако дефолтната рецепта е различна от текущата дефолтна затваряме я
+    				if($oldRec->hash != $hash){
+    					$oldRec->state = 'closed';
+    					static::save($oldRec);
+    				} else {
+    					// Не правим нищо
+    					return;
+    				}
+    			}
+    			
+    			// Създаваме нова дефолтна рецепта от системния потребител
+    			core_Users::forceSystemUser();
+    			$bomId = static::createNewDraft($productId, $bomInfo['quantity'], $details, 'Автоматична рецепта', $bomInfo['expenses']);
+    			$bomRec = static::fetchRec($bomId);
+    			$bomRec->state = 'active';
+    			$bomRec->hash = $hash;
+    			static::save($bomRec);
+    			core_Users::cancelSystemUser();
+    			
+    			core_Statuses::newStatus(tr('Успешно е създадена нова базова рецепта'));
+    		} catch(core_exception_Expect $e){
+    			
+    			// Ако има проблем, репортваме
+    			core_Statuses::newStatus(tr('Проблем при създаването на нова базова рецепта'), 'error');
+    			reportException($e);
+    		}
+    	}
     }
 }

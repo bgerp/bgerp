@@ -142,10 +142,6 @@ class bulmar_Setup extends core_ProtoSetup
         // Добавяме импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bulmar_InvoiceExport');
         
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('exportInvoices', 'Експортирани фактури', 'csv,txt,text,', '10MB', 'user', 'ceo');
-        
         return $html;
     }
 }

@@ -2,7 +2,7 @@
     [#SingleToolbar#]
     <div class="folder-cover [#STATE_CLASS#]">
         <div class="inner-folder">
-            <div class="block_title state-active special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
+            <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Информация|*</legend>
                 <div class="groupList">

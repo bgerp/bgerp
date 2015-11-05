@@ -23,6 +23,12 @@ class cms_Articles extends core_Master
     
     
     /**
+     * Заглавие
+     */
+    var $singleTitle = "Публична статия";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, plg_AutoFilter, change_Plugin';
@@ -194,22 +200,6 @@ class cms_Articles extends core_Master
         if(trim($rec->body) && $fields['-list'] && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), NULL, 'ef_icon=img/16/monitor.png');
         }
-        
-        // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
-        
-        // Ако листваме
-        if(!arr::haveSection($fields, '-list')) return;
-        
-        // Определяме в кое поле ще показваме инструментите
-        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
-        
-        // Ако полето е обект
-        if (is_object($row->$field)) {
-            
-            // Добавяме линк, който води до промяна на записа
-            $row->$field->append($mvc->getChangeLink($rec->id), 'TOOLS');
-        }
     }
 
 
@@ -229,7 +219,7 @@ class cms_Articles extends core_Master
         }
 		
         $id = Request::get('id', 'int'); 
-         
+        
         if(!$id || !is_numeric($id)) { 
             $menuId =  Mode::get('cMenuId');
 
@@ -286,8 +276,45 @@ class cms_Articles extends core_Master
         $query->orderBy("#level");
 
         $navData = new stdClass();
-        
+
         $cnt = 0;
+        
+        
+        if(($q = Request::get('q')) && $menuId > 0 && !$rec) {  
+            $rec = new stdClass();
+            $navData->q = $q;
+            $rec->menuId = $menuId;
+            $lArr = array('a', 'a', 'a');
+
+            $query1 = self::getQuery();
+            $query1->where("#menuId = {$menuId} AND #state = 'active'");
+
+            plg_Search::applySearch($q, $query1);
+
+
+            $q1 = type_Varchar::escape($q);
+            $content->append("<h1 style='margin-top:0'>Търсене на \"{$q1}\"</h1>");
+            
+            while($r = $query1->fetch()) {
+                $title = str::cut($r->body, '[h1]', '[/h1]');
+                if(strlen($r->title) > strlen($title) || (strlen($title) > 64)) {
+                    $title = $r->title;
+                }
+                $title = type_Varchar::escape($title);
+                $url = self::getUrl($r);
+                $url['q'] = $q;
+                $title = ht::createLink($title, $url);
+                $content->append("<h3>" . $title . "</h3>");
+            }
+
+            if(!$title) {
+                $content->append("<p><i>" . tr("Няма намерени резултати") . "</i></p>");
+            }
+
+            vislog_History::add("Търсене в статиите: {$q}");
+        }  
+
+
 
         while($rec1 = $query->fetch("#state = 'active'")) {
             
@@ -297,7 +324,7 @@ class cms_Articles extends core_Master
             $cnt++;
             
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
-
+ 
             if($lArr) {
                 if($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) continue;
             }
@@ -322,7 +349,6 @@ class cms_Articles extends core_Master
                 $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
                 $content->prepend($ptitle, 'PAGE_TITLE');
-                
             }
 
             $l = new stdClass();
@@ -343,15 +369,24 @@ class cms_Articles extends core_Master
             
             $l->title = $title;
             
-            // Вземаме линка за промяна на записа
-            $l->editLink = $this->getChangeLink($rec1->id);
+            if ($this->haveRightFor('changerec', $rec1)) {
+                // Вземаме линка за промяна на записа
+                $l->editLink = $this->getChangeLink($rec1->id);
+            }
 
             $navData->links[] = $l;
-
         }
         
+        // Оцветяваме ако има търсене
+        if($q && isset($rec->id)) {
+            plg_Search::highlight($content, $q, 'searchContent');
+        }
+   
+        $navData->menuId = $rec->menuId;
+
         if(self::haveRightFor('add')) {
-            $navData->addLink = ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
+            $navData->addLink = ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 
+                'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
 		
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
@@ -364,13 +399,12 @@ class cms_Articles extends core_Master
         $content->replace($desc, 'META_DESCRIPTION');
 
         if($ogp){
-        	
-        	  // Генерираме ограф мета таговете
-        	  $ogpHtml = ograph_Factory::generateOgraph($ogp);
-        	  $content->append($ogpHtml);
+            // Генерираме ограф мета таговете
+            $ogpHtml = ograph_Factory::generateOgraph($ogp);
+            $content->append($ogpHtml);
         }
         
-        if($rec) {
+        if($rec && $rec->id) {
             if(core_Packs::fetch("#name = 'vislog'")) {
                 vislog_History::add($rec->title);
             }
@@ -383,10 +417,10 @@ class cms_Articles extends core_Master
         // Страницата да се кешира в браузъра за 1 час
         Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
         
-
         return $content; 
     }
 
+    
 
     /**
      * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editLink} )
@@ -422,6 +456,17 @@ class cms_Articles extends core_Master
             $navTpl->append($data->addLink);
             $navTpl->append( "</div>");
         }
+        
+        if($data->menuId > 0 && self::count("#menuId = {$data->menuId}") > 10) {
+            $searchForm = cls::get('core_Form', array('method' => 'GET'));
+            $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
+            $searchForm->layout->replace(toUrl(array('cms_Articles', 'Article')), 'ACTION');
+            $searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
+            $searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
+            $searchForm->setHidden('menuId', $data->menuId);
+            $navTpl->prepend($searchForm->renderHtml());
+        }
+
 
         return $navTpl;
     }
@@ -439,9 +484,6 @@ class cms_Articles extends core_Master
      */
     static function getChangeLink($id, $title=FALSE)
     {
-        // Ако нямаме права да редактираме, да не се показва линка
-        if (!static::haveRightFor('changerec', $id)) return ;
-        
         // URL' то за промяна
         $changeUrl = array('cms_Articles', 'changefields', $id, 'ret_url' => TRUE);
         
@@ -525,7 +567,6 @@ class cms_Articles extends core_Master
             $roles = 'no_one';
         }
     }
-
 
 
     /**********************************************************************************************************

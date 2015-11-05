@@ -161,6 +161,12 @@ class cal_Reminders extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -184,7 +190,7 @@ class cal_Reminders extends core_Master
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
         
         // Начало на напомнянето
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Време->Начало, silent,changable');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
         
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
@@ -207,7 +213,7 @@ class cal_Reminders extends core_Master
         $this->FLD('weekDayNames', 'varchar(12)', 'caption=Име на деня,notNull,input=none');
         
         // Кога е следващото стартирване на напомнянето?
-        $this->FLD('nextStartTime', 'datetime', 'caption=Следващо напомняне,input=none');
+        $this->FLD('nextStartTime', 'datetime(format=smartTime)', 'caption=Следващо напомняне,input=none');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -294,6 +300,9 @@ class cal_Reminders extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {  
     	if ($form->isSubmitted()) {
+    	    
+    	    $now = dt::now();
+    	    
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
                 $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
@@ -393,11 +402,6 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-
-    	if (isset($data->rec->timeStart)){
-    		$data->row->timeStart = dt::mysql2verbal($data->rec->timeStart, 'smartTime');
-    	}
-    	
     	if($data->rec->repetitionType == 'days' ) {
     		if($data->rec->repetitionEach == '1'){
     			$data->row->each = 'всеки';
@@ -470,22 +474,9 @@ class cal_Reminders extends core_Master
 	    	$data->row->repetitionType = '';
 	    	$data->row->repetitionTypeMonth = '';
     	}
-    	
-    	if(isset($data->row->nextStartTime)) {
-    		$data->row->nextStartTime = dt::mysql2verbal($data->rec->nextStartTime, 'smartTime');
-    	}
     }
-
-
-    /**
-     * След рендиране на единичния изглед
-     */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        $tpl->removeBlock('shareLog');
-    }
-
-
+    
+    
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if ($data->recs) {
@@ -972,6 +963,36 @@ class cal_Reminders extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');
     }
-
-       
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        $allFieldsArr = array('priority' => 'Приоритет',
+        						'timeStart' => 'Начало',
+        						'action' => 'Действие',
+        						'timePreviously' => 'Предварително',
+        						'nextStartTime' => 'Следващо напомняне',
+        						'rem' => 'Напомняне',
+        						'repetitionTypeMonth' => 'Съблюдаване на',
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        if ($row->repetitionEach){
+            $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+        }
+    }
 }

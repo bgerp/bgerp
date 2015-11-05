@@ -121,7 +121,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         $this->FLD('info', "varchar(50)", 'caption=Колети');
-        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
+        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
     }
 
 
@@ -263,14 +263,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-    			
-                if($data->masterData->rec->state == 'draft') {
-                    $time = NULL;
-                } else {
-                    $time = $data->masterData->rec->modifiedOn;
-                }
 
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
 
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

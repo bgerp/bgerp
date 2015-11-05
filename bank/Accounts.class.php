@@ -279,8 +279,12 @@ class bank_Accounts extends core_Master {
         }
         
         while($rec = $query->fetch()) {
+        	
+        	// Ако е наша банкова сметка и е отттеглена, пропускаме я
         	if($data->isOurCompany === TRUE){
         		$rec->ourAccount = TRUE;
+        		$state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
+        		if($state == 'rejected') continue;
         	}
         	
             $data->recs[$rec->id] = $rec;
@@ -418,7 +422,17 @@ class bank_Accounts extends core_Master {
         $query->where("#contragentId = {$contragentId}");
         $query->where("#contragentCls = {$Contragent->getClassId()}");
         
+        $myCompany = crm_Companies::fetchOwnCompany();
+        $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId()) ? TRUE : FALSE;
+        
         while($rec = $query->fetch()) {
+        	
+        	// Ако е наша банкова сметка и е отттеглена, пропускаме я
+        	if($isOurCompany === TRUE){
+        		$state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
+        		if($state == 'rejected') continue;
+        	}
+        	
             $iban = $rec->iban;
             $key = ($intKeys) ? $rec->id : $rec->iban;
             $suggestions[$key] = $iban;

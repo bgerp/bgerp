@@ -92,34 +92,34 @@
                     <tr class='nowrap'>
                         <td>|Стойност|* :</td>
                         <td><span class='cCode'>[#currencyId#]</span></td>
-                        <td> <b>[#value#]</b></td>
+                        <td> <b class="lighterBold">[#value#]</b></td>
                     </tr>
                     <!--ET_BEGIN discountValue-->
                     <tr class='nowrap'>
                         <td>|Отстъпка|* :</td>
                         <td><span class='cCode'>[#discountCurrencyId#]</span></td>
-                        <td><b>[#discountValue#]</b></td>
+                        <td><b class="lighterBold">[#discountValue#]</b></td>
                     </tr>
                     <!--ET_END discountValue-->
                     <!--ET_BEGIN neto-->
                     <tr class='nowrap'>
                         <td>|Нето|* :</td>
                         <td><span class='cCode'>[#netoCurrencyId#]</span></td>
-                        <td><b>[#neto#]</b></td>
+                        <td><b class="lighterBold">[#neto#]</b></td>
                     </tr>
                     <!--ET_END neto-->
                     <!--ET_BEGIN baseAmount-->
                     <tr class='nowrap'>
                         <td>|Данъчна основа|* :</td>
                         <td><span class='cCode'>[#baseCurrencyId#]</span></td>
-                        <td><b>[#baseAmount#]</b></td>
+                        <td><b class="lighterBold">[#baseAmount#]</b></td>
                     </tr>
                     <!--ET_END baseAmount-->
                     <!--ET_BEGIN vatAmount-->
                     <tr class='nowrap'>
                         <td>|ДДС|* <b>[#vat#]</b> :</td>
                         <td><span class='cCode'>[#vatCurrencyId#]</span></td>
-                        <td><b>[#vatAmount#]</b></td>
+                        <td><b class="lighterBold">[#vatAmount#]</b></td>
                     </tr>
                     <!--ET_END vatAmount-->
                     <tr class='nowrap'>

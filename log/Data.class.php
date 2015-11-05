@@ -140,6 +140,12 @@ class log_Data extends core_Manager
             $className = cls::getClassName($className);
         }
         
+        if (isset($objectId)) {
+            if (!is_numeric($objectId)) {
+                $objectId = NULL;
+            }
+        }
+        
         $toAdd = array();
         $toAdd['type'] = $type;
         $toAdd['message'] = $message;
@@ -311,9 +317,6 @@ class log_Data extends core_Manager
      */
     public static function on_Shutdown($mvc)
     {
-        // Форсираме стартирането на сесията
-        core_Session::forcedStart();
-        
         // Записва в БД всички действия от стека
         self::flush();
     }

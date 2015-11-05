@@ -31,7 +31,7 @@ class acc_Balances extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, plg_AutoFilter';
+    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, plg_AutoFilter, bgerp_plg_Blank';
     
     
     /**
@@ -388,18 +388,15 @@ class acc_Balances extends core_Master
     		
     		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
     		$bD->saveBalance($rec->id);
-    		$this->logDebug("BCALC: {$rec->id} - SAVE '-1'");
     		
     		// Изтриваме старите данни за текущия баланс
     		$bD->delete("#balanceId = {$rec->id}");
-    		$this->logDebug("BCALC: {$rec->id} - DEL CURRENT BALANCE");
     		
     		// Ъпдейтваме данните за баланс -1 да са към текущия баланс
     		// Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
     		// За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
     		$balanceIdColName = str::phpToMysqlName('balanceId');
     		$bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
-    		$this->logDebug("BCALC: {$rec->id} - UPDATE '-1' to {$rec->id}");
     		
     		// Отбелязваме, кога за последно е калкулиран този баланс
     		$rec->lastCalculate = dt::now();
@@ -658,7 +655,7 @@ class acc_Balances extends core_Master
         }
         
         if ($accountRec->id && strlen($num) >= 3) {
-            if(acc_Balances::haveRightFor('read', $rec)){
+            if(acc_Balances::haveRightFor('read', $rec) && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
                 
                 // Ако има номенклатури, правим линк към обобщението на сметката
                 if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {

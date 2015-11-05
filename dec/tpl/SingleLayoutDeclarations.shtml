@@ -1,5 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <h3 class="centered"><b>[#typeId#]</b></h3>
+
+    <h3 class="centered"><b>[#template#]</b></h3>
     <p class="centered">№ [#id#] / [#date#]</p>
     [#content#]
+
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

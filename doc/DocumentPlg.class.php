@@ -269,11 +269,15 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             if(isset($data->rejQuery)) {
                 $data->rejectedCnt = $data->rejQuery->count();
-                
+
                 if($data->rejectedCnt) {
+                    $data->rejQuery->orderBy('#modifiedOn', 'DESC');
+                    $data->rejQuery->limit(1);
+                    $lastRec = $data->rejQuery->fetch();
+                    $color = dt::getColorByTime($lastRec->modifiedOn);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
-                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, "id=binBtn,class=btn-bin fright,order=50,row=2", "ef_icon = img/16/bin_closed.png,style=color:#{$color};" );
                 }
             }
         }
@@ -434,17 +438,15 @@ class doc_DocumentPlg extends core_Plugin
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
         if($rec->state == 'active' || $rec->state == 'rejected'){
-        	$usedDocuments = $mvc->getUsedDocs($rec->id);
-	    	if(count($usedDocuments)){
-	    		$Log = cls::get('doclog_Documents');
-	    		foreach($usedDocuments as $used){
-	    			if($rec->state == 'rejected'){
-	    				$Log::cancelUsed($used->class, $used->id, $mvc, $rec->id);
-	    			} else {
-	    				$Log::used($used->class, $used->id, $mvc, $rec->id);
-	    			}
-	    		}
-	    	}
+            
+            $usedDocuments = $mvc->getUsedDocs($rec->id);
+            foreach((array)$usedDocuments as $usedCid){
+                if($rec->state == 'rejected'){
+                    doclog_Used::remove($containerId, $usedCid);
+                } else {
+                    doclog_Used::add($containerId, $usedCid);
+                }
+            }
         }
     }
     
@@ -672,6 +674,9 @@ class doc_DocumentPlg extends core_Plugin
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
                 }
+                
+                doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
+                $mvc->logInAct('Оттегляне', $rec);
             }
             
             // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
@@ -691,12 +696,8 @@ class doc_DocumentPlg extends core_Plugin
             
             $res['afterReject'] = 1;
             
-            doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-           
             $res = new Redirect($res); //'OK';
 
-            $mvc->logInAct('Оттегляне', $rec);
-            
             return FALSE;
         }
         
@@ -715,6 +716,8 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
+                
+                $mvc->logInAct('Възстановяване', $rec);
             }
             
             // Пренасочваме контрола
@@ -723,8 +726,6 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
-            
-            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
@@ -753,6 +754,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = 'rejected';
         
         $res = static::updateDocumentState($mvc, $rec);
+          doc_Threads::setModification($rec->threadId);
     }
     
     
@@ -777,6 +779,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = $rec->brState;
         
         $res = static::updateDocumentState($mvc, $rec);
+        doc_Threads::setModification($rec->threadId);
     }
 
 
@@ -2198,20 +2201,19 @@ class doc_DocumentPlg extends core_Plugin
     	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
     	if(count($docs)){
 	    	foreach ($docs as $doc){
-                $mvc = is_object($doc['mvc']) ? $doc['mvc']->className : $mvc;
-	    		$res[$mvc . '-' . $doc['rec']->id] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+	    	    if (isset($doc['rec']->containerId)) {
+	    	        $res[$doc['rec']->containerId] = $doc['rec']->containerId;
+	    	    }
 	    	}
     	}
     	
         // Ако ориджина е от друг тред, добавяме и него
     	if(isset($rec->originId)){
-            $cRec = doc_Containers::fetch($rec->originId);
-            if($cRec->threadId != $rec->threadId) {
-                $document = doc_Containers::getDocument($rec->originId);
-                $res[$document->getInstance()->className . '-' . $document->that] = (object)array('class' => $document->getInstance(), 'id' => $document->that);
-            }
+    	    $cRec = doc_Containers::fetch($rec->originId);
+    	    if($cRec->threadId != $rec->threadId) {
+    	        $res[$rec->originId] = $rec->originId;
+    	    }
     	}
-
     }
     
     
@@ -2355,7 +2357,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add')
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields')
             || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';
@@ -2450,8 +2452,17 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
-        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop;
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+
+        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop . $isThisDoc;
         
+        // Добавка за да работи сортирането на детайли
+        $dHnd = $mvc->getHandle($id);
+        if(Request::get('docId') == $dHnd) {
+           $cacheStr .= Request::get('Sort');
+        }
+
         if ($res) {
             $cacheStr .= $res;
         }
@@ -2494,8 +2505,10 @@ class doc_DocumentPlg extends core_Plugin
     {
     	$rec = $mvc->fetchRec($id);
     	if(!$res){
-    		$rec->modifiedOn = dt::now();
-    		$mvc->save($rec, 'modifiedOn');
+    		if(is_object($rec)){
+    			$rec->modifiedOn = dt::now();
+    			$mvc->save($rec, 'modifiedOn');
+    		}
     	}
     }
     
@@ -2524,6 +2537,80 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
     {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = $mvc->getFieldForLetterHead($rec, $row);
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        $hideArr = $mvc->getHideArrForLetterHead($rec, $row);
+        
+        $tableRows = $mvc->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = arr::make($res);
+        
+        // Ако няма избрана версия, да не се показва във вътрешната част
+        if (!$row->FirstSelectedVersion) {
+            $res['internal']['versionAndDate'] = TRUE;
+            $res['internal']['date'] = TRUE;
+            $res['internal']['version'] = TRUE;
+        }
+        
+        // Ако има само една версия или няма версии, да не се показват версиите във външната част
+        if (!(isset($row->FirstSelectedVersion)) || $row->LastVersion == '0.1') {
+            $res['external']['versionAndDate'] = TRUE;
+            $res['external']['date'] = TRUE;
+            $res['external']['version'] = TRUE;
+            
+        }
+        
+        $res['internal']['ident'] = TRUE;
+        $res['internal']['createdBy'] = TRUE;
+        $res['internal']['createdOn'] = TRUE;
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        if (!$mvc->showLetterHead) return ;
+        
+        $resArr = arr::make($resArr);
+        $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
+        $title = tr($title);
+        $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
+        
+        // Полета, които ще се показват
+        $resArr += change_Plugin::getDateAndVersionRow();
+        
+        $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
+        $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
     }
     
     
@@ -2538,50 +2625,147 @@ class doc_DocumentPlg extends core_Plugin
      * @param array $hideInInternal - кои полета да се скриват, при вътрешно показване
      * Отговаря на ключа на $headerArr
      */
-    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideInInternal = array())
+    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideArr = array())
     {
         if (!$headerArr) return ;
-        
-        $hideInInternal = arr::make($hideInInternal, TRUE);
         
         // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
         $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
         
-        $isNarrow = Mode::is('screenMode', 'narrow');
+        $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
+        
+        $showHeaderArr = array();
+        
+        // Добавяме полетата, които ще се показват в съответния режим
+        foreach ((array)$headerArr as $key => $value) {
+            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
+            
+            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
+            
+            $showHeaderArr[$key] = $value;
+        }
         
         if ($isNarrow) {
             $res = new ET('');
         } else {
-            $res = new ET("<tr>[#1#]</tr><tr>[#2#]</tr>");
+            
+            $limitForSecondRow = $mvc->headerLinesLimit ? $mvc->headerLinesLimit : 5;
+            $haveSecondRow = FALSE;
+            
+            // Ако бройката е под ограничението, няма да има втори ред
+            $noSecondRow = FALSE;
+            if (count($showHeaderArr) < $limitForSecondRow) {
+                $noSecondRow = TRUE;
+            }
+            
+            // Определяме, кои полета ще са на втори ред или дали ще има такива
+            $secondRowArr = array();
+            $cnt = 0;
+            foreach ($showHeaderArr as $key => &$hArr) {
+                
+                if ($noSecondRow) {
+                    unset($hArr['row']);
+                    continue;
+                }
+                
+                if ($hArr['row'] != 2) {
+                    // Ако не е зададено да е втори ред - добавяме, ако сме надвишили лимита
+                    $cnt++;
+                    if ($cnt <= $limitForSecondRow) continue;
+                    
+                    $hArr['row'] = 2;
+                }
+                
+                $haveSecondRow = TRUE;
+                
+                if ($hArr['row'] == 2) {
+                    $secondRowArr[$key] = $hArr;
+                }
+            }
+            
+            // Ако имаме само един кандидат за втория ред, да не се показва сам
+            if ((count($secondRowArr) == 1)) {
+                $key = key($secondRowArr);
+                unset($showHeaderArr[$key]['row']);
+                $haveSecondRow = FALSE;
+            }
+            
+            $first = '_FIRST_TR';
+            $second = '_SECOND_TR';
+            $res = new ET("<tr>[#{$first}#]</tr><tr>[#{$second}#]</tr>");
+            
+            if ($haveSecondRow) {
+                $firstSecondRow = '_FIRST_TR_SECOND_ROW';
+                $secondSecondRow = '_SECOND_TR_SECOND_ROW';
+                
+                $res->append(new ET("<tr>[#{$firstSecondRow}#]</tr><tr>[#{$secondSecondRow}#]</tr>"));
+            }
         }
         
         $haveVal = FALSE;
         
-        foreach ((array)$headerArr as $key => $value) {
-            
-            if ($isInternal && (($hideInInternal[$key]) || $hideInInternal['*'])) continue;
+        foreach ((array)$showHeaderArr as $key => $value) {
             
             $haveVal = TRUE;
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td>{$value['val']}</td>");
+            $val = new ET("<td><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
-                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
+                $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
                 $res->append("<tr>");
                 $res->append($name);
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<td class='aleft vtop'>{$value['name']}{$colon}</td>");
-                $res->append($name, '1');
-                $res->append($val, '2');
+                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</td>");
+                
+                if ($haveSecondRow && $value['row'] == 2) {
+                    $res->append($name, $firstSecondRow);
+                    $res->append($val, $secondSecondRow);
+                } else {
+                    $res->append($name, $first);
+                    $res->append($val, $second);
+                }
             }
         }
         
         if (!$haveVal) {
             $res = NULL;
+        }
+    }
+    
+    
+    /**
+     * Връща споделените потребители по подразбиране.
+     * Ако създаделе не е текущият потребител, тогава се връща.
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer $cid
+     */
+    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
+    {
+        $res = arr::make($res, TRUE);
+        
+        if (!$originId) return ;
+        
+        $document = doc_Containers::getDocument($originId);
+        $dRec = $document->fetch();
+        
+        $createdBy = NULL;
+        
+        if ($dRec->createdBy > 0) {
+            $createdBy = $dRec->createdBy;
+        } elseif ($dRec->modifiedBy > 0) {
+            $createdBy = $dRec->modifiedBy;
+        }
+        
+        if (isset($createdBy)) {
+            if ($createdBy != core_Users::getCurrent()) {
+                $res[$createdBy] = $createdBy;
+            }
         }
     }
 }

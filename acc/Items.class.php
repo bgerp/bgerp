@@ -145,7 +145,7 @@ class acc_Items extends core_Manager
         // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
         // "оразмерима" (acc_Lists::isDimensional == true). Мярката се показва и въвежда само 
         // ако има смисъл.
-        $this->FLD('uomId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember');
+        $this->FLD('uomId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
         
         // Състояние на перото
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none');

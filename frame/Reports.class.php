@@ -23,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
                       
     
     /**
@@ -35,7 +35,7 @@ class frame_Reports extends core_Embedder
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf,email_DocumentIntf';
    
     
     /**
@@ -209,6 +209,11 @@ class frame_Reports extends core_Embedder
                 	$mvc->save($rec);
                }
             }
+
+            $now = dt::now();
+            if($rec->earlyActivationOn < $now) {
+            	unset($row->earlyActivationOn);
+            }
            
             if($rec->state == 'active' || $rec->state == 'rejected'){
             	unset($row->earlyActivationOn);
@@ -226,8 +231,11 @@ class frame_Reports extends core_Embedder
     		
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
-    		$rec->earlyActivationOn = $Source->getEarlyActivation();
+
+            $rec->earlyActivationOn = $Source->getEarlyActivation();
+
     		$rec->state = 'draft';
+    		
     		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
@@ -311,6 +319,20 @@ class frame_Reports extends core_Embedder
 		$row->recTitle = $row->title;
 		
         return $row;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+    	$handle = static::getHandle($id);
+    	$tpl = new ET(tr('Моля запознайте се с нашата справка ') . ': #[#handle#]');
+    	$tpl->append($handle, 'handle');
+    
+    	return $tpl->getContent();
     }
     
     
@@ -460,7 +482,7 @@ class frame_Reports extends core_Embedder
     		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
     }
-    
+
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.

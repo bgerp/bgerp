@@ -44,7 +44,7 @@
     </div>
     <div class="lines"></div>
     <div class="scrolling-holder">
-        <table class="innerTable footer-notes" border="0" cellpadding="5" style='width:100%'>
+        <table class="innerTable footer-notes" style='width:100%'>
             <tbody>
                 <tr>
                     <!--ET_BEGIN deliveryInfo-->
@@ -96,27 +96,27 @@
                             <tr class='nowrap'>
                                 <td class='aright'>|Стойност|* :</td>
                                 <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
-                                <td class='aright' style='width:1%'> <b>[#value#]</b></td>
+                                <td class='aright' style='width:1%'> <b class="lighterBold">[#value#]</b></td>
                             </tr>
                             <!--ET_BEGIN discountValue-->
                             <tr class='nowrap'>
                                 <td class='aright'>|Отстъпка|* :</td>
                                 <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                                <td class='aright'><b>[#discountValue#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
                             </tr>
                             <!--ET_END discountValue-->
                             <!--ET_BEGIN neto-->
                             <tr class='nowrap'>
                                 <td class='aright'>|Нето|* :</td>
                                 <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                                <td class='aright'><b>[#neto#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#neto#]</b></td>
                             </tr>
                             <!--ET_END neto-->
                             <!--ET_BEGIN baseAmount-->
                             <tr class='nowrap'>
                                 <td class='aright'>|Данъчна основа|* :</td>
                                 <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                <td class='aright'><b>[#baseAmount#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#baseAmount#]</b></td>
                             </tr>
                             <!--ET_END baseAmount-->
                             <tr>
@@ -128,7 +128,7 @@
                             <tr class='nowrap'>
                                 <td class='aright'>|ДДС|* <b>[#vat#]</b> :</td>
                                 <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                                <td class='aright'><b>[#vatAmount#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
                             </tr>
                             <!--ET_END vatAmount-->
                             <tr class='nowrap'>

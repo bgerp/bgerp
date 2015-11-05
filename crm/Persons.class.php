@@ -1210,7 +1210,7 @@ class crm_Persons extends core_Master
      */
     public static function createRoutingRules($emails, $objectId)
     {
-        // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
+        // Приоритетът на всички правила, генериране след запис на визитка е нисък и нарастващ с времето
         $priority = email_Router::dateToPriority(dt::now(), 'low', 'asc');
 
             // Нормализираме параметъра $emails - да стане масив от имейл адреси
@@ -2149,11 +2149,10 @@ class crm_Persons extends core_Master
      * Връща папката на фирмата от бизнес имейла, ако имаме достъп до нея
      * 
      * @param email $email - Имейл, за който търсим
-     * @param object $eContragentData - Контрагент данни за потребител
      * 
      * @return integet $fodlerId - id на папката
      */
-    static function getFolderFromBuzEmail($email, &$pContragentData=NULL)
+    static function getFolderFromBuzEmail($email)
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
@@ -2163,9 +2162,6 @@ class crm_Persons extends core_Master
         
         // Ако има бизнес имейл и асоциирана фирма с потребителя
         if ($companyId = $personRec->buzCompanyId) {
-            
-            // Вземам контрагент данните за потребителя
-            $pContragentData = crm_Persons::getContragentData($personRec->id);
             
             // Вземаме папката на фирмата
             $folderId = crm_Companies::forceCoverAndFolder($companyId);
@@ -2449,11 +2445,12 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
      * универсален артикул, създаден в папката на корицата
      *
      * @param int $id - ид на корицата
-     * @return array $params - масив с дефолтни параметри
+     * @return array $params - масив с дефолтни параметри И техните стойности
+     * 				<ид_параметър> => <дефолтна_стойност>
      */
     public function getDefaultProductParams($id)
     {

@@ -11,7 +11,7 @@
 <h3 class="centered"><b>[#employeeRec_name#]</b></h3>
 <br>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;от друга страна, наричан/а/ <b>РАБОТНИК /СЛУЖИТЕЛ/</b></p>
-<p> с ЕГН: <b>[#employeeRec_egn#]</b>, 
+    с ЕГН: <b>[#employeeRec_egn#]</b>, 
     местоживеене: 
     [#employeeRec_pCode#]
     [#employeeRec_place#], [#employeeRec_address#], 

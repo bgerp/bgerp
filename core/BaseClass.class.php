@@ -290,7 +290,9 @@ class core_BaseClass
             error('404 Липсваща страница', array("Липсващ метод: {$method} на " . cls::getClassName($this)));
         }
         
-        return $this->{$method}();
+        $res = $this->{$method}();
+        
+        return $res;
     }
     
     

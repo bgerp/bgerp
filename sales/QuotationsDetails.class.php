@@ -164,16 +164,30 @@ class sales_QuotationsDetails extends doc_Detail {
     	$notOptional = $optional = array();
     	$total = new stdClass();
     	$total->discAmount = 0;
+    	$data->notOptionalHaveOneQuantity = TRUE;
+    	$data->optionalHaveOneQuantity = TRUE;
+    	$pcsUom = cat_UoM::fetchBySinonim('pcs')->id;
     	
     	if(count($recs)){
 	    	foreach ($recs as $id => $rec){
 	    		if($rec->optional == 'no'){
+	    			if($rec->packQuantity != 1 || $rec->packagingId != $pcsUom) {
+	    				$data->notOptionalHaveOneQuantity = FALSE;
+	    			}
+	    			
 	    			$notOptional[$id] = $rec;
 	    		}  else {
+	    			if($rec->packQuantity != 1 || $rec->packagingId != $pcsUom) {
+	    				$data->optionalHaveOneQuantity = FALSE;
+	    			}
+	    			
 	    			$optional[$id] = $rec;
 	    		}
 	    	}
     	}
+    	
+    	$data->countNotOptional = count($notOptional);
+    	$data->countOptional = count($optional);
     	
     	// Подготовка за показване на задължителнтие продукти
     	deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
@@ -329,7 +343,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($form->isSubmitted()){
-    		if(empty($form->rec->packQuantity)){
+    		if(!isset($form->rec->packQuantity)){
     			$form->rec->packQuantity = 1;
     		}
     		
@@ -520,12 +534,24 @@ class sales_QuotationsDetails extends doc_Detail {
     			$unsetDiscount = TRUE;
     		}
     	}
-    		
+    	
     	// Шаблон за задължителните продукти
-    	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
+    	$templateFile = ($data->countNotOptional && $data->notOptionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
+    	if($data->countNotOptional == 1 && $data->notOptionalHaveOneQuantity){
+    		$templateFile = 'sales/tpl/LayoutQuoteDetailsShortest.shtml';
+    		
+    		//$data->masterData->row
+    		//$others = "<li>tol</li>";
+    		
+    	}
+    	
+    	$dTpl = getTplFromFile($templateFile);
+    	 
+    	
     	
     	// Шаблон за опционалните продукти
-    	$oTpl = clone $dTpl;
+    	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
+    	$oTpl = getTplFromFile($optionalTemplateFile);
     	$oTpl->removeBlock("totalPlace");
     	$oCount = $dCount = 1;
     	
@@ -670,14 +696,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		} else {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
-            
-            if($data->masterData->rec->state == 'draft') {
-                $time = NULL;
-            } else {
-                $time = $data->masterData->rec->modifiedOn;
-            }
 
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}

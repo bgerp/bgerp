@@ -85,10 +85,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
-    	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
-    	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС');
+    	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
+    	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
     	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
-    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently');
+    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -475,7 +475,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	}
 	   	
 	   	$dQuery->where("#quantity = 0");
-	   	 
+	   	
 	   	// Ако има поне едно 0-во к-во документа, не може да се активира
 	   	if($dQuery->fetch()){
 	   		$res = FALSE;
@@ -968,7 +968,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$Detail = $this->mainDetail;
     	
     	$dQuery = $Detail::getQuery();
-    	$dQuery->where("#invoiceId = {$rec->id}");
+    	$dQuery->where("#invoiceId = '{$rec->id}'");
     
     	// Намираме всички фактурирани досега продукти
     	$invoiced = $aggregator->get('invoicedProducts');
@@ -1048,6 +1048,18 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($action == 'reject' && isset($rec)){
     		if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$state = $origin->rec()->state;
+    		if($state != 'active'){
+    			$res = 'no_one';
+    		} else {
+    			if(!($origin->getInstance() instanceof deals_DealMaster || $origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }

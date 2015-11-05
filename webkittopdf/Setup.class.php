@@ -34,7 +34,7 @@ defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
 /**
  * wkhtmltopdf да използва ли JS
  */
-defIfNot('WEBKIT_TO_PDF_USE_JS', '');
+defIfNot('WEBKIT_TO_PDF_USE_JS', 'yes');
 
 
 /**
@@ -55,11 +55,11 @@ defIfNot('WEBKIT_TO_PDF_JS_STOP_SLOW_SCRIPT', 'no');
  * Да се използва PRINT медиа тип, вместо SCREEN
  * --print-media-type
  */
-defIfNot('WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE', 'no');
+defIfNot('WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE', 'yes');
 
 
 /**
- * Да се използва PRINT медиа тип, вместо SCREEN
+ * Да се използва ли grayscale скалата
  * --grayscale
  */
 defIfNot('WEBKIT_TO_PDF_USE_GRAYSCALE', 'no');

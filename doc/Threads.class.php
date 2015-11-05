@@ -183,7 +183,7 @@ class doc_Threads extends core_Manager
      */
     function logInAct($msg, $rec = NULL, $type = 'info')
     {
-        if (($type == 'info') && ($folderId = Request::get('folderId')) && ($msg == 'Листване')) {
+        if (($type == 'info') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
             doc_Folders::logInfo('Разглеждане на папка', $folderId);
         } else {
             parent::logInAct($msg, $rec, $type);
@@ -255,7 +255,7 @@ class doc_Threads extends core_Manager
                     
                     $rec->firstContainerId = $firstCid;
                     
-                    if (self::save($rec)) {
+                    if (self::save($rec, 'firstContainerId')) {
                         $resArr['firstContainerId']++;
                     }
                 }
@@ -264,7 +264,7 @@ class doc_Threads extends core_Manager
                 if (!isset($rec->folderId) && isset($defaultFolderId)) {
                     $rec->folderId = $defaultFolderId;
                     
-                    if (self::save($rec)) {
+                    if (self::save($rec, 'folderId')) {
                         $resArr['folderId']++;
                     }
                 }
@@ -272,7 +272,7 @@ class doc_Threads extends core_Manager
                 // Обновяваме нишката
                 self::updateThread($rec->id);
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         
@@ -337,7 +337,7 @@ class doc_Threads extends core_Manager
                     continue;
                 }
             } catch (Exception $e) {
-                reportException($e, NULL, TRUE);
+                reportException($e);
             }
         }
         
@@ -497,8 +497,10 @@ class doc_Threads extends core_Manager
         expect($folderRec = doc_Folders::fetch($folderId));
         
         doc_Folders::requireRightFor('single', $folderRec);
-        
-        $mvc::applyFilter($data->listFilter->rec, $data->query);
+
+        $data->rejQuery = clone($data->query);
+
+        $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
 
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -587,6 +589,12 @@ class doc_Threads extends core_Manager
             $query->groupBy('`doc_threads`.`id`');
         }
         
+        if($filter->documentClassId){
+        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
+        }
+        
+
         // Подредба - @TODO
         switch ($filter->order) {
         	default:
@@ -605,10 +613,6 @@ class doc_Threads extends core_Manager
                 break;
         }
        
-        if($filter->documentClassId){
-        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
-        }
     }
     
     
@@ -1210,7 +1214,19 @@ class doc_Threads extends core_Manager
         doc_Folders::updateFolderByContent($rec->folderId);
     }
     
+
+    /**
+     * Отчита последно модифицаране на нишката към момента
+     */
+    public static function setModification($id)
+    {
+        $rec = self::fetch($id);
+        $rec->modifiedOn = dt::now();
+        $rec->modifiedBy = core_Users::getCurrent();
+        self::save($rec, 'modifiedOn,modifiedBy');
+    }
     
+
     /**
      * Оттегля цяла нишка, заедно с всички документи в нея
      * 
@@ -1227,6 +1243,7 @@ class doc_Threads extends core_Manager
         }
         
         $rec->state = 'rejected';
+        $rec->modifiedOn = dt::now();
         static::save($rec);
 
         // Оттегляме всички контейнери в нишката
@@ -1310,7 +1327,6 @@ class doc_Threads extends core_Manager
             if(Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
-                $data->rejQuery = clone($data->query);
                 $data->rejQuery->where("#state = 'rejected'");
                 // Показваме или само оттеглените или всички останали нишки
          	    $data->query->where("#state != 'rejected' OR #state IS NULL");
@@ -1338,14 +1354,20 @@ class doc_Threads extends core_Manager
         		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
-        		
-        		$data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
-        		
+        		$data->rejQuery->where("#folderId = {$data->folderId}");
+        		$data->rejectedCnt = $data->rejQuery->count();;
+        		 
         		if($data->rejectedCnt) {
         			$curUrl = getCurrentUrl();
         			$curUrl['Rejected'] = 1;
+                    
+                    $data->rejQuery->orderBy('modifiedOn', 'DESC');
+                    $data->rejQuery->limit(1); 
+                    $lastRec = $data->rejQuery->fetch();
+                    $color = dt::getColorByTime($lastRec->modifiedOn);
+
         			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
-        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), 'ef_icon = img/16/bin_closed.png');
+        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
@@ -1356,7 +1378,8 @@ class doc_Threads extends core_Manager
         			foreach ($managersIds as $classId){
         				$Cls = cls::get($classId);
         				if($Cls->haveRightFor('add', (object)array('folderId' => $data->folderId))){
-        					$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        					$btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle; 
+        					$data->toolbar->addBtn($btnTitle, array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
         				}
         			}
         		}
@@ -1946,7 +1969,7 @@ class doc_Threads extends core_Manager
     function on_BeforePrepareListPager($mvc, &$res, &$data)
     {
         // id на папката
-        $folderId = Request::get('folderId');
+        $folderId = Request::get('folderId', 'int');
         
         $key = doc_Folders::getSettingsKey($folderId);
         $vals = core_Settings::fetchKey($key);

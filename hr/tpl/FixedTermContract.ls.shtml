@@ -9,7 +9,7 @@
 от една страна, наричан/а/ за краткост в договора <b>РАБОТОДАТЕЛ</b> и 
 <h3 class="centered"><b>[#employeeRec_name#]</b></h3>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbspот друга страна, наричан/а/ <b>РАБОТНИК</b>
-<p> с ЕГН: <b>[#employeeRec_egn#], </b> 
+    с ЕГН: <b>[#employeeRec_egn#], </b> 
     местоживеене: [#employeeRec_address#], 
     лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], 
     образование: [#education#], 

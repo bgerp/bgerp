@@ -66,7 +66,7 @@ class blast_Lists extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'bgerp_PersonalizationSourceIntf';
+    var $interfaces = 'bgerp_PersonalizationSourceIntf, doc_DocumentIntf';
     
     
     /**
@@ -145,6 +145,12 @@ class blast_Lists extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "2.1|Циркулярни";
+    
+    
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
     
     
     /**
@@ -402,6 +408,23 @@ class blast_Lists extends core_Master
         return $csv;
     }
     
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $cnt = blast_ListDetails::getCnt($rec->id);
+        
+        $Int = cls::get('type_Int');
+        $row->DetailsCnt = $Int->toVerbal($cnt);
+    }
+    
+    
     /**
      * Преобразува стринга с полета в масив с инстанции на класовете
      *
@@ -644,5 +667,50 @@ class blast_Lists extends core_Master
         $rec = $this->fetch($id);
         
         return $rec->lg;
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        $allFieldsArr = array('title' => 'Заглавие',
+        						'keyField' => 'Ключово поле',
+        						'allFields' => 'Всички полета',
+        						'DetailsCnt' => 'Брой абонати',
+        						'lg' => 'Език',
+        						'lastUsedOn' => 'Последна употреба'
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        $resArr['created'] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = arr::make($res);
+        
+        $res['external']['created'] = TRUE;
     }
 }

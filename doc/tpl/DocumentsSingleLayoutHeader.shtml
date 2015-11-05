@@ -10,7 +10,7 @@
 	<!--ET_BEGIN header-->
 		<div class='header [#STATE_CLASS#] no-print'>
 			<div class='docBgIcon' style='[#iconStyle#]'>
-		        [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
+		        [#singleTitle#] <b>[#ident#]</b> ([#state#])<!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
 				
 				<!--ET_BEGIN DocumentSettings-->
 					<div class='document-settings'>

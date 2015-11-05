@@ -26,7 +26,7 @@ class change_Plugin extends core_Plugin
         if (!$mvc->fields['version']) {
             
             // Добавяме
-            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,width=100%');
+            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%');
         }
         
         // Ако няма добавено поле за подверсия
@@ -35,6 +35,24 @@ class change_Plugin extends core_Plugin
             // Добавяме
             $mvc->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @return array
+     */
+    public static function getDateAndVersionRow($inOne = TRUE)
+    {
+        if ($inOne) {
+            $rowRes = array('versionAndDate' => array('name' => tr("Версия"), 'val' => "<!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#][#LastVersion#]/[#LastVersionDate#]<!--ET_END REMOVE_BLOCK--><!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_BEGIN FirstSelectedVersionDate-->/[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]/<!--ET_END LastSelectedVersion--><!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END REMOVE_BLOCK-->"));
+        } else {
+            $rowRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersionDate--> / [#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
+            				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#]<!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_END FirstSelectedVersion--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion--><!--ET_END VERSIONREMOVE-->"));
+        }
+        
+        return $rowRes;
     }
     
     
@@ -439,15 +457,12 @@ class change_Plugin extends core_Plugin
             }
         } else {
             
-            // Ако има само една версия, да не се показва
-            if ($lastVerDocArr['versionStr'] != '0.1') {
-                // Добавяме в друга променлива
-                $data->row->LastVersion = $lastVerDocArr['versionStr'];
-                
-                // Ако е върната дата
-                if ($lastVerDocArr['createdOn']) {
-                    $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
-                }
+            // Добавяме в друга променлива
+            $data->row->LastVersion = $lastVerDocArr['versionStr'];
+            
+            // Ако е върната дата
+            if ($lastVerDocArr['createdOn']) {
+                $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         }
         
@@ -578,11 +593,8 @@ class change_Plugin extends core_Plugin
      */
     function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
-        // Ако нямаме права да редактираме, да не се показва линка
-        if (!$mvc->haveRightFor('changerec', $id)) return ;
-        
         // URL' то за промяна
-        $changeUrl = array($mvc, 'changefields', $id, 'ret_url' => TRUE);
+        $changeUrl = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
         
         // Иконата за промяна
         $editSbf = sbf("img/16/edit.png");
@@ -599,7 +611,7 @@ class change_Plugin extends core_Plugin
         } else {
             
             // Ако не е подадено заглавиет, създаваме линк с иконата
-            $res = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+            $res = ht::createLink('<img src=' . $editSbf . ' width="16" height="16">', $changeUrl);
         }
     }
     

@@ -111,16 +111,39 @@ class acc_plg_DocumentSummary extends core_Plugin
         $rolesForTeams = implode('|', $rolesForTeams);
        
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm');
-            $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm,remember');
+            $cKey = $mvc->className . core_Users::getCurrent();
+            if($lastUsers = core_Cache::get('userFilter',  $cKey)) {
+                $type = $data->listFilter->getField('users')->type;
+                $type->prepareOptions('all');
+                foreach($type->options as $key => $optObj) {
+                    if($lastUsers == $optObj->keylist || $key == $lastUsers) {
+                        $lastUsers = $optObj->keylist;
+                        break;
+                    }
+                }
+                $data->listFilter->setDefault('users', $lastUsers);  
+            } else {
+                $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            }
+
             $data->listFilter->showFields .= ',users';
         }
         
         // Активиране на филтъра
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
+
         // Ако формата за търсене е изпратена
         if($filter = $data->listFilter->rec) {
+            
+            // Записваме в кеша последно избраните потребители
+            if($usedUsers = $filter->users) {
+                if(($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
+                    $usedUsers = $requestUsers;
+                }
+                core_Cache::set('userFilter',  $cKey, $usedUsers, 24*60*100); 
+            }
         	
             // Филтрираме по потребители
             if($filter->users && $isDocument){

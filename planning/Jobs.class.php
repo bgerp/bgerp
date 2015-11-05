@@ -296,7 +296,7 @@ class planning_Jobs extends core_Master
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
     		}
     	}
 
@@ -385,12 +385,15 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		if($bomId = cat_Products::getLastActiveBom($rec->productId)->id){
+    			$row->bomId = cat_Boms::getLink($bomId, 0);
+    		}
     		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
     		
-    		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $rec->modifiedOn, 'detailed', 'internal');
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
@@ -514,7 +517,8 @@ class planning_Jobs extends core_Master
     function getUsedDocs_($id)
     {
     	$rec = $this->fetchRec($id);
-    	$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $rec->productId);
+    	$cid = cat_Products::fetchField($rec->productId, 'containerId');
+    	$res[$cid] = $cid;
     
     	return $res;
     }

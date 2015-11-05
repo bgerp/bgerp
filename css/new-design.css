@@ -240,7 +240,7 @@ body {
   margin-top: -1px; }
 
 .narrow #packWrapper {
-  padding: 15px 15px 10px; }
+  padding: 20px 15px 10px; }
 
 /*
  * позиция на табовете
@@ -611,6 +611,9 @@ a.bookmark-external-url {
   -webkit-overflow-scrolling: touch; }
   .narrow #main-container > div.tab-control > div.tab-row .row-holder {
     text-align: justify;
+        /*
+     * 3
+     */
     white-space: nowrap;
     height: 28px; }
   .narrow #main-container > div.tab-control > div.tab-row .tab {
@@ -625,6 +628,10 @@ a.bookmark-external-url {
       margin: 0px 2px 3px;
       padding-top: 1px;
       display: block; }
+
+.narrow div.alphabet div.tab-row .tab {
+  min-height: 15px;
+  line-height: 15px; }
 
 .narrow .tab-title {
   display: inline-block !important; }
@@ -743,6 +750,9 @@ button {
 input.linkWithIcon,
 a.linkWithIcon {
   padding-left: 25px !important; }
+
+a.linkInTitle {
+  color: #222222 !important; }
 
 .portal-filter .button,
 .portal-filter .button:focus {

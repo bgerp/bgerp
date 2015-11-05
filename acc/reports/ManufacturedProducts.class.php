@@ -62,7 +62,40 @@ class acc_reports_ManufacturedProducts extends acc_reports_CorespondingImpl
         $corespondentAccId = acc_Accounts::getRecBySystemId($mvc->corespondentAccountId)->id;
         $form->setDefault('corespondentAccountId', $corespondentAccId);
         $form->setHidden('corespondentAccountId');
+        
+        $today = dt::today();
+         
+        $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+        $form->setDefault('to', dt::addDays(-1,$today));
+        
+        //bp($form);
 
+    }
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     *
+     * @param core_Form $form
+     */
+    public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
+    {
+    
+    	$articlePositionId = acc_Lists::fetchField("#systemId = 'catProducts'",'id');
+    	$storePositionId = acc_Lists::getPosition($mvc->baseAccountId, 'store_AccRegIntf');
+    	
+    	foreach(range(1, 3) as $i) {
+    		if ($form->rec->{"list{$i}"} == $articlePositionId) {
+
+    			
+    			$form->setDefault("feat{$i}", "*");
+    			
+   
+    		}
+    		
+    		$form->setDefault("feat{$storePositionId}", "*");
+    		$form->setHidden("feat{$i}");
+    		$form->setHidden("grouping{$i}");
+    	}   	
     }
 
 

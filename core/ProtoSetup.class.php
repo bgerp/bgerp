@@ -154,7 +154,7 @@ class core_ProtoSetup
                         }
                     } catch (Exception $e) {
                         $html .= "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
-                        reportException($e, NULL, TRUE);
+                        reportException($e);
                     }
                 }
                 

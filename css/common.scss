@@ -440,6 +440,50 @@ input[type="search"]::-webkit-search-decoration {
     -webkit-appearance: none;
 }
 
+#simpleSearch {
+	width:15em;
+	max-width:100%;
+	border:solid 1px #ccc;
+	display:block;
+	position:relative;
+	height:1.5em;
+}
+
+.narrow #simpleSearch {
+	height:1.3em;
+}
+
+#simpleSearch input {
+	top:0.1em;
+	position:absolute;
+	display:inline-block;
+	border:none;
+	outline:none;
+	height:1.2em;
+	font-size:0.95em;
+ 	width:90%;
+	padding:0px;
+	padding-left:0.2em;
+}
+
+#simpleSearch button {
+	width:10%;
+	margin-right:0px;
+	padding:0;
+	height:1.8em;
+	right:0px;
+	position:absolute;
+	border:none;
+	background-color:transparent;
+	cursor:pointer;
+	display:inline-block;
+}
+
+.narrow #simpleSearch button {
+	margin-right:3px;
+}
+
+
 /**
  * Remove inner padding and border in Firefox 4+.
  */
@@ -827,6 +871,10 @@ table .linkWithIcon {
 	&.nameday {
 		background-image: url('../img/16/orthodox.png');
 	}
+}
+
+a.linkInTitle {
+	color: #004488 !important;
 }
 
 .smallLinkWithWithIcon {
@@ -1636,7 +1684,7 @@ td.formElement {
 	background-image: none;
 	border: solid 1px $gray4;
 	border-top: none;
-	padding: 9px 6px 3px 6px !important;
+	padding: 3px 6px 3px 6px !important;
     background-color: #ffffee;
     input {
 	    margin-right: 5px;
@@ -1734,26 +1782,57 @@ td.keylist-group{
 	    font-size: 0.95em;
 	    margin-top: 1px;
 	    cursor: pointer; 
-	    img {
-	       float: right;
+	    position: relative;
+	  
+	    .minus, .plus {
+	       position: absolute;
+	       right: 3px;
+           top: 5px;
 	       display: none;
 	    } 
+	    .invert-checkbox {
+	       float: left;
+	       display: block;
+	       margin-right: 5px;
+	    }
+	     .hidden {
+	        display: none !important;
+	    }
     }
 }
 
-.narrow .keylistCategory . img{
-    position: relative;
-    top: 2px;
+.formGroup {
+	position: relative;
+	img {
+	    display: inline-block;
+	    position: absolute;
+	    top: 7px;
+	    right: 5px;
+	}
 }
 
-.keylistCategory{
-	.invert-checkbox {
-	   float: left;
-	   display: block;
-	   margin-right: 5px;
-	}
-	 .hidden {
-        display: none !important;
+.narrow td.keylist-group {
+    .minus, .plus  {
+        top: 7px;
+    }
+    .invert-checkbox {
+       position: relative;
+       padding: 5px;
+       left: -5px;
+       top: -3px;
+       margin-right: -5px;
+    }
+}
+
+.hiddenFormRow {
+	display: none;
+}
+
+.openToggleRow {
+    .formGroup {
+        .btns-icon{
+		   display: none !important;
+	    }
     }
 }
 
@@ -2040,17 +2119,17 @@ div.alphabet div.tab-page {
 		z-index: 1;
 		white-space: nowrap;
 		position: relative;
-		padding:0;
+		padding:0 !important;
 		@include border-radius4(5px, 5px, 0, 0);
 		a {
 			display: inline-block;
 			color: #048;
-			padding: 4px 5px 4px 5px;
+			padding: 4px 5px 4px 5px !important;
 			@include border-radius4(5px, 5px, 0, 0);
 		}
 		span {
 			display: inline-block;
-			padding: 4px 5px 4px 5px;
+			padding: 4px 5px 4px 5px !important;
 		}
 		&:hover a {
 			background-color: $beige !important;
@@ -2078,7 +2157,7 @@ div.alphabet div.tab-page {
 }
 
 .narrow .single-thread .document div.alphabet div.tab-row {
-	padding-bottom: 1px
+	padding-bottom: 0px
 }
 
 .narrow .single-thread .document div.alphabet div.tab-row .tab select {
@@ -2456,7 +2535,11 @@ a.lang {
 	font-family: sans-serif;
 	line-height: 1.4em;
 }
-
+h3.richtext-title {
+    margin-top: 0!important;
+    color: #333;
+}
+    
 pre.rich-text {
     font-family: Courier New,monospace;
     padding: 10px;
@@ -2469,6 +2552,7 @@ pre.rich-text {
     white-space: pre-wrap;
 	overflow: auto; 
 	font-size: 0.97em;
+	margin: 0;
 }
 
 .narrow pre.rich-text {
@@ -2631,7 +2715,6 @@ div.richtext ol ol ol {
 }
 
 .quote-title {
-	margin-top: 1em;
 	margin-bottom: 0.1em;
 }
 
@@ -3118,14 +3201,14 @@ span.cng {
 }
 
 
-td.rightCol {
+td.rightCol, th.rightCol {
 	white-space:nowrap;
-	text-align:right;
+	text-align:right !important;
 }
 
-td.leftCol {
+td.leftCol, th.leftCol {
 	white-space:nowrap;
-	text-align:left;
+	text-align:left !important;
 }
 
 td.centerCol {

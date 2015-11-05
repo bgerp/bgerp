@@ -4,9 +4,15 @@
             <td> 
                 <table>
                 	<tr>
-                        <td class='quiet' style='text-align: right'>|Падеж|*:</td>
+                        <td class='quiet' style='text-align: left'>|Падеж|*:</td>
                         <td>[#dueDate#]</td>
                     </tr>
+                    <!--ET_BEGIN bomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Последна рецепта|*:</td>
+                        <td>[#bomId#]</td>
+                    </tr>
+                    <!--ET_END bomId-->
                 </table>
 	       </td>
 	       <td>
@@ -125,7 +131,7 @@
          <!--ET_END SALE_INFO-->
     </table>
      <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-          <b>[#TASKS_LINK#]</b> [#ADD_BTN#]
+          <b>|Задачи за производство|*</b> [#ADD_BTN#]
      </div>
      <div class="clearfix21 portal planning" style="background-color:transparent">
             [#Tasks#]

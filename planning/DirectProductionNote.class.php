@@ -42,7 +42,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
 	/**
@@ -145,7 +145,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 		
-		$this->setField('storeId', 'caption=Складове->Засклажане в');
+		$this->setField('storeId', 'caption=Складове->Заприхождаване в');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Вложено от, mandatory,after=storeId');
 		
 		$this->setField('deadline', 'input=none');
@@ -326,15 +326,51 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
-			
+			$dRec->expensePercent = $resource->expensePercent;
+				
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
-			
+				
 			// Изчисляваме к-то според наличните данни
 			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
 			
-			// Добавяме детайла
-			$details[] = $dRec;
+			// Намираме артикулите, които могат да се влагат като този артикул
+			$quantities = array();
+			
+			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
+			foreach ($convertableProducts as $prodId => $prodName){
+				$quantities[$prodId] = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$prodId}", 'quantity');
+			}
+				
+			// Ако има такива
+			if(count($quantities)){
+			
+				// Намираме този с най-голямо количество в избрания склад
+				arsort($quantities);
+				$productId = key($quantities);
+				
+				// Заместваме оригиналния артикул с него
+				$dRec->productId = $productId;
+				$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
+				$dRec->quantityInPack = 1;
+				$dRec->measureId = $dRec->packagingId;
+				
+				$quantity = $dRec->quantity;
+				if($convAmount = cat_UoM::convertValue($dRec->quantity, $pInfo->productRec->measureId, $dRec->measureId)){
+					$quantity = $convAmount;
+				}
+					
+				$dRec->quantity = $quantity;
+			}
+			
+			$index = "{$dRec->productId}|$dRec->type";
+			if(!isset($details[$index])){
+				$details[$index] = $dRec;
+			} else {
+				$d = &$details[$index];
+				
+				$d->quantity += $dRec->quantity;
+			}
 		}
 		
 		// Връщаме генерираните детайли
@@ -398,6 +434,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$nRec->resourceId     = $dRec->productId;
 			$nRec->type           = $dRec->type;
 			$nRec->propQuantity   = $dRec->quantity;
+			$nRec->expensePercent = $dRec->expensePercent;
 			$nRec->packagingId    = $dRec->packagingId;
 			$nRec->quantityInPack = $dRec->quantityInPack;
 			

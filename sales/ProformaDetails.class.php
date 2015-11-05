@@ -108,9 +108,6 @@ class sales_ProformaDetails extends deals_InvoiceDetail
     public function description()
     {
         $this->FLD('proformaId', 'key(mvc=sales_Proformas)', 'column=none,notNull,silent,hidden,mandatory');
-        
         parent::setInvoiceDetailFields($this);
-        
-        $this->setDbUnique('proformaId, productId, packagingId');
     }
 }

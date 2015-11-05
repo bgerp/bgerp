@@ -63,8 +63,9 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 			
 			if($rec->useResourceAccounts == 'yes'){
 				
-				$creditArr = array('61101', array('cat_Products', $dRec->productId),
-								  'quantity' => $dRec->quantity);
+				$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
+				$creditArr = array('61101', array('cat_Products', $convInfo->productId),
+								  'quantity' => $convInfo->quantity);
 				
 				$reason = 'Връщане на материал от производството';
 			} 

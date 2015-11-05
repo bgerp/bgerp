@@ -3,12 +3,12 @@
 
 /**
  * Мениджър за шаблони, които ще се използват от документи.
- * Добавя възможноста спрямо шаблона да се скриват/показват полета от мастъра
- * За целта е в класа и неговите детайли трябва да се дефинира '$toggleFields',
- * където са изброени незадължителните полета които могат да се скриват/показват.
+ * Добавя възможността спрямо шаблона да се скриват/показват полета от мастъра
+ * За целта в класа и неговите детайли трябва да се дефинира '$toggleFields',
+ * където са изброени незадължителните полета, които могат да се скриват/показват.
  * Задават се във вида: "field1=caption1,field2=caption2"
  * 
- * Ако избрания мениджър има тези полета, то отдоло на формата се появява възможност за
+ * Ако избраният мениджър има тези полета, то отдолу на формата се появява възможност за
  * избор на кои от тези незадължителни полета да се показват във въпросния шаблон. Ако никое
  * не е избрано. То се показват всичките
  *
@@ -300,19 +300,46 @@ class doc_TplManager extends core_Master
     
     
     /**
+     * Връща първия шаблон за документа на езика на ориджинина му, ако има
+     * 
+     * @param mixed $class  - класа
+     * @param int $originId - ориджина на записа
+     * @return FALSE|int    - намерения шаблон
+     */
+    public static function getTplByOriginLang($class, $originId)
+    {
+    	if(isset($originId)){
+    		$origin = doc_Containers::getDocument($originId);
+    		if($origin->getInstance()->hasPlugin('doc_plg_TplManager')){
+    			$templateLang = doc_TplManager::fetchField($origin->fetchField('template'), 'lang');
+    			$templates = doc_TplManager::getTemplates($class, $templateLang);
+    			
+    			return key($templates);
+    		}
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
      * Връща всички активни шаблони за посочения мениджър
      * @param int $classId - ид на клас
      * @return array $options - опции за шаблоните на документа
      */
-    public static function getTemplates($classId)
+    public static function getTemplates($classId, $lang = NULL)
     {
     	$options = array();
+    	$classId = cls::get($classId)->getClassId();
     	expect(core_Classes::fetch($classId));
     	
     	// Извличане на всички активни шаблони за документа
     	$query = static::getQuery();
     	$query->where("#docClassId = {$classId}");
     	$query->where("#state = 'active'");
+    	if(isset($lang)){
+    		$query->where("#lang = '{$lang}'");
+    	}
     	
     	while($rec = $query->fetch()){
     		$options[$rec->id] = $rec->name;
@@ -444,7 +471,7 @@ class doc_TplManager extends core_Master
      * Връща скриптовия клас на шаблона (ако има)
      * 
      * @param int $templateId - ид на шаблона
-     * @return mixed $Script/False - заредения клас, или FALSE ако неможе се зареди
+     * @return mixed $Script/False - заредения клас, или FALSE ако не може да се зареди
      */
     public static function getTplScriptClass($templateId)
     {
@@ -463,7 +490,8 @@ class doc_TplManager extends core_Master
     		$supposedClassname = str_replace("/", '_', $filePath);
     		$supposedClassname = str_replace(".class.php", '', $supposedClassname);
     		
-    		// Опитваме се да го заредим,Трябва и да е наследник на 'doc_TplScript'
+    		// Опитваме се да го заредим.
+    		// Трябва и да е наследник на 'doc_TplScript'
     		if(cls::load($supposedClassname, TRUE) && is_subclass_of($supposedClassname, 'doc_TplScript')){
     			
     			// Зареждаме го

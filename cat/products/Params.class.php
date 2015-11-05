@@ -38,7 +38,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'paramId, paramValue, tools=Пулт';
+    var $listFields = 'productId, paramId, paramValue, tools=Пулт';
     
     
     /**
@@ -66,19 +66,25 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да добавя
      */
     var $canAdd = 'ceo,cat';
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да листва
+     */
+    var $canList = 'ceo,cat';
+    
+    
+    /**
+     * Кой може да редактира
      */
     var $canEdit = 'ceo,cat';
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да изтрива
      */
     var $canDelete = 'ceo,cat';
     
@@ -96,7 +102,7 @@ class cat_products_Params extends doc_Detail
     {
     	$this->FLD('productId', 'key(mvc=cat_Products)', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
+        $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('productId,paramId');
     }
@@ -122,15 +128,16 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($paramRec = cat_Params::fetch($rec->paramId)){
-	    	if($paramRec->type != 'enum'){
-	           $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
-	           $row->paramValue = $Type->toVerbal($rec->paramValue);
-	        }
-	        
-	        if($paramRec->type != 'percent'){
-	           $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
-	        }
+    	$paramRec = cat_Params::fetch($rec->paramId);
+    	
+    	if($Driver = cat_Params::getDriver($rec->paramId)){
+    		if($Type = $Driver->getType($paramRec)){
+    			$row->paramValue = $Type->toVerbal(trim($rec->paramValue));
+    		}
+    	}
+    	
+    	if(!empty($paramRec->suffix)){
+    		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
     	}
     }
     
@@ -141,10 +148,8 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
-        $masterTitle = cat_Products::getTitleById($form->rec->productId);
         
     	if(!$form->rec->id){
-    		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->id);
@@ -155,14 +160,24 @@ class cat_products_Params extends doc_Detail
 	        }
 	        $form->setOptions('paramId', $options);
     	} else {
-    		$form->title = "Редактиране на параметър към|* <b>{$masterTitle}</b>";
     		$form->setReadOnly('paramId');
     	}
     	
         if($form->rec->paramId){
-        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($form->rec->paramId, 'cat_Params');
-        } else {
-        	$form->setField('paramValue', 'input=hidden');
+        	if($Driver = cat_Params::getDriver($form->rec->paramId)){
+        		$form->setField('paramValue', 'input');
+        		$pRec = cat_Params::fetch($form->rec->paramId);
+        		if($Type = $Driver->getType($pRec)){
+        			$form->setFieldType('paramValue', $Type);
+        			
+        			if(!empty($pRec->suffix)){
+        				$suffix = cat_Params::getVerbal($pRec, 'suffix');
+        				$form->setField('paramValue', "unit={$suffix}");
+        			}
+        		}
+        	} else {
+        		$form->setError('paramId', 'Има проблем при зареждането на типа');
+        	}
         }
     }
 
@@ -225,15 +240,8 @@ class cat_products_Params extends doc_Detail
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $tpl->replace(get_called_class(), 'DetailName');
         
-        $title = tr('Параметри');
-        if(cat_Params::haveRightFor('list') && $data->noChange !== TRUE){
-        	$title = ht::createLink($title, array('cat_Params', 'list'));
-        }
-        
-        $tpl->append($title, 'TITLE');
-        
         if($data->noChange !== TRUE){
-        	$tpl->append($data->changeBtn, 'TITLE');
+        	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
         foreach((array)$data->params as $row) {
@@ -260,7 +268,7 @@ class cat_products_Params extends doc_Detail
         $query->where("#productId = {$data->masterId}");
     	
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-    	if($data->prepareForPublicDocument === TRUE){
+    	if($data->documentType === 'public'){
     		$query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
     		$query->where("#showInPublicDocuments = 'yes'");
     	}
@@ -317,7 +325,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderParams($data)
     {
-        if($data->addUrl) {
+        if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
         }
 

@@ -85,6 +85,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		$index = 0;
 		$costAmount = 0;
+		$expenses = 0;
 		
 		if(count($resourcesArr)){
 			arr::orderA($resourcesArr, 'type');
@@ -93,9 +94,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$entry = array();
 				
 				$selfValue = planning_ObjectResources::getSelfValue($obj->productId);
-				
 				$sign = ($obj->type == 'input') ? 1 : -1;
-				$costAmount += $sign * $obj->resourceQuantity * $selfValue;
+				$pAmount = $sign * $obj->resourceQuantity * $selfValue;
+				
+				$costAmount += $pAmount;
+				$expenses += $pAmount * $obj->expensePercent;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
@@ -129,8 +132,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		}
 		
 		// Ако има режийни разходи, разпределяме ги
-		if($rec->expenses){
-			$costAmount = $rec->expenses * $costAmount;
+		if($expenses){
+			$costAmount = $expenses;
 			$costAmount = round($costAmount, 2);
 
 			if($costAmount){

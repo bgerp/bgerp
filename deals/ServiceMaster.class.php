@@ -56,7 +56,7 @@ abstract class deals_ServiceMaster extends core_Master
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
+				'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -105,14 +105,17 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		$aggregatedDealInfo = $origin->getAggregateDealInfo();
 		$agreedProducts = $aggregatedDealInfo->get('products');
-	
+		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
+		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		
 		if(count($agreedProducts)){
-			foreach ($agreedProducts as $product) {
+			foreach ($agreedProducts as $index => $product) {
 				$info = cat_Products::getProductInfo($product->productId);
 				
-				// Колко остава за експедиране от продукта
-				$toShip = $product->quantity - $product->quantityDelivered;
-				 
+				$toShip = $normalizedProducts[$index]->quantity;
+    			$price = $normalizedProducts[$index]->price;
+    			$discount = $normalizedProducts[$index]->discount;
+				
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
 				 
@@ -121,9 +124,8 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->productId   = $product->productId;
 				$shipProduct->packagingId = $product->packagingId;
 				$shipProduct->quantity    = $toShip;
-				$shipProduct->price       = $product->price;
-				$shipProduct->uomId       = $product->uomId;
-				$shipProduct->discount    = $product->discount;
+				$shipProduct->price       = $price;
+				$shipProduct->discount    = $discount;
 				$shipProduct->notes       = $product->notes;
 				$shipProduct->quantityInPack = $product->quantityInPack;
 				

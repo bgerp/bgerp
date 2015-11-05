@@ -112,7 +112,7 @@ class type_Key extends type_Int
         $oValue = $value;
         
         if (!isset($key)) {
-            
+         
             $mvc = &cls::get($this->params['mvc']);
             
             $maxSuggestions = $this->getMaxSuggestions();
@@ -130,6 +130,8 @@ class type_Key extends type_Int
                 $options = $this->prepareOptions();
             }
             
+            $value = NULL;
+
             if (($selOptCache !== FALSE) && count((array)$selOptCache)) {
                 foreach((array)$selOptCache as $id => $titleArr) {
                     
@@ -140,7 +142,7 @@ class type_Key extends type_Int
                 }
             }
         } else {
-            $value = $key;
+            $value = $this->prepareKey($key);
         }
         
         $rec = $this->fetchVal($value);
@@ -158,9 +160,25 @@ class type_Key extends type_Int
             
             return FALSE;
         } else {
-            
+ 
             return $value;
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string|int|NULL $key
+     * 
+     * @return integer
+     */
+    public function prepareKey($key)
+    {
+        // Само числа
+        $key = (int) $key;
+        
+        return $key;
     }
     
     

@@ -49,7 +49,7 @@ class cat_Products extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
                      cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups';
     
     
@@ -213,12 +213,6 @@ class cat_Products extends embed_Manager {
 	
 	
 	/**
-	 * Какво може да се прави със избраните
-	 */
-	public $doWithSelected = 'changemeta=Свойства';
-	
-	
-	/**
 	 * Групиране на документите
 	 */
 	public $newBtnGroup = "9.8|Производство";
@@ -266,12 +260,14 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
+		
+        $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
-		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
         
@@ -310,7 +306,25 @@ class cat_Products extends embed_Manager {
     	
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->driverClassField)){
-    		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=measureId|meta");
+    		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=proto|measureId|meta");
+            if(!$form->rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $form->rec->{$driverField})) {
+                
+            	$protoProducts = cat_Categories::getProtoOptions($drvId);
+            	
+            	if(count($protoProducts)){
+            		$form->setField('proto', 'input');
+            		$form->setOptions('proto', $protoProducts);
+            		
+            		if($proto = Request::get('proto', 'int')) {
+            			if($pRec = self::fetch($proto)) {
+            				$Cmd = Request::get('Cmd');
+            				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
+            					Request::push($pRec->driverRec);
+            				}
+            			}
+            		}
+            	}
+            }
     	}
     	
     	// Всички позволени мерки
@@ -420,6 +434,16 @@ class cat_Products extends embed_Manager {
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
            
+        	if(empty($rec->name)){
+        		if($Driver = $mvc->getDriver($rec)){
+        			$rec->name = $Driver->getProductTitle($rec);
+        		}
+        	}
+        	
+        	if(empty($rec->name)){
+        		$form->setError('name', 'Моля задайте наименование на артикула');
+        	}
+        	
         	if(!empty($rec->code)) {
         		if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
         			$form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
@@ -971,6 +995,8 @@ class cat_Products extends embed_Manager {
     	// Подготвяме опциите
     	$options = array($measureId => cat_UoM::getTitleById($measureId)) + $options;
     	$firstVal = $options[$baseId];
+    	
+    	// Подсигуряваме се че основната опаковка/мярка е първа в списъка
     	unset($options[$baseId]);
     	$options = array($baseId => $firstVal) + $options;
     	
@@ -1093,21 +1119,11 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     		}
+    		
+    		if(isset($rec->proto)){
+    			$row->proto = $mvc->getHyperlink($rec->proto);
+    		}
     	}
-    }
-    
-    
-    /**
-     * Връща подробното описанието на артикула
-     *
-     * @param mixed $id - ид/запис
-     * @return mixed - подробното описанието на артикула
-     */
-    public static function getProductDesc($id, $time = NULL)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	return cat_ProductTplCache::cacheTpl($rec->id, $time);
     }
     
     
@@ -1123,10 +1139,7 @@ class cat_Products extends embed_Manager {
     	$lg = core_Lg::getCurrent();
     	
     	if($lg != 'bg'){
-    		if(!empty($rec->intName)){
-    			
-    			return $rec->intName;
-    		}
+    		if(!empty($rec->intName)) return $rec->intName;
     	}
     	
     	return $rec->name;
@@ -1159,21 +1172,6 @@ class cat_Products extends embed_Manager {
     }
     
     
-    /**
-     * Връща заглавието на артикула като линк
-     *
-     * @param mixed $id - ид/запис
-     * @param mixed $time - време
-     * @return mixed - описанието на артикула
-     */
-    public static function getProductDescShort($id, $time = NULL)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	return static::getShortHyperlink($rec->id);
-    }
-    
-    
 	/**
 	 * Връща информацията за артикула според зададения режим:
 	 * 		- автоматично : ако артикула е частен се връща детайлното описание, иначе краткото
@@ -1189,35 +1187,63 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto')
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public')
     {
     	$rec = static::fetchRec($id);
     	
+    	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType);
+    	if(!$title){
+    		$title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType);
+    	}
+    	
+    	// Ако е частен показваме за код хендлъра му + версията в кеша
+    	if($rec->isPublic == 'no'){
+    		$handle = cat_Products::getHandle($rec);
+    		$title .= " ({$handle}";
+    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+    		if($count > 1){
+    			$title .= "<small>v{$count}</small>";
+    		}
+    		$title .= ")";
+    	}
+    	
+    	$showDescription = FALSE;
+    	
     	switch($mode){
     		case 'detailed' :
-    			$res = static::getProductDesc($rec, $time);
+    			$showDescription = TRUE;
     			break;
-    		case 'short' :
-    			$res = static::getProductDescShort($rec, $time);
+    		case 'short':
+    			$showDescription = FALSE;
     			break;
     		default :
-    			// Проверяваме имали кеширани данни. Целта е ако артикула е бил частен
-    			// и вече е кеширан, ако в последствие се направи публичен във въпросния документ
-    			// да си се показва с подробното описание, докато не се инвалидира кеша
-    			$isCached = cat_ProductTplCache::getCache($rec->id, $time);
-    			
-    			// Ако има кеширани данни или артикула не е публичен, взимаме подрогното описания
-    			if(isset($isCached) || $rec->isPublic == 'no'){
-    				$res = static::getProductDesc($rec, $time);
-    			} else {
-    				
-    				// Иначе краткото
-    				$res = static::getProductDescShort($rec, $time);
-    			}
+    			$showDescription = ($rec->isPublic == 'no') ? TRUE : FALSE;
     			break;
     	}
     	
-    	return $res;
+    	// Ако ще показваме описание подготвяме го
+    	if($showDescription === TRUE){
+    	    $title = "<b>{$title}</b>";
+    	    
+    	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType);
+    	    if(!$data){
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
+    	    }
+    	    
+    	    $descriptionTpl = cat_Products::renderDescription($data);
+    	}
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		$singleUrl = static::getSingleUrlArray($rec->id);
+    		$title = ht::createLinkRef($title, $singleUrl);
+    	}
+    	
+    	// Връщаме шаблона с подготвените данни
+    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><span style='font-size:0.85em'>[#desc#]</span><!--ET_END desc-->");
+    	$tpl->replace($title, 'name');
+    	$tpl->replace($descriptionTpl, 'desc');
+    	
+    	return $tpl;
     }
     
     
@@ -1399,10 +1425,10 @@ class cat_Products extends embed_Manager {
     	if($data->rec->state == 'active'){
     		if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state != 'rejected'")){
     			if(cat_Boms::haveRightFor('single', $bRec)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула');
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула,order=19');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,order=19,title=Създаване на нова технологична рецепта');
     		}
     	}
     }
@@ -1422,17 +1448,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Рендира изглед за задание
-     */
-    public function renderJobView($id, $time = NULL)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	return cat_ProductTplCache::cacheTpl($rec->id, $time, 'internal')->getContent();
-    }
-    
-    
-    /**
      * Връща хендлъра на изображението представящо артикула, ако има такова
      * 
      * @param mixed $id - ид или запис
@@ -1446,22 +1461,6 @@ class cat_Products extends embed_Manager {
     	} else {
     		return 'img/16/error-red.png';
     	}
-    }
-    
-    
-    /**
-     * Връща хендлъра на изображението представящо артикула, ако има такова
-     *
-     * @param mixed $id - ид или запис
-     * @return fileman_FileType $hnd - файлов хендлър на изображението
-     */
-    public static function getProductImage($id)
-    {
-    	$self = cls::get(get_called_class());
-    	$rec = static::fetchRec($id);
-    	$Driver = $self->getDriver($rec->id);
-    	
-    	return $Driver->getProductImage($rec);
     }
     
     
@@ -1656,150 +1655,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Смяна статута на 'rejected'
-     *
-     * @return core_Redirect
-     */
-    function act_changemeta()
-    {
-    	$this->requireRightFor('edit');
-    
-    	// Създаване на формата
-    	$form = cls::get('core_Form');
-    	$form->FNC('id', 'int', 'input=hidden,silent');
-    	$form->FNC('Selected', 'text', 'input=hidden,silent');
-    	$form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
-    	$form->input(NULL, 'silent');
-    	$rec = $form->rec;
-    
-    	expect($rec->id || $rec->Selected, $rec);
-    
-    	$selArr = arr::make($rec->Selected);
-    	if($id) {
-    		$selArr[] = $id;
-    	}
-    
-    	$metas = $this->getFieldType('meta')->suggestions;
-    	$canDelMetas = $canAddMetas = array();
-    
-    	// Премахване на лишите или недостъпните id-та
-    	foreach($selArr as $i => $ind) {
-    		$obj = (object) array('id' => $ind);
-    
-    		if(!is_numeric($ind) || !$this->haveRightFor('edit', $obj)) {
-    			unset($selArr[$i]);
-    		}
-    
-    		$metaArr = type_Set::toArray($this->fetchField($ind, 'meta'));
-    		foreach($metaArr as $m) {
-    			if($metas[$m]) {
-    				$canDelMetas[$m]++;
-    			}
-    		}
-    
-    		foreach($metas as $m => $caption) {
-    			if(!$metaArr[$m]) {
-    				$canAddMetas[$m]++;
-    			}
-    		}
-    	}
-    		
-    	$selArrCnt = count($selArr);
-    	expect($selArrCnt);
-    	reset($selArr);
-    
-    	if($selArrCnt == 1) {
-    		$selOneKey = key($selArr);
-    	}
-    
-    	if($selArrCnt == 1) {
-    		$id = $selArr[$selOneKey];
-    		$metas = $this->fetchField($id, 'meta');
-    		$form->title = 'Промяна в свойствата на |*<i style="color:#ffffaa">' .  $this->getTitleById($selArr[0]) . '</i>';
-    		$form->FNC('meta', $this->getFieldType('meta'), 'caption=Свойства,input');
-    		$form->setDefault('meta', $metas);
-    	} else {
-    		$form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($this->title);
-    
-    		if(count($canAddMetas)) {
-    			$addType = cls::get('type_Set');
-    
-    			foreach($canAddMetas as $g => $cnt) {
-    				$addType->suggestions[$g] = $metas[$g] . " ({$cnt})";
-    			}
-    				$form->FNC('addMetas', $addType, 'caption=Добавяне->Свойства,input');
-    			}
-    
-    			if(count($canDelMetas)) {
-    				$delType = cls::get('type_Set');
-    				foreach($canDelMetas as $g => $cnt) {
-    					$delType->suggestions[$g] = $metas[$g] . " ({$cnt})";
-    				}
-    				$form->FNC('delMetas', $delType, 'caption=Премахване->Свойства,input');
-    			}
-    		}
-    
-    		$form->toolbar->addSbBtn('Запис');
-    		if($selArrCnt == 1) {
-    			$retUrl = array($this, 'single', $selArr[$selOneKey]);
-    		} else {
-    			$retUrl = array($this, 'list');
-    		}
-    		
-    		$form->toolbar->addBtn('Отказ', $retUrl);
-    
-    		$form->input();
-    
-    		if($form->isSubmitted()) {
-    		$rec = $form->rec;
-    
-    		$changed = 0;
-    
-    		if($selArrCnt == 1) {
-    			$obj = new stdClass();
-    			$obj->id = $id;
-    			$obj->meta = $rec->meta;
-    
-    			if($groups != $rec->meta) {
-    				$this->save($obj, 'meta');
-    				$changed = 1;
-    			}
-    		} else {
-    			foreach($selArr as $id) {
-    				$exGroups = $groups = type_Set::toArray($this->fetchField($id, 'meta'));
-    					
-    				$groups = array_merge($groups, arr::make($rec->addMetas, TRUE));
-    				$groups = array_diff($groups, arr::make($rec->delMetas, TRUE));
-    					
-    				$obj = new stdClass();
-    				$obj->id = $id;
-    				$obj->meta = cls::get('type_Set')->fromVerbal($groups);
-    					
-    				if($groups != $exGroups) {
-    					$this->save($obj, 'meta');
-    					$changed++;
-    				}
-    			}
-    		}
-    
-    		if(!$changed) {
-    			$msg = tr("Не бяха променени свойства");
-    		} elseif($changed == 1) {
-    			$msg = tr("Бяха променени свойствата на 1 " . mb_strtolower($this->singleTitle));
-    		} else {
-    			$msg = tr("Бяха променени свойствата на|* {$changed} "  . mb_strtolower($this->title));
-    		}
-    
-    		$res = new Redirect($retUrl, $msg);
-    	} else {
-    		$res = $this->renderWrapping($form->renderHtml());
-    	}
-    	
-    	return $res;
-    }
-    
-    
-    /**
      * Какви материали са нужни за производството на 'n' бройки от подадения артикул
      * 
      * @param int $id          - ид
@@ -1825,6 +1680,200 @@ class cat_Products extends embed_Manager {
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща готовото описание на артикула
+     * 
+     * @param mixed $id
+     * @param enum(public,internal) $documentType
+     * @return core_ET
+     */
+    public static function getDescription($id, $documentType = 'public')
+    {
+    	$data = static::prepareDescription($id, $documentType);
     	
+    	return static::renderDescription($data);
+    }
+    
+    
+    /**
+     * Подготвя описанието на артикула
+     * 
+     * @param int $id
+     * @param enum(public,internal) $documentType
+     * @return stdClass - подготвеното описание
+     */
+    public static function prepareDescription($id, $documentType = 'public')
+    {
+    	$Driver = static::getDriver($id);
+    	$data = new stdClass();
+    	
+    	if($Driver){
+    		$data->rec = static::fetchRec($id);
+    		$data->row = cat_Products::recToVerbal($data->rec);
+    		$data->documentType = $documentType;
+    		$data->Embedder = cls::get('cat_Products');
+    		$data->isSingle = FALSE;
+    		$data->noChange = TRUE;
+    		$Driver->prepareProductDescription($data);
+    	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Рендира описанието на артикула
+     * 
+     * @param stdClass $data 
+     * @return core_ET
+     */
+    private static function renderDescription($data)
+    {
+    	if($data->rec){
+    		$Driver = static::getDriver($data->rec);
+    	}
+    	
+    	if($Driver){
+    		$tpl = $Driver->renderProductDescription($data);
+    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$tpl->append($componentTpl, 'COMPONENTS');
+    	} else {
+    		$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
+    	}
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендира компонентите на един артикул
+     * 
+     * @param array $components - компонентите на артикула
+     * @return core_ET - шаблона на компонентите
+     */
+    public static function renderComponents($components, $makeLinks = TRUE)
+    {
+    	if(!count($components)) return;
+    	
+    	$compTpl = getTplFromFile('cat/tpl/Components.shtml');
+    	$block = $compTpl->getBlock('COMP');
+    	foreach ($components as $obj){
+    		$bTpl = clone $block;
+    		if($obj->code === '0') unset($obj->code);
+    		
+    		// Ако ще показваме компонента като линк, го правим такъв
+    		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$singleUrl = cat_Products::getSingleUrlArray($obj->componentId);
+    			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
+    		}
+    		
+    		$bTpl->placeArray(array('componentTitle'       => $obj->title, 
+    								'componentDescription' => $obj->description,
+    								'componentCode'        => $obj->code,
+    								'componentStage'       => $obj->stageName,
+    								'componentQuantity'    => $obj->quantity,
+    								'componentMeasureId'   => $obj->measureId));
+    		
+    		if(count($obj->components)){
+    			$bTpl->append(static::renderComponents($obj->components), 'componentComponents');
+    		}
+    		
+    		$bTpl->removeBlocks();
+    		$bTpl->append2Master();
+    	}
+    	$compTpl->removeBlocks();
+    	
+    	return $compTpl;
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$data->components = array();
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	if(count($data->components)){
+    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$tpl->append($componentTpl, 'COMPONENTS');
+    	}
+    }
+    
+    
+    /**
+     * Подготвя обект от компонентите на даден артикул
+     *
+     * @param int $productId
+     * @param array $res
+     * @param int $level
+     * @param string $code
+     * @return void
+     */
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
+    {
+    	// Имали последна активна рецепта артикула?
+    	$rec = cat_Products::getLastActiveBom($productId);
+    	if(!$rec) return $res;
+    	 
+    	// Кои детайли от нея ще показваме като компоненти
+    	$dQuery = cat_BomDetails::getQuery();
+    	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
+    	$level++;
+    	 
+    	// За всеки
+    	while($dRec = $dQuery->fetch()){
+    		$obj = new stdClass();
+    		$obj->componentId = $dRec->resourceId;
+    
+    		$obj->code = $code . "." . (($dRec->position) ? $dRec->position : 0);
+    		$obj->code = trim($obj->code, '.');
+    		$obj->title = cat_Products::getTitleById($dRec->resourceId);
+    		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
+    		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
+    		$obj->stageName = planning_Stages::getTitleById($dRec->stageId);
+    
+    		$stageOrder = ($dRec->stageId) ? planning_Stages::fetchField($dRec->stageId, 'order') : 0;
+    		$obj->order = (($stageOrder) ? $stageOrder : $obj->stageName) . "." . $obj->code;
+    
+    		// Ако показваме описанието, показваме го
+    		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
+    			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    		}
+    
+    		// Ако има компоненти и сме в допустимото ниво, викаме функцията рекурсивно
+    		if($dRec->showInProduct == 'components'){
+    			if($level < core_Packs::getConfigValue('cat', 'CAT_BOM_MAX_COMPONENTS_LEVEL')){
+    				$obj->components = array();
+    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    			}
+    		}
+    
+    		$res[] = $obj;
+    	}
+    	 
+    	// Сортираме по етапа и кода
+    	arr::order($res, 'order', 'ASC');
+    	 
+    	// Премахваме повтарящите се етапи
+    	foreach ($res as $index => &$r){
+    		if(isset($r->stageName)){
+    			if($res[$index - 1]->stageName === $r->stageName){
+    				unset($r->stageName);
+    			}
+    		}
+    	}
     }
 }

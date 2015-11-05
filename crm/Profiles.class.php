@@ -849,6 +849,10 @@ class crm_Profiles extends core_Master
 				}
 			}
 			
+            if (core_Users::haveRole('no_one', $userId)) {
+                $attr['style'] .= " text-decoration: underline red;"; 
+            }
+
 			if ($userRec->lastActivityTime) {
 				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
 			}
@@ -1094,7 +1098,7 @@ class crm_Profiles extends core_Master
         // Ако сме в мобилен режим, да не е хинт
         $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         if($paramType == 'unit') {
-            $defaultStr = "|<br>|По подразбиране|*: ";
+            $defaultStr = "|*<br>|По подразбиране|*: ";
         } else {
             $defaultStr = 'По подразбиране|*: ';
         }

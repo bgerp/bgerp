@@ -162,7 +162,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
     	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Сторниран, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
@@ -194,7 +194,7 @@ class cash_InternalMoneyTransfer extends core_Master
             return;
         }
 	   
-    	if($folderId = Request::get('folderId')){
+    	if($folderId = Request::get('folderId', 'int')){
     		if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
 	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
 	        }

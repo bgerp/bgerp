@@ -51,7 +51,7 @@
     </div>
     <div style='clear: both;'></div>
     <!--ET_BEGIN text--> 
-    <div style='padding:10px;'>
+    <div style='padding:6px 10px 10px;'>
         <div>[#body#]</div>
     </div>
     <!--ET_END text--> 

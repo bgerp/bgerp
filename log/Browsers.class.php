@@ -146,6 +146,9 @@ class log_Browsers extends core_Master
      */
     public static function getBridId($generate = TRUE)
     {
+        $Session = cls::get('core_Session');
+        if (!$Session->isStarted()) return ;
+        
         if (!($bridId = Mode::get('bridId'))) {
             $brid = self::getBrid($generate);
             

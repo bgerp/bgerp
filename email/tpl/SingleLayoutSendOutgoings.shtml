@@ -37,26 +37,16 @@
                         <!--ET_BEGIN emailCc-->
                         <div>|Копие|*: <b>[#emailCc#]</b></div>
                         <!--ET_END emailCc-->
-                        <!--ET_BEGIN tel-->
-                        <div>|Тел.|*: [#tel#]</div>
-                        <!--ET_END tel-->
                         <!--ET_BEGIN fax-->
                         <div>|Факс|*: [#fax#]</div>
                         <!--ET_END fax-->
-                        <!--ET_BEGIN address-->
-                        <div>
-                            <div>[#address#]</div>
-                            <div>[#pcode#] [#place#]</div>
-                            <div>[#country#]</div>
-                        </div>
-                        <!--ET_END address-->
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <!--ET_BEGIN subject--> 
-    <h3 class="subject">[#subject#]</h3>
+   <!--ET_BEGIN subject--><h3 class='richtext-title' style='padding-top: 10px;'>[#subject#]</h3><!--ET_END subject-->
     <!--ET_END subject--> 
     <!--ET_BEGIN body--> 
     <div>[#body#]</div>

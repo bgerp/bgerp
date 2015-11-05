@@ -79,7 +79,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
         
-        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Ограничение на бързите връзки (за Модерна вътрешна страница)->Брой, customizeBy=powerUser'),
+        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Максимално количество отметки->Брой, customizeBy=powerUser'),
         
         'BGERP_SOUND_ON_NOTIFICATION' => array ('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
      );
@@ -140,8 +140,8 @@ class bgerp_Setup extends core_ProtoSetup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
-                  email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cond,cash,bank,
+        $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
+                  email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cash,bank,
                   budget,purchase,accda,sens,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
@@ -202,7 +202,7 @@ class bgerp_Setup extends core_ProtoSetup {
                         //$haveError = TRUE;
                         file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                         $haveError[$p] .= "<h3 class='debug-error'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
-                        reportException($exp, NULL, TRUE);
+                        reportException($exp);
                     }
                 }
             }
@@ -232,7 +232,7 @@ class bgerp_Setup extends core_ProtoSetup {
                             //$haveError = TRUE;
                             file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                             $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
-                            reportException($exp, NULL, TRUE);
+                            reportException($exp);
                         }
                     }
                 }
@@ -249,6 +249,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
         $Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
+        $Bucket->createBucket('exportCsv', 'Експортирани CSV-та', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');

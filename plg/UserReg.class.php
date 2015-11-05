@@ -466,7 +466,15 @@ class plg_UserReg extends core_Plugin
     {
         $h = core_Cache::set('UserReg', str::getRand(), $rec->id, USERS_DRAFT_MAX_DAYS * 60 * 24);
         
-        $PML = cls::get('phpmailer_Instance');
+        // Търсим корпоративна сметка, ако има такава
+        $corpAcc = email_Accounts::getCorporateAcc();
+        
+        if ($corpAcc) {
+            $PML = email_Accounts::getPML($corpAcc->email);
+        } else {
+            $PML = cls::get('phpmailer_Instance');
+        }
+
         
         $rec1 = clone ($rec);
         

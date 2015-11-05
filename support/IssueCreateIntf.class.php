@@ -40,4 +40,16 @@ class support_IssueCreateIntf
         
         return $this->class->getDefaultIssueTitle($id);
     }
+    
+    
+	/**
+	 * След създаване на сигнал от документа
+	 * 
+	 * @param integer $originId
+	 */
+    function afterCreateIssue($id)
+    {
+        
+        return $this->class->afterCreateIssue($id);
+    }
 }

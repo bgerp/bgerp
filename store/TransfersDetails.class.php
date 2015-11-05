@@ -181,7 +181,6 @@ class store_TransfersDetails extends doc_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	$rec = &$form->rec;
-    	$ProductMan = cls::get('cat_Products');
     	
     	if($rec->productId){
     		$sProd = store_Products::fetch($rec->productId);
@@ -208,8 +207,8 @@ class store_TransfersDetails extends doc_Detail
             	$form->setWarning("packQuantity", "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*");
             }
             
-            $rec->weight = $ProductMan->getWeight($sProd->productId);
-            $rec->volume = $ProductMan->getVolume($sProd->productId);
+            $rec->weight = cat_Products::getWeight($sProd->productId);
+            $rec->volume = cat_Products::getVolume($sProd->productId);
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             $rec->uomId = $productInfo->productRec->measureId;
     	}

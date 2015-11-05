@@ -243,15 +243,15 @@ class core_Cron extends core_Manager
             $lastStarting = $rec->lastStart;
 
             // В коя минута е трябвало за последен път да се стартира този процес?
-            $lastSchedule = dt::timestamp2mysql((floor($currentMinute / $rec->period) * $rec->period + $rec->offcet) * 60 -  date('Z'));
+            $lastSchedule = dt::timestamp2mysql((floor($currentMinute / $rec->period) * $rec->period + $rec->offset) * 60 -  date('Z'));
             $now = dt::timestamp2mysql($currentMinute   * 60 -  date('Z'));
 
             // Колко минути остават до следващото стартиране
-            $remainMinutes = floor($currentMinute / $rec->period) * $rec->period + $rec->period + $rec->offcet - $currentMinute;
+            $remainMinutes = floor($currentMinute / $rec->period) * $rec->period + $rec->period + $rec->offset - $currentMinute;
 
             // echo "<li> $rec->systemId | $lastStarting | $lastSchedule | $now  | $remainMinutes | $rec->period | ";
 
-            if( (($currentMinute % $rec->period) == $rec->offcet) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
+            if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
                
                 // echo "OK------";
 
@@ -259,7 +259,7 @@ class core_Cron extends core_Manager
                 fopen(toUrl(array(
                             'Act' => 'ProcessRun',
                             'id' => str::addHash($rec->id)
-                        ), 'absolute'), 'r');
+                        ), 'absolute-force'), 'r');
             
             } else {
                 // echo "NO";

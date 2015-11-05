@@ -388,13 +388,14 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
-					$method = ($selected ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
-					
-					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
-					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
-						
-					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
-					$detailsTpl->append($tabHtml);
+					$method = ($selectedTop ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+					if ($this->{$selectedTop} && is_callable(array($this->{$selectedTop}, $method))) {
+					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
+    					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
+    						
+    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
+    					$detailsTpl->append($tabHtml);
+					}
 				}
 				
 				// Проверяваме имали избран детайл от долния таб
@@ -407,18 +408,23 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
-					$method = ($selected ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
-					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+					$method = ($selectedBottom ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
 					
-					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
-					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
-						$tabHtml = $selectedHtml;
-					} else {
-						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+					if ($this->{$selectedBottom} && is_callable(array($this->{$selectedBottom}, $method))) {
+    					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+    					
+    					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
+    					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
+    						$tabHtml = $selectedHtml;
+    					} else {
+    						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+    					}
+    
+    					if($tabHtml){
+    						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+    						$detailsTpl->append($tabHtml);
+    					}
 					}
-						
-					$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-					$detailsTpl->append($tabHtml);
 				}
                
 				// Добавяме табовете
@@ -453,19 +459,26 @@ class core_Master extends core_Manager
                 foreach($data->singleFields as $field => $caption) {
                     if(strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
+                        $group = tr($group);
                         $fieldsHtml .= "\n<!--ET_BEGIN {$field}-->";
                         if($group != $lastGroup) {
-                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>" . tr($group) . "</td></tr>\n";
+                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>{$group}</td></tr>\n";
                         }
                         $lastGroup = $group;
                     } else {
                         $lastGroup = '';
                     }
+                    
+                    $caption = tr($caption);
 
                     $unit = $this->fields[$field]->unit;
-                    if($unit) $unit = ' ' . $unit;
-
-                    $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}</td></tr><!--ET_END {$field}-->";
+                    if($unit) $unit = ' ' . tr($unit);
+                    
+                    if($field->inlineTo) {
+                        $fieldsHtml = str_replace("[#{$field->inlineTo}_inline#]", " {$caption} [#{$field}#]{$unit}", $fieldsHtml);
+                    } else {
+                        $fieldsHtml .= "\n<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}[#{$field}_inline#]</td></tr><!--ET_END {$field}-->";
+                    }
                 }
             }
             

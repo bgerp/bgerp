@@ -173,7 +173,7 @@ class webkittopdf_Converter extends core_Manager
         }
         
     
-        // Ако е зададен енкодинг за текущия фай;
+        // Ако е зададен енкодинг за текущия файл
         if ($conf->WEBKIT_TO_PDF_INPUT_ENCODING) {
             
             // Добавяме в настройките

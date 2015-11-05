@@ -97,9 +97,8 @@ class pos_Favourites extends core_Manager {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$ProductMan = cls::get('cat_Products');
     	
-    	$form->setOptions('productId', array('' => '') + $ProductMan->getByProperty('canSell'));
+    	$form->setOptions('productId', array('' => '') + cat_Products::getByProperty('canSell'));
     }
     
     
@@ -109,9 +108,8 @@ class pos_Favourites extends core_Manager {
     protected static function on_AfterInputEditForm($mvc, $form)
     {
     	if(isset($form->rec->productId)){
-    		$ProductMan = cls::get('cat_Products');
     		
-    		$packs = $ProductMan->getPacks($form->rec->productId);
+    		$packs = cat_Products::getPacks($form->rec->productId);
     		$form->setOptions('packagingId', $packs);
     	} else {
     		$form->setReadOnly('packagingId');
@@ -208,11 +206,9 @@ class pos_Favourites extends core_Manager {
         $obj = new stdClass();
     	$obj->quantity = (isset($info->packagings[$rec->packagingId])) ? $info->packagings[$rec->packagingId]->quantity : 1;
     	
-    	if(empty($rec->image)){
-    		$rec->image = cat_Products::getProductImage($rec->productId);
+    	if($rec->image){
+    		$arr['image'] = $rec->image;
     	}
-    	
-    	$arr['image'] = $rec->image;
     	
     	return (object)$arr;
     }

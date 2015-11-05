@@ -21,7 +21,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools';
+	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools,bgerp_plg_Blank';
 	
 	
 	/**
@@ -128,10 +128,6 @@ class planning_Tasks extends tasks_Tasks
 			$addBtn = ht::createLink('', $data->addUrl, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/add.png');
 			$tpl->append($addBtn, 'ADD_BTN');
 		}
-		 
-		$taskLink = tr("Производствени задачи");
-		$taskLink = ($this->haveRightFor('list')) ? ht::createLink($taskLink, array($this, 'list')) : $taskLink;
-		$tpl->replace($taskLink, 'TASKS_LINK');
 		
 		// Връщаме шаблона
 		return $tpl;

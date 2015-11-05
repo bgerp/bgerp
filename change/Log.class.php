@@ -488,7 +488,7 @@ class change_Log extends core_Manager
             $versionStr = static::getLastVersionFromDoc($rec->docClass, $rec->docId);
 
             // Идентификатора за избраната версия
-            $versionId = static::getLastVersionIdFromDoc($rec->docClass, $rec->docId);            
+            $versionId = static::getLastVersionIdFromDoc($rec->docClass, $rec->docId);
         }
         
         // Ако има такъв масив
@@ -635,6 +635,14 @@ class change_Log extends core_Manager
      */
     static function getVersionStr($version, $subVersion)
     {
+        if (is_null($version)) {
+            $version = 0;
+        }
+        
+        if (is_null($subVersion)) {
+            $subVersion = 1;
+        }
+        
         // Събираме версията и подверсията
         $versionStr = $version . static::VERSION_DELIMITER . $subVersion;
         

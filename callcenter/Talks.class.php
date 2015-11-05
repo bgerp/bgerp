@@ -1124,7 +1124,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме грешката
-            self::logErr($err, $id);
+            log_Debug::add(get_called_class(), $id, $err);
         }
     }
     
@@ -1822,7 +1822,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме
-            static::save($rec);
+            static::save($rec, 'dialStatus');
             
             // Добавяме нотификация
             static::addNotification($rec);
@@ -2035,11 +2035,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме абсолютния линк
-        $url = toUrl($urlArr, 'absolute');
-        
-        // Фикс за Reload
-        // TODO може да се премахне
-        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
+        $url = toUrl($urlArr, 'absolute-force');
         
         $url = escapeshellarg($url);
         
@@ -2064,11 +2060,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме абсолютния линк
-        $url = toUrl($urlArr, 'absolute');
-        
-        // Фикс за Reload
-        // TODO може да се премахне
-        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
+        $url = toUrl($urlArr, 'absolute-force');
         
         $url = escapeshellarg($url);
         

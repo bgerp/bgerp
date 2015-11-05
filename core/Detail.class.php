@@ -245,7 +245,7 @@ class core_Detail extends core_Manager
         $url = $data->masterMvc->getSingleUrlArray($data->masterId);
 
         if(count($url)) {
-            $title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'style' => 'color:#BBFFFF;'));
+            $title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
         }
 
         if ($data->singleTitle) {

@@ -176,7 +176,7 @@ class bank_SpendingDocuments extends core_Master
         $this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
         $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
         $this->FLD('state',
-            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)',
+            'enum(draft=Чернова, active=Активиран, rejected=Сторниран, closed=Контиран)',
             'caption=Статус, input=none'
         );
         $this->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
