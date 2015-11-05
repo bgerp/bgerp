@@ -593,10 +593,16 @@ div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
 
-.product-component-title {
-  margin: 5px 0; }
+  .product-component-title td {
+    border-top: 1px solid #dddddd;
+    padding: 5px 0;
+    vertical-align: middle !important; }
+  .product-component-title:first-child td {
+    border-top: none; }
   .product-component-title .prodTitle {
     font-weight: bold; }
+  .product-component-title .anchor-arrow {
+    margin-top: -3px; }
 
 .product-component-stage {
   background-color: #eeeeee;
@@ -611,18 +617,26 @@ div.productImage {
   font-style: italic; }
 
 .componentCode {
-  margin: 0 10px 0 0;
+  margin: 0 10px 0 5px;
   display: inline-block; }
 
-.product-component-list .level1 {
-  font-weight: bold;
-  margin: 7px 0 3px; }
+.product-component-list .level0 .componentTitle {
+  font-weight: bold; }
+
+.product-component-list .level2 {
+  font-size: 0.96em; }
 
 .product-component-list .level3 {
-  font-size: 0.9em; }
+  font-size: 0.92em; }
 
-.product-component-list .level3 {
-  font-size: 0.8em; }
+.product-component-list .level4 {
+  font-size: 0.88em; }
+
+.product-component-list .level5 {
+  font-size: 0.82em; }
+
+.product-component-list .level6 {
+  font-size: 0.78em; }
 
 .display-table .product-component-holder {
   margin-left: 10px; }

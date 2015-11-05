@@ -3,21 +3,22 @@
     <table class='product-component-list' style='width: 100%'>
     <!--ET_BEGIN COMP-->
     [#COMP#]
-       <tr>
-        <td><div class='[#titleClass#] level[#level#]'><span class='componentCode maxwidth notcentered' data-col = 'level'>[#componentCode#]</span> <span>[#componentTitle#]</span></div></td>
-        <td><span class=' maxwidth notcentered aright' data-col = 'measure'> [#componentQuantity#]</span></td>
-        <td> [#componentMeasureId#]</td>
+       <tr class='level[#level#] [#titleClass#]'>
+        <td style='width:1%'><span class='componentCode'>[#componentCode#]</span> </td> 
+        <td class='componentTitle'>[#componentTitle#]</td>
+        <td class='aright' style='padding: 0 10px'>[#componentQuantity#]</td>
+        <td class='centered' style='padding: 0 10px'>[#componentMeasureId#]</td>
         </tr>
         <!--ET_BEGIN componentDescription-->
-        <tr>
-        <td colspan="3" class='product-component-description'>
+        <tr class='level[#level#]' >
+        <td colspan="4" class='product-component-description'>
         [#componentDescription#]
         </td>
         </tr>
         <!--ET_END componentDescription-->
         <!--ET_BEGIN componentComponents-->
-        <tr>
-        <td colspan="3" class='product-component-components'>
+        <tr class='level[#level#]'>
+        <td colspan="4" class='product-component-components'>
         [#componentComponents#]
         </td>
         </tr>
