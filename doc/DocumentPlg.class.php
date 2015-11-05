@@ -2704,13 +2704,29 @@ class doc_DocumentPlg extends core_Plugin
         
         $haveVal = FALSE;
         
+        $collspan = 0;
+        $firstRowCnt = 0;
+        $secondRowCnt = count($secondRowArr);
+        $showCnt = count($showHeaderArr);
+        
+        if (!$isNarrow && $haveSecondRow) {
+            $firstRowCnt = $showCnt - $secondRowCnt;
+            $collspan = $firstRowCnt - $secondRowCnt;
+        }
+        
+        $row1Cnt = 0;
+        $row2Cnt = 0;
+        $i = 0;
+        $addedColspan = FALSE;
         foreach ((array)$showHeaderArr as $key => $value) {
+            
+            $colspanPlace = '_colspan_' . $i++;
             
             $haveVal = TRUE;
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td><b>{$value['val']}</b></td>");
+            $val = new ET("<td [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
@@ -2719,9 +2735,37 @@ class doc_DocumentPlg extends core_Plugin
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</td>");
+                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd; [#_styleTop_#]' [#{$colspanPlace}#]>{$value['name']}{$colon}</td>");
+                
+                if (!$addedColspan) {
+                    if ($value['row']) {
+                        $row2Cnt++;
+                    } else {
+                        $row1Cnt++;
+                    }
+                }
+                
+                $collspanStr = '';
+                
+                if ($collspan > 0) {
+                    // Последният елемент на втората таблица ще има
+                    if (($row2Cnt == $secondRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . ($collspan + 1);
+                        $addedColspan = TRUE;
+                    }
+                } elseif ($collspan < 0) {
+                    // Последния елемент на първата таблица ще има
+                    if (($row1Cnt == $firstRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . (($collspan * -1) + 1);
+                        $addedColspan = TRUE;
+                    }
+                }
+                
+                $name->replace($collspanStr, $colspanPlace);
+                $val->replace($collspanStr, $colspanPlace);
                 
                 if ($haveSecondRow && $value['row'] == 2) {
+                    $name->replace('border-top: 5px solid #ddd;', '_styleTop_');
                     $res->append($name, $firstSecondRow);
                     $res->append($val, $secondSecondRow);
                 } else {
