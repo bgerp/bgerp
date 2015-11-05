@@ -125,15 +125,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща стойността на параметъра с това име
-     *
-     * @param string $id   - ид на записа
-     * @param string $name - име на параметъра
-     * @return mixed - стойност или FALSE ако няма
-     */
-    public static function getParamValue($id, $name)
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
+	 */
+    public static function getParams($id, $name = NULL)
     {
-    	return $this->class->getParamValue($id, $name);
+    	return $this->class->getParams($id, $name);
     }
     
     

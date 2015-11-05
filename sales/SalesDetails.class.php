@@ -199,7 +199,7 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
-    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		$term = cat_Products::getParams($rec->productId, 'term');
     		if(!empty($term)){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){

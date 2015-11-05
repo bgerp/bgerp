@@ -2,7 +2,7 @@
 [#FORM#]
 <div>
     <!--ET_BEGIN currency-->
-       <span>Валута: [#currency#]</span>
+       <span>|Валута|*: [#currency#]</span>
     <!--ET_END currency-->
 
 </div>

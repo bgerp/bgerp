@@ -130,10 +130,8 @@ class cat_products_Params extends doc_Detail
     {
     	$paramRec = cat_Params::fetch($rec->paramId);
     	
-    	if($Driver = cat_Params::getDriver($rec->paramId)){
-    		if($Type = $Driver->getType($paramRec)){
-    			$row->paramValue = $Type->toVerbal(trim($rec->paramValue));
-    		}
+    	if($ParamType = cat_Params::getTypeInstance($paramRec)){
+    		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
     	}
     	
     	if(!empty($paramRec->suffix)){

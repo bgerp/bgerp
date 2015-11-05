@@ -182,7 +182,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         if($rec->productId){
         	
-        	$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+        	$tolerance = cat_Products::getParams($rec->productId, 'tolerance');
         	if(!empty($tolerance)){
         		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
         		$data->form->setField('tolerance', 'input');
