@@ -599,8 +599,6 @@ div.productImage {
     vertical-align: middle !important; }
   .product-component-title:first-child td {
     border-top: none; }
-  .product-component-title .prodTitle {
-    font-weight: bold; }
   .product-component-title .anchor-arrow {
     margin-top: -3px; }
 
@@ -609,9 +607,11 @@ div.productImage {
   padding: 5px;
   border: 1px solid #cccccc; }
 
-.general-product-description .richtext {
-  margin: 0 0 2px;
-  font-size: 0.9em; }
+  .detail-info .general-product-description .richtext,
+  .detail-info .general-product-description .groupList {
+    margin: 0 0 2px;
+    font-size: 0.9em;
+    color: #222222; }
 
 .component-title {
   padding: 5px 0;
@@ -621,22 +621,22 @@ div.productImage {
   margin: 0 10px 0 5px;
   display: inline-block; }
 
-.product-component-list .level0 .componentTitle {
+.product-component-list .componentTitle {
   font-weight: bold; }
 
-.product-component-list .level2 {
+.product-component-list .level1 {
   font-size: 0.96em; }
 
-.product-component-list .level3 {
+.product-component-list .level2 {
   font-size: 0.92em; }
 
-.product-component-list .level4 {
+.product-component-list .level3 {
   font-size: 0.88em; }
 
-.product-component-list .level5 {
+.product-component-list .level4 {
   font-size: 0.82em; }
 
-.product-component-list .level6 {
+.product-component-list .level5 {
   font-size: 0.78em; }
 
 .display-table .product-component-holder {
