@@ -146,7 +146,7 @@ class core_Lg extends core_Manager
             $strArr = explode('|', $kstring);
             
             if (count($strArr) > 1) {
-                $translated = '';
+                $translated = array();
                 
                 // Ако последната или първата фраза са празни - махаме ги
                 if($strArr[count($strArr)-1] == '') {
@@ -252,6 +252,9 @@ class core_Lg extends core_Manager
                 $res = $this->dict[$key][$lg];
             }
         }
+
+        // Ако превеждаме на английски и в крайния текст има все-пак думи с кирилски символи,
+        // опитваме се да преведем фразите // /\b([а-яА-Я ]*[а-яА-Я][а-яА-Я ]*)\b/u
         
         return $res;
     }

@@ -837,4 +837,14 @@ class core_String
     }
 
 
+  /**
+    * Връща символ в UTF-8 енкодинг от уникод номера му
+    *
+    * @param int $u
+    * @return char
+    */
+    public static function unichr($u) 
+    {
+        return mb_convert_encoding('&#' . intval($u) . ';', 'UTF-8', 'HTML-ENTITIES');
+    }
 }
