@@ -211,7 +211,7 @@ class core_TableView extends core_BaseClass
                    if($this->mvc->fields[$place]->smartCenter){
                        static $dataCol;
                        $dataCol++;
-                       $row .= "<td{$attr}><div class='maxwidth' data-col='{$dataCol}'>[#{$place}#]</div></td>";
+                       $row .= "<td{$attr}><span class='maxwidth' data-col='{$dataCol}'>[#{$place}#]</span></td>";
                    }  else {
                        $row .= "<td{$attr}>[#{$place}#]</td>";
                    }

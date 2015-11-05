@@ -51,7 +51,6 @@ class planning_Setup extends core_ProtoSetup
      */
     var $managers = array(
     		'planning_Jobs',
-    		'planning_Stages',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
     		'planning_ProductionNotes',

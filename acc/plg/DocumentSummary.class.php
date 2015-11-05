@@ -113,27 +113,33 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
             $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm,remember');
             $cKey = $mvc->className . core_Users::getCurrent();
+            
+            $haveUsers = FALSE;
+            
             if($lastUsers = core_Cache::get('userFilter',  $cKey)) {
                 $type = $data->listFilter->getField('users')->type;
                 $type->prepareOptions('all');
                 foreach($type->options as $key => $optObj) {
                     if($lastUsers == $optObj->keylist || $key == $lastUsers) {
                         $lastUsers = $optObj->keylist;
+                        $haveUsers = TRUE;
                         break;
                     }
                 }
-                $data->listFilter->setDefault('users', $lastUsers);  
-            } else {
-                $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
             }
-
+            
+            if (!$haveUsers) {
+                $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            } else {
+                $data->listFilter->setDefault('users', $lastUsers); 
+            }
+            
             $data->listFilter->showFields .= ',users';
         }
         
         // Активиране на филтъра
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
-
         // Ако формата за търсене е изпратена
         if($filter = $data->listFilter->rec) {
             
@@ -142,14 +148,14 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if(($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
-                core_Cache::set('userFilter',  $cKey, $usedUsers, 24*60*100); 
+                core_Cache::set('userFilter',  $cKey, $usedUsers, 24*60*100);
             }
         	
             // Филтрираме по потребители
             if($filter->users && $isDocument){
                 
             	$userIds = keylist::toArray($filter->users);
-            	$data->query->where("#{$mvc->filterFieldUsers} IN (" . implode(',',  $userIds) . ")", $or);
+            	$data->query->where("#{$mvc->filterFieldUsers} IN (" . implode(',',  $userIds) . ")");
             }
             
             $dateRange = array();

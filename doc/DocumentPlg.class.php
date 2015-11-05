@@ -2634,27 +2634,99 @@ class doc_DocumentPlg extends core_Plugin
         
         $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
         
+        $showHeaderArr = array();
+        
+        // Добавяме полетата, които ще се показват в съответния режим
+        foreach ((array)$headerArr as $key => $value) {
+            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
+            
+            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
+            
+            $showHeaderArr[$key] = $value;
+        }
+        
         if ($isNarrow) {
             $res = new ET('');
         } else {
-            $one = '_1_FIRST_TR';
-            $two = '_2_SECOND_TR';
-            $res = new ET("<tr>[#{$one}#]</tr><tr>[#{$two}#]</tr>");
+            
+            $limitForSecondRow = $mvc->headerLinesLimit ? $mvc->headerLinesLimit : 5;
+            $haveSecondRow = FALSE;
+            
+            // Ако бройката е под ограничението, няма да има втори ред
+            $noSecondRow = FALSE;
+            if (count($showHeaderArr) < $limitForSecondRow) {
+                $noSecondRow = TRUE;
+            }
+            
+            // Определяме, кои полета ще са на втори ред или дали ще има такива
+            $secondRowArr = array();
+            $cnt = 0;
+            foreach ($showHeaderArr as $key => &$hArr) {
+                
+                if ($noSecondRow) {
+                    unset($hArr['row']);
+                    continue;
+                }
+                
+                if ($hArr['row'] != 2) {
+                    // Ако не е зададено да е втори ред - добавяме, ако сме надвишили лимита
+                    $cnt++;
+                    if ($cnt <= $limitForSecondRow) continue;
+                    
+                    $hArr['row'] = 2;
+                }
+                
+                $haveSecondRow = TRUE;
+                
+                if ($hArr['row'] == 2) {
+                    $secondRowArr[$key] = $hArr;
+                }
+            }
+            
+            // Ако имаме само един кандидат за втория ред, да не се показва сам
+            if ((count($secondRowArr) == 1)) {
+                $key = key($secondRowArr);
+                unset($showHeaderArr[$key]['row']);
+                $haveSecondRow = FALSE;
+            }
+            
+            $first = '_FIRST_TR';
+            $second = '_SECOND_TR';
+            $res = new ET("<tr>[#{$first}#]</tr><tr>[#{$second}#]</tr>");
+            
+            if ($haveSecondRow) {
+                $firstSecondRow = '_FIRST_TR_SECOND_ROW';
+                $secondSecondRow = '_SECOND_TR_SECOND_ROW';
+                
+                $res->append(new ET("<tr>[#{$firstSecondRow}#]</tr><tr>[#{$secondSecondRow}#]</tr>"));
+            }
         }
         
         $haveVal = FALSE;
         
-        foreach ((array)$headerArr as $key => $value) {
+        $collspan = 0;
+        $firstRowCnt = 0;
+        $secondRowCnt = count($secondRowArr);
+        $showCnt = count($showHeaderArr);
+        
+        if (!$isNarrow && $haveSecondRow) {
+            $firstRowCnt = $showCnt - $secondRowCnt;
+            $collspan = $firstRowCnt - $secondRowCnt;
+        }
+        
+        $row1Cnt = 0;
+        $row2Cnt = 0;
+        $i = 0;
+        $addedColspan = FALSE;
+        foreach ((array)$showHeaderArr as $key => $value) {
             
-            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
-            
-            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
+            $colspanPlace = '_colspan_' . $i++;
             
             $haveVal = TRUE;
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td><b>{$value['val']}</b></td>");
+            $val = new ET("<td [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
@@ -2663,9 +2735,43 @@ class doc_DocumentPlg extends core_Plugin
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</td>");
-                $res->append($name, $one);
-                $res->append($val, $two);
+                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd; [#_styleTop_#]' [#{$colspanPlace}#]>{$value['name']}{$colon}</td>");
+                
+                if (!$addedColspan) {
+                    if ($value['row']) {
+                        $row2Cnt++;
+                    } else {
+                        $row1Cnt++;
+                    }
+                }
+                
+                $collspanStr = '';
+                
+                if ($collspan > 0) {
+                    // Последният елемент на втората таблица ще има
+                    if (($row2Cnt == $secondRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . ($collspan + 1);
+                        $addedColspan = TRUE;
+                    }
+                } elseif ($collspan < 0) {
+                    // Последния елемент на първата таблица ще има
+                    if (($row1Cnt == $firstRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . (($collspan * -1) + 1);
+                        $addedColspan = TRUE;
+                    }
+                }
+                
+                $name->replace($collspanStr, $colspanPlace);
+                $val->replace($collspanStr, $colspanPlace);
+                
+                if ($haveSecondRow && $value['row'] == 2) {
+                    $name->replace('border-top: 5px solid #ddd;', '_styleTop_');
+                    $res->append($name, $firstSecondRow);
+                    $res->append($val, $secondSecondRow);
+                } else {
+                    $res->append($name, $first);
+                    $res->append($val, $second);
+                }
             }
         }
         

@@ -72,6 +72,20 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
+		$driverFields = array_keys($Embedder->getDriverFields($Driver));
+		
+		$driverRefreshedFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm');
+		$driverRefreshedFields = explode('|', $driverRefreshedFields);
+		
+		$refreshFieldsDriver = array_unique(array_merge($driverFields, $driverRefreshedFields));
+		$driverRefreshFields = implode('|', $refreshFieldsDriver);
+		
+		unset($refreshFieldsDriver[array_search('proto', $refreshFieldsDriver)]);
+		$protoRefreshFields = implode('|', $refreshFieldsDriver);
+		
+		// Добавяме при смяна на драйвева или на прототип полетата от драйвера да се рефрешват и те
+		$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$driverRefreshFields}");
+		$form->setField('proto', "removeAndRefreshForm={$protoRefreshFields}");
 		
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
@@ -142,13 +156,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 
 	/**
-	 * Връща стойността на параметъра с това име
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
 	 * @param string $id   - ид на записа
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParamValue($name, $id)
+	public function getParams($id, $name = NULL)
 	{
 		return FALSE;
 	}
@@ -335,11 +350,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 			['quantity'] - К-во за което е рецептата
 	 * 			['expenses'] - % режийни разходи
 	 * 			['materials'] array
-	 * 				 o code          string  - Код на материала
-     * 				 o baseQuantity  double  - Начално количество на вложения материал
-     * 				 o propQuantity  double  - Пропорционално количество на вложения материал
-     * 				 o waste         boolean - Дали материала е отпадък
-     * 				 o stageName']   string  - Име на производствения етап
+	 * 				 o code              string          - Код на материала
+     * 				 o baseQuantity      double          - Начално количество на вложения материал
+     * 				 o propQuantity      double          - Пропорционално количество на вложения материал
+     * 				 o type              input|pop|stage - вида на записа материал|отпадък|етап
+     * 				 o parentResourceId  string          - ид на артикула на етапа
+     * 				 o expenses          double          - % режийни разходи
 	 * 				
 	 */
 	public function getDefaultBom($rec)

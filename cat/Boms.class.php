@@ -25,49 +25,55 @@ class cat_Boms extends core_Master
    /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Технологични рецепти";
+    public $title = "Технологични рецепти";
     
    
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'productId,notes';
+    public $searchFields = 'productId,notes';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'cat_BomDetails';
+    public $details = 'cat_BomDetails';
+    
+    
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
     
     
     /**
@@ -80,61 +86,67 @@ class cat_Boms extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Технологична рецепта';
+    public $singleTitle = 'Технологична рецепта';
     
     
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/article.png';
+    public $singleIcon = 'img/16/article.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = "Bom";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'cat,ceo';
+    public $abbr = "Bom";
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
+    
+    
+    /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'cat,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cat,ceo';
+    public $canReject = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,cat';
+    public $canList = 'ceo,cat';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,cat';
+    public $canSingle = 'ceo,cat';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
     
     
     /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**
@@ -167,9 +179,6 @@ class cat_Boms extends core_Master
     		$dQuery->where("#bomId = '{$rec->id}'");
     		while($dRec = $dQuery->fetch()){
     			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
-    			if($dRec->stageId){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
-    			}
     		}
     		
     		$res = " " . $res . " " . $detailsKeywords;
@@ -196,7 +205,7 @@ class cat_Boms extends core_Master
     	
     	// При създаване на нова рецепта
     	if(empty($form->rec->id)){
-    		if($expenses = cat_Products::getParamValue($form->rec->productId, 'expenses')){
+    		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
     		}
     		
@@ -401,14 +410,6 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(($action == 'add') && isset($rec->productId) && $res != 'no_one'){
-    		
-    		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
@@ -521,7 +522,7 @@ class cat_Boms extends core_Master
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
     	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
-    	//bp($rInfo);
+    	
     	// За всеки ресурс
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
@@ -663,9 +664,6 @@ class cat_Boms extends core_Master
     			$d->propQuantity   = $Double->fromVerbal($d->propQuantity);
     			$d->quantityInPack = $Double->fromVerbal($d->quantityInPack);
     			expect($d->baseQuantity || $d->propQuantity);
-    			if($d->stageId){
-    				expect(planning_Stages::fetch($d->stageId));
-    			}
     		}
     	}
     	
@@ -753,7 +751,6 @@ class cat_Boms extends core_Master
     				}
     				
     				// Форсираме производствения етап
-    				$nRec->stageId = planning_Stages::force($matRec->stage);
     				$details[] = $nRec;
     				
     				if($nRec->type == 'input'){
@@ -807,6 +804,115 @@ class cat_Boms extends core_Master
     			core_Statuses::newStatus(tr('Проблем при създаването на нова базова рецепта'), 'error');
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвяне на рецептите за един артикул
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareBoms(&$data)
+    {
+    	$data->rows = array();
+    	$data->hideToolsCol = TRUE;
+    	
+    	// Намираме неоттеглените задания
+    	$query = cat_Boms::getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	$query->where("#state != 'rejected'");
+    	$query->orderBy("id", 'DESC');
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		if($this->haveRightFor('edit', $rec)){
+    			$data->hideToolsCol = FALSE;
+    		}
+    	}
+    	 
+    	$masterInfo = cat_Products::getProductInfo($data->masterId);
+    	$data->TabCaption = 'Рецепти';
+    	$data->Tab = 'top';
+    	 
+    	// Проверяваме можем ли да добавяме нови рецепти
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
+    	}
+    	 
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на рецептите на един артикул
+     * 
+     * @param stdClass $data
+     * @return core_ET
+     */
+    public function renderBoms($data)
+    {
+    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	 $title = tr('Технологични рецепти');
+    	 $tpl->append($title, 'title');
+    	 
+    	 if(isset($data->addUrl)){
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова технологична рецепта');
+    	 	$tpl->append($addBtn, 'title');
+    	 }
+    	 
+    	 $listFields = arr::make('tools=Пулт,title=Документ,quantity=За количество,createdBy=Oт,createdOn=На');
+    	 if($data->hideToolsCol){
+    	 	unset($listFields['tools']);
+    	 }
+    	 
+    	 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $details = $table->get($data->rows, $listFields);
+    	 
+    	 // Ако артикула не е производим, показваме в детайла
+    	 if($data->notManifacturable === TRUE){
+    	 	$tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ")</span>", 'title');
+    	 	$tpl->append("state-rejected", 'TAB_STATE');
+    	 }
+    	 
+    	 $tpl->replace($details, 'content');
+    	 
+    	 return $tpl;
+    }
+    
+    
+    /**
+     * Клонира и разпъва рецептата на един артикул към друг
+     * 
+     * @param int $fromProductId
+     * @param int $toProductId
+     */
+    public static function cloneBom($fromProductId, $toProductId)
+    {
+    	$toProductRec = cat_Products::fetchRec($toProductId);
+    	$activeBom = cat_Products::getLastActiveBom($fromProductId);
+    	
+    	// Ако има рецепта за клониране
+    	if($activeBom){
+    		$nRec = clone $activeBom;
+    		$nRec->folderId  = $toProductRec->folderId;
+    		$nRec->threadId  = $toProductRec->threadId;
+    		$nRec->productId = $toProductRec->id;
+    		$nRec->originId  = $toProductRec->containerId;
+    		$nRec->state     = 'draft';
+    		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
+    			unset($nRec->{$fld});
+    		}
+    		
+    		core_Users::forceSystemUser();
+    		if(static::save($nRec)) {
+    			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
+    		} else {
+    			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+    		}
+    		core_Users::cancelSystemUser();
     	}
     }
 }

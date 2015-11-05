@@ -593,30 +593,64 @@ div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
 
-.product-component-list {
-  margin: 0;
-  list-style: disc;
-  padding: 4px 0 0px 25px;
-  border-left: 1px solid #cccccc; }
-
-.product-component-title {
-  margin: 0px 0 3px; }
-
-.product-component-holder {
-  padding-left: 0px;
-  margin-left: 20px; }
+  .product-component-title td {
+    border-top: 1px solid #dddddd;
+    padding: 5px 0;
+    vertical-align: middle !important; }
+  .product-component-title:first-child td {
+    border-top: none; }
+  .product-component-title .anchor-arrow {
+    margin-top: -3px; }
 
 .product-component-stage {
   background-color: #eeeeee;
   padding: 5px;
   border: 1px solid #cccccc; }
 
-.general-product-description .richtext {
-  margin: 0 0 2px; }
+  .detail-info .general-product-description .richtext,
+  .detail-info .general-product-description .groupList {
+    margin: 0 0 2px;
+    font-size: 0.9em;
+    color: #222222; }
 
 .component-title {
   padding: 5px 0;
   font-style: italic; }
+
+.componentCode {
+  margin: 0 10px 0 5px;
+  display: inline-block; }
+
+.product-component-list .componentTitle {
+  font-weight: bold; }
+
+  .product-component-list .level0.product-component-title td {
+    padding: 7px 0;
+    background: #f1f1f1; }
+
+  .product-component-list .level1.product-component-title td {
+    padding: 6px 0; }
+
+.product-component-list .level2.product-component-title {
+  color: #333333; }
+  .product-component-list .level2.product-component-title td {
+    padding: 5px 0; }
+
+.product-component-list .level3.product-component-title {
+  color: #444444; }
+  .product-component-list .level3.product-component-title td {
+    padding: 4px 0; }
+
+.product-component-list .level4.product-component-title {
+  color: #555555; }
+  .product-component-list .level4.product-component-title td {
+    padding: 3px 0; }
+
+.product-component-list .level5.product-component-title {
+  color: #666666;
+  font-size: 0.9em; }
+  .product-component-list .level5.product-component-title td {
+    padding: 2px 0; }
 
 .display-table .product-component-holder {
   margin-left: 10px; }
@@ -1216,8 +1250,9 @@ td.rowtools-column {
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView .listTable {
-  width: 100%; }
+.wide .singleView div:not(".folder-cover") .listTable {
+  min-width: 800px;
+  width: 1%; }
 
 pre.document {
   white-space: pre-line; }
@@ -3830,6 +3865,9 @@ only screen and (max-width: 320px) {
     width: 100%; }
 
   .no-print {
+    display: none; }
+
+  .sidemenu {
     display: none; }
 
   .blankImage img,

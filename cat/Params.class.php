@@ -218,6 +218,8 @@ class cat_Params extends embed_Manager
      * отговарящ на типа на параметъра с опции зададените стойности
      * ако е enum или същите като предложения. Използва се и от
      * cond_ConditionsToCustomers
+     * 
+     * @deprecated
      * @param int $paramId - ид на параметър
      * @param string $className - в кой мениджър се намрират параметрите
      * @return core_Type $Type - типа от системата
@@ -243,6 +245,23 @@ class cat_Params extends embed_Manager
 	    }
 	    
 	    return $Type;
+    }
+    
+    
+    /**
+     * Връща типа на параметъра
+     * 
+     * @param mixed $id - ид или запис на параметър
+     * @return FALSE|cond_type_Proto - инстанцирания тип или FALSE ако не може да се определи
+     */
+    public static function getTypeInstance($id)
+    {
+    	$rec = static::fetchRec($id);
+    	if($Driver = static::getDriver($rec)){
+    		return $Type = $Driver->getType($rec);
+    	}
+    	
+    	return FALSE;
     }
     
     

@@ -63,7 +63,7 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms';
     
     
     /**
@@ -240,7 +240,8 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 'meta'    => 'lastDocUser|lastDoc',);
+											 //'meta'    => 'lastDocUser|lastDoc',
+	);
 	
 	
 	/**
@@ -284,7 +285,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируем,
                                 canConvert=Вложим,
                                 fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,mandatory');
+        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -334,13 +335,21 @@ class cat_Products extends embed_Manager {
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
     		
-    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
-
-    		if($Driver = $mvc->getDriver($form->rec)){
-    			$defMetas = $Driver->getDefaultMetas($defMetas);
-    			$measureName = $Driver->getDefaultUom();
-    			$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
+    		$defMetas = array();
+    		if(isset($form->rec->proto)){
+    			$defMetas = $mvc->fetchField($form->rec->proto, 'meta');
+    			$defMetas = type_Set::toArray($defMetas);
+    		} else {
+    			$defMetas = $cover->getDefaultMeta();
     			
+    			if($Driver = $mvc->getDriver($form->rec)){
+    				$defMetas = $Driver->getDefaultMetas($defMetas);
+    				$measureName = $Driver->getDefaultUom();
+    				$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
+    			}
+    		}
+    		
+    		if(count($defMetas)){
     			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
     		}
@@ -1006,20 +1015,21 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща стойността на параметъра с това име
-     *
-     * @param string $id   - ид на записа
-     * @param string $name - име на параметъра
-     * @return mixed - стойност или FALSE ако няма
-     */
-    public static function getParamValue($id, $name)
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
+	 */
+    public static function getParams($id, $name = NULL)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
-    		
-    		return $Driver->getParamValue($id, $name);
-    	}
     	
+    		return $Driver->getParams($id, $name);
+    	}
+    	 
     	// Ако няма връщаме FALSE
     	return FALSE;
     }
@@ -1040,7 +1050,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$weight){
-    		$weight = static::getParamValue($productId, 'transportWeight');
+    		$weight = static::getParams($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1062,7 +1072,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$volume){
-    		$volume = static::getParamValue($productId, 'transportVolume');
+    		$volume = static::getParams($productId, 'transportVolume');
     	}
     	
     	return $volume;
@@ -1421,16 +1431,6 @@ class cat_Products extends embed_Manager {
     			}
     		}
     	}
-    	
-    	if($data->rec->state == 'active'){
-    		if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state != 'rejected'")){
-    			if(cat_Boms::haveRightFor('single', $bRec)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула,order=19');
-    			}
-    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,order=19,title=Създаване на нова технологична рецепта');
-    		}
-    	}
     }
     
     
@@ -1754,7 +1754,7 @@ class cat_Products extends embed_Manager {
      * @param array $components - компонентите на артикула
      * @return core_ET - шаблона на компонентите
      */
-    public static function renderComponents($components, $makeLinks = TRUE)
+    public static function renderComponents($components, $makeLinks = TRUE, $showDescription = TRUE)
     {
     	if(!count($components)) return;
     	
@@ -1762,7 +1762,6 @@ class cat_Products extends embed_Manager {
     	$block = $compTpl->getBlock('COMP');
     	foreach ($components as $obj){
     		$bTpl = clone $block;
-    		if($obj->code === '0') unset($obj->code);
     		
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -1770,17 +1769,20 @@ class cat_Products extends embed_Manager {
     			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
     		}
     		
-    		$bTpl->placeArray(array('componentTitle'       => $obj->title, 
-    								'componentDescription' => $obj->description,
-    								'componentCode'        => $obj->code,
-    								'componentStage'       => $obj->stageName,
-    								'componentQuantity'    => $obj->quantity,
-    								'componentMeasureId'   => $obj->measureId));
+    		$arr = array('componentTitle'       => $obj->title, 
+    				     'componentDescription' => $obj->description,
+    					 'titleClass'           => $obj->titleClass,
+    					 'componentCode'        => $obj->code,
+    					 'componentStage'       => $obj->stageName,
+    					 'componentQuantity'    => $obj->quantity,
+    					 'level'				=> $obj->level,
+    					 'componentMeasureId'   => $obj->measureId);
     		
-    		if(count($obj->components)){
-    			$bTpl->append(static::renderComponents($obj->components), 'componentComponents');
+    		if($showDescription === FALSE){
+    			unset($arr['componentDescription']);
     		}
     		
+    		$bTpl->placeArray($arr);
     		$bTpl->removeBlocks();
     		$bTpl->append2Master();
     	}
@@ -1796,7 +1798,7 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'public');
     }
     
     
@@ -1828,52 +1830,79 @@ class cat_Products extends embed_Manager {
     	if(!$rec) return $res;
     	 
     	// Кои детайли от нея ще показваме като компоненти
-    	$dQuery = cat_BomDetails::getQuery();
-    	$dQuery->where("#bomId = {$rec->id}");
-    	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
+    	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
     	$level++;
-    	 
+    	
     	// За всеки
-    	while($dRec = $dQuery->fetch()){
-    		$obj = new stdClass();
-    		$obj->componentId = $dRec->resourceId;
-    
-    		$obj->code = $code . "." . (($dRec->position) ? $dRec->position : 0);
-    		$obj->code = trim($obj->code, '.');
-    		$obj->title = cat_Products::getTitleById($dRec->resourceId);
-    		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
-    		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
-    		$obj->stageName = planning_Stages::getTitleById($dRec->stageId);
-    
-    		$stageOrder = ($dRec->stageId) ? planning_Stages::fetchField($dRec->stageId, 'order') : 0;
-    		$obj->order = (($stageOrder) ? $stageOrder : $obj->stageName) . "." . $obj->code;
-    
-    		// Ако показваме описанието, показваме го
-    		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
-    			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    		}
-    
-    		// Ако има компоненти и сме в допустимото ниво, викаме функцията рекурсивно
-    		if($dRec->showInProduct == 'components'){
-    			if($level < core_Packs::getConfigValue('cat', 'CAT_BOM_MAX_COMPONENTS_LEVEL')){
+    	if(is_array($details)){
+    		foreach ($details as $dRec){
+    			$obj = new stdClass();
+    			$obj->componentId = $dRec->resourceId;
+    			$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
+    			if($code !== ''){
+    				$obj->code = $code . "." . $obj->code;
+    			}
+    		
+    			$obj->title = cat_Products::getTitleById($dRec->resourceId);
+    			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
+    			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
+    			$obj->type = $dRec->type;
+    			$obj->level = substr_count($obj->code, '.');
+    			$obj->titleClass = 'product-component-title';
+    			
+    			// Ако показваме описанието, показваме го
+    			if($dRec->type == 'input'){
+    				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    			}
+
+    			$res[$obj->code] = $obj;
+    			
+    			if($dRec->type == 'input'){
     				$obj->components = array();
-    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
     			}
     		}
-    
-    		$res[] = $obj;
     	}
-    	 
-    	// Сортираме по етапа и кода
-    	arr::order($res, 'order', 'ASC');
-    	 
-    	// Премахваме повтарящите се етапи
-    	foreach ($res as $index => &$r){
-    		if(isset($r->stageName)){
-    			if($res[$index - 1]->stageName === $r->stageName){
-    				unset($r->stageName);
-    			}
+    }
+    
+    
+    /**
+     * Създава дефолтната рецепта за артикула.
+     * Ако е по прототип клонира и разпъва неговата,
+     * ако не проверява дали от драйвера може да се генерира
+     * 
+     * @param int $id - ид на артикул
+     * @return void;
+     */
+    public static function createDefaultBom($id)
+    {
+    	$rec = static::fetchRec($id);
+    	
+    	// Ако не е производим артикула, не правим рецепта
+    	if($rec->canManifacture == 'no') return;
+    	
+    	// Ако има прототипен артикул, клонираме му рецептата и я разпъваме
+    	if(isset($rec->proto)){
+    		cat_Boms::cloneBom($rec->proto, $rec);
+    	} else {
+    		
+    		// Ако не е прототипен, питаме драйвера може ли да се генерира рецепта
+    		if($Driver = static::getDriver($rec)){
+    			$defaultData = $Driver->getDefaultBom($rec);
+    			//@TODO от драйвера
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Ако артикула е производим, опитваме се да му създадем дефолтна рецепта
+    	if($rec->canManifacture == 'yes'){
+    		static::createDefaultBom($rec);
     	}
     }
 }
