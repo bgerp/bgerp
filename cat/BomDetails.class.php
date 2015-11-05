@@ -497,7 +497,7 @@ class cat_BomDetails extends doc_Detail
     		} else {
     			// Трябва рецептата да е чернова
     			$masterState = cat_Boms::fetchField($rec->bomId, 'state');
-    			if($masterState != 'active'){ //@TODO да е чернова
+    			if($masterState != 'draft'){
     				$requiredRoles = 'no_one';
     			} else {
     				 
