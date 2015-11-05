@@ -405,6 +405,7 @@ class cat_BomDetails extends doc_Detail
     {
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
+    	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	
     	if($rec->type == 'stage'){
     		$row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
@@ -412,7 +413,6 @@ class cat_BomDetails extends doc_Detail
     	} else {
     		$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
     		$row->ROW_ATTR['title'] = ($rec->type != 'input' && $rec->type != 'stage') ? tr('Отпадък') : NULL;
-    		$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){

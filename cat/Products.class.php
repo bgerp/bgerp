@@ -1766,9 +1766,7 @@ class cat_Products extends embed_Manager {
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			$singleUrl = cat_Products::getSingleUrlArray($obj->componentId);
-    			if($obj->type != 'stage'){
-    				$obj->title = ht::createLinkRef($obj->title, $singleUrl);
-    			}
+    			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
     		}
     		
     		$arr = array('componentTitle'       => $obj->title, 
@@ -1785,10 +1783,6 @@ class cat_Products extends embed_Manager {
     		}
     		
     		$bTpl->placeArray($arr);
-    		if(count($obj->components)){
-    			$bTpl->append(static::renderComponents($obj->components, $makeLinks, $showDescription), 'componentComponents');
-    		}
-    		
     		$bTpl->removeBlocks();
     		$bTpl->append2Master();
     	}
@@ -1804,7 +1798,7 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'public');
     }
     
     
@@ -1853,18 +1847,20 @@ class cat_Products extends embed_Manager {
     			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
     			$obj->type = $dRec->type;
-    			$obj->level = $level;
+    			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			
     			// Ако показваме описанието, показваме го
-    			if($dRec->type != 'stage'){
+    			if($dRec->type == 'input'){
     				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    				 
-    				$obj->components = array();
-    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
     			}
-    		
-    			$res[] = $obj;
+
+    			$res[$obj->code] = $obj;
+    			
+    			if($dRec->type == 'input'){
+    				$obj->components = array();
+    				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
+    			}
     		}
     	}
     }
