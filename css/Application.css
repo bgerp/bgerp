@@ -610,7 +610,8 @@ div.productImage {
   border: 1px solid #cccccc; }
 
 .general-product-description .richtext {
-  margin: 0 0 2px; }
+  margin: 0 0 2px;
+  font-size: 0.9em; }
 
 .component-title {
   padding: 5px 0;
