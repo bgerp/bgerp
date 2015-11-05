@@ -7,7 +7,7 @@
 	        <td style='width:1%'><span class='componentCode'>[#componentCode#]</span> </td> 
 	        <td class='componentTitle'>[#componentTitle#]</td>
 	        <td class='centered'>[#componentMeasureId#]</td>
-	        <td class='aright' style='padding-right: 10px;'>[#componentQuantity#]</td>
+	        <td class='aright' style='padding-right: 10px; padding-left: 15px;'>[#componentQuantity#]</td>
         </tr>
         
         <!--ET_BEGIN componentDescription-->
