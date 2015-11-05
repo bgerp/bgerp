@@ -624,20 +624,33 @@ div.productImage {
 .product-component-list .componentTitle {
   font-weight: bold; }
 
-.product-component-list .level1 {
-  font-size: 0.96em; }
+  .product-component-list .level0.product-component-title td {
+    padding: 7px 0;
+    background: #f1f1f1; }
 
-.product-component-list .level2 {
-  font-size: 0.92em; }
+  .product-component-list .level1.product-component-title td {
+    padding: 6px 0; }
 
-.product-component-list .level3 {
-  font-size: 0.88em; }
+.product-component-list .level2.product-component-title {
+  color: #333333; }
+  .product-component-list .level2.product-component-title td {
+    padding: 5px 0; }
 
-.product-component-list .level4 {
-  font-size: 0.82em; }
+.product-component-list .level3.product-component-title {
+  color: #444444; }
+  .product-component-list .level3.product-component-title td {
+    padding: 4px 0; }
 
-.product-component-list .level5 {
-  font-size: 0.78em; }
+.product-component-list .level4.product-component-title {
+  color: #555555; }
+  .product-component-list .level4.product-component-title td {
+    padding: 3px 0; }
+
+.product-component-list .level5.product-component-title {
+  color: #666666;
+  font-size: 0.9em; }
+  .product-component-list .level5.product-component-title td {
+    padding: 2px 0; }
 
 .display-table .product-component-holder {
   margin-left: 10px; }

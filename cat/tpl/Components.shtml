@@ -3,24 +3,25 @@
     <table class='product-component-list' style='width: 100%'>
     <!--ET_BEGIN COMP-->
     [#COMP#]
-       <tr class='level[#level#] [#titleClass#]'>
-        <td style='width:1%'><span class='componentCode'>[#componentCode#]</span> </td> 
-        <td class='componentTitle'>[#componentTitle#]</td>
-        <td class='aright' style='padding: 0 10px'>[#componentQuantity#]</td>
-        <td class='centered' style='padding: 0 10px'>[#componentMeasureId#]</td>
+        <tr class='level[#level#] [#titleClass#]'>
+	        <td style='width:1%'><span class='componentCode'>[#componentCode#]</span> </td> 
+	        <td class='componentTitle'>[#componentTitle#]</td>
+	        <td class='centered'>[#componentMeasureId#]</td>
+	        <td class='aright' style='padding-right: 10px;'>[#componentQuantity#]</td>
         </tr>
+        
         <!--ET_BEGIN componentDescription-->
         <tr class='level[#level#]' >
-        <td colspan="4" class='product-component-description'>
-        [#componentDescription#]
-        </td>
+	        <td colspan="4" class='product-component-description'>
+	        [#componentDescription#]
+	        </td>
         </tr>
         <!--ET_END componentDescription-->
         <!--ET_BEGIN componentComponents-->
         <tr class='level[#level#]'>
-        <td colspan="4" class='product-component-components'>
-        [#componentComponents#]
-        </td>
+	        <td colspan="4" class='product-component-components'>
+	        [#componentComponents#]
+	        </td>
         </tr>
         <!--ET_END componentComponents-->
     <!--ET_END COMP-->
