@@ -151,12 +151,6 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Алтернативен шаблон за нотифициращ имейл (text)
-     */
-    public $emailNotificationAltFile = 'marketing/tpl/InquiryNotificationEmailAlt.txt';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/inquiry.png';
