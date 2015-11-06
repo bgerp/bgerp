@@ -391,22 +391,6 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Рендира количествата от блоба
-     */
-    private function renderQuantities($quantities, &$tpl, $placeholder)
-    {
-    	if(count($quantities)){
-    		foreach ($quantities as $quant){
-    			$clone = clone $tpl->getBlock($placeholder);
-    			$clone->replace($quant, $placeholder);
-    			$clone->removeBlocks();
-    			$clone->append2Master();
-    		}
-    	}
-    }
-    
-    
-    /**
      * Изпращане на нотифициращ имейл
      *
      * @param stdClass $rec
