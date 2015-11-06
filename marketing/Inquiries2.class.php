@@ -151,12 +151,6 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Алтернативен шаблон за нотифициращ имейл (text)
-     */
-    public $emailNotificationAltFile = 'marketing/tpl/InquiryNotificationEmailAlt.txt';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/inquiry.png';
@@ -166,6 +160,12 @@ class marketing_Inquiries2 extends embed_Manager
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn';
+    
+    
+    /**
+     * Опашка за записи, на които трябва да се изпратят нотифициращи имейли
+     */
+    protected $sendNotificationEmailQueue = array();
     
     
     /**
@@ -369,23 +369,22 @@ class marketing_Inquiries2 extends embed_Manager
     	// Нотифициращ имейл се изпраща само след първоначално активиране
     	if($rec->state == 'active' && empty($rec->brState)){
     		if(empty($rec->migrate)){
-    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    			$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
     		}
     	}
     }
     
     
     /**
-     * Рендира количествата от блоба
+     * Изчиства записите, заопашени за запис
+     *
+     * @param acc_Items $mvc
      */
-    private function renderQuantities($quantities, &$tpl, $placeholder)
+    public static function on_Shutdown($mvc)
     {
-    	if(count($quantities)){
-    		foreach ($quantities as $quant){
-    			$clone = clone $tpl->getBlock($placeholder);
-    			$clone->replace($quant, $placeholder);
-    			$clone->removeBlocks();
-    			$clone->append2Master();
+    	if(is_array($mvc->sendNotificationEmailQueue)){
+    		foreach ($mvc->sendNotificationEmailQueue as $rec){
+    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
     		}
     	}
     }
@@ -440,8 +439,8 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$altText = $res->getContent();
     		
-    		//Създаваме HTML частта на документа и превръщаме всички стилове в inline
-    		//Вземаме всичките css стилове
+    		// Създаваме HTML частта на документа и превръщаме всички стилове в inline
+    		// Вземаме всичките css стилове
     
     		$css = file_get_contents(sbf('css/common.css', "", TRUE)) .
     		"\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
@@ -563,13 +562,30 @@ class marketing_Inquiries2 extends embed_Manager
     	$params = array('title' => 'title') + $params;
     	
     	$dataRow = $tpl->getBlock('DATA_ROW');
-    	 
+    	
     	foreach ($params as $name => $fld){
     		if(empty($recs[$name])) continue;
     		if($fieldset->getFieldParam($name, 'single') === 'none') continue;
     		
     		$value = $fieldset->getFieldType($name)->toVerbal($recs[$name]);
     		$dataRow->replace(tr($fieldset->getField($name)->caption), 'CAPTION');
+    		$dataRow->replace($value, 'VALUE');
+    		$dataRow->removePlaces();
+    		$dataRow->append2master();
+    	}
+    	
+    	// Добавя параметрите на продукта (ако има)
+    	$pQuery = cat_products_Params::getQuery();
+    	$pQuery->where("#productId = {$recs['id']}");
+    	$pQuery->where("#classId = {$this->getClassId()}");
+    	while($pRec = $pQuery->fetch()){
+    		$paramRec = cat_Params::fetch($pRec->paramId);
+    		$value = cat_Params::getTypeInstance($pRec->paramId)->toVerbal($pRec->paramValue);
+    		if(isset($paramRec->suffix)){
+    			$value .= " {$paramRec->suffix}";
+    		}
+    		
+    		$dataRow->replace(tr(cat_Params::getVerbal($paramRec, 'name')), 'CAPTION');
     		$dataRow->replace($value, 'VALUE');
     		$dataRow->removePlaces();
     		$dataRow->append2master();
@@ -819,11 +835,6 @@ class marketing_Inquiries2 extends embed_Manager
     			$id = $this->save($rec);
     			
     			status_Messages::newStatus(tr('Благодарим Ви за запитването'), 'success');
-    			 
-    			// Ако има грешка при изпращане, тя се показва само на powerUser-и
-    			if (!$this->isSended && $cu && haveRole('powerUser')) {
-    				status_Messages::newStatus(tr('Грешка при изпращане'), 'error');
-    			}
     			 
     			return followRetUrl();
     		}
