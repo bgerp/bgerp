@@ -318,6 +318,7 @@ class cat_Products extends embed_Manager {
             		
             		if($proto = Request::get('proto', 'int')) {
             			if($pRec = self::fetch($proto)) {
+            				unset($pRec->code);
             				$Cmd = Request::get('Cmd');
             				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
             					Request::push($pRec->driverRec);
