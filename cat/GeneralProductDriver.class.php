@@ -64,17 +64,18 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			$form->setField('photo', 'input=none');
-			$measureName = $Driver->getDefaultUom($data->driverParams['measureId']);
+			$form->setField('info', 'input=none');
+			$measureName = $Driver->getDefaultUom();
 			$form->setDefault('measureId', cat_UoM::fetchBySinonim($measureName)->id);
 			$form->setField('measureId', 'display=hidden');
 		}
 		
 		// Само при добавянето на нов артикул
-		if(empty($rec->id)){
+		if(empty($rec->id) || $data->action == 'clone'){
 			$refreshFields = array('param');
 			
 			// Имали дефолтни параметри
-			$defaultParams = $Driver->getDefaultParams($rec);
+			$defaultParams = $Driver->getDefaultParams($rec, $Embedder->getClassId(), $data->action);
 			foreach ($defaultParams as $id => $value){
 				
 				// Всеки дефолтен параметър го добавяме към формата
@@ -99,12 +100,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$remFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm') . "|" . $refreshFields;
 			$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$remFields}");
 			
-            // Бърз фикс за да работи в запитванията. Там също е добре да се покажат прототипите.
-            if($Embedder->className == 'cat_Products') {
-            	$remFields = $form->getFieldParam('proto', 'removeAndRefreshForm') . "|" . $refreshFields;
-			    $form->setField('proto', "removeAndRefreshForm={$remFields}");
-            }
-		}
+            $remFields = $form->getFieldParam('proto', 'removeAndRefreshForm') . "|" . $refreshFields;
+			$form->setField('proto', "removeAndRefreshForm={$remFields}");
+        }
 	}
 	
 	
@@ -116,15 +114,38 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param stdClass $rec
 	 * @return array
 	 */
-	private function getDefaultParams($rec)
+	private function getDefaultParams($rec, $classId, $action)
 	{
 		$res = array();
 		
-		if($rec->proto){
+		// Ориджина е прототипа (ако има)
+		$originRecId = $rec->proto;
+		if(isset($rec->proto)){
+			$classId = cat_Products::getClassId();
+		}
+		
+		// Ако има ордижнин и не клонираме
+		if(isset($rec->originId) && $action != 'clone'){
+			$document = doc_Containers::getDocument($rec->originId);
+			
+			// Ако е запитване
+			if($document->isInstanceOf('marketing_Inquiries2')){
+				$originRecId = $document->that;
+				$classId = $document->getClassId();
+			}
+		}
+		
+		// Ако клонираме артикул
+		if($action == 'clone' && isset($rec->id)){
+			$originRecId = $rec->id;
+		}
+		
+		// Ако има намерен ордижнин
+		if($originRecId){
 			
 			// Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
 			$paramQuery = cat_products_Params::getQuery();
-			$paramQuery->where("#productId = {$rec->proto}");
+			$paramQuery->where("#classId = {$classId} AND #productId = {$originRecId}");
 			while($pRec = $paramQuery->fetch()){
 				$res[$pRec->paramId] = $pRec->paramValue;
 			}
@@ -155,6 +176,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public static function on_AfterSave(cat_ProductDriver $Driver, embed_Manager $Embedder, &$id, $rec)
 	{
 		$arr = (array)$rec;
+		$classId = $Embedder->getClassId();
 		
 		// За всеко поле от записа 
 		foreach ($arr as $key => $value){
@@ -166,6 +188,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 				// Има стойност и е разпознато ид на параметър
 				if(cat_Params::fetch($paramId) && !empty($value)){
 					$dRec = (object)array('productId'  => $rec->id,
+										  'classId'    => $classId,
 										  'paramId'    => $paramId,
 										  'paramValue' => $value);
 					
@@ -194,15 +217,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $classId - ид на ембедъра
 	 * @param string $id   - ид на записа
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams($id, $name = NULL)
+	public function getParams($classId, $id, $name = NULL)
 	{
 		if(isset($name)){
 			
-			return cat_products_Params::fetchParamValue($id, $name);
+			return cat_products_Params::fetchParamValue($classId, $id, $name);
 		}
 		
 		// Ако не искаме точен параметър връщаме всичките параметри за артикула
@@ -237,12 +261,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		$data->masterId = $data->rec->id;
-		$data->masterClassId = cat_Products::getClassId();
-		
-		// Рендираме параметрите, само ако не е към запитване
-		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $data->Embedder)){
-			cat_products_Params::prepareParams($data);
-		}
+		$data->masterClassId = $data->Embedder->getClassId();
+		cat_products_Params::prepareParams($data);
 	}
 	
 	
@@ -305,18 +325,17 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param int $measureId - мярка
 	 * @return int - ид на мярката
 	 */
-	public function getDefaultUom($measureId = NULL)
+	public function getDefaultUom($measureName = NULL)
 	{
-		if(!isset($measureId)){
+		if(!isset($measureName)){
 			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
 			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
 			$measureName = cat_UoM::getShortName($defMeasure);
-			
 			
 			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
 			return $measureName;
 		}
 	
-		return $measureId;
+		return $measureName;
 	}
 }

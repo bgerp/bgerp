@@ -30,15 +30,15 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'marketing_InquirySourceIntf';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    
+    
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'cms_SourceIntf';
     
     
     /**
@@ -149,10 +149,10 @@ class eshop_Products extends core_Master
 
         // Запитване за нестандартен продукт
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto,silent');
-        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
-        $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
-        $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
-
+        $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
+        $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
+        $this->FLD('quantityCount', 'int(min=0,max=3)', 'caption=Запитване->Брой количества');
+        
 		$this->setDbUnique('code');
     }
 
@@ -183,10 +183,10 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('drvId,coParams,inqCls,inqId,proto,lg');
+            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
-            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'proto' => $rec->proto, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             	}
             }
         }
@@ -273,7 +273,7 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {   
-        $layout = new ET();
+        $layout = new ET("");
 
         if(is_array($data->rows)) {
             $editSbf = sbf("img/16/edit.png", '');
@@ -403,7 +403,7 @@ class eshop_Products extends core_Master
 
 
     /**
-     *
+     * Рендира продукта
      */
     public function renderProduct($data)
     {
@@ -470,40 +470,6 @@ class eshop_Products extends core_Master
         return $url;
     }
 
-
-    
-	/**
-     * Връща кустомизиращите параметри за запитването
-     * 
-     * @param int $id - ид на документ
-     * @return array - масив със стойности
-     */
-    public function getCustomizationParams($id)
-    {
-        $rec = $this->fetch($id);
-    	$newArr = array();
-    	
-    	$paramsArr = explode(PHP_EOL, $rec->coParams);
-    	if(count($paramsArr)){
-    		foreach ($paramsArr as $str){
-    			if($str == "") continue;
-    			
-    			$arr = explode('=', $str);
-    			if(trim($arr[0]) !== '' && trim($arr[1]) !== ''){
-    				if(trim($arr[1]) === '') continue;
-    				$newArr[trim($arr[0])] = trim($arr[1]);
-    			}
-    		}
-    	}
-    	
-    	if(empty($newArr['title'])){
-    		$newArr['title'] = $this->getVerbal($rec, 'name');
-    		$newArr['title'] .= ($rec->code) ? " (" . $this->getVerbal($rec, 'code'). ")" : "";
-    	}
-    	
-    	return $newArr;
-    }
-
     
     /**
      * Титлата за листовия изглед
@@ -526,14 +492,11 @@ class eshop_Products extends core_Master
     	$form = &$data->form;
     	
     	if($form->rec->coDriver){
-    		$params = "measureId =" . PHP_EOL . "moq =" . PHP_EOL . "quantities =";
-    		$form->setDefault('coParams', $params);
-    		
     		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
     		 
     		if(count($protoProducts)){
     			$form->setField('proto', 'input');
-    			$form->setOptions('proto', $protoProducts);
+    			$form->setSuggestions('proto', $protoProducts);
     		}
     	}
     }

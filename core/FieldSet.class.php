@@ -222,10 +222,14 @@ class core_FieldSet extends core_BaseClass
             $typeParams = array('maxRadio' => 0, 'maxColumns' => 0, 'columns' => 0, 'mandatory' => 0, 'groupByDiv' => 0, 'maxCaptionLen' => 1, 'options' => 1);
             foreach($typeParams as $pName => $force) {
                 if(isset($this->fields[$name]->{$pName}) && ($force || !isset($this->fields[$name]->type->params[$pName]))) {
-                    $this->fields[$name]->type->params[$pName] = $this->fields[$name]->{$pName};
+                    if($pName == 'options') {
+                        $this->fields[$name]->type->{$pName} = $this->fields[$name]->{$pName};
+                    } else {
+                        $this->fields[$name]->type->params[$pName] = $this->fields[$name]->{$pName};
+                    }
                 }
             }
-            
+
             // Слага полета с еднаква група последователно, независимо от реда на постъпването им
             if(strpos($this->fields[$name]->caption, '->')) {
                 list($group, $caption) = explode('->', $this->fields[$name]->caption);
