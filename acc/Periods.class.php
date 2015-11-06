@@ -144,23 +144,24 @@ class acc_Periods extends core_Manager
     	if($mvc->haveRightFor('close', $rec)) {
     		
     		// Проверяваме имали записи в баланса за този период
-        	$accId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id');
-        	if(acc_BalanceDetails::fetchField("#balanceId = {$accId}")){
+        	if($accId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
+        		if(acc_BalanceDetails::fetchField("#balanceId = {$accId}")){
         		
-        		// Проверяваме имали контиран приключващ документ за периода
-        		if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
-        			
-        			// Ако има, периода може да се приключи
-        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			// Проверяваме имали контиран приключващ документ за периода
+        			if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
+        				 
+        				// Ако има, периода може да се приключи
+        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			} else {
+        				 
+        				// Ако няма не може докато не бъде контиран такъв
+        				$row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+        			}
         		} else {
-        			
-        			// Ако няма не може докато не бъде контиран такъв
-        			$row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
-        		}
-        	} else {
         		
-        		// Ако няма записи, то периода може спокойно да се приключи
-        		$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			// Ако няма записи, то периода може спокойно да се приключи
+        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        		}
         	}
         }
         

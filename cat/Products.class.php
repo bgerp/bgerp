@@ -318,6 +318,7 @@ class cat_Products extends embed_Manager {
             		
             		if($proto = Request::get('proto', 'int')) {
             			if($pRec = self::fetch($proto)) {
+            				unset($pRec->code);
             				$Cmd = Request::get('Cmd');
             				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
             					Request::push($pRec->driverRec);
@@ -1842,6 +1843,15 @@ class cat_Products extends embed_Manager {
     {
     	// Имали последна активна рецепта артикула?
     	$rec = cat_Products::getLastActiveBom($productId);
+    	
+    	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
+    	if(!$rec && $level == 0){
+    		$bQuery = cat_Boms::getQuery();
+    		$bQuery->where("#productId = {$productId} AND #state = 'draft'");
+    		$bQuery->orderBy('id', 'DESC');
+    		$rec = $bQuery->fetch();
+    	}
+    	
     	if(!$rec) return $res;
     	 
     	// Кои детайли от нея ще показваме като компоненти
@@ -1857,7 +1867,11 @@ class cat_Products extends embed_Manager {
     			if($code !== ''){
     				$obj->code = $code . "." . $obj->code;
     			}
-    		
+    			
+    			$codeCount = strlen($obj->code);
+    			$length = $codeCount - strlen(".{$dRec->position}");
+    			$obj->parent = substr($obj->code, 0, $length);
+    			
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
@@ -1865,15 +1879,20 @@ class cat_Products extends embed_Manager {
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			
+    			if($obj->parent){
+    				$obj->quantity *= $res[$obj->parent]->quantity;
+    			}
+    			
     			// Ако показваме описанието, показваме го
     			if($dRec->type == 'input'){
     				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    				$obj->leveld = $obj->level;
     			}
 
     			$res[$obj->code] = $obj;
     			
     			if($dRec->type == 'input'){
-    				$obj->components = array();
+    				$obj->levelc = $obj->level;
     				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
     			}
     		}

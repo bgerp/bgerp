@@ -126,11 +126,12 @@ class cat_BomDetails extends doc_Detail
     {
     	$this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember');
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
+    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
+    	$this->FLD("description", 'richtext(rows=3)', 'caption=Описание');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество,smartCenter');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество,smartCenter');
@@ -274,6 +275,12 @@ class cat_BomDetails extends doc_Detail
     		$packname = cat_UoM::getTitleByid($rec->packagingId);
     		$form->setField('baseQuantity', "unit={$packname}");
     		$form->setField('propQuantity', "unit={$packname}");
+    		
+    		$description = cat_Products::getDescription($rec->resourceId)->getContent();
+    		$description = html2text_Converter::toRichText($description);
+    		$description = cls::get('type_RichText')->fromVerbal($description);
+    		
+    		$form->setDefault('description', $description);
     		
     	} else {
     		$form->setReadOnly('packagingId');
@@ -440,6 +447,11 @@ class cat_BomDetails extends doc_Detail
     	$position = implode('.', $codePath);
     	$position = cls::get('type_Varchar')->toVerbal($position);
     	$row->position = $position;
+    	
+    	if($rec->description){
+    		$row->description = $mvc->getFieldType('description')->toVerbal($rec->description);
+    		$row->resourceId .= "<br><small>{$row->description}</small>";
+    	}
     }
     
     
