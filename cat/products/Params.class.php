@@ -100,11 +100,12 @@ class cat_products_Params extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('productId', 'key(mvc=cat_Products)', 'input=hidden,silent');
+    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
+    	$this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
-        $this->setDbUnique('productId,paramId');
+        $this->setDbUnique('classId,productId,paramId');
     }
     
     
@@ -150,7 +151,7 @@ class cat_products_Params extends doc_Detail
     	if(!$form->rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
-			$options = self::getRemainingOptions($productId, $form->rec->id);
+			$options = self::getRemainingOptions($form->rec->classId, $productId, $form->rec->id);
 			expect(count($options));
 	        
 	        if(!$data->form->rec->id){
@@ -186,7 +187,7 @@ class cat_products_Params extends doc_Detail
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    public static function getRemainingOptions($productId, $id = NULL)
+    public static function getRemainingOptions($classId, $productId, $id = NULL)
     {
         $options = cat_Params::makeArray4Select();
         
@@ -197,7 +198,7 @@ class cat_products_Params extends doc_Detail
                 $query->where("#id != {$id}");
             }
 			
-            while($rec = $query->fetch("#productId = {$productId}")) {
+            while($rec = $query->fetch("#productId = {$productId} AND #classId = '{$classId}'")) {
                unset($options[$rec->paramId]);
             }
         } else {
@@ -210,14 +211,16 @@ class cat_products_Params extends doc_Detail
     
     /**
      * Връща стойноста на даден параметър за даден продукт по негово sysId
+     * 
+     * @param string $classId - ид на ембедъра
      * @param int $productId - ид на продукт
      * @param int $sysId - sysId на параметъра
      * @return varchar $value - стойността на параметъра
      */
-    public static function fetchParamValue($productId, $sysId)
+    public static function fetchParamValue($classId, $productId, $sysId)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
-     		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
+     		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я
      		if($paramValue) return $paramValue;
@@ -264,7 +267,8 @@ class cat_products_Params extends doc_Detail
     {
         $query = self::getQuery();
         $query->where("#productId = {$data->masterId}");
-    	
+        $query->where("#classId = {$data->masterClassId}");
+        
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
     	if($data->documentType === 'public'){
     		$query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
@@ -280,7 +284,7 @@ class cat_products_Params extends doc_Detail
     	}
       	
         if(self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
-            $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+            $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }
     }
     
@@ -296,7 +300,7 @@ class cat_products_Params extends doc_Detail
         	$pRec = cat_Products::fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if (!count($mvc::getRemainingOptions($rec->productId))) {
+        	if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
                 $requiredRoles = 'no_one';
             } elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
             	

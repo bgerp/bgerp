@@ -402,9 +402,15 @@ class cat_Products extends embed_Manager {
     		$document = doc_Containers::getDocument($form->rec->originId);
     	
     		// Задаваме за дефолти полетата от източника
+    		$Driver = $document->getDriver();
     		$fields = $document->getInstance()->getDriverFields($Driver);
     		$sourceRec = $document->rec();
     	
+    		if($data->action != 'clone'){
+    			$form->info = cls::get('type_RichText')->toVerbal($sourceRec->inqDescription);
+    			$form->info = "<small>{$form->info}</small>";
+    		}
+    		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
     			$form->setDefault($name, $sourceRec->driverRec[$name]);
@@ -495,6 +501,15 @@ class cat_Products extends embed_Manager {
     	}
     }
 
+    
+    /**
+     * Преди запис на клониран запис
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	unset($nRec->originId);
+    }
+    
     
     /**
      * Рутира публичен артикул в папка на категория
@@ -1027,7 +1042,7 @@ class cat_Products extends embed_Manager {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
     	
-    		return $Driver->getParams($id, $name);
+    		return $Driver->getParams(cat_Products::getClassId(), $id, $name);
     	}
     	 
     	// Ако няма връщаме FALSE

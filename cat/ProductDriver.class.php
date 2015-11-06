@@ -80,7 +80,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$refreshFieldsDriver = array_unique(array_merge($driverFields, $driverRefreshedFields));
 		$driverRefreshFields = implode('|', $refreshFieldsDriver);
 		
-		unset($refreshFieldsDriver[array_search('proto', $refreshFieldsDriver)]);
+		if($unIndex = array_search('proto', $refreshFieldsDriver)){
+			unset($refreshFieldsDriver[$unIndex]);
+		}
+		
 		$protoRefreshFields = implode('|', $refreshFieldsDriver);
 		
 		// Добавяме при смяна на драйвева или на прототип полетата от драйвера да се рефрешват и те
@@ -89,16 +92,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 		
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
-		
-		if(is_array($data->driverParams) && count($data->driverParams)){
-			
-			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
-			foreach ($fields as $name => $fld){
-				if(isset($data->driverParams[$name])){
-					$form->setDefault($name, $data->driverParams[$name]);
-				}
-			}
-		}
 		
 		// Ако има полета
 		if(count($fields)){
@@ -159,11 +152,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Връща стойността на параметъра с това име, или
 	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $classId - ид на ембедъра
 	 * @param string $id   - ид на записа
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams($id, $name = NULL)
+	public function getParams($classId, $id, $name = NULL)
 	{
 		return FALSE;
 	}

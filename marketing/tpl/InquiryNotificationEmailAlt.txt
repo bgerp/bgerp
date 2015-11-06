@@ -1,11 +1,15 @@
 |ИНФОРМАЦИЯ ЗА ПРОДУКТА|*<!--ET_BEGIN DATA_ROW-->[#DATA_ROW#]
 [#CAPTION#]: [#VALUE#]<!--ET_END DATA_ROW-->
-
-<!--ET_BEGIN quantity-->[#quantity#]|КОЛИЧЕСТВА|*
-<!--ET_BEGIN QUANTITY_ROW-->
-|Количество|*: [#QUANTITY_ROW#]
-<!--ET_END QUANTITY_ROW-->
-<!--ET_END quantity-->|КОНТАКТНИ ДАННИ|*
+<!--ET_BEGIN quantity1-->
+|Количество|*: [#quantity1#]
+<!--ET_END quantity1-->
+<!--ET_BEGIN quantity2-->
+|Количество|* 2: [#quantity2#]
+<!--ET_END quantity2-->
+<!--ET_BEGIN quantity3-->
+|Количество|* 3: [#quantity3#]
+<!--ET_END quantity3-->
+|КОНТАКТНИ ДАННИ|*
 <!--ET_BEGIN company-->|Фирма|*: [#company#]
 <!--ET_END company--><!--ET_BEGIN country-->|Държава|*: [#country#]
 <!--ET_END country-->|Лице|* : [#name#]

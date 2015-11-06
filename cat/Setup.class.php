@@ -104,7 +104,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::replacePackagings',
     		'migrate::updateProductsNew',
     		'migrate::deleteCache1',
-    		'migrate::updateParams'
+    		'migrate::updateParams',
+    		'migrate::addClassIdToParams'
         );
 
 
@@ -832,6 +833,28 @@ class cat_Setup extends core_ProtoSetup
     		while($pRec = $pQuery->fetch()){
     			$pRec->paramValue *= 100;
     			cls::get('cat_products_Params')->save_($pRec);
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на параметрите
+     */
+    public static function addClassIdToParams()
+    {
+    	$Params = cls::get('cat_products_Params');
+    	$Params->setupMvc();
+    	$classId = cat_Products::getClassId();
+    	
+    	try{
+    		$query = $Params->getQuery();
+    		$query->where("#classId IS NULL");
+    		while($rec = $query->fetch()){
+    			$rec->classId = $classId;
+    			$Params->save_($rec, 'classId');
     		}
     	} catch(core_exception_Expect $e){
     		reportException($e);

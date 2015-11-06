@@ -369,7 +369,7 @@ class cat_Categories extends core_Master
     		
     		$query = cat_Products::getQuery();
     		while($pRec = $query->fetch("#{$Products->driverClassField} = {$driverId} AND #state = 'active' AND #folderId IN ({$catList})")) {
-    			$opt[$pRec->id] = $pRec->name;
+    			$opt[$pRec->id] = cat_Products::getTitleById($pRec->id, FALSE);
     		}
     	}
     	
