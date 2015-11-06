@@ -268,6 +268,11 @@ class core_Session {
      */
     function _decorate($varName)
     {
-        return 'sess_' . EF_APP_NAME . '_' . $varName;
+        $prefix = str_replace("www.", "", $_SERVER['HTTP_HOST']);
+        $prefix = md5($prefix . EF_SALT);
+        $prefix = substr($prefix, 1, 10);
+        $decoratedVar = 'sess_' . $prefix . '_' . $varName;
+        
+        return $decoratedVar;
     }
 }
