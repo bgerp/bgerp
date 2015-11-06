@@ -254,8 +254,8 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	 
     	// Добавяме полета за количество според параметрите на продукта
-    	$quantityCount = $form->rec->quantityCount;
-    	if(!$quantityCount || $quantityCount > 3 || $quantityCount < 0){
+    	$quantityCount = &$form->rec->quantityCount;
+    	if(!isset($quantityCount) || $quantityCount > 3 || $quantityCount < 0){
     		$quantityCount = 3;
     	}
     	
