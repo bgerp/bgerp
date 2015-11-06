@@ -1,4 +1,5 @@
 <div>
+[#inqDescription#]<br>
     <b>|Информация за продукта|*</b><br>
     <!--ET_BEGIN DATA_ROW-->
     [#CAPTION#]: [#VALUE#]<br>
