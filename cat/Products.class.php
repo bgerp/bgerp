@@ -1867,13 +1867,21 @@ class cat_Products extends embed_Manager {
     			if($code !== ''){
     				$obj->code = $code . "." . $obj->code;
     			}
-    		
+    			
+    			$codeCount = strlen($obj->code);
+    			$length = $codeCount - strlen(".{$dRec->position}");
+    			$obj->parent = substr($obj->code, 0, $length);
+    			
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
     			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
     			$obj->type = $dRec->type;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
+    			
+    			if($obj->parent){
+    				$obj->quantity *= $res[$obj->parent]->quantity;
+    			}
     			
     			// Ако показваме описанието, показваме го
     			if($dRec->type == 'input'){
