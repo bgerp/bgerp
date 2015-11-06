@@ -164,7 +164,9 @@ class blast_BlockedEmails extends core_Manager
         
         if ($rec->state != 'blocked') {
             $rec->state = $state;
-            $saveFields['state'] = 'state';
+            if (is_array($saveFields)) {
+                $saveFields['state'] = 'state';
+            }
         }
         
         return self::save($rec, $saveFields);
