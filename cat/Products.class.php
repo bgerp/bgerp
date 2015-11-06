@@ -1843,6 +1843,15 @@ class cat_Products extends embed_Manager {
     {
     	// Имали последна активна рецепта артикула?
     	$rec = cat_Products::getLastActiveBom($productId);
+    	
+    	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
+    	if(!$rec && $level == 0){
+    		$bQuery = cat_Boms::getQuery();
+    		$bQuery->where("#productId = {$productId} AND #state = 'draft'");
+    		$bQuery->orderBy('id', 'DESC');
+    		$rec = $bQuery->fetch();
+    	}
+    	
     	if(!$rec) return $res;
     	 
     	// Кои детайли от нея ще показваме като компоненти
