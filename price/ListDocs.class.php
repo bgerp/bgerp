@@ -219,7 +219,7 @@ class price_ListDocs extends core_Master
     	$options = array();
     	$polQuery = price_Lists::getQuery();
     	while($polRec = $polQuery->fetch()){
-    		if(price_Lists::haveRightFor('read')){
+    		if(price_Lists::haveRightFor('single', $polRec)){
     			$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
     		}
     	}
