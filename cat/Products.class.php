@@ -1868,12 +1868,13 @@ class cat_Products extends embed_Manager {
     			// Ако показваме описанието, показваме го
     			if($dRec->type == 'input'){
     				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    				$obj->leveld = $obj->level;
     			}
 
     			$res[$obj->code] = $obj;
     			
     			if($dRec->type == 'input'){
-    				$obj->components = array();
+    				$obj->levelc = $obj->level;
     				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
     			}
     		}
