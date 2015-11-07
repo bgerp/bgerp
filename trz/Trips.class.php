@@ -360,18 +360,25 @@ class trz_Trips extends core_Master
     }
     
     
-	/**
-     * Преди да се подготвят опциите на кориците, ако
+    /**
+     * Метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    public static function getCoverOptions($coverClass)
+    function restrictQueryOnlyFolderForDocuments($query)
     {
-    	
-    	if($coverClass instanceof crm_Persons){
-    		
-    		// Искаме да филтрираме само групата "Служители"
-    		$sysId = crm_Groups::getIdFromSysId('employees');
-    	
-    		return $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
-    	}
+    	$pQuery = crm_Persons::getQuery();
+        
+        // Искаме да филтрираме само групата "Служители"
+        $employeesId = crm_Groups::getIdFromSysId('employees');
+        
+        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
+            $list = implode(',', array_keys($employees));
+            $query->where("#coverId IN ({$list})");
+        } else {
+            $query->where("#coverId = -2");
+        }
     }
 }

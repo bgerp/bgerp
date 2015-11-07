@@ -2230,15 +2230,17 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Дефолт метод филтриращ опциите от корици на папка в които
-     * може да се постави даден документ
-     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     * Дефолт метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Mvc   $mvc     Мениджър на документи
+     * @param void       $res     Резултат - не се използва
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    function on_AfterGetCoverOptions($mvc, &$res, $coverClass)
+    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
     {
-    	if(empty($res)){
-    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected'");
-    	}
+    	$query = doc_Folders::restrictAccess($query);
     }
     
     

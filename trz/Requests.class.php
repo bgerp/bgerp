@@ -506,33 +506,26 @@ class trz_Requests extends core_Master
     	return array('crm_PersonAccRegIntf');
     }
     
-    
     /**
-     * Преди да се подготвят опциите на кориците, ако
+     * Метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    public static function getCoverOptions($coverClass)
+    function restrictQueryOnlyFolderForDocuments($query)
     {
-    	$groups = array();
-    	
-    	if($coverClass instanceof crm_Persons){
-    		
-    		// Искаме да филтрираме само групата "Служители"
-    		$sysIdEmployees = crm_Groups::getIdFromSysId('employees');
-    		$sysIdManagers  = crm_Groups::getIdFromSysId('managers');
-    		$sysIdUsers = crm_Groups::getIdFromSysId('users');
-    		
-    		$groups = array($sysIdEmployees=>$sysIdEmployees, $sysIdManagers=>$sysIdManagers, $sysIdUsers=>$sysIdUsers);
-    		$groupList = keylist::fromArray($groups);
-    		
-    		$query = $coverClass->getQuery();
-    		$query->where("#state != 'rejected'");
-    		$query->likeKeylist('groupList', $groupList);
-    		
-    		while($rec = $query->fetch()){
-    			$options[$rec->id] = $coverClass::getTitleById($rec->id);
-    		}
-    	
-    		return $options;
-    	}
+    	$pQuery = crm_Persons::getQuery();
+        
+        // Искаме да филтрираме само групата "Служители"
+        $employeesId = crm_Groups::getIdFromSysId('employees');
+        
+        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
+            $list = implode(',', array_keys($employees));
+            $query->where("#coverId IN ({$list})");
+        } else {
+            $query->where("#coverId = -2");
+        }
     }
+    
 }
