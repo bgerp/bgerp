@@ -49,6 +49,9 @@ class doc_plg_BusinessDoc extends core_Plugin
             return;
         }
         
+        // Ако нямаме сесия - да създадем 
+        requireRole('user');
+        
         if (!$mvc->haveRightFor($action)) {
             // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
             return;
