@@ -1292,14 +1292,21 @@ class cat_Products extends embed_Manager {
      * Връща последната активна рецепта на спецификацията
      *
      * @param mixed $id - ид или запис
+     * @param sales|production $type - вид работна или търговска
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public static function getLastActiveBom($id)
+    public static function getLastActiveBom($id, $type = NULL)
     {
     	$rec = self::fetchRec($id);
-    	 
+    	$cond = "#productId = {$rec->id} AND #state = 'active'";
+    	
+    	if(isset($type)){
+    		expect(in_array($type, array('sales', 'production')));
+    		$cond .= " AND #type = '{$type}'";
+    	}
+    	
     	// Какво е к-то от последната активна рецепта
-    	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return cat_Boms::fetch($cond);
     }
     
     
@@ -1681,10 +1688,12 @@ class cat_Products extends embed_Manager {
     public static function getMaterialsForProduction($id, $quantity = 1)
     {
     	$res = array();
-    	$bomId = static::getLastActiveBom($id)->id;
+    	$bomId = static::getLastActiveBom($id, 'production')->id;
+    	if(!$bomId) {
+    		$bomId = static::getLastActiveBom($id, 'sales')->id;
+    	}
     	
     	if (isset($bomId)) {
-    	
 	    	$info = cat_Boms::getResourceInfo($bomId);
 	    	
 	    	foreach ($info['resources'] as $materialId => $rRec){
@@ -1841,13 +1850,13 @@ class cat_Products extends embed_Manager {
      */
     public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
     {
-    	// Имали последна активна рецепта артикула?
-    	$rec = cat_Products::getLastActiveBom($productId);
+    	// Имали последна активна търговска рецепта за артикула?
+    	$rec = cat_Products::getLastActiveBom($productId, 'sales');
     	
     	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
     	if(!$rec && $level == 0){
     		$bQuery = cat_Boms::getQuery();
-    		$bQuery->where("#productId = {$productId} AND #state = 'draft'");
+    		$bQuery->where("#productId = {$productId} AND #state = 'draft' AND #type = 'sales'");
     		$bQuery->orderBy('id', 'DESC');
     		$rec = $bQuery->fetch();
     	}

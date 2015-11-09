@@ -105,7 +105,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateProductsNew',
     		'migrate::deleteCache1',
     		'migrate::updateParams',
-    		'migrate::addClassIdToParams'
+    		'migrate::addClassIdToParams',
+    		'migrate::updateBomType'
         );
 
 
@@ -858,6 +859,31 @@ class cat_Setup extends core_ProtoSetup
     		}
     	} catch(core_exception_Expect $e){
     		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на типа на рецептите
+     */
+    public function updateBomType()
+    {
+    	$Boms = cls::get('cat_Boms');
+    	$Boms->setupMvc();
+    	
+    	$query = $Boms->getQuery();
+    	while($rec = $query->fetch()){
+    		try{
+    			$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+    			$type = 'sales';
+    			if($firstDocument->isInstanceOf('planning_Jobs')){
+    				$type = 'production';
+    			}
+    			$rec->type = $type;
+    			$Boms->save_($rec, 'type');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
     	}
     }
 }

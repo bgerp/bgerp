@@ -279,6 +279,7 @@ class cat_BomDetails extends doc_Detail
     		$description = cat_Products::getDescription($rec->resourceId)->getContent();
     		$description = html2text_Converter::toRichText($description);
     		$description = cls::get('type_RichText')->fromVerbal($description);
+    		$description = str_replace("\n\n", "\n", $description);
     		
     		$form->setDefault('description', $description);
     		

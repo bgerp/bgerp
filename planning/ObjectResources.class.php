@@ -368,12 +368,21 @@ class planning_ObjectResources extends core_Manager
     	$res = array();
     	
     	$query = self::getQuery();
-    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL");
     	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
     	$query->where("#state = 'active'");
-    	$query->show("objectId");
+    	$query->show("objectId,likeProductId");
+    	
+    	$query2 = clone $query;
+    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL");
     	while($rec = $query->fetch()){
     		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
+    	}
+    	
+    	$query2->where("#objectId = {$productId}");
+    	while($rec = $query2->fetch()){
+    		$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
+    		$replaceable = self::fetchConvertableProducts($rec->likeProductId);
+    		$res += $replaceable;
     	}
     	
     	return $res;
