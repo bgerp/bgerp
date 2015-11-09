@@ -132,8 +132,9 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     			$rec->jobId = NULL;
     		}
     			
-    		// Имали активна рецепта за артикула ?
-    		if($bomRec = cat_Products::getLastActiveBom($rec->productId)){
+    		if($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production')){
+    			$rec->bomId = $bomRec->id;
+    		} elseif($bomRec = cat_Products::getLastActiveBom($rec->productId, 'sales')){
     			$rec->bomId = $bomRec->id;
     		} else {
     			$rec->bomId = NULL;

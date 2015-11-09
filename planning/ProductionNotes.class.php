@@ -164,34 +164,6 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
-	{
-		$form = &$data->form;
-		
-		if($form->rec->originId){
-			
-			// Ако се създава към задание
-			$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
-			$bomRec = cat_Products::getLastActiveBom($originRec->productId);
-			if(!$bomRec){
-				$title = cat_Products::getTitleById($originRec->productId);
-				$caption = str_replace(',', '.', $title);
-				
-				// И няма рецепта, показваме полето за себестойност
-				$form->FNC('selfValue', 'double', "input,after=note,mandatory,caption=|Производство на|* {$caption}->|Ед. ст-ст|*");
-			} else {
-				$form->rec->bomId = $bomRec->id;
-			}
-		}
-	}
-	
-	
-	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
 	public static function on_AfterCreate($mvc, $rec)
