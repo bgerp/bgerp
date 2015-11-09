@@ -114,8 +114,10 @@ class core_Forwards extends core_Manager
      *
      * @return string
      */
-    public static function getSysId($class, $method, $data, $lifetime = 0)
+    public static function getSysId($classObj, $method, $data, $lifetime = 0)
     {
+        $class = is_object($classObj) ? cls::getClassName($classObj) : $classObj;
+
         $expiry = $lifetime > 0 ? dt::addSecs($lifetime) : NULL;
 
         $hash = md5($class . $method . json_encode($data) . '/');
