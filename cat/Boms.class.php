@@ -317,7 +317,7 @@ class cat_Boms extends core_Master
     	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
     	$query->orderBy('id', 'DESC');
     	$query->limit(1);
-    	 //bp($query->where,$query->fetch(),cat_Boms::fetch(190),$rec);
+    	
     	$nextActiveBomRec = $query->fetch();
     	if($nextActiveBomRec){
     		$nextActiveBomRec->state = 'active';
