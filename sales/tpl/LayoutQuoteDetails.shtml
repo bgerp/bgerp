@@ -1,14 +1,16 @@
 <p class='table-detail-header' style='margin-top:10px'><b>[#TITLE#] |продукти и услуги|*</b> (|цените са в|* [#MISC#])</p>
 <div class='scrolling-holder'>
     <table  class = 'products-table' style='width:100%;'>
-        <tr>
-            <th style='width:4%;'>№</th>
-            <th>|Описание|*</th>
-            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
-            <th class='quote-col[#OPT#] nowrap'>|К-во|*</th>
-            <th>|Цена|*</th>
-            <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
-        </tr>
+    	<thead>
+	        <tr>
+	            <th style='width:4%;'>№</th>
+	            <th>|Описание|*</th>
+	            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
+	            <th class='quote-col[#OPT#] nowrap'>|К-во|*</th>
+	            <th>|Цена|*</th>
+	            <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
+	        </tr>
+        </thead>
         [#ROWS#]
         <!--ET_BEGIN ROW-->
         [#ROW#]
