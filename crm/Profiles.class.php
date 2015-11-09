@@ -682,6 +682,9 @@ class crm_Profiles extends core_Master
             );
             $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
             $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+            if(isset($user->country)) {
+                $person->country = drdata_Countries::getIdByName($user->country);
+            }
             $mustSave = TRUE;
         }
         
