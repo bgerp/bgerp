@@ -343,7 +343,28 @@ class trz_Orders extends core_Master
     	return array('crm_PersonAccRegIntf');
     }
     
-    
+    /**
+     * Метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Query $query   Заявка към doc_Folders
+     */
+    function restrictQueryOnlyFolderForDocuments($query)
+    {
+    	$pQuery = crm_Persons::getQuery();
+        
+        // Искаме да филтрираме само групата "Служители"
+        $sysId = crm_Groups::getIdFromSysId('employees');
+
+        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$sysId|%'", 'id')) {
+            $list = implode(',', array_keys($employees));
+            $query->where("#coverId IN ({$list})");
+        } else {
+            $query->where("#coverId = -2");
+        }
+    }
+
 	/**
      * Преди да се подготвят опциите на кориците, ако
      */
@@ -355,7 +376,7 @@ class trz_Orders extends core_Master
     		// Искаме да филтрираме само групата "Служители"
     		$sysId = crm_Groups::getIdFromSysId('employees');
     	
-    		return $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
+    		$query->where("#groupList LIKE '%|{$sysId}|%'");
     	}
     }
 }

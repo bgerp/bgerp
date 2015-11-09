@@ -305,10 +305,18 @@ class type_Key extends type_Int
             $options = $this->options;
         }
         
-        setIfNot($this->handler, md5(json_encode($this->options)));
+        setIfNot($this->handler, md5(implode(',', array_keys($this->options))) );
         
-        $this->prepareSelectOpt($options);
-        
+        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20)) {
+            $cacheOpt = unserialize($optSz);
+            $options = array();
+            foreach($cacheOpt as $id => $obj) {
+                $options[$id] = $obj['title'];
+            }
+        } else {
+            $this->prepareSelectOpt($options);
+        }
+
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
         
         Mode::pop('text');
@@ -366,8 +374,8 @@ class type_Key extends type_Int
             }
             
             $titles[$title] = TRUE;
-            
-            $vNorm = self::normalizeKey($title);
+        
+            $vNorm = trim(preg_replace('/[^a-z0-9\*]+/', ' ', strtolower(str::utf2ascii($title))));
             
             if (is_object($v)) {
                 $v->title = $title;
@@ -512,14 +520,12 @@ class type_Key extends type_Int
         }
         
         $options = $this->options;
+
+        if(!is_array($options) || !count($options)) {
+            $options = $this->prepareOptions();
+        }
         
         if ($this->getSelectFld() || count($options)) {
-            
-            $options = $this->prepareOptions();
-            
-            if(!is_array($options)) {
-                $options = $this->options;
-            }
             
             $optionsCnt = count($options);
 

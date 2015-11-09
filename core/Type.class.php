@@ -93,7 +93,7 @@ class core_Type extends core_BaseClass
      */
     static function escape($value)
     {
-        $value = str_replace(array("&", "<"), array('&amp;', '&lt;'), $value);
+        $value = str_replace(array("&", "<", '&amp;lt;', '&amp;amp;'), array('&amp;', '&lt;', '&lt;', '&amp;'), $value);
         
         return $value;
     }

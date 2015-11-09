@@ -1059,6 +1059,9 @@ class core_Users extends core_Manager
         
         $userRec->refreshTime = $now;
         
+        // Премахваме паролата от записа
+        unset($userRec->ps5Enc);
+
         Mode::setPermanent('currentUserRec', $userRec);
         
         if(!Request::get('ajax_mode') && dt::mysql2timestamp($userRec->lastActivityTime) < (time() - 3*60)) {
