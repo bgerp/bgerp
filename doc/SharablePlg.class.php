@@ -202,8 +202,6 @@ class doc_SharablePlg extends core_Plugin
         $html = array();
         
         foreach ($sharedWith as $userId => $seenDate) {
-            $userRec = core_Users::fetch($userId);
-          
             $nick = crm_Profiles::createLink($userId);
             
             if (!empty($seenDate)) {
