@@ -370,6 +370,8 @@ div.folder-cover {
     margin-top: 20px; }
   div.folder-cover .top-tab-content {
     padding: 5px 10px 10px 10px; }
+  div.folder-cover .tab-control .detail-info {
+    font-size: 0.9em; }
 
 .noheader .listTable {
   width: 100%;
