@@ -289,8 +289,10 @@ class planning_Jobs extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
-    		$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    	if($rec->state != 'draft' && $rec->state != 'rejected'){
+    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    		}
     	}
 
     	// Бутон за добавяне на документ за бързо производство
