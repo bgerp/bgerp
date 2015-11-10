@@ -121,5 +121,7 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         // Показва таба генерирани PDF файлове, ако имаме права
         $this->TAB('doc_ThreadUsers', 'Дебъг->Отношения', 'debug');
+        
+        $this->TAB('doc_Likes', 'Дебъг->Харесвания', 'debug');
     }
 }

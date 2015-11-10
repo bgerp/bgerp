@@ -1810,7 +1810,7 @@ div.change-log {
   clear: both; }
 
 span.sharing-history-title,
-.like-likes-title {
+.like-log-title {
   padding: 2px 5px;
   padding-left: 23px;
   background: #eeeeee url(../img/share.png) no-repeat 3px center;
@@ -1822,7 +1822,7 @@ span.sharing-history-title,
   border-top: none;
   color: #777777; }
 
-.like-likes-title {
+.like-log-title {
   background-image: none; }
 
 .narrow span.sharing-history-title {
