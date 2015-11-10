@@ -2886,8 +2886,9 @@ fieldset.sharing-history {
 .narrow-scroll .scrolling-holder, .overflow-scroll {
 	width: 100% !important;
 	overflow-x: auto !important;
+	overflow-y: hidden !important;
 	_overflow: auto !important;
-	margin-bottom: 3px;
+	margin-bottom: 0;
 	display: block;
 	.folder-cover {
 		margin-right: 2px;

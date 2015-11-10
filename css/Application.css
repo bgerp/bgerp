@@ -2574,8 +2574,9 @@ span.sharing-history-title {
 .overflow-scroll {
   width: 100% !important;
   overflow-x: auto !important;
+  overflow-y: hidden !important;
   _overflow: auto !important;
-  margin-bottom: 3px;
+  margin-bottom: 0;
   display: block; }
   .narrow-scroll .scrolling-holder .folder-cover,
   .overflow-scroll .folder-cover {
