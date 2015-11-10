@@ -402,7 +402,7 @@ class pos_Receipts extends core_Master {
 			}
 		}
 		
-		// Никой неможе да редактира бележка
+		// Никой не може да редактира бележка
 		if($action == 'edit') {
 			$res = 'no_one';
 		}

@@ -592,7 +592,7 @@ class pos_Reports extends core_Master {
      */
 	protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
-		// Никой неможе да редактира бележка
+		// Никой не може да редактира бележка
 		if($action == 'activate' && !$rec) {
 			$res = 'no_one';
 		}
