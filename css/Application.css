@@ -1783,7 +1783,8 @@ ul.history {
   padding-top: 4px;
   font-size: 0.8em; }
 
-div.sharing-history {
+div.sharing-history,
+.like-log {
   border: none;
   border-top: 1px solid #cccccc;
   padding: 5px;
@@ -1808,7 +1809,8 @@ div.change-log {
   font-size: 0.9em;
   clear: both; }
 
-span.sharing-history-title {
+span.sharing-history-title,
+.like-likes-title {
   padding: 2px 5px;
   padding-left: 23px;
   background: #eeeeee url(../img/share.png) no-repeat 3px center;
@@ -1819,6 +1821,9 @@ span.sharing-history-title {
   border: 1px solid #cccccc;
   border-top: none;
   color: #777777; }
+
+.like-likes-title {
+  background-image: none; }
 
 .narrow span.sharing-history-title {
   font-size: 14px; }
