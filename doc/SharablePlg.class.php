@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Плъгин за проследяване и показване на историята на споделянията на документ
  *
@@ -12,6 +13,8 @@
  */
 class doc_SharablePlg extends core_Plugin
 {
+    
+    
     /**
      * След дефиниране на полетата на модела - добавя поле за споделените потребители.
      * 
@@ -33,7 +36,6 @@ class doc_SharablePlg extends core_Plugin
             $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none');
         }
     }
-
     
     
     /**
@@ -104,7 +106,7 @@ class doc_SharablePlg extends core_Plugin
             }
         }
     }
-
+    
     
     /**
      * След рендиране на документ отбелязва акта на виждането му от тек. потребител
@@ -117,7 +119,7 @@ class doc_SharablePlg extends core_Plugin
     {
         static::markViewed($mvc, $data);
     }
-
+    
     
     /**
      * Помощен метод: маркиране на споделен док. като видян от тек. потребител
