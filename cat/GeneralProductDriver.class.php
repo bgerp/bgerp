@@ -234,7 +234,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$pQuery = cat_products_Params::getQuery();
 		$pQuery->where("#productId = {$id}");
 		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
+		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
 		while($pRec = $pQuery->fetch()){
+			if($pRec->suffix){
+				$pRec->name .= "({$pRec->suffix})";
+			}
 			$name = plg_Search::normalizeText($pRec->name);
 			$name = str_replace(' ', '_', $name);
 			$foundParams[$name] = $pRec->paramValue;
