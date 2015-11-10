@@ -530,7 +530,7 @@ class cat_BomDetails extends doc_Detail
     {
     	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
     		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			//$requiredRoles = 'no_one';
+    			$requiredRoles = 'no_one';
     		}
     	}
     	
@@ -540,7 +540,7 @@ class cat_BomDetails extends doc_Detail
     		// Трябва рецептата да е чернова
     		$masterState = cat_Boms::fetchField($rec->bomId, 'state');
     		if($masterState != 'draft'){
-    			//$requiredRoles = 'no_one';
+    			$requiredRoles = 'no_one';
     		} else {
     				 
     			// Артикула трябва да е производим и да има активна рецепта
