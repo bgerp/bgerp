@@ -380,9 +380,11 @@ class planning_ObjectResources extends core_Manager
     	
     	$query2->where("#objectId = {$productId}");
     	while($rec = $query2->fetch()){
-    		$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
-    		$replaceable = self::fetchConvertableProducts($rec->likeProductId);
-    		$res += $replaceable;
+    		if($rec->likeProductId){
+    			$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
+    			$replaceable = self::fetchConvertableProducts($rec->likeProductId);
+    			$res += $replaceable;
+    		}
     	}
     	
     	return $res;

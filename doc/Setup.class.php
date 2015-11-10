@@ -164,6 +164,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_TplManager',
     	'doc_HiddenContainers',
     	'doc_DocumentCache',
+    	'doc_Likes',
         'migrate::repairAllBrokenRelations'
     );
 

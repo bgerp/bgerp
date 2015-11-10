@@ -432,6 +432,9 @@ div.folder-cover {
 	.top-tab-content {
 	   padding: 5px 10px 10px 10px;
 	}
+	.tab-control .detail-info {
+		font-size: 0.9em;
+	}
 }
 
 .noheader .listTable {
@@ -2061,7 +2064,7 @@ ul.history {
 	font-size: 0.8em; 
 }
 
-div.sharing-history {
+div.sharing-history, .like-log {
 	border: none;
 	border-top: 1px solid #ccc;
 	padding: 5px;
@@ -2088,7 +2091,7 @@ div.change-log {
 	clear: both;
 }
 
-span.sharing-history-title {
+span.sharing-history-title,   .like-log-title {
 	padding: 2px 5px;
 	padding-left: 23px;
 	background: $gray1 url(../img/share.png) no-repeat 3px center;
@@ -2099,6 +2102,10 @@ span.sharing-history-title {
 	border: 1px solid #ccc;
 	border-top: none;
 	color: #777;
+}
+
+.like-log-title {
+	background-image: none;
 }
 
 .narrow span.sharing-history-title {
@@ -2284,7 +2291,10 @@ fieldset.sharing-history {
 .wide #login-form .formTable {
 	margin: 0;
 }
-
+.drawing {
+	max-width: 400px;
+	float: right;
+}
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;
@@ -2883,8 +2893,9 @@ fieldset.sharing-history {
 .narrow-scroll .scrolling-holder, .overflow-scroll {
 	width: 100% !important;
 	overflow-x: auto !important;
+	overflow-y: hidden !important;
 	_overflow: auto !important;
-	margin-bottom: 3px;
+	margin-bottom: 0;
 	display: block;
 	.folder-cover {
 		margin-right: 2px;
@@ -3728,8 +3739,15 @@ body.narrow {
     .wide #all, .wide #cmsTop, .wide #cmsTop img{
        border-radius: 0;
     }
+    .drawing {
+		max-width: 350px;
+	}
 }
-
+@media handheld, only screen and (max-width: 1100px) {
+    .drawing {
+		max-width: 270px;
+	}
+}
 @media handheld , only screen and (max-width: 1024px) {
     .document{
         max-width: 52.5em;
@@ -3737,6 +3755,10 @@ body.narrow {
     .wide .app-name {
          font-size: 6.4em;
     }
+    .drawing {
+		max-width: 500px;
+		float: none;
+	}
 }
 
 /* Mobile */

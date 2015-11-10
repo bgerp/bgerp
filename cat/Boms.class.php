@@ -203,37 +203,6 @@ class cat_Boms extends core_Master
     		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
     		}
-    		
-    		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    		
-    		$alreadyUsedResources = array();
-    		 
-    		// Опитваме се да намерим последно използваните ресурси в рецепти към този артикул
-    		$dQuery = cat_BomDetails::getQuery();
-    		$dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
-    		$dQuery->where("#productId = {$form->rec->productId} AND #type = 'input'");
-    		$dQuery->groupBy('resourceId');
-    		$dQuery->show('resourceId');
-    		$dQuery->limit($limit);
-    		while($dRec = $dQuery->fetch()){
-    			$alreadyUsedResources[] = $dRec->resourceId;
-    		}
-    		 
-    		// Ако има такива, добавяме ги като полета във формата
-    		if(count($alreadyUsedResources)){
-    			foreach ($alreadyUsedResources as $i => $resId){
-    				$form->FNC("resourceId{$i}", 'key(mvc=cat_Products,select=name,allowEmpty)', 'input=hidden');
-    				$form->setDefault("resourceId{$i}", $resId);
-    				$caption = cat_Products::getTitleById($resId);
-    				$caption = str_replace(',', '.', $caption);
-    				 
-    				if(isset($form->rec->quantity)){
-    					$right = "за {$form->rec->quantity} {$shortUom}";
-    				}
-    				 
-    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|Количества|*");
-    			}
-    		}
     	}
     }
     
@@ -275,29 +244,7 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    	$count = $count -1;
-    	
-    	// Проверяваме имали избрани ресурси още от формата
-    	foreach (range(0, $count) as $i){
-    		if(isset($rec->{"resourceId{$i}"})){
-    			if(!empty($rec->{"quantities{$i}"})){
-    				$parts = type_ComplexType::getParts($rec->{"quantities{$i}"});
-    	
-    				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
-    				$dRec = (object)array('bomId' => $rec->id,
-    									  'packagingId' => cat_Products::getProductInfo($rec->{"resourceId{$i}"})->productRec->measureId,
-    									  'quantityInPack' => 1,
-				    					  'type' => 'input',
-				    					  'resourceId' => $rec->{"resourceId{$i}"},
-				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
-				    					  'propQuantity' => ($parts['right']) ? $parts['right'] : NULL);
-    	
-    				// Запис на детайла
-    				cat_BomDetails::save($dRec);
-    			}
-    		}
-    	}
+    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL);
     }
     
     

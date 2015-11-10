@@ -50,6 +50,7 @@ class doc_FolderPlg extends core_Plugin
         $mvc->details = arr::make($mvc->details);
 
         $mvc->details['Rights'] = $mvc->className;
+        $mvc->details['History'] = $mvc->className;
     }
     
     
@@ -70,6 +71,39 @@ class doc_FolderPlg extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
+    }
+    
+    
+    /**
+     * След подготовка на таба със правата
+     */
+    public static function on_AfterPrepareHistory($mvc, $res, $data)
+    {
+        $data->TabCaption = 'История';
+    }
+
+    
+    /**
+     * След рендиране на таба със правата
+     */
+    public static function on_AfterRenderHistory($mvc, &$tpl, $data)
+    {
+        if (($data->masterData->ActionLog) && ($data->masterData->ActionLog->rows)) {
+            $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
+            
+            $logBlockTpl = $tpl->getBlock('log');
+            
+            foreach ((array)$data->masterData->ActionLog->rows as $rows) {
+                $logBlockTpl->placeObject($rows);
+                $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                $logBlockTpl->append2Master();
+            }
+            
+            $tpl->append($data->masterData->ActionLog->pager->getHtml(), 'pager');
+            $tpl->append($data->masterData->ActionLog->actionLogLink, 'actionLogLink');
+        } else {
+            $data->masterData->History->disabled = TRUE;
+        }
     }
 
     
@@ -185,25 +219,6 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
-        
-        if ($data->ActionLog) {
-            if ($data->ActionLog->rows) {
-                $lTpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
-                
-                $logBlockTpl = $lTpl->getBlock('log');
-                
-                foreach ((array)$data->ActionLog->rows as $rows) {
-                    $logBlockTpl->placeObject($rows);
-                    $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
-                    $logBlockTpl->append2Master();
-                }
-                
-                $lTpl->append($data->ActionLog->pager->getHtml(), 'pager');
-                $lTpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
-                
-                $tpl->append($lTpl, 'DETAILS');
-            }
-        }
     }
     
     

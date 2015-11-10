@@ -90,6 +90,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Кой има право да свива?
+     */
+    var $canShrink = 'ceo,cat';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,cat';
@@ -439,6 +445,12 @@ class cat_BomDetails extends doc_Detail
 	    		$link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle-expand.png,title=Направи етап');
 	    		$extraBtnTpl->append($link, 'BTN');
 	    	}
+
+	    	// Може ли да се свие етапа
+	    	if($mvc->haveRightFor('shrink', $rec)){
+	    		$link = ht::createLink('', array($mvc, 'shrink', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle2.png,title=Свиване на етап');
+	    		$extraBtnTpl->append($link, 'BTN');
+	    	}
 	    	
 	    	$row->resourceId .= $extraBtnTpl;
     	}
@@ -477,6 +489,27 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Екшън за разпъване на материал като етап с подетапи
+     */
+    function act_Shrink()
+    {
+    	$this->requireRightFor('shrink');
+    	expect($id = Request::get('id', int));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('shrink', $rec);
+    	
+    	$rec->type = 'input';
+    	$this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
+    	$this->save($rec, 'type');
+    	
+    	$title = cat_Products::getTitleById($rec->resourceId);
+    	$msg = tr("Свиване на|* {$title}");
+    	 
+    	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
@@ -502,30 +535,141 @@ class cat_BomDetails extends doc_Detail
     	}
     	
     	// Можели записа да бъде разширен
+    	if(($action == 'expand' || $action == 'shrink') && isset($rec)){
+    		
+    		// Трябва рецептата да е чернова
+    		$masterState = cat_Boms::fetchField($rec->bomId, 'state');
+    		if($masterState != 'draft'){
+    			$requiredRoles = 'no_one';
+    		} else {
+    				 
+    			// Артикула трябва да е производим и да има активна рецепта
+    			$canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
+    			if($canManifacture != 'yes'){
+    				$requiredRoles = 'no_one';
+    			} else {
+    				$type = cat_Boms::fetchField($rec->bomId, 'type');
+    				if($type == 'production'){
+    					$aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
+    				}
+    				if(!$aBom){
+    					$aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
+    				}
+    				
+    				if(!$aBom){
+    					$requiredRoles = 'no_one';
+    				}
+    			}
+    		}
+    	}
+    	
     	if($action == 'expand' && isset($rec)){
     		
     		// Само материал може да се разпъва
     		if($rec->type != 'input'){
     			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'shrink' && isset($rec)){
+    	
+    		// Само етап може да се свива
+    		if($rec->type != 'stage'){
+    			$requiredRoles = 'no_one';
     		} else {
-    			// Трябва рецептата да е чернова
-    			$masterState = cat_Boms::fetchField($rec->bomId, 'state');
-    			if($masterState != 'draft'){
+    			
+    		}
+    		
+    		if($requiredRoles != 'no_one'){
+    			if(!$mvc->checkComponents($rec)){
     				$requiredRoles = 'no_one';
-    			} else {
-    				 
-    				// Артикула трябва да е производим и да има активна рецепта
-    				$canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
-    				if($canManifacture != 'yes'){
-    					$requiredRoles = 'no_one';
-    				} else {
-    					if(!cat_Products::getLastActiveBom($rec->resourceId)){
-    						$requiredRoles = 'no_one';
-    					}
-    				}
     			}
     		}
     	}
+    }
+    
+    
+	/**
+	 * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
+	 */
+	private function getDescendents($id, &$res = array())
+	{
+		$descendents = array();
+		$query = $this->getQuery();
+		$query->where("#parentId = {$id}");
+		$query->show('resourceId,baseQuantity,propQuantity,packagingId,quantityInPack');
+		$query->orderBy('resourceId', 'ASC');
+		
+		while($rec = $query->fetch()){
+			$obj = new stdClass();
+			$obj->resourceId = $rec->resourceId;
+			$obj->packagingId = $rec->packagingId;
+			$obj->baseQuantity = trim($rec->baseQuantity);
+			$obj->propQuantity = trim($rec->propQuantity);
+			$res[$rec->resourceId . "|" . $rec->packagingId] = $obj;
+			
+			if($rec->type != 'stage'){
+				static::getComponents($rec->resourceId, $res);
+			}
+			$this->getDescendents($rec->id, $res);
+		}
+		
+		return $res;
+	}
+    
+    
+	/**
+	 * Намира компонентите на един артикул
+	 */
+	private function getComponents($productId, &$res = array())
+	{
+		// Имали последна активна търговска рецепта за артикула?
+		$rec = cat_Products::getLastActiveBom($productId, 'sales');
+		if(!$rec) return $res;
+	
+		// Кои детайли от нея ще показваме като компоненти
+		$details = cat_BomDetails::getOrderedBomDetails($rec->id);
+		 
+		// За всеки
+		if(is_array($details)){
+			foreach ($details as $dRec){
+				$obj = new stdClass();
+				$obj->resourceId = $dRec->resourceId;
+				$obj->packagingId = $dRec->packagingId;
+				$obj->baseQuantity = trim($dRec->baseQuantity);
+				$obj->propQuantity = trim($dRec->propQuantity);
+				$res[$dRec->resourceId . "|" . $dRec->packagingId] = $obj;
+				
+				if($dRec->type == 'input'){
+					self::getComponents($dRec->resourceId, $res);
+				}
+			}
+		}
+	}
+	
+	
+    /**
+     * Проверява дали подетапите на един етап отговарят точно
+     * на рецептата му
+     */
+    private function checkComponents($rec)
+    {
+    	$children = $bomDetails = array();
+    	$this->getDescendents($rec->id, $children);
+    	$components = $this->getComponents($rec->resourceId, $bomDetails);
+    	ksort($children);
+    	ksort($bomDetails);
+    	
+    	$areSame = TRUE;
+    	foreach ($children as $index => $obj){
+    		$other = $bomDetails[$index];
+    		if($obj->baseQuantity != $other->baseQuantity || $obj->propQuantity != $other->propQuantity || $obj->resourceId != $other->resourceId || $obj->packagingId != $other->packagingId){
+    			$areSame = FALSE;
+    			break;
+    		}
+    	}
+    	
+    	return $areSame;
     }
     
     
@@ -634,9 +778,15 @@ class cat_BomDetails extends doc_Detail
     public static function addProductComponents($productId, $toBomId, $componentId)
     {
     	$me = cls::get(get_called_class());
+    	$toBomRec = cat_Boms::fetch($toBomId);
     	
-    	// Коя е последната активна рецепта за артикула
-    	$activeBom = cat_Products::getLastActiveBom($productId);
+    	if($toBomRec->type == 'production'){
+    		$activeBom = cat_Products::getLastActiveBom($productId, 'production');
+    	}
+    	 
+    	if(!$activeBom){
+    		$activeBom = cat_Products::getLastActiveBom($productId, 'sales');
+    	}
     	
     	// Ако етапа има рецепта
     	if($activeBom){
