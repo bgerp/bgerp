@@ -2287,7 +2287,10 @@ fieldset.sharing-history {
 .wide #login-form .formTable {
 	margin: 0;
 }
-
+.drawing {
+	max-width: 400px;
+	float: right;
+}
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;
@@ -3732,8 +3735,15 @@ body.narrow {
     .wide #all, .wide #cmsTop, .wide #cmsTop img{
        border-radius: 0;
     }
+    .drawing {
+		max-width: 350px;
+	}
 }
-
+@media handheld, only screen and (max-width: 1100px) {
+    .drawing {
+		max-width: 270px;
+	}
+}
 @media handheld , only screen and (max-width: 1024px) {
     .document{
         max-width: 52.5em;
@@ -3741,6 +3751,10 @@ body.narrow {
     .wide .app-name {
          font-size: 6.4em;
     }
+    .drawing {
+		max-width: 500px;
+		float: none;
+	}
 }
 
 /* Mobile */

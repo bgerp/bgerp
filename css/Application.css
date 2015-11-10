@@ -1987,6 +1987,10 @@ span.sharing-history-title {
 .wide #login-form .formTable {
   margin: 0; }
 
+.drawing {
+  max-width: 400px;
+  float: right; }
+
 /*
  * стилове за външната част при потребител контрактор
  */
@@ -3370,7 +3374,15 @@ only screen and (max-width: 1200px) {
   .wide #all,
   .wide #cmsTop,
   .wide #cmsTop img {
-    border-radius: 0; } }
+    border-radius: 0; }
+
+  .drawing {
+    max-width: 350px; } }
+
+@media handheld,
+only screen and (max-width: 1100px) {
+  .drawing {
+    max-width: 270px; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -3378,7 +3390,11 @@ only screen and (max-width: 1024px) {
     max-width: 52.5em; }
 
   .wide .app-name {
-    font-size: 6.4em; } }
+    font-size: 6.4em; }
+
+  .drawing {
+    max-width: 500px;
+    float: none; } }
 
 /*
  * Mobile
