@@ -708,24 +708,29 @@ class email_Incomings extends core_Master
                 $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
             }
             
-            if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
-                $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+            if (trim($rec->fromEml)) {
+                if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+                }
             }
             
             // Ако имейлът не съвпада с този на Return-Path, добавяме предупреждение
-            $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
-            $returnPathEmails = type_Email::extractEmails($returnPath);
-            if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
-                $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+            if ($rec->headers) {
+                $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
+                $returnPathEmails = type_Email::extractEmails($returnPath);
+                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+                }
             }
             
             $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
             
-            // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
-            if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
-                $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+            if (trim($rec->fromEml)) {
+                // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
+                if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+                }
             }
-            
         }
         
         if(!$rec->toBox) {
