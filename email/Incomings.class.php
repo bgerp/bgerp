@@ -723,9 +723,9 @@ class email_Incomings extends core_Master
                 }
             }
             
-            $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
-            
             if (trim($rec->fromEml)) {
+                $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
+                
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
