@@ -635,7 +635,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	
     	// Рендиране на пулта
-    	$tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer'>|Прехвърляне|*</a></li>");
+    	$tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='p'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='l'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='r'>|Прехвърляне|*</a></li>");
     	$tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
     	
     	// Ако сме в тесен режим
@@ -646,7 +646,7 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li><a href='#tools-drafts' '|Всички чернови бележки|*'>|Бележки|*</a></li>");
+    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='z'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='c'>|Търсене|*</a></li><li><a href='#tools-drafts' accesskey='k'>|Бележки|*</a></li>");
     	
     		// Добавяне на таба с черновите
     		$tpl->append($this->renderDraftsTab($id), 'DRAFTS');
@@ -746,7 +746,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
-    	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl));
+    	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl, "type" => 'text'));
     	$block->replace($inpFld, 'INPUT_SEARCH');
     	
     	return $block;
