@@ -44,7 +44,9 @@ class teracom_Setup extends core_ProtoSetup
                                  
         // Добавяме наличните драйвери
         $drivers = array(
+            'teracom_TCW181BCM',
             'teracom_TCW122BCM',
+            'teracom_TCW122B',
             'teracom_TCW121',
         );
         

@@ -179,7 +179,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$form->setDefault('quantity', $quantity);
 		}
 		
-		$bomRec = cat_Products::getLastActiveBom($originRec->productId);
+		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
 		}
@@ -309,7 +309,10 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$details = array();
 		
 		// Ако артикула има активна рецепта
-		$bomId = cat_Products::getLastActiveBom($productId)->id;
+		$bomId = cat_Products::getLastActiveBom($productId, 'production')->id;
+		if(!$bomId){
+			$bomId = cat_Products::getLastActiveBom($productId, 'sales')->id;
+		}
 		
 		// Ако ням рецепта, не могат да се определят дефолт детайли за влагане
 		if(!$bomId) return $details;
@@ -442,7 +445,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		}
 		
 		// Създаваме новата рецепта
-		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $details, NULL, $rec->expenses);
+		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $details, NULL, $rec->expenses);
 		
 		// Записваме, че потребителя е разглеждал този списък
 		cat_Boms::logInfo("Създаване на рецепта от протокол за бързо производство", $newId);

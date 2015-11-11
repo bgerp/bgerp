@@ -45,10 +45,12 @@ class doc_FolderPlg extends core_Plugin
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
 		setIfNot($mvc->canCreatenewfolder, 'powerUser');
+		setIfNot($mvc->canViewlogact, 'powerUser');
 		
         $mvc->details = arr::make($mvc->details);
 
         $mvc->details['Rights'] = $mvc->className;
+        $mvc->details['History'] = $mvc->className;
     }
     
     
@@ -69,6 +71,39 @@ class doc_FolderPlg extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
+    }
+    
+    
+    /**
+     * След подготовка на таба със правата
+     */
+    public static function on_AfterPrepareHistory($mvc, $res, $data)
+    {
+        $data->TabCaption = 'История';
+    }
+
+    
+    /**
+     * След рендиране на таба със правата
+     */
+    public static function on_AfterRenderHistory($mvc, &$tpl, $data)
+    {
+        if (($data->masterData->ActionLog) && ($data->masterData->ActionLog->rows)) {
+            $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
+            
+            $logBlockTpl = $tpl->getBlock('log');
+            
+            foreach ((array)$data->masterData->ActionLog->rows as $rows) {
+                $logBlockTpl->placeObject($rows);
+                $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                $logBlockTpl->append2Master();
+            }
+            
+            $tpl->append($data->masterData->ActionLog->pager->getHtml(), 'pager');
+            $tpl->append($data->masterData->ActionLog->actionLogLink, 'actionLogLink');
+        } else {
+            $data->masterData->History->disabled = TRUE;
+        }
     }
 
     
@@ -124,9 +159,8 @@ class doc_FolderPlg extends core_Plugin
             					'folderId' => $data->rec->folderId),
             			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
             }
-            
         } else {
-        	if($mvc->haveRightFor('createnewfolder', $data->rec)){//bp();
+        	if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -134,7 +168,59 @@ class doc_FolderPlg extends core_Plugin
         	}
         }
     }
-
+    
+    
+    /**
+     * Подготовка за рендиране на единичния изглед
+     * 
+     * @param core_Master $mvc
+     * @param object $res
+     * @param object $data
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        // Рендираме екшън лога на потребителя
+        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+            
+            $data->HaveRightForLog = TRUE;
+            
+            $data->ActionLog = new stdClass();
+            
+            $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
+            
+            $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
+            
+            $data->ActionLog->recs = log_Data::getRecs($mvc, $data->rec->id, $data->ActionLog->pager);
+            $data->ActionLog->rows = log_Data::getRows($data->ActionLog->recs, array('userId', 'actTime', 'actionCrc', 'ROW_ATTR'));
+            
+            // Ако има роля admin
+            if (log_Data::haveRightFor('list')) {
+                
+                $attr = array();
+                $attr['class'] = 'linkWithIcon';
+		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+		        $attr['title'] = tr('Екшън лог на потребителя');
+                
+                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
+                
+                $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     * 
+     * @param core_Master $mvc
+     * @param core_ET $tpl
+     * @param object $data
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
+    }
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -192,6 +278,12 @@ class doc_FolderPlg extends core_Plugin
         	} elseif($rec->state == 'rejected'){
         		$requiredRoles = 'no_one';
         	}
+        }
+        
+        if (($action == 'viewlogact') && $rec) {
+            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -646,15 +738,6 @@ class doc_FolderPlg extends core_Plugin
                 }
             }
         }
-    }
-    
-    
-    /**
-     * След рендиране на единичния изглед
-     */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
     }
     
     

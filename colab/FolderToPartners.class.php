@@ -320,7 +320,7 @@ class colab_FolderToPartners extends core_Manager
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
     	
     	$form->FLD('to', 'emails', 'caption=До имейл, width=100%, silent,mandatory');
-    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getUomOptions');
+    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions');
     	$form->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
     	$form->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
     	$form->setSuggestions('to', $companyRec->email);
@@ -331,8 +331,15 @@ class colab_FolderToPartners extends core_Manager
     	
     	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $companyId), 604800);
     	
-    	$body = new ET('Уважаеми потребителю. За да се регистрираш като служител на фирма [#company#] моля последвай този линк:
-		[#link#] (линка изтича след 7 дена)');
+    	$body = new ET(
+            tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
+            tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
+            " [#company#], " . 
+            tr("моля последвай този линк||please follow this link") .
+            ":\n" .
+            "[#link#] \n (" . 
+            tr("линка изтича след 7 дена||it expired after 7 days")
+            );
 		$body->replace($companyName, 'company');
 		$body->replace($url, 'link');
 		

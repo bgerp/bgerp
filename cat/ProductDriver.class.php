@@ -288,7 +288,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#$name#]</td</tr>");
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#{$name}#]</td></tr>");
                         $tpl->append($dhtml, 'INFO');
                     }
 				}

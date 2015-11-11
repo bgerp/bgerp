@@ -423,21 +423,9 @@ class marketing_Inquiries2 extends embed_Manager
     		*
     		* @see #Sig281
     		*/
-    		$PML->Encoding = "quoted-printable";
     		$Driver = $this->getDriver($rec->id);
-    
-    		// Рендиране на алт бодито
-    		Mode::push('text', 'xhtml');
-    		$tpl = getTplFromFile($this->emailNotificationFile);
-    		
-    		$this->renderInquiryParams($tpl, $rec, $Driver);
-    		$row = $this->recToVerbal($rec, $fields);
-    		
-    		$tpl->placeObject($row);
-    		
-    		$res = $tpl;
-    		
-    		$altText = $res->getContent();
+    		$body = $this->getDocumentBody($rec->id, 'xhtml');
+    		$body = $body->getContent();
     		
     		// Създаваме HTML частта на документа и превръщаме всички стилове в inline
     		// Вземаме всичките css стилове
@@ -445,7 +433,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$css = file_get_contents(sbf('css/common.css', "", TRUE)) .
     		"\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
     
-    		$res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+    		$res = '<div id="begin">' . $body . '<div id="end">';
     
     		// Вземаме пакета
     		$conf = core_Packs::getConfig('csstoinline');
@@ -457,18 +445,18 @@ class marketing_Inquiries2 extends embed_Manager
     		$inst = cls::get($CssToInline);
     
     		// Стартираме процеса
-    		$res =  $inst->convert($res, $css);
-    
-    		$res = str::cut($res, '<div id="begin">', '<div id="end">');
+    		$body =  $inst->convert($body, $css);
+    		$body = str::cut($res, '<div id="begin">', '<div id="end">');
     		
-    		$PML->Body = $res;
+    		$PML->Body = $body;
     		$PML->IsHTML(TRUE);
     		 
         	// Ембедване на изображенията
     		email_Sent::embedSbfImg($PML);
-    		 
-    		Mode::pop('text');
-    
+    		
+    		$altText = $this->getDocumentBody($rec->id, 'plain');
+    		$altText = $altText->getContent();
+    		
     		Mode::push('text', 'plain');
     		$altText = html2text_Converter::toRichText($altText);
     		$altText = cls::get('type_RichText')->toVerbal($altText);
@@ -545,51 +533,6 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	
     	return $res;
-    }
-    
-    
-    /**
-     * Рендира информацията за продукта
-     */
-    private function renderInquiryParams(&$tpl, $recs, $Driver)
-    {
-    	$recs = (array)$recs;
-    	
-    	$fieldset = cls::get('core_Fieldset');
-    	$fieldset->FLD('title', 'varchar', 'caption=Заглавие');
-    	$Driver->addFields($fieldset);
-    	$params = $fieldset->selectFields();
-    	$params = array('title' => 'title') + $params;
-    	
-    	$dataRow = $tpl->getBlock('DATA_ROW');
-    	
-    	foreach ($params as $name => $fld){
-    		if(empty($recs[$name])) continue;
-    		if($fieldset->getFieldParam($name, 'single') === 'none') continue;
-    		
-    		$value = $fieldset->getFieldType($name)->toVerbal($recs[$name]);
-    		$dataRow->replace(tr($fieldset->getField($name)->caption), 'CAPTION');
-    		$dataRow->replace($value, 'VALUE');
-    		$dataRow->removePlaces();
-    		$dataRow->append2master();
-    	}
-    	
-    	// Добавя параметрите на продукта (ако има)
-    	$pQuery = cat_products_Params::getQuery();
-    	$pQuery->where("#productId = {$recs['id']}");
-    	$pQuery->where("#classId = {$this->getClassId()}");
-    	while($pRec = $pQuery->fetch()){
-    		$paramRec = cat_Params::fetch($pRec->paramId);
-    		$value = cat_Params::getTypeInstance($pRec->paramId)->toVerbal($pRec->paramValue);
-    		if(isset($paramRec->suffix)){
-    			$value .= " {$paramRec->suffix}";
-    		}
-    		
-    		$dataRow->replace(tr(cat_Params::getVerbal($paramRec, 'name')), 'CAPTION');
-    		$dataRow->replace($value, 'VALUE');
-    		$dataRow->removePlaces();
-    		$dataRow->append2master();
-    	}
     }
     
     

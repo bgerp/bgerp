@@ -289,8 +289,10 @@ class planning_Jobs extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
-    		$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    	if($rec->state != 'draft' && $rec->state != 'rejected'){
+    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    		}
     	}
 
     	// Бутон за добавяне на документ за бързо производство
@@ -378,8 +380,12 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
-    		if($bomId = cat_Products::getLastActiveBom($rec->productId)->id){
-    			$row->bomId = cat_Boms::getLink($bomId, 0);
+    		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
+    			$row->sBomId = cat_Boms::getLink($sBomId, 0);
+    		}
+    		
+    		if($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id){
+    			$row->pBomId = cat_Boms::getLink($pBomId, 0);
     		}
     		
     		if($rec->storeId){

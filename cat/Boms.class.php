@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
@@ -68,12 +68,6 @@ class cat_Boms extends core_Master
      * Детайла, на модела
      */
     public $details = 'cat_BomDetails';
-    
-    
-    /**
-     * Да се забрани ли кеширането на документа
-     */
-    public $preventCache = TRUE;
     
     
     /**
@@ -155,6 +149,7 @@ class cat_Boms extends core_Master
     function description()
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
+    	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none,notNull,value=sales');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
@@ -208,37 +203,6 @@ class cat_Boms extends core_Master
     		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
     		}
-    		
-    		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    		
-    		$alreadyUsedResources = array();
-    		 
-    		// Опитваме се да намерим последно използваните ресурси в рецепти към този артикул
-    		$dQuery = cat_BomDetails::getQuery();
-    		$dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
-    		$dQuery->where("#productId = {$form->rec->productId} AND #type = 'input'");
-    		$dQuery->groupBy('resourceId');
-    		$dQuery->show('resourceId');
-    		$dQuery->limit($limit);
-    		while($dRec = $dQuery->fetch()){
-    			$alreadyUsedResources[] = $dRec->resourceId;
-    		}
-    		 
-    		// Ако има такива, добавяме ги като полета във формата
-    		if(count($alreadyUsedResources)){
-    			foreach ($alreadyUsedResources as $i => $resId){
-    				$form->FNC("resourceId{$i}", 'key(mvc=cat_Products,select=name,allowEmpty)', 'input=hidden');
-    				$form->setDefault("resourceId{$i}", $resId);
-    				$caption = cat_Products::getTitleById($resId);
-    				$caption = str_replace(',', '.', $caption);
-    				 
-    				if(isset($form->rec->quantity)){
-    					$right = "за {$form->rec->quantity} {$shortUom}";
-    				}
-    				 
-    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|Количества|*");
-    			}
-    		}
     	}
     }
     
@@ -261,33 +225,26 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(isset($rec->threadId)){
+    		$rec->type = 'sales';
+    		$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+    		if($firstDocument->isInstanceOf('planning_Jobs')){
+    			$rec->type = 'production';
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    	$count = $count -1;
-    	
-    	// Проверяваме имали избрани ресурси още от формата
-    	foreach (range(0, $count) as $i){
-    		if(isset($rec->{"resourceId{$i}"})){
-    			if(!empty($rec->{"quantities{$i}"})){
-    				$parts = type_ComplexType::getParts($rec->{"quantities{$i}"});
-    	
-    				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
-    				$dRec = (object)array('bomId' => $rec->id,
-    									  'packagingId' => cat_Products::getProductInfo($rec->{"resourceId{$i}"})->productRec->measureId,
-    									  'quantityInPack' => 1,
-				    					  'type' => 'input',
-				    					  'resourceId' => $rec->{"resourceId{$i}"},
-				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
-				    					  'propQuantity' => ($parts['right']) ? $parts['right'] : NULL);
-    	
-    				// Запис на детайла
-    				cat_BomDetails::save($dRec);
-    			}
-    		}
-    	}
+    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL);
     }
     
     
@@ -304,10 +261,10 @@ class cat_Boms extends core_Master
     	
     	// Намираме последната приключена рецепта (различна от текущата за артикула)
     	$query = $this->getQuery();
-    	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId}");
+    	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
     	$query->orderBy('id', 'DESC');
     	$query->limit(1);
-    	 
+    	
     	$nextActiveBomRec = $query->fetch();
     	if($nextActiveBomRec){
     		$nextActiveBomRec->state = 'active';
@@ -345,7 +302,7 @@ class cat_Boms extends core_Master
     		
     		// Намираме всички останали активни рецепти
     		$query = static::getQuery();
-    		$query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId}");
+    		$query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId} AND #type = '{$cRec->type}'");
     		
     		// Затваряме ги
     		$idCount = 0;
@@ -513,7 +470,10 @@ class cat_Boms extends core_Master
     	if($bomId){
     		$rec = self::fetch($bomId);
     	} else {
-    	    $rec = cat_Products::getLastActiveBom($productId);
+    	    $rec = cat_Products::getLastActiveBom($productId, 'sales');
+    	    if(empty($rec)){
+    	    	$rec = cat_Products::getLastActiveBom($productId, 'production');
+    	    }
     	}
     	
     	// Ако няма, връщаме нулеви цени
@@ -633,19 +593,22 @@ class cat_Boms extends core_Master
      * @param double $expenses - процент режийни разходи
      * @return int $id         - ид на новосъздадената рецепта
      */
-    public static function createNewDraft($productId, $quantity, $details = array(), $notes = NULL, $expenses = NULL)
+    public static function createNewDraft($productId, $quantity, $originId, $details = array(), $notes = NULL, $expenses = NULL)
     {
     	// Проверка на подадените данни
     	expect($pRec = cat_Products::fetch($productId));
     	expect($pRec->canManifacture == 'yes', $pRec);
+    	$origin = doc_Containers::getDocument($originId);
+    	$type = ($origin->isInstanceOf('planning_Jobs')) ? 'production' : 'sales';
     	
     	$Double = cls::get('type_Double');
     	$Richtext = cls::get('type_RichText');
     	
     	$rec = (object)array('productId' => $productId,
-    						 'originId'  => $pRec->containerId, 
-    						 'folderId'  => $pRec->folderId, 
-    						 'threadId'  => $pRec->threadId, 
+    						 'type'		 => $type,
+    						 'originId'  => $originId,
+    						 'folderId'  => $origin->rec()->folderId,
+    						 'threadId'  => $origin->rec()->threadId,
     						 'quantity'  => $Double->fromVerbal($quantity), 
     						 'expenses'  => $expenses);
     	if($notes){
@@ -790,7 +753,7 @@ class cat_Boms extends core_Master
     			
     			// Създаваме нова дефолтна рецепта от системния потребител
     			core_Users::forceSystemUser();
-    			$bomId = static::createNewDraft($productId, $bomInfo['quantity'], $details, 'Автоматична рецепта', $bomInfo['expenses']);
+    			$bomId = static::createNewDraft($productId, $bomInfo['quantity'], $pRec->containerId, $details, 'Автоматична рецепта', $bomInfo['expenses']);
     			$bomRec = static::fetchRec($bomId);
     			$bomRec->state = 'active';
     			$bomRec->hash = $hash;
@@ -859,11 +822,11 @@ class cat_Boms extends core_Master
     	 $tpl->append($title, 'title');
     	 
     	 if(isset($data->addUrl)){
-    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова технологична рецепта');
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова търговска технологична рецепта');
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,quantity=За количество,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Документ,quantity=За количество,type=Вид,createdBy=Oт,createdOn=На');
     	 if($data->hideToolsCol){
     	 	unset($listFields['tools']);
     	 }

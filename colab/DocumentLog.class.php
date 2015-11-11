@@ -141,7 +141,8 @@ class colab_DocumentLog extends core_Manager
         $url = array();
         
         $attr = array();
-        $attr['ef_icon'] = 'img/16/eye-close-icon.png';
+        $attr['ef_icon'] = 'img/16/eye-closed.png';
+        $attr['title'] = tr('Документът е видим за партньори');
         $attr['class'] = 'settings-document-viewed';
         
         if ($actArr = self::getActions($containerId, self::ACTION_VIEW, 1)) {
@@ -149,7 +150,8 @@ class colab_DocumentLog extends core_Manager
             
             if (self::haveRightFor('renderview', $rec)) {
                 
-                $attr['ef_icon'] = 'img/16/eye-icon.png';
+                $attr['title'] = tr('Документът е видян от партньор');
+                $attr['ef_icon'] = 'img/16/eye-open.png';
                 
                 $url = doclog_Documents::getLinkToSingle($containerId, self::ACTION_VIEW);
             }

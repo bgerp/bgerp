@@ -205,13 +205,15 @@ class doc_DocumentIntf
     
     
     /**
-     * Дефолт метод филтриращ опциите от корици на папка в които
-     * може да се постави даден документ
-     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     * Метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    function getCoverOptions($coverClass)
+    function restrictQueryOnlyFolderForDocuments($query)
     {
-    	return $this->class->getCoverOptions($coverClass);
+    	return $this->class->restrictQueryOnlyFolderForDocuments($query);
     }
     
     

@@ -159,7 +159,7 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт
      */
-    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
         // Проверка, дали цената я няма в кеша
     	$price = price_History::getPrice($listId, $datetime, $productId);
@@ -170,18 +170,25 @@ class price_ListRules extends core_Detail
 
         $datetime = price_History::canonizeTime($datetime);
         
-        // В коя ценова група се е намирал продукта към посочената дата?
-        $productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
-
-        if(!$productGroup) return;
+        if($listId != self::PRICE_LIST_COST){
+        	
+        	// В коя ценова група се е намирал продукта към посочената дата?
+        	$productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
+        	if(!$productGroup) return;
+        }
  
         $query = self::getQuery();
         
         // Общи ограничения
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
 
-        // Конкретни ограничения
-        $query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
+        if($productGroup){
+        	// Конкретни ограничения
+        	$query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
+        } else {
+        	// Конкретни ограничения
+        	$query->where("#productId = {$productId}");
+        }
         
         // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");

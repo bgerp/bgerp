@@ -254,9 +254,6 @@ class core_Session {
             ini_set('session.use_only_cookies', 1);
             @session_start();
             
-//            $_SESSION['session_is_valid'] = time();
-
-            
             $this->_started = TRUE;
         }
     }
@@ -268,11 +265,17 @@ class core_Session {
      */
     function _decorate($varName)
     {
-        $prefix = str_replace("www.", "", $_SERVER['HTTP_HOST']);
-        $prefix = md5($prefix . EF_SALT);
-        $prefix = substr($prefix, 1, 10);
+        static $prefix;
+
+        if(!$prefix) {
+            $prefix = strtolower(str_replace("www.", "", $_SERVER['HTTP_HOST']));
+            $prefix = md5($prefix . EF_APP_NAME . EF_DB_NAME . EF_SALT);
+            $prefix = substr($prefix, 0, 10);
+        }
+
         $decoratedVar = 'sess_' . $prefix . '_' . $varName;
         
         return $decoratedVar;
     }
+
 }

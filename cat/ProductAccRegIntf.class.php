@@ -164,13 +164,14 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Намира последната активна технологична рецепта за артикула
+     * Връща последната активна рецепта на спецификацията
      *
      * @param mixed $id - ид или запис
+     * @param sales|production $type - вид работна или търговска
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public function getLastActiveBom($id)
+    public function getLastActiveBom($id, $type = NULL)
     {
-    	return $this->getLastActiveBom($id);
+    	return $this->getLastActiveBom($id, $type);
     }
 }
