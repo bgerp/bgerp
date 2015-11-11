@@ -90,6 +90,9 @@ class plg_Search extends core_Plugin
             }
             
             foreach($fieldsArr as $field => $fieldObj) {
+                
+                log_Debug::add('epbags_Inquiries', NULL, "<LI> Field: $field");
+
                 if(get_class($fieldObj->type) == 'type_Text') {
                     $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
                 } else {
@@ -109,6 +112,8 @@ class plg_Search extends core_Plugin
             }
         }
         
+        log_Debug::add('epbags_Inquiries', NULL, "<LI> EndSearch: $field");
+
         return $searchKeywords;
     }
 
