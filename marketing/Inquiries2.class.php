@@ -427,8 +427,6 @@ class marketing_Inquiries2 extends embed_Manager
     		$body = $this->getDocumentBody($rec->id, 'xhtml');
     		$body = $body->getContent();
     		
-    		$altText = $body;
-    		
     		// Създаваме HTML частта на документа и превръщаме всички стилове в inline
     		// Вземаме всичките css стилове
     
@@ -455,6 +453,9 @@ class marketing_Inquiries2 extends embed_Manager
     		 
         	// Ембедване на изображенията
     		email_Sent::embedSbfImg($PML);
+    		
+    		$altText = $this->getDocumentBody($rec->id, 'plain');
+    		$altText = $altText->getContent();
     		
     		Mode::push('text', 'plain');
     		$altText = html2text_Converter::toRichText($altText);
