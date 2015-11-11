@@ -155,8 +155,8 @@ class doc_LikesPlg extends core_Plugin
             
             if ($notifyStr) {
                 $document = doc_Containers::getDocument($lRec->containerId);
-                $clearUrl = array($mvc, 'single', $rec->id, 'like' => TRUE);
-                $linkUrl = array($mvc, 'single', $rec->id);
+                $clearUrl = $linkUrl = array($mvc, 'single', $rec->id);
+                $clearUrl['like'] = TRUE;
                 bgerp_Notifications::add($notifyStr, $clearUrl, $lRec->createdBy, 'normal', $linkUrl);
             }
         }
