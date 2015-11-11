@@ -646,7 +646,7 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='z'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='c'>|Търсене|*</a></li><li><a href='#tools-drafts' accesskey='k'>|Бележки|*</a></li>");
+    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='z'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='n'>|Търсене|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='k'>|Бележки|*</a></li>");
     	
     		// Добавяне на таба с черновите
     		$tpl->append($this->renderDraftsTab($id), 'DRAFTS');
