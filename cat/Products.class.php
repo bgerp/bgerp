@@ -256,6 +256,12 @@ class cat_Products extends embed_Manager {
 	protected static $productInfos = array();
 	
 	
+	/**
+	 * Масив със създадените артикули
+	 */
+	protected $createdProducts = array();
+	
+	
     /**
      * Описание на модела
      */
@@ -844,6 +850,15 @@ class cat_Products extends embed_Manager {
     {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
+        }
+        
+        // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
+        if(count($mvc->createdProducts)){
+        	foreach ($mvc->createdProducts as $rec) {
+        		if($rec->canManifacture == 'yes'){
+        			static::createDefaultBom($rec);
+        		}
+        	}
         }
     }
     
@@ -1917,7 +1932,7 @@ class cat_Products extends embed_Manager {
      * @param int $id - ид на артикул
      * @return void;
      */
-    public static function createDefaultBom($id)
+    private static function createDefaultBom($id)
     {
     	$rec = static::fetchRec($id);
     	
@@ -1943,9 +1958,6 @@ class cat_Products extends embed_Manager {
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	// Ако артикула е производим, опитваме се да му създадем дефолтна рецепта
-    	if($rec->canManifacture == 'yes'){
-    		static::createDefaultBom($rec);
-    	}
+    	$mvc->createdProducts[] = $rec;
     }
 }
