@@ -373,12 +373,12 @@ class planning_ObjectResources extends core_Manager
     	$query->show("objectId,likeProductId");
     	
     	$query2 = clone $query;
-    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL");
+    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL AND #objectId != '{$productId}'");
     	while($rec = $query->fetch()){
     		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
     	}
     	
-    	$query2->where("#objectId = {$productId}");
+    	$query2->where("#objectId = {$productId} AND #likeProductId != {$productId}");
     	while($rec = $query2->fetch()){
     		if($rec->likeProductId){
     			$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
