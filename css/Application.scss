@@ -2082,6 +2082,9 @@ div.sharing-history, .like-log {
 	font-size: 0.9em;
 	clear: both;
 	padding-right: 120px;
+	.timespan {
+		font-size: 0.9em;
+	}
 }
 
 div.change-log {
@@ -2113,7 +2116,7 @@ span.sharing-history-title, .like-log-title {
 
 .like-log-title {
 	background-image: none;
-	padding-left: 0;
+	padding-left: 0px;
 	.linkWithIcon {
 		opacity: 0.8;
 		&:hover {
@@ -4549,6 +4552,12 @@ body.narrow {
     .header-state {
         display: none;
     }
+    .like-log-title {
+	    padding-left: 4px;
+	    .linkWithIconSpan {
+	    	display: none;
+	    }
+	}
 }
 
 .narrow .printing .document{
