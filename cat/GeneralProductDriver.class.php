@@ -239,9 +239,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			if($pRec->suffix){
 				$pRec->name .= "({$pRec->suffix})";
 			}
-			$name = plg_Search::normalizeText($pRec->name);
-			$name = str_replace(' ', '_', $name);
-			$foundParams[$name] = $pRec->paramValue;
+			$foundParams[$pRec->name] = $pRec->paramValue;
 		}
 		
 		return $foundParams;
