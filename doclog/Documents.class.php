@@ -2140,13 +2140,17 @@ class doclog_Documents extends core_Manager
             
             $actionVerbal = tr($actionVerbal);
             
-            $document = doc_Containers::getDocument($data->containerId);
-            
             $linkArr = array();
-            if($document->haveRightFor('single') && !core_Users::isContractor()){
-                $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+            try {
+                if ($data->containerId) {
+                    $document = doc_Containers::getDocument($data->containerId);
+                }
+                if($document->haveRightFor('single') && !core_Users::isContractor()){
+                    $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
             }
-            
             
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
             $html .= "<li class=\"action {$action}\">{$link}</li>";
