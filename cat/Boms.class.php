@@ -901,4 +901,60 @@ class cat_Boms extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Намиране на цената според технологичната рецепта и задание (ако има такива)
+     */
+    public static function getPriceByBom($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    {
+    	$price = (object)array('price' => NULL);
+    
+    	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+    	if(!isset($quantity)){
+    
+    		$quantityJob = cat_Products::getLastJob($productId)->quantity;
+    		if(isset($quantityJob)){
+    			$quantity = $quantityJob;
+    		}
+    	}
+    	 
+    	// Опитваме се да намерим цена според технологичната карта
+    	if($amounts = cat_Boms::getPrice($productId)){
+    		$defPriceListId = self::getListForCustomer($customerClass, $customerId);
+    
+    		$minCharge = $maxCharge = NULL;
+    
+    		// Ако контрагента има зададен ценоразпис, който не е дефолтния
+    		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
+    			 
+    			// Взимаме максималната и минималната надценка от него, ако ги има
+    			$defPriceList = price_Lists::fetch($defPriceListId);
+    			$minCharge = $defPriceList->minSurcharge;
+    			$maxCharge = $defPriceList->maxSurcharge;
+    		}
+    
+    		// Ако няма мин надценка, взимаме я от търговските условия
+    		if(!isset($minCharge)){
+    			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		}
+    
+    		// Ако няма макс надценка, взимаме я от търговските условия
+    		if(!isset($maxCharge)){
+    			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		}
+    
+    		if(!$quantity){
+    			$quantity = 1;
+    		}
+    
+    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
+    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
+    		 
+    		return $price;
+    	}
+    	
+    	// Връщаме цената
+    	return $price;
+    }
 }

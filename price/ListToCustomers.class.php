@@ -381,14 +381,16 @@ class price_ListToCustomers extends core_Detail
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-        // Опит за намиране на цената по ценовата политика на клиента
-    	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
-    	
-    	// Ако няма цена по политика
-        if(is_null($rec->price)){
+        $isProductPublic = cat_Products::fetchField($productId, 'isPublic');
+        
+        // Проверяваме дали артикула е частен или стандартен
+        if($isProductPublic == 'no'){
         	
-        	// Опитваме се да намерим цената според рецептата и заданието
-        	$rec = $this->getPriceByBom($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        	// За частните (нестандартните) артикули, търсим себестойността по рецептата
+        	$rec = cat_Boms::getPriceByBom($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        } else {
+        	// За стандартните артикули търсим себестойността в ценовите политики
+        	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
         
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
@@ -434,62 +436,6 @@ class price_ListToCustomers extends core_Detail
     	}
     	
     	return $rec;
-    }
-    
-    
-    /**
-     * Намиране на цената според технологичната рецепта и задание (ако има такива)
-     */
-    private function getPriceByBom($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
-    {
-    	$price = (object)array('price' => NULL);
-    	 
-    	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-    	if(!isset($quantity)){
-    		
-    		$quantityJob = cat_Products::getLastJob($productId)->quantity;
-    		if(isset($quantityJob)){
-    			$quantity = $quantityJob;
-    		}
-    	}
-    	
-    	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = cat_Boms::getPrice($productId)){
-    		$defPriceListId = self::getListForCustomer($customerClass, $customerId);
-    		
-    		$minCharge = $maxCharge = NULL;
-    		
-    		// Ако контрагента има зададен ценоразпис, който не е дефолтния
-    		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
-    			
-    			// Взимаме максималната и минималната надценка от него, ако ги има
-    			$defPriceList = price_Lists::fetch($defPriceListId);
-    			$minCharge = $defPriceList->minSurcharge;
-    			$maxCharge = $defPriceList->maxSurcharge;
-    		}
-    		
-    		// Ако няма мин надценка, взимаме я от търговските условия
-    		if(!isset($minCharge)){
-    			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		}
-    		
-    		// Ако няма макс надценка, взимаме я от търговските условия
-    		if(!isset($maxCharge)){
-    			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    		}
-    		
-    		if(!$quantity){
-    			$quantity = 1;
-    		}
-    		
-    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
-    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
-    	
-    		return $price;
-    	}
-    	
-    	// Връщаме цената
-    	return $price;
     }
     
     
