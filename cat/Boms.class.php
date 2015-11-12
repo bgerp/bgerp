@@ -562,6 +562,8 @@ class cat_Boms extends core_Master
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
+    		$dRec->baseQuantity = cat_BomDetails::calcExpr($dRec->baseQuantity, $dRec);
+    		$dRec->propQuantity = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec);
     		
     		$arr = array();
     		$arr['productId']      = $dRec->resourceId;
@@ -892,13 +894,11 @@ class cat_Boms extends core_Master
     			unset($nRec->{$fld});
     		}
     		
-    		core_Users::forceSystemUser();
     		if(static::save($nRec)) {
     			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
     		} else {
     			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
     		}
-    		core_Users::cancelSystemUser();
     	}
     }
 }
