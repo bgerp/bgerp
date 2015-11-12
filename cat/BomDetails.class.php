@@ -338,7 +338,9 @@ class cat_BomDetails extends doc_Detail
     	}
     	
     	$expr = strtr($expr, $context);
-    	$expr = "<span class='{$style}'>{$expr}</span>";
+    	if($expr !== ''){
+    		$expr = "<span class='{$style}'>{$expr}</span>";
+    	}
     	
     	return $expr;
     }
