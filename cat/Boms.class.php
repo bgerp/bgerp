@@ -98,19 +98,19 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo,techno,sales';
     
     
     /**
-     * Кой може да пише?
+     * Кой може да добавя?
      */
-    public $canWrite = 'cat,ceo';
+    public $canAdd = 'cat,ceo,techno,sales';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'cat,ceo';
+    public $canReject = 'cat,ceo,techno,sales';
     
     
     /**
@@ -231,7 +231,8 @@ class cat_Boms extends core_Master
     {
     	if(isset($rec->threadId)){
     		$rec->type = 'sales';
-    		$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+    		$firstDocument = doc_Containers::getDocument($rec->originId);
+    		
     		if($firstDocument->isInstanceOf('planning_Jobs')){
     			$rec->type = 'production';
     		}
@@ -240,10 +241,21 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Преди запис на клониран запис
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	$nRec->cloneDetails = TRUE;
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	if($rec->cloneDetails === TRUE) return;
+    	
     	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL);
     }
     
@@ -344,7 +356,7 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'write' || $action == 'add') && isset($rec)){
+    	if(($action == 'add' || $action == 'edit') && isset($rec)){
     		
     		// Може да се добавя само ако има ориджин
     		if(empty($rec->productId)){
@@ -361,6 +373,16 @@ class cat_Boms extends core_Master
     			if($res != 'no_one'){
     				
     				if($productRec->canManifacture == 'no'){
+    					$res = 'no_one';
+    				}
+    			}
+    		}
+    	}
+    	
+    	if(($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)){
+    		if($res != 'no_one'){
+    			if($rec->type == 'production'){
+    				if(!haveRole('techno,ceo', $userId)){
     					$res = 'no_one';
     				}
     			}
@@ -425,7 +447,7 @@ class cat_Boms extends core_Master
     	}
     	
     	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
-	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+    	$priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
 	        $rec->primeCost = 0;
 	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 	        
@@ -631,6 +653,7 @@ class cat_Boms extends core_Master
     	}
     	
     	// Ако всичко е наред, записваме мастъра на рецептата
+    	$rec->cloneDetails = TRUE;
     	$id = self::save($rec);
     	
     	// За всеки детайл, добавяме го към рецептата
@@ -799,7 +822,7 @@ class cat_Boms extends core_Master
     	$data->Tab = 'top';
     	 
     	// Проверяваме можем ли да добавяме нови рецепти
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'type' => 'sales'))){
     		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
     	}
     	 
@@ -855,7 +878,7 @@ class cat_Boms extends core_Master
     public static function cloneBom($fromProductId, $toProductId)
     {
     	$toProductRec = cat_Products::fetchRec($toProductId);
-    	$activeBom = cat_Products::getLastActiveBom($fromProductId);
+    	$activeBom = cat_Products::getLastActiveBom($fromProductId, 'sales');
     	
     	// Ако има рецепта за клониране
     	if($activeBom){

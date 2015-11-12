@@ -693,9 +693,15 @@ div.productImage {
 
 .detail-info .general-product-description{
 	.richtext, .groupList{
-	margin: 0 0 2px;
-    font-size: 0.9em;
-    color: #222;
+		margin: 0 0 2px;
+	    font-size: 0.9em;
+	    color: #222;
+	}
+	.productImage a.fancybox img{
+		max-width: 120px;
+	    max-height: 60px;
+	    width: auto;
+	    height: auto;
 	}
 }
 
@@ -2076,6 +2082,9 @@ div.sharing-history, .like-log {
 	font-size: 0.9em;
 	clear: both;
 	padding-right: 120px;
+	.timespan {
+		font-size: 0.9em;
+	}
 }
 
 div.change-log {
@@ -2091,7 +2100,7 @@ div.change-log {
 	clear: both;
 }
 
-span.sharing-history-title,   .like-log-title {
+span.sharing-history-title, .like-log-title {
 	padding: 2px 5px;
 	padding-left: 23px;
 	background: $gray1 url(../img/share.png) no-repeat 3px center;
@@ -2102,10 +2111,18 @@ span.sharing-history-title,   .like-log-title {
 	border: 1px solid #ccc;
 	border-top: none;
 	color: #777;
+	
 }
 
 .like-log-title {
 	background-image: none;
+	padding-left: 0px;
+	.linkWithIcon {
+		opacity: 0.8;
+		&:hover {
+			opacity: 1;
+		}
+	}
 }
 
 .narrow span.sharing-history-title {
@@ -4535,6 +4552,12 @@ body.narrow {
     .header-state {
         display: none;
     }
+    .like-log-title {
+	    padding-left: 4px;
+	    .linkWithIconSpan {
+	    	display: none;
+	    }
+	}
 }
 
 .narrow .printing .document{

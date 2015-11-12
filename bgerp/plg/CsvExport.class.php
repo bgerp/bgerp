@@ -98,7 +98,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	
     	$conf = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
     	if(count($recs) > $conf) {
-    		redirect(array($mvc, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    		redirect(array($this, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
     	}
     	
     	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure, $filter->fields);

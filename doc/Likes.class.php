@@ -136,14 +136,15 @@ class doc_Likes extends core_Manager
      * Връща всички харесвания
      * 
      * @param integer $cid
+     * @param string $order
      * 
      * @return array
      */
-    public static function getLikedArr($cid)
+    public static function getLikedArr($cid, $order = 'ASC')
     {
         $query = self::getQuery();
         $query->where(array("#containerId = [#1#]", $cid));
-        $query->orderBy('createdOn', 'ASC');
+        $query->orderBy('createdOn', $order);
         $resArr = $query->fetchAll();
         
         return $resArr;

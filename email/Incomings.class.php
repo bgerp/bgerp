@@ -100,7 +100,7 @@ class email_Incomings extends core_Master
     var $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools, plg_Printing, email_plg_Document, 
     				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank,
-    				plg_AutoFilter';
+    				plg_AutoFilter, doc_LikesPlg';
     
     
     /**
@@ -708,24 +708,29 @@ class email_Incomings extends core_Master
                 $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
             }
             
-            if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
-                $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+            if (trim($rec->fromEml)) {
+                if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+                }
             }
             
             // Ако имейлът не съвпада с този на Return-Path, добавяме предупреждение
-            $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
-            $returnPathEmails = type_Email::extractEmails($returnPath);
-            if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
-                $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+            if ($rec->headers) {
+                $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
+                $returnPathEmails = type_Email::extractEmails($returnPath);
+                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+                }
             }
             
-            $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
-            
-            // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
-            if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
-                $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+            if (trim($rec->fromEml)) {
+                $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
+                
+                // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
+                if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+                }
             }
-            
         }
         
         if(!$rec->toBox) {
@@ -1496,33 +1501,37 @@ class email_Incomings extends core_Master
         
         $contragentData = $addrParse->extractContact($textPart);
         
+        $headersArr = array();
+        
         // Ако няма хедъри
         // За съвместимост със стар код
         if (!$msg->headers) {
             
-            // Манипулатора на eml файла
-            $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
-            
-            // Съдържаниетое
-            $rawEmail = fileman_Files::getContent($fh); 
-            
-            // Инстанция на класа
-            $mime = cls::get('email_Mime');
-            
-            // Парсираме имейла
-            $mime->parseAll($rawEmail);
-            
-            // Вземаме хедърите
-            $headersArr = $mime->parts[1]->headersArr;
-            
-            // Ако няма хедъри, записваме ги
-            $nRec = new stdClass();
-            $nRec->id = $msg->id;
-            $nRec->headers = $headersArr;
-            
-            $eInc = cls::get('email_Incomings');
-
-            $eInc->save_($nRec, 'headers');
+            if ($msg->emlFile) {
+                // Манипулатора на eml файла
+                $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
+                
+                // Съдържаниетое
+                $rawEmail = fileman_Files::getContent($fh); 
+                
+                // Инстанция на класа
+                $mime = cls::get('email_Mime');
+                
+                // Парсираме имейла
+                $mime->parseAll($rawEmail);
+                
+                // Вземаме хедърите
+                $headersArr = $mime->parts[1]->headersArr;
+                
+                // Ако няма хедъри, записваме ги
+                $nRec = new stdClass();
+                $nRec->id = $msg->id;
+                $nRec->headers = $headersArr;
+                
+                $eInc = cls::get('email_Incomings');
+    
+                $eInc->save_($nRec, 'headers');
+            }
         } else {
             
             // Хедърите ги преобразуваме в масив

@@ -473,6 +473,11 @@ class price_ListRules extends core_Detail
         		$requiredRoles = 'no_one';
         	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
+        	} else {
+        		$isPublic = cat_products::fetchField($rec->productId, 'isPublic');
+        		if($isPublic == 'no'){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
     }
@@ -639,6 +644,11 @@ class price_ListRules extends core_Detail
 	public function preparePriceList($data)
 	{
 		$pRec = $data->masterData->rec;
+		
+		if($pRec->isPublic == 'no'){
+			$data->dontRender = TRUE;
+		}
+		
 		$listId = static::PRICE_LIST_COST;
 		$data->priceLists = new stdClass();
 		
@@ -664,6 +674,8 @@ class price_ListRules extends core_Detail
 	 */
 	public function renderPriceList($data)
 	{
+		if($data->dontRender === TRUE) return;
+		
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
