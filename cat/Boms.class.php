@@ -892,13 +892,11 @@ class cat_Boms extends core_Master
     			unset($nRec->{$fld});
     		}
     		
-    		core_Users::forceSystemUser();
     		if(static::save($nRec)) {
     			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
     		} else {
     			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
     		}
-    		core_Users::cancelSystemUser();
     	}
     }
 }
