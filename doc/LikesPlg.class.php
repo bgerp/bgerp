@@ -92,6 +92,8 @@ class doc_LikesPlg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
+        $action = strtolower($action);
+        
         if (($action != 'likedocument') && ($action != 'dislikedocument')) return ;
         
         $id = Request::get('id', 'int');
@@ -147,6 +149,8 @@ class doc_LikesPlg extends core_Plugin
         
         foreach ($likedArr as $key => $lRec) {
             if ($lRec->createdBy == $currUserId) continue;
+            
+            if (!$mvc->haveRightFor('single', $rec->id, $lRec->createdBy)) continue;
             
             $cLikedArr = $likedArr;
             unset($cLikedArr[$key]);
