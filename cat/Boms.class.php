@@ -878,7 +878,7 @@ class cat_Boms extends core_Master
     public static function cloneBom($fromProductId, $toProductId)
     {
     	$toProductRec = cat_Products::fetchRec($toProductId);
-    	$activeBom = cat_Products::getLastActiveBom($fromProductId);
+    	$activeBom = cat_Products::getLastActiveBom($fromProductId, 'sales');
     	
     	// Ако има рецепта за клониране
     	if($activeBom){
