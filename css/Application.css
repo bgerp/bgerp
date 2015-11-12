@@ -614,6 +614,11 @@ div.productImage {
     margin: 0 0 2px;
     font-size: 0.9em;
     color: #222222; }
+  .detail-info .general-product-description .productImage a.fancybox img {
+    max-width: 120px;
+    max-height: 60px;
+    width: auto;
+    height: auto; }
 
 .component-title {
   padding: 5px 0;

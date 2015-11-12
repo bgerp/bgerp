@@ -693,9 +693,15 @@ div.productImage {
 
 .detail-info .general-product-description{
 	.richtext, .groupList{
-	margin: 0 0 2px;
-    font-size: 0.9em;
-    color: #222;
+		margin: 0 0 2px;
+	    font-size: 0.9em;
+	    color: #222;
+	}
+	.productImage a.fancybox img{
+		max-width: 120px;
+	    max-height: 60px;
+	    width: auto;
+	    height: auto;
 	}
 }
 

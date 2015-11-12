@@ -294,9 +294,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$tpl->append($paramTpl, 'PARAMS');
 		}
 		
-		if($data->isSingle !== TRUE){
-			$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-			
+		if($data->isSingle !== TRUE){			
 			$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
 			$wrapTpl->append($tpl, 'paramBody');
 			
