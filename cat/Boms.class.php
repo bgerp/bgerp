@@ -231,7 +231,7 @@ class cat_Boms extends core_Master
     {
     	if(isset($rec->threadId)){
     		$rec->type = 'sales';
-    		$firstDocument = doc_Containers::getDocument($rec->originId);//doc_Threads::getFirstDocument($rec->threadId);
+    		$firstDocument = doc_Containers::getDocument($rec->originId);
     		
     		if($firstDocument->isInstanceOf('planning_Jobs')){
     			$rec->type = 'production';
