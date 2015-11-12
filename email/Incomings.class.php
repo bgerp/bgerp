@@ -1501,33 +1501,37 @@ class email_Incomings extends core_Master
         
         $contragentData = $addrParse->extractContact($textPart);
         
+        $headersArr = array();
+        
         // Ако няма хедъри
         // За съвместимост със стар код
         if (!$msg->headers) {
             
-            // Манипулатора на eml файла
-            $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
-            
-            // Съдържаниетое
-            $rawEmail = fileman_Files::getContent($fh); 
-            
-            // Инстанция на класа
-            $mime = cls::get('email_Mime');
-            
-            // Парсираме имейла
-            $mime->parseAll($rawEmail);
-            
-            // Вземаме хедърите
-            $headersArr = $mime->parts[1]->headersArr;
-            
-            // Ако няма хедъри, записваме ги
-            $nRec = new stdClass();
-            $nRec->id = $msg->id;
-            $nRec->headers = $headersArr;
-            
-            $eInc = cls::get('email_Incomings');
-
-            $eInc->save_($nRec, 'headers');
+            if ($msg->emlFile) {
+                // Манипулатора на eml файла
+                $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
+                
+                // Съдържаниетое
+                $rawEmail = fileman_Files::getContent($fh); 
+                
+                // Инстанция на класа
+                $mime = cls::get('email_Mime');
+                
+                // Парсираме имейла
+                $mime->parseAll($rawEmail);
+                
+                // Вземаме хедърите
+                $headersArr = $mime->parts[1]->headersArr;
+                
+                // Ако няма хедъри, записваме ги
+                $nRec = new stdClass();
+                $nRec->id = $msg->id;
+                $nRec->headers = $headersArr;
+                
+                $eInc = cls::get('email_Incomings');
+    
+                $eInc->save_($nRec, 'headers');
+            }
         } else {
             
             // Хедърите ги преобразуваме в масив
