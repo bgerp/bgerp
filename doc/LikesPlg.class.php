@@ -38,7 +38,7 @@ class doc_LikesPlg extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if ($mvc->haveRightFor('like', $data->rec->id)) {
-            $data->toolbar->addBtn("Харесвам", array($mvc, 'likeDocument', $data->rec->id, 'ret_url' => TRUE),
+            $data->toolbar->addBtn("Харесвам", array($mvc, 'likeDocument', $data->rec->id),
             "id=btnLike{$data->rec->containerId}, row=2, order=19.4,title=" . tr('Харесване на документа'),  'ef_icon = img/16/redheart.png');
         }
     }
