@@ -1801,11 +1801,6 @@ div.sharing-history,
   font-size: 0.9em;
   clear: both;
   padding-right: 120px; }
-  div.sharing-history:hover span.sharing-history-title,
-  .like-log:hover span.sharing-history-title,
-  div.sharing-history:hover .like-log-title,
-  .like-log:hover .like-log-title {
-    color: black; }
 
 div.change-log {
   border: none;
@@ -1835,6 +1830,10 @@ span.sharing-history-title,
 .like-log-title {
   background-image: none;
   padding-left: 0; }
+  .like-log-title .linkWithIcon {
+    opacity: 0.8; }
+    .like-log-title .linkWithIcon:hover {
+      opacity: 1; }
 
 .narrow span.sharing-history-title {
   font-size: 14px; }
