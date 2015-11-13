@@ -333,7 +333,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Препращания';
+        $data->TabCaption = tr('Препращания');
         
         // Екшъна
         $action = static::ACTION_FORWARD;
@@ -502,7 +502,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Отпечатвания';
+        $data->TabCaption = tr('Отпечатвания');
         
         // Създаваме странициране
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
@@ -537,6 +537,9 @@ class doclog_Documents extends core_Manager
 
             // Записите във вербален вид
             $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            $row->action = tr($row->action);
+            $row->action = str::mbUcfirst($row->action);
             
             // Екшъна за отваряне
             $openAction = static::ACTION_OPEN;
@@ -614,7 +617,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Виждания';
+        $data->TabCaption = tr('Виждания');
         
         // Екшъна
         $action = static::ACTION_OPEN;
@@ -750,7 +753,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Изпращания';
+        $data->TabCaption = tr('Изпращания');
         
         // Екшъните
         $actionArr = array(static::ACTION_SEND, static::ACTION_FAX);
@@ -948,7 +951,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Сваляния';
+        $data->TabCaption = tr('Сваляния');
         
         // Екшъна
         $action = static::ACTION_DOWNLOAD;
@@ -1057,7 +1060,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Промени';
+        $data->TabCaption = tr('Промени');
         
         // Екшъна
         $action = static::ACTION_CHANGE;
@@ -1143,7 +1146,7 @@ class doclog_Documents extends core_Manager
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) return ;
         
-        $data->TabCaption = 'История';
+        $data->TabCaption = tr('История');
         
         $action = static::ACTION_HISTORY;
         
@@ -2226,11 +2229,11 @@ class doclog_Documents extends core_Manager
             case static::ACTION_SEND:
                 $row = (object)array('toEmail' => $rec->data->to);
                 $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                return 'Имейл до ' . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
+                return tr('Имейл до|* ') . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
             case static::ACTION_PRINT:
-                return 'Отпечатване / ' . static::getVerbal($rec, 'createdOn');
+                return tr('Отпечатване|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_EXPORT:
-                return 'Експортиране / ' . static::getVerbal($rec, 'createdOn');
+                return tr('Експортиране|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_OPEN:
                 if ($deep && !empty($rec->parentId)) {
                     $parentRec = static::fetch($rec->parentId);
@@ -2239,7 +2242,7 @@ class doclog_Documents extends core_Manager
                     $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
                     $doc = doc_Containers::getDocument($rec->containerId);
                     $docRow = $doc->getDocumentRow();
-                    $res = 'Показване на ' . ht::createLink($docRow->title, $linkArr) . ' / ' . static::getVerbal($rec, 'createdOn');
+                    $res = tr('Показване на|* ') . ht::createLink($docRow->title, $linkArr) . ' / ' . static::getVerbal($rec, 'createdOn');
                 }
                 return $res;
             default:
@@ -2561,7 +2564,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Използване';
+        $data->TabCaption = tr('Използване');
         
         // Създаваме странициране
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
