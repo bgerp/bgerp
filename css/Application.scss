@@ -718,6 +718,11 @@ div.productImage {
 	display: inline-block;
 }
 
+.product-component-list td{
+	border-left: none !important;
+	border-right: none !important;
+}
+
 .product-component-list .componentTitle{
 	font-weight: bold;
 	

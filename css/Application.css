@@ -632,6 +632,10 @@ div.productImage {
   margin: 0 10px 0 5px;
   display: inline-block; }
 
+.product-component-list td {
+  border-left: none !important;
+  border-right: none !important; }
+
 .product-component-list .componentTitle {
   font-weight: bold; }
 
