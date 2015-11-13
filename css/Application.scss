@@ -4265,6 +4265,9 @@ body.narrow {
     .no-print {
         display: none;
     }
+    .row-negative {
+    	color: #000;
+    }
 }
 
 .narrow .external{
@@ -4452,6 +4455,9 @@ body.narrow {
     }
     .richtext a {
        text-decoration: underline;
+    }
+    .row-negative {
+    	color: #000;
     }
 }
 

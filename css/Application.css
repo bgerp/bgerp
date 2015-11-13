@@ -3890,6 +3890,8 @@ only screen and (max-width: 320px) {
     display: table !important; }
   .external .no-print {
     display: none; }
+  .external .row-negative {
+    color: black; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -4075,7 +4077,10 @@ only screen and (max-width: 320px) {
     vertical-align: top; }
 
   .richtext a {
-    text-decoration: underline; } }
+    text-decoration: underline; }
+
+  .row-negative {
+    color: black; } }
 
   .printing .specialLink {
     font-weight: bold; }
