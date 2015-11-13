@@ -1313,6 +1313,10 @@ class cat_Products extends embed_Manager {
     public static function getLastActiveBom($id, $type = NULL)
     {
     	$rec = self::fetchRec($id);
+    	
+    	// Ако артикула не е производим не търсим рецепта
+    	if($rec->canManifacture == 'no') return FALSE;
+    	
     	$cond = "#productId = {$rec->id} AND #state = 'active'";
     	
     	if(isset($type)){

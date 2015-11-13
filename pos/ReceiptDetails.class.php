@@ -265,9 +265,18 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да е подадено валидно количество
     	$quantityId = $this->getFieldType('quantity')->fromVerbal($quantityId);
-    	if(!$quantityId){
+    	
+    	if($quantityId === FALSE){
     		core_Statuses::newStatus(tr('|Не е въведено валидно количество|*!'), 'error');
     		return $this->returnError($rec->receiptId);
+    	}
+    	
+    	// Ако е въведено '0' за количество изтриваме реда
+    	if($quantityId === (double)0){
+    		$this->delete($recId);
+    		core_Statuses::newStatus(tr('|Успешно изтрихте артикула|*!'));
+    		
+    		return $this->returnResponse($rec->receiptId);
     	}
     	
     	// Преизчисляваме сумата

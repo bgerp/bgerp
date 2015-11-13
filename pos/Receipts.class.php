@@ -466,7 +466,7 @@ class pos_Receipts extends core_Master {
 		
 		// Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
 		if($action == 'transfer' && isset($rec)) {
-			if(empty($rec->id) || $rec->total == 0 || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
+			if(empty($rec->id) || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
 				$res = 'no_one';
 			}
 		}
