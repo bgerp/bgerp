@@ -109,13 +109,13 @@ class doclog_Documents extends core_Manager
     /**
      * Екшъна за изпращане
      */
-    const ACTION_SEND    = 'send';
+    const ACTION_SEND = 'send';
     
     
     /**
      * Екшъна за връщане
      */
-    const ACTION_RETURN  = '_returned';
+    const ACTION_RETURN = '_returned';
     
     
     /**
@@ -127,13 +127,13 @@ class doclog_Documents extends core_Manager
     /**
      * Екшъна за отваряне
      */
-    const ACTION_OPEN    = 'open';
+    const ACTION_OPEN = 'open';
     
     
     /**
      * Екшъна за печатане
      */
-    const ACTION_PRINT   = 'print';
+    const ACTION_PRINT = 'print';
     
     
     /**
@@ -145,13 +145,19 @@ class doclog_Documents extends core_Manager
     /**
      * Екшъна за факс
      */
-    const ACTION_FAX     = 'fax';
+    const ACTION_FAX = 'fax';
     
     
     /**
      * Екшъна за PDF
      */
-    const ACTION_PDF     = 'pdf';
+    const ACTION_PDF = 'pdf';
+    
+    
+    /**
+     * Екшън за експортиране
+     */
+    const ACTION_EXPORT = 'export';
     
     
     /**
@@ -199,6 +205,7 @@ class doclog_Documents extends core_Manager
             self::ACTION_DISPLAY . '=разглеждане',
             self::ACTION_FAX     . '=факс',
             self::ACTION_PDF     . '=PDF',
+            self::ACTION_EXPORT     . '=експорт',
             self::ACTION_DOWNLOAD . '=сваляне',
             self::ACTION_CHANGE . '=промяна',
             self::ACTION_FORWARD . '=препращане',
@@ -504,7 +511,7 @@ class doclog_Documents extends core_Manager
         $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_PRINT));
         
         // Екшъните
-        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF);
+        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF, static::ACTION_EXPORT);
         
         // Вземаме записите
         $recs = static::getRecs($cid, $actionArr, NULL, $data->pager);
@@ -2083,6 +2090,7 @@ class doclog_Documents extends core_Manager
                 static::ACTION_USED => array('използване', 'използвания'),
                 static::ACTION_FAX => array('факс', 'факс'),
                 static::ACTION_PDF => array('pdf', 'pdf'),
+                static::ACTION_EXPORT => array('експорт', 'експорта'),
             );
             
             $wordingsTitle = $wordings;
@@ -2101,6 +2109,7 @@ class doclog_Documents extends core_Manager
                     static::ACTION_USED => array('изп', 'изп'),
                     static::ACTION_FAX => array('факс', 'факс'),
                     static::ACTION_PDF => array('pdf', 'pdf'),
+                    static::ACTION_EXPORT => array('експ', 'експ'),
                 );
             }
         }
@@ -2113,6 +2122,7 @@ class doclog_Documents extends core_Manager
                 static::ACTION_RETURN  => static::ACTION_SEND,
                 static::ACTION_PRINT   => static::ACTION_PRINT,
                 static::ACTION_PDF     => static::ACTION_PRINT,
+                static::ACTION_EXPORT     => static::ACTION_PRINT,
                 static::ACTION_OPEN    => static::ACTION_OPEN,
                 static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
                 static::ACTION_CHANGE    => static::ACTION_CHANGE,
@@ -2219,6 +2229,8 @@ class doclog_Documents extends core_Manager
                 return 'Имейл до ' . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
             case static::ACTION_PRINT:
                 return 'Отпечатване / ' . static::getVerbal($rec, 'createdOn');
+            case static::ACTION_EXPORT:
+                return 'Експортиране / ' . static::getVerbal($rec, 'createdOn');
             case static::ACTION_OPEN:
                 if ($deep && !empty($rec->parentId)) {
                     $parentRec = static::fetch($rec->parentId);
@@ -2420,7 +2432,7 @@ class doclog_Documents extends core_Manager
             
             // Трябва да има един такъв екшън
             while ($rec = $query->fetch()) {
-                if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_USED))) {
+                if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_EXPORT, self::ACTION_USED))) {
                     
                     return $rec;
                 }
