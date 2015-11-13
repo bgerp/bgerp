@@ -2045,6 +2045,9 @@ ul.history {
 		&.act b {
             background-color: #aaa;
         }
+        &.export b {
+			background-color: #37f;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
