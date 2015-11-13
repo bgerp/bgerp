@@ -697,7 +697,10 @@ div.productImage {
 	    font-size: 0.9em;
 	    color: #222;
 	}
-	.productImage a.fancybox img{
+}
+
+.products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
+	a.fancybox img{
 		max-width: 120px;
 	    max-height: 60px;
 	    width: auto;
