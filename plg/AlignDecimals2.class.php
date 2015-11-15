@@ -57,8 +57,10 @@ class plg_AlignDecimals2 extends core_Plugin
 	                );
 					$Type->params['decimals'] = $optDecimals;
 					
-					
+					// Вербализираме числово само ако наистина е число
+					if(is_numeric($rec->$fName)){
 						$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
+					}
 				}
 			}
 		}

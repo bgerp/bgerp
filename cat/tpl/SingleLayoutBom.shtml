@@ -1,6 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
     <div style='margin-top:5px'><span class='quiet'>|Вид|*</span>: [#type#]</div>
+    <div style='margin-top:5px'><span class='quiet'>|За|*</span>: [#quantity#]</div>
     <!--ET_BEGIN primeCost-->
     	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#primeCost#]</div>
     <!--ET_END primeCost-->

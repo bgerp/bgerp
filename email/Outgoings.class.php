@@ -124,7 +124,7 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, doc_LikesPlg';
     
     
     /**
@@ -2082,7 +2082,7 @@ class email_Outgoings extends core_Master
             $tpl = 'email/tpl/SingleLayoutOutgoings.shtml';
         }
         
-        $tpl = new ET(tr('|*' . getFileContent($tpl)));
+        $tpl = getTplFromFile($tpl);
         
         if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();

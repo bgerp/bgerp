@@ -256,6 +256,12 @@ class cat_Products extends embed_Manager {
 	protected static $productInfos = array();
 	
 	
+	/**
+	 * Масив със създадените артикули
+	 */
+	protected $createdProducts = array();
+	
+	
     /**
      * Описание на модела
      */
@@ -845,6 +851,15 @@ class cat_Products extends embed_Manager {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
         }
+        
+        // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
+        if(count($mvc->createdProducts)){
+        	foreach ($mvc->createdProducts as $rec) {
+        		if($rec->canManifacture == 'yes'){
+        			static::createDefaultBom($rec);
+        		}
+        	}
+        }
     }
     
     
@@ -1298,6 +1313,10 @@ class cat_Products extends embed_Manager {
     public static function getLastActiveBom($id, $type = NULL)
     {
     	$rec = self::fetchRec($id);
+    	
+    	// Ако артикула не е производим не търсим рецепта
+    	if($rec->canManifacture == 'no') return FALSE;
+    	
     	$cond = "#productId = {$rec->id} AND #state = 'active'";
     	
     	if(isset($type)){
@@ -1894,14 +1913,18 @@ class cat_Products extends embed_Manager {
     			
     			// Ако показваме описанието, показваме го
     			if($dRec->type == 'input'){
-    				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    				$obj->leveld = $obj->level;
+    				$description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    				if(strlen(trim($description))){
+    					$obj->description = $description;
+    					$obj->leveld = $obj->level;
+    				}
+    				//bp($obj->description->getContent());
+    				
     			}
 
     			$res[$obj->code] = $obj;
     			
     			if($dRec->type == 'input'){
-    				$obj->levelc = $obj->level;
     				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
     			}
     		}
@@ -1917,7 +1940,7 @@ class cat_Products extends embed_Manager {
      * @param int $id - ид на артикул
      * @return void;
      */
-    public static function createDefaultBom($id)
+    private static function createDefaultBom($id)
     {
     	$rec = static::fetchRec($id);
     	
@@ -1943,9 +1966,6 @@ class cat_Products extends embed_Manager {
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	// Ако артикула е производим, опитваме се да му създадем дефолтна рецепта
-    	if($rec->canManifacture == 'yes'){
-    		static::createDefaultBom($rec);
-    	}
+    	$mvc->createdProducts[] = $rec;
     }
 }

@@ -54,7 +54,7 @@ class bgerp_plg_Export extends core_Plugin
     		$nQuery = clone $data->query;
     		$mvc->invoke('AfterPrepareExportQuery', array($nQuery));
     		$recs = $nQuery->fetchAll();
-    	
+    	    
     		$userId = core_Users::getCurrent();
     		core_Cache::remove($mvc->className, "exportRecs{$userId}");
     		core_Cache::set($mvc->className, "exportRecs{$userId}", $recs, 20);
@@ -145,7 +145,7 @@ class bgerp_plg_Export extends core_Plugin
                 }
                 
                 $name = $Driver->getExportedFileName();
-               
+                
                 // Записваме файла в системата
                 $fh = fileman::absorbStr($content, 'exportCsv', $name);
                 	

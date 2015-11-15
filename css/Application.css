@@ -615,6 +615,15 @@ div.productImage {
     font-size: 0.9em;
     color: #222222; }
 
+  .products-table a.fancybox img,
+  .jobTable a.fancybox img,
+  .general-product-description a.fancybox img,
+  .sales_SalesDetails .productImage a.fancybox img {
+    max-width: 120px;
+    max-height: 60px;
+    width: auto;
+    height: auto; }
+
 .component-title {
   padding: 5px 0;
   font-style: italic; }
@@ -622,6 +631,10 @@ div.productImage {
 .componentCode {
   margin: 0 10px 0 5px;
   display: inline-block; }
+
+.product-component-list td {
+  border-left: none !important;
+  border-right: none !important; }
 
 .product-component-list .componentTitle {
   font-weight: bold; }
@@ -1763,6 +1776,8 @@ ul.history {
       background-color: #ff9999; }
     ul.history .action.act b {
       background-color: #aaaaaa; }
+    ul.history .action.export b {
+      background-color: #3377ff; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {
@@ -1796,6 +1811,9 @@ div.sharing-history,
   font-size: 0.9em;
   clear: both;
   padding-right: 120px; }
+  div.sharing-history .timespan,
+  .like-log .timespan {
+    font-size: 0.9em; }
 
 div.change-log {
   border: none;
@@ -1823,7 +1841,12 @@ span.sharing-history-title,
   color: #777777; }
 
 .like-log-title {
-  background-image: none; }
+  background-image: none;
+  padding-left: 0px; }
+  .like-log-title .linkWithIcon {
+    opacity: 0.8; }
+    .like-log-title .linkWithIcon:hover {
+      opacity: 1; }
 
 .narrow span.sharing-history-title {
   font-size: 14px; }
@@ -3871,6 +3894,8 @@ only screen and (max-width: 320px) {
     display: table !important; }
   .external .no-print {
     display: none; }
+  .external .row-negative {
+    color: black; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -4056,7 +4081,10 @@ only screen and (max-width: 320px) {
     vertical-align: top; }
 
   .richtext a {
-    text-decoration: underline; } }
+    text-decoration: underline; }
+
+  .row-negative {
+    color: black; } }
 
   .printing .specialLink {
     font-weight: bold; }
@@ -4135,6 +4163,10 @@ only screen and (max-width: 320px) {
     border: 1px solid #cccccc; }
   .printing .header-state {
     display: none; }
+  .printing .like-log-title {
+    padding-left: 4px; }
+    .printing .like-log-title .linkWithIconSpan {
+      display: none; }
 
 .narrow .printing .document {
   width: 850px; }

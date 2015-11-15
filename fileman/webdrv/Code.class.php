@@ -69,9 +69,9 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         // Вземаме разширението на файла, като тип
         $type = strtolower(fileman_Files::getExt($fRec->name));
         
-        if(strlen($content) < 1000000){
-        	$content = i18n_Charset::convertToUtf8($content);
-        }
+        $content = mb_strcut($content, 0, 1000000);
+        
+    	$content = i18n_Charset::convertToUtf8($content);
         
         $content = core_Type::escape($content);
         

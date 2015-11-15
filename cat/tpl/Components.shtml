@@ -11,19 +11,13 @@
         </tr>
         
         <!--ET_BEGIN componentDescription-->
-        <tr class='level[#leveld#]' >
-	        <td colspan="4" class='product-component-description'>
+        <tr class='level[#leveld#]'>
+        	<td></td>
+	        <td colspan="3" class='product-component-description'>
 	        [#componentDescription#]
 	        </td>
         </tr>
         <!--ET_END componentDescription-->
-        <!--ET_BEGIN componentComponents-->
-        <tr class='level[#levelc#]'>
-	        <td colspan="4" class='product-component-components'>
-	        [#componentComponents#]
-	        </td>
-        </tr>
-        <!--ET_END componentComponents-->
     <!--ET_END COMP-->
     </table>
 </div>

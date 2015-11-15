@@ -239,9 +239,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			if($pRec->suffix){
 				$pRec->name .= "({$pRec->suffix})";
 			}
-			$name = plg_Search::normalizeText($pRec->name);
-			$name = str_replace(' ', '_', $name);
-			$foundParams[$name] = $pRec->paramValue;
+			$foundParams[$pRec->name] = $pRec->paramValue;
 		}
 		
 		return $foundParams;
@@ -294,11 +292,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$tpl->append($paramTpl, 'PARAMS');
 		}
 		
-		if($data->isSingle !== TRUE){
-			$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-			
-			$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-			$wrapTpl->append($tpl, 'paramBody');
+		if($data->isSingle !== TRUE){			
+			$wrapTpl = new ET("<!--ET_BEGIN paramBody--><div class='general-product-description'>[#paramBody#][#COMPONENTS#]</div><!--ET_END paramBody-->");
+			if(strlen(trim($tpl->getContent()))){
+				$wrapTpl->append($tpl, 'paramBody');
+			}
 			
 			return $wrapTpl;
 		}

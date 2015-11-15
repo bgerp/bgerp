@@ -693,9 +693,18 @@ div.productImage {
 
 .detail-info .general-product-description{
 	.richtext, .groupList{
-	margin: 0 0 2px;
-    font-size: 0.9em;
-    color: #222;
+		margin: 0 0 2px;
+	    font-size: 0.9em;
+	    color: #222;
+	}
+}
+
+.products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
+	a.fancybox img{
+		max-width: 120px;
+	    max-height: 60px;
+	    width: auto;
+	    height: auto;
 	}
 }
 
@@ -707,6 +716,11 @@ div.productImage {
 .componentCode {
 	margin: 0 10px 0 5px;
 	display: inline-block;
+}
+
+.product-component-list td{
+	border-left: none !important;
+	border-right: none !important;
 }
 
 .product-component-list .componentTitle{
@@ -2036,6 +2050,9 @@ ul.history {
 		&.act b {
             background-color: #aaa;
         }
+        &.export b {
+			background-color: #37f;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
@@ -2076,6 +2093,9 @@ div.sharing-history, .like-log {
 	font-size: 0.9em;
 	clear: both;
 	padding-right: 120px;
+	.timespan {
+		font-size: 0.9em;
+	}
 }
 
 div.change-log {
@@ -2091,7 +2111,7 @@ div.change-log {
 	clear: both;
 }
 
-span.sharing-history-title,   .like-log-title {
+span.sharing-history-title, .like-log-title {
 	padding: 2px 5px;
 	padding-left: 23px;
 	background: $gray1 url(../img/share.png) no-repeat 3px center;
@@ -2102,10 +2122,18 @@ span.sharing-history-title,   .like-log-title {
 	border: 1px solid #ccc;
 	border-top: none;
 	color: #777;
+	
 }
 
 .like-log-title {
 	background-image: none;
+	padding-left: 0px;
+	.linkWithIcon {
+		opacity: 0.8;
+		&:hover {
+			opacity: 1;
+		}
+	}
 }
 
 .narrow span.sharing-history-title {
@@ -4242,6 +4270,9 @@ body.narrow {
     .no-print {
         display: none;
     }
+    .row-negative {
+    	color: #000;
+    }
 }
 
 .narrow .external{
@@ -4430,6 +4461,9 @@ body.narrow {
     .richtext a {
        text-decoration: underline;
     }
+    .row-negative {
+    	color: #000;
+    }
 }
 
 .printing {
@@ -4535,6 +4569,12 @@ body.narrow {
     .header-state {
         display: none;
     }
+    .like-log-title {
+	    padding-left: 4px;
+	    .linkWithIconSpan {
+	    	display: none;
+	    }
+	}
 }
 
 .narrow .printing .document{
