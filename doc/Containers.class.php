@@ -506,7 +506,7 @@ class doc_Containers extends core_Manager
         // 2. Промяна на състоянието на документа (активиране, оттегляне, възстановяване)
         // 3. Промяна на папката на документа
         
-        $fields = 'state,folderId,threadId,containerId,originId,modifiedOn,modifiedBy';
+        $fields = 'state,folderId,threadId,containerId,originId';
         
         $docRec = $docMvc->fetch($rec->docId);
         

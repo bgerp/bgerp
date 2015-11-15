@@ -388,14 +388,8 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Задаваме стойностите на полетата за последно модифициране
-        if($rec->id || !isset($rec->modifiedBy)) {
-            $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
-        }
-
-        if($rec->id || !$rec->modifiedOn) {
-            $rec->modifiedOn = dt::verbal2Mysql();
-        }
-
+        $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
+        $rec->modifiedOn = dt::verbal2Mysql();
     }
     
     
