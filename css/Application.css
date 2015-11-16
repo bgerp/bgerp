@@ -632,6 +632,10 @@ div.productImage {
   margin: 0 10px 0 5px;
   display: inline-block; }
 
+.product-component-list td {
+  border-left: none !important;
+  border-right: none !important; }
+
 .product-component-list .componentTitle {
   font-weight: bold; }
 
@@ -1772,6 +1776,8 @@ ul.history {
       background-color: #ff9999; }
     ul.history .action.act b {
       background-color: #aaaaaa; }
+    ul.history .action.export b {
+      background-color: #3377ff; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {
@@ -3888,6 +3894,8 @@ only screen and (max-width: 320px) {
     display: table !important; }
   .external .no-print {
     display: none; }
+  .external .row-negative {
+    color: black; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -4073,7 +4081,10 @@ only screen and (max-width: 320px) {
     vertical-align: top; }
 
   .richtext a {
-    text-decoration: underline; } }
+    text-decoration: underline; }
+
+  .row-negative {
+    color: black; } }
 
   .printing .specialLink {
     font-weight: bold; }

@@ -293,8 +293,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		if($data->isSingle !== TRUE){			
-			$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-			$wrapTpl->append($tpl, 'paramBody');
+			$wrapTpl = new ET("<!--ET_BEGIN paramBody--><div class='general-product-description'>[#paramBody#][#COMPONENTS#]</div><!--ET_END paramBody-->");
+			if(strlen(trim($tpl->getContent()))){
+				$wrapTpl->append($tpl, 'paramBody');
+			}
 			
 			return $wrapTpl;
 		}

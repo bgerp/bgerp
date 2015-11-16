@@ -217,7 +217,7 @@ class price_GroupOfProducts extends core_Detail
         		if(is_object($product)) continue;
         		 
         		if($groupId = self::getGroup($id, $now)){
-        			$groupTitle = price_Groups::getVerbal($groupId, 'title');
+        			$groupTitle = price_Groups::fetchField($groupId, 'title');
         			$product .=  " -- " . tr('група') . " {$groupTitle}";
         		}
         	}

@@ -629,7 +629,7 @@ class type_Richtext extends type_Blob
      */
     function _catchHtml($match)
     {
-        if(Mode::is('text', 'plain')) {
+        if(Mode::is('text', 'plain') && !Mode::is('htmlEntity', 'none')) {
             $res = html2text_Converter::toRichText($match[1]);
         } else {
             $place = $this->getPlace();

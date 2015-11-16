@@ -58,6 +58,9 @@ class bgerp_plg_CsvExport extends core_Manager {
     			$selected[$name] = $name;
     		}
     	}
+    	
+    	$sets[] = "ExternalLink=Линк";
+    	
     	$selectedFields = cls::get('type_Set')->fromVerbal($selected);
     	
     	$sets = implode(',', $sets);
@@ -101,10 +104,42 @@ class bgerp_plg_CsvExport extends core_Manager {
     		redirect(array($this, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
     	}
     	
+    	$filedsArr = arr::make($filter->fields, TRUE);
+    	
+    	if ($filedsArr['ExternalLink']) {
+    	    $this->prepareExternalLink($recs);
+    	}
+    	
     	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure, $filter->fields);
     	$content = iconv('utf-8', $filter->encoding, $content);
     	
     	return $content;
+    }
+    
+    
+    /**
+     * Подготвя линковете за виждане от външната част
+     * 
+     * @param array $recs
+     */
+    protected function prepareExternalLink(&$recs)
+    {
+        foreach ((array)$recs as $id => $rec) {
+            if ($this->mvc->haveRightFor('single', $id) && $rec->containerId) {
+                $mid = doclog_Documents::saveAction(
+                    array(
+                        'action'      => doclog_Documents::ACTION_EXPORT, 
+                        'containerId' => $rec->containerId,
+                        'threadId' => $rec->threadId,
+                    )
+                );
+                
+                // Флъшваме екшъна за да се запише в модела
+                doclog_Documents::flushActions();
+                
+                $recs[$id]->ExternalLink = bgerp_plg_Blank::getUrlForShow($rec->containerId, $mid);
+            }
+        }
     }
     
     

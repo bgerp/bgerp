@@ -718,6 +718,11 @@ div.productImage {
 	display: inline-block;
 }
 
+.product-component-list td{
+	border-left: none !important;
+	border-right: none !important;
+}
+
 .product-component-list .componentTitle{
 	font-weight: bold;
 	
@@ -2045,6 +2050,9 @@ ul.history {
 		&.act b {
             background-color: #aaa;
         }
+        &.export b {
+			background-color: #37f;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
@@ -4262,6 +4270,9 @@ body.narrow {
     .no-print {
         display: none;
     }
+    .row-negative {
+    	color: #000;
+    }
 }
 
 .narrow .external{
@@ -4449,6 +4460,9 @@ body.narrow {
     }
     .richtext a {
        text-decoration: underline;
+    }
+    .row-negative {
+    	color: #000;
     }
 }
 

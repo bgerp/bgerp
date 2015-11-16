@@ -978,10 +978,8 @@ class email_Incomings extends core_Master
     protected static function calcAllToAndCc($rec)
     {
         // Ако няма хедъри
-        if (!$rec->headers) {
-            
-            expect($rec->emlFile);
-            
+        if (!$rec->headers && $rec->emlFile) {
+                        
             // Манипулатора на eml файла
             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
             
@@ -1311,7 +1309,7 @@ class email_Incomings extends core_Master
      */
     static function on_AfterDelete($mvc, &$res, $query)
     {
-        foreach ($query->getDeletedRecs() as $rec) {
+        foreach ($query->getDeletedRecs() as $rec) { bp($rec);
             $mvc->removeRouterRules($rec);
         }
     }
