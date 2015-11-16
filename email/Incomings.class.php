@@ -699,13 +699,26 @@ class email_Incomings extends core_Master
             
             // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
             $row->allTo = self::getVerbalEmail($rec->allTo);
-            if (!self::checkNamesInEmails($rec->allTo)) {
-                $row->allTo = self::addErrToEmailStr($row->allTo, $errEmailInNameStr, 'error');
+            
+            if ($rec->allTo) {
+                if (!self::checkNamesInEmails($rec->allTo)) {
+                    $row->allTo = self::addErrToEmailStr($row->allTo, $errEmailInNameStr, 'error');
+                }
+            
+                if ($clostStr = $mvc->getClosestEmail($rec->allTo)) {
+                    $row->allTo .= $clostStr;
+                }
             }
             
             $row->allCc = self::getVerbalEmail($rec->allCc);
-            if (!self::checkNamesInEmails($rec->allCc)) {
-                $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
+            if ($rec->allCc) {
+                if (!self::checkNamesInEmails($rec->allCc)) {
+                    $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
+                }
+                
+                if ($clostStr = $mvc->getClosestEmail($rec->allCc)) {
+                    $row->allCc .= $clostStr;
+                }
             }
             
             if (trim($rec->fromEml)) {
@@ -746,6 +759,37 @@ class email_Incomings extends core_Master
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml .= ' (' . trim($row->fromName) . ')';
         }
+    }
+    
+    
+    /**
+     * Връща стринг с най-близкия имейл, на който отговаря
+     * 
+     * @param array $emailsArr
+     * 
+     * @return string
+     */
+    protected static function getClosestEmail($emailsArr)
+    {
+        $res = '';
+        
+        foreach ((array)$emailsArr as $allCcArr) {
+                    
+            $email = trim($allCcArr['address']);
+            $email = strtolower($email);
+            
+            $allEmailToArr[$email] = $email;
+        }    
+        
+        $closestEmail = email_Inboxes::getClosest($allEmailToArr);
+        
+        if ($closestEmail) {
+            if (!$allEmailToArr[$closestEmail]) {
+                $res = ' (' . tr('до') . ' ' . type_Varchar::escape($closestEmail) . ')';
+            }
+        }
+        
+        return $res;
     }
     
     
