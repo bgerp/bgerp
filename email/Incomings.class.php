@@ -1309,7 +1309,7 @@ class email_Incomings extends core_Master
      */
     static function on_AfterDelete($mvc, &$res, $query)
     {
-        foreach ($query->getDeletedRecs() as $rec) { bp($rec);
+        foreach ($query->getDeletedRecs() as $rec) {
             $mvc->removeRouterRules($rec);
         }
     }
