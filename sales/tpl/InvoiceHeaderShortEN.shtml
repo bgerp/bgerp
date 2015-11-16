@@ -99,19 +99,19 @@
                                 <tr>
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
+                                        <div><span class='quiet'>Reason for VAT:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
-                                        <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <span class='quiet'>Taxable event:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <!--ET_END vatDate-->
                                         
                                         <!--ET_BEGIN baseAmount-->
                                         <div>
-                                        	<span class='quiet'>Данъчна основа:</span> [#baseAmount#] <span class='cCode'>[#baseCurrencyId#]</span>
+                                        	<span class='quiet'>Tax base:</span> [#baseAmount#] <span class='cCode'>[#baseCurrencyId#]</span>
                                         </div>
                                         <!--ET_END baseAmount-->
                                         <!--ET_BEGIN rate--> 
-                                        <div><span class='quiet'>Курс:</span>  [#rate#]</div>
+                                        <div><span class='quiet'>Rate:</span>  [#rate#]</div>
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         
