@@ -837,7 +837,7 @@ class core_String
     }
 
 
-  /**
+   /**
     * Връща символ в UTF-8 енкодинг от уникод номера му
     *
     * @param int $u
@@ -846,5 +846,74 @@ class core_String
     public static function unichr($u) 
     {
         return mb_convert_encoding('&#' . intval($u) . ';', 'UTF-8', 'HTML-ENTITIES');
+    }
+    
+    
+    
+    /**
+     * Връща най-доброто съвпадение за дума от масива
+     * 
+     * @param array $wordsArr
+     * @param strng $string
+     * @param NULL|double $percent
+     * @param boolean $ci
+     * 
+     * @return NULL|strng
+     */
+    public static function getClosestWord($wordsArr, $string, &$percent = NULL, $ci = FALSE)
+    {
+        $wordsArr = arr::make($wordsArr);
+        
+        // Ако в масива има търсения стринг
+        if ($wordsArr[$string]) {
+            $percent = 100;
+            
+            return $string;
+        }
+        
+        $shortestL = NULL;
+        $shortestW = '';
+        if ($ci) {
+            $string = mb_strtolower($string);
+        }
+        $strLen = mb_strlen($string);
+        
+        foreach ((array)$wordsArr as $word) {
+            
+            $oWord = $word;
+            
+            if ($ci) {
+                $word = mb_strtolower($word);
+            }
+            
+            // Ако стринга съвпада с търсения
+            if ($word == $string) {
+                
+                $shortestW = $oWord;
+                $percent = 100;
+                
+                break;
+            }
+            
+            // Търсим най-доборто съвпадение
+            $l = levenshtein($word, $string);
+            
+            if ((is_null($shortestL)) || $l <= $shortestL) {
+                
+                $nPercent = (1 - ($l / max($strLen, mb_strlen($word)))) * 100;
+                
+                if (!$percent || $percent <= $nPercent) {
+                    $percent = $nPercent;
+                    $shortestL = $l;
+                    $shortestW = $oWord;
+                }
+            }
+        }
+        
+        if ($percent) {
+            $percent = round($percent, 2);
+            
+            return $shortestW;
+        }
     }
 }
