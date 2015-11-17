@@ -1019,11 +1019,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$bar = array(
     			'legendTitle' => $this->getReportTitle(),
     			'labels' => $labels,
-    			'values' => [
-    					
+    			'values' => array(
     					'2014' => $value2,
     					'2015' => $value1
-    			]
+    			)
         );
 
     	$chartData = array();
