@@ -1782,7 +1782,7 @@ class cat_Products extends embed_Manager {
     	
     	if($Driver){
     		$tpl = $Driver->renderProductDescription($data);
-    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$componentTpl = cat_Products::renderComponents($data->components, FALSE);
     		$tpl->append($componentTpl, 'COMPONENTS');
     	} else {
     		$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
@@ -1798,7 +1798,7 @@ class cat_Products extends embed_Manager {
      * @param array $components - компонентите на артикула
      * @return core_ET - шаблона на компонентите
      */
-    public static function renderComponents($components, $makeLinks = TRUE, $showDescription = TRUE)
+    public static function renderComponents($components, $makeLinks = TRUE)
     {
     	if(!count($components)) return;
     	
@@ -1820,11 +1820,8 @@ class cat_Products extends embed_Manager {
     					 'componentStage'       => $obj->stageName,
     					 'componentQuantity'    => $obj->quantity,
     					 'level'				=> $obj->level,
+    				     'leveld'				=> $obj->leveld,
     					 'componentMeasureId'   => $obj->measureId);
-    		
-    		if($showDescription === FALSE){
-    			unset($arr['componentDescription']);
-    		}
     		
     		$bTpl->placeArray($arr);
     		$bTpl->removeBlocks();
@@ -1842,7 +1839,7 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'public');
+    	cat_Products::prepareComponents($data->rec->id, $data->components);
     }
     
     
@@ -1867,7 +1864,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
+    public static function prepareComponents($productId, &$res = array())
     {
     	// Имали последна активна търговска рецепта за артикула?
     	$rec = cat_Products::getLastActiveBom($productId, 'sales');
@@ -1884,51 +1881,37 @@ class cat_Products extends embed_Manager {
     	 
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
-    	$level++;
-    	
-    	// За всеки
     	if(is_array($details)){
     		foreach ($details as $dRec){
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
-    			$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
-    			if($code !== ''){
-    				$obj->code = $code . "." . $obj->code;
-    			}
+    			$row = cat_BomDetails::recToVerbal($dRec);
+    			$obj->code = $row->position;
     			
     			$codeCount = strlen($obj->code);
     			$length = $codeCount - strlen(".{$dRec->position}");
     			$obj->parent = substr($obj->code, 0, $length);
-    			
+    			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
-    			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
+    			$obj->measureId = $row->packagingId;
     			$obj->quantity = $dRec->rowQuantity;
-    			$obj->type = $dRec->type;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
-    			
+    			 
     			if($obj->parent){
     				$obj->quantity *= $res[$obj->parent]->quantity;
     			}
     			
-    			// Ако показваме описанието, показваме го
-    			if($dRec->type == 'input'){
-    				$description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    				if(strlen(trim($description))){
-    					$obj->description = $description;
-    					$obj->leveld = $obj->level;
-    				}
-    				//bp($obj->description->getContent());
-    				
+    			if($dRec->description){
+    				$obj->description = $row->description;
+    				$obj->leveld = $obj->level;
     			}
-
     			$res[$obj->code] = $obj;
     			
-    			if($dRec->type == 'input'){
-    				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
-    			}
     		}
     	}
+    	
+    	return $res;
     }
     
     
