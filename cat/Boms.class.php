@@ -827,8 +827,8 @@ class cat_Boms extends core_Master
     	$data->Tab = 'top';
     	 
     	// Проверяваме можем ли да добавяме нови рецепти
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'type' => 'sales', 'originId' => $data->masterData->rec->containerId))){
-    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))){
+    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => TRUE);
     	}
     	 
     	if(!isset($masterInfo->meta['canManifacture'])){
