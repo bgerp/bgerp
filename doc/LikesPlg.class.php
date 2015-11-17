@@ -232,14 +232,14 @@ class doc_LikesPlg extends core_Plugin
                         $likeArrUrl = array($mvc, 'dislikeDocument', $data->rec->id);
                     }
                     
-                    $likesLink = ht::createLink('', $likeArrUrl, NULL, 'ef_icon=img/16/redheart.png, title=' . tr('Отказ от харесване'));
+                    $likesLink = ht::createLink('', $likeArrUrl, NULL, 'ef_icon=img/16/redheart.png,class=liked, title=' . tr('Отказ от харесване'));
                 } else {
                     $dislikeArrUrl = array();
                     if ($mvc->haveRightFor('like', $data->rec->id)) {
                         $dislikeArrUrl = array($mvc, 'likeDocument', $data->rec->id);
                     }
                     
-                    $likesLink = ht::createLink('', $dislikeArrUrl, NULL, 'ef_icon=img/16/grayheart.png, title=' . tr('Харесване'));
+                    $likesLink = ht::createLink('', $dislikeArrUrl, NULL, 'ef_icon=img/16/grayheart.png,class=disliked, title=' . tr('Харесване'));
                 }
                 $tpl->replace($likesLink, 'likesLink');
             }
