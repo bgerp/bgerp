@@ -74,7 +74,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,cat,techno';
+    var $canRead = 'ceo,cat,techno,sales';
     
     
     /**
@@ -86,25 +86,25 @@ class cat_BomDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,cat,techno';
+    var $canEdit = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да разгъва?
      */
-    var $canExpand = 'ceo,cat,techno';
+    var $canExpand = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да свива?
      */
-    var $canShrink = 'ceo,cat,techno';
+    var $canShrink = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,cat,techno';
+    var $canAdd = 'ceo,cat,techno,sales';
     
     
     /**
@@ -116,7 +116,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,cat';
+    var $canDelete = 'ceo,cat,sales,techno';
     
     
     /**
@@ -631,6 +631,7 @@ class cat_BomDetails extends doc_Detail
     	cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("|*{$title} |вече е етап|*");
+    	$this->Master->logInfo("Разпъване на материал", $rec->bomId);
     	
     	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
     }
@@ -652,7 +653,8 @@ class cat_BomDetails extends doc_Detail
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("Свиване на|* {$title}");
-    	 
+    	$this->Master->logInfo("Свиване на етап", $rec->bomId);
+    	
     	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
     }
     
@@ -676,43 +678,44 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-    		if($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft'){
-    			//$requiredRoles = 'no_one';
-    		}
-    	}
-    	
-    	// Можели записа да бъде разширен
-    	if(($action == 'expand' || $action == 'shrink') && isset($rec)){
-    		
-    		// Трябва рецептата да е чернова
-    		$masterState = cat_Boms::fetchField($rec->bomId, 'state');
-    		if($masterState != 'draft'){
+    	if(($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)){
+    		$masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
+    		if($masterRec->state != 'draft'){
     			$requiredRoles = 'no_one';
     		} else {
-    				 
-    			// Артикула трябва да е производим и да има активна рецепта
-    			$canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
-    			if($canManifacture != 'yes'){
-    				$requiredRoles = 'no_one';
-    			} else {
-    				$type = cat_Boms::fetchField($rec->bomId, 'type');
-    				if($type == 'production'){
-    					$aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
-    				}
-    				if(!$aBom){
-    					$aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
-    				}
-    				
-    				if(!$aBom){
+    			// Само ceo и techno могат да редактират ред от работна рецепта
+    			$firstDocument = doc_Containers::getDocument($masterRec->originId);
+    			if($firstDocument->isInstanceOf('planning_Jobs')){
+    				if(!haveRole('techno,ceo', $userId)){
     					$requiredRoles = 'no_one';
     				}
     			}
     		}
     	}
     	
-    	if($action == 'expand' && isset($rec)){
+    	// Можели записа да бъде разширен
+    	if(($action == 'expand' || $action == 'shrink') && isset($rec)){
     		
+    		// Артикула трябва да е производим и да има активна рецепта
+    		$canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
+    		if($canManifacture != 'yes'){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			$type = cat_Boms::fetchField($rec->bomId, 'type');
+    			if($type == 'production'){
+    				$aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
+    			}
+    			if(!$aBom){
+    				$aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
+    			}
+    				
+    			if(!$aBom){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	if($action == 'expand' && isset($rec)){
     		// Само материал може да се разпъва
     		if($rec->type != 'input'){
     			$requiredRoles = 'no_one';

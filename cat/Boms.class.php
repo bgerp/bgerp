@@ -149,7 +149,7 @@ class cat_Boms extends core_Master
     function description()
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
-    	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none,notNull,value=sales');
+    	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
@@ -182,6 +182,18 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	$type = Request::get('type');
+    	if(!$type) return;
+    	
+    	$mvc->singleTitle = ($type == 'sales') ? 'Търговска рецепта' : 'Работна рецепта';
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -202,23 +214,6 @@ class cat_Boms extends core_Master
     	if(empty($form->rec->id)){
     		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	$rec = &$form->rec;
-    	if($form->isSubmitted()){
-    		if(!isset($rec->quantityForPrice)){
-    			$rec->quantityForPrice = $rec->quantity;
     		}
     	}
     }
@@ -381,7 +376,10 @@ class cat_Boms extends core_Master
     	
     	if(($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)){
     		if($res != 'no_one'){
-    			if($rec->type == 'production'){
+    			
+    			// Ако рецептата е работна само techno и ceo могат да я редактират
+    			$firstDocument = doc_Containers::getDocument($rec->originId);
+    			if($firstDocument->isInstanceOf('planning_Jobs')){
     				if(!haveRole('techno,ceo', $userId)){
     					$res = 'no_one';
     				}
@@ -439,6 +437,7 @@ class cat_Boms extends core_Master
     {
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
+    	$row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
@@ -446,9 +445,13 @@ class cat_Boms extends core_Master
     		$row->quantity .= " " . $shortUom;
     	}
     	
-    	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
-    	$priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+    	if($fields['-single'] && haveRole('ceo, acc, cat, price,sales')) {
+    	    $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
 	        $rec->primeCost = 0;
+	        
+	        if(!$rec->quantityForPrice){
+	        	$row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+	        }
 	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 	        
 	        if($priceObj) {
@@ -824,7 +827,7 @@ class cat_Boms extends core_Master
     	$data->Tab = 'top';
     	 
     	// Проверяваме можем ли да добавяме нови рецепти
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'type' => 'sales'))){
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'type' => 'sales', 'originId' => $data->masterData->rec->containerId))){
     		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
     	}
     	 

@@ -290,8 +290,8 @@ class planning_Jobs extends core_Master
     	$rec = &$data->rec;
     	
     	if($rec->state != 'draft' && $rec->state != 'rejected'){
-    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'type' => 'production'))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта');
     		}
     	}
 
@@ -365,7 +365,6 @@ class planning_Jobs extends core_Master
     	
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
     	$row->quantityToProduce .=  " {$shortUom}";
-    	
     	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
