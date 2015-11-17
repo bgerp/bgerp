@@ -206,6 +206,11 @@ class cat_BomDetails extends doc_Detail
     	$metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
     	$products = cat_Products::getByProperty($metas);
     	
+    	// Ако артикула е избран, но не присъства в опциите добавяме
+    	if(isset($rec->resourceId) && empty($products[$rec->resourceId])){
+    		$products[$rec->resourceId] = cat_Products::getTitleById($rec->resourceId, FALSE);
+    	}
+    	
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
     	
