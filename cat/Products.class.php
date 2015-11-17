@@ -1271,6 +1271,7 @@ class cat_Products extends embed_Manager {
     	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
     	    }
     	    
+    	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
     	}
     	
@@ -1782,7 +1783,9 @@ class cat_Products extends embed_Manager {
     	
     	if($Driver){
     		$tpl = $Driver->renderProductDescription($data);
-    		$componentTpl = cat_Products::renderComponents($data->components, FALSE);
+    		$showLinks = ($data->documentType == 'public') ? FALSE : TRUE;
+    		
+    		$componentTpl = cat_Products::renderComponents($data->components, $showLinks);
     		$tpl->append($componentTpl, 'COMPONENTS');
     	} else {
     		$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
