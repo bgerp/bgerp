@@ -140,7 +140,7 @@
      <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
           <b>|Задачи за производство|*</b> [#ADD_BTN#]
      </div>
-     <div class="clearfix21 portal planning" style="background-color:transparent">
+     <div class="clearfix21 portal planning" style="background-color:transparent;margin-top:0px">
             [#Tasks#]
      </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
