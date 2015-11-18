@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search, plg_Modified';
     
     
     /**

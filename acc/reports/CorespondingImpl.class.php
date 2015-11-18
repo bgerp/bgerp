@@ -155,7 +155,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		$form->setField('orderField', 'input=none');
     	}
     	
-    	
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
@@ -232,6 +231,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} elseif ($this->innerForm->compare == 'year') {
     		$data->toOld = date('Y-m-d',strtotime("-12 months", $from));
     		$data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
+    		bp($data->toOld, $data->fromOld , $from, $to);
     	}
 
     	$data->groupBy = array();
@@ -336,7 +336,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      * След подготовката на показването на информацията
      */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
-    {
+    {	
     	// Ако има намерени записи
     	if(count($data->recs)){
     		
@@ -347,8 +347,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		$data->Pager->itemsCount = count($data->recs);
     		
     		// Ако има избрано поле за сортиране, сортираме по него
-    		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
-    		
+    		//arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+    	
     		// За всеки запис
     		foreach ($data->recs as &$rec){
     			
@@ -397,13 +397,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    		}
 	    	}
     	}
-    	
+
     	if(count($cntItem) <= 1 && count($data->recs) >= 2 ) {
     	
 	    	// toolbar
 	    	$btns = $this->generateBtns($data);
-	    
-	    	if ($this->innerForm->compare == 'yes') {
+	
+	    	if ($this->innerForm->compare == 'year' || $this->innerForm->compare == 'old') {
 		        $tpl->replace($btns->buttonList, 'buttonList');
 		        $tpl->replace($btns->buttonBar, 'buttonBar');
 	    	} else {
@@ -657,34 +657,39 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
     		}
     	}
-    
+    	
     	if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
     		
-    		$fromOldVerbal = dt::mysql2verbal($data->fromOld, "d.m.Y");
-    		$toOldVerbal = dt::mysql2verbal($data->toOld, "d.m.Y");
-    		
-    		$prefixOld = (string) $fromOldVerbal . " - " . $toOldVerbal;
-            	
-            $fieldsCompare = arr::make("debitQuantityCompare={$prefixOld}->Дебит->К-во,
-    				                    debitAmountCompare={$prefixOld}->Дебит->Сума,
-    				                    creditQuantityCompare={$prefixOld}->Кредит->К-во,
-    				                    creditAmountCompare={$prefixOld}->Кредит->Сума,
-    				                    blQuantityCompare={$prefixOld}->Остатък->К-во,
-    				                    blAmountCompare={$prefixOld}->Остатък->Сума,
-    				                    deltaCompare={$prefixOld}->Дял", TRUE);
+    		if ($data->fromOld != NULL &&  $data->toOld != NULL) {
 
+    			$fromOldVerbal = dt::mysql2verbal($data->fromOld, "d.m.Y");
+    			$toOldVerbal = dt::mysql2verbal($data->toOld, "d.m.Y");
     		
-    		$fields = $fields + $fieldsCompare;
     		
-    		if($this->innerForm->side){ 
-    			if($this->innerForm->side == 'debit'){
-    				unset($fields['creditQuantityCompare'], $fields['creditAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
-    			} elseif($this->innerForm->side == 'credit'){
-    				unset($fields['debitQuantityCompare'], $fields['debitAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
-    			}
-    		}
+	    		
+	    		$prefixOld = (string) $fromOldVerbal . " - " . $toOldVerbal;
+
+	            $fieldsCompare = arr::make("debitQuantityCompare={$prefixOld}->Дебит->К-во,
+	    				                    debitAmountCompare={$prefixOld}->Дебит->Сума,
+	    				                    creditQuantityCompare={$prefixOld}->Кредит->К-во,
+	    				                    creditAmountCompare={$prefixOld}->Кредит->Сума,
+	    				                    blQuantityCompare={$prefixOld}->Остатък->К-во,
+	    				                    blAmountCompare={$prefixOld}->Остатък->Сума,
+	    				                    deltaCompare={$prefixOld}->Дял", TRUE);
+	
+	    		
+	    		$fields = $fields + $fieldsCompare;
+	    		
+	    		if($this->innerForm->side){ 
+	    			if($this->innerForm->side == 'debit'){
+	    				unset($fields['creditQuantityCompare'], $fields['creditAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
+	    			} elseif($this->innerForm->side == 'credit'){
+	    				unset($fields['debitQuantityCompare'], $fields['debitAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
+	    			}
+	    		}
+    		} 
     	}
-    	//bp($fields);
+
     	$data->listFields = $fields;
     }
 
@@ -935,51 +940,75 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     protected function generateChartData ($data)
     {
-    	arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
+    	//arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
      
     	$dArr = array();
-    	foreach ($data->recs as $id => $rec) { 
 
-    		$balance += abs($rec->{$this->innerForm->orderField});
-    		
-    		// правим масив с всички пера и стойност 
-    		// сумирано полето което е избрали във формата
-    		if(!array_key_exists($id, $dArr)){ 
-    		
-    			$dArr[$id] =
-    			(object) array ('item1' => $rec->item1,
-    					'item2' => $rec->item2,
-    					'item3' => $rec->item3,
-    					'item4' => $rec->item4,
-    					'item5' => $rec->item5,
-    					'item6' => $rec->item6,
-    					'value' => abs($rec->{$this->innerForm->orderField})
-    		
-    			);
-    			// в противен случай го ъпдейтваме
-    		} else {
-    			 
-    			$obj = &$dArr[$id];
-    
-    			$obj->item1 = $rec->item1;
-    			$obj->item2 = $rec->item2;
-    			$obj->item3 = $rec->item3;
-    			$obj->item4 = $rec->item4;
-    			$obj->item5 = $rec->item5;
-    			$obj->item6 = $rec->item6;
-    			$obj->value = abs($rec->{$this->innerForm->orderField});
-    		}
+    	foreach ($data->recs as $id => $rec) {
+
+    		if ($rec->item1 || $rec->item2 || $rec->item3 || $rec->item4 || $rec->item5 || $rec->item6) { 
+	    		// правим масив с всички пера и стойност 
+	    		// сумирано полето което е избрали във формата
+	    		if(!array_key_exists($id, $dArr)){ 
+	    		
+	    			$dArr[$id] =
+	    			(object) array ('item1' => $rec->item1,
+	    					'item2' => $rec->item2,
+	    					'item3' => $rec->item3,
+	    					'item4' => $rec->item4,
+	    					'item5' => $rec->item5,
+	    					'item6' => $rec->item6,
+	    					'value' => $value
+	    		
+	    			);
+	    		// в противен случай го ъпдейтваме
+	    		} else {
+	    			 
+	    			$obj = &$dArr[$id];
+	    
+	    			$obj->item1 = $rec->item1;
+	    			$obj->item2 = $rec->item2;
+	    			$obj->item3 = $rec->item3;
+	    			$obj->item4 = $rec->item4;
+	    			$obj->item5 = $rec->item5;
+	    			$obj->item6 = $rec->item6;
+	    			$obj->value = $value;
+	    		}
+	    	} else {
+	    		if(!array_key_exists($id, $dArr)){
+	    	
+		    		$dArr[$id] =
+		    		(object) array ('valior' => $rec->valior,
+		    				'value' => $rec->sum,
+		    				'valueNew' => $rec->sumNew
+		    				 
+		    		);
+	    		} else {
+	    			$obj = &$dArr[$id];
+	    			 
+	    			$obj->valior = $rec->valior;
+
+	    			$obj->value = $rec->sum;
+	    			$obj->valueNew = $rec->sumNew;
+	    		}
+	    	}
     	}
+
+    	
+    	$value1 = array();
+    	$value2 = array();
   
-    	$arr = $this->preparePie($dArr, 12);
-    
-    	$title = '';
-    	foreach ($arr as $id => $recSort) { 
-            //$title = str::limitLen($recSort->title, 19);
-    		$title = $recSort->title;
+		foreach ($dArr as $id=>$rec){
+			
+			if ($rec->valior) { 
+				$m = date('m', strtotime($rec->valior));
+				$y = date('Y', strtotime($rec->valior));
 
-    		$info["{$title}"] = $recSort->value;
-    	}
+				$labels[] = dt::getMonth($m, 'F', 'bg');
+				$value1[] = $rec->value;
+				$value2[] = $rec->valueNew;
+			}
+		}
 
     	$pie = array (
     				'legendTitle' => $this->getReportTitle(),
@@ -988,8 +1017,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	);
     	
     	$bar = array(
+    			'legendTitle' => $this->getReportTitle(),
+    			'labels' => $labels,
+    			'values' => array(
+    					'2014' => $value2,
+    					'2015' => $value1
+    			)
         );
-    	
+
     	$chartData = array();
     	$chartData[] = (object) array('type' => 'pie', 'data' => $pie);
     	$chartData[] = (object) array('type' => 'bar', 'data' => $bar);
@@ -1015,7 +1050,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function getChartBar ($data)
     {
     	$ch = $this->generateChartData($data);
-    
+
     	$coreConf = core_Packs::getConfig('doc');
     	$chartAdapter = $coreConf->DOC_CHART_ADAPTER;
     	$chartHtml = cls::get($chartAdapter);
@@ -1039,8 +1074,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$newArr = array();
     	
     	foreach ($data as $key => $rec) {
-
-    	
     		// Вземаме всички пера като наредени н-орки
     		$title = '';
     		foreach (range(1, 6) as $i){

@@ -96,7 +96,7 @@ class support_Systems extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools, plg_Search, plg_State';
+    var $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools, plg_Search, plg_State, plg_Modified';
     
     
     /**

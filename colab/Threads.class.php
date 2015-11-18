@@ -138,7 +138,7 @@ class colab_Threads extends core_Manager
 		
 		// Вербализираме записите
 		if(count($data->recs)) {
-		    doc_Containers::prepareDocsForHide($data->recs);
+		    doc_HiddenContainers::prepareDocsForHide($data->recs);
 			foreach($data->recs as $id => $rec) {
 				$data->rows[$id] = $this->Containers->recToVerbal($rec, arr::combine($data->listFields, '-list'));
 			}

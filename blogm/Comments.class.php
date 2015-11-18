@@ -236,9 +236,7 @@ class blogm_Comments extends core_Detail {
             // Дали е от UA или RU
 
             // Да се записва само при нов запис и и когато няма регистриран потребител
-            if (core_Users::getCurrent() < 1) {
-                log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
-            }
+            log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
         }
     }
     

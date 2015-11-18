@@ -67,7 +67,7 @@ class hr_Departments extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
-                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject';
+                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject, plg_Modified';
     
     
     /**
