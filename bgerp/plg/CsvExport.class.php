@@ -3,7 +3,7 @@
 
 
 /**
- * Драйвър за експортиране на 'sales_Invoices' изходящи фактури към Bulmar Office
+ * Драйвър за експортиране на документи в csv формат
  * 
  * Класа трябва да има $exportableCsvFields за да може да се експортират данни от него в CSV формат
  * 
@@ -64,17 +64,20 @@ class bgerp_plg_CsvExport extends core_Manager {
     	$selectedFields = cls::get('type_Set')->fromVerbal($selected);
     	
     	$sets = implode(',', $sets);
+    	$form->FNC('showColumnNames', 'enum(no=Не,yes=Да)', 'input,caption=Имена на колони,mandatory');
     	$form->FNC('fields', "set($sets)", 'input,caption=Полета,mandatory');
     	$form->setDefault('fields', $selectedFields);
     	
     	$form->FNC('delimiter', 'varchar(1,size=3)', 'input,caption=Разделител,mandatory');
     	$form->FNC('enclosure', 'varchar(1,size=3)', 'input,caption=Ограждане,mandatory');
+    	$form->FNC('decimalSign', 'varchar(1,size=3)', 'input,caption=Десетичен знак,mandatory');
     	$form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Windows Cyrillic|* (CP1251),
-                                    koi8-r=Rus Cyrillic|* (KOI8-R))', 'caption=Знаци, formOrder=4,input');
+                                    koi8-r=Rus Cyrillic|* (KOI8-R))', 'caption=Знаци,input');
     	
     	$form->setOptions('delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
     	$form->setOptions('enclosure', array('"' => '"', '\'' => '\''));
+    	$form->setOptions('decimalSign', array('.' => '.', ',' => ','));
     }
     
     
@@ -110,7 +113,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	    $this->prepareExternalLink($recs);
     	}
     	
-    	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure, $filter->fields);
+    	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure, $filter->fields, $filter->decimalSign, $filter->showColumnNames);
     	$content = iconv('utf-8', $filter->encoding, $content);
     	
     	return $content;
@@ -130,7 +133,7 @@ class bgerp_plg_CsvExport extends core_Manager {
                     array(
                         'action'      => doclog_Documents::ACTION_EXPORT, 
                         'containerId' => $rec->containerId,
-                        'threadId' => $rec->threadId,
+                        'threadId'    => $rec->threadId,
                     )
                 );
                 
@@ -146,12 +149,34 @@ class bgerp_plg_CsvExport extends core_Manager {
     /**
      * Подготвя контента за експортиране
      */
-    private function prepareFileContent($recs, $delimiter, $enclosure, $fields)
+    private function prepareFileContent($recs, $delimiter, $enclosure, $fields, $decimalSign, $showColumnNames)
     {
 		$fields = arr::make($fields, TRUE);
 		
-    	/* за всеки ред */
+    	// Експортваме и имената на колоните ако трябва
     	$csv = '';
+    	if($showColumnNames == 'yes'){
+    		$rCsv = '';
+    		
+    		foreach($fields as $field => $caption) {
+    			if($field != 'ExternalLink'){
+    				$value = $this->mvc->fields[$field]->caption;
+    				$valueArr = explode('->', $value);
+    				if(count($valueArr) == 1){
+    					$value = $valueArr[0];
+    				} else {
+    					$value = $valueArr[1];
+    				}
+    			} else {
+    				$value = 'Връзка';
+    			}
+    			$value = tr($value);
+    			
+    			$rCsv .= ($rCsv ?  $delimiter : " ") . $value;
+    		}
+    		$csv .= $rCsv . "\r\n";
+    	}
+    	
     	if(is_array($recs)){
     		foreach($recs as $rec) {
     			$this->mvc->invoke('BeforeExportCsv', array($rec));
@@ -167,7 +192,9 @@ class bgerp_plg_CsvExport extends core_Manager {
     					Mode::push('text', 'plain');
     					$value = $this->mvc->getVerbal($rec, $field);
     					Mode::pop('text');
-    				} else {
+    				} elseif($type instanceof type_Double){
+    					$value = number_format($rec->{$field}, 2, $decimalSign, '');
+    				}else {
     					$value = $rec->{$field};
     				}
     				$value = strip_tags($value);
@@ -179,7 +206,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     				$value = ($value) ? $enclosure . $value . $enclosure : '';
     				$rCsv .= ($rCsv ?  $delimiter : " ") . $value;
     			}
-    	
+    			
     			/* END за всяка колона */
     			$csv .= $rCsv . "\r\n";
     		}
