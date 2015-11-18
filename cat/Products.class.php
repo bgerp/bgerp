@@ -1025,7 +1025,7 @@ class cat_Products extends embed_Manager {
     	$baseId = $measureId;
     	
     	// За всяка опаковка, извличаме опциите и намираме имали основна такава
-    	if(count($pInfo->packagings)){
+    	if(count($pInfo->packagings) && isset($pInfo->meta['canStore'])){
     		foreach ($pInfo->packagings as $packRec){
     			$options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId);
     			if($packRec->isBase == 'yes'){
