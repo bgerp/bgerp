@@ -84,10 +84,16 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Икона на единичния изглед
+     * Икона на единичния изглед на търговската рецепта
      */
-    public $singleIcon = 'img/16/article.png';
+    public $singleIcon = 'img/16/article2.png';
     
+    
+    /**
+     * Икона на единичния изглед на работната рецепта
+     */
+    public $singleProductionBomIcon = 'img/16/article.png';
+  
     
     /**
      * Абревиатура
@@ -854,7 +860,7 @@ class cat_Boms extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,quantity=За количество,type=Вид,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=За к-во,createdBy=Oт,createdOn=На');
     	 if($data->hideToolsCol){
     	 	unset($listFields['tools']);
     	 }
@@ -959,5 +965,17 @@ class cat_Boms extends core_Master
     	
     	// Връщаме цената
     	return $price;
+    }
+    
+    
+    /**
+     * Връща иконата за сметката
+     */
+    function getIcon($id)
+    {
+    	$rec = $this->fetch($id);
+    	$icon = ($rec->type == 'sales') ? $this->singleIcon : $this->singleProductionBomIcon;
+    	
+    	return $icon;
     }
 }
