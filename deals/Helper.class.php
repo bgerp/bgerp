@@ -363,7 +363,7 @@ abstract class deals_Helper
 		$obj = (object)array('formInfo' => $info);
 		
 		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
-		 
+		
 		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
 		if($packQuantity > ($quantity / $quantityInPack)){
 			$obj->warning = "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*";

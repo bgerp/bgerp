@@ -183,7 +183,7 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойността') . "'>{$row->packPrice}</span>";
     		}
     	}
     }
