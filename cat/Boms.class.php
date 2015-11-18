@@ -978,4 +978,22 @@ class cat_Boms extends core_Master
     	
     	return $icon;
     }
+    
+    
+    /**
+     * След подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    {
+    	$data->listFilter->showFields .= ',type';
+    	$data->listFilter->setOptions('type', array('all' => 'Всички', 'sales' => 'Търговски', 'production' => 'Работни'));
+    	$data->listFilter->setDefault('type', 'all');
+    	
+    	$data->listFilter->input();
+    	if($filter = $data->listFilter->rec) {
+    		if($filter->type != 'all'){
+    			$data->query->where("#type = '{$filter->type}'");
+    		}
+    	}
+    }
 }
