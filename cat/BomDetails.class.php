@@ -416,7 +416,12 @@ class cat_BomDetails extends doc_Detail
     		$form->setOptions('packagingId', $packs);
     		$form->setDefault('packagingId', key($packs));
     		
-    		$packname = cat_UoM::getTitleByid($rec->packagingId);
+    		// Ако артикула не е складируем, скриваме полето за мярка
+    		if(!isset($pInfo->meta['canStore'])){
+    			$form->setField('packagingId', 'input=hidden');
+    		}
+    		
+    		$packname = cat_UoM::getTitleById($rec->packagingId);
     		$form->setField('baseQuantity', "unit={$packname}");
     		$form->setField('propQuantity', "unit={$packname}");
     		
