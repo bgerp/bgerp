@@ -123,13 +123,8 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
-        if (defined('EF_LANGUAGES')) {
-            $lang = EF_LANGUAGES;
-        } else {
-            $lang = 'bg=Български';
-        }
         
-        $this->FLD('lg', 'enum(' . $lang . ')', 'caption=Език,notNull');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език,notNull');
         
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Лого');
@@ -650,6 +645,14 @@ class marketing_Bulletins extends core_Master
         $form->setDefault('delayBeforeOpenInHit', '5'); // 5 секунди
         $form->setDefault('delayAfterClose', '3600'); // 1 часа
         $form->setDefault('delayBeforeOpen', '60'); // 1 мин
+        
+        $langQuery = drdata_Languages::getQuery();
+        $langOpt = array();
+        while($lRec = $langQuery->fetch()) {
+            $langOpt[$lRec->code] = $lRec->languageName;
+        }
+        $data->form->setOptions('lg', $langOpt);
+        
         $form->setDefault('lg', core_Lg::getCurrent());
     }
     
