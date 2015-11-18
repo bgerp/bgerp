@@ -1016,12 +1016,25 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     				'info' => $info,
     	);
     	
+    	$yFrom = date('Y', strtotime($data->rec->from));
+    	$yTo = date('Y', strtotime($data->rec->to));
+    	
+    	if($yFrom ==  $yTo) {
+    		$year = $yFrom;
+    		$yearPrev = $yFrom -1;
+    	} else {
+    		$year = $yFrom . "-" . $yTo;
+    		$yPrevFrom = $yFrom - 1;
+    		$yPrevTo= $yTo - 1;
+    		$yearPrev = $yPrevFrom . "-" . $yPrevTo;
+    	}
+
     	$bar = array(
     			'legendTitle' => $this->getReportTitle(),
     			'labels' => $labels,
     			'values' => array(
-    					'2014' => $value2,
-    					'2015' => $value1
+    					$yearPrev => $value2,
+    					$year => $value1
     			)
         );
 

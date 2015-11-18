@@ -67,34 +67,41 @@ class cad2_JaggedLine  extends cad2_Shape {
             $ab = new cad2_Vector($x1, $y1);
         }
         
-        if(!$td) $td = $md/2;
-
         $nb = round($ab->r / ($md * 2)) * 2;
-        
+        $md = ($ab->r / $nb) ;
+        if(!$td) $td = $md/2;
+       
         $spacer = min(0.4 * $md, $spacer);
-
+        
+		list($x, $y) = $svg->getCP();
         for($i = 1; $i <= $nb; $i++) {
 
             if($spacer > 0) {
                 $m = $svg->p($ab->a, $spacer);
-                $svg->lineTo($m->x, $m->y);
+                $x += $m->x;
+                $y += $m->y;
+                $svg->lineTo($x, $y, TRUE);
             }
 
             // Малко
-            $m = $svg->p($ab->a, $ab->r / ($nb*2) - $spacer);
+            $m = $svg->p($ab->a, $md/2 - $spacer);
             $n = $svg->p($ab->a - pi()/2, $td);
-            $svg->lineTo($m->x + $n->x, $m->y + $n->y); 
+            $x += $m->x + $n->x;
+            $y += $m->y + $n->y;
+            $svg->lineTo($x, $y, TRUE); 
             
-            $m = $svg->p($ab->a, $ab->r / ($nb*2) - $spacer);
+            $m = $svg->p($ab->a, $md/2 - $spacer);
             $n = $svg->p($ab->a + pi()/2, $td);
-            $svg->lineTo($m->x + $n->x, $m->y + $n->y);
+            $x += $m->x + $n->x;
+            $y += $m->y + $n->y;
+            $svg->lineTo($x, $y, TRUE);
             
             if($spacer > 0) {
                 $m = $svg->p($ab->a, $spacer);
-                $svg->lineTo($m->x, $m->y);
+                $x += $m->x;
+                $y += $m->y;
+               $svg->lineTo($x, $y, TRUE);
             }
         }
     }
-
-    
 }
