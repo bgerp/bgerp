@@ -572,8 +572,12 @@ class acc_Journal extends core_Master
         // Извличаме ид-та на журналите, имащи ред с участник това перо
         expect($itemRec = acc_Items::fetchRec($item));
         $jQuery = acc_JournalDetails::getQuery();
-        
+
         acc_JournalDetails::filterQuery($jQuery, NULL, NULL, NULL, $itemRec->id);
+        
+        // Искаме вальора да е след датата на създаване на перото за което търсим
+        $createdOn = dt::verbal2mysql($itemRec->createdOn, FALSE);
+        $jQuery->where("#valior >= '{$createdOn}'");
         
         if($showAllRecs === FALSE) return $jQuery->fetchAll();
         
