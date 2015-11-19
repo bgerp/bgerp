@@ -564,12 +564,7 @@ class callcenter_Numbers extends core_Manager
         $form->setField('classId', 'input=none');
         
         // Ако добавяме нов
-        if (!$form->rec->id) {
-            
-            // Добавяме титлата на формата
-            $form->title = "Добавяне на вътрешен номер";
-        } else {
-            
+        if ($form->rec->id) {
             // Да е избран потребителя, който редактираме
             $userId = crm_Profiles::fetchField($form->rec->contragentId, 'userId');
             $form->setDefault('userId', $userId);
@@ -577,6 +572,16 @@ class callcenter_Numbers extends core_Manager
     }
 
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	// Добавяме титлата на формата
+    	$data->form->title = "Добавяне на вътрешен номер";
+    }
+    
+    
 	/**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 

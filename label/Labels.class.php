@@ -196,9 +196,6 @@ class label_Labels extends core_Master
             expect($templateId);
         }
         
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
-        $data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
-        
         // Добавяме полетата от детайла на шаблона
         label_TemplateFormats::addFieldForTemplate($data->form, $templateId);
         
@@ -211,6 +208,16 @@ class label_Labels extends core_Master
             // Добавяме данните от записите
             $data->form->rec->$fieldName = $value;
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
+    	$data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
     }
     
     

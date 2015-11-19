@@ -125,9 +125,20 @@ class planning_ObjectResources extends core_Manager
     	} else {
     		$form->setReadOnly('likeProductId');
     	}
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$url = cat_Products::getSingleUrlArray($data->form->rec->objectId);
+    	$objectName = cat_Products::getTitleById($data->form->rec->objectId);
+    	$objectName = ht::createLink($objectName, $url, NULL, array('ef_icon' => cls::get('cat_Products')->singleIcon, 'class' => 'linkInTitle'));
     	
-    	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
-    	$form->title = $title . "|* <b>". cat_Products::getTitleByid($rec->objectId) . "</b>";
+    	$title = ($data->form->rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
+    	$data->form->title = $title . "|* <b style='color:#ffffcc;'>". $objectName . "</b>";
     }
     
     

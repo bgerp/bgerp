@@ -193,7 +193,7 @@ class price_GroupOfProducts extends core_Detail
         
         if($rec->groupId) {
 	        $groupName = price_Groups::getTitleById($rec->groupId);
-	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
+	        $data->formTitle = '|Добавяне на артикул към група|* "' . $groupName . '"';
         }
         
         // За опции се слагат само продаваемите продукти
@@ -201,7 +201,7 @@ class price_GroupOfProducts extends core_Detail
         expect(count($products), 'Няма продаваеми продукти');
         
         if($data->masterMvc instanceof cat_Products) {
-            $data->form->title = "Добавяне в ценова група";
+            $data->formTitle = "Добавяне в ценова група";
             $data->form->setField('productId', 'input');
             $data->form->setReadOnly('productId');
             $pInfo = cat_Products::getProductInfo($rec->productId);
@@ -227,6 +227,15 @@ class price_GroupOfProducts extends core_Detail
     }
     
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
+    }
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */

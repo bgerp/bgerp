@@ -326,7 +326,7 @@ class price_ListRules extends core_Detail
                 break;
         }
 
-        $form->title = $title;
+        $data->formTitle = $title;
 
         if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
@@ -334,6 +334,15 @@ class price_ListRules extends core_Detail
         }
     }
 
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
+    }
+    
     
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
