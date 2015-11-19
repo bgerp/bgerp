@@ -168,14 +168,20 @@ class plg_Search extends core_Plugin
                     
                     if(!$w) continue;
                     $like = "NOT LIKE";
+                    $equalTo = " = 0";
                 } else {
                     $like = "LIKE";
+                    $equalTo = "";
                 }
                 
                 $w = static::normalizeText($w);
-                $w = str_replace('*', '%', $w);
-               
-                $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
+
+                if(strpos($w, '*') !== FALSE) {
+                    $w = str_replace('*', '%', $w);
+                    $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
+                } else {
+                    $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', #{$field}){$equalTo}");
+                }
             }
         }
     }
@@ -217,7 +223,7 @@ class plg_Search extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * Парсира заявка за търсене на отделни думи и фрази
      */
     static function parseQuery($str, $latin = TRUE)
     {
@@ -272,7 +278,7 @@ class plg_Search extends core_Plugin
                 continue;
             }
         }
-        
+
         return $words;
     }
 
@@ -281,9 +287,17 @@ class plg_Search extends core_Plugin
      * Maркира текста, отговарящ на заявката
      */
     static function highlight($text, $query, $class = 'document')
-    {  
-    	jquery_Jquery::run($text, "\n $('.{$class}').highlight('{$query}');", TRUE);
-    	
+    {   
+        $qArr = self::parseQuery($query, FALSE);
+      
+        if(is_array($qArr)) {
+            foreach($qArr as $q) {
+                if($q{0} == '-') continue;
+                $q = trim($q, '"');
+                jquery_Jquery::run($text, "\n $('.{$class}').highlight('{$q}');", TRUE);
+            }
+        }
+
         return $text; 
     }
 
