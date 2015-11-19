@@ -480,7 +480,7 @@ class core_Query extends core_FieldSet
             return "";
         }
         
-        if ($this->limit > 0 && $this->start === NULL) {
+        if ($this->limit >= 0 && $this->start === NULL) {
             return "\nLIMIT {$this->limit}";
         }
         
