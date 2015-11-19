@@ -391,7 +391,6 @@ class core_page_InternalModern extends core_page_Active
         
         $attr = array();
         $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
-        
         $searchLink = '';
         
         if (doc_Search::haveRightFor('list')) {
