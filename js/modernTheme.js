@@ -260,6 +260,8 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
 		}
 		
 		window.location.href = obj.href = obj.href + amp + fieldName + '=' + encodeURIComponent(inputVal);
+		
+		return false;
 	}
 }
 
