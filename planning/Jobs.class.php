@@ -328,6 +328,10 @@ class planning_Jobs extends core_Master
     			$rec->weight = NULL;
     		}
     		
+    		if($rec->dueDate < dt::today()){
+    			$form->setWarning('dueDate', 'Падежът е в миналото');
+    		}
+    		
     		// Форсираме заданието в дефолт папката според драйвера
     		$Driver = cat_Products::getDriver($rec->productId);
     		$rec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
@@ -397,6 +401,10 @@ class planning_Jobs extends core_Master
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
     		}
+    	}
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     }
     
