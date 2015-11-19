@@ -195,12 +195,29 @@ class core_Pager extends core_BaseClass
     function setLimit(&$query)
     {
         $q = clone ($query);
-        $this->itemsCount = $q->count();
+        $q->show('id');
+
+        $this->itemsCount = $q->select();
         $this->calc();
-        
+
+        $ids = array();
+        $i = 0;
+
         if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $query->limit($this->rangeEnd - $this->rangeStart);
-            $query->startFrom($this->rangeStart);
+            while($rec = $q->fetch()) {
+                if($i >= $this->rangeEnd) break;
+                if($i >= $this->rangeStart) {
+                    $ids[] = $rec->id;
+                } 
+                $i++;
+            }
+        }
+
+        if(count($ids)) {
+            $ids = implode(',', $ids);
+            $query->where("#id IN ($ids)");
+        } else {
+            $query->limit(0);
         }
     }
 

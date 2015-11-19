@@ -1115,11 +1115,14 @@ class doc_DocumentPlg extends core_Plugin
 
     
     /**
-     *
+     * След подготовката на заглавието на формата
      */
-    static function on_AfterInputEditForm($mvc, $form)
-    {  
-        //Добавяме текст по подразбиране за титлата на формата
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	//Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
@@ -1158,6 +1161,15 @@ class doc_DocumentPlg extends core_Plugin
         }
        
         $form->title .= $title;
+    }
+    
+    
+    /**
+     *
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {  
+        $rec = &$form->rec;
         
     	if($form->isSubmitted()){
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){

@@ -480,7 +480,7 @@ class core_Query extends core_FieldSet
             return "";
         }
         
-        if ($this->limit > 0 && $this->start === NULL) {
+        if ($this->limit >= 0 && $this->start === NULL) {
             return "\nLIMIT {$this->limit}";
         }
         
@@ -867,6 +867,12 @@ class core_Query extends core_FieldSet
         // Добавяме използваните полета - изрази
         $this->show = arr::combine($this->show, $this->exprShow);
         
+        if(count($this->orderBy)) {
+            foreach($this->orderBy as $ordRec) {
+                $this->show[ltrim($ordRec->field, '#')] = TRUE;
+            }
+        }
+
         // Задължително показваме полето id
         $this->show['id'] = TRUE;
         

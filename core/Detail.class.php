@@ -239,27 +239,35 @@ class core_Detail extends core_Manager
  
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
-        $title = $data->masterMvc->getTitleById($data->masterId);
-        $title = str::limitLen($title, 32);
         
-        $url = $data->masterMvc->getSingleUrlArray($data->masterId);
-
-        if(count($url)) {
-            $title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
-        }
-
-        if ($data->singleTitle) {
-            $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
-       
-        }
- 
-        $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-        $data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
- 
         return $data;
     }
     
 
+    /**
+     * Подготвя заглавието на формата
+     */
+    function prepareEditTitle_($data)
+    {
+    	$title = $data->masterMvc->getTitleById($data->masterId);
+    	$title = str::limitLen($title, 32);
+    	
+    	$url = $data->masterMvc->getSingleUrlArray($data->masterId);
+    	
+    	if(count($url)) {
+    		$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
+    	}
+    	
+    	if ($data->singleTitle) {
+    		$single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
+    		 
+    	}
+    	
+    	$data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
+    	$data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    }
+    
+    
     /**
      * Дефолт функция за определяне мастера, спрямо дадения запис
      */
