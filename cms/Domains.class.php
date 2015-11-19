@@ -437,7 +437,7 @@ class cms_Domains extends core_Embedder
      * Подготвя формата
      * - Прави списъка с езиците
      */
-    public static function on_AfterPrepareeditform($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $langQuery = drdata_Languages::getQuery();
         $langOpt = array();

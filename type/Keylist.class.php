@@ -234,6 +234,8 @@ class type_Keylist extends core_Type {
                     } else {
                     	$title = "";
                     }
+                    
+                    $v = type_Varchar::escape($v);
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {

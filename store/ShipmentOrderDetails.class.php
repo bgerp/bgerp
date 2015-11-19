@@ -245,11 +245,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     		
     		if($diff < 0){
-    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$row->packQuantity}</span>";
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойността') . "'>{$row->packPrice}</span>";
     		}
     	}
     }

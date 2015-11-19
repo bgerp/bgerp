@@ -674,10 +674,12 @@ class cat_Products extends embed_Manager {
      * 							        данни, на които трябва да отговарят
      * @param mixed $hasnotProperties - комбинация на горе посочените мета 
      * 							        които не трябва да имат
+     * @param int $limit			  - лимит
+     * @return array				  - намерените артикули
      */
-    public static function getByProperty($properties, $hasnotProperties = NULL)
+    public static function getByProperty($properties, $hasnotProperties = NULL, $limit = NULL)
     {
-    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties);
+    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties, $limit);
     }
     
     
@@ -1023,7 +1025,7 @@ class cat_Products extends embed_Manager {
     	$baseId = $measureId;
     	
     	// За всяка опаковка, извличаме опциите и намираме имали основна такава
-    	if(count($pInfo->packagings)){
+    	if(count($pInfo->packagings) && isset($pInfo->meta['canStore'])){
     		foreach ($pInfo->packagings as $packRec){
     			$options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId);
     			if($packRec->isBase == 'yes'){
