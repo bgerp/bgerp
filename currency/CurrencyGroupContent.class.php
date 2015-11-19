@@ -75,9 +75,17 @@ class currency_CurrencyGroupContent extends core_Manager
      * @param stdClass $res
      * @param stdClassunknown_type $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $data->form->title = "Добавяне валути в група|* \"" . Mode::get('groupName') . "\"";
         $data->form->setDefault('groupId', Mode::get('groupId'));
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = "Добавяне валути в група|* \"" . Mode::get('groupName') . "\"";
     }
 }

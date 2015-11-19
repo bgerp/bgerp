@@ -134,7 +134,6 @@ class colab_FolderToPartners extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {  
         $form = $data->form;
-        $form->title = "Добавяне на нов партньор в папка";
         
         // Ако няма избрана папка форсираме от данните за контрагента от урл-то
         if(empty($form->rec->folderId)){

@@ -44,15 +44,11 @@ class recently_Values extends core_Manager
     
     
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * След подготовката на заглавието на формата
      */
-    static function on_AfterPrepareEditForm($invoker, $data)
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        if (Request::get('id', 'int')) {
-            $data->form->title = 'Редактиране на опция';
-        } else {
-            $data->form->title = 'Добавяне на опция';
-        }
+    	$data->form->title = (isset($data->form->rec->id)) ? 'Редактиране на опция' : 'Добавяне на опция'
     }
     
     
