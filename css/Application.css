@@ -942,8 +942,14 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
-  .portal:not(.detail-info) .state-closed {
+  .portal .state-closed {
     background-color: transparent !important; }
+  .portal.planning,
+  .portal.detail-info {
+    margin-bottom: 5px; }
+    .portal.planning .state-closed,
+    .portal.detail-info .state-closed {
+      background-color: #dddddd !important; }
   .portal .legend {
     position: absolute;
     top: -16px;
