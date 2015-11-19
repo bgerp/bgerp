@@ -48,7 +48,7 @@ class recently_Values extends core_Manager
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$data->form->title = (isset($data->form->rec->id)) ? 'Редактиране на опция' : 'Добавяне на опция'
+    	$data->form->title = (isset($data->form->rec->id)) ? 'Редактиране на опция' : 'Добавяне на опция';
     }
     
     
