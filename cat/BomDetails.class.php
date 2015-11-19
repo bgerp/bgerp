@@ -154,7 +154,34 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD("baseQuantity", 'text(rows=2)', 'caption=Количество->Начално,hint=Начално количество,smartCenter,tdClass=accCell');
     	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Количество->Пропорционално,smartCenter,tdClass=accCell');
     	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
+    	$this->FNC("calcedBaseQuantity", 'double', 'caption=Количество');
+    	$this->FNC("calcedPropQuantity", 'double', 'caption=Количество');
     	$this->FNC("rowQuantity", 'double', 'caption=Количество');
+    }
+    
+    
+    /**
+     * Изчислява сумата на реда
+     */
+    public static function on_CalcCalcedBaseQuantity(core_Mvc $mvc, $rec)
+    {
+    	if(!isset($rec->baseQuantity)) return;
+    	
+    	$calced = static::calcExpr($rec->baseQuantity, $rec);
+    	$rec->calcedBaseQuantity = $calced;
+    }
+    
+    
+    /**
+     * Изчислява сумата на реда
+     */
+    public static function on_CalcCalcedPropQuantity(core_Mvc $mvc, $rec)
+    {
+    	if(!isset($rec->propQuantity)) return;
+    	 
+    	$calced = static::calcExpr($rec->propQuantity, $rec);
+    	
+    	$rec->calcedPropQuantity = $calced;
     }
     
     
@@ -163,13 +190,12 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_CalcRowQuantity(core_Mvc $mvc, $rec)
     {
-    	if(!isset($rec->baseQuantity) && !isset($rec->propQuantity)) return;
-    	$bQuantity = static::calcExpr($rec->baseQuantity, $rec);
-    	$pQuantity = static::calcExpr($rec->propQuantity, $rec);
+    	if(!isset($rec->calcedBaseQuantity) && !isset($rec->calcedPropQuantity)) return;
+    	
     	$context = static::getContext($rec);
     	
-    	if($bQuantity != self::CALC_ERROR && $pQuantity != self::CALC_ERROR){
-    		$rec->rowQuantity = $bQuantity + $context['$quantity'] * $pQuantity;
+    	if($rec->calcedBaseQuantity != self::CALC_ERROR && $rec->calcedPropQuantity != self::CALC_ERROR){
+    		$rec->rowQuantity = $rec->calcedBaseQuantity + $context['$quantity'] * $rec->calcedPropQuantity;
     	}
     }
 

@@ -571,8 +571,6 @@ class cat_Boms extends core_Master
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
-    		$dRec->baseQuantity = cat_BomDetails::calcExpr($dRec->baseQuantity, $dRec);
-    		$dRec->propQuantity = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec);
     		
     		$arr = array();
     		$arr['productId']      = $dRec->resourceId;
@@ -580,8 +578,8 @@ class cat_Boms extends core_Master
     		$arr['expensePercent'] = $dRec->expensePercent;
     		$arr['packagingId']    = $dRec->packagingId;
     		$arr['quantityInPack'] = $dRec->quantityInPack;
-    		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
-    		$arr['propQuantity']   = $dRec->propQuantity * $dRec->quantityInPack;
+    		$arr['baseQuantity']   = $dRec->calcedBaseQuantity * $dRec->quantityInPack;
+    		$arr['propQuantity']   = $dRec->calcedPropQuantity * $dRec->quantityInPack;
     		 
     		$resources['resources'][] = (object)$arr;
     	}
