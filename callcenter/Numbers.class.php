@@ -578,7 +578,9 @@ class callcenter_Numbers extends core_Manager
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	// Добавяме титлата на формата
-    	$data->form->title = "Добавяне на вътрешен номер";
+    	if (!$data->form->rec->id) {
+    		$data->form->title = "Добавяне на вътрешен номер";
+    	}
     }
     
     
