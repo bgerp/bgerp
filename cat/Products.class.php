@@ -240,7 +240,7 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 //'meta'    => 'lastDocUser|lastDoc',
+											 'meta'    => 'lastDocUser|lastDoc',
 	);
 	
 	
