@@ -222,10 +222,8 @@ class cat_BomDetails extends doc_Detail
     	$form->setDefault('likeProductId', Request::get('likeProductId', 'int'));
     	
     	$rec = &$form->rec;
-    	$typeCaption = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
+    	
     	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
-    	$action = ($rec->id) ? 'Редактиране' : 'Добавяне';
-    	$form->title = "|{$action}|* на |{$typeCaption}|* |към|* <b>|{$mvc->Master->singleTitle}|* №{$rec->bomId}<b>";
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
@@ -276,6 +274,16 @@ class cat_BomDetails extends doc_Detail
     	} else {
     		$form->setReadOnly('parentId');
     	}
+    }
+    
+    
+    /**
+     * Преди подготовка на заглавието на формата
+     */
+    protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
+    {
+    	$rec = &$data->form->rec;
+    	$data->singleTitle = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
     }
     
     
