@@ -390,14 +390,15 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
         $attr = array();
-        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
         
         $searchLink = '';
         
         if (doc_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/doc_empty.png';
             $attr['id'] = 'modern-doc-search';
+            $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
             $searchLink .= ht::createLink(tr("Търсене на документи"), array('doc_Search', 'list'), NULL, $attr);
+            unset($attr['onClick']);
         }
         
         if (doc_Folders::haveRightFor('list')) {
