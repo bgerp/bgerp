@@ -183,15 +183,16 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Преди подготвяне на едит формата
+     * След подготовката на заглавието на формата
      */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    public static function on_BeforePrepareEditTitle($mvc, &$res, &$data)
     {
-    	$type = Request::get('type');
-    	if(!$type || $type == 'invoice') return;
-    	
-    	$title = ($type == 'debit_note') ? 'Дебитно известие' : 'Кредитно известие';
-    	$mvc->singleTitle = $title;
+    	$rec = &$data->form->rec;
+    	if($rec->type == 'dc_note'){
+    		$data->singleTitle = ($rec->dealValue <= 0) ? 'кредитно известие' : 'дебитно известие';
+    	} else {
+    		$data->singleTitle = $mvc->singleTitle;
+    	}
     }
     
     
