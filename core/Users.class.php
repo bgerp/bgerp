@@ -403,7 +403,6 @@ class core_Users extends core_Manager
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(self::isUsersEmpty()) {
             $data->form->setOptions('state' , array('active' => 'active'));
-            $data->form->title = 'Първоначална регистрация на администратор';
             
             $data->form->setField("state", 'input=none');
             $data->form->setField("rolesInput", 'input=none');
@@ -441,6 +440,17 @@ class core_Users extends core_Manager
                 $data->form->setDefault('rolesInput', $teamsArr);
             }
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	if(self::isUsersEmpty()) {
+    		$data->form->title = 'Първоначална регистрация на администратор';
+    	}
     }
     
     
