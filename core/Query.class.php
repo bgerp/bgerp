@@ -819,6 +819,21 @@ class core_Query extends core_FieldSet
         }
         
         if (count($this->where) > 0) {
+            
+            if(count($this->where) > 1) {
+                foreach($this->where as $cl) {
+                    if(stripos($cl, ' like ') !== FALSE) {
+                        $nw[$cl] = 1;
+                    } elseif(stripos($cl, 'locate(') !== FALSE) {
+                        $nw[$cl] = 2;
+                    } else {
+                        $nw[$cl] = 3;
+                    }
+                }            
+                arsort($nw);
+                $this->where = array_keys($nw);
+            }
+
             foreach ($this->where as $expr) {
                 $expr = $this->expr2mysql($expr);
                 
