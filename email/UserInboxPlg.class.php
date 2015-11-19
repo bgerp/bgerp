@@ -204,8 +204,10 @@ class email_UserInboxPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$name = crm_Persons::getVerbal($data->personRec, 'name');
-    	$data->form->title = 'Създаване на потребител за|* ' . $name;
+    	if(isset($data->personRec)){
+    		$name = crm_Persons::getVerbal($data->personRec, 'name');
+    		$data->form->title = 'Създаване на потребител за|* ' . $name;
+    	}
     }
     
     
