@@ -1153,10 +1153,11 @@ class doc_DocumentPlg extends core_Plugin
         
         if($rec->threadId) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
+            setIfNot($data->singleTitle, $mvc->singleTitle);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
                 list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
+                $title = tr(mb_strtolower($data->singleTitle)) . $in . $t;
             }
         }
        
