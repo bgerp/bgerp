@@ -508,8 +508,6 @@ class acc_AllocatedExpenses extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
-    	$originTitle = $form->origin->getHyperLink(TRUE);
-    	$form->title = "|Корекция на стойностите в|* " . $originTitle;
     	
     	// Ако е събмитната формата
     	if($form->isSubmitted()){
