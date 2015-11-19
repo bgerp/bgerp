@@ -635,6 +635,14 @@ class planning_Jobs extends core_Master
     	}
     	
     	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    	
+    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    		$data->hide = TRUE;
+    		return;
+    	}
     	
     	$data->TabCaption = 'Задания';
     	$data->Tab = 'top';
@@ -642,10 +650,6 @@ class planning_Jobs extends core_Master
     	// Проверяваме можем ли да добавяме нови задания
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
     		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
-    	}
-    	
-    	if(!isset($masterInfo->meta['canManifacture'])){
-    		$data->notManifacturable = TRUE;
     	}
     }
     
@@ -658,6 +662,8 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
+    	 if($data->hide === TRUE) return;
+    	
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $title = tr('Задания за производство');
     	 $tpl->append($title, 'title');
