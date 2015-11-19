@@ -198,7 +198,7 @@ class vislog_History extends core_Manager {
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE, TRUE);
         
-        $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
+        $ref = type_Varchar::escape(vislog_Referer::getReferer($rec->ip, $rec->createdOn));
         
         if($ref) {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
