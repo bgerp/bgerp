@@ -334,10 +334,6 @@ class doc_Folders extends core_Master
 				$attr['style'] .= 'color:#777;';
 				$row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
 			}
-			
-			if($rec->inCharge){
-				$row->inCharge = crm_Profiles::createLink($rec->inCharge);
-			}
 		} else {
 			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";
 		}
