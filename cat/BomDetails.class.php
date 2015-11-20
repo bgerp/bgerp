@@ -296,10 +296,10 @@ class cat_BomDetails extends doc_Detail
     private static function getContext($rec)
     {
     	$rec = static::fetchRec($rec);
-    	$bRec = cat_Boms::fetch("#id = '{$rec->bomId}'", 'productId,quantity');
+    	$bRec = cat_Boms::fetch($rec->bomId);
     	
     	if(isset($rec->parentId)){
-    		$pRec = static::fetch($rec->parentId, 'resourceId,rowQuantity');
+    		$pRec = static::fetch($rec->parentId);
     		$productId = $pRec->resourceId;
     		$quantity = $pRec->rowQuantity;
     	} else {
