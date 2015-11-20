@@ -943,13 +943,16 @@ div.acc-detail {
   background-color: white;
   position: relative; }
   .portal .state-closed {
-    background-color: transparent !important; }
+    background-color: transparent; }
   .portal.planning,
   .portal.detail-info {
     margin-bottom: 5px; }
     .portal.planning .state-closed,
     .portal.detail-info .state-closed {
-      background-color: #dddddd !important; }
+      background-color: #dddddd; }
+      .portal.planning .state-closed:hover,
+      .portal.detail-info .state-closed:hover {
+        background-color: #d0d0d0; }
   .portal .legend {
     position: absolute;
     top: -16px;

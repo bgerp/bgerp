@@ -1073,12 +1073,15 @@ div.acc-detail {
 	background-color: white;
 	position: relative;
 	.state-closed {
-        background-color: transparent !important;
+        background-color: transparent;
     }
     &.planning, &.detail-info {
     	margin-bottom:5px;
     	.state-closed {
-    		background-color: #dddddd !important;
+    		background-color: #dddddd;
+    		&:hover {
+    			background-color: #d0d0d0;
+    		}
     	}
     }
 	.legend {
