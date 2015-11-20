@@ -212,7 +212,9 @@ class core_Pager extends core_BaseClass
         if(count($ids)) {
             $q->mvc->db->query("SELECT FOUND_ROWS()");
             $cntArr = $q->mvc->db->fetchArray();
- 
+            $this->itemsCount  = array_shift($cntArr);
+            $this->calc();
+
             $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
 
             $ids = implode(',', $ids);
