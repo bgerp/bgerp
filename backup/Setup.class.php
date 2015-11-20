@@ -237,6 +237,15 @@ class backup_Setup extends core_ProtoSetup
         return $html;
     }
     
+    function checkMysqlConf ()
+    {
+        exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"",  $retArr, $retVal);
+        // log_bin	ON
+        exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"",  $retArr, $retVal);
+        // server_id	1
+        
+    }
+    
     
     /**
      * Де-инсталиране на пакета
