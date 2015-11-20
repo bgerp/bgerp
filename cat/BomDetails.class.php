@@ -122,7 +122,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,rowQuantity=К-во,baseQuantity=К-во->Начално,propQuantity=К-во->Пропорционално,expensePercent=Режийни';
+    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,rowQuantity=К-во,baseQuantity=К-во->Начално,propQuantity=К-во->Пропорционално,expensePercent=Режийни,primeCost=Цена';
     
     
     /**
@@ -157,6 +157,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FNC("calcedBaseQuantity", 'double', 'caption=Количество');
     	$this->FNC("calcedPropQuantity", 'double', 'caption=Количество');
     	$this->FNC("rowQuantity", 'double', 'caption=Количество');
+    	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none');
     }
     
     
@@ -598,7 +599,10 @@ class cat_BomDetails extends doc_Detail
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	
-    	if($rec->type == 'stage'){
+    	if(!$rec->primeCost){
+    		$row->ROW_ATTR['style'] = 'background-color:#c66';
+    		$row->ROW_ATTR['title'] = tr('Няма себестойност');
+    	} elseif($rec->type == 'stage'){
     		$row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
     		$row->ROW_ATTR['title'] = tr('Eтап');
     	} else {
