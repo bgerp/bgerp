@@ -991,6 +991,8 @@ class doc_Folders extends core_Master
         $query->orWhere("#coverId IS NULL");
         $query->orWhere("#title IS NULL");
         
+        $query->limit(500);
+
         while($rec = $query->fetch()) {
             try {
                 // Ако има папка без собственик
