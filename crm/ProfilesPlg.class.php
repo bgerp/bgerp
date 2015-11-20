@@ -14,6 +14,16 @@
  */
 class crm_ProfilesPlg extends core_Plugin
 {
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdObject $row
+     * @param stdObject $rec
+     * @param array $fields
+     */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {   
         // В случаите, когато генерираме html за цел, различна от нормалното 
