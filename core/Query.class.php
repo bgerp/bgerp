@@ -822,13 +822,7 @@ class core_Query extends core_FieldSet
             
             if(count($this->where) > 1) {
                 foreach($this->where as $cl) {
-                    if(stripos($cl, 'search_keywords') !== FALSE) {
-                        $nw[$cl] = 1;
-                    } elseif(stripos($cl, 'locate(') !== FALSE || stripos($cl, ' like ') !== FALSE) {
-                        $nw[$cl] = 2;
-                    } else {
-                        $nw[$cl] = 3;
-                    }
+                    $nw[$cl] = (stripos($cl, 'locate(') !== FALSE) + (stripos($cl, 'search_keywords') !== FALSE) + (stripos($cl, 'in (') !== FALSE);
                 }            
                 arsort($nw);
                 $this->where = array_keys($nw);
@@ -884,7 +878,10 @@ class core_Query extends core_FieldSet
         
         if(count($this->orderBy)) {
             foreach($this->orderBy as $ordRec) {
-                $this->show[ltrim($ordRec->field, '#')] = TRUE;
+                $fld = $this->fields[ltrim($ordRec->field, '#')];
+                if($fld->kind == 'XPR' || $fld->kind == 'EXT') {
+                    $this->show[$fld->name] = TRUE;
+                }
             }
         }
 

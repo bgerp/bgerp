@@ -1728,7 +1728,7 @@ class doc_Threads extends core_Manager
             $query->XPR('threadShared', 'varchar', '#shared');
         }
         
-        $query->orWhere("#threadShared LIKE '%|{$userId}|%'");
+        $query->orWhere("LOCATE('|{$userId}|', #threadShared)");
     }
     
     

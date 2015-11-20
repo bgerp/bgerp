@@ -628,9 +628,13 @@ class type_Richtext extends type_Blob
      * Обработва [html] ... [/html]
      */
     function _catchHtml($match)
-    {
-        if(Mode::is('text', 'plain') && !Mode::is('htmlEntity', 'none')) {
-            $res = html2text_Converter::toRichText($match[1]);
+    {  
+        if(Mode::is('text', 'plain')) {
+            if(Mode::is('htmlEntity', 'none')) {
+                $res = strip_tags($match[1]);
+            } else {
+                $res = html2text_Converter::toRichText($match[1]);
+            }
         } else {
             $place = $this->getPlace();
             $this->_htmlBoard[$place] = $match[1];

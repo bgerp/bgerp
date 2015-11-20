@@ -31,7 +31,9 @@ class plg_Search extends core_Plugin
         if (!isset($mvc->fields['searchKeywords'])) {
             $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none,single=none,input=none');
         }
-        
+
+        $mvc->setField('searchKeywords', "collation=ascii_bin");
+ 
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
         setIfNot($mvc->searchInputField, 'search');
     }

@@ -196,25 +196,29 @@ class core_Pager extends core_BaseClass
     {
         $q = clone ($query);
         $q->show('id');
+        $q->addOption('SQL_CALC_FOUND_ROWS');
 
-        $this->itemsCount = $q->select();
+        $this->itemsCount = PHP_INT_MAX;
         $this->calc();
-
-        $ids = array();
-        $i = 0;
-
         if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+            $q->limit(2*($this->rangeEnd - $this->rangeStart));
+            $q->startFrom($this->rangeStart); 
+            $q->select();
             while($rec = $q->fetch()) {
-                if($i >= $this->rangeEnd) break;
-                if($i >= $this->rangeStart) {
-                    $ids[] = $rec->id;
-                } 
-                $i++;
+                $ids[] = $rec->id;
             }
         }
-
+        
         if(count($ids)) {
+            $q->mvc->db->query("SELECT FOUND_ROWS()");
+            $cntArr = $q->mvc->db->fetchArray();
+            $this->itemsCount  = array_shift($cntArr);
+            $this->calc();
+ 
+            $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+
             $ids = implode(',', $ids);
+
             $query->where("#id IN ($ids)");
         } else {
             $query->limit(0);

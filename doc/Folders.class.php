@@ -668,7 +668,7 @@ class doc_Folders extends core_Master
         }
         
         $conditions = array(
-            "#folderShared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
+            "LOCATE('|{$userId}|', #folderShared) ", // Всеки има достъп до споделените с него папки
             "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
         );
         
