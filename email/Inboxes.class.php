@@ -650,9 +650,38 @@ class email_Inboxes extends core_Master
         //Връщаме inCharge id' то
         return $rec->inCharge;
     }
-   
-
-
+    
+    
+    /**
+     * Намира всички потребители, които са `inCharge` на подадените масиви
+     * 
+     * @param array $emailsArr
+     * @param boolean $removeCommonAndCorporate
+     * 
+     * @return array
+     */
+    public static function getInChargeForEmails($emailsArr, $removeCommonAndCorporate = TRUE)
+    {
+        // Премахваме корпоративния и общите акаунти
+        if ($removeCommonAndCorporate) {
+		    $commAndCorpEmailArr = email_Accounts::getCommonAndCorporateEmails();
+		    $emailsArr = array_diff((array)$emailsArr, (array)$commAndCorpEmailArr);
+        }
+        
+        $query = self::getQuery();
+        $query->orWhereArr('email', $emailsArr);
+        
+        $usersArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            $usersArr[$rec->inCharge] = $rec->inCharge;
+        }
+        
+        return $usersArr;
+    }
+    
+    
     /**
      *  Един документ ги изпращаме от:
      *

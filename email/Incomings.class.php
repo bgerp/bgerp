@@ -773,9 +773,9 @@ class email_Incomings extends core_Master
     {
         $res = '';
         
-        foreach ((array)$emailsArr as $allCcArr) {
+        foreach ((array)$emailsArr as $emailArr) {
                     
-            $email = trim($allCcArr['address']);
+            $email = trim($emailArr['address']);
             $email = strtolower($email);
             
             $allEmailToArr[$email] = $email;
@@ -1969,5 +1969,31 @@ class email_Incomings extends core_Master
         $rec = $this->fetch($id);
         
         return $rec->lg;
+    }
+    
+    
+    /**
+     * Намираме потребители, които да се нотифицират допълнително за документа
+     * Извън споделени/абонирани в нишката
+     * 
+     * @param stdObject $rec
+     * 
+     * @return array
+     */
+    public function getUsersArrForNotifyInDoc($rec)
+    {
+        static::calcAllToAndCc($rec);
+        
+        $allEmailsArr = array_merge($rec->allTo, $rec->allCc);
+        
+        foreach ($allEmailsArr as $allTo) {
+            $email = $allTo['address'];
+            $email = trim($email);
+            $emailArr[$email] = $email;
+        }
+        
+        $usersArr = email_Inboxes::getInChargeForEmails($emailArr);
+        
+        return $usersArr;
     }
 }

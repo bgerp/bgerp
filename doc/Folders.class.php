@@ -431,35 +431,10 @@ class doc_Folders extends core_Master
                             
                         $priority = 'normal';
                         
-                        // По подразбиране ще се нотифицира собствника и споделените в папката
-                        $notifyArr = array();
-                        $notifyArr[$userId] = $userId;
-                        $notifyArr += keylist::toArray($rec->shared);
-                        
-                        $key = doc_Folders::getSettingsKey($rec->id);
-                        $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
-                        
-                        // В зависимост от избраната персонална настройка добавяме/премахваме от масива
-                        foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
-                            
-                            if ($folOpening['folOpenings'] == 'no') {
-                                unset($notifyArr[$userId]);
-                            } else if ($folOpening['folOpenings'] == 'yes') {
-                                $notifyArr[$userId] = $userId;
-                            }
-                        }
-                        
-                        $currUserId = core_Users::getCurrent();
-                        $haveDebug = haveRole('debug', $currUserId);
+                        $notifyArr = $mvc->getUsersArrForNotify($rec);
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                         foreach((array)$notifyArr as $nUserId) {
-                            
-                            // Ако текущия потребител, е някой от системните, няма да се нотифицира
-                            if ($nUserId < 1) continue; 
-                            
-                            // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
-                            if (!$haveDebug && ($currUserId == $nUserId)) continue;
                             
                             if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
                             
@@ -473,6 +448,53 @@ class doc_Folders extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща масив с потребители, които ще се нотифицират за действия в папката
+     * 
+     * @param stdObject $rec
+     * 
+     * @return array
+     */
+    public static function getUsersArrForNotify($rec)
+    {
+        $resArr = array();
+        
+        if ($resArr[$rec->id]) $resArr[$rec->id];
+        
+        $notifyArr = array();
+        $notifyArr[$rec->inCharge] = $rec->inCharge;
+        $notifyArr += keylist::toArray($rec->shared);
+        
+        $key = doc_Folders::getSettingsKey($rec->id);
+        $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+        
+        // В зависимост от избраната персонална настройка добавяме/премахваме от масива
+        foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
+            
+            if ($folOpening['folOpenings'] == 'no') {
+                unset($notifyArr[$userId]);
+            } else if ($folOpening['folOpenings'] == 'yes') {
+                $notifyArr[$userId] = $userId;
+            }
+        }
+        
+        $currUserId = core_Users::getCurrent();
+        
+        // Ако няма права за дебъг, няма да се нотифицира текущия потребител
+        if (!haveRole('debug', $currUserId)) {
+            unset($notifyArr[$currUserId]);
+        }
+        
+        // Премахваме анонимния и системния потребител
+        unset($notifyArr[0]);
+        unset($notifyArr[-1]);
+        
+        $resArr[$rec->id] = $notifyArr;
+        
+        return $resArr[$rec->id];
     }
     
     
@@ -1246,6 +1268,7 @@ class doc_Folders extends core_Master
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From`->Имейл, input=input');
+        $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {
@@ -1264,6 +1287,7 @@ class doc_Folders extends core_Master
         $form->setDefault('folOpenings', 'default');
         $form->setDefault('perPage', 'default');
         $form->setDefault('ordering', 'default');
+        $form->setDefault('personalEmailIncoming', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';

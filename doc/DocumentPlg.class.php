@@ -2829,4 +2829,18 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * Намираме потребители, които да се нотифицират допълнително за документа
+     * Извън споделени/абонирани в нишката
+     * 
+     * @param core_Manager $mvc
+     * @param NULL|array $res
+     * @param stdObject $rec
+     */
+    function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
+    {
+        $res = arr::make($res);
+    }
 }
