@@ -168,7 +168,9 @@ class core_Cron extends core_Manager
      */
     function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('#period'); 
+        $data->query->orderBy('period'); 
+        $data->query->orderBy('offset');
+        $data->query->orderBy('systemId');
     }
     
     

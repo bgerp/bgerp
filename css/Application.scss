@@ -1072,8 +1072,14 @@ div.acc-detail {
 	@include border-radius(5px);
 	background-color: white;
 	position: relative;
-	&:not(.detail-info) .state-closed {
+	.state-closed {
         background-color: transparent !important;
+    }
+    &.planning, &.detail-info {
+    	margin-bottom:5px;
+    	.state-closed {
+    		background-color: #dddddd !important;
+    	}
     }
 	.legend {
 		position: absolute;

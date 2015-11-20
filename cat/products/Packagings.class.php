@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_Packagings extends doc_Detail
+class cat_products_Packagings extends core_Manager
 {
     
     
@@ -37,7 +37,7 @@ class cat_products_Packagings extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'code=EAN, packagingId, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
+    var $listFields = 'code=EAN, packagingId=Наименование, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
         sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
         eanCode=,tools=Пулт';
     
@@ -151,16 +151,11 @@ class cat_products_Packagings extends doc_Detail
         if($action == 'add' && isset($rec->productId)) {
         	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
-            } else {
-            	$productInfo = $mvc->Master->getProductInfo($rec->productId);
-            	if(empty($productInfo->meta['canStore'])){
-            		$requiredRoles = 'no_one';
-            	}
             } 
         }
         
         if(($action == 'add' ||  $action == 'delete') && isset($rec->productId)) {
-        	$masterState = $mvc->Master->fetchField($rec->productId, 'state');
+        	$masterState = cat_Products::fetchField($rec->productId, 'state');
         	if($masterState != 'active' && $masterState != 'draft'){
         		$requiredRoles = 'no_one';
         	}
@@ -170,6 +165,11 @@ class cat_products_Packagings extends doc_Detail
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
         	if(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
+        	} else {
+        		$productInfo = cat_Products::getProductInfo($rec->productId);
+        		if(empty($productInfo->meta['canStore'])){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
         
@@ -178,24 +178,6 @@ class cat_products_Packagings extends doc_Detail
         	if(self::isUsed($rec->productId, $rec->packagingId)){
         		$requiredRoles = 'no_one';
         	}
-        }
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-        $data->toolbar->removeBtn('*');
-        
-        if ($mvc->haveRightFor('add', (object)array('productId' => $data->masterId)) && count($mvc::getRemainingOptions($data->masterId) > 0)) {
-        	$data->addUrl = array(
-                $mvc,
-                'add',
-                'productId' => $data->masterId,
-                'ret_url' => getCurrentUrl() + array('#'=>get_class($mvc))
-            );
         }
     }
 
@@ -340,29 +322,6 @@ class cat_products_Packagings extends doc_Detail
     		$row->packagingId = "<b>" . $row->packagingId . "</b>";
     	}
     }
-
-    
-    /**
-     * След рендиране на детайла
-     */
-    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
-    {
-        $wrapTpl = getTplFromFile('cat/tpl/PackigingDetail.shtml');
-        $title = tr('|Опаковки|* / |Мерки|*');
-        if(cat_UoM::haveRightFor('list') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-        	$title = ht::createLink($title, array('cat_UoM', 'list', 'type' => 'packaging'));
-        }
-        $wrapTpl->append($title, 'TITLE');
-        
-        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка/мярка');
-        	$tpl->append($addBtn, 'TITLE');
-        }
-        
-        $wrapTpl->append($tpl, 'CONTENT');
-        
-        $tpl = $wrapTpl;
-    }
     
     
     /**
@@ -370,16 +329,29 @@ class cat_products_Packagings extends doc_Detail
      * 
      * @param stdClass $data
      */
-    public static function preparePackagings($data)
+    public function preparePackagings($data)
     {
     	// Ако мастъра не е складируем, няма смисъл да показваме опаковките му
     	$productInfo = $data->masterMvc->getProductInfo($data->masterId);
     	if(empty($productInfo->meta['canStore'])){
-    		$data->hide = TRUE;
-    		return;
+    		$data->notStorable = TRUE;
     	}
     	
-    	static::prepareDetail($data);
+    	$query = self::getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$data->rows[$rec->id] = self::recToVerbal($rec);
+    	}
+    	
+    	if ($this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
+    		$data->addUrl = array(
+    				$this,
+    				'add',
+    				'productId' => $data->masterId,
+    				'ret_url' => getCurrentUrl() + array('#'=> get_class($this))
+    		);
+    	}
     }
     
     
@@ -390,9 +362,27 @@ class cat_products_Packagings extends doc_Detail
      */
     public function renderPackagings($data)
     {
-    	if($data->hide === TRUE) return;
+    	if($data->notStorable === TRUE && !count($data->recs)) return;
     	
-        return static::renderDetail($data);
+        $tpl = getTplFromFile('cat/tpl/PackigingDetail.shtml');
+        
+        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка/мярка');
+        	$tpl->append($addBtn, 'TITLE');
+        }
+        $data->listFields = arr::make($this->listFields);
+        
+        // Ако артикула не е производим, показваме в детайла
+        if($data->notStorable === TRUE){
+        	$tpl->append(" <small style='color:red'>(" . tr('Артикулът не е складируем') . ")</small>", 'TITLE');
+        	$tpl->append("state-rejected", 'TAB_STATE');
+        	unset($data->listFields['tools']);
+        }
+        
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
+        
+        return $tpl;
     }
     
     

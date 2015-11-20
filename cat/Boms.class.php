@@ -827,16 +827,21 @@ class cat_Boms extends core_Master
     	}
     	 
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    	
+    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
     	$data->TabCaption = 'Рецепти';
     	$data->Tab = 'top';
     	 
     	// Проверяваме можем ли да добавяме нови рецепти
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))){
     		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => TRUE);
-    	}
-    	 
-    	if(!isset($masterInfo->meta['canManifacture'])){
-    		$data->notManifacturable = TRUE;
     	}
     }
     
@@ -849,6 +854,8 @@ class cat_Boms extends core_Master
      */
     public function renderBoms($data)
     {
+    	 if($data->hide === TRUE) return;
+    	
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $title = tr('Технологични рецепти');
     	 $tpl->append($title, 'title');
