@@ -22,11 +22,16 @@ class crm_ProfilesPlg extends core_Plugin
 
             return;
         }
-         
+
+        $fieldsCnt = count($fields);
+        
         // Показваме никовете, като линкове, само при лист и сингъл изглед
-        if($fields['-list'] || $fields['-single'] || !count($fields)) {
+        if($fields['-list'] || $fields['-single'] || !$fieldsCnt) {
             $fieldsArr = $mvc->selectFields();
             foreach($fieldsArr as $name => $field) {
+                
+                if ($fieldsCnt && !$fields[$name]) continue;
+                
                 $type = $field->type;
 
                 // Ако е от type_Key
