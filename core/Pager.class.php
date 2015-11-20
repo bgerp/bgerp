@@ -212,8 +212,6 @@ class core_Pager extends core_BaseClass
         if(count($ids)) {
             $q->mvc->db->query("SELECT FOUND_ROWS()");
             $cntArr = $q->mvc->db->fetchArray();
-            $this->itemsCount  = array_shift($cntArr);
-            $this->calc();
  
             $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
 
@@ -221,6 +219,8 @@ class core_Pager extends core_BaseClass
 
             $query->where("#id IN ($ids)");
         } else {
+            $this->itemsCount = 0;
+            $this->calc();
             $query->limit(0);
         }
     }
