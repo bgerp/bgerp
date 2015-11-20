@@ -409,7 +409,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$rec = $data->rec;
 	
 		if($rec->state == 'active'){
-			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
+			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
 				$bomUrl = array($mvc, 'createBom', $data->rec->id);
 				$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
 			}
@@ -426,7 +426,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		expect($id = Request::get('id', 'int'));
 		expect($rec = $this->fetch($id));
 		
-		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId));
+		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId));
 		
 		// Подготвяме детайлите на рецептата
 		$details = array();

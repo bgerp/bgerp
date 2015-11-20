@@ -567,7 +567,7 @@ class doc_Containers extends core_Manager
                 $sharedArr = keylist::toArray($shared);
                 
                 // Нотифицираме споделените
-                static::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
                 
                 // Всички абонирани потребилите
                 $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
@@ -580,7 +580,43 @@ class doc_Containers extends core_Manager
                 $subscribedWithoutSharedArr = array_diff($subscribedArr, $sharedArr);
                 
                 // Нотифицираме абонираните потребители
-                static::addNotifications($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+                self::addNotifications($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+                
+                
+                // Нотифицира потребителите, които са свързани с документа
+                // и са избрали съответната настройка за нотификация
+                $usersArrForNotify = $docMvc->getUsersArrForNotifyInDoc($docRec);
+                
+                if ($usersArrForNotify) {
+                    
+                    // Кои потребители ще се нотифицират за отворена нишка
+                    $fRec = doc_Folders::fetch($rec->folderId);
+                    $notifyForOpenInFolder = doc_Folders::getUsersArrForNotify($fRec);
+                    
+                    // Премахваме всички потребители, които ще се нотифицират за отворена нишка
+                    // и са абонирани в нишката и ще получат нотификация от там
+                    $usersArrForNotify = array_diff($usersArrForNotify, $notifyForOpenInFolder);
+                    $usersArrForNotify = array_diff($usersArrForNotify, $subscribedArr);
+                    $usersArrForNotify = array_diff($usersArrForNotify, $sharedArr);
+                    
+                    if ($usersArrForNotify) {
+                        
+                        $key = doc_Folders::getSettingsKey($rec->folderId);
+                        $usersArr = core_Settings::fetchUsers($key, 'personalEmailIncoming', 'yes');
+                        if ($usersArr) {
+                            $usersArr = array_keys($usersArr);
+                            $usersArr = arr::make($usersArr, TRUE);
+                            
+                            $usersArr = array_intersect($usersArr, $usersArrForNotify);
+                            
+                            if ($usersArr) {
+                                $usersArr = array_keys($usersArr);
+                                $usersArr = arr::make($usersArr, TRUE);
+                                self::addNotifications($usersArr, $docMvc, $rec, 'добави');
+                            }
+                        }
+                    }
+                }
             }
         }
     }

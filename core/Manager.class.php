@@ -297,10 +297,10 @@ class core_Manager extends core_Mvc
         
         // Генерираме събитие в $this, след въвеждането на формата
         $this->invoke('AfterInputEditForm', array($data->form));
-        
+       
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
-        
+       
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
             
@@ -326,6 +326,9 @@ class core_Manager extends core_Mvc
         // Подготвяме лентата с инструменти на формата
         $this->prepareEditToolbar($data);
         
+        // Подготвяме заглавието на формата
+        $this->prepareEditTitle($data);
+        
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
@@ -336,6 +339,16 @@ class core_Manager extends core_Mvc
         $tpl = $this->renderWrapping($tpl, $data);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Подготвя заглавието на формата
+     */
+    function prepareEditTitle_($data)
+    {
+    	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
     }
     
     
@@ -576,9 +589,6 @@ class core_Manager extends core_Mvc
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         $data->form->input(NULL, 'silent');
-   
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
-        "|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
 
         // Ако имаме 
         if($data->form->rec->id && $data->form->cmd != 'refresh') {

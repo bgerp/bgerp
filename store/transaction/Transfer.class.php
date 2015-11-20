@@ -29,29 +29,28 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason' => "Междускладов трансфер №{$rec->id}",
-				'valior' => $rec->valior,
+				'reason'      => "Междускладов трансфер №{$rec->id}",
+				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
-				'entries' => array()
+				'entries'     => array()
 		);
 	
 		$dQuery = store_TransfersDetails::getQuery();
 		$dQuery->where("#transferId = '{$rec->id}'");
 		while($dRec = $dQuery->fetch()){
-			$sProd = store_Products::fetch($dRec->productId);
 			 
 			// Ако артикула е вложим сметка 321
 			$accId = '321';
 			$result->entries[] = array(
 					'credit'  => array($accId,
 							array('store_Stores', $rec->fromStore), // Перо 1 - Склад
-							array('cat_Products', $sProd->productId),  // Перо 2 - Артикул
+							array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
 							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
 					),
 	
 					'debit' => array($accId,
 							array('store_Stores', $rec->toStore), // Перо 1 - Склад
-							array('cat_Products', $sProd->productId),  // Перо 2 - Артикул
+							array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
 							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
 					),
 			);

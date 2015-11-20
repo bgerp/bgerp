@@ -120,6 +120,9 @@ class log_Actions extends core_Manager
     public static function saveActions()
     {
        foreach (self::$actionsArr as $crc => $action) {
+
+           if(self::fetch("#crc = {$crc}")) continue;
+
            $rec = new stdClass();
            $rec->crc = $crc;
            $rec->action = $action;

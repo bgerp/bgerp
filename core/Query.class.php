@@ -480,7 +480,7 @@ class core_Query extends core_FieldSet
             return "";
         }
         
-        if ($this->limit > 0 && $this->start === NULL) {
+        if ($this->limit >= 0 && $this->start === NULL) {
             return "\nLIMIT {$this->limit}";
         }
         
@@ -819,6 +819,15 @@ class core_Query extends core_FieldSet
         }
         
         if (count($this->where) > 0) {
+            
+            if(count($this->where) > 1) {
+                foreach($this->where as $cl) {
+                    $nw[$cl] = (stripos($cl, 'locate(') !== FALSE) + (stripos($cl, 'search_keywords') !== FALSE) + (stripos($cl, 'in (') !== FALSE);
+                }            
+                arsort($nw);
+                $this->where = array_keys($nw);
+            }
+
             foreach ($this->where as $expr) {
                 $expr = $this->expr2mysql($expr);
                 
@@ -867,6 +876,15 @@ class core_Query extends core_FieldSet
         // Добавяме използваните полета - изрази
         $this->show = arr::combine($this->show, $this->exprShow);
         
+        if(count($this->orderBy)) {
+            foreach($this->orderBy as $ordRec) {
+                $fld = $this->fields[ltrim($ordRec->field, '#')];
+                if($fld->kind == 'XPR' || $fld->kind == 'EXT') {
+                    $this->show[$fld->name] = TRUE;
+                }
+            }
+        }
+
         // Задължително показваме полето id
         $this->show['id'] = TRUE;
         

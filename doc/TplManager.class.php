@@ -126,6 +126,15 @@ class doc_TplManager extends core_Master
     
     
     /**
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('name');
+    }
+    
+    
+    /**
      * След потготовка на формата за добавяне / редактиране
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)

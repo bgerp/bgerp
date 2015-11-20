@@ -825,57 +825,66 @@ class crm_Profiles extends core_Master
      */
     public static function createLink($userId = NULL, $title = NULL, $warning = FALSE, $attr = array())
     {   
+        static $cacheArr = array();
+        
         if(!$userId) {
             $userId = core_Users::getCurrent();
         }
         
-        $userRec = core_Users::fetch($userId);
+        $key = "{$userId}|{$title}|{$warning}|" . implode('|', $attr); 
         
-        if(!$title) {
-            $title = self::getUserTitle($userRec->nick);
-        }
-
-        $link = $title;
-        
-        $url  = array();
-		$profileId = self::getProfileId($userId);
-		if($profileId){
-			
-			if(crm_Profiles::haveRightFor('single', $profileId)){
-				$url  = static::getUrl($userId);
-			} 
-			
-			$attr['class'] .= ' profile';
-			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
-				if (core_Users::haveRole($role, $userId)) {
-					$attr['class'] .= " {$role}"; break;
-				}
-			}
-			
-            if (core_Users::haveRole('no_one', $userId)) {
-                $attr['style'] .= " text-decoration: underline red;"; 
+        if (!$cacheArr[$key]) {
+            
+            $userRec = core_Users::fetch($userId);
+            
+            if(!$title) {
+                $title = self::getUserTitle($userRec->nick);
             }
-
-			if ($userRec->lastActivityTime) {
-				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
-			}
-			
-			if(($before !== NULL) && $before < 5*60) {
-				$attr['class'] .= ' active';
-			} elseif(!$before || $before > 60*60) {
-				$attr['class'] .= ' inactive';
-			}
-			
-			if($userRec->state != 'active') {
-				$attr['class'] .= ' state-' . $userRec->state;
-			}
-			
-			$attr['title'] = $userRec->names;
-			
-			$link = ht::createLink($title, $url, $warning, $attr);
-		}
+    
+            $link = $title;
+            
+            $url  = array();
+    		$profileId = self::getProfileId($userId);
+    		if($profileId){
+    			
+    			if(crm_Profiles::haveRightFor('single', $profileId)){
+    				$url  = static::getUrl($userId);
+    			} 
+    			
+    			$attr['class'] .= ' profile';
+    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
+    				if (core_Users::haveRole($role, $userId)) {
+    					$attr['class'] .= " {$role}"; break;
+    				}
+    			}
+    			
+                if (core_Users::haveRole('no_one', $userId)) {
+                    $attr['style'] .= " text-decoration: underline red;"; 
+                }
+    
+    			if ($userRec->lastActivityTime) {
+    				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
+    			}
+    			
+    			if(($before !== NULL) && $before < 5*60) {
+    				$attr['class'] .= ' active';
+    			} elseif(!$before || $before > 60*60) {
+    				$attr['class'] .= ' inactive';
+    			}
+    			
+    			if($userRec->state != 'active') {
+    				$attr['class'] .= ' state-' . $userRec->state;
+    			}
+    			
+    			$attr['title'] = $userRec->names;
+    			
+    			$link = ht::createLink($title, $url, $warning, $attr);
+    		}
+    		
+    		$cacheArr[$key] = $link;
+        }
         
-        return $link;
+        return $cacheArr[$key];
     }
     
 

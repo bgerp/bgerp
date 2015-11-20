@@ -249,11 +249,13 @@ class doc_DocumentPlg extends core_Plugin
 
         }
         
-        $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
-        
-        if ($historyCnt) {
-            $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
-            "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
+        if($mvc->haveRightFor('single') && !core_Users::isContractor()){
+            $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+            
+            if ($historyCnt) {
+                $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+                "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
+            }
         }
     }
     
@@ -1113,11 +1115,14 @@ class doc_DocumentPlg extends core_Plugin
 
     
     /**
-     *
+     * След подготовката на заглавието на формата
      */
-    static function on_AfterInputEditForm($mvc, $form)
-    {  
-        //Добавяме текст по подразбиране за титлата на формата
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	//Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
@@ -1148,14 +1153,24 @@ class doc_DocumentPlg extends core_Plugin
         
         if($rec->threadId) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
+            setIfNot($data->singleTitle, $mvc->singleTitle);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
                 list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
+                $title = tr(mb_strtolower($data->singleTitle)) . $in . $t;
             }
         }
        
         $form->title .= $title;
+    }
+    
+    
+    /**
+     *
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {  
+        $rec = &$form->rec;
         
     	if($form->isSubmitted()){
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){
@@ -2813,5 +2828,19 @@ class doc_DocumentPlg extends core_Plugin
                 $res[$createdBy] = $createdBy;
             }
         }
+    }
+    
+    
+    /**
+     * Намираме потребители, които да се нотифицират допълнително за документа
+     * Извън споделени/абонирани в нишката
+     * 
+     * @param core_Manager $mvc
+     * @param NULL|array $res
+     * @param stdObject $rec
+     */
+    function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
+    {
+        $res = arr::make($res);
     }
 }

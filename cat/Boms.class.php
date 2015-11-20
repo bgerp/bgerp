@@ -84,10 +84,16 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Икона на единичния изглед
+     * Икона на единичния изглед на търговската рецепта
      */
-    public $singleIcon = 'img/16/article.png';
+    public $singleIcon = 'img/16/article2.png';
     
+    
+    /**
+     * Икона на единичния изглед на работната рецепта
+     */
+    public $singleProductionBomIcon = 'img/16/article.png';
+  
     
     /**
      * Абревиатура
@@ -149,7 +155,7 @@ class cat_Boms extends core_Master
     function description()
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
-    	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none,notNull,value=sales');
+    	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
@@ -182,6 +188,18 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	$type = Request::get('type');
+    	if(!$type) return;
+    	
+    	$mvc->singleTitle = ($type == 'sales') ? 'Търговска рецепта' : 'Работна рецепта';
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -202,23 +220,6 @@ class cat_Boms extends core_Master
     	if(empty($form->rec->id)){
     		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	$rec = &$form->rec;
-    	if($form->isSubmitted()){
-    		if(!isset($rec->quantityForPrice)){
-    			$rec->quantityForPrice = $rec->quantity;
     		}
     	}
     }
@@ -381,7 +382,10 @@ class cat_Boms extends core_Master
     	
     	if(($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)){
     		if($res != 'no_one'){
-    			if($rec->type == 'production'){
+    			
+    			// Ако рецептата е работна само techno и ceo могат да я редактират
+    			$firstDocument = doc_Containers::getDocument($rec->originId);
+    			if($firstDocument->isInstanceOf('planning_Jobs')){
     				if(!haveRole('techno,ceo', $userId)){
     					$res = 'no_one';
     				}
@@ -439,6 +443,7 @@ class cat_Boms extends core_Master
     {
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
+    	$row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
@@ -446,9 +451,13 @@ class cat_Boms extends core_Master
     		$row->quantity .= " " . $shortUom;
     	}
     	
-    	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
-    	$priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+    	if($fields['-single'] && haveRole('ceo, acc, cat, price,sales')) {
+    	    $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
 	        $rec->primeCost = 0;
+	        
+	        if(!$rec->quantityForPrice){
+	        	$row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+	        }
 	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 	        
 	        if($priceObj) {
@@ -512,6 +521,10 @@ class cat_Boms extends core_Master
     			
     			// Опитваме се да намерим себестойност за артикула
     			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
+    			if(!$selfValue){
+    				$selfValue = NULL;
+    			}
+    			cat_BomDetails::save((object)array('id' => $dRec->id, 'primeCost' => $selfValue), 'primeCost');
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
@@ -564,13 +577,14 @@ class cat_Boms extends core_Master
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
+    		$arr['id']             = $dRec->id;
     		$arr['productId']      = $dRec->resourceId;
     		$arr['type']           = $dRec->type;
     		$arr['expensePercent'] = $dRec->expensePercent;
     		$arr['packagingId']    = $dRec->packagingId;
     		$arr['quantityInPack'] = $dRec->quantityInPack;
-    		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
-    		$arr['propQuantity']   = $dRec->propQuantity * $dRec->quantityInPack;
+    		$arr['baseQuantity']   = $dRec->calcedBaseQuantity * $dRec->quantityInPack;
+    		$arr['propQuantity']   = $dRec->calcedPropQuantity * $dRec->quantityInPack;
     		 
     		$resources['resources'][] = (object)$arr;
     	}
@@ -818,16 +832,21 @@ class cat_Boms extends core_Master
     	}
     	 
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    	
+    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
     	$data->TabCaption = 'Рецепти';
     	$data->Tab = 'top';
     	 
     	// Проверяваме можем ли да добавяме нови рецепти
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'type' => 'sales'))){
-    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
-    	}
-    	 
-    	if(!isset($masterInfo->meta['canManifacture'])){
-    		$data->notManifacturable = TRUE;
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))){
+    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => TRUE);
     	}
     }
     
@@ -840,6 +859,8 @@ class cat_Boms extends core_Master
      */
     public function renderBoms($data)
     {
+    	 if($data->hide === TRUE) return;
+    	
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $title = tr('Технологични рецепти');
     	 $tpl->append($title, 'title');
@@ -849,7 +870,7 @@ class cat_Boms extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,quantity=За количество,type=Вид,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=За к-во,createdBy=Oт,createdOn=На');
     	 if($data->hideToolsCol){
     	 	unset($listFields['tools']);
     	 }
@@ -896,6 +917,92 @@ class cat_Boms extends core_Master
     			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
     		} else {
     			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Намиране на цената според технологичната рецепта и задание (ако има такива)
+     */
+    public static function getPriceByBom($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    {
+    	$price = (object)array('price' => NULL);
+    
+    	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+    	if(!isset($quantity)){
+    
+    		$quantityJob = cat_Products::getLastJob($productId)->quantity;
+    		if(isset($quantityJob)){
+    			$quantity = $quantityJob;
+    		}
+    	}
+    	 
+    	// Опитваме се да намерим цена според технологичната карта
+    	if($amounts = cat_Boms::getPrice($productId)){
+    		$defPriceListId = self::getListForCustomer($customerClass, $customerId);
+    
+    		$minCharge = $maxCharge = NULL;
+    
+    		// Ако контрагента има зададен ценоразпис, който не е дефолтния
+    		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
+    			 
+    			// Взимаме максималната и минималната надценка от него, ако ги има
+    			$defPriceList = price_Lists::fetch($defPriceListId);
+    			$minCharge = $defPriceList->minSurcharge;
+    			$maxCharge = $defPriceList->maxSurcharge;
+    		}
+    
+    		// Ако няма мин надценка, взимаме я от търговските условия
+    		if(!isset($minCharge)){
+    			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		}
+    
+    		// Ако няма макс надценка, взимаме я от търговските условия
+    		if(!isset($maxCharge)){
+    			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		}
+    
+    		if(!$quantity){
+    			$quantity = 1;
+    		}
+    
+    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
+    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
+    		 
+    		return $price;
+    	}
+    	
+    	// Връщаме цената
+    	return $price;
+    }
+    
+    
+    /**
+     * Връща иконата за сметката
+     */
+    function getIcon($id)
+    {
+    	$rec = $this->fetch($id);
+    	$icon = ($rec->type == 'sales') ? $this->singleIcon : $this->singleProductionBomIcon;
+    	
+    	return $icon;
+    }
+    
+    
+    /**
+     * След подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    {
+    	$data->listFilter->showFields .= ',type';
+    	$data->listFilter->setOptions('type', array('all' => 'Всички', 'sales' => 'Търговски', 'production' => 'Работни'));
+    	$data->listFilter->setDefault('type', 'all');
+    	
+    	$data->listFilter->input();
+    	if($filter = $data->listFilter->rec) {
+    		if($filter->type != 'all'){
+    			$data->query->where("#type = '{$filter->type}'");
     		}
     	}
     }

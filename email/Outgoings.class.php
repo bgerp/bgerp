@@ -1581,8 +1581,8 @@ class email_Outgoings extends core_Master
                     if ($contragentData->email) {
                         $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
                         $contragentData->groupEmails .= $contragentData->email;
-                        $contragentData->email = $oContragentData->email;
                     }
+                    $contragentData->email = $oContragentData->email;
                 }
                 
                 if ($oContragentData->groupEmails) {

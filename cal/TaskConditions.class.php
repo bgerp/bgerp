@@ -110,8 +110,6 @@ class cal_TaskConditions extends core_Detail
         } 
 
         $masterRec = cal_Tasks::fetch($data->form->rec->baseId);
-
-        $data->form->title = "|Зависимости по|* \"" . type_Varchar::escape($masterRec->title) . "\"";
         
         $data->form->setField('activationCond', array('removeAndRefreshForm' => "progress|distTime"));
         

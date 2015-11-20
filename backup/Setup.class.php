@@ -198,7 +198,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->period = BACKUP_FULL_PERIOD;
         $rec->offset = BACKUP_FULL_OFFSET;
         $rec->delay = 40;
-        $rec->timeLimit = 50;
+        $rec->timeLimit = 2400;
         $html .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
@@ -235,6 +235,15 @@ class backup_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
+    }
+    
+    function checkMysqlConf ()
+    {
+        exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"",  $retArr, $retVal);
+        // log_bin	ON
+        exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"",  $retArr, $retVal);
+        // server_id	1
+        
     }
     
     

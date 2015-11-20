@@ -31,7 +31,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		// Добавя полетата само ако ги няма във формата
 		if(!$fieldset->getField('info', FALSE)){
-			$fieldset->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory");
+			$fieldset->FLD('info', 'richtext(rows=4, bucket=Notes)', "caption=Описание,mandatory");
 		} else {
 			$fieldset->setField('info', 'input');
 		}
@@ -293,8 +293,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		if($data->isSingle !== TRUE){			
-			$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-			$wrapTpl->append($tpl, 'paramBody');
+			$wrapTpl = new ET("<!--ET_BEGIN paramBody--><div class='general-product-description'>[#paramBody#][#COMPONENTS#]</div><!--ET_END paramBody-->");
+			if(strlen(trim($tpl->getContent()))){
+				$wrapTpl->append($tpl, 'paramBody');
+			}
 			
 			return $wrapTpl;
 		}

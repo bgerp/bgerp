@@ -25,9 +25,15 @@ class type_Keylist extends core_Type {
     /**
      * MySQL тип на полето в базата данни
      */
-    var $dbFieldType = 'text';
+    public $dbFieldType = 'text';
     
-    
+
+    /**
+     * Тук записваме само числа
+     */
+    public $collation = 'ascii_bin';
+
+
 	/**
      * Конструктор. Дава възможност за инициализация
      */
@@ -234,6 +240,8 @@ class type_Keylist extends core_Type {
                     } else {
                     	$title = "";
                     }
+                    
+                    $v = type_Varchar::escape($v);
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {

@@ -963,7 +963,7 @@ class core_Mvc extends core_FieldSet
 
                 // Ще обновяваме ли колацията?
                 if($this->db->isType($mfAttr->type, 'have_collation')) {
-                    setIfNot($mfAttr->collation, EF_DB_COLLATION);
+                    setIfNot($mfAttr->collation, $field->collation, EF_DB_COLLATION);  
                     $mfAttr->collation = strtolower($mfAttr->collation);
                     $updateCollation = $mfAttr->collation != $dfAttr->collation;
                     $style = $updateCollation ? $green : "";

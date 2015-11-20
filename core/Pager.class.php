@@ -195,12 +195,35 @@ class core_Pager extends core_BaseClass
     function setLimit(&$query)
     {
         $q = clone ($query);
-        $this->itemsCount = $q->count();
+        $q->show('id');
+        $q->addOption('SQL_CALC_FOUND_ROWS');
+
+        $this->itemsCount = PHP_INT_MAX;
         $this->calc();
-        
         if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $query->limit($this->rangeEnd - $this->rangeStart);
-            $query->startFrom($this->rangeStart);
+            $q->limit(2*($this->rangeEnd - $this->rangeStart));
+            $q->startFrom($this->rangeStart); 
+            $q->select();
+            while($rec = $q->fetch()) {
+                $ids[] = $rec->id;
+            }
+        }
+        
+        if(count($ids)) {
+            $q->mvc->db->query("SELECT FOUND_ROWS()");
+            $cntArr = $q->mvc->db->fetchArray();
+            $this->itemsCount  = array_shift($cntArr);
+            $this->calc();
+
+            $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+
+            $ids = implode(',', $ids);
+
+            $query->where("#id IN ($ids)");
+        } else {
+            $this->itemsCount = 0;
+            $this->calc();
+            $query->limit(0);
         }
     }
 

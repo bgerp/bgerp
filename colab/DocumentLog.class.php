@@ -232,7 +232,7 @@ class colab_DocumentLog extends core_Manager
         $actArr = self::getActions($cid, self::ACTION_VIEW);
         
         // Името на таба
-        $data->TabCaption = 'Виждания (К)';
+        $data->TabCaption = tr('Виждания (К)');
         
         if (!$actArr) {
             

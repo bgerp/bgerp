@@ -185,12 +185,24 @@ class crm_Locations extends core_Master {
         $data->form->setDefault('pCode', $contragentRec->pCode);
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
-        
-        if($rec->id) {
-            $data->form->title = 'Редактиране на локация на |*' . $contragentTitle;
-        } else {
-            $data->form->title = 'Нова локация на |*' . $contragentTitle;
-        }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = &$data->form->rec;
+    	$url = cls::get($rec->contragentCls)->getSingleUrlArray($data->form->rec->contragentId);
+    	$title = cls::get($rec->contragentCls)->getTitleById($data->form->rec->contragentId);
+    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => cls::get($rec->contragentCls)->singleIcon, 'class' => 'linkInTitle'));
+    	 
+    	if($data->form->rec->id) {
+    		$data->form->title = "Редактиране на локация на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	} else {
+    		$data->form->title = "Нова локация на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	}
     }
     
     

@@ -44,7 +44,7 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified';
     
     
     /**

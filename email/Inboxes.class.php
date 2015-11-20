@@ -17,6 +17,13 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Процент на съвпадание в имената на имейлите, които липсват
+     * На всеки 4 един трябва да съвпада
+     */
+    static $closestEmailPercent = 75;
+    
+    
+    /**
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
@@ -405,10 +412,73 @@ class email_Inboxes extends core_Master
             }            
         }
         
+        if ($bestEmail = self::getClosest($emailsArr)) {
+            
+            return $bestEmail;
+        }
+        
         // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
         return $accRec->email;
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param array $emailsArr
+     * 
+     * @return NULL|string
+     */
+    public static function getClosest($emailsArr)
+    {
+        $md = md5(serialize($emailsArr));
+        
+        static $checkedEmailsArr = array();
+        static $ourEmailsArr = array();
+        static $bestEmailArr = array();
+        static $bestPercentArr = array();
+        
+        // Всички наши имейли
+        if (!$ourEmailsArr) {
+            
+            $allEmailsArr = self::getAllEmailsArr();
+            
+            foreach ((array)$allEmailsArr as $email) {
+                list($emailL, $domain) = explode('@', $email);
+                $domain = strtolower($domain);
+                $ourEmailsArr[$domain][$emailL] = $emailL;
+            }
+        }
+        
+        if (!$bestEmailArr[$md] && !$bestPercentArr[$md]) {
+            // Проверяваме в подадените имейли за съвпадание
+            foreach ((array)$emailsArr as $email) {
+                
+                if (isset($checkedEmailsArr[$email])) continue;
+                
+                $email = trim($email);
+                list($emailL, $domain) = explode('@', $email);
+                
+                $domain = strtolower($domain);
+                
+                $p = 0;
+                
+                $closestEmail = str::getClosestWord($ourEmailsArr[$domain], $emailL, $p, TRUE);
+                
+                if ($p >= self::$closestEmailPercent && ($p >= $bestPercentArr[$md])) {
+                    $bestPercentArr[$md] = $p;
+                    $bestEmailArr[$md] = $closestEmail . '@' . $domain;
+                }
+                
+                $checkedEmailsArr[$email] = $email;
+            }
+        }
+        
+        if ($bestEmailArr[$md] && $bestPercentArr[$md]) {
+            
+            return $bestEmailArr[$md];
+        }
+    }
     
     /**
      * При създаването на вербалния ред, добавя линк и икона в заглавието на сметката
@@ -580,9 +650,38 @@ class email_Inboxes extends core_Master
         //Връщаме inCharge id' то
         return $rec->inCharge;
     }
-   
-
-
+    
+    
+    /**
+     * Намира всички потребители, които са `inCharge` на подадените масиви
+     * 
+     * @param array $emailsArr
+     * @param boolean $removeCommonAndCorporate
+     * 
+     * @return array
+     */
+    public static function getInChargeForEmails($emailsArr, $removeCommonAndCorporate = TRUE)
+    {
+        // Премахваме корпоративния и общите акаунти
+        if ($removeCommonAndCorporate) {
+		    $commAndCorpEmailArr = email_Accounts::getCommonAndCorporateEmails();
+		    $emailsArr = array_diff((array)$emailsArr, (array)$commAndCorpEmailArr);
+        }
+        
+        $query = self::getQuery();
+        $query->orWhereArr('email', $emailsArr);
+        
+        $usersArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            $usersArr[$rec->inCharge] = $rec->inCharge;
+        }
+        
+        return $usersArr;
+    }
+    
+    
     /**
      *  Един документ ги изпращаме от:
      *
@@ -766,6 +865,40 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Връща масив с всички имейл кутии
+     * 
+     * @param boolean $removeRejected
+     * 
+     * @return array
+     */
+    public static function getAllEmailsArr($removeRejected = FALSE)
+    {
+        $cacheType = 'emailInboxes';
+        $cacheHandle = 'allEmails' . $removeRejected;
+        $keepMinutes = 1000;
+        $depends = array('email_Inboxes', 'email_Accounts');
+        
+        if (!$allEmailsArr = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
+            // Извличаме всички имейли
+            $query = static::getQuery();
+            
+            if ($removeRejected) {
+                $query->where("#state != 'rejected'");
+            }
+            
+            $allEmailsArr = array();
+            while ($rec = $query->fetch()) {
+                $allEmailsArr[] = $rec->email;
+            }
+            
+            core_Cache::set($cacheType, $cacheHandle, $allEmailsArr, $keepMinutes, $depends);
+        }
+        
+        return $allEmailsArr;
+    }
+    
+    
+    /**
      * Премахва всички наши имейли от подададения масив с имейли
      * 
      * @param array $emailsArr - Масив с имейли
@@ -774,29 +907,7 @@ class email_Inboxes extends core_Master
      */
     static function removeOurEmails($emailsArr)
     {
-        // Данни за кеширане
-        $cacheType = 'ourEmails';
-        $cacheHandle = 'allEmails';
-        $keepMinutes = 1000;
-        $depends = array('email_Inboxes', 'email_Accounts');
-        
-        // Ако няма в кеша или е променен
-        if (!$emailForRemove = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
-            
-            //Масив с имейли за премахване
-            $emailForRemove = array();
-            
-            // Извличаме всички имейли
-            $query = static::getQuery();
-            while ($rec = $query->fetch()) {
-                
-                // Записваме имейлите в масив
-                $emailForRemove[] = $rec->email;
-            }
-            
-            // Записваме в кеша
-            core_Cache::set($cacheType, $cacheHandle, $emailForRemove, $keepMinutes, $depends);
-        }
+        $emailForRemove = self::getAllEmailsArr(TRUE);
         
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);

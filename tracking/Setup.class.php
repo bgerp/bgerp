@@ -42,6 +42,11 @@ defIfNot('PID', '');
 defIfNot('CMD', '');
 
 /**
+ * Команден ред за изпълнение на командата
+ */
+defIfNot('DAYS_TO_KEEP', '60');
+
+/**
  * Клас 'tracking_Setup'
  *
  * @category  bgerp
@@ -90,6 +95,7 @@ class tracking_Setup extends core_ProtoSetup
             'LOG_URL' => array ('varchar(255)', 'mandatory, caption=Url за логване'),
             'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт'),
             'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане,input=readonly,readonly'),
+            'DAYS_TO_KEEP' => array ('int()', 'mandatory, caption=Живот за логовете'),
            // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
     );
     
@@ -132,7 +138,17 @@ class tracking_Setup extends core_ProtoSetup
         $rec->period = (int) $conf->RESTART_PERIOD / 60;
         $rec->offset = 0;
         $html .= core_Cron::addOnce($rec);
-
+        
+        // Наглася Cron да трие стари данни
+        $rec = new stdClass();
+        $rec->systemId = "trackingDeleteOldRecords";
+        $rec->description = "Изтрива стари записи";
+        $rec->controller = "tracking_Log";
+        $rec->action = "DeleteOldRecords";
+        $rec->period = (int) 60*60*24*8; // на 8 дена пуска задачата
+        $rec->offset = 0;
+        $html .= core_Cron::addOnce($rec);
+        
         if ($pid = self::Start()) {
             $html .= "<li class='green'>Стартиран слушач за тракерите - pid={$pid}</li>";
         } else {
@@ -160,6 +176,8 @@ class tracking_Setup extends core_ProtoSetup
          * @todo: На определено време е добре сървиса да се рестартира.
          */
     }
+    
+    
     /**
      * Пуска листенер-а
      *

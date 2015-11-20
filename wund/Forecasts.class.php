@@ -87,26 +87,26 @@ class wund_Forecasts extends core_Manager {
 
         $forecastday = $weather->forecast->simpleforecast->forecastday;
 
-        foreach($forecastday as $day) {
-            
-            $date = "{$day->date->year}-{$day->date->month}-{$day->date->day}";
-
-            $rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
-
-            if(!$rec) {
-                $rec = new stdClass();
-                $rec->date = $date;
-                $rec->location = $location;
-         
-            }
-            
-            $rec->low     = $day->low->celsius;
-            $rec->high    = $day->high->celsius;
-            $rec->iconUrl = $day->icon_url;
-            
-            self::save($rec);
+        if(is_array($forecastday)){
+        	foreach($forecastday as $day) {
+        	
+        		$date = "{$day->date->year}-{$day->date->month}-{$day->date->day}";
+        	
+        		$rec = self::fetch(array("#date = '[#1#]' && #location = '[#2#]'", $date, $location));
+        	
+        		if(!$rec) {
+        			$rec = new stdClass();
+        			$rec->date = $date;
+        			$rec->location = $location;
+        			 
+        		}
+        	
+        		$rec->low     = $day->low->celsius;
+        		$rec->high    = $day->high->celsius;
+        		$rec->iconUrl = $day->icon_url;
+        	
+        		self::save($rec);
+        	}
         }
-
     }
-    
 }

@@ -240,7 +240,7 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 //'meta'    => 'lastDocUser|lastDoc',
+											 'meta'    => 'lastDocUser|lastDoc',
 	);
 	
 	
@@ -272,7 +272,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none');
+        $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание,input=none');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
@@ -674,10 +674,12 @@ class cat_Products extends embed_Manager {
      * 							        данни, на които трябва да отговарят
      * @param mixed $hasnotProperties - комбинация на горе посочените мета 
      * 							        които не трябва да имат
+     * @param int $limit			  - лимит
+     * @return array				  - намерените артикули
      */
-    public static function getByProperty($properties, $hasnotProperties = NULL)
+    public static function getByProperty($properties, $hasnotProperties = NULL, $limit = NULL)
     {
-    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties);
+    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties, $limit);
     }
     
     
@@ -1023,7 +1025,7 @@ class cat_Products extends embed_Manager {
     	$baseId = $measureId;
     	
     	// За всяка опаковка, извличаме опциите и намираме имали основна такава
-    	if(count($pInfo->packagings)){
+    	if(count($pInfo->packagings) && isset($pInfo->meta['canStore'])){
     		foreach ($pInfo->packagings as $packRec){
     			$options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId);
     			if($packRec->isBase == 'yes'){
@@ -1271,6 +1273,7 @@ class cat_Products extends embed_Manager {
     	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
     	    }
     	    
+    	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
     	}
     	
@@ -1313,6 +1316,10 @@ class cat_Products extends embed_Manager {
     public static function getLastActiveBom($id, $type = NULL)
     {
     	$rec = self::fetchRec($id);
+    	
+    	// Ако артикула не е производим не търсим рецепта
+    	if($rec->canManifacture == 'no') return FALSE;
+    	
     	$cond = "#productId = {$rec->id} AND #state = 'active'";
     	
     	if(isset($type)){
@@ -1778,7 +1785,9 @@ class cat_Products extends embed_Manager {
     	
     	if($Driver){
     		$tpl = $Driver->renderProductDescription($data);
-    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$showLinks = ($data->documentType == 'public') ? FALSE : TRUE;
+    		
+    		$componentTpl = cat_Products::renderComponents($data->components, $showLinks);
     		$tpl->append($componentTpl, 'COMPONENTS');
     	} else {
     		$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
@@ -1794,7 +1803,7 @@ class cat_Products extends embed_Manager {
      * @param array $components - компонентите на артикула
      * @return core_ET - шаблона на компонентите
      */
-    public static function renderComponents($components, $makeLinks = TRUE, $showDescription = TRUE)
+    public static function renderComponents($components, $makeLinks = TRUE)
     {
     	if(!count($components)) return;
     	
@@ -1816,11 +1825,8 @@ class cat_Products extends embed_Manager {
     					 'componentStage'       => $obj->stageName,
     					 'componentQuantity'    => $obj->quantity,
     					 'level'				=> $obj->level,
+    				     'leveld'				=> $obj->leveld,
     					 'componentMeasureId'   => $obj->measureId);
-    		
-    		if($showDescription === FALSE){
-    			unset($arr['componentDescription']);
-    		}
     		
     		$bTpl->placeArray($arr);
     		$bTpl->removeBlocks();
@@ -1838,7 +1844,7 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'public');
+    	cat_Products::prepareComponents($data->rec->id, $data->components);
     }
     
     
@@ -1863,7 +1869,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
+    public static function prepareComponents($productId, &$res = array())
     {
     	// Имали последна активна търговска рецепта за артикула?
     	$rec = cat_Products::getLastActiveBom($productId, 'sales');
@@ -1880,47 +1886,37 @@ class cat_Products extends embed_Manager {
     	 
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
-    	$level++;
-    	
-    	// За всеки
     	if(is_array($details)){
     		foreach ($details as $dRec){
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
-    			$obj->code = cat_BomDetails::recToVerbal($dRec, 'position')->position;
-    			if($code !== ''){
-    				$obj->code = $code . "." . $obj->code;
-    			}
+    			$row = cat_BomDetails::recToVerbal($dRec);
+    			$obj->code = $row->position;
     			
     			$codeCount = strlen($obj->code);
     			$length = $codeCount - strlen(".{$dRec->position}");
     			$obj->parent = substr($obj->code, 0, $length);
-    			
+    			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
-    			$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
-    			$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
-    			$obj->type = $dRec->type;
+    			$obj->measureId = $row->packagingId;
+    			$obj->quantity = $dRec->rowQuantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
-    			
+    			 
     			if($obj->parent){
     				$obj->quantity *= $res[$obj->parent]->quantity;
     			}
     			
-    			// Ако показваме описанието, показваме го
-    			if($dRec->type == 'input'){
-    				$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
+    			if($dRec->description){
+    				$obj->description = $row->description;
     				$obj->leveld = $obj->level;
     			}
-
     			$res[$obj->code] = $obj;
     			
-    			if($dRec->type == 'input'){
-    				$obj->levelc = $obj->level;
-    				self::prepareComponents($dRec->resourceId, $res, $documentType, $level, $obj->code);
-    			}
     		}
     	}
+    	
+    	return $res;
     }
     
     

@@ -237,6 +237,30 @@ class email_Accounts extends core_Master
     
     
     /**
+     * Връща масив с всички активни корпоративни и общи сметки
+     * 
+     * @return array
+     */
+    public static function getCommonAndCorporateEmails()
+    {
+        static $resArr = array();
+        
+        if ($resArr) return $resArr;
+        
+        $query = self::getQuery();
+        $query->where("#state = 'active'");
+        $query->where("#type = 'common'");
+        $query->orWhere("#type = 'corporate'");
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->email] = $rec->email;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Връща масив с активните корпоратвини акауни
      * 
      * @return array

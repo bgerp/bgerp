@@ -290,8 +290,8 @@ class planning_Jobs extends core_Master
     	$rec = &$data->rec;
     	
     	if($rec->state != 'draft' && $rec->state != 'rejected'){
-    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'type' => 'production'))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта');
     		}
     	}
 
@@ -326,6 +326,10 @@ class planning_Jobs extends core_Master
     			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
+    		}
+    		
+    		if($rec->dueDate < dt::today()){
+    			$form->setWarning('dueDate', 'Падежът е в миналото');
     		}
     		
     		// Форсираме заданието в дефолт папката според драйвера
@@ -366,7 +370,6 @@ class planning_Jobs extends core_Master
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
     	$row->quantityToProduce .=  " {$shortUom}";
     	
-    	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
@@ -398,6 +401,10 @@ class planning_Jobs extends core_Master
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
     		}
+    	}
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     }
     
@@ -636,6 +643,14 @@ class planning_Jobs extends core_Master
     	}
     	
     	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    	
+    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    		$data->hide = TRUE;
+    		return;
+    	}
     	
     	$data->TabCaption = 'Задания';
     	$data->Tab = 'top';
@@ -643,10 +658,6 @@ class planning_Jobs extends core_Master
     	// Проверяваме можем ли да добавяме нови задания
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
     		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
-    	}
-    	
-    	if(!isset($masterInfo->meta['canManifacture'])){
-    		$data->notManifacturable = TRUE;
     	}
     }
     
@@ -659,6 +670,8 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
+    	 if($data->hide === TRUE) return;
+    	
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $title = tr('Задания за производство');
     	 $tpl->append($title, 'title');

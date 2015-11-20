@@ -376,6 +376,15 @@ class log_Data extends core_Manager
         }
         
         $action = log_Actions::getActionFromCrc($rec->actionCrc);
+        
+        if (strpos($action, self::$objReplaceInAct) !== FALSE) {
+            $escapedRep = preg_quote(self::$objReplaceInAct, '/');
+            
+            $action = preg_replace("/(\s)*({$escapedRep})(\s)*/i", '\\1|\\2|*\\3', $action);
+        }
+        
+        $action = tr($action);
+        
         if (!$fieldsArr || $fieldsArr['actionCrc']) {
             $typeVarchar = cls::get('type_Varchar');
             $row->actionCrc = str_replace(self::$objReplaceInAct, '', $action);
