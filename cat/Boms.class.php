@@ -521,6 +521,10 @@ class cat_Boms extends core_Master
     			
     			// Опитваме се да намерим себестойност за артикула
     			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
+    			if(!$selfValue){
+    				$selfValue = NULL;
+    			}
+    			cat_BomDetails::save((object)array('id' => $dRec->id, 'primeCost' => $selfValue), 'primeCost');
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
@@ -573,6 +577,7 @@ class cat_Boms extends core_Master
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
+    		$arr['id']             = $dRec->id;
     		$arr['productId']      = $dRec->resourceId;
     		$arr['type']           = $dRec->type;
     		$arr['expensePercent'] = $dRec->expensePercent;

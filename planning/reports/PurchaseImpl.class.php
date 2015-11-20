@@ -203,7 +203,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 				        						'quantityТоDelivered' => abs($product->quantityDelivered - $product->quantity),
 				        						'dateSale' => $dateSale[$product->productId],
 						        				'sales' => array($product->saleId),
-				        		                'store' => $store);
+				        		                'store' => array($store));
 			        		
 			      // в противен случай го ъпдейтваме
 			    } else {
