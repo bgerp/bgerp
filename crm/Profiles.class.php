@@ -827,12 +827,13 @@ class crm_Profiles extends core_Master
     {   
         static $cacheArr = array();
         
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $key = "{$userId}|{$title}|{$warning}|" . implode('|', $attr); 
         
         if (!$cacheArr[$key]) {
-            if(!$userId) {
-                $userId = core_Users::getCurrent();
-            }
             
             $userRec = core_Users::fetch($userId);
             
