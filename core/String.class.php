@@ -358,7 +358,7 @@ class core_String
             $md5Len++;
         }
         
-        $md5 = substr(md5(_SALT_ . $str), 0, $md5Len);
+        $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
         
         return substr($str, 0, $strLen) . $separator . $md5;
     }
