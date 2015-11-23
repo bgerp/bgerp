@@ -2246,7 +2246,6 @@ jQuery.extend({
         if (node.nodeType === 3) {
             var match = node.data.match(re);
             if (match) {
-            	console.log(match);
                 var highlight = document.createElement(nodeName || 'span');
                 highlight.className = className || 'highlight';
                 if (/\s/.test(node.data[match.index])) {
@@ -2318,7 +2317,7 @@ jQuery.fn.highlight = function(words, options) {
         pattern = "(\\s|^)" + pattern;
     }
     var re = new RegExp(pattern, flag);
-console.log(re);
+    
     return this.each(function() {
         jQuery.highlight(this, re, settings.element, settings.className);
     });
