@@ -498,8 +498,11 @@ class log_Data extends core_Manager
         
         // Филтрираме по потребители
         if (isset($rec->users)) {
-            $usersArr = type_Users::toArray($rec->users);
-            $query->in('userId', $usersArr);
+            
+            if (!type_Keylist::isIn('-1', $rec->users)) {
+                $usersArr = type_Users::toArray($rec->users);
+                $query->in('userId', $usersArr);
+            }
         }
         
         // Филтрираме по екшъна/съобщението
