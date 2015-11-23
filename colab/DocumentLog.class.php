@@ -127,6 +127,9 @@ class colab_DocumentLog extends core_Manager
         $rec->containerId = $containerId;
         $rec->createdBy = core_Users::getCurrent();
         
+        $document = doc_Containers::getDocument($containerId);
+        $document->instance->logInfo('Виждане', $document->that);
+        
         self::$recForAdd[] = $rec;
     }
     
