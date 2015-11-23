@@ -351,14 +351,14 @@ class core_String
         $strLen = $length - $md5Len - strlen($separator);
         
         // Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина
-        expect($strlen >= 0, $length, $md5Len);
+        expect($strLen >= 0, $length, $md5Len);
         
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
             $md5Len++;
         }
         
-        $md5 = substr(md5(_SALT_ . $str), 0, $md5Len);
+        $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
         
         return substr($str, 0, $strLen) . $separator . $md5;
     }

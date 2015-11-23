@@ -2070,8 +2070,9 @@ class cal_Tasks extends core_Master
 	    // можем да кажем кога е началото й
 	    } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
 	    	$expEnd = $timeEnd;
-	    	$expStart = self::fetchField($rec->id, "modifiedOn");
-	    		
+	    	if ($rec->id) {
+	    		$expStart = self::fetchField($rec->id, "modifiedOn");
+	    	}	
 	    // ако има и начало и край
 	    // то очакваните начало и край са тези
 	    } elseif ($timeStart && $timeEnd) {
