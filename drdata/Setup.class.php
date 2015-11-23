@@ -43,6 +43,12 @@ defIfNot('DRDATA_VAT_TTL', 2 * type_Time::SECONDS_IN_MONTH);
 
 
 /**
+ * До колко време след последното използване да се проверяват
+ */
+defIfNot('DRDATA_LAST_USED_EXP', type_Time::SECONDS_IN_MONTH);
+
+
+/**
  * class drdata_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -98,6 +104,7 @@ class drdata_Setup extends core_ProtoSetup
     		'TEL_LINK_NARROW'   => array ('enum(none=Няма,
                                                    yes=Да,)', 'caption=Хипервръзки за телефоните->Mobile'),
             'DRDATA_VAT_TTL'  => array ('time(suggestions=1 месец|2 месеца|3 месеца|4 месеца|6 месеца|12 месеца)', 'mandatory, caption=Кеширане на информацията за VAT номерата->Време'),
+            'DRDATA_LAST_USED_EXP'  => array ('time(suggestions=1 месец|2 месеца|3 месеца|4 месеца|6 месеца|12 месеца)', 'mandatory, caption=Ограничение за проверка след последно използване->Време'),
  
         );
 

@@ -116,8 +116,9 @@ class drdata_Vats extends core_Manager
     function description()
     {
         $this->FLD('vat', 'drdata_vatType(64)', 'caption=VAT');
-        $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input2=none');
-        $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Проверен на,input2=none');
+        $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input=none');
+        $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Проверен на,input=none');
+        $this->FLD('lastUsed', 'datetime(format=smartTime)', 'caption=Използван на,input=none');
         $this->FLD('info', 'varchar', 'caption=Информация');
 
         $this->setDbUnique('vat');
@@ -205,18 +206,22 @@ class drdata_Vats extends core_Manager
             $rec = new stdClass();
             list($rec->status, $rec->info) = $this->checkStatus($canonocalVat);
             $rec->vat = $canonocalVat;
-            $rec->lastChecked = dt::verbal2mysql();
+            $rec->lastUsed = $rec->lastChecked = dt::verbal2mysql();
             if(in_array($rec->status, array('valid', 'invalid', 'unknown'))) {
                 $this->save($rec);
             }
         } else {
             // Проверяваме дали кеша не е изтекъл
             $expDate = dt::subtractSecs(drdata_Setup::get('VAT_TTL'));
+            $lastUsedExp = dt::subtractSecs(drdata_Setup::get('LAST_USED_EXP'));
             $expUnknown = dt::subtractSecs(self::$unknowTTL);
             
+            $rec->lastUsed = dt::verbal2mysql();
+            $this->save($rec, 'lastUsed');
+            
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа 
-            if(($rec->lastChecked < $expDate) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown) ) {
-
+            if((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown) ) {
+                
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
                 if(count($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
                     $this->updateOnShutdown[] = $rec;
@@ -498,12 +503,14 @@ class drdata_Vats extends core_Manager
         cls::get(get_called_class());
         
         $expDate = dt::subtractSecs(drdata_Setup::get('VAT_TTL'));
+        $lastUsedExp = dt::subtractSecs(drdata_Setup::get('LAST_USED_EXP'));
         $unknownExpDate = dt::subtractSecs(self::$unknowTTL);
         
         $statusUnknown = self::statusUnknown;
         
         $query = $this->getQuery();
         $query->where("#lastChecked <= '{$expDate}'");
+        $query->where("#lastUsed >= '{$lastUsedExp}'");
         $query->orWhere("#status = '{$statusUnknown}' AND #lastChecked <= '{$unknownExpDate}'");
         
         $query->limit(self::MAX_CNT_VATS_FOR_UPDATE);
