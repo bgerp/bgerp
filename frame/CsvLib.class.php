@@ -87,6 +87,14 @@ class frame_CsvLib
 				if($field == 'delta') {
 					$value = cls::get('type_Percent')->toVerbal($rec->delta);
 				}
+				
+				if ($field == 'code') {
+					$value = $rec->code;
+				}
+				
+				if ($field == 'measure') {
+					$value = cat_UoM::fetchField($rec->measure,'shortName');
+				}
 		
 				$rows->{$field} = $value;
 			}
