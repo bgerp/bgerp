@@ -89,7 +89,10 @@ class plg_Rejected extends core_Plugin
                 $lastRec = $data->rejQuery->fetch();
                 $color = dt::getColorByTime($lastRec->modifiedOn);
                 $curUrl = getCurrentUrl();
-                $curUrl['Rejected'] = 1;
+                $curUrl['Rejected'] = 1; 
+                if(isset($data->pager->pageVar)) {
+                    unset($curUrl[$data->pager->pageVar]);
+                }
                 $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,row=2,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
             }
         }

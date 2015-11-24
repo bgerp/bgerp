@@ -1362,7 +1362,10 @@ class doc_Threads extends core_Manager
         		if($data->rejectedCnt) {
         			$curUrl = getCurrentUrl();
         			$curUrl['Rejected'] = 1;
-                    
+                    if(isset($data->pager->pageVar)) {
+                        unset($curUrl[$data->pager->pageVar]);
+                    }
+
                     $data->rejQuery->orderBy('modifiedOn', 'DESC');
                     $data->rejQuery->limit(1); 
                     $lastRec = $data->rejQuery->fetch();
