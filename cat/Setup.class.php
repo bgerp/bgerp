@@ -876,7 +876,7 @@ class cat_Setup extends core_ProtoSetup
     		try{
     			$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
     			$type = 'sales';
-    			if($firstDocument->isInstanceOf('planning_Jobs')){
+    			if($firstDocument && $firstDocument->isInstanceOf('planning_Jobs')){
     				$type = 'production';
     			}
     			$rec->type = $type;

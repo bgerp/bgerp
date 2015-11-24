@@ -31,7 +31,7 @@ class core_String
         // Опитваме се да прихванем всички символи, които не са ASCII
         // Ако е подаден текст, който е изцяло от неаски символи, ще има само едно извикване на колбек функцията
         $me = get_called_class();
-        $text = preg_replace_callback('/[^\x00-\x7F]+((\s)*[^\x00-\x7F]+)*/iu', array($me, 'convertToAscii'), $text);
+        $text = preg_replace_callback('/([^\x21-\x7F]+)/u', array($me, 'convertToAscii'), $text);
         
         return $text;
     }
@@ -42,7 +42,7 @@ class core_String
      * 
      * @param array $match
      */
-    static function convertToAscii($match)
+    protected static function convertToAscii($match)
     {
         $text = $match[0];
         
@@ -351,14 +351,14 @@ class core_String
         $strLen = $length - $md5Len - strlen($separator);
         
         // Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина
-        expect($strlen >= 0, $length, $md5Len);
+        expect($strLen >= 0, $length, $md5Len);
         
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
             $md5Len++;
         }
         
-        $md5 = substr(md5(_SALT_ . $str), 0, $md5Len);
+        $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
         
         return substr($str, 0, $strLen) . $separator . $md5;
     }
