@@ -852,7 +852,10 @@ class crm_Profiles extends core_Master
     			} 
     			
     			$attr['class'] .= ' profile';
-    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
+    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none') as $role) {
+                    if($role == 'none') {
+                        $attr['style'] .= ";color:#333;"; break;
+                    }
     				if (core_Users::haveRole($role, $userId)) {
     					$attr['class'] .= " {$role}"; break;
     				}

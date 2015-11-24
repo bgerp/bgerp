@@ -1004,6 +1004,7 @@ a {
 /*Хипервръзки към профилите на потребители*/
 a.profile {
 	padding: 2px;
+    border-radius:3px;
 	&.ceo {
 		color: #0000cc;
 		&.inactive {
@@ -1097,7 +1098,7 @@ a.profile {
 }
 
 .state-rejected { 
-    background-color: #c66;
+    background-color: rgba(204, 102, 102, 0.8);
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
