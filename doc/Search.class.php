@@ -235,7 +235,6 @@ class doc_Search extends core_Manager
             $data->query->orWhere("#createdBy = '{$currUserId}'");
             
             // Експеримент за оптимизиране на бързодействието
-            $data->query->setStraight();
             $data->query->orderBy('#modifiedOn=DESC');
             
             /**
