@@ -474,7 +474,7 @@ class core_FieldSet extends core_BaseClass
             ));
         
         foreach ($fArr as $name => $caption) {
-            if (!$where || eval("return $cond;")) {
+            if (!$where || @eval("return $cond;")) {
                 $res[$name] = $this->fields[$name];
             }
         }
