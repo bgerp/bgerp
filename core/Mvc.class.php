@@ -1075,10 +1075,6 @@ class core_Mvc extends core_FieldSet
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
 
-        // Оптимизиране на таблицата
-        $this->db->query("OPTIMIZE TABLE {$this->dbTableName}");
-        $optRes = $this->db->fetchArray();
-        $html .= "<li>" . implode(' ',  $optRes) . "</li>";
 
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
