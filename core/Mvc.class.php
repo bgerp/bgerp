@@ -1074,8 +1074,7 @@ class core_Mvc extends core_FieldSet
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
-
-
+        
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
 
