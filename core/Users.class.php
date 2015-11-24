@@ -967,7 +967,7 @@ class core_Users extends core_Manager
      */
     static function sudo($id)
     {
-        $userRec = self::fetch($id);
+        $userRec = self::fetch((int) $id);
         $bValid = FALSE;
         
         if (is_object($userRec)) {
