@@ -975,7 +975,8 @@ th .rowtools .l {
  * Хипервръзки към профилите на потребители
  */
 a.profile {
-  padding: 2px; }
+  padding: 2px;
+  border-radius: 3px; }
   a.profile.ceo {
     color: #0000cc; }
     a.profile.ceo.inactive {
@@ -1049,7 +1050,7 @@ a.profile {
   background-color: #ffbb33; }
 
 .state-rejected {
-  background-color: #cc6666; }
+  background-color: rgba(204, 102, 102, 0.8); }
 
 .state-rejected td,
 .state-rejected .document th,
