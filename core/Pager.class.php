@@ -201,7 +201,7 @@ class core_Pager extends core_BaseClass
         $this->itemsCount = PHP_INT_MAX;
         $this->calc();
         if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $q->limit(2*($this->rangeEnd - $this->rangeStart));
+            $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
             $q->startFrom($this->rangeStart); 
             $q->select();
             while($rec = $q->fetch()) {
