@@ -3739,6 +3739,9 @@ body.narrow {
     .wide .listBlock .listRows > table.listTable{
         min-width:760px;
     }
+    .document {
+    	min-width: 40em;
+    }
 }
 
 @media handheld , only screen and (min-width: 1550px) {

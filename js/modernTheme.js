@@ -3,6 +3,9 @@ function slidebars(){
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
+	if($('body').hasClass('wide')) {
+		setMaxWidth();
+	}
 }
 
 /**
@@ -34,11 +37,26 @@ function initElements() {
             viewportWidth = $(window).width();
             setViewportWidth(viewportWidth);
         });
+	} else {
+		$(window).resize( function() {
+            setMaxWidth(viewportWidth);
+        });
 	}
 	// за всяко кликане на линк, ще променяме бисквитката
 	$('#nav-panel li a').on('click', function(e){
 		setMenuCookie();
 	});
+}
+
+
+function setMaxWidth() {
+	var viewportWidth = $(window).width();
+	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
+	
+	$('#packWrapper, .listBlock').width(contentWidth);
+	$('.document').width(contentWidth-140);
+	$('.scrolling-holder').css('max-width', contentWidth-140);
+	$('.scrolling-holder').addClass('overflow-scroll');
 }
 
 
