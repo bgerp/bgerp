@@ -44,8 +44,6 @@ class core_String
      */
     protected static function convertToAscii($match)
     {
-        static $cnt=0;
-        echo "<li>" . ++$cnt;
         $text = $match[0];
         
         static $trans = array();
