@@ -1079,7 +1079,6 @@ class core_Mvc extends core_FieldSet
         $this->db->query("OPTIMIZE TABLE {$this->dbTableName}");
         $optRes = $this->db->fetchArray();
         $html .= "<li>" . implode(' ',  $optRes) . "</li>";
-        $this->db->query("FLUSH TABLES");
 
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
