@@ -64,6 +64,12 @@ class core_Mvc extends core_FieldSet
      */
     var $protectId = TRUE;
 
+    
+    /**
+     * Име на съответстващата таблица в базата данни
+     */
+    public $dbTableName;
+
 
     /**
      * Функция - флаг, че обектите от този клас са Singleton
@@ -1068,6 +1074,12 @@ class core_Mvc extends core_FieldSet
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
+
+        // Оптимизиране на таблицата
+        $this->db->query("OPTIMIZE TABLE {$this->dbTableName}");
+        $optRes = $this->db->fetchArray();
+        $html .= "<li>" . implode(' ',  $optRes) . "</li>";
+        $this->db->query("FLUSH TABLES");
 
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
