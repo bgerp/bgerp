@@ -395,7 +395,7 @@ class backup_Start extends core_Manager
         }
     }
     
-    
+
     /**
      * Вдига семафор за стартиран бекъп
      * Връща false ако семафора е вече вдигнат
