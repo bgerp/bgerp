@@ -1178,8 +1178,9 @@ td.portal-date {
   .document-settings span,
   .document-settings a {
     margin-bottom: 0; }
-  .document-settings .additionalInfo-holder {
-    left: -9px; }
+  .document-settings .additionalInfo {
+    left: auto;
+    right: -10px; }
   .document-settings .showLikes {
     font-size: 0.9em;
     color: #555555;
@@ -1187,6 +1188,7 @@ td.portal-date {
     .document-settings .showLikes:hover {
       color: #333333; }
   .document-settings .linkWithIcon {
+    padding-left: 20px !important;
     opacity: 0.8; }
     .document-settings .linkWithIcon.liked:hover {
       background-image: url(../img/16/redheart-broke.png) !important; }
