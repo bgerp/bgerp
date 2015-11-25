@@ -271,15 +271,19 @@ class colab_Threads extends core_Manager
 				$requiredRoles = 'no_one';
 			}
 			
-			// Трябва първия документ в нишката да е видим за партньори
-			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-			if($firstDocumentIsVisible != 'yes'){
-				$requiredRoles = 'no_one';
-			} 
-			
-			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-			if($firstDocumentState == 'draft'){
-				$requiredRoles = 'no_one';
+			if ($rec->firstContainerId) {
+    			// Трябва първия документ в нишката да е видим за партньори
+    			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
+    			if($firstDocumentIsVisible != 'yes'){
+    				$requiredRoles = 'no_one';
+    			} 
+    			
+    			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
+    			if($firstDocumentState == 'draft'){
+    				$requiredRoles = 'no_one';
+    			}
+			} else {
+			    $requiredRoles = 'no_one';
 			}
 			
 			// Ако треда е оттеглен, не може да се гледа от партньора
