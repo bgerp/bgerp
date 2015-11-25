@@ -271,7 +271,7 @@ class doc_LikesPlg extends core_Plugin
                 $likeDate = mb_strtolower(core_DateTime::mysql2verbal($likeRec->createdOn, 'smartTime'));
                 $likeDate = " ({$likeDate})";
                 
-                $html .= "<span>" . $nick . $likeDate . "</span>";
+                $html .= "<div class='nowrap'>" . $nick . $likeDate . "</div>";
             }
         }
         
@@ -330,7 +330,7 @@ class doc_LikesPlg extends core_Plugin
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></span>{$likesLink}";
+                        $likesLink = "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>{$likesLink}";
                     }
                     
                     $row->DocumentSettings = new ET($row->DocumentSettings);
