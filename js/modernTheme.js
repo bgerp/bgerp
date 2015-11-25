@@ -52,11 +52,12 @@ function initElements() {
 function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
-	
-	$('#packWrapper, .listBlock').width(contentWidth);
-	$('.document').width(contentWidth-140);
-	$('.scrolling-holder').css('max-width', contentWidth-140);
-	$('.scrolling-holder').addClass('overflow-scroll');
+	if(contentWidth <  $('#packWrapper').width()){
+		$('#packWrapper, .listBlock').width(contentWidth);
+		$('.document').width(contentWidth-140);
+		$('.scrolling-holder').css('max-width', contentWidth-140);
+		$('.scrolling-holder').addClass('overflow-scroll');
+	}
 }
 
 
