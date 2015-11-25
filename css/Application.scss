@@ -3739,7 +3739,11 @@ body.narrow {
     .wide .listBlock .listRows > table.listTable{
         min-width:760px;
     }
-    .document {
+   
+}
+
+@media handheld , only screen and (max-width: 1240px) {
+ .document {
     	min-width: 40em;
     }
 }

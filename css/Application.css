@@ -3378,8 +3378,10 @@ only screen and (min-width: 1240px) {
     padding: 10px 0; }
 
   .wide .listBlock .listRows > table.listTable {
-    min-width: 760px; }
+    min-width: 760px; } }
 
+@media handheld,
+only screen and (max-width: 1240px) {
   .document {
     min-width: 40em; } }
 
