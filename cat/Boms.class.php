@@ -330,9 +330,27 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	// Обновяваме датата на модифициране на артикула след промяна по рецептата
+    	if($rec->productId){
+    		$bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
     		
-    		if($cRec->productId){
-    			$pRec = cat_Products::fetch($cRec->productId);
+    		if(($rec->type == 'sales' && !$bRec) || $bRec->id == $rec->id){
+    			
+    			$pRec = cat_Products::fetch($rec->productId);
     			$pRec->modifiedOn = dt::now();
     			cat_Products::save($pRec);
     		}
