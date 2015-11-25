@@ -247,6 +247,10 @@ class colab_Threads extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
+	    if (is_null($userId)) {
+	        $requiredRoles = 'no_one';
+	    }
+	    
 		if($action == 'list' && isset($rec->folderId)){
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
