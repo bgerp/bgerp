@@ -1166,14 +1166,4 @@ class core_Query extends core_FieldSet
         }
     }
     
-    
-    /**
-     * Кара MySQL да извлича данни от таблиците в реда, в който те са зададени във FROM
-     *
-     * Използва разширение на MySQL (SELECT STRAIGHT_JOIN ...)
-     */
-    public function setStraight()
-    {
-        $this->addOption('STRAIGHT_JOIN');
-    }
 }

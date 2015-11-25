@@ -87,9 +87,11 @@ class drdata_VatType extends type_Varchar
     {
         if(!$value) return NULL;
         
-        $Vats = cls::get('drdata_Vats');
         $value = parent::escape($value);
-        
+         
+        if(Mode::is('text', 'plain')) return $value;
+
+        $Vats = cls::get('drdata_Vats');
         list($status, $info) = $Vats->check($value);
  
         $status = $this->statuses[$status];

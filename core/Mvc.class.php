@@ -64,6 +64,12 @@ class core_Mvc extends core_FieldSet
      */
     var $protectId = TRUE;
 
+    
+    /**
+     * Име на съответстващата таблица в базата данни
+     */
+    public $dbTableName;
+
 
     /**
      * Функция - флаг, че обектите от този клас са Singleton
@@ -1068,7 +1074,7 @@ class core_Mvc extends core_FieldSet
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
-
+        
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
 

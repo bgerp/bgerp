@@ -145,7 +145,7 @@ class tracking_Setup extends core_ProtoSetup
         $rec->description = "Изтрива стари записи";
         $rec->controller = "tracking_Log";
         $rec->action = "DeleteOldRecords";
-        $rec->period = (int) 60*60*24*8; // на 8 дена пуска задачата
+        $rec->period = (int) 60*24*8; // на 8 дена пуска задачата
         $rec->offset = 0;
         $html .= core_Cron::addOnce($rec);
         

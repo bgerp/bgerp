@@ -247,39 +247,52 @@ class colab_Threads extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'list' && isset($rec->folderId)){
+		if($action == 'list' && isset($rec->folderId)) {
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
 			}
 		}
 		
-		if($action == 'list'){
-			$folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
-			
-			$sharedFolders = colab_Folders::getSharedFolders($userId);
-				
-			if(!in_array($folderId, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
+		if($action == 'list') {
+		    
+    		if (is_null($userId)) {
+    	        $requiredRoles = 'no_one';
+    	    } else {
+        	    $folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
+    			
+    			$sharedFolders = colab_Folders::getSharedFolders($userId);
+    				
+    			if(!in_array($folderId, $sharedFolders)){
+    				$requiredRoles = 'no_one';
+    			}
+    	    }
 		}
 		
 		if($action == 'single' && isset($rec)){
 			
-			// Трябва папката на нишката да е споделена към текущия партньор
-			$sharedFolders = colab_Folders::getSharedFolders($userId);
-			if(!in_array($rec->folderId, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
+		    if (is_null($userId)) {
+    	        $requiredRoles = 'no_one';
+    	    } else {
+        	    // Трябва папката на нишката да е споделена към текущия партньор
+    			$sharedFolders = colab_Folders::getSharedFolders($userId);
+    			if(!in_array($rec->folderId, $sharedFolders)){
+    				$requiredRoles = 'no_one';
+    			}
+    	    }
 			
-			// Трябва първия документ в нишката да е видим за партньори
-			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-			if($firstDocumentIsVisible != 'yes'){
-				$requiredRoles = 'no_one';
-			} 
-			
-			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-			if($firstDocumentState == 'draft'){
-				$requiredRoles = 'no_one';
+			if ($rec->firstContainerId) {
+    			// Трябва първия документ в нишката да е видим за партньори
+    			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
+    			if($firstDocumentIsVisible != 'yes'){
+    				$requiredRoles = 'no_one';
+    			} 
+    			
+    			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
+    			if($firstDocumentState == 'draft'){
+    				$requiredRoles = 'no_one';
+    			}
+			} else {
+			    $requiredRoles = 'no_one';
 			}
 			
 			// Ако треда е оттеглен, не може да се гледа от партньора

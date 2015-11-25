@@ -103,7 +103,7 @@ class plg_Search extends core_Plugin
                     if (!($fieldObj->type instanceof type_Varchar)) {
                         $verbalVal = strip_tags($verbalVal);
                     }
-                    
+            
                     $searchKeywords .= ' ' . static::normalizeText($verbalVal);
                     Mode::pop('htmlEntity');
                     Mode::pop('text');
@@ -208,13 +208,8 @@ class plg_Search extends core_Plugin
         // Ако стринга е над максимума вземаме част от началото и края му
         $str = str::limitLen($str, $maxLen);
         
-        // Ако стринга е над максимума
-//        if (mb_strlen($str) > $maxLen) {
-//            
-//            // Вземаме 
-//            $str = mb_substr($str, 0, $maxLen);
-//        }
-        
+        $str = preg_replace('/[ ]+/', ' ', $str);
+
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);

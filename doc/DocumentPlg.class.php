@@ -279,6 +279,9 @@ class doc_DocumentPlg extends core_Plugin
                     $color = dt::getColorByTime($lastRec->modifiedOn);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
+                    if(isset($data->pager->pageVar)) {
+                        unset($curUrl[$data->pager->pageVar]);
+                    }
                     $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, "id=binBtn,class=btn-bin fright,order=50,row=2", "ef_icon = img/16/bin_closed.png,style=color:#{$color};" );
                 }
             }
@@ -366,7 +369,6 @@ class doc_DocumentPlg extends core_Plugin
             if(!isset($rec->folderId) || !isset($rec->threadId)) {
                 $mvc->route($rec);
             }
-            
             // ... този документ няма ключ към контейнер, тогава 
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
@@ -407,7 +409,7 @@ class doc_DocumentPlg extends core_Plugin
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
         } catch (core_exception_Expect $e) {
-            
+          
             // Ако възникне грешка при записването
             $mvc->logErr("Грешка при записване на файла", $id);
         }
@@ -439,7 +441,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
-        if($rec->state == 'active' || $rec->state == 'rejected'){
+        if($rec->state == 'active' || $rec->state == 'rejected' && !Mode::is('MassImporting')){
             
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach((array)$usedDocuments as $usedCid){
@@ -1384,7 +1386,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
                    
                 	// Ако е инсталиран пакета 'colab'
-                	if(core_Packs::isInstalled('colab')){
+                	if(core_Packs::isInstalled('colab') && $oRec->threadId){
                 		
                 		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
         				// е споделена с партньора)

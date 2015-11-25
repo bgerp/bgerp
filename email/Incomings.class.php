@@ -700,7 +700,7 @@ class email_Incomings extends core_Master
             // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
             $row->allTo = self::getVerbalEmail($rec->allTo);
             
-            if ($rec->allTo) {
+            if ($rec->allTo && $rec->headers) {
                 if (!self::checkNamesInEmails($rec->allTo)) {
                     $row->allTo = self::addErrToEmailStr($row->allTo, $errEmailInNameStr, 'error');
                 }
@@ -711,7 +711,7 @@ class email_Incomings extends core_Master
             }
             
             $row->allCc = self::getVerbalEmail($rec->allCc);
-            if ($rec->allCc) {
+            if ($rec->allCc && $rec->headers) {
                 if (!self::checkNamesInEmails($rec->allCc)) {
                     $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
                 }
@@ -721,7 +721,7 @@ class email_Incomings extends core_Master
                 }
             }
             
-            if (trim($rec->fromEml)) {
+            if (trim($rec->fromEml) && $rec->headers) {
                 if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
                 }
@@ -736,7 +736,7 @@ class email_Incomings extends core_Master
                 }
             }
             
-            if (trim($rec->fromEml)) {
+            if (trim($rec->fromEml) && $rec->headers) {
                 $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
                 
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата

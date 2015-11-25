@@ -100,7 +100,7 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Проверява дали програмата е инсталирана в сървъра
      * 
-     * @return boolean
+     * @return NULL|string
      */
     function checkConfig()
     {

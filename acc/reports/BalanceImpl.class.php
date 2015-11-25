@@ -327,7 +327,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
      */
     protected function prepareListFields_(&$data)
     {
-    
          $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     
          $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
@@ -457,6 +456,14 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
            			}
            		}
            }
+           
+           if ($rec->measure) { 
+               $row->measure = cat_UoM::fetchField($rec->measure,'shortName');
+           }
+           
+           if ($rec->code) {
+           	   $row->code = $rec->code;
+           }
        
            $row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra0' : 'zebra1';
        
@@ -525,7 +532,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
          $csv = "";
 
          foreach ($exportFields as $caption) {
-             $header .= $caption . ",";
+             $header .=  $caption . ",";
          }
 
          foreach ($this->innerState->recs as $innerId => $innerRec) {
@@ -645,17 +652,16 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
 					if (preg_match('/\\r|\\n|,|"/', $value)) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
-					$rCsv .=  $value . ",";
+					$rCsv .= $value . ",";
 					
 					if($rec->flag == TRUE) {
 						
-						$zeroRow .= $value. ",";
+						$zeroRow .= $value . ",";
 						$rCsv = $zeroRow;
 					}
 	
 				} else {
-					
-					$rCsv .= '' . "," ;
+					$rCsv .= '' . ",";
 				}
 			}
 		}

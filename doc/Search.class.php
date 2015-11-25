@@ -174,6 +174,13 @@ class doc_Search extends core_Manager
                 $data->query->where(array('#docClass = [#1#]', $filterRec->docClass));
             }
             
+
+            // Търсене по дата на създаване на документи (от-до)
+            if (!empty($filterRec->fromDate) && !empty($filterRec->toDate)) {
+                $data->query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#] 23:59:59'", $filterRec->fromDate, $filterRec->toDate));
+                $data->query->orWhere(array("#modifiedOn >= '[#1#]' AND #modifiedOn <= '[#2#] 23:59:59'", $filterRec->fromDate, $filterRec->toDate));
+            }
+            
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
                 $data->query->where(array("#createdOn >= '[#1#]'", $filterRec->fromDate));
@@ -235,7 +242,6 @@ class doc_Search extends core_Manager
             $data->query->orWhere("#createdBy = '{$currUserId}'");
             
             // Експеримент за оптимизиране на бързодействието
-            $data->query->setStraight();
             $data->query->orderBy('#modifiedOn=DESC');
             
             /**
