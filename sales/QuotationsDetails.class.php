@@ -687,6 +687,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$data->discountsOptional = $data->discounts = array();
     	
     	core_Lg::push($data->masterData->rec->tplLang);
+    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
@@ -697,7 +698,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
 
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
