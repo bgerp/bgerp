@@ -389,13 +389,18 @@ class planning_Jobs extends core_Master
     		
     		if($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id){
     			$row->pBomId = cat_Boms::getLink($pBomId, 0);
+    		} else {
+    			if($rec->state == 'draft' && cat_Products::getLastActiveBom($rec->productId, 'sales')){
+    				$row->pBomId = '<small style="font-style:italic;color:red">' . tr('Ще бъде създадена при активация') . '</small>';
+    			}
     		}
     		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
     		
-    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $rec->modifiedOn, 'detailed', 'internal');
+    		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal');
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
@@ -556,6 +561,28 @@ class planning_Jobs extends core_Master
     {
     	// След активиране на заданието, добавяме артикула като перо
     	cat_Products::forceItem($rec->productId, 'catProducts');
+    	
+    	// При активиране, ако няма работна рецепта но има търговска копираме я като работна
+    	$prodBomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
+    	
+    	if(!$prodBomRec){
+    		$salesBomRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
+    		
+    		if($salesBomRec){
+	    		$nRec = clone $salesBomRec;
+	    		$nRec->folderId  = $rec->folderId;
+	    		$nRec->threadId  = $rec->threadId;
+	    		$nRec->productId = $rec->productId;
+	    		$nRec->originId  = $rec->containerId;
+	    		$nRec->state     = 'draft';
+	    		$nRec->type      = 'production';
+	    		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
+	    			unset($nRec->{$fld});
+	    		}
+    			
+	    		cat_Boms::save($nRec);
+    		}
+    	}
     }
     
     

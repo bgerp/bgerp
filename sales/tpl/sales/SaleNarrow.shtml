@@ -131,7 +131,19 @@
                         <td><span class='cCode'>[#currencyId#]</span></td>
                         <td><b>[#total#]</b></td>
                     </tr>
-                </table>
+                  </table>
+                 
+                  <!--ET_BEGIN sayWords-->
+                  <hr>
+                  <table class='no-border paddingCells business-doc-summary-table'>
+                  	<tr>
+                       	<td colspan = '3' style='text-align:right'>
+	                       |Словом|*: [#sayWords#]
+                        </td>
+                     </tr>
+                  </table>
+                  <!--ET_END sayWords-->
+               
                 <hr>
                 |Съставил|*:  [#username#]
             </td>

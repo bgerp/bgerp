@@ -451,7 +451,7 @@ class colab_FolderToPartners extends core_Manager
     	$form = $Users->getForm();
     	$form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory,after=names');
     	$companyName = crm_Companies::getVerbal($companyId, 'name');
-    	$form->title = "Създаване на служител на|* <b>{$companyName}</b>";
+    	$form->title = "Нов партньор от|* <b>{$companyName}</b>";
     	
     	$form->setDefault('country', $companyRec->country);
     	$form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
@@ -498,7 +498,7 @@ class colab_FolderToPartners extends core_Manager
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
-    		return followRetUrl(array('core_Users', 'login'), 'Успешно са създадени потребител и визитка на нов партньор');
+    		return followRetUrl(array('core_Users', 'login'), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');

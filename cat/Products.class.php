@@ -998,8 +998,15 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
     	if(!$price){
-    		if($amounts = cat_Boms::getPrice($productId)){
-    			$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
+    		$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+    		if(empty($bomRec)){
+    			$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+    		}
+    		
+    		if($bomRec){
+    			if($amounts = cat_Boms::getPrice($bomRec, $quantity, $date)){
+    				$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
+    			}
     		}
     	}
     	

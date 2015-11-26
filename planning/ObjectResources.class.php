@@ -304,10 +304,10 @@ class planning_ObjectResources extends core_Manager
      * @param int $objectId - ид на артикула - материал
      * @return double $selfValue - себестойността му
      */
-    public static function getSelfValue($objectId, $date = NULL)
+    public static function getSelfValue($objectId, $quantity = 1, $date = NULL)
     {
     	// Проверяваме имали зададена търговска себестойност
-    	$selfValue = cat_Products::getSelfValue($objectId, NULL, 1, $date);
+    	$selfValue = cat_Products::getSelfValue($objectId, NULL, $quantity, $date);
     	
     	// Ако няма търговска себестойност: проверяваме за счетоводна
     	if(!isset($selfValue)){
@@ -319,15 +319,17 @@ class planning_ObjectResources extends core_Manager
     			
     		// Ако артикула е складируем взимаме среднопритеглената му цена от склада
     		if(isset($pInfo->meta['canStore'])){
-    			$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
+    			$selfValue = cat_Products::getWacAmountInStore($quantity, $objectId, $date);
     		} else {
     				
     			// Ако не е складируем взимаме среднопритеглената му цена в производството
     			$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
     			if(isset($item1)){
     				// Намираме сумата която струва к-то от артикула в склада
-    				$selfValue = acc_strategy_WAC::getAmount(1, $date, '61101', $item1, NULL, NULL);
-    				$selfValue = round($selfValue, 4);
+    				$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL);
+    				if($selfValue){
+    					$selfValue = round($selfValue, 4);
+    				}
     			}
     		}
     	}

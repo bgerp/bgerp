@@ -84,7 +84,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
 					
 					// Единични суми от рецептата
-					$priceObj = cat_Boms::getPrice($dRec->productId, $dRec->bomId);
+					$priceObj = cat_Boms::getPrice($dRec->bomId, $dRec->quantity, $rec->valior);
 					
 					// Проверяваме цената за к-то от заданието
 					$bomAmount = ($priceObj->base + $quantityJob * $priceObj->prop) / $quantityJob;
@@ -128,13 +128,13 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'reason' => $reason,
 								);
 							} else {
-								$selfValue = planning_ObjectResources::getSelfValue($res->productId);
-								
-								// Сумата на дебита е себестойността на отпадния ресурс
-								$amount = $resQuantity * $selfValue;
 								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + ($res->propQuantity / $resourceInfo['quantity']));
 								$resQuantity = core_Math::roundNumber($resQuantity);
 								
+								$selfValue = planning_ObjectResources::getSelfValue($res->productId, $resQuantity, $rec->valior);
+								
+								// Сумата на дебита е себестойността на отпадния ресурс
+								$amount = $resQuantity * $selfValue;
 								$convInfo = planning_ObjectResources::getConvertedInfo($res->productId, $resQuantity);
 								$entry = array(
 										'amount' => $amount,

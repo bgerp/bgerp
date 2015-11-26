@@ -93,7 +93,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			foreach ($resourcesArr as $resourceId => $obj){
 				$entry = array();
 				
-				$selfValue = planning_ObjectResources::getSelfValue($obj->productId);
+				$selfValue = planning_ObjectResources::getSelfValue($obj->productId, $obj->resourceQuantity, $rec->valior);
 				$sign = ($obj->type == 'input') ? 1 : -1;
 				$pAmount = $sign * $obj->resourceQuantity * $selfValue;
 				
