@@ -1355,7 +1355,7 @@ td.portal-date {
 		height: 0;
 		left: 0px;
 		position: relative;
-		top: -9px;
+		top: -10px;
 		width: 5px;
 		z-index: 2;
 		display: inline-block;
@@ -1379,12 +1379,14 @@ td.portal-date {
 	    border-radius: 2px;
 	    color: #4e5665;
 	    display: inline-block;
-	    font-size: 11px;
-	    height: auto;
-	    line-height: 16px;
+	    font-size: 0.7em;
+		height: auto;
+		line-height: 14px;
 	    margin-left: 0px;
 	    min-width: 10px;
 	    padding: 0 2px;
+	    position: relative;
+	    top: -1px;
 	    text-align: center;
 	    white-space: nowrap;
     }
