@@ -240,7 +240,7 @@ class colab_DocumentLog extends core_Manager
             
             $viewTimes = $row->cnt . ' ' . tr('пъти');
             
-            $resStr .= "<div class='nowrap'>{$row->createdBy}  ({$row->createdOn}) - {$viewTimes}</div>";
+            $resStr .= "<div class='nowrap'>{$row->createdBy} ({$row->createdOn}) - {$viewTimes}</div>";
         }
         
         return $resStr;
