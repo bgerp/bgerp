@@ -238,12 +238,9 @@ class colab_DocumentLog extends core_Manager
             // Записите във вербален вид
             $row = self::recToVerbal($row, array_keys(get_object_vars($row)));
             
-            $firstView = mb_strtolower($row->createdOn);
-            $firstView = " ({$firstView})";
-            
             $viewTimes = $row->cnt . ' ' . tr('пъти');
             
-            $resStr .= "<div class='nowrap'>{$row->createdBy} $firstView - {$viewTimes}</div>";
+            $resStr .= "<div class='nowrap'>{$row->createdBy}  ({$row->createdOn}) - {$viewTimes}</div>";
         }
         
         return $resStr;
