@@ -359,7 +359,6 @@ class doc_LikesPlg extends core_Plugin
                         $attr['data-url'] = toUrl(array($mvc, 'showLikes', $rec->id), 'local');
                         $attr['data-useHover'] = '1';
                         $attr['data-useCache'] = '1';
-                        $attr['onClick'] = 'startUrlFromDataAttr(this)';
                         
                         $likesCntLink = ht::createElement('span', $attr, $likesCnt);
                         
