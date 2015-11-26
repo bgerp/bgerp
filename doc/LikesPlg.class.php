@@ -325,7 +325,7 @@ class doc_LikesPlg extends core_Plugin
                         
                         $likesCntLink = ht::createElement('span', $attr, $likesCnt);
                         
-                        $likesCntLink .= '<span class="likeCnt"></span>';
+                        $likesCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $likesCntLink;
                         
                         $likesLink = $likesLink . $likesCntLink;
                         

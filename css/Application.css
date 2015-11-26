@@ -1180,13 +1180,41 @@ td.portal-date {
     margin-bottom: 0; }
   .document-settings .additionalInfo {
     left: auto;
-    right: -10px; }
-  .document-settings .showLikes {
-    font-size: 0.9em;
-    color: #555555;
-    cursor: pointer; }
-    .document-settings .showLikes:hover {
-      color: #333333; }
+    right: -4px; }
+  .document-settings .pluginCountButtonNub {
+    height: 0;
+    left: 0px;
+    position: relative;
+    top: -9px;
+    width: 5px;
+    z-index: 2;
+    display: inline-block; }
+    .document-settings .pluginCountButtonNub s,
+    .document-settings .pluginCountButtonNub i {
+      border-color: transparent #9197a3;
+      border-style: solid;
+      border-width: 4px 5px 4px 0;
+      display: block;
+      position: relative;
+      top: 1px; }
+    .document-settings .pluginCountButtonNub i {
+      border-right-color: white;
+      left: 2px;
+      top: -7px; }
+  .document-settings .docSettingsCnt {
+    background: white;
+    border: 1px solid #9197a3;
+    border-radius: 2px;
+    color: #4e5665;
+    display: inline-block;
+    font-size: 11px;
+    height: auto;
+    line-height: 16px;
+    margin-left: 0px;
+    min-width: 10px;
+    padding: 0 2px;
+    text-align: center;
+    white-space: nowrap; }
   .document-settings .linkWithIcon {
     padding-left: 20px !important;
     opacity: 0.8; }
@@ -1823,8 +1851,7 @@ ul.history {
   padding-top: 4px;
   font-size: 0.8em; }
 
-div.sharing-history,
-.like-log {
+div.sharing-history {
   border: none;
   border-top: 1px solid #cccccc;
   padding: 5px;
@@ -1836,8 +1863,7 @@ div.sharing-history,
   font-size: 0.9em;
   clear: both;
   padding-right: 120px; }
-  div.sharing-history .timespan,
-  .like-log .timespan {
+  div.sharing-history .timespan {
     font-size: 0.9em; }
 
 div.change-log {
@@ -1852,8 +1878,7 @@ div.change-log {
   font-size: 0.9em;
   clear: both; }
 
-span.sharing-history-title,
-.like-log-title {
+span.sharing-history-title {
   padding: 2px 5px;
   padding-left: 23px;
   background: #eeeeee url(../img/share.png) no-repeat 3px center;
@@ -4185,10 +4210,6 @@ only screen and (max-width: 320px) {
     border: 1px solid #cccccc; }
   .printing .header-state {
     display: none; }
-  .printing .like-log-title {
-    padding-left: 4px; }
-    .printing .like-log-title .linkWithIconSpan {
-      display: none; }
 
 .narrow .printing .document {
   width: 850px; }
