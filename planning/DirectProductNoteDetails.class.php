@@ -174,7 +174,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     				$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
     		
     				if(!isset($selfValue)){
-    					$form->setError('productId', 'Отпадакът не може да му се определи себестойност');
+    					$form->setError('productId', 'Отпадакът няма себестойност');
     				}
     			}
     		}
