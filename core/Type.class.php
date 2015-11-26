@@ -185,6 +185,8 @@ class core_Type extends core_BaseClass
             $res->collation = $this->params['collate'];
         } elseif($this->params['ci']) {
             $res->collation = 'utf8_general_ci';
+        } elseif($this->collation) {
+            $res->collation = $this->collation;
         }
         
         return $res;
