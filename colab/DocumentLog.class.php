@@ -156,8 +156,6 @@ class colab_DocumentLog extends core_Manager
             
             if (self::haveRightFor('renderview', $rec)) {
                 
-                $attr['title'] = tr('Виждания от колаборатори');
-                
                 $viewCnt = self::getViewCount($containerId);
                 
                 if ($viewCnt) {
