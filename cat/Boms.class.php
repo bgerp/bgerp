@@ -330,9 +330,27 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	// Обновяваме датата на модифициране на артикула след промяна по рецептата
+    	if($rec->productId){
+    		$bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
     		
-    		if($cRec->productId){
-    			$pRec = cat_Products::fetch($cRec->productId);
+    		if(($rec->type == 'sales' && !$bRec) || $bRec->id == $rec->id){
+    			
+    			$pRec = cat_Products::fetch($rec->productId);
     			$pRec->modifiedOn = dt::now();
     			cat_Products::save($pRec);
     		}
@@ -452,13 +470,13 @@ class cat_Boms extends core_Master
     	}
     	
     	if($fields['-single'] && haveRole('ceo, acc, cat, price,sales')) {
-    	    $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+    		$rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
+    	    $priceObj = cat_Boms::getPrice($rec->id, $rec->quantityForPrice, $rec->modifiedOn);
 	        $rec->primeCost = 0;
 	        
 	        if(!$rec->quantityForPrice){
 	        	$row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
 	        }
-	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 	        
 	        if($priceObj) {
 	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
@@ -490,25 +508,20 @@ class cat_Boms extends core_Master
      * Връща сумата на спецификацията според подадения ориджин
      * Ако някой от ресурсите няма себестойност не може да се пресметне сумата
      * 
-     * @param int $productId - ид на артикул
+     * @param int $id - ид на рецепта
+     * @param double $quantity - к-во за което проверяваме
+     * @param date $date - към коя дата
      * @return mixed $total - обект съдържащ сумарната пропорционална и начална цена
      * 		 o $total->base - началната сума (в основната валута за периода)
      * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
      */
-    public static function getPrice($productId, $bomId = NULL)
+    public static function getPrice($id, $quantity = 1, $date = NULL)
     {
     	// Намираме активната карта за обекта
-    	if($bomId){
-    		$rec = self::fetch($bomId);
-    	} else {
-    	    $rec = cat_Products::getLastActiveBom($productId, 'sales');
-    	    if(empty($rec)){
-    	    	$rec = cat_Products::getLastActiveBom($productId, 'production');
-    	    }
+    	expect($rec = self::fetchRec($id));
+    	if(!$date){
+    		$date = dt::now();
     	}
-    	
-    	// Ако няма, връщаме нулеви цени
-    	if(empty($rec)) return FALSE;
     	
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
@@ -520,7 +533,7 @@ class cat_Boms extends core_Master
     			$sign = ($dRec->type == 'input') ? 1 : -1;
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
+    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $quantity, $rec->modifiedOn);
     			if(!$selfValue){
     				$selfValue = NULL;
     			}
@@ -938,8 +951,15 @@ class cat_Boms extends core_Master
     		}
     	}
     	 
+    	$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+    	if(empty($bomRec)){
+    		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+    	}
+    	
+    	if(!$bomRec) return $price;
+    	
     	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = cat_Boms::getPrice($productId)){
+    	if($amounts = cat_Boms::getPrice($bomRec, $quantity, $datetime)){
     		$defPriceListId = self::getListForCustomer($customerClass, $customerId);
     
     		$minCharge = $maxCharge = NULL;

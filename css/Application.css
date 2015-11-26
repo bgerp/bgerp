@@ -641,7 +641,7 @@ div.productImage {
 
   .product-component-list .level0.product-component-title td {
     padding: 7px 0;
-    background: #f1f1f1; }
+    background: rgba(230, 230, 230, 0.5); }
 
   .product-component-list .level1.product-component-title td {
     padding: 6px 0; }
@@ -1178,6 +1178,60 @@ td.portal-date {
   .document-settings span,
   .document-settings a {
     margin-bottom: 0; }
+  .document-settings .additionalInfo {
+    left: auto;
+    right: -4px; }
+  .document-settings .pluginCountButtonNub {
+    height: 0;
+    left: 0px;
+    position: relative;
+    top: -14px;
+    width: 5px;
+    z-index: 2;
+    display: inline-block; }
+    .document-settings .pluginCountButtonNub s,
+    .document-settings .pluginCountButtonNub i {
+      border-color: transparent #9197a3;
+      border-style: solid;
+      border-width: 4px 5px 4px 0;
+      display: block;
+      position: relative;
+      top: 1px; }
+    .document-settings .pluginCountButtonNub i {
+      border-right-color: white;
+      left: 2px;
+      top: -7px; }
+  .document-settings .docSettingsCnt {
+    background: white;
+    border: 1px solid #9197a3;
+    border-radius: 2px;
+    color: #4e5665;
+    display: inline-block;
+    font-size: 0.7em;
+    height: auto;
+    line-height: 14px;
+    margin-left: 0px;
+    min-width: 10px;
+    padding: 0 2px;
+    position: relative;
+    top: -5px;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer; }
+  .document-settings .linkWithIcon {
+    padding-left: 0px !important;
+    opacity: 0.8;
+    width: 18px;
+    height: 18px;
+    display: inline-block; }
+    .document-settings .linkWithIcon.liked:hover {
+      background-image: url(../img/16/redheart-broke.png) !important; }
+    .document-settings .linkWithIcon.disliked:not(.disable):hover {
+      background-image: url(../img/16/redheart.png) !important; }
+    .document-settings .linkWithIcon.disliked.disable {
+      cursor: default; }
+    .document-settings .linkWithIcon.eyeIcon {
+      margin-left: 2px; }
 
 .docBgIcon {
   position: relative; }
@@ -1807,8 +1861,7 @@ ul.history {
   padding-top: 4px;
   font-size: 0.8em; }
 
-div.sharing-history,
-.like-log {
+div.sharing-history {
   border: none;
   border-top: 1px solid #cccccc;
   padding: 5px;
@@ -1820,8 +1873,7 @@ div.sharing-history,
   font-size: 0.9em;
   clear: both;
   padding-right: 120px; }
-  div.sharing-history .timespan,
-  .like-log .timespan {
+  div.sharing-history .timespan {
     font-size: 0.9em; }
 
 div.change-log {
@@ -1836,8 +1888,7 @@ div.change-log {
   font-size: 0.9em;
   clear: both; }
 
-span.sharing-history-title,
-.like-log-title {
+span.sharing-history-title {
   padding: 2px 5px;
   padding-left: 23px;
   background: #eeeeee url(../img/share.png) no-repeat 3px center;
@@ -1848,16 +1899,6 @@ span.sharing-history-title,
   border: 1px solid #cccccc;
   border-top: none;
   color: #777777; }
-
-.like-log-title {
-  background-image: none;
-  padding-left: 0px; }
-  .like-log-title .linkWithIcon {
-    opacity: 0.8; }
-    .like-log-title .linkWithIcon.liked:hover {
-      background-image: url(../img/16/redheart-broke.png) !important; }
-    .like-log-title .linkWithIcon.disliked:hover {
-      background-image: url(../img/16/redheart.png) !important; }
 
 .narrow span.sharing-history-title {
   font-size: 14px; }
@@ -3378,8 +3419,10 @@ only screen and (min-width: 1240px) {
     padding: 10px 0; }
 
   .wide .listBlock .listRows > table.listTable {
-    min-width: 760px; }
+    min-width: 760px; } }
 
+@media handheld,
+only screen and (max-width: 1240px) {
   .document {
     min-width: 40em; } }
 
@@ -4177,10 +4220,6 @@ only screen and (max-width: 320px) {
     border: 1px solid #cccccc; }
   .printing .header-state {
     display: none; }
-  .printing .like-log-title {
-    padding-left: 4px; }
-    .printing .like-log-title .linkWithIconSpan {
-      display: none; }
 
 .narrow .printing .document {
   width: 850px; }

@@ -113,9 +113,9 @@ class colab_Profiles extends core_Master
         
         // Опаковаме изгледа
         $tpl = $this->Profile->renderWrapping($tpl, $data);
-       
+        
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo('Single', $data->rec->id);
+        $this->Profile->logInfo('Виждане', $data->rec->id);
         
         // Връщане на шаблона
         return $tpl;

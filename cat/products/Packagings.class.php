@@ -69,6 +69,12 @@ class cat_products_Packagings extends core_Manager
     /**
      * Кой може да качва файлове
      */
+    var $canEdit = 'ceo,cat';
+    
+    
+    /**
+     * Кой може да качва файлове
+     */
     var $canDelete = 'ceo,cat';
     
     
@@ -380,6 +386,8 @@ class cat_products_Packagings extends core_Manager
         }
         
         $table = cls::get('core_TableView', array('mvc' => $this));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
         return $tpl;

@@ -18,7 +18,7 @@ class doc_LikesPlg extends core_Plugin
  	/**
      * Брой харесали потребители, над които няма да се показват имената им
      */
-    static $notifyNickShowCnt = 3;
+    static $notifyNickShowCnt = 2;
     
     
  	/**
@@ -29,18 +29,6 @@ class doc_LikesPlg extends core_Plugin
         // Дали мжое да се редактират активирани документи
         setIfNot($mvc->canLike, 'user');
         setIfNot($mvc->canDislike, 'user');
-    }
-    
-    
-    /**
-     * Добавя бутони
-     */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
-    {
-        if ($mvc->haveRightFor('like', $data->rec->id)) {
-            $data->toolbar->addBtn("Харесвам", array($mvc, 'likeDocument', $data->rec->id),
-            "id=btnLike{$data->rec->containerId}, row=2, order=19.4,title=" . tr('Харесване на документа'),  'ef_icon = img/16/redheart.png');
-        }
     }
     
     
@@ -65,6 +53,10 @@ class doc_LikesPlg extends core_Plugin
                     doc_Likes::isLiked($rec->containerId, $userId)) {
                     
                         $requiredRoles = 'no_one';
+                } elseif ($rec && doc_HiddenContainers::isHidden($rec->containerId)) {
+                    
+                    // Да не може да се харесва, ако докуемнта е скрит
+                    $requiredRoles = 'no_one';
                 }
             }
             
@@ -94,7 +86,7 @@ class doc_LikesPlg extends core_Plugin
     {
         $action = strtolower($action);
         
-        if (($action != 'likedocument') && ($action != 'dislikedocument')) return ;
+        if (($action != 'likedocument') && ($action != 'dislikedocument') && ($action != 'showlikes')) return ;
         
         $id = Request::get('id', 'int');
         
@@ -103,6 +95,10 @@ class doc_LikesPlg extends core_Plugin
         expect($rec);
         
         if ($action == 'likedocument') {
+            
+            // Харесване
+            
+            $redirect = TRUE;
             
             $mvc->requireRightFor('like', $rec);
             
@@ -114,15 +110,36 @@ class doc_LikesPlg extends core_Plugin
             }
         } elseif ($action == 'dislikedocument') {
             
+            // Премахване на харесаване
+            
+            $redirect = TRUE;
+            
             $mvc->requireRightFor('dislike', $rec);
             
             if (doc_Likes::dislike($rec->containerId)) {
                 $mvc->logInfo('Премахнато харесване', $rec->id);
                 $mvc->touchRec($rec->id);
             }
+        } elseif ($action == 'showlikes') {
+            
+            // Показване на екшъните по ajax
+            
+            expect(Request::get('ajax_mode'));
+            
+            $redirect = FALSE;
+            
+            $html = self::getLikesHtml($rec->containerId);
+            
+            $resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => self::getElemId($rec), 'html' => $html, 'replace' => TRUE);
+    		
+            $res = array($resObj);
         }
         
-        $res = new Redirect(array($mvc, 'single', $id));
+        if ($redirect) {
+            $res = new Redirect(array($mvc, 'single', $id));
+        }
         
         return FALSE;
     }
@@ -137,33 +154,65 @@ class doc_LikesPlg extends core_Plugin
      */
     public static function on_AfterNotifyUsersForLike($mvc, &$res, $rec)
     {
+        if (!$rec->containerId) return ;
+        
         $likedArr = doc_Likes::getLikedArr($rec->containerId, 'DESC');
-        $likedArrCnt = count($likedArr);
         
         // Ако само текущия потребител е харесал документа
-        if (!$likedArr || ($likedArrCnt == 1)) return ;
+        if (!$likedArr) return ;
+        
+        $createdBy = doc_Containers::fetchField($rec->containerId, 'createdBy');
         
         $currUserId = core_Users::getCurrent();
         
         $documentTitle = $mvc->getTitleForId($rec->id, FALSE);
         
+        $likedFromCreator = FALSE;
+        
         foreach ($likedArr as $key => $lRec) {
+            
             if ($lRec->createdBy == $currUserId) continue;
+            
+            if ($createdBy == $lRec->createdBy) {
+                $likedFromCreator = TRUE;
+            }
             
             if (!$mvc->haveRightFor('single', $rec->id, $lRec->createdBy)) continue;
             
             $cLikedArr = $likedArr;
             unset($cLikedArr[$key]);
             
-            $notifyStr = self::prepareNotifyStr($cLikedArr) . ' "' . $documentTitle . '"';
+            $notifyStr = self::prepareNotifyStr($cLikedArr);
             
             if ($notifyStr) {
-                $document = doc_Containers::getDocument($lRec->containerId);
-                $clearUrl = $linkUrl = array($mvc, 'single', $rec->id);
-                $clearUrl['like'] = TRUE;
-                bgerp_Notifications::add($notifyStr, $clearUrl, $lRec->createdBy, 'normal', $linkUrl);
+                $notifyStr .=  ' "' . $documentTitle . '"';
+                self::notifyUsers($notifyStr, $mvc->className, $lRec->createdBy, $rec);
             }
         }
+        
+        if (!$likedFromCreator) {
+            $notifyStr = self::prepareNotifyStr($likedArr, FALSE);
+            if ($notifyStr) {
+                $notifyStr .= ' "' . $documentTitle . '"';
+                self::notifyUsers($notifyStr, $mvc->className, $createdBy, $rec);
+            }
+        }
+    }
+    
+    
+    /**
+     * Праща нотификация на потребителите
+     * 
+     * @param string $notifyStr
+     * @param string $className
+     * @param stdObject $lRec
+     * @param stdObject $rec
+     */
+    protected static function notifyUsers($notifyStr, $className, $userId, $rec)
+    {
+        $clearUrl = $linkUrl = array($className, 'single', $rec->id);
+        $clearUrl['like'] = TRUE;
+        bgerp_Notifications::add($notifyStr, $clearUrl, $userId, 'normal', $linkUrl);
     }
     
     
@@ -171,10 +220,11 @@ class doc_LikesPlg extends core_Plugin
      * Връща стринг за нотификация с потребителите, които са харесали
      * 
      * @param array $recArr
+     * @param boolean $also
      * 
      * @return string
      */
-    protected static function prepareNotifyStr($recArr)
+    protected static function prepareNotifyStr($recArr, $also = TRUE)
     {
         $i = 0;
         $otherCnt = 0;
@@ -193,13 +243,22 @@ class doc_LikesPlg extends core_Plugin
             }
         }
         
+        $notifyEnd = $also ? ' |харесаха също|*' : ' |харесаха|*';
+        
         if ($otherCnt) {
-            $notifyStr .= ' |и още|* ' . $otherCnt . ' |също харесват|*';
+            if ($otherCnt == 1) {
+                $notifyStr .= ' |и още|* ' . $otherCnt;
+            } else {
+                $notifyStr .= ' |и|* ' . $otherCnt . ' |други|* ';
+            }
+            
+            $notifyStr .=  $notifyEnd;
         } else {
             if ($i == 1) {
-                $notifyStr .= ' |също харесва|*';
+                $notifyEnd = $also ? ' |хареса също|*' : ' |хареса|*';
+                $notifyStr .= $notifyEnd;
             } elseif ($i > 1) {
-                $notifyStr .= ' |също харесват|*';
+                $notifyStr .= $notifyEnd;
             }
         }
         
@@ -218,32 +277,6 @@ class doc_LikesPlg extends core_Plugin
         // Ако не сме в xhtml режим
         if (!Mode::is('text', 'xhtml')) {
             
-            $cid = $data->rec->containerId;
-            
-            if (doc_Likes::isLiked($cid)) {
-                $tpl->replace(static::renderLikesLog($cid), 'likesLog');
-                
-                // Добавяме харесванията и линк
-                $isLikedFromCurrUser = doc_Likes::isLiked($cid, core_Users::getCurrent());
-                
-                if ($isLikedFromCurrUser) {
-                    $likeArrUrl = array();
-                    if ($mvc->haveRightFor('dislike', $data->rec->id)) {
-                        $likeArrUrl = array($mvc, 'dislikeDocument', $data->rec->id);
-                    }
-                    
-                    $likesLink = ht::createLink('', $likeArrUrl, NULL, 'ef_icon=img/16/redheart.png,class=liked, title=' . tr('Отказ от харесване'));
-                } else {
-                    $dislikeArrUrl = array();
-                    if ($mvc->haveRightFor('like', $data->rec->id)) {
-                        $dislikeArrUrl = array($mvc, 'likeDocument', $data->rec->id);
-                    }
-                    
-                    $likesLink = ht::createLink('', $dislikeArrUrl, NULL, 'ef_icon=img/16/grayheart.png,class=disliked, title=' . tr('Харесване'));
-                }
-                $tpl->replace($likesLink, 'likesLink');
-            }
-            
             // Изчистваме нотификацията за харесване
             $url = array($mvc, 'single', $data->rec->id, 'like' => TRUE);
             bgerp_Notifications::clear($url);
@@ -252,28 +285,111 @@ class doc_LikesPlg extends core_Plugin
     
     
     /**
-     * Рендира лога за харесванията
+     * Подготвя лога за харесванията
      * 
      * @param integer $cid
      * 
      * @return string
      */
-    protected static function renderLikesLog($cid)
+    protected static function getLikesHtml($cid)
     {
-        $likedArr = doc_Likes::getLikedArr($cid);
+        $html = '';
         
-        $htmlArr = array();
-        
-        foreach ($likedArr as $likeRec) {
-            $nick = crm_Profiles::createLink($likeRec->createdBy);
-            $likeDate = mb_strtolower(core_DateTime::mysql2verbal($likeRec->createdOn, 'smartTime'));
-            $likeDate = " ({$likeDate})";
+        $likedArr = doc_Likes::getLikedArr($cid, 'DESC');
             
-            $htmlArr[] = "<span style='color:black;'>" . $nick . "</span>{$likeDate}";
+        if ($likedArr) {
+            
+            foreach ($likedArr as $likeRec) {
+                $nick = crm_Profiles::createLink($likeRec->createdBy);
+                $likeDate = core_DateTime::mysql2verbal($likeRec->createdOn, 'smartTime');
+                
+                $html .= "<div class='nowrap'>" . $nick . ' - ' . $likeDate . "</div>";
+            }
         }
         
-        $htmlStr = implode(', ', $htmlArr);
+        return $html;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $invoker
+     * @param object $row
+     * @param object $rec
+     * @param array $fields
+     */
+    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
+    {
+        if ($fields && $fields['-single']) {
+            
+            if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
+                
+                if ($rec->state != 'draft' && $rec->state != 'rejected') {
+                    
+                    // Добавяме харесванията и линк
+                    $isLikedFromCurrUser = doc_Likes::isLiked($rec->containerId, core_Users::getCurrent());
+                    
+                    if ($isLikedFromCurrUser) {
+                        $dislikeUrl = array();
+                        if ($mvc->haveRightFor('dislike', $rec->id)) {
+                            $dislikeUrl = array($mvc, 'dislikeDocument', $rec->id);
+                        }
+                        
+                        $likesLink = ht::createLink('', $dislikeUrl, NULL, 'ef_icon=img/16/redheart.png,class=liked, title=' . tr('Отказ от харесване'));
+                    } else {
+                        $likeUrl = array();
+                        $linkClass = 'class=disliked';
+                        if ($mvc->haveRightFor('like', $rec->id)) {
+                            $likeUrl = array($mvc, 'likeDocument', $rec->id);
+                        } else {
+                            $linkClass .= ' disable';
+                        }
+                        
+                        $likesLink = ht::createLink('', $likeUrl, NULL, 'ef_icon=img/16/grayheart.png, ' . $linkClass. ' , title=' . tr('Харесване'));
+                    }
+                    
+                    $likesCnt = doc_Likes::getLikesCnt($rec->containerId);
+                    
+                    if ($likesCnt) {
+                        $attr['class'] = 'showLikes docSettingsCnt tooltip-arrow-link';
+                        $attr['title'] = tr('Показване на харесванията');
+                        $attr['data-url'] = toUrl(array($mvc, 'showLikes', $rec->id), 'local');
+                        $attr['data-useHover'] = '1';
+                        $attr['data-useCache'] = '1';
+                        
+                        $likesCntLink = ht::createElement('span', $attr, $likesCnt, TRUE);
+                        
+                        $likesCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $likesCntLink;
+                        
+                        $likesLink = $likesLink . $likesCntLink;
+                        
+                        $elemId = self::getElemId($rec);
+                        
+                        $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                    }
+                    
+                    $likesLink = "<span>" . $likesLink . "</span>";
+                    
+                    $row->DocumentSettings = new ET($row->DocumentSettings);
+                    $row->DocumentSettings->append($likesLink);
+                    jquery_Jquery::runAfterAjax($row->DocumentSettings, 'showTooltip');
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща id за html елемент
+     * 
+     * @param stdObject $rec
+     * 
+     * @return string
+     */
+    protected static function getElemId($rec)
+    {
         
-        return $htmlStr;
+        return 'showLikes_' . $rec->containerId;
     }
 }

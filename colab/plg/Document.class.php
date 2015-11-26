@@ -16,23 +16,6 @@ class colab_plg_Document extends core_Plugin
 {
     
     
-	/**
-     * Извиква се след описанието на модела
-     */
-    function on_AfterDescription(&$mvc)
-    {
-        // Ако има cid и Tab, показваме детайлите
-        if (Request::get('Cid') && Request::get('Tab')) {
-            
-            // Ако има данни, преобразуваме ги в масив
-            $mvc->details = arr::make($mvc->details);
-            
-            // Детайлите
-            $mvc->details['View'] = 'colab_DocumentLog';
-        }
-    }
-    
-    
     /**
      * 
      * 
@@ -84,6 +67,8 @@ class colab_plg_Document extends core_Plugin
                     $row->DocumentSettings = new ET($row->DocumentSettings);
                     
                     $row->DocumentSettings->append($link);
+                    
+                    jquery_Jquery::runAfterAjax($row->DocumentSettings, 'showTooltip');
                 }
             }
         }

@@ -12,12 +12,5 @@
 	        [#shareLog#]
 	    </div>
     <!--ET_END shareLog-->
-    
-    <!--ET_BEGIN likesLog-->
-	    <div class='like-log clearfix21'>
-	        <span class='like-log-title'>[#likesLink#]|Харесване||Likes|*</span>
-	        [#likesLog#]
-	    </div>
-    <!--ET_END likesLog-->
 </div>
 <div style='clear: both;'></div>

@@ -184,6 +184,7 @@ class backup_Setup extends core_ProtoSetup
      */
     function install()
     {
+
         $html = parent::install();
         
         // Отключваме процеса, ако не е бил легално отключен
@@ -237,13 +238,31 @@ class backup_Setup extends core_ProtoSetup
         return $html;
     }
     
-    function checkMysqlConf ()
+
+    /**
+     * Проверява дали MySql-а е конфигуриран за binlog логове
+     *
+     * @return boolean
+     */
+    public function checkConfig()
     {
-        exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"",  $retArr, $retVal);
-        // log_bin	ON
-        exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"",  $retArr, $retVal);
-        // server_id	1
-        
+        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        // Премахваме всички табулации, нови редове и шпации - log_bin ON
+        $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
+        if ($res != 'log_binon') {
+    
+            return "MySQL-a не е настроен за binlog.";
+        }
+    
+        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        // Премахваме всички табулации, нови редове и шпации - server_id 1
+        $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
+        if ($res != 'server_id1') {
+    
+            return "MySQL-a не е настроен за binlog.";
+        }
+    
+        return TRUE;
     }
     
     

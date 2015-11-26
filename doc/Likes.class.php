@@ -133,6 +133,24 @@ class doc_Likes extends core_Manager
     
     
     /**
+     * Връща броя на харесванията на документа
+     * 
+     * @param integer $cid
+     * 
+     * @return 
+     */
+    public static function getLikesCnt($cid)
+    {
+        $query = self::getQuery();
+        $query->where(array("#containerId = '[#1#]'", $cid));
+        
+        $cnt = $query->count();
+        
+        return $cnt;
+    }
+    
+    
+    /**
      * Връща всички харесвания
      * 
      * @param integer $cid

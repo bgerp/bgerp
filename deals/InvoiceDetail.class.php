@@ -290,9 +290,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$row = parent::recToVerbal_($rec, $fields);
 		
 		$mvc = cls::get(get_called_class());
-		$modifiedOn = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'modifiedOn');
+		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
-		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $modifiedOn, 'short');
+		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short');
 		if($rec->notes){
 			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
 		}
