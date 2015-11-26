@@ -301,10 +301,9 @@ class doc_LikesPlg extends core_Plugin
             
             foreach ($likedArr as $likeRec) {
                 $nick = crm_Profiles::createLink($likeRec->createdBy);
-                $likeDate = mb_strtolower(core_DateTime::mysql2verbal($likeRec->createdOn, 'smartTime'));
-                $likeDate = " ({$likeDate})";
+                $likeDate = core_DateTime::mysql2verbal($likeRec->createdOn, 'smartTime');
                 
-                $html .= "<div class='nowrap'>" . $nick . $likeDate . "</div>";
+                $html .= "<div class='nowrap'>" . $nick . ' - ' . $likeDate . "</div>";
             }
         }
         
