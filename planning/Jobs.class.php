@@ -389,6 +389,10 @@ class planning_Jobs extends core_Master
     		
     		if($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id){
     			$row->pBomId = cat_Boms::getLink($pBomId, 0);
+    		} else {
+    			if($rec->state == 'draft' && cat_Products::getLastActiveBom($rec->productId, 'sales')){
+    				$row->pBomId = '<small style="font-style:italic;color:red">' . tr('Ще бъде създадена при активация') . '</small>';
+    			}
     		}
     		
     		if($rec->storeId){
