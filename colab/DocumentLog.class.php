@@ -141,26 +141,155 @@ class colab_DocumentLog extends core_Manager
      */
     public static function renderViewedLink($containerId)
     {
-        $url = array();
-        
-        $attr = array();
-        $attr['ef_icon'] = 'img/16/eye-closed.png';
-        $attr['title'] = tr('Документът е видим за партньори');
-        $attr['class'] = 'settings-document-viewed';
+        if (self::haveRightFor('renderview')) {
+            
+            $attr = array();
+            $attr['title'] = tr('Документът е видим за партньори');
+    		$attr['class'] = 'linkWithIcon';
+    		$attr['style'] = 'background-image:url(' . sbf('img/16/eye-open.png', '') . ');';
+            
+            $viewLink = ht::createElement('span', $attr, '', TRUE);
+        }
         
         if ($actArr = self::getActions($containerId, self::ACTION_VIEW, 1)) {
             $rec = array_pop($actArr);
             
             if (self::haveRightFor('renderview', $rec)) {
                 
-                $attr['title'] = tr('Документът е видян от партньор');
-                $attr['ef_icon'] = 'img/16/eye-open.png';
+                $attr['title'] = tr('Виждания от колаборатори');
                 
-                $url = doclog_Documents::getLinkToSingle($containerId, self::ACTION_VIEW);
+                $viewCnt = self::getViewCount($containerId);
+                
+                if ($viewCnt) {
+                    $attr = array();
+                    $attr['class'] = 'showViewed docSettingsCnt tooltip-arrow-link';
+                    $attr['title'] = tr('Виждания от колаборатори');
+                    $attr['data-url'] = toUrl(array(get_called_class(), 'showViewed', 'containerId' => $containerId), 'local');
+                    $attr['data-useHover'] = '1';
+                    $attr['data-useCache'] = '1';
+                    
+                    $viewCntLink = ht::createElement('span', $attr, $viewCnt, TRUE);
+                    
+                    $viewCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $viewCntLink;
+                    
+                    $elemId = self::getElemId($containerId);
+                    
+                    $viewLink .= $viewCntLink . "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                }
             }
         }
         
-        return ht::createLink('', $url, NULL, $attr);
+        $viewLink = "<span>" . $viewLink . "</span>";
+        
+        return $viewLink;
+    }
+    
+    
+    /**
+     * 
+     */
+    function act_ShowViewed()
+    {
+        expect(Request::get('ajax_mode'));
+        
+        $this->requireRightFor('renderview');
+        
+        $cid = Request::get('containerId', 'int');
+        
+        $rec = self::fetch("#containerId = '{$cid}'");
+        
+        expect($rec);
+        
+        $this->requireRightFor('renderview', $rec);
+        
+        $html = $this->getViewHtml($cid);
+        
+        $resObj = new stdClass();
+		$resObj->func = "html";
+		$resObj->arg = array('id' => self::getElemId($cid), 'html' => $html, 'replace' => TRUE);
+		
+        $res = array($resObj);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Подготвя лога за виждания
+     * 
+     * @param integer $cid
+     * 
+     * @return string
+     */
+    protected static function getViewHtml($cid)
+    {
+        $actArr = self::getActions($cid, self::ACTION_VIEW);
+        
+        $resStr = '';
+        
+        // Обхождаме записите
+        foreach ($actArr as $rec) {
+            
+            // Записите
+            $row = (object)array(
+                'createdOn' => $rec->createdOn,
+                'createdBy' => $rec->createdBy,
+                'cnt' => $rec->cnt
+            );
+            
+            // Записите във вербален вид
+            $row = self::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            $firstView = mb_strtolower($row->createdOn);
+            $firstView = " ({$firstView})";
+            
+            $viewTimes = $row->cnt . ' ' . tr('пъти');
+            
+            $resStr .= "<div class='nowrap'>{$row->createdBy} $firstView - {$viewTimes}</div>";
+        }
+        
+        return $resStr;
+    }
+    
+    
+    /**
+     * Връща id за html елемент
+     * 
+     * @param stdObject $rec
+     * 
+     * @return string
+     */
+    protected static function getElemId($cid)
+    {
+        
+        return 'showViewed_' . $cid;
+    }
+    
+    
+    /**
+     * Връща броя на вижданията на документа от колабораторите
+     * 
+     * @param integer $cid
+     * @param boolean $group
+     * 
+     * @return integer
+     */
+    protected static function getViewCount($cid, $group = TRUE)
+    {
+        $query = self::getQuery();
+        $query->where(array("#containerId = '[#1#]'", $cid));
+        
+        $cnt = 0;
+        
+        if ($group) {
+            $cnt = $query->count();
+        } else {
+            while ($rec = $query->fetch()) {
+                $cnt += $rec->cnt;
+            }
+        }
+        
+        return $cnt;
     }
     
     
@@ -212,96 +341,6 @@ class colab_DocumentLog extends core_Manager
         }
         
         return $resArr;
-    }
-    
-    
-    /**
-     * Подготвяне на данните за рендиране на детайла за принтирания
-     * 
-     * @param object $data
-     */
-    function prepareView($data)
-    {
-        // Ако сме в режим принтиране
-        // Да не се изпълнява
-        if (Request::get('Printing')) return ;
-        
-        // Вземаме cid от URL' то
-        $cid = Request::get('Cid', 'int');
-        
-        // Ако не листваме данните за съответния контейнер
-        if ($data->masterData->rec->containerId != $cid) return ;
-        
-        $actArr = self::getActions($cid, self::ACTION_VIEW);
-        
-        // Името на таба
-        $data->TabCaption = tr('Виждания (К)');
-        
-        if (!$actArr) {
-            
-            // Бутона да не е линк
-            $data->disabled = TRUE;
-            
-            return ;
-        } else {
-            $rec = reset($actArr);
-            if (!self::haveRightFor('renderview', $rec)) {
-                unset($data->TabCaption);
-                return ;
-            }
-        }
-        
-        $rows = array();
-        
-        // Обхождаме записите
-        foreach ($actArr as $rec) {
-            
-            // Записите
-            $row = (object)array(
-                'createdOn' => $rec->createdOn,
-                'createdBy' => $rec->createdBy,
-                'action' => $rec->action,
-                'cnt' => $rec->cnt
-            );
-            
-            // Записите във вербален вид
-            $row = self::recToVerbal($row, array_keys(get_object_vars($row)));
-            
-            // Добавяме в главния масив
-            $rows[$rec->id] = $row;    
-        }
-
-        // Сортираме по дата
-        krsort($rows);
-        
-        // Заместваме данните за рендиране
-        $data->rows = $rows;
-    }
-    
-    
-    /**
-     * Рендиране на данните за шаблона на детайла за принтирания
-     * 
-     * @param object $data
-     */
-    function renderView($data)
-    {
-        // Ако няма записи
-        if (!$data->rows) return ;
-        
-        // Вземаме шаблона за детайлите с попълнена титла
-        $tpl = doclog_Documents::getLogDetailTpl();
-        
-        // Инстанция на класа
-        $inst = cls::get('core_TableView');
-        
-        // Вземаме таблицата с попълнени данни
-        $viewTpl = $inst->get($data->rows, 'createdOn=Дата, createdBy=Потребител, action=Действие, cnt=Брой');
-        
-        // Заместваме в главния шаблон за детайлите
-        $tpl->append($viewTpl, 'content');
-        
-        return $tpl;
     }
     
     
