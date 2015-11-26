@@ -145,7 +145,7 @@ class colab_DocumentLog extends core_Manager
             
             $attr = array();
             $attr['title'] = tr('Документът е видим за партньори');
-    		$attr['class'] = 'linkWithIcon';
+    		$attr['class'] = 'eyeIcon linkWithIcon';
     		$attr['style'] = 'background-image:url(' . sbf('img/16/eye-open.png', '') . ');';
             
             $viewLink = ht::createElement('span', $attr, '', TRUE);
