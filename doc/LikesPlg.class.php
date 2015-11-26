@@ -135,7 +135,6 @@ class doc_LikesPlg extends core_Plugin
     		$resObj->arg = array('id' => self::getElemId($rec), 'html' => $html, 'replace' => TRUE);
     		
             $res = array($resObj);
-            
         }
         
         if ($redirect) {
@@ -286,7 +285,7 @@ class doc_LikesPlg extends core_Plugin
     
     
     /**
-     * Рендира лога за харесванията
+     * Подготвя лога за харесванията
      * 
      * @param integer $cid
      * 
@@ -360,7 +359,7 @@ class doc_LikesPlg extends core_Plugin
                         $attr['data-useHover'] = '1';
                         $attr['data-useCache'] = '1';
                         
-                        $likesCntLink = ht::createElement('span', $attr, $likesCnt);
+                        $likesCntLink = ht::createElement('span', $attr, $likesCnt, TRUE);
                         
                         $likesCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $likesCntLink;
                         
@@ -368,8 +367,10 @@ class doc_LikesPlg extends core_Plugin
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink = "{$likesLink}<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                        $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
                     }
+                    
+                    $likesLink = "<span>" . $likesLink . "</span>";
                     
                     $row->DocumentSettings = new ET($row->DocumentSettings);
                     $row->DocumentSettings->append($likesLink);
