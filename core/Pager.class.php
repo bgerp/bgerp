@@ -225,6 +225,32 @@ class core_Pager extends core_BaseClass
             $this->calc();
             $query->limit(0);
         }
+
+        /*
+                $q = clone ($query);
+
+        $this->itemsCount = 100000000;
+        $this->calc();
+        if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+            $q->limit(1000000);
+            $q->startFrom($this->rangeStart); 
+            $cnt = $this->rangeStart + $q->select();
+            $i = 0;
+            while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
+                $ids[] = $rec->id;
+            }
+        }
+        
+        $this->itemsCount  = $cnt; //array_shift($cntArr);
+        $this->calc();
+        
+        if(count($ids)) {
+            $ids = implode(',', $ids);
+            $query->where("#id IN ($ids)");
+        } else {
+            $query->limit(0);
+        }
+        */
     }
 
 
