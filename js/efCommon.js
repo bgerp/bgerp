@@ -53,7 +53,7 @@ function showTooltip() {
                 resObj['url'] = url;
                 getEfae().process(resObj);
             }
-
+            
             // затваряме предишния тултип, ако има такъв
             if (typeof element != 'undefined') {
                 $(element).hide();
@@ -61,7 +61,7 @@ function showTooltip() {
 
             // намираме този, който ще покажем сега
             element = $(e.target).parent().find('.additionalInfo');
-
+            
             // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
             if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
                 $(element).addClass('bottom');
@@ -78,6 +78,7 @@ function showTooltip() {
     
     $('.tooltip-arrow-link').each(function(){
     	if ($(this).attr("data-useHover")) {
+    		
     		$(this).hover(function(){$(this).click();}, function(){$(element).hide();});
     	}
     });
