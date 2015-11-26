@@ -576,8 +576,7 @@ class planning_Jobs extends core_Master
 	    			unset($nRec->{$fld});
 	    		}
     			
-	    		$id = cat_Boms::save($nRec);
-	    		core_Statuses::newStatus($id, 'warning');
+	    		cat_Boms::save($nRec);
     		}
     	}
     }
