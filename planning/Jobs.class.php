@@ -557,6 +557,29 @@ class planning_Jobs extends core_Master
     {
     	// След активиране на заданието, добавяме артикула като перо
     	cat_Products::forceItem($rec->productId, 'catProducts');
+    	
+    	// При активиране, ако няма работна рецепта но има търговска копираме я като работна
+    	$prodBomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
+    	
+    	if(!$prodBomRec){
+    		$salesBomRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
+    		
+    		if($salesBomRec){
+	    		$nRec = clone $salesBomRec;
+	    		$nRec->folderId  = $rec->folderId;
+	    		$nRec->threadId  = $rec->threadId;
+	    		$nRec->productId = $rec->productId;
+	    		$nRec->originId  = $rec->containerId;
+	    		$nRec->state     = 'draft';
+	    		$nRec->type      = 'production';
+	    		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
+	    			unset($nRec->{$fld});
+	    		}
+    			
+	    		$id = cat_Boms::save($nRec);
+	    		core_Statuses::newStatus($id, 'warning');
+    		}
+    	}
     }
     
     
