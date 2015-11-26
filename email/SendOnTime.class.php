@@ -18,7 +18,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Имейли за изпращане по време';
+    var $title = 'Имейли за отложено изпращане';
     
     
     /**
