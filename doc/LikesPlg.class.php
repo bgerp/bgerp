@@ -320,17 +320,18 @@ class doc_LikesPlg extends core_Plugin
                         $attr['class'] = 'showLikes tooltip-arrow-link';
                         $attr['title'] = tr('Показване на харесванията');
                         $attr['data-url'] = toUrl(array($mvc, 'showLikes', $rec->id), 'local');
+                        $attr['data-useHover'] = '1';
                         $attr['onClick'] = 'startUrlFromDataAttr(this)';
                         
                         $likesCntLink = ht::createElement('span', $attr, $likesCnt);
                         
                         $likesCntLink .= '<span class="likeCnt"></span>';
                         
-                        $likesLink = $likesCntLink . $likesLink;
+                        $likesLink = $likesLink . $likesCntLink;
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink = "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>{$likesLink}";
+                        $likesLink = "{$likesLink}<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
                     }
                     
                     $row->DocumentSettings = new ET($row->DocumentSettings);
