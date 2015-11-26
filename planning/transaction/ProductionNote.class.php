@@ -84,7 +84,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
 					
 					// Единични суми от рецептата
-					$priceObj = cat_Boms::getPrice($dRec->productId, $dRec->bomId);
+					$priceObj = cat_Boms::getPrice($dRec->bomId, $dRec->quantity, $rec->valior);
 					
 					// Проверяваме цената за к-то от заданието
 					$bomAmount = ($priceObj->base + $quantityJob * $priceObj->prop) / $quantityJob;
