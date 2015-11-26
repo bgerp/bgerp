@@ -165,7 +165,7 @@ class price_ListRules extends core_Detail
     	$price = price_History::getPrice($listId, $datetime, $productId);
     	
         if(isset($price)) return $price;
-
+        
         price_ListToCustomers::canonizeTime($datetime);
 
         $datetime = price_History::canonizeTime($datetime);
@@ -176,7 +176,7 @@ class price_ListRules extends core_Detail
         	$productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
         	if(!$productGroup) return;
         }
- 
+       
         $query = self::getQuery();
         
         // Общи ограничения
@@ -193,7 +193,7 @@ class price_ListRules extends core_Detail
         // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");
         $query->limit(1);
-
+		
         $rec = $query->fetch();
  
         if($rec) {
@@ -252,12 +252,15 @@ class price_ListRules extends core_Detail
         }
         
         $listRec = price_Lists::fetch($listId);
-        	
-        // По дефолт правим някакво машинно закръгляне
-        $price = round($price, 8);
         
-        // Записваме току-що изчислената цена в историята;
-        price_History::setPrice($price, $listId, $datetime, $productId);
+        if(isset($price)){
+        	
+        	// По дефолт правим някакво машинно закръгляне
+        	$price = round($price, 8);
+        	
+        	// Записваме току-що изчислената цена в историята;
+        	price_History::setPrice($price, $listId, $datetime, $productId);
+        }
 
         return $price;
     }
