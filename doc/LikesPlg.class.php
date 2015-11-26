@@ -317,7 +317,7 @@ class doc_LikesPlg extends core_Plugin
                     $likesCnt = doc_Likes::getLikesCnt($rec->containerId);
                     
                     if ($likesCnt) {
-                        $attr['class'] = 'showLikes tooltip-arrow-link';
+                        $attr['class'] = 'showLikes docSettingsCnt tooltip-arrow-link';
                         $attr['title'] = tr('Показване на харесванията');
                         $attr['data-url'] = toUrl(array($mvc, 'showLikes', $rec->id), 'local');
                         $attr['data-useHover'] = '1';
