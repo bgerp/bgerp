@@ -70,7 +70,7 @@ class crm_Profiles extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -118,13 +118,19 @@ class crm_Profiles extends core_Master
     /**
      * 
      */
-    public $canReject = 'powerUser';
+    public $canReject = 'admin';
     
     
     /**
      * 
      */
-    public $canRestore = 'powerUser';
+    public $canRestore = 'manager, admin';
+    
+    
+    /**
+     * 
+     */
+    public $canDelete = 'no_one';
     
     
     /**
@@ -147,8 +153,6 @@ class crm_Profiles extends core_Master
     /**
      * Възстановяване на оттеглен обект
      * 
-     * Реализация по подразбиране на метода $mvc->restore($id)
-     * 
      * @param core_Mvc $mvc
      * @param mixed $res
      * @param int|stdClass $id
@@ -162,6 +166,7 @@ class crm_Profiles extends core_Master
         $rec = $mvc->fetchRec($id);
         
         if (!isset($rec->id) || $rec->state != 'rejected') {
+            
             return;
         }
         
@@ -176,16 +181,39 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Оттегляне на запис
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        // Полето state е EXT поле към core_Users
+        // Затова променяме състоянието там
+        
+        $res = FALSE;
+        $rec = $mvc->fetchRec($id);
+        
+        if (!isset($rec->id) || $rec->state == 'rejected') {
+            
+            return;
+        }
+        
+        $coreUsers = cls::get('core_Users');
+        $uRec = $coreUsers->fetch($rec->userId);
+        
+        $res = $coreUsers->reject($rec->userId);
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * След подготовка на тулбара за единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        // Премахваме edit бутона
-        $data->toolbar->removeBtn('btnEdit');
-        
-        // Премахваме бутона за изтриване
-        $data->toolbar->removeBtn('btnDelete');
-        
         // Подготвяме табовете за логове
     	$tabs = cls::get('core_Tabs', array('htmlClass' => 'log-tabs'));
     	$url = getCurrentUrl();
