@@ -327,8 +327,12 @@ class doc_LikesPlg extends core_Plugin
                 
                 if ($rec->state != 'draft' && $rec->state != 'rejected') {
                     
+                    $likesCnt = doc_Likes::getLikesCnt($rec->containerId);
+                    
                     // Добавяме харесванията и линк
                     $isLikedFromCurrUser = doc_Likes::isLiked($rec->containerId, core_Users::getCurrent());
+                    
+                    $likesLink = '';
                     
                     if ($isLikedFromCurrUser) {
                         $dislikeUrl = array();
@@ -338,18 +342,19 @@ class doc_LikesPlg extends core_Plugin
                         
                         $likesLink = ht::createLink('', $dislikeUrl, NULL, 'ef_icon=img/16/redheart.png,class=liked, title=' . tr('Отказ от харесване'));
                     } else {
-                        $likeUrl = array();
-                        $linkClass = 'class=disliked';
-                        if ($mvc->haveRightFor('like', $rec->id)) {
-                            $likeUrl = array($mvc, 'likeDocument', $rec->id);
-                        } else {
-                            $linkClass .= ' disable';
-                        }
                         
-                        $likesLink = ht::createLink('', $likeUrl, NULL, 'ef_icon=img/16/grayheart.png, ' . $linkClass. ' , title=' . tr('Харесване'));
+                        if (!doc_HiddenContainers::isHidden($rec->containerId) || $likesCnt) {
+                            $likeUrl = array();
+                            $linkClass = 'class=disliked';
+                            if ($mvc->haveRightFor('like', $rec->id)) {
+                                $likeUrl = array($mvc, 'likeDocument', $rec->id);
+                            } else {
+                                $linkClass .= ' disable';
+                            }
+                            
+                            $likesLink = ht::createLink('', $likeUrl, NULL, 'ef_icon=img/16/grayheart.png, ' . $linkClass. ' , title=' . tr('Харесване'));
+                        }
                     }
-                    
-                    $likesCnt = doc_Likes::getLikesCnt($rec->containerId);
                     
                     if ($likesCnt) {
                         $attr['class'] = 'showLikes docSettingsCnt tooltip-arrow-link';
@@ -369,7 +374,9 @@ class doc_LikesPlg extends core_Plugin
                         $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
                     }
                     
-                    $likesLink = "<span>" . $likesLink . "</span>";
+                    if ($likesLink) {
+                        $likesLink = "<span>" . $likesLink . "</span>";
+                    }
                     
                     $row->DocumentSettings = new ET($row->DocumentSettings);
                     $row->DocumentSettings->append($likesLink);
