@@ -52,15 +52,19 @@ function initElements() {
 function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
-	if(contentWidth < $('#main-container').width()){
-		if($('#fav-panel-btn').hasClass('sidemenu-open')) {
+	if(contentWidth < $('.listTable').first().width()){
+		if($('#fav-panel').hasClass('sidemenu-open')) {
 			$('#fav-panel-btn').click();
-			contentWidth = $(window).width() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
+			contentWidth = $(window).width() - $('.sidemenu-open').length * $('.sidemenu-open').width();
 		}
-		$('#packWrapper, .listBlock').width(contentWidth);
-		$('.document').width(contentWidth-140);
-		$('.document .scrolling-holder').css('max-width', contentWidth-140);
-		$('.document .scrolling-holder').addClass('overflow-scroll');
+		
+		if(contentWidth < $('.listTable').first().width()) {
+			$('#packWrapper, .listBlock').width(contentWidth);
+			$('.document').width(contentWidth-140);
+			$('.document .scrolling-holder').css('max-width', contentWidth-140);
+			$('.document .scrolling-holder').addClass('overflow-scroll');
+		}
+		
 	}
 }
 
