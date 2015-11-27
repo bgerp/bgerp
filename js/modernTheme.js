@@ -53,18 +53,14 @@ function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
 	if(contentWidth < $('.listTable').first().width()){
-		if($('#fav-panel').hasClass('sidemenu-open')) {
-			$('#fav-panel-btn').click();
-			contentWidth = $(window).width() - $('.sidemenu-open').length * $('.sidemenu-open').width();
-		}
 		
 		if(contentWidth < $('.listTable').first().width()) {
 			$('#packWrapper, .listBlock').width(contentWidth);
 			$('.document').width(contentWidth-140);
+			$('.document').css('min-width', '40em');
 			$('.document .scrolling-holder').css('max-width', contentWidth-140);
 			$('.document .scrolling-holder').addClass('overflow-scroll');
 		}
-		
 	}
 }
 

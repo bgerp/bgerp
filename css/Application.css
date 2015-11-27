@@ -3422,11 +3422,6 @@ only screen and (min-width: 1240px) {
     min-width: 760px; } }
 
 @media handheld,
-only screen and (max-width: 1240px) {
-  .document {
-    min-width: 40em; } }
-
-@media handheld,
 only screen and (min-width: 1550px) {
   #cmsNavigation div.nav_item {
     font-size: 1.02em; } }
