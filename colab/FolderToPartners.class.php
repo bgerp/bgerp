@@ -545,7 +545,11 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
     	
-    	if($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)){
+    	if ($retUrl = getRetUrl()) {
+    	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	}
+    	
+    	if ($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)) {
     		$tpl = $this->renderWrapping($form->renderHtml());
     	} else {
     		$tpl = $form->renderHtml();
