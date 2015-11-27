@@ -133,6 +133,37 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Възстановяване на оттеглен обект
+     * 
+     * Реализация по подразбиране на метода $mvc->restore($id)
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        // Полето state е EXT поле към core_Users
+        // Затова променяме състоянието там
+        
+        $res = FALSE;
+        $rec = $mvc->fetchRec($id);
+        
+        if (!isset($rec->id) || $rec->state != 'rejected') {
+            return;
+        }
+        
+        $coreUsers = cls::get('core_Users');
+        $uRec = $coreUsers->fetch($rec->userId);
+        $coreUsers->logInAct('Възстановяване', $uRec);
+        
+        $res = $coreUsers->restore($rec->userId);
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * След подготовка на тулбара за единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
