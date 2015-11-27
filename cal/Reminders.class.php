@@ -63,7 +63,13 @@ class cal_Reminders extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'description';
-
+    
+    
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'powerUser';
+    
     
     /**
      * Поле в което да се показва иконата за единичен изглед
