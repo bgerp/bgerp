@@ -238,7 +238,6 @@ class cash_Pko extends core_Master
         expect(count($options));
         
         // Използваме помощната функция за намиране името на контрагента
-    	
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
     		 		
@@ -249,7 +248,7 @@ class cash_Pko extends core_Master
     		 		 
     	$defaultOperation = $dealInfo->get('defaultCaseOperation');
     	if($defaultOperation == 'customer2caseAdvance'){
-    		 	$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
+    		 	$amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
     		 }
     	}
     		 	
@@ -294,7 +293,7 @@ class cash_Pko extends core_Master
     {
     	$options = array();
     	
-    	// Оставяме само тези операции в коитос е дебитира основната сметка на документа
+    	// Оставяме само тези операции в които се дебитира основната сметка на документа
     	foreach ($operations as $sysId => $op){
     		if($op['debit'] == static::$baseAccountSysId){
     			$options[$sysId] = $op['title'];

@@ -87,7 +87,23 @@ class colab_Profiles extends core_Master
      * Връща единичния изглед към профила на текущия потребител
      */
     function act_Single()
-    {        
+    {
+        // Ако потребителя е powerUser, да се редиректне в профилите
+        if (core_Users::isPowerUser()) {
+            $id = Request::get('id', 'int');
+            if ($id) {
+                if (crm_Profiles::haveRightFor('single', $id)) {
+                    
+                    return new Redirect(array('crm_Profiles', 'single', $id));
+                }
+            } else {
+                if (crm_Profiles::haveRightFor('list')) {
+                    
+                    return new Redirect(array('crm_Profiles', 'list'));
+                }
+            }
+        }
+          
         $this->requireRightFor('single');
         
     	// Създаваме обекта $data

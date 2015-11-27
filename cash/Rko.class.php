@@ -250,7 +250,7 @@ class cash_Rko extends core_Master
     		 			
     		 $defaultOperation = $dealInfo->get('defaultCaseOperation');
     		 if($defaultOperation == 'case2supplierAdvance'){
-    		 	$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
+    		 	$amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
     		 }
     	}
     		 		

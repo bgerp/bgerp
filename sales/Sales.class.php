@@ -540,7 +540,7 @@ class sales_Sales extends deals_DealMaster
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
-        if($agreedDp && ($actualDp < $agreedDp)){
+        if($agreedDp && empty($actualDp)){
         	$result->set('defaultCaseOperation', 'customer2caseAdvance');
         	$result->set('defaultBankOperation', 'customer2bankAdvance');
         } else {

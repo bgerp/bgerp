@@ -434,7 +434,7 @@ class purchase_Purchases extends deals_DealMaster
         
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
-        if($agreedDp && ($actualDp < $agreedDp)){
+        if($agreedDp && empty($actualDp)){
         	$result->set('defaultCaseOperation', 'case2supplierAdvance');
         	$result->set('defaultBankOperation', 'bank2supplierAdvance');
         } else {

@@ -103,8 +103,16 @@ class colab_Threads extends core_Manager
 	 */
 	function act_Single()
 	{
+	    expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
+	    
+	    if (core_Users::isPowerUser()) {
+	        if (doc_Threads::haveRightFor('single', $id)) {
+	            
+	            return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
+	        }
+	    }
+	    
 		$this->requireRightFor('single');
-		expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
 		
 		$this->currentTab = 'Нишка';
 		
@@ -153,6 +161,25 @@ class colab_Threads extends core_Manager
 		$tpl = $this->renderWrapping($tpl, $data);
 		
 		return $tpl;
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @see core_Manager::act_List()
+	 */
+	function act_List()
+	{
+	    if (core_Users::isPowerUser()) {
+	        $folderId = Request::get('folderId', 'int');
+	        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+	            
+	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
+	        }
+	    }
+	    
+	    return parent::act_List();
 	}
 	
 	

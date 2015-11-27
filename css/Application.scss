@@ -1397,6 +1397,8 @@ td.portal-date {
 		width: 18px;
 		height: 18px;
 		display:inline-block;
+		margin-left: 5px;
+		margin-right: 1px;
 		&.liked:hover {
 			background-image: url(../img/16/redheart-broke.png) !important;
 		}
@@ -1405,9 +1407,6 @@ td.portal-date {
 		}
 		&.disliked.disable {
 			cursor: default;
-		}
-		&.eyeIcon {
-			margin-left: 2px;
 		}
 	}
 }
@@ -3789,12 +3788,6 @@ body.narrow {
         min-width:760px;
     }
    
-}
-
-@media handheld , only screen and (max-width: 1240px) {
- .document {
-    	min-width: 40em;
-    }
 }
 
 @media handheld , only screen and (min-width: 1550px) {

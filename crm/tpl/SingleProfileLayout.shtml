@@ -1,4 +1,4 @@
-<div style="display: block;">
+<div class='singleView'>
 [#SingleToolbar#]
     <div class='scrolling-holder'>
 	    <div class="user-profile">
