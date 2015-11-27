@@ -53,7 +53,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?,order=32', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите записа?,order=32', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
@@ -64,7 +64,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите записа?,order=32', 'ef_icon = img/16/restore.png');
         }
     }
     
@@ -143,7 +143,7 @@ class plg_Rejected extends core_Plugin
     {
         $res = FALSE;
         $rec = $mvc->fetchRec($id);
-                        
+        
         if (!isset($rec->id) || $rec->state != 'rejected') {
             return;
         }
@@ -219,7 +219,7 @@ class plg_Rejected extends core_Plugin
             if($action == 'restore' && $rec->state != 'rejected') {
                 $requiredRoles = 'no_one';
             }
-
+            
             if(!$requiredRoles && ($action == 'restore' || $action = 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
                 $requiredRoles = 'user';
             }
