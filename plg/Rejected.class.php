@@ -211,6 +211,7 @@ class plg_Rejected extends core_Plugin
             if($action == 'reject') {
                 // Системните записи, оттеглените и тези, които могат да се изтриват
                 if($rec->createdBy == -1 || $rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
+                    
                     $requiredRoles = 'no_one';
                 }
             }
@@ -220,10 +221,10 @@ class plg_Rejected extends core_Plugin
                 $requiredRoles = 'no_one';
             }
             
-            if(!$requiredRoles && ($action == 'restore' || $action = 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
+            if(!$requiredRoles && ($action == 'restore' || $action == 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
+                
                 $requiredRoles = 'user';
             }
-
         }
     }
     
