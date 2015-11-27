@@ -303,7 +303,6 @@ class colab_FolderToPartners extends core_Manager
 			
 			// Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
 			if($me->haveRightFor('sendemail', $data->masterData->rec)){
-				Request::setProtected(array('companyId'));
 				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
 				$btns->append($ht);
 			} else {
@@ -324,7 +323,7 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-    	Request::setProtected(array('companyId', 'fromEmail'));
+    	Request::setProtected(array('companyId'));
     	
     	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE));
     }
@@ -337,7 +336,7 @@ class colab_FolderToPartners extends core_Manager
      */
     function act_SendRegisteredEmail()
     {
-    	Request::setProtected(array('companyId, fromEmail'));
+    	Request::setProtected(array('companyId'));
     	
     	$this->requireRightFor('sendemail');
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
@@ -349,11 +348,19 @@ class colab_FolderToPartners extends core_Manager
     	$form = cls::get('core_Form');
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
     	
-    	$form->FLD('to', 'emails', 'caption=До имейл, width=100%, silent,mandatory');
-    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions');
-    	$form->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
-    	$form->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
-    	$form->setSuggestions('to', $companyRec->email);
+    	$form->FNC('to', 'emails', 'caption=До имейл, width=100%, mandatory, input');
+    	$form->FNC('from', 'key(mvc=email_Inboxes,select=email)', 'caption=От имейл, width=100%, mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions, input');
+    	$form->FNC('subject', 'varchar', 'caption=Относно,mandatory,width=100%, input');
+    	$form->FNC('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory, input');
+    	
+    	$emailsArr = type_Emails::toArray($companyRec->email);
+    	if ($emailsArr) {
+    	    $emailsArr = array_combine($emailsArr, $emailsArr);
+    	    $emailsArr = array('' => '') + $emailsArr;
+    	}
+    	
+    	$form->setSuggestions('to', $emailsArr);
+    	
     	$form->setDefault('from', email_Outgoings::getDefaultInboxId());
     	
     	$subject = "Регистрация в " . EF_APP_NAME; 
@@ -467,7 +474,7 @@ class colab_FolderToPartners extends core_Manager
      */
     function act_Createnewcontractor()
     {
-    	Request::setProtected(array('companyId', 'fromEmail'));
+    	Request::setProtected(array('companyId'));
     	
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
