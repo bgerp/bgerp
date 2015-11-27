@@ -159,17 +159,31 @@ class colab_FolderToPartners extends core_Manager
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
             $query = self::getQuery();
-
+            
+            $rejectedArr = array();
+            
             $count = 1;
             while($rec = $query->fetch("#folderId = {$folderId}")) {
-               $uRec = core_Users::fetch($rec->contractorId);
-               if($uRec->state != 'rejected') {
-                  $data->partners[$rec->contractorId] = self::recToVerbal($rec);
-                  $data->partners[$rec->contractorId]->count = cls::get('type_Int')->toVerbal($count);
-                  $count++;
-               }
+                $uRec = core_Users::fetch($rec->contractorId);
+                if($uRec->state != 'rejected') {
+                    $data->partners[$rec->contractorId] = self::recToVerbal($rec);
+                    $data->partners[$rec->contractorId]->count = cls::get('type_Int')->toVerbal($count);
+                    $count++;
+                } else {
+                    
+                    $rec->RestoreLink = TRUE;
+                    $rejectedArr[$rec->contractorId] = self::recToVerbal($rec);
+                }
             }
-       }
+            
+            if ($rejectedArr) {
+                foreach ($rejectedArr as $contractorId => $rejectedRow) {
+                    $data->partners[$contractorId] = $rejectedRow;
+                    $data->partners[$contractorId]->count = cls::get('type_Int')->toVerbal($count);
+                    $count++;
+                }
+            }
+        }
     }
 
 
@@ -230,7 +244,24 @@ class colab_FolderToPartners extends core_Manager
     	$row->names = core_Users::getVerbal($rec->contractorId, 'names');
     	$row->names .= " (" . crm_Profiles::createLink($rec->contractorId) . ") ";
     	$row->names .= core_Users::getVerbal($rec->contractorId, 'lastLoginTime');
-    	$row->names .= "<span style='margin-left:10px'>{$row->tools}</span>";
+    	
+    	$restoreLink = '';
+    	
+    	if ($rec->RestoreLink) {
+    	    $pId = crm_Profiles::getProfileId($rec->contractorId);
+            $restoreLink = '';
+            
+            if ($pId) {
+                if (crm_Profiles::haveRightFor('restore', $pId)) {
+                    
+                    $restoreLink = ht::createLink('', 
+                        array('crm_Profiles', 'restore', $pId, 'ret_url' => TRUE), 
+                        tr('Наистина ли желаете да възстановите потребителя|*?'), 'id=btnRestore, ef_icon = img/16/restore.png');
+                }
+            }
+    	}
+    	
+    	$row->names .= "<span style='margin-left:10px'>{$restoreLink}{$row->tools}</span>";
     }
     
     
