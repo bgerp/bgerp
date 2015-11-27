@@ -52,11 +52,15 @@ function initElements() {
 function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
-	if(contentWidth <  $('#packWrapper').width()){
+	if(contentWidth < $('#main-container').width()){
+		if($('#fav-panel-btn').hasClass('sidemenu-open')) {
+			$('#fav-panel-btn').click();
+			contentWidth = $(window).width() - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
+		}
 		$('#packWrapper, .listBlock').width(contentWidth);
 		$('.document').width(contentWidth-140);
-		$('.scrolling-holder').css('max-width', contentWidth-140);
-		$('.scrolling-holder').addClass('overflow-scroll');
+		$('.document .scrolling-holder').css('max-width', contentWidth-140);
+		$('.document .scrolling-holder').addClass('overflow-scroll');
 	}
 }
 
@@ -138,6 +142,7 @@ function changePinIcon(){
     		$('.pinned').addClass('hidden');
     		$('.pin').removeClass('hidden');
     	}
+    	setMaxWidth();
 	});
 }
 
