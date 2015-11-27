@@ -116,6 +116,18 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * 
+     */
+    public $canReject = 'powerUser';
+    
+    
+    /**
+     * 
+     */
+    public $canRestore = 'powerUser';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
