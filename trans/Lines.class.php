@@ -43,6 +43,13 @@ class trans_Lines extends core_Master
                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_BusinessDoc';
 
     
+    
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'ceo, trans';
+    
+    
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
