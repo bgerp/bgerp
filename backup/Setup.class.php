@@ -251,15 +251,15 @@ class backup_Setup extends core_ProtoSetup
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
     
-            return "MySQL-a не е настроен за binlog.";
+            return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
         $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {
-    
-            return "MySQL-a не е настроен за binlog.";
+
+            return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
         return TRUE;
