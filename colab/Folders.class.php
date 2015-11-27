@@ -126,7 +126,7 @@ class colab_Folders extends core_Manager
 	function getQuery_($params = array())
 	{
 		$res = $this->Folders->getQuery($params);
-		$sharedFolders = self::getSharedFolders($cu);
+		$sharedFolders = self::getSharedFolders();
 		
 		$res->in('id', $sharedFolders);
 		
