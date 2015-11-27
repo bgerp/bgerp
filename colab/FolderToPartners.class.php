@@ -371,12 +371,11 @@ class colab_FolderToPartners extends core_Manager
     	$body = new ET(
             tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
             tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
-            " [#company#], " . 
+            " \"[#company#]\", " . 
             tr("моля последвай този линк||please follow this link") .
-            ":\n" .
-            "[#link#] \n (" . 
-            tr("линка изтича след 7 дена||it expired after 7 days")
-            );
+            ": " .
+            "[#link#] (" . 
+            tr("линка изтича след 7 дена||it expired after 7 days") . ')');
 		$body->replace($companyName, 'company');
 		$body->replace($url, 'link');
 		
