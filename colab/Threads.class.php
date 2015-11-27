@@ -165,6 +165,25 @@ class colab_Threads extends core_Manager
 	
 	
 	/**
+	 * 
+	 * 
+	 * @see core_Manager::act_List()
+	 */
+	function act_List()
+	{
+	    if (core_Users::isPowerUser()) {
+	        $folderId = Request::get('folderId', 'int');
+	        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+	            
+	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
+	        }
+	    }
+	    
+	    return parent::act_List();
+	}
+	
+	
+	/**
 	 * Подготовка на заглавието на нишката
 	 */
 	public function prepareTitle(&$data)
