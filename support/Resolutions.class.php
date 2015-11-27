@@ -108,6 +108,12 @@ class support_Resolutions extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'support, admin, ceo';
+    
+    
+    /**
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'support/tpl/SingleLayoutResolutions.shtml';
