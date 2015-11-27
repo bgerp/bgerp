@@ -323,9 +323,9 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-    	Request::setProtected(array('companyId'));
+    	Request::setProtected(array('companyId', 'rand', 'fromEmail'));
     	
-    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE));
+    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'rand' => $data['rand'], 'fromEmail' => TRUE));
     }
     
     
@@ -366,7 +366,7 @@ class colab_FolderToPartners extends core_Manager
     	$subject = "Регистрация в " . EF_APP_NAME; 
     	$form->setDefault('subject', $subject);
     	
-    	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $companyId), 604800);
+    	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => str::getRand()), 604800);
     	
     	$body = new ET(
             tr("Уважаеми потребителю||Dear User") . ",\n\n" . 
@@ -473,11 +473,13 @@ class colab_FolderToPartners extends core_Manager
      */
     function act_Createnewcontractor()
     {
-    	Request::setProtected(array('companyId'));
+    	Request::setProtected(array('companyId', 'rand', 'fromEmail'));
     	
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
     	$companyRec = crm_Companies::fetch($companyId);
+    	
+    	$rand = Request::get('rand');
     	
     	// Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
     	$fromEmail = Request::get('fromEmail');
@@ -535,11 +537,13 @@ class colab_FolderToPartners extends core_Manager
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
+    		// Изтриваме линка, да не може друг да се регистрира с него
+    		core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => $companyId, 'rand' => $rand), 604800);
+    
     		return followRetUrl(array('core_Users', 'login'), '|Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
     	
     	if($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)){
     		$tpl = $this->renderWrapping($form->renderHtml());
