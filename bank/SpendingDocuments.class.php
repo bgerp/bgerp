@@ -261,7 +261,7 @@ class bank_SpendingDocuments extends core_Master
             $form->defaultOperation = $dealInfo->get('defaultBankOperation');
             
             if($form->defaultOperation == 'bank2supplierAdvance'){
-                $amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
+                $amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
             }
         }
         

@@ -275,7 +275,7 @@ class bank_IncomeDocuments extends core_Master
             $form->defaultOperation = $dealInfo->get('defaultBankOperation');
             
             if($form->defaultOperation == 'customer2bankAdvance'){
-                $amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
+                $amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
             }
         }
         
