@@ -373,7 +373,7 @@ class colab_FolderToPartners extends core_Manager
             tr("За да се регистрираш като служител на фирма||To have registration as a member of company") .
             " \"[#company#]\", " . 
             tr("моля последвай този||please follow this") .
-            " [link=[#link#]]" . tr("Линк||Link") . "[/link] - " . 
+            " [link=[#link#]]" . tr("линк||link") . "[/link] - " . 
             tr("изтича след 7 дена||it expired after 7 days"));
 		$body->replace($companyName, 'company');
 		$body->replace($url, 'link');
