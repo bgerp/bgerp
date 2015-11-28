@@ -356,7 +356,7 @@ class email_Setup extends core_ProtoSetup
             while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
                 $rec->handle = strtoupper($rec->handle);
                 if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
-                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle), NULL, 'IGNORE');
                 }
             }
         } 
