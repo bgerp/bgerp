@@ -548,11 +548,11 @@ class core_Cron extends core_Manager
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
                 if ( $systemDataChanged || $rec->period != $exRec->period ||
-                      floor($rec->offset) != floor($exRec->offset) ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
                     $mustSave = TRUE;
+                    $rec->offset = $exRec->offset;
                     $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
                 } else { // ако няма промени го пропускаме
                     $mustSave = FALSE;
@@ -564,7 +564,7 @@ class core_Cron extends core_Manager
                 unset($rec->offset);
                 unset($rec->delay);
                 unset($rec->timeLimit);
-                $msg = "<li class=\"debug-update\">Обновени системни настройки на разписание за {$description} </li>";
+                $msg = "<li class=\"debug-notice\">Запазени потребителски настройки на разписание за {$description}</li>";
             }
         } else {
             $mustSave = TRUE;

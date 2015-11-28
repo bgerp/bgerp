@@ -631,47 +631,51 @@ class doc_Threads extends core_Manager
 
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+            $docRow = $docProxy->getDocumentRow();
+            $attr = array();
+            $attr['class'] .= 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
+
+            if(mb_strlen($docRow->title) > self::maxLenTitle) {
+                $attr['title'] = $docRow->title;
+            }
+            
+            $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+                array('doc_Containers', 'list',
+                    'threadId' => $rec->id,
+                    'folderId' => $rec->folderId,
+                    'Q' => Request::get('search') ? Request::get('search') : NULL),
+                NULL, $attr);
+
+            if($docRow->subTitle) {
+                $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+            }
+
+            if($docRow->authorId > 0) {
+                $row->author = crm_Profiles::createLink($docRow->authorId);
+            } else {
+                $row->author = $docRow->author;
+            }
+            $row->hnd = "<div class='rowtools'>";
+            $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
+            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
+            $row->hnd .= '</div>';
+            $row->hnd .= '</div>';
         } catch (core_Exception_Expect $expect) {
-
-            return;
+            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
+            $row->title = '?????????????';
+            if($rec->firstContainerId) {
+                $cRec = doc_Containers::fetch($rec->firstContainerId);
+            }
+            $row->author = crm_Profiles::createLink($rec->createdBy);
+        
+            if($cRec->docClass ) {
+                if($classRec =  core_Classes::fetch($cRec->docClass )) {
+                    $row->title = $classRec->title;
+                }
+            }
+            
         }
-        
-        $docRow = $docProxy->getDocumentRow();
-        
-        $attr = array();
-        $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
-
-        if(mb_strlen($docRow->title) > self::maxLenTitle) {
-            $attr['title'] = $docRow->title;
-        }
-		
-        $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
-            array('doc_Containers', 'list',
-                'threadId' => $rec->id,
-                'folderId' => $rec->folderId,
-                'Q' => Request::get('search') ? Request::get('search') : NULL),
-            NULL, $attr);
-
-        if($docRow->subTitle) {
-            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
-        }
-
-        if($docRow->authorId > 0) {
-        	$row->author = crm_Profiles::createLink($docRow->authorId);
-        } else {
-            $row->author = $docRow->author;
-        }
-        
-        $row->hnd = "<div class='rowtools'>";
-        
-        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-        
-        $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
-        
-        $row->hnd .= '</div>';
-        
-        $row->hnd .= '</div>';
     }
     
     

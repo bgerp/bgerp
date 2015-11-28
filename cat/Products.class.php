@@ -105,7 +105,7 @@ class cat_Products extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
+    public $listFields = 'code,name,measureId,quantity,price,folderId';
     
     
     /**
@@ -113,7 +113,13 @@ class cat_Products extends embed_Manager {
      */
     public $rowToolsSingleField = 'name';
     
-    
+
+    /**
+     *
+     */
+    public $rowToolsField = 'code';
+
+
     /**
      * Кой може да го прочете?
      */
@@ -273,11 +279,13 @@ class cat_Products extends embed_Manager {
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание,input=none');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
-        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
-        
+        $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
+        $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
+        $this->FNC('price', 'double(decimals=2)', 'input=none,caption=Цена,smartCenter');
+
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
@@ -576,10 +584,10 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,private=Частни)',
-            'caption=Подредба,input,silent,remember');
+            'caption=Подредба,input,silent,remember,refreshForm');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Всички,caption=Група,input,silent,remember');
+            'placeholder=Стойства,caption=Група,input,silent,remember,refreshForm');
 		
         $data->listFilter->FNC('meta1', 'enum(all=Свойства,
         						canSell=Продаваеми,
@@ -587,7 +595,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими)', 'input');
+        						canManifacture=Производими)', 'input,refreshForm');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -1174,6 +1182,34 @@ class cat_Products extends embed_Manager {
     			$row->proto = $mvc->getHyperlink($rec->proto);
     		}
     	}
+        
+        if($fields['-list']){
+
+            $meta = arr::make($rec->meta, TRUE);
+     
+           if($meta['canStore']) {  
+                $spQuery = store_Products::getQuery();
+                while($spRec = $spQuery->fetch("#productId = {$rec->id}")) {
+                    $rec->quantity  += $spRec->quantity;
+                }
+            }
+            
+            if($rec->quantity) {
+                $row->quantity = $mvc->getVerbal($rec, 'quantity');
+                if($rec->quantity < 0) {
+                    $row->quantity = "<span style='color:red;'>" . $row->quantity . "</span>";
+                }
+            }
+            
+            if($meta['canSell']) { 
+                if($rec->price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->id)) {
+                    $vat = self::getVat($rec->id);
+                    $rec->price *= (1+$vat);
+                    $row->price = $mvc->getVerbal($rec, 'price');
+                }
+            }
+        }
+        
     }
     
     

@@ -103,6 +103,7 @@ class store_Products extends core_Manager
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
+        $this->setDbIndex('productId');
     }
     
     
