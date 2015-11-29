@@ -176,7 +176,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Изпълнява се след подготовката на редовете на листовия изглед
      */
-    public static function on_AfterPrepareListRows($mvc, $data, $data)
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
     { 
     	if(is_array($data->rows)) {
             foreach($data->rows as $id => &$row) {

@@ -571,12 +571,13 @@ class core_Query extends core_FieldSet
             if (!empty($this->_selectOptions)) {
                 $options = implode(' ', $this->_selectOptions);
             }
-            
-            $query = "SELECT {$options}\n   count(*) AS `_count`";
-            
+           
+            $query = "SELECT SQL_CACHE {$options}\n   count(1) AS `_count`";
+
             if ($temp->getGroupBy() ||
                 count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
-                $query .= ',' . $temp->getShowFields();
+                $fields = $temp->getShowFields(FALSE, TRUE);
+                $query .= ($fields ? ',' : '') . $fields;
             }
             
             $query .= "\nFROM ";
@@ -584,7 +585,6 @@ class core_Query extends core_FieldSet
             $query .= $wh->w;
             $query .= $temp->getGroupBy();
             $query .= $wh->h;
-            
             $db = $temp->mvc->db;
             
             DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
@@ -641,7 +641,7 @@ class core_Query extends core_FieldSet
             $tableName = "`" . $this->mvc->dbTableName . "`.* ";
         }
         
-        $query = "DELETE " . mysql_real_escape_string($dbTableName) . "FROM";
+        $query = "DELETE " . $this->mvc->db->escape($dbTableName) . "FROM";
         $query .= $this->getTables();
         
         $query .= $wh->w;
@@ -657,12 +657,12 @@ class core_Query extends core_FieldSet
         
         DEBUG::stopTimer(cls::getClassName($this->mvc) . ' DELETE ');
         
-        $numRows = $db->affectedRows();
-        $this->mvc->invoke('AfterDelete', array(&$numRows, &$this, $cond));
+        $affectedRows = $db->affectedRows();
+        $this->mvc->invoke('AfterDelete', array(&$affectedRows, &$this, $cond));
         
         $this->mvc->dbTableUpdated();
         
-        return $numRows;
+        return $affectedRows;
     }
     
     
@@ -692,7 +692,7 @@ class core_Query extends core_FieldSet
         
         $db = $this->mvc->db;
         
-        if (is_resource($this->dbRes)) {
+        if (is_object($this->dbRes)) {
             
             // Прочитаме реда от таблицата
             $arr = $db->fetchArray($this->dbRes);
@@ -715,8 +715,11 @@ class core_Query extends core_FieldSet
                     }
                 }
             } else {
+            
                 $db->freeResult($this->dbRes);
                 
+                $this->dbRes = NULL;
+
                 return FALSE;
             }
             
@@ -786,9 +789,9 @@ class core_Query extends core_FieldSet
      */
     function numRec()
     {
-        if (is_resource($this->dbRes) && $this->executed) {
+        if (is_object($this->dbRes) && $this->executed) {
             
-            return $this->mvc->db->numRows($this->dbRes);
+            return $this->dbRes->num_rows;
         }
     }
     
@@ -1165,5 +1168,5 @@ class core_Query extends core_FieldSet
             $this->_selectOptions[$optionPos[$option]] = $option;
         }
     }
-    
+
 }

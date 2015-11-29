@@ -86,13 +86,13 @@ try {
 
 } catch (Exception  $e) {
     
-    if($e instanceOf core_exception_Db) { 
-
-        if(!isDebug() && $e->isNotExistsDB()) {   
+    if($e instanceOf core_exception_Db && ($link = $e->getDbLink())) { 
+        
+        if(!isDebug() && $e->isNotExistsDB() ) {   
 
             // Опитваме се да създадем базата и редиректваме към сетъп-а
             try {
-                mysql_query("CREATE DATABASE " . EF_DB_NAME);
+                mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
             } catch(Exception $e) {
                 reportException($e);
             }
@@ -107,12 +107,13 @@ try {
         
         // Дали да поставим връзка за обновяване
         $update = NULL;
-        if($e->isNotInitializedDB() || $e->isNotExistsDB()) {
+        if(($e->isNotInitializedDB() || $e->isNotExistsDB()) && $link) {
+            
             try {
                 if(isDebug() || haveRole('admin')) {
                     if($e->isNotExistsDB()) {
                         try {
-                            mysql_query("CREATE DATABASE " . EF_DB_NAME);
+                            mysqli_query($link, "CREATE DATABASE " . EF_DB_NAME);
                         } catch(Exception $e) {
                             reportException($e);
                         }
