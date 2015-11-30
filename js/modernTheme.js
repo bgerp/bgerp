@@ -1,4 +1,4 @@
-var tabMenuInfo = getCookie('menuInformation');
+var currentMenuInfo = getCookie('menuInformation');
 
 function slidebars(){
     initElements();
@@ -50,7 +50,7 @@ function initElements() {
 	});
 	
 	$(window).focus(function() {
-		setCookie('menuInformation', tabMenuInfo);
+		setCookie('menuInformation', currentMenuInfo);
 	});
 }
 
@@ -104,7 +104,7 @@ function setMenuCookie(){
 	
 	var verticalOffset = $('#nav-panel').scrollTop();
 	menuState += " " + openMenus +  ":"  + verticalOffset;
-	tabMenuInfo = menuState;
+	currentMenuInfo = menuState;
 	setCookie('menuInformation', menuState);
 }
 
