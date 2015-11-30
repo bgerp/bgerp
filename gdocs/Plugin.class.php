@@ -63,7 +63,7 @@ class gdocs_Plugin extends core_Plugin
                 $replaceEdit = TRUE;
             } else {
                 $afterEdit = $url{$editLen+$editPos};
-                if ($afterEdit == '?' || $afterEdit == '/' || $afterEdit == '&') {
+                if ($afterEdit == '?' || $afterEdit == '/') {
                     $replaceEdit = TRUE;
                 }
             }
