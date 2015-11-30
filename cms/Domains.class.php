@@ -217,16 +217,20 @@ class cms_Domains extends core_Embedder
             }
             
             // Определяме домейна, който отговаря на езика
+            $domainRecsCnt = count($domainRecs);
             foreach($domainRecs as $dRec) {
-                if($dRec->lang == $lang || !$domainRec ||  (count($domainRecs) == 1)) {
+                if($dRec->lang == $lang || !$domainRec ||  ($domainRecsCnt == 1)) {
                     $domainRec = $dRec;
                 }
             }
-
-            // Задаваме действителния домейн, на който е намерен този
-            $domainRec->actualDomain = $domain;
-
-            Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            
+            if ($domainRec) {
+                
+                // Задаваме действителния домейн, на който е намерен този
+                $domainRec->actualDomain = $domain;
+        
+                Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            }
         }
               
         if($part) {
