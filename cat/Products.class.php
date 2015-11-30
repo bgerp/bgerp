@@ -587,15 +587,15 @@ class cat_Products extends embed_Manager {
             'caption=Подредба,input,silent,remember,refreshForm');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Стойства,caption=Група,input,silent,remember,refreshForm');
+            'placeholder=Маркери,caption=Група,input,silent,remember,refreshForm');
 		
         $data->listFilter->FNC('meta1', 'enum(all=Свойства,
-        						canSell=Продаваеми,
+       				canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими)', 'input,refreshForm');
+        			canManifacture=Производими)', 'input,refreshForm');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

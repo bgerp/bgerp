@@ -81,6 +81,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
+        $data->listFilter->FNC('liked', 'enum(no_matter=Без значение, someone=От някого, me=От мен)', 'caption=Харесвания');
         
         $conf = core_Packs::getConfig('doc');
         $lastFoldersArr = bgerp_Recently::getLastFolderIds($conf->DOC_SEARCH_FOLDER_CNT);
@@ -107,7 +108,7 @@ class doc_Search extends core_Manager
     
         $data->listFilter->setDefault('author', 'all_users');
 
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, state, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, liked, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(NULL, 'silent');
@@ -119,6 +120,7 @@ class doc_Search extends core_Manager
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
+        !empty($filterRec->liked) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
@@ -217,7 +219,7 @@ class doc_Search extends core_Manager
                     $firstTime = FALSE;
                 }
             }
-
+            
             // Ако не е избрано състояние или не са избрани всичките
             if (!empty($filterRec->state) && $filterRec->state != 'all') {
                 
@@ -234,6 +236,21 @@ class doc_Search extends core_Manager
             
             // id на текущия потребител
             $currUserId = core_Users::getCurrent();
+            
+            if ($filterRec->liked && $filterRec->liked != 'no_matter') {
+                
+                // Всички харесвания
+                $data->query->EXT('likedCid', 'doc_Likes', 'externalName=containerId');
+                $data->query->where("#likedCid = #id");
+                
+                // Харесвания от текущия потребител
+                if ($filterRec->liked == 'me') {
+                    if ($currUserId > 0) {
+                        $data->query->EXT('likedBy', 'doc_Likes', 'externalName=createdBy');
+                        $data->query->where("#likedBy = {$currUserId}");
+                    }
+                }
+            }
             
             // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query, $currUserId);

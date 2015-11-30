@@ -55,6 +55,24 @@ class gdocs_Plugin extends core_Plugin
     {
         $url = $params['url'];
         
+        if ($editPos = strripos($url, '/edit')) {
+            $editLen = 5;
+            $url = trim($url);
+            $replaceEdit = FALSE;
+            if (($editPos + $editLen) == strlen($url)) {
+                $replaceEdit = TRUE;
+            } else {
+                $afterEdit = $url{$editLen+$editPos};
+                if ($afterEdit == '?' || $afterEdit == '/') {
+                    $replaceEdit = TRUE;
+                }
+            }
+            
+            if ($replaceEdit) {
+                $url = substr_replace($url, '/pub', $editPos, $editLen);
+            }
+        }
+        
         // Ако е презентация, трябва да се промени линка
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
