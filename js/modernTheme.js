@@ -1,3 +1,5 @@
+var tabMenuInfo = getCookie('menuInformation');
+
 function slidebars(){
     initElements();
 	openSubmenus();
@@ -45,6 +47,10 @@ function initElements() {
 	// за всяко кликане на линк, ще променяме бисквитката
 	$('#nav-panel li a').on('click', function(e){
 		setMenuCookie();
+	});
+	
+	$(window).focus(function() {
+		setCookie('menuInformation', tabMenuInfo);
 	});
 }
 
@@ -98,7 +104,7 @@ function setMenuCookie(){
 	
 	var verticalOffset = $('#nav-panel').scrollTop();
 	menuState += " " + openMenus +  ":"  + verticalOffset;
-	
+	tabMenuInfo = menuState;
 	setCookie('menuInformation', menuState);
 }
 
