@@ -185,12 +185,12 @@ class sens2_ScriptDefinedVars  extends core_Detail
             self::$contex[$scriptId][$var] = $value;
         }
 
-        $me->db->query($query);
+        $dbRes = $me->db->query($query);
 
         $me->dbTableUpdated();
 
 
-        return $me->db->affectedRows();
+        return $me->db->affectedRows($dbRes);
     }
 
 

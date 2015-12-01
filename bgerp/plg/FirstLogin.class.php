@@ -99,7 +99,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
         }
         
         // Превеждаме заглавието
-        $subject = tr('Първи стъпки');
+        $subject = tr('Първи стъпки с bgERP');
         
         // Спираме 
         core_Users::exitSudo();

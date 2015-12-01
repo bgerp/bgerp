@@ -325,6 +325,10 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
                 $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
+            
+            if (Mode::is('screenMode', 'narrow')) {
+                unset($row->state);
+            }
         }
         
         if($fields['-list']){

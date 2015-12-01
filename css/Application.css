@@ -1236,9 +1236,12 @@ td.portal-date {
 .docBgIcon {
   position: relative; }
 
+.narrow .docBgIcon {
+  font-size: 0.9em; }
+
 .narrow .document-settings {
   position: absolute;
-  right: -3px;
+  right: 2px;
   top: 50%;
   margin-top: -10px; }
 

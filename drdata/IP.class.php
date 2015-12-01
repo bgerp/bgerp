@@ -52,7 +52,7 @@ class drdata_IP {
         $ipn = ($ips[3] + $ips[2] * 256 + $ips[1] * 256 * 256 + $ips[0] * 256 * 256 * 256);
         $dbRes = $db->query("SELECT c FROM ip2country WHERE l<$ipn AND h>$ipn");
         
-        if ($db->numRows()>0) {
+        if ($db->numRows($dbRes)>0) {
             $r = $db->fetchObject($dbRes);
             $db->freeResult($dbRes);
             $c = $r->c;

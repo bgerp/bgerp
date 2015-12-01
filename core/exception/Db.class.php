@@ -7,7 +7,7 @@ class core_exception_Db extends core_exception_Expect
      */
     public function isNotExistsDB()
     {
-        $res = isset($this->dump['mysqlErrCode']) && ($this->dump['mysqlErrCode'] == 1049);
+        $res = isset($this->dump['mysqlErrCode']) && ($this->dump['mysqlErrCode'] == 1046 || $this->dump['mysqlErrCode'] == 1049);
 
         return $res;
     }
@@ -22,4 +22,16 @@ class core_exception_Db extends core_exception_Expect
 
         return $res;
     }
+
+
+    /**
+     * Връща MYSQLI линк, в който е възникнало изключението
+     */
+    public function getDbLink()
+    {
+        $res = $this->dump['dbLink'];
+
+        return $res;
+    }
+
 }

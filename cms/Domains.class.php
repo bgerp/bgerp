@@ -191,6 +191,14 @@ class cms_Domains extends core_Embedder
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
 
+        if(!$domainRecs || count($domainRecs) == 0) {
+            core_Classes::add('cms_DefaultTheme');
+            $domainRecs = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'bg');
+            self::save($domainRecs, NULL, 'IGNORE');
+            $query = self::getQuery();
+            $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
+        }
+
         return $domainRecs;
     }
 
@@ -217,16 +225,20 @@ class cms_Domains extends core_Embedder
             }
             
             // Определяме домейна, който отговаря на езика
+            $domainRecsCnt = count($domainRecs);
             foreach($domainRecs as $dRec) {
-                if($dRec->lang == $lang || !$domainRec ||  (count($domainRecs) == 1)) {
+                if($dRec->lang == $lang || !$domainRec ||  ($domainRecsCnt == 1)) {
                     $domainRec = $dRec;
                 }
             }
-
-            // Задаваме действителния домейн, на който е намерен този
-            $domainRec->actualDomain = $domain;
-
-            Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            
+            if ($domainRec) {
+                
+                // Задаваме действителния домейн, на който е намерен този
+                $domainRec->actualDomain = $domain;
+        
+                Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            }
         }
               
         if($part) {

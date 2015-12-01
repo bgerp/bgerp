@@ -268,7 +268,7 @@ class sens2_Indicators extends core_Manager
     /**
      * Изпълнява се след подготовката на редовете на листовия изглед
      */
-    static function on_AfterPrepareListRows($mvc, $data, $data)
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
     { 
     	if(is_array($data->rows)) {
             foreach($data->rows as $id => &$row) {
