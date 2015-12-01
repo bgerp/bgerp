@@ -367,7 +367,7 @@ class doc_LikesPlg extends core_Plugin
                         if (!doc_HiddenContainers::isHidden($rec->containerId) || $likesCnt) {
                             $likeUrl = array();
                             $attr = array();
-                            $linkClass = 'class=disliked';
+                            $linkClass = 'disliked';
                             if ($mvc->haveRightFor('like', $rec->id)) {
                                 $likeUrl = array($mvc, 'likeDocument', $rec->id);
                                 
