@@ -17,6 +17,17 @@
  */
 class doc_DocumentPlg extends core_Plugin
 {
+    
+    
+    /**
+     * Плъгини, които да се закачат
+     */
+    public $loadInMvc = 'doc_LikesPlg';
+    
+    
+    /**
+     * Състояния
+     */
     static $stateArr = array(
         'draft'    => 'Чернова',
         'pending'  => 'Чакащо',
