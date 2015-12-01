@@ -129,6 +129,12 @@ class core_BaseClass
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
         if (!isset($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = &cls::get($class);
+            
+            // Ако има плъгини закачени за плъгина
+            if (isset($this->_plugins[$name]->loadInMvc)) {
+                $this->load($this->_plugins[$name]->loadInMvc);
+            }
+            
             $this->_listenerCache = array();
         }
     }

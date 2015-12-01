@@ -17,6 +17,12 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Дали да се споделя създадели на оригиналния документ
+     */
+    public $autoShareOriginCreator = TRUE;
+    
+    
+    /**
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf';
@@ -99,7 +105,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, doc_LikesPlg';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
     
     
     /**
@@ -213,9 +219,6 @@ class doc_Comments extends core_Master
                     $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
                 }
             }
-            
-            $defaultShared = $mvc->getDefaultShared($rec, $cid);
-            $data->form->setDefault('sharedUsers', $defaultShared);
         }
     }
     
