@@ -94,6 +94,8 @@ class doc_LikesPlg extends core_Plugin
         
         expect($rec);
         
+        $ajaxMode = Request::get('ajax_mode');
+        
         if ($action == 'likedocument') {
             
             // Харесване
@@ -124,7 +126,7 @@ class doc_LikesPlg extends core_Plugin
             
             // Показване на екшъните по ajax
             
-            expect(Request::get('ajax_mode'));
+            expect($ajaxMode);
             
             $redirect = FALSE;
             
@@ -138,7 +140,18 @@ class doc_LikesPlg extends core_Plugin
         }
         
         if ($redirect) {
-            $res = new Redirect(array($mvc, 'single', $id));
+            if (!$ajaxMode) {
+                $res = new Redirect(array($mvc, 'single', $id));
+            } else {
+                
+                if (doc_Threads::getFirstContainerId($rec->threadId) != $rec->containerId) {
+                    // Показваме документа, ако е скрит
+                    doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
+                }
+                
+                // Връщаме документа
+                $res = doc_Containers::getDocumentForAjaxShow($rec->containerId);
+            }
         }
         
         return FALSE;
@@ -336,27 +349,44 @@ class doc_LikesPlg extends core_Plugin
                     
                     if ($isLikedFromCurrUser) {
                         $dislikeUrl = array();
+                        $attr = array();
                         if ($mvc->haveRightFor('dislike', $rec->id)) {
                             $dislikeUrl = array($mvc, 'dislikeDocument', $rec->id);
+                            
+                            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+                            $attr['data-url'] = toUrl($dislikeUrl, 'local');
                         }
                         
-                        $likesLink = ht::createLink('', $dislikeUrl, NULL, 'ef_icon=img/16/redheart.png,class=liked, title=' . tr('Отказ от харесване'));
+                        $attr['ef_icon'] = 'img/16/redheart.png';
+                        $attr['class'] = 'liked';
+                        $attr['title'] = tr('Отказ от харесване');
+                        
+                        $likesLink = ht::createLink('', $dislikeUrl, NULL, $attr);
                     } else {
                         
                         if (!doc_HiddenContainers::isHidden($rec->containerId) || $likesCnt) {
                             $likeUrl = array();
+                            $attr = array();
                             $linkClass = 'class=disliked';
                             if ($mvc->haveRightFor('like', $rec->id)) {
                                 $likeUrl = array($mvc, 'likeDocument', $rec->id);
+                                
+                                $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+                                $attr['data-url'] = toUrl($likeUrl, 'local');
                             } else {
                                 $linkClass .= ' disable';
                             }
+                        
+                            $attr['ef_icon'] = 'img/16/grayheart.png';
+                            $attr['class'] = $linkClass;
+                            $attr['title'] = tr('Харесване');
                             
-                            $likesLink = ht::createLink('', $likeUrl, NULL, 'ef_icon=img/16/grayheart.png, ' . $linkClass. ' , title=' . tr('Харесване'));
+                            $likesLink = ht::createLink('', $likeUrl, NULL, $attr);
                         }
                     }
                     
                     if ($likesCnt) {
+                        $attr = array();
                         $attr['class'] = 'showLikes docSettingsCnt tooltip-arrow-link';
                         $attr['title'] = tr('Показване на харесванията');
                         $attr['data-url'] = toUrl(array($mvc, 'showLikes', $rec->id), 'local');
