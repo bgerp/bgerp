@@ -2338,34 +2338,7 @@ class doc_Containers extends core_Manager
         
         if ($ajaxMode) {
             
-            $row = self::recToVerbal($rec);
-            
-            $id = $document->getDocumentRowId();
-            
-            $html = '<td>' . $row->document . '</td>';
-            
-            if (Mode::is('screenMode', 'wide')) {
-                $html = '<td>' . $row->created . '</td>' . $html;
-            }
-            
-            $resObj = new stdClass();
-    		$resObj->func = "html";
-    		$resObj->arg = array('id' => $id, 'html' => $html, 'replace' => TRUE);
-            
-            $resStatus = array($resObj);
-            
-            // Добавя всички функции в масива, които ще се виката
-            $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
-            if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
-                
-                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
-                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
-                    $resObjAjax = new stdClass();
-                    $resObjAjax->func = $runAfterAjax;
-                    
-                    $resStatus[] = $resObjAjax;
-                }
-            }
+            $resStatus = self::getDocumentForAjaxShow($id);
     		
     		return $resStatus;
         } else {
@@ -2399,6 +2372,52 @@ class doc_Containers extends core_Manager
             
             return $showDocument;
         }
+    }
+    
+    
+    /**
+     * Връща рендиран документ, който може да се използва по AJAX
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public static function getDocumentForAjaxShow($id)
+    {
+        $rec = self::fetch($id);
+        
+        $row = self::recToVerbal($rec);
+
+        $document = self::getDocument($rec->id);
+        
+        $rowId = $document->getDocumentRowId();
+        
+        $html = '<td>' . $row->document . '</td>';
+        
+        if (Mode::is('screenMode', 'wide')) {
+            $html = '<td>' . $row->created . '</td>' . $html;
+        }
+        
+        $resObj = new stdClass();
+		$resObj->func = "html";
+		$resObj->arg = array('id' => $rowId, 'html' => $html, 'replace' => TRUE);
+        
+        $resStatus = array($resObj);
+        
+        // Добавя всички функции в масива, които ще се виката
+        $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
+        if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
+            
+            $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                $resObjAjax = new stdClass();
+                $resObjAjax->func = $runAfterAjax;
+                
+                $resStatus[] = $resObjAjax;
+            }
+        }
+        
+        return $resStatus;
     }
     
     
