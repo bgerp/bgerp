@@ -104,7 +104,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
         
-        // Дали мжое да се редактират активирани документи
+        // Дали можое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
         $mvc->setDbIndex('state');
@@ -1106,6 +1106,23 @@ class doc_DocumentPlg extends core_Plugin
                     unset($rec->threadId);
                 }
             }
+        }
+        
+        if ($rec->originId) {
+            
+            $cid = $rec->originId;
+        } elseif ($rec->threadId) {
+            
+            // Ако добавяме коментар в нишката
+            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+        }
+        
+        // Споделените потребители по подразбиране
+        $defaultShared = $mvc->getDefaultShared($rec, $cid);
+        if ($defaultShared) {
+            unset($defaultShared[-1]);
+            unset($defaultShared[0]);
+            $data->form->setDefault('sharedUsers', $defaultShared);
         }
     }
 
@@ -2817,7 +2834,6 @@ class doc_DocumentPlg extends core_Plugin
     
     /**
      * Връща споделените потребители по подразбиране.
-     * Ако създаделе не е текущият потребител, тогава се връща.
      * 
      * @param core_Master $mvc
      * @param NULL|array $res
@@ -2828,6 +2844,8 @@ class doc_DocumentPlg extends core_Plugin
         $res = arr::make($res, TRUE);
         
         if (!$originId) return ;
+        
+        if (!$mvc->autoShareOriginCreator) return ;
         
         $document = doc_Containers::getDocument($originId);
         $dRec = $document->fetch();
