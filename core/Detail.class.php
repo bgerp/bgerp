@@ -457,5 +457,7 @@ class core_Detail extends core_Manager
             
             return $inst->Master->getLinkForObject($masterId);
         }
+        
+        return parent::getLinkForObject($objId);
     }
 }
