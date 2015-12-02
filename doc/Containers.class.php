@@ -2098,8 +2098,9 @@ class doc_Containers extends core_Manager
     	$now = dt::now();
     	$offset = -1 * $conf->DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC;
     	$from = dt::addSecs($offset, $now);
-    	$from = dt::verbal2mysql($from, FALSE);
-    
+    	$from = $fromDate = dt::verbal2mysql($from, FALSE);
+        $from .= ' 00:00:00';
+    	
     	$authorTemasArr = array();
     	
     	// За всеки потребител
@@ -2129,7 +2130,7 @@ class doc_Containers extends core_Manager
     		// Ако има неактивирани бизнес документи
     		if(count($notArr)){
     			foreach ($notArr as $clsId => $count){
-    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $from);
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $fromDate);
     				 
     				if($count == 1){
     					$name = cls::get($clsId)->singleTitle;
@@ -2138,6 +2139,8 @@ class doc_Containers extends core_Manager
     					$name = cls::get($clsId)->title;
     					$str = 'Имате създадени, но неактивирани';
     				}
+    				
+    				$name = mb_strtolower($name);
     				
     				$msg = "|{$str}|* {$count} {$name}";
     				 

@@ -150,7 +150,7 @@ class deals_plg_DpInvoice extends core_Plugin
     		}
     	}
     	
-    	$dpAmount /= $form->rec->rate;
+    	$dpAmount /= ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
     	$dpAmount = round($dpAmount);
     	
     	switch($dpOperation){

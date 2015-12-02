@@ -1497,10 +1497,14 @@ class type_Richtext extends type_Blob
            $lastPart = ltrim($lastPart, '?');
            $lastPart = str_replace('&amp;', '&', $lastPart);
            parse_str($lastPart, $params);
-           if ($anchor) {
-               $params['#'] = $anchor;
-           }
-           unset($restArr[count($restArr)-1]);
+        }
+        
+        if ($anchor) {
+           $params['#'] = $anchor;
+        }
+        
+        if ($lastPart{0} == '?' || $anchor) {
+            unset($restArr[count($restArr)-1]);
         }
         
         setIfNot($params['Ctr'], $restArr[0]);

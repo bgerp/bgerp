@@ -206,8 +206,8 @@ class backup_Start extends core_Manager
         );
         
         // 2. взимаме името на текущия лог
-        $db->query("SHOW MASTER STATUS");
-        $resArr = $db->fetchArray();
+        $dbRes = $db->query("SHOW MASTER STATUS");
+        $resArr = $db->fetchArray($dbRes);
         
         // $resArr['file'] e името на текущия бинлог
         
