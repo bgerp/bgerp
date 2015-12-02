@@ -191,14 +191,6 @@ class cms_Domains extends core_Embedder
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
 
-        if(!$domainRecs || count($domainRecs) == 0) {
-            core_Classes::add('cms_DefaultTheme');
-            $domainRecs = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'bg');
-            self::save($domainRecs, NULL, 'IGNORE');
-            $query = self::getQuery();
-            $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
-        }
-
         return $domainRecs;
     }
 

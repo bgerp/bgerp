@@ -86,6 +86,16 @@ class doc_LikesPlg extends core_Plugin
     {
         $action = strtolower($action);
         
+        // Изчиства нотификацията при натискане на линка
+        if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('text', 'xhtml')) {
+            
+            // Изчистваме нотификацията за харесване
+            $url = array($mvc, 'single', Request::get('id', 'int'), 'like' => TRUE);
+            bgerp_Notifications::clear($url);
+            
+            return ;
+        }
+        
         if (($action != 'likedocument') && ($action != 'dislikedocument') && ($action != 'showlikes')) return ;
         
         $id = Request::get('id', 'int');
@@ -288,7 +298,7 @@ class doc_LikesPlg extends core_Plugin
     public static function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {
         // Ако не сме в xhtml режим
-        if (!Mode::is('text', 'xhtml')) {
+        if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             
             // Изчистваме нотификацията за харесване
             $url = array($mvc, 'single', $data->rec->id, 'like' => TRUE);

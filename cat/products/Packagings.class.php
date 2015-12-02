@@ -345,6 +345,8 @@ class cat_products_Packagings extends core_Manager
     	
     	$query = self::getQuery();
     	$query->where("#productId = {$data->masterId}");
+    	$query->orderBy('quantity', 'ASC');
+    	$query->orderBy('packagingId', 'ASC');
     	while($rec = $query->fetch()){
     		$data->recs[$rec->id] = $rec;
     		$data->rows[$rec->id] = self::recToVerbal($rec);
