@@ -434,4 +434,28 @@ class core_Detail extends core_Manager
     {
         return isset($this->Master) ? array($this->masterKey => $this->Master) : array();
     }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $rec = $inst->fetch($objId);
+            
+            $masterKey = $inst->masterKey;
+            
+            $masterId = $rec->{$masterKey};
+            
+            return $inst->Master->getLinkForObject($masterId);
+        }
+    }
 }
