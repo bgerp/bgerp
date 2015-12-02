@@ -285,12 +285,4 @@ class bgerp_Setup extends core_ProtoSetup {
         
         return $html;
     }
-    
-    
-    /**
-     * Временно, преди този клас да стане наследник на core_ProtoSetup
-     */
-    function loadSetupData()
-    {
-    }
 }
