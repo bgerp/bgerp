@@ -726,7 +726,7 @@ class core_Db extends core_BaseClass
         	return FALSE;
         }
         
-        $resArr = $db->fetchArray();
+        $resArr = $db->fetchArray($dbRes);
         
         $db->freeResult($dbRes);
         
