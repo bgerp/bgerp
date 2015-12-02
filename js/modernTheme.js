@@ -1,4 +1,4 @@
-var currentMenuInfo = getCookie('menuInformation');
+var currentMenuInfo = getCookie('menuInfo');
 
 function slidebars(){
     initElements();
@@ -24,7 +24,7 @@ function initElements() {
 	} else {
 		$('.btn-sidemenu').jPushMenu();
 	}
-	if(getCookie('menuInformation') == null && viewportWidth > 1264 && !isTouchDevice()) {
+	if(getCookie('menuInfo') == null && viewportWidth > 1264 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();
 		if(viewportWidth > 1604){
 			$('.btn-menu-right ').click();
@@ -51,7 +51,7 @@ function initElements() {
 	
 	$(window).focus(function() {
 		if ($(window).width() > 700) {
-			setCookie('menuInformation', currentMenuInfo);
+			setCookie('menuInfo', currentMenuInfo);
 		}
 	});
 }
@@ -107,7 +107,8 @@ function setMenuCookie(){
 	var verticalOffset = $('#nav-panel').scrollTop();
 	menuState += " " + openMenus +  ":"  + verticalOffset;
 	currentMenuInfo = menuState;
-	setCookie('menuInformation', menuState);
+	setCookie('menuInfo', menuState);
+	
 }
 
 
@@ -117,7 +118,7 @@ function setMenuCookie(){
 function openSubmenus() {
 	if ($(window).width() < 700) return;
 
-	var menuInfo = getCookie('menuInformation');
+	var menuInfo = getCookie('menuInfo');
     if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
     	var endPos = menuInfo.indexOf(':');
