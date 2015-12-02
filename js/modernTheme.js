@@ -50,7 +50,9 @@ function initElements() {
 	});
 	
 	$(window).focus(function() {
-		setCookie('menuInformation', currentMenuInfo);
+		if ($(window).width() > 700) {
+			setCookie('menuInformation', currentMenuInfo);
+		}
 	});
 }
 
