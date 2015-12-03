@@ -977,9 +977,15 @@ class cat_Boms extends core_Master
     			}
     		}
     	} else {
+    		$pInfo = cat_Products::getProductInfo($productId);
     		
-    		// Ако търсим цената за работна рецепта, първо проверяваме за счетоводната себестойност
-    		$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    		// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
+    		if(isset($pInfo->meta['canStore'])){
+    			$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    		} else {
+    			$price = planning_ObjectResources::getWacAmountInProduction($quantity, $productId, $date);
+    		}
+    		
     		if(!isset($price)){
     			
     			// Ако няма такава, търсим по последната работна рецепта, ако има

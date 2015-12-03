@@ -321,16 +321,31 @@ class planning_ObjectResources extends core_Manager
     		if(isset($pInfo->meta['canStore'])){
     			$selfValue = cat_Products::getWacAmountInStore($quantity, $objectId, $date);
     		} else {
-    				
-    			// Ако не е складируем взимаме среднопритеглената му цена в производството
-    			$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
-    			if(isset($item1)){
-    				// Намираме сумата която струва к-то от артикула в склада
-    				$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL);
-    				if($selfValue){
-    					$selfValue = round($selfValue, 4);
-    				}
-    			}
+    			$selfValue = static::getWacAmountInProduction($quantity, $objectId, $date);
+    		}
+    	}
+    	
+    	return $selfValue;
+    }
+    
+    
+    /**
+     * Връща среднопритеглената цена на артикула в сметката на незавършеното производство
+     * 
+     * @param int $quantity      - к-во
+     * @param int $objectId      - ид на артикул
+     * @param date $date         - към коя дата
+     * @return double $selfValue - среднопритеглената цена
+     */
+    public static function getWacAmountInProduction($quantity, $objectId, $date)
+    {
+    	// Ако не е складируем взимаме среднопритеглената му цена в производството
+    	$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
+    	if(isset($item1)){
+    		// Намираме сумата която струва к-то от артикула в склада
+    		$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL);
+    		if($selfValue){
+    			$selfValue = round($selfValue, 4);
     		}
     	}
     	
