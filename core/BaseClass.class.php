@@ -227,13 +227,7 @@ class core_BaseClass
             }
 
             foreach($this->_listenerCache[$method] as $subject) {
-
                 if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
-                
-               // Дебъг на ролите. Защо нещо е забранено?
-               // if(strtolower($method) == 'on_aftergetrequiredroles') {
-                  //  echo "<li>" . cls::getClassName($subject) . " - " . $args1[1] . " - " . $args1[2];
-               // }
             }
 
             return TRUE;
