@@ -284,6 +284,7 @@ class price_ListRules extends core_Detail
 		    $parentTitle = $parentRec->title;
         }
 		
+        $form->setOptions('productId', cat_Products::getByProperty('canSell'));
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
         	$form->setOptions('productId', $availableProducts);

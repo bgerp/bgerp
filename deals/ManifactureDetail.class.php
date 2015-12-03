@@ -136,10 +136,10 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
-		if (!empty($data->toolbar->buttons['btnAdd'])) {
+		if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
 				unset($data->toolbar->buttons['btnAdd']);
-				$products = cat_Products::getByProperty($mvc->defaultMeta);
-	
+				$products = cat_Products::getByProperty($mvc->defaultMeta, NULL, 1);
+				
 				if(!count($products)){
 					$error = "error=Няма артикули, ";
 				}

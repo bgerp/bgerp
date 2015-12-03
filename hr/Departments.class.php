@@ -167,6 +167,7 @@ class hr_Departments extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
+        $this->FLD('parentId', "key(mvc=hr_Departments,allowEmpty,select=name)", 'caption=В състава на,mandatory');
         $this->FLD('type', 'enum(section=Поделение,
                                  branch=Клон,
                                  office=Офис,
@@ -175,15 +176,16 @@ class hr_Departments extends core_Master
                                  direction=Дирекция,
                                  department=Oтдел,
                                  plant=Завод,
-                                 workshop=Цех, 
+                                 workshop=Цех,
+                                 store=Склад,
                                  unit=Звено,
                                  brigade=Бригада,
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
-        $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('activities', 'enum(yes=Да, no=Не)', "caption=Център на дейности,maxRadio=2,columns=2,notNull,value=no, input=none,");
         
+       // $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работно време->График");
@@ -195,6 +197,17 @@ class hr_Departments extends core_Master
         
         $this->setDbUnique('systemId');
         $this->setDbUnique('name');
+    }
+
+
+    /**
+     * Изпълнява се след четене на запис
+     */
+    static function on_AfterRead($mvc, &$rec)
+    {
+        if($rec->name == 'Моята Организация') {
+            $rec->name = crm_Companies::fetchField(crm_Setup::BGERP_OWN_COMPANY_ID, 'name');
+        }
     }
     
     

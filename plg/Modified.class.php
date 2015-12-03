@@ -48,7 +48,7 @@ class plg_Modified extends core_Plugin
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
         if($rec->modifiedBy == -1) {
-            $row->modifiedBy = '@sys';
+            $row->modifiedBy = '@system';
         } elseif($rec->modifiedBy == 0) {
             $row->modifiedBy = '@anonym';
         } else {

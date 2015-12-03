@@ -17,6 +17,9 @@ function initElements() {
     if($('#main-container > .tab-control > .tab-row').length == 0) {
         $('#framecontentTop').css('border-bottom', '1px solid #ccc');
     }
+    if($('.narrow .vertical .formTable').length) {
+		$('#main-container').addClass('unbeddedHeader');
+	}
 
 	var viewportWidth = $(window).width();
 	if(viewportWidth > 600){
@@ -31,6 +34,7 @@ function initElements() {
 		}
 	}
 
+		
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 
 	if($('body').hasClass('narrow') && viewportWidth <= 800){

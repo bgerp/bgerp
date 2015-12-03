@@ -386,8 +386,32 @@ class price_ListToCustomers extends core_Detail
         // Проверяваме дали артикула е частен или стандартен
         if($isProductPublic == 'no'){
         	
-        	// За частните (нестандартните) артикули, търсим себестойността по рецептата
-        	$rec = cat_Boms::getPriceByBom($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        	$rec = (object)array('price' => NULL);
+        	
+        	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+        	if(!isset($quantity)){
+        		$quantityJob = cat_Products::getLastJob($productId)->quantity;
+        		if(isset($quantityJob)){
+        			$quantity = $quantityJob;
+        		}
+        	}
+        	
+        	// търсим първо активната търговска рецепта, ако няма търсим активната работна
+        	$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+        	if(empty($bomRec)){
+        		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+        	}
+        	
+        	// Ако има рецепта връщаме по нея
+        	if($bomRec){
+        		$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId);
+        		$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+        		if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
+        			$defPriceListId = price_ListRules::PRICE_LIST_COST;
+        		}
+        		
+        		$rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
+        	}
         } else {
         	// За стандартните артикули търсим себестойността в ценовите политики
         	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
@@ -404,6 +428,44 @@ class price_ListToCustomers extends core_Detail
     }
     
 	
+    /**
+     * Връща минималната отстъпка и максималната надценка за даден контрагент
+     * 
+     * @param mixed $customerClass - ид на клас на контрагента
+     * @param int $customerId      - ид на контрагента
+     * @return object $res		   - масив с надценката и отстъпката
+     * 				 o minDelta  - минималната отстъпка
+     * 				 o maxDelta  - максималната надценка
+     */
+    public static function getMinAndMaxDelta($customerClass, $customerId)
+    {
+    	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
+    	
+    	$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+    	 
+    	// Ако контрагента има зададен ценоразпис, който не е дефолтния
+    	if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
+    		 
+    		// Взимаме максималната и минималната надценка от него, ако ги има
+    		$defPriceList = price_Lists::fetch($defPriceListId);
+    		$res->minDelta = $defPriceList->minSurcharge;
+    		$res->maxDelta = $defPriceList->maxSurcharge;
+    	}
+    	 
+    	// Ако няма мин надценка, взимаме я от търговските условия
+    	if(!$res->minDelta){
+    		$res->minDelta = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    	}
+    	 
+    	// Ако няма макс надценка, взимаме я от търговските условия
+    	if(!$res->maxDelta){
+    		$res->maxDelta = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    	}
+    	
+    	return $res;
+    }
+    
+    
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */

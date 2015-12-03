@@ -7,7 +7,7 @@ function fastScroll(hideAfterSec, activateRatio)
 	var screenHeight = screen.height;
     var hideAfterMilisec = hideAfterSec * 1000;
 	if(bodyHeight / screenHeight > activateRatio){
-        if($("#main-container").length){
+        if($("#main-container").length && !$('.narrow .vertical .formTable').length){
             $("#main-container").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
         } else if ( $(".background-holder").length) {
             $(".background-holder").css('position', 'relative');
