@@ -342,6 +342,19 @@ class core_Setup extends core_ProtoSetup {
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
+        
+        // Нагласяване на Крон оптимизира таблиците
+        $rec = new stdClass();
+        $rec->systemId = 'OptimizeTables';
+        $rec->description = 'Оптимизиране на таблиците';
+        $rec->controller = 'core_Mvc';
+        $rec->action = 'OptimizeTables';
+        $rec->period = 22*60;
+        $rec->offset = mt_rand(0, 4*60);
+        $rec->delay = 0;
+        $rec->timeLimit = 300;
+        $html .= core_Cron::addOnce($rec);
+        
         $html .= core_Classes::add('core_page_Internal');        
         $html .= core_Classes::add('core_page_InternalModern');
 

@@ -1317,4 +1317,44 @@ class core_Mvc extends core_FieldSet
         $className = get_called_class();
         log_Data::add('debug', $action, $className, $objectId, $lifeDays);
     }
+    
+    
+    /**
+     * Оптимизиране на таблиците по крон
+     * 
+     * @return string
+     */
+    public function cron_OptimizeTables()
+    {
+        $db = cls::get('core_Db');
+        
+        $dbName = $db->escape($db->dbName);
+        $dbRes = $db->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$dbName}'");
+        if (!is_object($dbRes)) {
+        
+        	return FALSE;
+        }
+        
+        $html = '';
+        
+        while ($resArr = $db->fetchArray($dbRes)) {
+            $dbTable = cls::get('core_Db');
+            $name = $dbTable->escape($resArr['TABLE_NAME']);
+            
+            if (!$name) continue;
+            
+            $dbTableRes = $dbTable->query("OPTIMIZE TABLE $name");
+            
+            if (!is_object($dbTableRes)) continue;
+            
+            $optRes = $dbTable->fetchArray($dbTableRes);
+            $html .= "<li>" . implode(' ',  $optRes) . "</li>";
+            
+            $dbTable->freeResult($dbTableRes);
+        }
+        
+        $db->freeResult($dbRes);
+        
+        return $html;
+    }
 }
