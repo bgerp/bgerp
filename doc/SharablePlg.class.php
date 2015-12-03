@@ -326,16 +326,16 @@ class doc_SharablePlg extends core_Plugin
                     $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
                     $res += $sharedArr;
                 }
+        
+                // Предотвратяване на евентуално зацикляне
+                static $originArr = array();
+                
+                if ($dRec->originId && !$originArr[$dRec->originId]) {
+                    $originArr[$dRec->originId] = TRUE;
+                    $sharedArr = $mvc->getDefaultShared($rec, $dRec->originId);
+                    $res += $sharedArr;
+                }
             }
-        }
-        
-        // Предотвратяване на евентуално зацикляне
-        static $originArr = array();
-        
-        if ($dRec->originId && !$originArr[$dRec->originId]) {
-            $originArr[$dRec->originId] = TRUE;
-            $sharedArr = $mvc->getDefaultShared($rec, $dRec->originId);
-            $res += $sharedArr;
         }
     }
 }
