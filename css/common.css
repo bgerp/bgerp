@@ -1360,7 +1360,7 @@ td.formElement {
   padding-bottom: 7px !important; }
 
 .narrow .formFields table > tbody > tr > td {
-  padding-bottom: 3px !important; }
+  padding-bottom: 1px !important; }
 
 .formFields > table .richedit-toolbar {
   margin-bottom: 5px; }
@@ -1654,9 +1654,11 @@ table.keylist {
     table.keylist.shrinked:not(.keylist-wide) td {
       padding-right: 20px; }
 
-.narrow table.keylist td {
-  padding-top: 0.1em;
-  padding-bottom: 0 !important; }
+.narrow table.keylist {
+  margin-bottom: -3px; }
+  .narrow table.keylist td {
+    padding-top: 0.1em;
+    padding-bottom: 0 !important; }
 
 td.keylist-group {
   padding: 0 !important; }

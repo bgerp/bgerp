@@ -1431,7 +1431,7 @@ td.formElement {
 }
 
 .narrow .formFields table > tbody > tr > td {
-	padding-bottom: 3px !important;
+	padding-bottom: 1px !important;
 }
 
 .formFields > table .richedit-toolbar {
@@ -1770,10 +1770,12 @@ table.keylist {
 	}
 }
 
-.narrow table.keylist td {
-	padding-top: 0.1em;
-	padding-bottom: 0 !important;
-	
+.narrow table.keylist{
+	margin-bottom: -3px;
+	td {
+		padding-top: 0.1em;
+		padding-bottom: 0 !important;
+	}
 }
 
 td.keylist-group{
