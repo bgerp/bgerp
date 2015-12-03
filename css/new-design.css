@@ -88,14 +88,26 @@
 .sidemenu-push-toright#main-container > .tab-control > .tab-row {
   left: 200px; }
 
-.narrow .sidemenu-push-toright#main-container > .tab-control > .tab-row {
+.narrow .sidemenu-push-toright#main-container:not(.unbeddedHeader) > .tab-control > .tab-row {
   left: 170px; }
 
 .sidemenu-push-toleft#main-container > .tab-control >.tab-row {
   right: 200px; }
 
-.narrow .sidemenu-push-toleft#main-container > .tab-control >.tab-row {
+.narrow .sidemenu-push-toleft#main-container:not(.unbeddedHeader) > .tab-control >.tab-row {
   right: 170px; }
+
+.narrow .unbeddedHeader#main-container {
+  top: 0 !important;
+  padding: 0; }
+  .narrow .unbeddedHeader#main-container .clearfix {
+    min-height: 0 !important; }
+  .narrow .unbeddedHeader#main-container #framecontentTop,
+  .narrow .unbeddedHeader#main-container > .tab-control > .tab-row {
+    position: static;
+    top: 0;
+    bottom: 0;
+    margin: 0; }
 
 .sidemenu-push-toright {
   margin-left: 200px; }
@@ -119,10 +131,10 @@
   width: auto;
   display: block; }
 
-.narrow .sidemenu-push-toleft #framecontentTop {
+.narrow  .sidemenu-push-toleft:not(.unbeddedHeader) #framecontentTop {
   right: 170px; }
 
-.narrow .sidemenu-push-toright #framecontentTop {
+.narrow .sidemenu-push-toright:not(.unbeddedHeader) #framecontentTop {
   left: 170px; }
 
 .transition {
