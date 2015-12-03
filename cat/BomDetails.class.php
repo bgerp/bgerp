@@ -641,7 +641,7 @@ class cat_BomDetails extends doc_Detail
     	if(($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)){
     		$masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
     		if($masterRec->state != 'draft'){
-    			//$requiredRoles = 'no_one';
+    			$requiredRoles = 'no_one';
     		} else {
     			// Само ceo и techno могат да редактират ред от работна рецепта
     			$firstDocument = doc_Containers::getDocument($masterRec->originId);
