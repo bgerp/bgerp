@@ -332,7 +332,7 @@ class doc_SharablePlg extends core_Plugin
                 
                 if ($dRec->originId && !$originArr[$dRec->originId]) {
                     $originArr[$dRec->originId] = TRUE;
-                    $sharedArr = $mvc->getDefaultShared($rec, $dRec->originId);
+                    $sharedArr = $mvc->getDefaultShared($dRec, $dRec->originId);
                     $res += $sharedArr;
                 }
             }
