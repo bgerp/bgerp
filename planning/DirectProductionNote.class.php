@@ -264,10 +264,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		if($form->isSubmitted()){
 			
 			// Ако могат да се генерират детайли от артикула да се
-			$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+			if(empty($rec->id)){
+				$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+			}
 			
 			if($details === FALSE){
-				$form->setWarning('productId', 'Не може да се генерира списък с материалите за влагане от рецептата, защото ресурс от нея не е обвързан с артикул');
+				$form->setWarning('productId', 'Няма да може да се генерират материали от рецептата');
 			}
 		}
 	}
@@ -318,7 +320,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		if(!$bomId) return $details;
 		
 		// Извличаме информацията за ресурсите в рецептата
-		$bomInfo = cat_Boms::getResourceInfo($bomId);
+		$bomInfo = cat_Boms::getResourceInfo($bomId, $jobQuantity, dt::now());
 		
 		// За всеки ресурс
 		foreach($bomInfo['resources'] as $resource){
@@ -329,13 +331,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
-			$dRec->expensePercent = $resource->expensePercent;
 				
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
-				
+			
 			// Изчисляваме к-то според наличните данни
-			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
+			$dRec->quantity = $prodQuantity * ($resource->propQuantity / $bomInfo['quantity']);
 			
 			// Намираме артикулите, които могат да се влагат като този артикул
 			$quantities = array();
@@ -366,14 +367,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 				$dRec->quantity = $quantity;
 			}
 			
-			$index = "{$dRec->productId}|$dRec->type";
-			if(!isset($details[$index])){
-				$details[$index] = $dRec;
-			} else {
-				$d = &$details[$index];
-				
-				$d->quantity += $dRec->quantity;
-			}
+			$details[] = $dRec;
 		}
 		
 		// Връщаме генерираните детайли

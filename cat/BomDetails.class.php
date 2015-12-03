@@ -122,19 +122,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,rowQuantity=К-во,baseQuantity=К-во->Начално,propQuantity=К-во->Пропорционално,expensePercent=Режийни,primeCost=Цена';
-    
-    
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'baseQuantity,expensePercent,propQuantity';
-    
-    
-    /**
-     * Runtime съхраняване на контекстите за всеки скрипт
-     */
-    protected static $context = array();
+    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->К-во,primeCost';
     
     
     /**
@@ -142,7 +130,7 @@ class cat_BomDetails extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember,removeAndRefreshForm=baseQuantity|propQuantity,silent');
+    	$this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember,removeAndRefreshForm=propQuantity,silent');
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
@@ -151,53 +139,10 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
     	$this->FLD("description", 'richtext(rows=3)', 'caption=Описание');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
-    	$this->FLD("baseQuantity", 'text(rows=2)', 'caption=Количество->Начално,hint=Начално количество,smartCenter,tdClass=accCell');
-    	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Количество->Пропорционално,smartCenter,tdClass=accCell');
-    	$this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
-    	$this->FNC("calcedBaseQuantity", 'double', 'caption=Количество');
-    	$this->FNC("calcedPropQuantity", 'double', 'caption=Количество');
-    	$this->FNC("rowQuantity", 'double', 'caption=Количество');
-    	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none');
-    }
-    
-    
-    /**
-     * Изчислява сумата на реда
-     */
-    public static function on_CalcCalcedBaseQuantity(core_Mvc $mvc, $rec)
-    {
-    	if(!isset($rec->baseQuantity)) return;
-    	
-    	$calced = static::calcExpr($rec->baseQuantity, $rec);
-    	$rec->calcedBaseQuantity = $calced;
-    }
-    
-    
-    /**
-     * Изчислява сумата на реда
-     */
-    public static function on_CalcCalcedPropQuantity(core_Mvc $mvc, $rec)
-    {
-    	if(!isset($rec->propQuantity)) return;
-    	 
-    	$calced = static::calcExpr($rec->propQuantity, $rec);
-    	
-    	$rec->calcedPropQuantity = $calced;
-    }
-    
-    
-    /**
-     * Изчислява сумата на реда
-     */
-    public static function on_CalcRowQuantity(core_Mvc $mvc, $rec)
-    {
-    	if(!isset($rec->calcedBaseQuantity) && !isset($rec->calcedPropQuantity)) return;
-    	
-    	$context = static::getContext($rec);
-    	
-    	if($rec->calcedBaseQuantity != self::CALC_ERROR && $rec->calcedPropQuantity != self::CALC_ERROR){
-    		$rec->rowQuantity = $rec->calcedBaseQuantity + $context['$quantity'] * $rec->calcedPropQuantity;
-    	}
+    	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Формула,smartCenter,tdClass=accCell,mandatory');
+    	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
+    	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
+    	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=К-во,input=none,tdClass=accCell');
     }
 
 
@@ -206,7 +151,15 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-    	$data->listFields['propQuantity'] = "|К-во|*->|За|* " . $data->masterData->row->quantity;
+    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
+    	$masterProductUomId = cat_Products::fetchField($data->masterData->rec->productId, 'measureId');
+    	
+    	$data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
+    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Стойност|*";
+    	$data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
+    	if(!haveRole('ceo, acc, cat, price')){
+    		unset($data->listFields['primeCost']);
+    	}
     }
     
     
@@ -255,10 +208,6 @@ class cat_BomDetails extends doc_Detail
     	$propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
     	$form->setField('propQuantity', "caption={$propCaption}");
     	
-    	if($data->masterRec->expenses){
-    		$form->setDefault('expensePercent', $data->masterRec->expenses);
-    	}
-    	
     	// Възможните етапи са етапите от текущата рецепта
     	$stages = array();
     	$query = $mvc->getQuery();
@@ -289,57 +238,18 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Връща допустимите параметри за формулите
+     * Изчислява израза
      * 
-     * @param stdClass $rec - запис
-     * @return array - допустимите параметри с техните стойностти
+     * @param text $expr - формулата
+     * @param array $params - параметрите
+     * @return string $res - изчисленото количество
      */
-    private static function getContext($rec)
+    public static function calcExpr($expr, $params)
     {
-    	$rec = static::fetchRec($rec);
-    	$bRec = cat_Boms::fetch($rec->bomId);
-    	
-    	if(isset($rec->parentId)){
-    		$pRec = static::fetch($rec->parentId);
-    		$productId = $pRec->resourceId;
-    		$quantity = $pRec->rowQuantity;
-    	} else {
-    		$productId = $bRec->productId;
-    		$quantity = ($bRec->quantityForPrice) ? $bRec->quantityForPrice : $bRec->quantity;
+    	$expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
+    	if(is_array($params)){
+    		$expr = strtr($expr, $params);
     	}
-    	
-    	if(!isset(self::$context[$productId])){
-    		$params = cat_Products::getParams($productId);
-    		if(is_array($params)){
-    			foreach ($params as $paramName => $value){
-    				if(!is_numeric($value)) continue;
-    		
-    				$key = mb_strtolower($paramName);
-    				$key = preg_replace("/\s+/", "_", $key);
-    				$key = "$" . $key;
-    				self::$context[$productId][$key] = $value;
-    			}
-    		}
-    	}
-    	
-    	self::$context[$productId]['$quantity'] = $quantity;
-    	
-    	return self::$context[$productId];
-    }
-    
-    
-    /**
-     * Опит за калкулиране на формулата
-     * 
-     * @param stdClass $rec - запис
-     * @return $res string - изчислената стойност
-     */
-    public static function calcExpr($expr, $rec)
-    {
-    	if(!$expr) return;
-    	
-    	$context = self::getContext($rec);
-    	$expr = strtr($expr, $context);
     	
     	if(str::prepareMathExpr($expr) === FALSE) {
     		$res = self::CALC_ERROR;
@@ -357,20 +267,19 @@ class cat_BomDetails extends doc_Detail
     /**
      * Проверява за коректност израз и го форматира.
      */
-    private static function highliteExpr($expr, $rec)
+    public static function highliteExpr($expr, $params)
     {
-    	// Изчислява стойността
-    	$value = self::calcExpr($expr, $rec);
-    	if($value === self::CALC_ERROR) {
+    	$rQuantity = cat_BomDetails::calcExpr($expr, $params);
+    	if($rQuantity === self::CALC_ERROR) {
     		$style = 'red';
     	}
     	
     	// Намира контекста и го оцветява
-    	$context = self::getContext($rec);
-    	if(is_array($context)){
-    		foreach ($context as $var => $val){
+    	$context = array();
+    	if(is_array($params)){
+    		foreach ($params as $var => $val){
     			if($value !== self::CALC_ERROR) {
-    				$context[$var] = "<span style='color:blue;' title='{$val}'>{$var}</span>";
+    				$context[$var] = "<span style='color:blue' title='{$val}'>{$var}</span>";
     			} else {
     				$context[$var] = "<span title='{$val}'>{$var}</span>";
     			}
@@ -378,9 +287,10 @@ class cat_BomDetails extends doc_Detail
     	}
     	
     	$expr = strtr($expr, $context);
-    	if($expr !== ''){
+    	if(!is_numeric($expr)){
     		$expr = "<span class='{$style}'>{$expr}</span>";
     	}
+    	$expr = preg_replace('/\$Начално\s*=\s*/iu', "<span style='color:blue'>" . tr('Начално') . "</span>=", $expr);
     	
     	return $expr;
     }
@@ -413,7 +323,7 @@ class cat_BomDetails extends doc_Detail
     	
     	// Имали артикула рецепта
     	if($bomId = cat_Products::getLastActiveBom($objectId)){
-    		$bomInfo = cat_Boms::getResourceInfo($bomId);
+    		$bomInfo = cat_Boms::getResourceInfo($bomId, 1, dt::now());
     		
     		// За всеки продукт от нея проверяваме дали не съдържа търсения продукт
     		if(count($bomInfo['resources'])){
@@ -436,10 +346,14 @@ class cat_BomDetails extends doc_Detail
     	$rec = &$form->rec;
     	
     	// Добавя допустимите параметри във формулата
-    	$context = self::getContext($rec);
-    	$context = array_keys($context);
+    	$productId = ($rec->parentId) ? static::fetchField($rec->parentId, 'resourceId') : cat_Boms::fetchField($rec->bomId, 'productId'); 
+    	$params = cat_Boms::getRowParams($productId);
+    	$params['$T'] = 1;
+    	$params['$Начално='] = '$Начално=';
+    	$rec->params = $params;
+    	
+    	$context = array_keys($params);
     	$context = array_combine($context, $context);
-    	$form->setSuggestions('baseQuantity', $context);
     	$form->setSuggestions('propQuantity', $context);
     	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
@@ -457,7 +371,6 @@ class cat_BomDetails extends doc_Detail
     		}
     		
     		$packname = cat_UoM::getTitleById($rec->packagingId);
-    		$form->setField('baseQuantity', "unit={$packname}");
     		$form->setField('propQuantity', "unit={$packname}");
     		
     		$description = cat_Products::getDescription($rec->resourceId)->getContent();
@@ -473,9 +386,11 @@ class cat_BomDetails extends doc_Detail
     	
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
-    		
-    		if(!isset($rec->expensePercent)){
-    			$rec->expensePercent = cat_Boms::fetchField($rec->bomId, 'expenses');
+    		$calced = static::calcExpr($rec->propQuantity, $rec->params);
+    		if($calced == static::CALC_ERROR){
+    			$form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
+    		} elseif($calced <= 0){
+    			$form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
     		}
     		
     		if(isset($rec->resourceId)){
@@ -507,11 +422,6 @@ class cat_BomDetails extends doc_Detail
     			}
     		}
     		
-    		// Не може и двете количества да са празни
-    		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
-    			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
-    		}
-    		
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     		
     		// Ако има артикул със същата позиция, или няма позиция добавяме нова
@@ -531,7 +441,7 @@ class cat_BomDetails extends doc_Detail
     				// Ако добавяме етап
     				if($rec->type == 'stage'){
     					$bom = cat_Products::getLastActiveBom($rec->resourceId);
-    					if(isset($bom)){
+    					if(!empty($bom)){
     						
     						// и има детайли
     						$detailsToAdd = self::getOrderedBomDetails($bom->id);
@@ -599,7 +509,7 @@ class cat_BomDetails extends doc_Detail
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	
-    	if(!$rec->primeCost){
+    	if(!$rec->primeCost && $rec->type != 'stage'){
     		$row->ROW_ATTR['style'] = 'background-color:#c66';
     		$row->ROW_ATTR['title'] = tr('Няма себестойност');
     	} elseif($rec->type == 'stage'){
@@ -647,20 +557,21 @@ class cat_BomDetails extends doc_Detail
     		$row->resourceId .= "<br><small>{$row->description}</small>";
     	}
     	
-    	// Оцветяваме формулата
-    	$row->baseQuantity = self::highliteExpr($rec->baseQuantity, $rec);
-    	$row->propQuantity = self::highliteExpr($rec->propQuantity, $rec);
-    	if(is_numeric($rec->baseQuantity)){
-    		$row->baseQuantity = "<span style='float:right'>{$row->baseQuantity}</span>";
+    	$rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
+    	$rec->rowQuantity /= $rec->quantityInPack;
+    	
+    	$highlightedExpr = static::highliteExpr($rec->propQuantity, $rec->params);
+    	$row->propQuantity = $highlightedExpr;
+    	
+    	if($rec->rowQuantity == static::CALC_ERROR){
+    		$row->rowQuantity = "<span class='red'>???</span>";
+    	} else {
+    		$row->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
     	}
     	
     	if(is_numeric($rec->propQuantity)){
     		$row->propQuantity = "<span style='float:right'>{$row->propQuantity}</span>";
-    	}
-    	
-    	if(!$rec->rowQuantity){
-    		$row->rowQuantity = "<span class='red'>???</span>";
-    	}
+    	} 
     }
     
     
@@ -675,7 +586,8 @@ class cat_BomDetails extends doc_Detail
     	$this->requireRightFor('expand', $rec);
     	
     	$rec->type = 'stage';
-    	$this->save($rec, 'type');
+    	$rec->primeCost = NULL;
+    	$this->save($rec, 'type,primeCost');
     	cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("|*{$title} |вече е етап|*");
@@ -729,7 +641,7 @@ class cat_BomDetails extends doc_Detail
     	if(($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)){
     		$masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
     		if($masterRec->state != 'draft'){
-    			$requiredRoles = 'no_one';
+    			//$requiredRoles = 'no_one';
     		} else {
     			// Само ceo и techno могат да редактират ред от работна рецепта
     			$firstDocument = doc_Containers::getDocument($masterRec->originId);
@@ -796,14 +708,13 @@ class cat_BomDetails extends doc_Detail
 		$descendents = array();
 		$query = $this->getQuery();
 		$query->where("#parentId = {$id}");
-		$query->show('resourceId,baseQuantity,propQuantity,packagingId,quantityInPack');
+		$query->show('resourceId,propQuantity,packagingId,quantityInPack');
 		$query->orderBy('resourceId', 'ASC');
 		
 		while($rec = $query->fetch()){
 			$obj = new stdClass();
 			$obj->resourceId = $rec->resourceId;
 			$obj->packagingId = $rec->packagingId;
-			$obj->baseQuantity = trim($rec->baseQuantity);
 			$obj->propQuantity = trim($rec->propQuantity);
 			$res[$rec->resourceId . "|" . $rec->packagingId] = $obj;
 			
@@ -835,7 +746,6 @@ class cat_BomDetails extends doc_Detail
 				$obj = new stdClass();
 				$obj->resourceId = $dRec->resourceId;
 				$obj->packagingId = $dRec->packagingId;
-				$obj->baseQuantity = trim($dRec->baseQuantity);
 				$obj->propQuantity = trim($dRec->propQuantity);
 				$res[$dRec->resourceId . "|" . $dRec->packagingId] = $obj;
 				
@@ -862,7 +772,7 @@ class cat_BomDetails extends doc_Detail
     	$areSame = TRUE;
     	foreach ($children as $index => $obj){
     		$other = $bomDetails[$index];
-    		if($obj->baseQuantity != $other->baseQuantity || $obj->propQuantity != $other->propQuantity || $obj->resourceId != $other->resourceId || $obj->packagingId != $other->packagingId){
+    		if($obj->propQuantity != $other->propQuantity || $obj->resourceId != $other->resourceId || $obj->packagingId != $other->packagingId){
     			$areSame = FALSE;
     			break;
     		}
@@ -882,6 +792,27 @@ class cat_BomDetails extends doc_Detail
     	// Подреждаме детайлите
     	static::orderBomDetails($data->recs, $outArr);
     	$data->recs = $outArr;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+		$hasSameQuantities = TRUE;
+    	if(is_array($data->recs)){
+    		foreach ($data->recs as $rec){
+    			if($rec->rowQuantity != $rec->propQuantity){
+    				$hasSameQuantities = FALSE;
+    			}
+    		}
+    	}
+
+    	// Ако формулите и изчислените к-ва са равни, показваме само едната колонка
+    	if($hasSameQuantities === TRUE){
+    		unset($data->listFields['propQuantity']);
+    	}
     }
     
     

@@ -1750,8 +1750,12 @@ class cat_Products extends embed_Manager {
      * 			o productId - ид на продукта
      * 			o quantity - к-то на продукта
      */
-    public static function getMaterialsForProduction($id, $quantity = 1)
+    public static function getMaterialsForProduction($id, $quantity = 1, $date = NULL)
     {
+    	if(!$date){
+    		$date = dt::now();
+    	}
+    	
     	$res = array();
     	$bomId = static::getLastActiveBom($id, 'production')->id;
     	if(!$bomId) {
@@ -1759,7 +1763,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if (isset($bomId)) {
-	    	$info = cat_Boms::getResourceInfo($bomId);
+	    	$info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
 	    	
 	    	foreach ($info['resources'] as $materialId => $rRec){
 	    		if($rRec->type != 'input') continue;

@@ -174,7 +174,7 @@ class price_ListRules extends core_Detail
         	
         	// В коя ценова група се е намирал продукта към посочената дата?
         	$productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
-        	if(!$productGroup) return;
+        	//if(!$productGroup) return;
         }
        
         $query = self::getQuery();
@@ -284,12 +284,13 @@ class price_ListRules extends core_Detail
 		    $parentTitle = $parentRec->title;
         }
 		
-        $availableProducts = price_GroupOfProducts::getAllProducts();
-        if(count($availableProducts)){
-        	$form->setOptions('productId', $availableProducts);
-        } else {
-        	$form->getFieldType('productId')->options = array('' => '');
-        }
+        $form->setOptions('productId', cat_Products::getByProperty('canSell'));
+        //$availableProducts = price_GroupOfProducts::getAllProducts();
+        //if(count($availableProducts)){
+        	//$form->setOptions('productId', $availableProducts);
+        //} else {
+        	//$form->getFieldType('productId')->options = array('' => '');
+       // }
         
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
 			$form->setReadOnly('productId');
