@@ -171,7 +171,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			
     			// Ако добавяме отпадък, искаме да има себестойност
     			if($rec->type == 'pop'){
-    				$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
+    				$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
     		
     				if(!isset($selfValue)){
     					$form->setError('productId', 'Отпадакът няма себестойност');

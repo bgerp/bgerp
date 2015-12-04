@@ -1012,9 +1012,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if($bomRec){
-    			if($amounts = cat_Boms::getPrice($bomRec, $quantity, $date)){
-    				$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
-    			}
+    			$price = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST);
     		}
     	}
     	

@@ -112,7 +112,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'reason' => $reason,
 								);
 							} else {
-								$selfValue = planning_ObjectResources::getSelfValue($res->productId, $res->propQuantity, $rec->valior);
+								$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $res->productId, NULL, $rec->valior);
 								
 								// Сумата на дебита е себестойността на отпадния ресурс
 								$amount = $res->propQuantity * $selfValue;
