@@ -910,9 +910,9 @@ class cat_Boms extends core_Master
     {
     	// Ако търсим цената за търговска рецепта
     	if($type == 'sales'){
+    		
     		// Първо проверяваме имали цена по политиката
     		$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
-    		
     		if(!isset($price)){
     			
     			// Ако няма, търсим по последната търговска рецепта, ако има

@@ -749,7 +749,7 @@ class cat_BomDetails extends doc_Detail
 				$obj->propQuantity = trim($dRec->propQuantity);
 				$res[$dRec->resourceId . "|" . $dRec->packagingId] = $obj;
 				
-				if($dRec->type == 'input'){
+				if($dRec->type != 'stage'){
 					self::getComponents($dRec->resourceId, $res);
 				}
 			}
