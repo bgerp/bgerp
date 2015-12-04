@@ -320,7 +320,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		if(!$bomId) return $details;
 		
 		// Извличаме информацията за ресурсите в рецептата
-		$bomInfo = cat_Boms::getResourceInfo($bomId, $jobQuantity, dt::now());
+		$bomInfo = cat_Boms::getResourceInfo($bomId, $prodQuantity, dt::now());
 		
 		// За всеки ресурс
 		foreach($bomInfo['resources'] as $resource){
@@ -431,7 +431,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$nRec->resourceId     = $dRec->productId;
 			$nRec->type           = $dRec->type;
 			$nRec->propQuantity   = $dRec->quantity;
-			$nRec->expensePercent = $dRec->expensePercent;
 			$nRec->packagingId    = $dRec->packagingId;
 			$nRec->quantityInPack = $dRec->quantityInPack;
 			
