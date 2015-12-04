@@ -511,62 +511,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Връща сумата на спецификацията според подадения ориджин
-     * Ако някой от ресурсите няма себестойност не може да се пресметне сумата
-     * 
-     * @param int $id - ид на рецепта
-     * @param double $quantity - к-во за което проверяваме
-     * @param date $date - към коя дата
-     * @return mixed $total - обект съдържащ сумарната пропорционална и начална цена
-     * 		 o $total->base - началната сума (в основната валута за периода)
-     * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
-     */
-    public static function getPrice($id, $quantity = 1, $date = NULL)
-    {
-    	// Намираме активната карта за обекта
-    	expect($rec = self::fetchRec($id));
-    	if(!$date){
-    		$date = dt::now();
-    	}
-    	
-    	// Кои ресурси участват в спецификацията
-    	$rInfo = static::getResourceInfo($rec);
-    	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
-    	
-    	// За всеки ресурс
-    	if(count($rInfo['resources'])){
-    		foreach ($rInfo['resources'] as $dRec){
-    			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			
-    			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $quantity, $rec->modifiedOn);
-    			if(!$selfValue){
-    				$selfValue = NULL;
-    			}
-    			cat_BomDetails::save((object)array('id' => $dRec->id, 'primeCost' => $selfValue), 'primeCost');
-    			
-    			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
-    			if(!$selfValue) return FALSE;
-    			
-    			$base = $dRec->baseQuantity * $selfValue * $sign / $rInfo['quantity'];
-    			$prop = $dRec->propQuantity * $selfValue * $sign / $rInfo['quantity'];
-    			
-    			$amounts->expenses += $base * $dRec->expensePercent + $prop * $dRec->expensePercent;
-    			$base *= (1 + $dRec->expensePercent);
-    			$prop *= (1 + $dRec->expensePercent);
-    			
-    			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $base;
-    			$amounts->prop += $prop;
-    		}
-    	}
-    	
-    	// Връщаме изчислените суми
-    	return $amounts;
-    }
-    
-    
-    /**
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
@@ -1049,8 +993,13 @@ class cat_Boms extends core_Master
     	// Ако реда не е етап а е материал или отпадък
     	if($rec->type != 'stage'){
     		
-    		// Опитваме се да намерим цената му за тази рецепта
-    		$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    		if($rec->type == 'pop'){
+    			// Ако е отпадък търсим твърдо мениджърската себестойност
+    			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
+    		} else {
+    			// Ако не е търсим най-подходящата цена за рецептата
+    			$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    		}
     		
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){
