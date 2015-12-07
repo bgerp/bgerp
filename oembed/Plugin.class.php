@@ -172,9 +172,9 @@ class oembed_Plugin extends core_Plugin
         
         if ($response['cache_age'] !== 0) {
             
-            if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443) {
+//            if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443) {
                 $response['html'] = preg_replace_callback('/\s+src\s*=\s*(\'|\")(http:\/\/)/', array(get_called_class(), 'replaceHttp'), $response['html']);
-            }
+//            }
             
             $cacheRec = array(
                 'url' => $url,
