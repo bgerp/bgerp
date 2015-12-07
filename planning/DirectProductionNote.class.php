@@ -180,6 +180,9 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		}
 		
 		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'sales');
+		}
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
 		}
