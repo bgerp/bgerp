@@ -420,8 +420,9 @@ abstract class deals_DealBase extends core_Master
         if ($res === FALSE) return ;
         
         $dealHistory = Request::get('dealHistory');
+        $dealReport = Request::get('dealReport');
         
-        $res = md5($res . $dealHistory);
+        $res = md5($res . '|' . $dealHistory . '|' . $dealReport);
     }
     
     
