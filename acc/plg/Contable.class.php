@@ -37,6 +37,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, FALSE);
+        setIfNot($mvc->checkIfCanContoInThread, TRUE);
         
         // Зареждаме плъгина, който проверява можели да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -134,10 +135,14 @@ class acc_plg_Contable extends core_Plugin
             // Проверка на счетоводния период, ако има грешка я показваме
             if(!self::checkPeriod($rec->{$mvc->valiorFld}, $error)){
                 $error = ",error={$error}";
+            } else {
+            	if(!self::canContoInThread($mvc, $rec)){
+            		$error = ",error=Вальора на документа трябва да е след датата на създаване на перото на сделката";
+            	}
             }
             
             $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
-            
+           
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
@@ -199,6 +204,29 @@ class acc_plg_Contable extends core_Plugin
         }
         
         return ($error) ? FALSE : TRUE;
+    }
+    
+    
+    /**
+     * Проверка дали документа може да се контира в нишка започната от сделка
+     */
+    private static function canContoInThread($mvc, $rec)
+    {
+    	if($mvc->checkIfCanContoInThread === TRUE){
+    		if($firstDocInThread = doc_Threads::getFirstDocument($rec->threadId)){
+    			if($firstDocItem = acc_Items::fetchItem($firstDocInThread->getInstance(), $firstDocInThread->that)){
+    				$createdOn = dt::verbal2mysql($firstDocItem->createdOn, FALSE);
+    					
+    				// Ако създаването на перото е след вальора на документа, да не може да се контира
+    				if($createdOn > $rec->{$mvc->valiorFld}){
+    				
+    					return FALSE;
+    				}
+    			}
+    		}
+    	}
+    	
+    	return TRUE;
     }
     
     
