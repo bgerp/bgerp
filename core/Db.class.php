@@ -656,11 +656,8 @@ class core_Db extends core_BaseClass
         
         if ($link->errno) {
             
-                $errno = $link->errno;
-                $error = $link->error;
-                
                 // Грешка в базата данни
-                $dump =  array('query' => $this->query, 'mysqlErrCode' => $errno, 'mysqlErrMsg' => $error, 'dbLink' => $link);
+                $dump =  array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
                 throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
 
