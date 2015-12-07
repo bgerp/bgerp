@@ -30,6 +30,12 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * Колко записи от репорта да се показват от отчета
+	 */
+	protected $reportItemsPerPage = 10;
+	
+	
+	/**
 	 * Документа продажба може да бъде само начало на нишка
 	 */
 	public $onlyFirstInThread = TRUE;
@@ -340,7 +346,14 @@ abstract class deals_DealBase extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	if(isset($data->tabs)){
-    		$tab = (isset($data->dealHistory)) ? 'dealHistory' : 'statistic';
+    		if (isset($data->dealHistory)) {
+    			$tab = 'dealHistory';
+    		} elseif (isset($data->dealReport)) {
+    			$tab =  'dealReport';
+    		} else {
+    			$tab = 'statistic';
+    		}
+   
     		$tabHtml = $data->tabs->renderHtml("", $tab);
     		$tpl->replace($tabHtml, 'TABS');
     		
@@ -356,12 +369,36 @@ abstract class deals_DealBase extends core_Master
     			$tpl->append($table->get($data->dealHistory, $fields), 'DEAL_HISTORY');
     			$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
     		}
+    		
+    		// Ако има отчет на сделката показваме я
+    		if(isset($data->dealReport)){
+    			$tableMvc = new core_Mvc;
+    			$tableMvc->FLD('productId', 'varchar');
+    			$tableMvc->FLD('measure', 'varchar');
+    			$tableMvc->FLD('code', 'varchar');
+    			$tableMvc->FLD('debitQuantity', 'varchar');
+    			$tableMvc->FLD('creditQuantity', 'varchar');
+    			$tableMvc->FLD('bQuantity', 'varchar');
+    		
+    			$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    			$fields = "code=Код,
+    					   productId=Продукт,
+    					   measure=Мярка,
+    					   quantity=Количество->Поръчано,
+    					   shipQuantity=Количество->Доставено,
+    					   bQuantity=Количество->Остатък";
+    		
+    			$tpl->append($table->get($data->dealReport, $fields), 'DEAL_REPORT');
+    			$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
+    		}
     	}
     	
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     	} elseif(Request::get('dealHistory', 'int')) {
+    		$tpl->removeBlock('STATISTIC_BAR');
+    	}  elseif(Request::get('dealReport', 'int')) {
     		$tpl->removeBlock('STATISTIC_BAR');
     	}
     }
@@ -396,6 +433,7 @@ abstract class deals_DealBase extends core_Master
     	$tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab'));
     	$url = getCurrentUrl();
     	unset($url['dealHistory']);
+    	unset($url['dealReport']);
     	
     	$histUrl = array();
     	if($data->rec->state != 'draft' && $data->rec->state != 'rejected'){
@@ -403,14 +441,23 @@ abstract class deals_DealBase extends core_Master
     		$histUrl = $url;
     		$histUrl['dealHistory'] = TRUE;
     		
+    		$reportUrl = $url;
+    		$reportUrl['dealReport'] = TRUE;
+    		
     		// Ако сме в нормален режим
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     			$tabs->TAB('statistic', 'Статистика' , $url);
     			$tabs->TAB('dealHistory', 'История' , $histUrl);
+    			$tabs->TAB('dealReport', 'Поръчано/Доставено' , $reportUrl);
     		
     			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
     			if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
     				$mvc->prepareDealHistory($data);
+    			}
+    			
+    			// Ако е зареден флаг в урл-то и имаме право за отчет подготвяме репорта
+    			if(Request::get('dealReport', 'int') && haveRole('acc, ceo')){
+    				$mvc->prepareDealReport($data);
     			}
     		
     			// Ако имаме сч. права показваме табовете
@@ -419,6 +466,115 @@ abstract class deals_DealBase extends core_Master
     			}
     		}
     	} 
+    }
+    
+    
+    /**
+     * Подготвя обединено представяне на всички записи от журнала където участва сделката
+     */
+    protected function prepareDealReport(&$data)
+    {
+    	$rec = $data->rec;
+
+    	// обобщената информация за цялата нищка
+    	$dealInfo = self::getAggregateDealInfo($rec->id);
+   
+    	$report = array();
+    	$Int = cls::get('type_Int');
+
+    	// правим странициране
+    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage));
+    	$pager->itemsCount = count($dealInfo->products);
+    	$data->reportPager = $pager;
+    	
+    	$pager->calc();
+
+    	$start = $data->reportPager->rangeStart;
+    	$end = $data->reportPager->rangeEnd - 1;
+    
+    	// Ако има записи където участва артикула подготвяме ги за показване
+    	if(count($dealInfo->products)){
+    		foreach ($dealInfo->products as $id => $product) { 
+		    	// ако можем да го покажем на страницата	
+		    	if($count >= $start && $count <= $end){
+			    	$obj = new stdClass();
+			    	// информацията за продукта
+			    	$productInfo = cat_Products::getProductInfo($product->productId);
+				    // кода на продукта	
+			    	$obj->code = $productInfo->productRec->code;
+			    	// името на продукта с линк
+				    $obj->productId = cat_Products::getShortHyperLink($product->productId);
+				    // мярката му
+				    $measureId = $productInfo->productRec->measureId;
+				    $obj->measure = cat_UoM::fetchField($measureId,'shortName');
+			
+				    if($storeId = $dealInfo->storeId){
+				    	if(isset($productInfo->meta['canStore'])){
+				    		$quantityInStore = store_Products::fetchField("#productId = {$product->productId} AND #storeId = {$storeId}", 'quantity');
+				    		$diff = ($rec->state == 'active') ? $quantityInStore : $quantityInStore - $product->quantity;
+				    			
+				    		if($diff < 0){
+				    			$obj->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($product->quantity)}</span>";
+				    		} else {
+				    			// поръчаното количество
+				    			$obj->quantity = $Int->toVerbal($product->quantity);
+				    		}
+				    	}
+				    }
+
+				    $report[$id] = $obj;			    	
+		    	}
+		    
+		    	$count++;
+		    }
+		    
+		    // за всеки един масив от доставени продукти
+		    foreach ($dealInfo->shippedProducts as $idShip => $shipProduct) {
+		    	// роверяваме дали може да се сложи на страницата
+		    	if(!$pager->isOnPage()) continue;
+		    	
+		    	// ако ид-то на продукта не е добавен в резултатния масив до сега
+			    if (!array_key_exists($idShip, $report)) {
+
+			    	// извличаме информацията за продукта
+			    	$shipProductInfo = cat_Products::getProductInfo($shipProduct->productId);
+			    	// намираме му мярката
+			    	$shipMeasureId = $shipProductInfo->productRec->measureId;
+			    	// и правим обект с новия продукт		
+			    	$report[$idShip] = (object) array ( "code" => $shipProductInfo->productRec->code,
+			    					"productId" => cat_Products::getShortHyperLink($shipProduct->productId),
+			    					"measure" => cat_UoM::fetchField($shipMeasureId,'shortName'),
+			    					"quantity" => 0,
+			    					"shipQuantity" => $Int->toVerbal($shipProduct->quantity),
+			    					"bQuantity" => $Int->toVerbal($shipProduct->quantity)
+			    					
+			    	);
+			    // ако вече е добавен		
+			    } else {
+			    	// ще го ъпдейтнем		
+			    	$shipObj = &$report[$idShip];
+			    	
+			    	if($shipStoreId = $dealInfo->storeId){
+			    		if(isset($productInfo->meta['canStore'])){
+			    			$shipQuantityInStore = store_Products::fetchField("#productId = {$shipProduct->productId} AND #storeId = {$shipStoreId}", 'quantity');
+			    			$shipDiff = ($rec->state == 'active') ? $quantityInStore : $quantityInStore - $product->quantity;
+			    			 
+			    			if($shipDiff < 0){
+			    				$shipObj->shipQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($shipProduct->quantity)}</span>";
+			    				$shipObj->bQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)))}</span>";
+			    			} else {
+			    				// като добавим доставеното количесто
+			    				$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    				// и намерим остатъка за доставяне
+			    				$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
+			    			}
+			    		}
+			    	}
+			    }
+		    }
+    	}
+    	
+    	$data->dealReport = $report;
     }
     
     

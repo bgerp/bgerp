@@ -487,7 +487,7 @@ class cat_Boms extends core_Master
     			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
     			$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     			$row->primeCost = $Double->toVerbal($rec->primeCost);
-    			$row->primeCost = ($rec->primeCost === 0) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
+    			$row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
     			
     			$row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
     		
@@ -507,62 +507,6 @@ class cat_Boms extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
-    }
-    
-    
-    /**
-     * Връща сумата на спецификацията според подадения ориджин
-     * Ако някой от ресурсите няма себестойност не може да се пресметне сумата
-     * 
-     * @param int $id - ид на рецепта
-     * @param double $quantity - к-во за което проверяваме
-     * @param date $date - към коя дата
-     * @return mixed $total - обект съдържащ сумарната пропорционална и начална цена
-     * 		 o $total->base - началната сума (в основната валута за периода)
-     * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
-     */
-    public static function getPrice($id, $quantity = 1, $date = NULL)
-    {
-    	// Намираме активната карта за обекта
-    	expect($rec = self::fetchRec($id));
-    	if(!$date){
-    		$date = dt::now();
-    	}
-    	
-    	// Кои ресурси участват в спецификацията
-    	$rInfo = static::getResourceInfo($rec);
-    	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
-    	
-    	// За всеки ресурс
-    	if(count($rInfo['resources'])){
-    		foreach ($rInfo['resources'] as $dRec){
-    			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			
-    			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $quantity, $rec->modifiedOn);
-    			if(!$selfValue){
-    				$selfValue = NULL;
-    			}
-    			cat_BomDetails::save((object)array('id' => $dRec->id, 'primeCost' => $selfValue), 'primeCost');
-    			
-    			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
-    			if(!$selfValue) return FALSE;
-    			
-    			$base = $dRec->baseQuantity * $selfValue * $sign / $rInfo['quantity'];
-    			$prop = $dRec->propQuantity * $selfValue * $sign / $rInfo['quantity'];
-    			
-    			$amounts->expenses += $base * $dRec->expensePercent + $prop * $dRec->expensePercent;
-    			$base *= (1 + $dRec->expensePercent);
-    			$prop *= (1 + $dRec->expensePercent);
-    			
-    			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $base;
-    			$amounts->prop += $prop;
-    		}
-    	}
-    	
-    	// Връщаме изчислените суми
-    	return $amounts;
     }
     
     
@@ -966,9 +910,9 @@ class cat_Boms extends core_Master
     {
     	// Ако търсим цената за търговска рецепта
     	if($type == 'sales'){
+    		
     		// Първо проверяваме имали цена по политиката
     		$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
-    		
     		if(!isset($price)){
     			
     			// Ако няма, търсим по последната търговска рецепта, ако има
@@ -1049,8 +993,13 @@ class cat_Boms extends core_Master
     	// Ако реда не е етап а е материал или отпадък
     	if($rec->type != 'stage'){
     		
-    		// Опитваме се да намерим цената му за тази рецепта
-    		$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    		if($rec->type == 'pop'){
+    			// Ако е отпадък търсим твърдо мениджърската себестойност
+    			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
+    		} else {
+    			// Ако не е търсим най-подходящата цена за рецептата
+    			$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    		}
     		
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){

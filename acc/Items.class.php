@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state,closedOn';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn';
     
     
     /**
@@ -1015,5 +1015,18 @@ class acc_Items extends core_Manager
     	}
     	
     	return $itemsArr;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
+    	if(isset($oRec->valior)){
+    		$rec->createdOn = $oRec->valior;
+    		$mvc->save_($rec, 'createdOn');
+    	}
     }
 }
