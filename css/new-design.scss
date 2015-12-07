@@ -281,6 +281,9 @@ body {
 .narrow #main-container > .tab-control > .tab-row {
     top: 44px;
     padding: 3px 13px 1px;
+    .row-holder {
+    	width: 1000px;
+    }
 }
 
 .userInfo{
