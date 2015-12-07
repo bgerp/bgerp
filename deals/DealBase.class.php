@@ -521,6 +521,9 @@ abstract class deals_DealBase extends core_Master
 				    			// поръчаното количество
 				    			$obj->quantity = $Int->toVerbal($product->quantity);
 				    		}
+				    	} else {
+				    		// поръчаното количество
+				    		$obj->quantity = $Int->toVerbal($product->quantity);
 				    	}
 				    }
 
@@ -570,6 +573,11 @@ abstract class deals_DealBase extends core_Master
 			    				// и намерим остатъка за доставяне
 			    				$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
 			    			}
+			    		} else {
+			    			// като добавим доставеното количесто
+			    			$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    			// и намерим остатъка за доставяне
+			    			$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
 			    		}
 			    	}
 			    }
