@@ -408,7 +408,7 @@ class cat_BomDetails extends doc_Detail
     		
     		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
-    			$selfValue = planning_ObjectResources::getSelfValue($rec->resourceId);
+    			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId);
     			if(!isset($selfValue)){
     				$form->setWarning('resourceId', 'Отпадакът няма себестойност');
     			}
@@ -749,7 +749,7 @@ class cat_BomDetails extends doc_Detail
 				$obj->propQuantity = trim($dRec->propQuantity);
 				$res[$dRec->resourceId . "|" . $dRec->packagingId] = $obj;
 				
-				if($dRec->type == 'input'){
+				if($dRec->type != 'stage'){
 					self::getComponents($dRec->resourceId, $res);
 				}
 			}

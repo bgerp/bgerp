@@ -68,7 +68,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity,expensePercent';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity';
     
         
     /**
@@ -84,12 +84,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'productId,expensePercent';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -100,7 +94,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         parent::setDetailFields($this);
         $this->FLD('conversionRate', 'double', 'input=none');
-        $this->FLD('expensePercent', 'percent(min=0)', 'caption=Режийни');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,type');
@@ -136,8 +129,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
     		$products = array('' => '') + cat_Products::getByProperty($metas);
     	}
-    	
-    	$form->setDefault('expensePercent', $data->masterRec->expenses);
     	$form->setOptions('productId', $products);
     }
     
@@ -161,9 +152,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     	
     		if($form->isSubmitted()){
-    			if(!isset($rec->expensePercent)){
-    				$rec->expensePercent = planning_DirectProductionNote::fetchField($rec->noteId, 'expenses');
-    			}
     			
     			if(isset($storeInfo->warning)){
     				$form->setWarning('packQuantity', $storeInfo->warning);
@@ -171,7 +159,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			
     			// Ако добавяме отпадък, искаме да има себестойност
     			if($rec->type == 'pop'){
-    				$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
+    				$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
     		
     				if(!isset($selfValue)){
     					$form->setError('productId', 'Отпадакът няма себестойност');

@@ -246,6 +246,20 @@ class backup_Setup extends core_ProtoSetup
      */
     public function checkConfig()
     {
+        // Проверяваме дали имаме права за писане в сториджа
+        // $conf = ;
+        $conf = core_Packs::getConfig('backup');
+        $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);
+        
+        $touchFile = tempnam();
+        file_put_contents(EF_TEMP_PATH . "/" . $touchFile, "");
+        
+        if (@$storage->putFile($touchFile) && @$storage->removeFile($touchFile)) {
+        } else {
+            
+            return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
+        }
+        
         $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
