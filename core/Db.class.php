@@ -643,10 +643,21 @@ class core_Db extends core_BaseClass
         if(!$link) {
             $link = $this->connect();
         }
-
+        
         if (is_array($link->error_list) && count($link->error_list) > 0) {
-                $errno = $link->error_list[0]['errno'];
-                $error = $link->error_list[0]['error'];
+            if (!$link->errno) {
+                $link->errno = $link->error_list[0]['errno'];
+            }
+            
+            if (!$link->error) {
+                $link->error = $link->error_list[0]['error'];
+            }
+        }
+        
+        if ($link->errno) {
+            
+                $errno = $link->errno;
+                $error = $link->error;
                 
                 // Грешка в базата данни
                 $dump =  array('query' => $this->query, 'mysqlErrCode' => $errno, 'mysqlErrMsg' => $error, 'dbLink' => $link);
