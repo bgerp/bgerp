@@ -374,8 +374,9 @@ class cms_Domains extends core_Embedder
     public static function getCmsSkin()
     {
         $dRec = self::getPublicDomain();
-
-        $driver = self::getDriver($dRec->id);
+		if($dRec){
+			$driver = self::getDriver($dRec->id);
+		}
 
         return $driver;
     }
