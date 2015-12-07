@@ -485,7 +485,8 @@ abstract class deals_DealBase extends core_Master
 
     	// правим странициране
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage));
-    	$pager->itemsCount = count($dealInfo->products);
+    	$cnt = count($dealInfo->products) + count ($dealInfo->shippedProducts);
+    	$pager->itemsCount = $cnt;
     	$data->reportPager = $pager;
     	
     	$pager->calc();
