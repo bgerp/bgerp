@@ -242,16 +242,17 @@ class backup_Setup extends core_ProtoSetup
     /**
      * Проверява дали MySql-а е конфигуриран за binlog логове
      *
-     * @return boolean
+     * @return NULL|string
      */
     public function checkConfig()
     {
+
         // Проверяваме дали имаме права за писане в сториджа
         // $conf = ;
         $conf = core_Packs::getConfig('backup');
         $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);
         
-        $touchFile = tempnam();
+        $touchFile = tempnam(EF_TEMP_PATH, "bgErp");
         file_put_contents(EF_TEMP_PATH . "/" . $touchFile, "");
         
         if (@$storage->putFile($touchFile) && @$storage->removeFile($touchFile)) {
@@ -276,7 +277,7 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
-        return TRUE;
+        return NULL;
     }
     
     
