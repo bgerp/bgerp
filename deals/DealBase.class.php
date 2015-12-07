@@ -557,7 +557,7 @@ abstract class deals_DealBase extends core_Master
 			    					"measure" => cat_UoM::fetchField($shipMeasureId,'shortName'),
 			    					"quantity" => 0,
 			    					"shipQuantity" => $Int->toVerbal($shipProduct->quantity),
-			    					"bQuantity" => $Int->toVerbal($shipProduct->quantity)
+			    					"bQuantity" => NULL
 			    					
 			    	);
 			    // ако вече е добавен		
