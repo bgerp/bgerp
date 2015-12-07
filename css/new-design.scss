@@ -832,6 +832,12 @@ input.linkWithIcon, a.linkWithIcon {
     padding-left: 25px !important;
 }
 
+.small .linkWithIcon {
+	height: 16px !important;
+	line-height: 120%;
+	display: inline-block;
+}
+
 a.linkInTitle {
     color: #222 !important;
 }
