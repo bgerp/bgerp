@@ -61,7 +61,7 @@ class backup_Local extends core_Master
     static function putFile($fileName)
     {
         $conf = core_Packs::getConfig('backup');
-        $result = @copy(EF_TEMP_PATH . "/" . $fileName, $conf->BACKUP_LOCAL_PATH . '/' . $fileName);
+        $result = @copy($fileName, $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
         
         return $result;
     }
