@@ -331,14 +331,10 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
-				
+			$dRec->quantity       = $resource->propQuantity;
+			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
-			
-			// Изчисляваме к-то според наличните данни
-			$dRec->quantity = $prodQuantity * ($resource->propQuantity / $bomInfo['quantity']);
-			
-			// Намираме артикулите, които могат да се влагат като този артикул
 			$quantities = array();
 			
 			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
