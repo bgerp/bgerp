@@ -120,15 +120,7 @@ class price_Updates extends core_Manager
     	$form->FNC('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,input,before=categoryId');
     	
     	// Намираме всички активни стандартни, продаваеми или купуваеми артикули
-    	$products = array();
-    	$pQuery = cat_Products::getQuery();
-    	$pQuery->where("#isPublic = 'yes'");
-    	$pQuery->where("#state = 'active'");
-    	$pQuery->where("#canBuy = 'yes' OR #canSell = 'yes'");
-    	
-    	while($pRec = $pQuery->fetch()){
-    		$products[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-    	}
+    	$products = cat_Products::getStandartProducts();
     	
     	// Задаваме намерените артикули за опции на полето
     	$form->setOptions('productId', array('' => '') + $products);
