@@ -77,29 +77,6 @@ class backup_Start extends core_Manager
             shutdown();
         }
         
-        // проверка дали всичко е наред с mysqldump-a
-        $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
-        . self::$conf->BACKUP_MYSQL_HOST . " -u"
-        . self::$conf->BACKUP_MYSQL_USER_NAME . " -p"
-        . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
-        exec($cmd, $output ,  $returnVar);
-        
-        if ($returnVar !== 0) {
-            self::logErr("FULL Backup mysqldump ERROR!" . $output[0]);
-            self::unLock();
-            
-            shutdown();
-        }
-        
-        // проверка дали gzip е наличен
-        exec("gzip --help", $output,  $returnVar);
-        
-        if ($returnVar !== 0) {
-            self::logWarning("gzip NOT found");
-            self::unLock();
-            
-            shutdown();
-        }
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME

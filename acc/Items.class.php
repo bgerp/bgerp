@@ -1023,10 +1023,12 @@ class acc_Items extends core_Manager
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
-    	if(isset($oRec->valior)){
-    		$rec->createdOn = $oRec->valior;
-    		$mvc->save_($rec, 'createdOn');
+    	if(isset($rec->classId) && isset($rec->objectId)){
+    		$oRec = cls::get($rec->classId)->fetch($rec->objectId);
+    		if(isset($oRec->valior)){
+    			$rec->createdOn = $oRec->valior;
+    			$mvc->save_($rec, 'createdOn');
+    		}
     	}
     }
 }
