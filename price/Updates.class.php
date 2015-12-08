@@ -20,67 +20,61 @@ class price_Updates extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Правила за обновяване на себестойностите';
+    public $title = 'Правила за обновяване на себестойностите';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Правилo за обновяване на себестойност";
+    public $singleTitle = "Правилo за обновяване на себестойност";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id=Пулт, name=Правило,costSource1,costSource2,costSource3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
+    public $listFields = 'id=Пулт, name=Правило,costSource1,costSource2,costSource3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canWrite = 'price,ceo';
+    public $canWrite = 'price,ceo';
     
     
-     /**
+    /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'price,ceo';
+    public $canDelete = 'price,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'price,ceo';
+	public $canList = 'price,ceo';
 
 
 	/**
 	 * Кой може ръчно да обновява себестойностите?
 	 */
-	var $canSaveprimecost = 'price,ceo';
-	
-	
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'price,ceo';
+	public $canSaveprimecost = 'price,ceo';
 
 
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	var $searchFields = 'costSource1,costSource2,costSource3';
+	public $searchFields = 'costSource1,costSource2,costSource3';
 	
 	
     /**
