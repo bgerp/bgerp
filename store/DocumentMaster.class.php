@@ -59,7 +59,7 @@ abstract class store_DocumentMaster extends core_Master
     {
     	$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
-    	$mvc->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
+    	$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
     	$mvc->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
     	

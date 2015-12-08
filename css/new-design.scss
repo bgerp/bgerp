@@ -281,6 +281,9 @@ body {
 .narrow #main-container > .tab-control > .tab-row {
     top: 44px;
     padding: 3px 13px 1px;
+    .row-holder {
+    	width: 1000px;
+    }
 }
 
 .userInfo{
@@ -827,6 +830,12 @@ a.button, input[type="button"], input[type="submit"], button {
 
 input.linkWithIcon, a.linkWithIcon {
     padding-left: 25px !important;
+}
+
+.small .linkWithIcon {
+	height: 16px !important;
+	line-height: 120%;
+	display: inline-block;
 }
 
 a.linkInTitle {

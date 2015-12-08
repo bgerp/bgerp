@@ -139,10 +139,10 @@ class backup_Start extends core_Manager
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
         // Качваме бекъп-а
-        self::$storage->putFile(self::$backupFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$backupFileName);
         
         // Качваме и мета файла
-        self::$storage->putFile(self::$metaFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
         
         // Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$backupFileName);
@@ -238,10 +238,10 @@ class backup_Start extends core_Manager
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
         // 7. Качва се binloga с подходящо име
-        self::$storage->putFile(self::$binLogFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$binLogFileName);
         
         // 8. Качва се и мета файла
-        self::$storage->putFile(self::$metaFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
         
         // 9. Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
@@ -275,7 +275,7 @@ class backup_Start extends core_Manager
             file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($keeped));
             
             // Качваме МЕТАТ-а в сториджа
-            self::$storage->putFile(self::$metaFileName);
+            self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
             
             // Отключваме бекъп-а, защото изтриването на файлове може да е бавна операция
             self::unLock();
@@ -336,7 +336,7 @@ class backup_Start extends core_Manager
             self::$confFileName = self::crypt(self::$confFileName);
         }
         
-        self::$storage->putFile(self::$confFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$confFileName);
         
         @unlink(EF_TEMP_PATH . "/" . self::$confFileName);
         
@@ -386,8 +386,8 @@ class backup_Start extends core_Manager
         $unArchived = fileman_Data::getUnArchived();
         
         foreach ($unArchived as $fileObj) {
-            if (@copy($fileObj->path, EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj))) {
-                if (self::$storage->putFile(fileman_Data::getFileName($fileObj))) {
+            if (@copy($fileObj->path, fileman_Data::getFileName($fileObj))) {
+                if (self::$storage->putFile(EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj))) {
                     fileman_Data::setArchived($fileObj->id);
                     @unlink(EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj));
                 }

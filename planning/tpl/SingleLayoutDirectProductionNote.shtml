@@ -25,7 +25,7 @@
                                     <tr>
                                        <td><span class='quiet'>|Артикул|*</span>: <b>[#productId#]</b><br>
                                     	   <span class='quiet'>|К-во|*</span>: <b>[#quantity#]</b> 
-                                    	   <!--ET_BEGIN expenses--><br> <span class='quiet'>|Режийни разходи|*</span> [#expenses#]<!--ET_END expenses-->
+                                    	   <!--ET_BEGIN expenses--><br> <span class='quiet'>|Режийни разходи|*</span> <b>[#expenses#]</b> <!--ET_END expenses-->
                                     </td>
                                     </tr>
                                     <tr>

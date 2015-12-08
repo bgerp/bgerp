@@ -41,6 +41,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			if(count($entries)){
 				$result->entries = $entries;
 			}
+			
+			if(!planning_DirectProductNoteDetails::fetch("#noteId = {$rec->id} AND #type = 'input'")){
+				$result->entries = array();
+			}
 		}
 		
 		return $result;
@@ -82,7 +86,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	private function getEntries($rec, &$total)
 	{
 		$resourcesArr = $entries = array();
-		$hasInput = FALSE;
 		
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
@@ -97,7 +100,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				if($dRec->type == 'input'){
 					$productInfo = cat_Products::getProductInfo($dRec->productId);
 					if(!isset($productInfo->meta['canStore'])) continue;
-					$hasInput = TRUE;
 					
 					$entry = array('debit' => array('61101', array('cat_Products', $dRec->productId),
 													'quantity' => $dRec->quantity),
@@ -173,12 +175,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$total += $costAmount;
 					$entries[] = $costArray;
 				}
-			}
-		}
-		
-		if(Mode::get('saveTransaction')){
-			if($hasInput === FALSE){
-				acc_journal_RejectRedirect::expect(FALSE, "Не може да се контира документа, без да има вложени ресурси");
 			}
 		}
 		

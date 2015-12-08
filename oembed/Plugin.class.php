@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Плъгин за вграждане на външни ресурси (видео, снимки и пр) в наш HTML
  * 
@@ -15,6 +17,7 @@
  */
 class oembed_Plugin extends core_Plugin
 {
+    
     /**
      * Съответствие между регулярен израз за URL на ресурс (снимка, видео и пр) и съответна
      * входна точка за oembed заявки.
@@ -168,6 +171,11 @@ class oembed_Plugin extends core_Plugin
         }
         
         if ($response['cache_age'] !== 0) {
+            
+//            if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443) {
+                $response['html'] = preg_replace_callback('/\s+src\s*=\s*(\'|\")(http:\/\/)/', array(get_called_class(), 'replaceHttp'), $response['html']);
+//            }
+            
             $cacheRec = array(
                 'url' => $url,
                 'html' => $response['html'],
@@ -179,6 +187,20 @@ class oembed_Plugin extends core_Plugin
         }
         
         return $response['html'];
+    }
+    
+    
+    /**
+     * Замества http връзките с https
+     * 
+     * @param array $matches
+     * 
+     * @return string
+     */
+    protected static function replaceHttp($matches)
+    {
+        
+        return str_ireplace('http://', 'https://', $matches[0]);
     }
     
     
