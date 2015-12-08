@@ -349,7 +349,7 @@ class doc_Containers extends core_Manager
         
         if (!$hidden) {
             
-            if($docRow->authorId || $docRow->authorEmail) {
+            if($docRow->authorId) {
                 $avatar = avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail);
             } else {
                 $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
