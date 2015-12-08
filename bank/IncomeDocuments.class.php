@@ -166,7 +166,7 @@ class bank_IncomeDocuments extends core_Master
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
-        $this->FLD('rate', 'double(smartRound)', 'caption=Курс');
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
         $this->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание,mandatory');
         $this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
         $this->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');

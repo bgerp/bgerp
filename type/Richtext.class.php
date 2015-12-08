@@ -1493,7 +1493,10 @@ class type_Richtext extends type_Blob
             $lastPart = implode('#', $explodeArr);
         }
         
+        $haveLastPart = FALSE;
+        
         if($lastPart{0} == '?') {
+           $haveLastPart = TRUE;
            $lastPart = ltrim($lastPart, '?');
            $lastPart = str_replace('&amp;', '&', $lastPart);
            parse_str($lastPart, $params);
@@ -1503,7 +1506,7 @@ class type_Richtext extends type_Blob
            $params['#'] = $anchor;
         }
         
-        if ($lastPart{0} == '?' || $anchor) {
+        if ($haveLastPart || $anchor) {
             unset($restArr[count($restArr)-1]);
         }
         

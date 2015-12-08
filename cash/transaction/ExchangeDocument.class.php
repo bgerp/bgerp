@@ -61,8 +61,11 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     		$entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toCase, 'credit' => $fromCase);
     		$entry = array($entry);
     	} else {
+    		$dCode = currency_Currencies::getCodeById($rec->debitCurrency);
+    		$rate = currency_CurrencyRates::getRate($rec->valior, $dCode, NULL);
+    		
     		$entry = array();
-    		$entry[] = array('amount' => $rec->debitQuantity * $rec->debitPrice,
+    		$entry[] = array('amount' => $rec->debitQuantity * $rate,
     				'debit' => $toCase,
     				'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
     		$entry[] = array('amount' => $rec->debitQuantity * $rec->debitPrice,

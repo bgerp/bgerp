@@ -151,6 +151,12 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Да се правили проверка дали документа може да се контира в нишката
+     */
+    var $checkIfCanContoInThread = FALSE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()

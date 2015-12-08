@@ -75,7 +75,9 @@ class cms_page_External extends core_page_Active
         
         // Обличаме кожата
         $skin = cms_Domains::getCmsSkin();
-        $skin->prepareWrapper($this);
+        if ($skin) {
+            $skin->prepareWrapper($this);
+        }
     	
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");

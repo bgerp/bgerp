@@ -558,7 +558,6 @@ class cat_BomDetails extends doc_Detail
     	}
     	
     	$rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
-    	$rec->rowQuantity /= $rec->quantityInPack;
     	
     	$highlightedExpr = static::highliteExpr($rec->propQuantity, $rec->params);
     	$row->propQuantity = $highlightedExpr;
@@ -566,6 +565,7 @@ class cat_BomDetails extends doc_Detail
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     	} else {
+    		$rec->rowQuantity /= $rec->quantityInPack;
     		$row->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
     	}
     	

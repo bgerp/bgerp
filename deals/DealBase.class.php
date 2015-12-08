@@ -420,8 +420,9 @@ abstract class deals_DealBase extends core_Master
         if ($res === FALSE) return ;
         
         $dealHistory = Request::get('dealHistory');
+        $dealReport = Request::get('dealReport');
         
-        $res = md5($res . $dealHistory);
+        $res = md5($res . '|' . $dealHistory . '|' . $dealReport);
     }
     
     
@@ -484,7 +485,14 @@ abstract class deals_DealBase extends core_Master
 
     	// правим странициране
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage));
-    	$pager->itemsCount = count($dealInfo->products);
+    	
+    	if (count($dealInfo->products)!= count ($dealInfo->shippedProducts)) {
+    		$cnt = count($dealInfo->products) + count ($dealInfo->shippedProducts);
+    	} else {
+    		$cnt = count($dealInfo->products);
+    	}
+    	
+    	$pager->itemsCount = $cnt;
     	$data->reportPager = $pager;
     	
     	$pager->calc();
@@ -519,6 +527,9 @@ abstract class deals_DealBase extends core_Master
 				    			// поръчаното количество
 				    			$obj->quantity = $Int->toVerbal($product->quantity);
 				    		}
+				    	} else {
+				    		// поръчаното количество
+				    		$obj->quantity = $Int->toVerbal($product->quantity);
 				    	}
 				    }
 
@@ -546,7 +557,7 @@ abstract class deals_DealBase extends core_Master
 			    					"measure" => cat_UoM::fetchField($shipMeasureId,'shortName'),
 			    					"quantity" => 0,
 			    					"shipQuantity" => $Int->toVerbal($shipProduct->quantity),
-			    					"bQuantity" => $Int->toVerbal($shipProduct->quantity)
+			    					"bQuantity" => NULL
 			    					
 			    	);
 			    // ако вече е добавен		
@@ -568,6 +579,11 @@ abstract class deals_DealBase extends core_Master
 			    				// и намерим остатъка за доставяне
 			    				$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
 			    			}
+			    		} else {
+			    			// като добавим доставеното количесто
+			    			$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    			// и намерим остатъка за доставяне
+			    			$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
 			    		}
 			    	}
 			    }
