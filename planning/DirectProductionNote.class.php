@@ -268,7 +268,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			
 			// Ако могат да се генерират детайли от артикула да се
 			if(empty($rec->id)){
-				$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+				$details = $mvc->getDefaultDetails($rec);
 			}
 			
 			if($details === FALSE){
@@ -279,54 +279,36 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Изпълнява се след създаване на нов запис
-	 */
-	public static function on_AfterCreate($mvc, $rec)
-	{
-		// Ако могат да се генерират детайли от артикула да се
-		$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
-		
-		if($details !== FALSE){
-			
-			// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
-			if(count($details)){
-				foreach ($details as $dRec){
-					$dRec->noteId = $rec->id;
-					planning_DirectProductNoteDetails::save($dRec);
-				}
-			}
-		}
-	}
-	
-	
-	/**
 	 * Връща дефолт детайлите на документа, които съотвестват на ресурсите
 	 * в последната активна рецепта за артикула
 	 * 
-	 * @param int $productId       - ид на артикул
-	 * @param int $storeId         - ид на склад
-	 * @param double $prodQuantity - количество за произвеждане
-	 * @param double $jobQuantity  - количество от заданието
-	 * @return array $details      - масив с дефолтните детайли
+	 * @param stdClass $rec   - запис
+	 * @return array $details - масив с дефолтните детайли
 	 */
-	protected function getDefaultDetails($productId, $storeId, $prodQuantity, $jobQuantity)
+	protected function getDefaultDetails($rec)
 	{
 		$details = array();
+		$originRec = doc_Containers::getDocument($rec->originId)->rec();
 		
 		// Ако артикула има активна рецепта
-		$bomId = cat_Products::getLastActiveBom($productId, 'production')->id;
+		$bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
 		if(!$bomId){
-			$bomId = cat_Products::getLastActiveBom($productId, 'sales')->id;
+			$bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
 		}
 		
 		// Ако ням рецепта, не могат да се определят дефолт детайли за влагане
 		if(!$bomId) return $details;
 		
-		// Извличаме информацията за ресурсите в рецептата
-		$bomInfo = cat_Boms::getResourceInfo($bomId, $prodQuantity, dt::now());
+		// К-ко е произведено до сега и колко ще произвеждаме
+		$quantityProduced = $originRec->quantityProduced;
+		$quantityToProduce = $rec->quantity + $quantityProduced;
+		
+		// Извличаме информацията за ресурсите в рецептата за двете количества
+		$bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+		$bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
 		
 		// За всеки ресурс
-		foreach($bomInfo['resources'] as $resource){
+		foreach($bomInfo2['resources'] as $index =>$resource){
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
@@ -334,7 +316,9 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
-			$dRec->quantity       = $resource->propQuantity;
+			
+			// Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
+			$dRec->quantity       = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
 			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
@@ -371,6 +355,27 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		
 		// Връщаме генерираните детайли
 		return $details;
+	}
+
+
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		// Ако могат да се генерират детайли от артикула да се
+		$details = $mvc->getDefaultDetails($rec);
+	
+		if($details !== FALSE){
+				
+			// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
+			if(count($details)){
+				foreach ($details as $dRec){
+					$dRec->noteId = $rec->id;
+					planning_DirectProductNoteDetails::save($dRec);
+				}
+			}
+		}
 	}
 	
 	
