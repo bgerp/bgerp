@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
-    <p class='centered'>№ [#id#] / [#createdDate#]</p>
+    <p class='centered'>№ [#id#] / [#valior#]</p>
     <!--ET_BEGIN closeWith-->
     <p class='centered'>|с|* [#closeWith#]</p>
     <!--ET_END closeWith-->

@@ -133,7 +133,7 @@ class acc_plg_Contable extends core_Plugin
             
         	unset($error);
             // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($rec->{$mvc->valiorFld}, $error)){
+            if(!self::checkPeriod($mvc->getValiorDate($rec), $error)){
                 $error = ",error={$error}";
             } else {
             	if(!self::canContoInThread($mvc, $rec)){
@@ -216,9 +216,9 @@ class acc_plg_Contable extends core_Plugin
     		if($firstDocInThread = doc_Threads::getFirstDocument($rec->threadId)){
     			if($firstDocItem = acc_Items::fetchItem($firstDocInThread->getInstance(), $firstDocInThread->that)){
     				$createdOn = dt::verbal2mysql($firstDocItem->createdOn, FALSE);
-    					
+    				
     				// Ако създаването на перото е след вальора на документа, да не може да се контира
-    				if($createdOn > $rec->{$mvc->valiorFld}){
+    				if($createdOn > $mvc->getValiorDate($rec)){
     				
     					return FALSE;
     				}
@@ -282,7 +282,7 @@ class acc_plg_Contable extends core_Plugin
             	
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = isset($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	$valior = isset($jRec) ? $jRec->valior : $mvc->getValiorDate($rec);
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
@@ -294,7 +294,7 @@ class acc_plg_Contable extends core_Plugin
                 
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = !empty($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	$valior = !empty($jRec) ? $jRec->valior : $mvc->getValiorDate($rec);
             	
             	$periodRec = acc_Periods::fetchByDate($valior);
                 
@@ -319,7 +319,7 @@ class acc_plg_Contable extends core_Plugin
             if(isset($rec)){
             	
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
-            	$periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
+            	$periodRec = acc_Periods::fetchByDate($mvc->getValiorDate($rec));
             	if ($periodRec->state == 'closed') {
             		$requiredRoles = 'no_one';
             	}
@@ -574,6 +574,14 @@ class acc_plg_Contable extends core_Plugin
     {
     	if(!$res){
     		$res = ($mvc->canUseClosedItems === TRUE) ? TRUE : FALSE;
+    	}
+    }
+    
+    
+    public static function on_AfterGetValiorDate($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$rec->{$mvc->valiorFld};
     	}
     }
 }
