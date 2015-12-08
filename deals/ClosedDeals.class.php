@@ -380,6 +380,8 @@ abstract class deals_ClosedDeals extends core_Master
         
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
+        $valior = cls::get(get_called_class())->getValiorDate($rec);
+        $row->valior = cls::get('type_Date')->toVerbal($valior);
         
         return $row;
     }
