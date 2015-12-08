@@ -79,7 +79,7 @@ class backup_Local extends core_Master
     static function removeFile($fileName)
     {
         $conf = core_Packs::getConfig('backup');
-        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . $fileName);
+        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
         
         return $result;
     }

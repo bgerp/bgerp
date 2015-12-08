@@ -264,9 +264,10 @@ class backup_Setup extends core_ProtoSetup
         $touchFile = tempnam(EF_TEMP_PATH, "bgERP");
         file_put_contents($touchFile, "1");
         
-        if (@$storage->putFile($touchFile)) {
+        if (@$storage->putFile($touchFile) && @$storage->removeFile($touchFile)) {
+            unlink($touchFile);
         } else {
-            
+            unlink($touchFile);
             return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
         }
         
