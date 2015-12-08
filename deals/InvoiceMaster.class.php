@@ -83,7 +83,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
-    	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,before=dueTime');
+    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
     	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
     	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
