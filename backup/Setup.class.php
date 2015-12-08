@@ -190,6 +190,15 @@ class backup_Setup extends core_ProtoSetup
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
         
+        $cfgRes = $this->checkConfig();
+
+        // Имаме грешка в конфигурацията - не добавяме задачите на крона
+        if (!is_null($cfgRes)) {
+            
+            return $html;
+        }
+        
+        
         // Залагаме в cron
         $rec = new stdClass();
         $rec->systemId = 'BackupStartFull';
@@ -242,21 +251,23 @@ class backup_Setup extends core_ProtoSetup
     /**
      * Проверява дали MySql-а е конфигуриран за binlog логове
      *
-     * @return boolean
+     * @return NULL|string
      */
     public function checkConfig()
     {
+
         // Проверяваме дали имаме права за писане в сториджа
-        // $conf = ;
         $conf = core_Packs::getConfig('backup');
+
         $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);
         
-        $touchFile = tempnam();
-        file_put_contents(EF_TEMP_PATH . "/" . $touchFile, "");
+        $touchFile = tempnam(EF_TEMP_PATH, "bgERP");
+        file_put_contents($touchFile, "1");
         
         if (@$storage->putFile($touchFile) && @$storage->removeFile($touchFile)) {
+            unlink($touchFile);
         } else {
-            
+            unlink($touchFile);
             return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
         }
         
@@ -276,7 +287,7 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
-        return TRUE;
+        return NULL;
     }
     
     

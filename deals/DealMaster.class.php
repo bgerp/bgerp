@@ -118,7 +118,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Плащане
 		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
-		$mvc->FLD('currencyRate', 'double(smartRound)', 'caption=Плащане->Курс');
+		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
 		
 		// Наш персонал

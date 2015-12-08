@@ -5,7 +5,7 @@
     <!--ET_END primeCost-->
    
     <!--ET_BEGIN expenses-->
-    	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: [#expenses#]</div>
+    	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: <b>[#expenses#]</b></div>
     <!--ET_END expenses-->
      
     <div class = 'fieldset-holder' style='margin-top:10px'>

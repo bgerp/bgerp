@@ -643,13 +643,21 @@ class core_Db extends core_BaseClass
         if(!$link) {
             $link = $this->connect();
         }
-
+        
         if (is_array($link->error_list) && count($link->error_list) > 0) {
-                $errno = $link->error_list[0]['errno'];
-                $error = $link->error_list[0]['error'];
-                
+            if (!$link->errno) {
+                $link->errno = $link->error_list[0]['errno'];
+            }
+            
+            if (!$link->error) {
+                $link->error = $link->error_list[0]['error'];
+            }
+        }
+        
+        if ($link->errno) {
+            
                 // Грешка в базата данни
-                $dump =  array('query' => $this->query, 'mysqlErrCode' => $errno, 'mysqlErrMsg' => $error, 'dbLink' => $link);
+                $dump =  array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
                 throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
 

@@ -692,10 +692,9 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
+                    doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
+                    $mvc->logInAct('Оттегляне', $rec);
                 }
-                
-                doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-                $mvc->logInAct('Оттегляне', $rec);
             }
             
             // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
@@ -734,9 +733,9 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         doc_Threads::restoreThread($rec->threadId);
                     }
+                    
+                    $mvc->logInAct('Възстановяване', $rec);
                 }
-                
-                $mvc->logInAct('Възстановяване', $rec);
             }
             
             // Пренасочваме контрола
@@ -2558,7 +2557,7 @@ class doc_DocumentPlg extends core_Plugin
     	if(!$res){
     		if(is_object($rec)){
     			$rec->modifiedOn = dt::now();
-    			$mvc->save($rec, 'modifiedOn');
+    			$mvc->save_($rec, 'modifiedOn');
     		}
     	}
     }

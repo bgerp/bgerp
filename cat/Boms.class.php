@@ -941,6 +941,7 @@ class cat_Boms extends core_Master
     	
     	// Ако няма цена връщаме FALSE
     	if(!isset($price)) return FALSE;
+    	if(!$quantity) return FALSE;
     	
     	// Умножаваме цената по количеството
     	$price *= $quantity;

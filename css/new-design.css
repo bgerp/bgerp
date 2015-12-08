@@ -270,6 +270,8 @@ body {
 .narrow #main-container > .tab-control > .tab-row {
   top: 44px;
   padding: 3px 13px 1px; }
+  .narrow #main-container > .tab-control > .tab-row .row-holder {
+    width: 1000px; }
 
 .userInfo {
   margin-right: 10px;
@@ -762,6 +764,11 @@ button {
 input.linkWithIcon,
 a.linkWithIcon {
   padding-left: 25px !important; }
+
+.small .linkWithIcon {
+  height: 16px !important;
+  line-height: 120%;
+  display: inline-block; }
 
 a.linkInTitle {
   color: #222222 !important; }
