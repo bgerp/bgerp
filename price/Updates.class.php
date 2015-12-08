@@ -127,7 +127,7 @@ class price_Updates extends core_Manager
     	$pQuery->where("#canBuy = 'yes' OR #canSell = 'yes'");
     	
     	while($pRec = $pQuery->fetch()){
-    		$products[$pRec->id] = cat_Products::getRecTitle($rec, FALSE);
+    		$products[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
     	}
     	
     	// Задаваме намерените артикули за опции на полето
