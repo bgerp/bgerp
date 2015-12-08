@@ -2557,7 +2557,7 @@ class doc_DocumentPlg extends core_Plugin
     	if(!$res){
     		if(is_object($rec)){
     			$rec->modifiedOn = dt::now();
-    			$mvc->save($rec, 'modifiedOn');
+    			$mvc->save_($rec, 'modifiedOn');
     		}
     	}
     }
