@@ -1245,7 +1245,7 @@ class email_Incomings extends core_Master
             // Извличаме записа на сметката, от която е изтеглено това писмо
             $accRec = email_Accounts::fetch($rec->accId);
         }
-
+        
         // Ако сметката е с рутиране
         if($accRec && ($accRec->applyRouting == 'yes')) {
         
@@ -1312,20 +1312,6 @@ class email_Incomings extends core_Master
     }
     
     
-    
-    /**
-     * Преди вкарване на запис в модела
-     */
-    static function on_BeforeSave($mvc, $id, &$rec) {
-        //При сваляне на имейл-а, състоянието е затворено
-        
-        if (!$rec->id) {
-            $rec->state = 'closed';
-            $rec->_isNew = TRUE;
-        }
-    }
-
-
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
