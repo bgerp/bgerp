@@ -32,25 +32,31 @@ class price_Updates extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, name=Правило,costSource1,costSource2,costSource3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
+    public $listFields = 'tools=Пулт, name=Правило,costSource1,costSource2,costSource3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'id';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Кой може да го промени?
      */
     public $canWrite = 'price,ceo';
+    
+    
+    /**
+     * Кой може да го промени?
+     */
+    public $canRead = 'price,ceo';
     
     
     /**
@@ -69,12 +75,6 @@ class price_Updates extends core_Manager
 	 * Кой може ръчно да обновява себестойностите?
 	 */
 	public $canSaveprimecost = 'price,ceo';
-
-
-	/**
-	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-	 */
-	public $searchFields = 'costSource1,costSource2,costSource3';
 	
 	
     /**
@@ -116,21 +116,20 @@ class price_Updates extends core_Manager
     	$rec = &$form->rec;
     	
     	// Добавяме функционални полета за по-хубав избор на категория или артикул
-    	$form->FNC('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория,input,before=costSource1');
-    	$form->FNC('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,input,before=categoryId');
+    	$form->FNC('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория,input,before=costSource1,silent');
+    	$form->FNC('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,input,before=categoryId,silent');
+    	
+    	$form->input(NULL, 'silent');
     	
     	// Намираме всички активни стандартни, продаваеми или купуваеми артикули
     	$products = cat_Products::getStandartProducts();
     	
     	// Задаваме намерените артикули за опции на полето
     	$form->setOptions('productId', array('' => '') + $products);
-    	
-    	if(isset($rec->id)){
-    		if($rec->type == 'category'){
-    			$rec->categoryId = $rec->objectId;
-    		} else {
-    			$rec->productId = $rec->objectId;
-    		}
+    	if($rec->type == 'category'){
+    		$rec->categoryId = $rec->objectId;
+    	} elseif($rec->type == 'product') {
+    		$rec->productId = $rec->objectId;
     	}
     }
     
@@ -196,7 +195,7 @@ class price_Updates extends core_Manager
     	$row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, TRUE) : cat_Products::getHyperlink($rec->objectId, TRUE);
     	
     	if($mvc->haveRightFor('saveprimecost', $rec)){
-    		$row->updateMode = ht::createBtn($row->updateMode, array($mvc, 'saveprimecost', $rec->id), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
+    		$row->updateMode = ht::createBtn('Обнови', array($mvc, 'saveprimecost', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
     		$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
     	}
     	
@@ -212,6 +211,18 @@ class price_Updates extends core_Manager
     	if($action == 'saveprimecost' && isset($rec)){
     		if($rec->updateMode != 'manual'){
     			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'read') && isset($rec)){
+    		if(isset($rec->categoryId)){
+    			if(!cat_Categories::haveRightFor('single', $rec->categoryId)){
+    				$requiredRoles = 'no_one';
+    			}
+    		} elseif(isset($rec->productId)){
+    			if(!cat_Products::haveRightFor('single', $rec->productId)){
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
     }
@@ -231,7 +242,7 @@ class price_Updates extends core_Manager
     	$this->savePrimeCost($rec);
     	
     	// Редирект към списъчния изглед
-    	redirect(array($this, 'list'), FALSE, 'Себестойноста е ръчно обновена');
+    	return followRetUrl(NULL, 'Себестойностите са обновени успено');
     }
     
     
@@ -434,7 +445,6 @@ class price_Updates extends core_Manager
     		try{
     			// Ако не може да се изпълни, пропускаме го
     			if(!$this->canBeApplied($rec, $now)) continue;
-    			echo "<li>RUN: {$rec->id}";
     			
     			// Ще обновяваме себестойностите в модела, освен за записите на които ръчно ще трябва да се обнови
     			$saveInPriceList = ($rec->updateMode == 'manual') ? FALSE : TRUE;
@@ -445,8 +455,6 @@ class price_Updates extends core_Manager
     			reportException($e);
     		}
     	}
-    	
-    	bp();
     }
     
     
@@ -501,27 +509,6 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = 'search';
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	$name = ($rec->type == 'category') ? cat_Categories::getTitleById($rec->objectId) : cat_Products::getTitleById($rec->objectId);
-    	$res = " " . $res . " " . plg_Search::normalizeText($name);
-    }
-    
-    
-    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
@@ -529,5 +516,79 @@ class price_Updates extends core_Manager
     	if(haveRole('debug')){
     		$data->toolbar->addBtn('Преизчисли', array($mvc, 'recalc'), NULL, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
     	}
+    }
+    
+    
+    /**
+     * Подготовка на себестойностите
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareUpdates(&$data)
+    {
+    	// Можем ли да виждаме таба?
+    	$key = ($data->masterMvc instanceof cat_Categories) ? 'categoryId' : 'productId';
+    	if(!$this->haveRightFor('read', (object)array($key => $data->masterId))){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
+    	// Как да се казва таба
+    	$data->TabCaption = 'Обновяване';
+    	$data->rows = $data->recs = array();
+    	
+    	// Извличаме записа за артикула
+    	$query = $this->getQuery();
+    	$type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
+    	$query->where("#type = '{$type}'");
+    	$query->where("#objectId = {$data->masterId}");
+    	
+    	// За всеки запис (може да е максимум един)
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$row = $this->recToVerbal($rec);
+    		$row->sources = "<ol style='margin:0px'>";
+    		foreach (array('costSource1', 'costSource2', 'costSource3') as $fld){
+    			if(isset($rec->{$fld})){
+    				$row->sources .= "<li style='text-align:left'>{$row->{$fld}}</li>";
+    			}
+    		}
+    		$row->sources .= "</ol>";
+    		
+    		$data->rows[$rec->id] = $row;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на дата за себестойностите
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderUpdates($data)
+    {
+    	 // Ако трябва не рендираме таба
+    	 if($data->hide === TRUE) return;
+    	
+    	 // Взимаме шаблона
+    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	 $title = tr('Правило за обновяване на себестойност');
+    	 $tpl->append($title, 'title');
+    	 
+    	 // Добавяме бутон ако трябва
+    	 if(!count($data->recs)){
+    	 	$ht = ht::createLink('', array($this, 'add', 'categoryId' => $data->masterData->rec->id, 'ret_url' => TRUE), FALSE, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
+    	 	$tpl->append($ht, 'title');
+    	 }
+    	 
+    	 // Рендираме таблицата
+    	 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $details = $table->get($data->rows, 'tools=Пулт,sources=Източници,costAdd=Надценка,updateMode=Обновяване');
+    	 $tpl->append($details, 'content');
+    	 
+    	 // Връщаме шаблона
+    	 return $tpl;
     }
 }
