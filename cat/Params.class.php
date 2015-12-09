@@ -91,6 +91,12 @@ class cat_Params extends embed_Manager
     
     
     /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'cat/tpl/SingleLayoutParams.shtml';
+    
+    
+    /**
      * Масив за съответствие на типовете на параметрите с тези в системата
      */
     public static $typeMap = array('double'  => 'type_Double',

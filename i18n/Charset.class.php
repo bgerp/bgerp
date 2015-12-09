@@ -34,7 +34,7 @@ class i18n_Charset extends core_MVC {
         'ISO_8859-8:1988' => 'ISO-8859-8', 'CSISO58GB231280' => 'GB_2312-80', 'ISO_8859-3:1988' => 'ISO-8859-3',
         'TCVN5712-1:1993' => 'TCVN', 'ISO_8859-2:1987' => 'ISO-8859-2', 'ISO_8859-6:1987' => 'ISO-8859-6', 'ISO_8859-4:1988' => 'ISO-8859-4',
         'ISO-10646-UCS-4' => 'UCS-4', 'JISX0201.1976-0' => 'JIS_X0201', 'ISO_8859-5:1988' => 'ISO-8859-5', 'CN-GB-ISOIR165' => 'ISO-IR-165',
-        'KS_C_5601-1989' => 'KSC_5601', 'KSC5601.1987-0' => 'KSC_5601', 'KS_C_5601-1987' => 'KSC_5601', 'UCS-4-INTERNAL' => 'UCS-4-INTERNAL',
+        'KS_C_5601-1989' => 'EUC-KR', 'KSC5601.1987-0' => 'KSC_5601', 'KS_C_5601-1987' => 'CP949', 'UCS-4-INTERNAL' => 'UCS-4-INTERNAL',
         'JIS_X0208-1983' => 'JIS_X0208', 'ANSI_X3.4-1968' => 'US-ASCII', 'JIS_X0212-1990' => 'JIS_X0212', 'JIS_X0208-1990' => 'JIS_X0208',
         'UCS-2-INTERNAL' => 'UCS-2-INTERNAL', 'TIS620.2533-0' => 'TIS-620', 'ISO-2022-JP-2' => 'ISO-2022-JP-2',
         'TIS620.2529-1' => 'TIS-620', 'CSKSC56011987' => 'KSC_5601', 'UNICODELITTLE' => 'UCS-2LE', 'GB2312.1980-0' => 'GB_2312-80',
@@ -843,13 +843,17 @@ class i18n_Charset extends core_MVC {
      * име на кодировка на символи от зададения стринг
      */
     static function getCanonical($charset)
-    { 
+    {
         $charset = strtoupper(trim($charset));
         
-        if(!$charset) return NULL;
+        if (!$charset) return ;
         
-        if(self::$charsetsMatchs[$charset]) {
-            $findCharset = $charset;
+        static $charsetArr = array();
+        
+        if (isset($charsetArr[$charset])) return $charsetArr[$charset];
+        
+        if ($name = self::$charsetsMatchs[$charset]) {
+            $findCharset = $name;
         } else {
             foreach(self::$charsetsMatchs as $key => $name) {
                 if(strpos($charset, (string) $key) !== FALSE) {
@@ -859,20 +863,22 @@ class i18n_Charset extends core_MVC {
             }
         }
         
-        if(!$findCharset) {
+        if (!$findCharset) {
             $findCharset = substr($charset, 0, 64);
         }
         
         // Ако функцията iconv разпознава $findCharset като кодова таблица, връщаме $findCharset
         if(self::iconv('OK', $findCharset) == 'OK') {
-
-            return $findCharset;
+        
+            $charsetArr[$charset] = $findCharset;
+        } else {
+            $charsetArr[$charset] = FALSE;
         }
-
-        return FALSE;
+        
+        return $charsetArr[$charset];
     }
-
-
+    
+    
     /**
      * Конвертира стринга към UTF-8, като предполага, че входния параметър е в $fromCharset
      * Прави и допълнителни на iconv конвертирания. Генерира събития
@@ -885,7 +891,7 @@ class i18n_Charset extends core_MVC {
         if($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";
         }
- 
+         
         if($fromCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'ISO-8859-1' . $mode, $str);
             $str = iconv('CP1251', 'UTF-8' . $mode, $str);

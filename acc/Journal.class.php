@@ -434,11 +434,17 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Връща записа отговарящ на даден документ
+     * Връща записа в журнала породен от подадения документ
+     * 
+     * @param mixed $doc - документа
+     * @param int $docId - ид на документа
+     * @return stdClass|FALSE - намерения запис
      */
-    public static function fetchByDoc($docClassId, $docId)
+    public static function fetchByDoc($doc, $docId)
     {
-        return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+    	$docClassId = cls::get($doc)->getClassId();
+    	
+    	return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
     }
     
     
