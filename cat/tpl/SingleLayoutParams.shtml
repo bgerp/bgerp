@@ -9,16 +9,22 @@
                 <td class="title-style">|Тип|*</td>
                 <td>[#type#]</td>
             </tr>
+            <!--ET_BEGIN suffix-->
             <tr>
                 <td class="title-style">|Суфикс|*</td>
                 <td>[#suffix#]</td>
             </tr>
+            <!--ET_END suffix-->
+            
             <!--ET_BEGIN lastUsedOn-->
             <tr>
                 <td class="title-style nowrap">|Последно използване|*</td>
                 <td>[#lastUsedOn#]</td>
             </tr>
             <!--ET_END lastUsedOn-->
+            
+            <!--ET_BEGIN groupParams-->
+            [#groupParams#]
             <tr>
                 <th colspan="2" style='padding-top: 20px;'>|Конкретизиране|*</th>
             </tr>
@@ -42,13 +48,6 @@
                 <td>[#max#]</td>
             </tr>
             <!--ET_END max-->
-            
-            <!--ET_BEGIN default-->
-            <tr>
-                <td class="title-style">|Дефолт|*</td>
-                <td>[#default#]</td>
-            </tr>
-            <!--ET_END default-->
             
             <!--ET_BEGIN options-->
             <tr>
@@ -85,6 +84,13 @@
             </tr>
             <!--ET_END lenght-->
             
+            <!--ET_BEGIN default-->
+            <tr>
+                <td class="title-style">|Дефолт|*</td>
+                <td>[#default#]</td>
+            </tr>
+            <!--ET_END default-->
+            <!--ET_END groupParams-->
             <tr>
                 <th colspan="2" style='padding-top: 20px;'>|Счетоводен признак за групиране|*</th>
             </tr>
