@@ -885,6 +885,10 @@ class i18n_Charset extends core_MVC {
         if($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";
         }
+        
+        if ($fromCharset == 'KS_C_5601-1987') {
+            $fromCharset = 'CP949'; // Може и 'EUC-KR'
+        }
  
         if($fromCharset == 'ISO-8859-1|CP1251') {
             $str = iconv('UTF-8', 'ISO-8859-1' . $mode, $str);
