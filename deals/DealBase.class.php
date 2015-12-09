@@ -36,6 +36,13 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * Колко записи от репорта да се показват от отчета
+	 * в csv-то
+	 */
+	protected $csvReportItemsPerPage = 1000;
+	
+	
+	/**
 	 * Документа продажба може да бъде само начало на нишка
 	 */
 	public $onlyFirstInThread = TRUE;
@@ -373,12 +380,12 @@ abstract class deals_DealBase extends core_Master
     		// Ако има отчет на сделката показваме я
     		if(isset($data->dealReport)){
     			$tableMvc = new core_Mvc;
-    			$tableMvc->FLD('productId', 'varchar');
-    			$tableMvc->FLD('measure', 'varchar');
     			$tableMvc->FLD('code', 'varchar');
-    			$tableMvc->FLD('debitQuantity', 'varchar');
-    			$tableMvc->FLD('creditQuantity', 'varchar');
-    			$tableMvc->FLD('bQuantity', 'varchar');
+    			$tableMvc->FLD('productId', 'varchar');
+    			$tableMvc->FLD('measure', 'varchar', 'tdClass=accToolsCell,smartCenter');
+    			$tableMvc->FLD('quantity', 'varchar', 'tdClass=aright');
+    			$tableMvc->FLD('shipQuantity', 'varchar', 'tdClass=aright');
+    			$tableMvc->FLD('bQuantity', 'varchar', 'tdClass=aright');
     		
     			$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     			$fields = "code=Код,
@@ -390,6 +397,17 @@ abstract class deals_DealBase extends core_Master
     		
     			$tpl->append($table->get($data->dealReport, $fields), 'DEAL_REPORT');
     			$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
+    			
+    			if($mvc->haveRightFor('export', $data->rec)){
+	    			$expUrl = getCurrentUrl();;
+	    			$expUrl['export'] = TRUE;
+	
+	    			$btn = cls::get('core_Toolbar');
+	    			$btn->addBtn('Експорт в CSV', $expUrl, NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат');
+	    			$btnCSV = 'export';
+	    			$btnCSVHtml = $btn->renderHtml("", $btnCSV);
+	    			$tpl->replace($btnCSVHtml, 'TABEXP');
+    			}
     		}
     	}
     	
@@ -448,12 +466,18 @@ abstract class deals_DealBase extends core_Master
     		// Ако сме в нормален режим
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     			$tabs->TAB('statistic', 'Статистика' , $url);
-    			$tabs->TAB('dealHistory', 'История' , $histUrl);
+    			$tabs->TAB('dealHistory', 'Обороти' , $histUrl);
     			$tabs->TAB('dealReport', 'Поръчано/Доставено' , $reportUrl);
     		
     			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
     			if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
     				$mvc->prepareDealHistory($data);
+    			}
+    			
+    			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
+    			if(Request::get('export', 'int') && haveRole('acc, ceo')){
+    				$mvc->prepareDealReport($data);
+    				$mvc->еxportReport($data);
     			}
     			
     			// Ако е зареден флаг в урл-то и имаме право за отчет подготвяме репорта
@@ -471,6 +495,114 @@ abstract class deals_DealBase extends core_Master
     
     
     /**
+     * Екшън който експортира данните
+     */
+    protected function еxportReport(&$data)
+    {
+        expect(Request::get('export', 'int'));
+        
+    	expect($rec = $data->dealReportCSV);
+
+    	// Проверка за права
+    	$this->requireRightFor('export', $rec);
+        
+    	$title = $this->title . " Поръчано/Доставено";
+    
+    	$csv = $this->prepareCsvExport($rec);
+    
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($title));
+    	 
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    	 
+    	echo $csv;
+    
+    	shutdown();
+    }
+    
+    
+    /**
+     * Екшън подготвя данните за експортира 
+     */
+    protected function prepareCsvExport(&$data)
+    {
+    	$exportFields = $this->getExportFields();
+ 
+    	$conf = core_Packs::getConfig('core');
+    	
+    	if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+    		redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    	}
+    	
+    	$csv = "";
+    	
+    	foreach ($exportFields as $caption) {
+    		$header .= $caption. ",";
+    	}
+    	
+    	if(count($data)) {
+    		foreach ($data as $id => $rec) {
+    			// от вербална стойност ги правим в числа
+    			$rec->quantity = (double) $rec->quantity;
+    			$rec->shipQuantity = (double) $rec->shipQuantity;
+    			$rec->bQuantity = (double) $rec->bQuantity;
+    			
+    			foreach ($rec as $field => $value) {
+    				$rCsv = '';
+    			
+    				foreach ($exportFields as $field => $caption) {
+    			
+    					if ($rec->{$field}) {
+    			
+    						$value = $rec->{$field};
+    						$value = html2text_Converter::toRichText($value);
+    						// escape
+    						if (preg_match('/\\r|\\n|,|"/', $value)) {
+    							$value = '"' . str_replace('"', '""', $value) . '"';
+    						}
+    						$rCsv .= $value. ",";
+    			
+    					} else {
+    						$rCsv .= '' . ",";
+    					}
+    				}
+    			}
+
+    			$csv .= $rCsv;
+    			$csv .=  "\n";
+    		}
+    	
+    		$csv = $header . "\n" . $csv;
+    	}
+    	
+    	return $csv; 
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getExportFields_()
+    {
+    	// Кои полета ще се показват
+		$fields = arr::make("code=Код,
+    					     productId=Продукт,
+    					     measure=Мярка,
+    					     quantity=Количество - Поръчано,
+    					     shipQuantity=Количество - Доставено,
+    					     bQuantity=Количество - Остатък", TRUE);
+    
+    	return $fields;
+    }
+    
+    
+    /**
      * Подготвя обединено представяне на всички записи от журнала където участва сделката
      */
     protected function prepareDealReport(&$data)
@@ -483,28 +615,11 @@ abstract class deals_DealBase extends core_Master
     	$report = array();
     	$Int = cls::get('type_Int');
 
-    	// правим странициране
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage));
-    	
-    	if (count($dealInfo->products)!= count ($dealInfo->shippedProducts)) {
-    		$cnt = count($dealInfo->products) + count ($dealInfo->shippedProducts);
-    	} else {
-    		$cnt = count($dealInfo->products);
-    	}
-    	
-    	$pager->itemsCount = $cnt;
-    	$data->reportPager = $pager;
-    	
-    	$pager->calc();
-
-    	$start = $data->reportPager->rangeStart;
-    	$end = $data->reportPager->rangeEnd - 1;
-    
     	// Ако има записи където участва артикула подготвяме ги за показване
     	if(count($dealInfo->products)){
     		foreach ($dealInfo->products as $id => $product) { 
 		    	// ако можем да го покажем на страницата	
-		    	if($count >= $start && $count <= $end){
+		    	//if($count >= $start && $count <= $end){
 			    	$obj = new stdClass();
 			    	// информацията за продукта
 			    	$productInfo = cat_Products::getProductInfo($product->productId);
@@ -515,35 +630,16 @@ abstract class deals_DealBase extends core_Master
 				    // мярката му
 				    $measureId = $productInfo->productRec->measureId;
 				    $obj->measure = cat_UoM::fetchField($measureId,'shortName');
-			
-				    if($storeId = $dealInfo->storeId){
-				    	if(isset($productInfo->meta['canStore'])){
-				    		$quantityInStore = store_Products::fetchField("#productId = {$product->productId} AND #storeId = {$storeId}", 'quantity');
-				    		$diff = ($rec->state == 'active') ? $quantityInStore : $quantityInStore - $product->quantity;
-				    			
-				    		if($diff < 0){
-				    			$obj->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($product->quantity)}</span>";
-				    		} else {
-				    			// поръчаното количество
-				    			$obj->quantity = $Int->toVerbal($product->quantity);
-				    		}
-				    	} else {
-				    		// поръчаното количество
-				    		$obj->quantity = $Int->toVerbal($product->quantity);
-				    	}
-				    }
-
+				    
+				    // поръчаното количество
+				    $obj->quantity = $Int->toVerbal($product->quantity);
+	
 				    $report[$id] = $obj;			    	
-		    	}
-		    
-		    	$count++;
 		    }
 		    
 		    // за всеки един масив от доставени продукти
 		    foreach ($dealInfo->shippedProducts as $idShip => $shipProduct) {
-		    	// роверяваме дали може да се сложи на страницата
-		    	if(!$pager->isOnPage()) continue;
-		    	
+
 		    	// ако ид-то на продукта не е добавен в резултатния масив до сега
 			    if (!array_key_exists($idShip, $report)) {
 
@@ -566,31 +662,39 @@ abstract class deals_DealBase extends core_Master
 			    	$shipObj = &$report[$idShip];
 			    	
 			    	if($shipStoreId = $dealInfo->storeId){
-			    		if(isset($productInfo->meta['canStore'])){
-			    			$shipQuantityInStore = store_Products::fetchField("#productId = {$shipProduct->productId} AND #storeId = {$shipStoreId}", 'quantity');
-			    			$shipDiff = ($rec->state == 'active') ? $quantityInStore : $quantityInStore - $product->quantity;
-			    			 
-			    			if($shipDiff < 0){
-			    				$shipObj->shipQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($shipProduct->quantity)}</span>";
-			    				$shipObj->bQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)))}</span>";
-			    			} else {
-			    				// като добавим доставеното количесто
-			    				$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
-			    				// и намерим остатъка за доставяне
-			    				$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
-			    			}
-			    		} else {
-			    			// като добавим доставеното количесто
-			    			$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
-			    			// и намерим остатъка за доставяне
-			    			$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
+			    		$shipQuantityInStore = (double) store_Products::fetchField("#productId = {$shipProduct->productId} AND #storeId = {$shipStoreId}", 'quantity');
+			    			
+			    		// като добавим доставеното количесто
+			    		$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    		// и намерим остатъка за доставяне
+			    		$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
+			    			
+						$shipDiff = ($rec->state == 'active') ? $shipQuantityInStore : ($shipQuantityInStore - abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
+			    			
+			    		if($shipDiff < 0){
+			    			$shipObj->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($shipObj->quantity)}</span>";
 			    		}
 			    	}
 			    }
 		    }
     	}
+
+    	$data->dealReportCSV = $report;
     	
-    	$data->dealReport = $report;
+    	// правим странициране
+    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage)); 
+    	
+    	$cnt = count($report);
+    	$pager->itemsCount = $cnt;
+    	$data->reportPager = $pager;
+    	 
+    	$pager->calc();
+    	
+    	$start = $data->reportPager->rangeStart;
+    	$end = $data->reportPager->rangeEnd - 1;
+    	
+    	// проверяваме дали може да се сложи на страницата
+    	$data->dealReport = array_slice ($report, $start, $end - $start + 1);
     }
     
     
