@@ -473,14 +473,14 @@ class price_Updates extends core_Manager
     		case 'nextDay':
     			
     			// Дали часа от датата е 15:00
-    			$hour = dt::mysql2verbal($date, 'H:i');
-    			$res = ($hour == '15:00');
+    			$hour = dt::mysql2verbal($date, 'H');
+    			$res = ($hour == '15');
     			break;
     		case 'nextWeek':
     			
     			// Дали датата е петък 15:00 часа
-    			$day = dt::mysql2verbal($date, 'D:H:i','en');
-    			$res = ($day == 'Fri:15:00');
+    			$day = dt::mysql2verbal($date, 'D:H','en');
+    			$res = ($day == 'Fri:15');
     			break;
     		case 'nextMonth':
     			
@@ -488,8 +488,8 @@ class price_Updates extends core_Manager
     			$lastDayOfMonth = dt::getLastDayOfMonth($date);
     			$dateToCompare = dt::addDays(-5, $lastDayOfMonth);
     			$dateToCompare = dt::addSecs(60*60*15, $dateToCompare);
-    			$dateToCompare = dt::mysql2verbal($dateToCompare, 'd:H:i');
-    			$date = dt::mysql2verbal($date, 'd:H:i');
+    			$dateToCompare = dt::mysql2verbal($dateToCompare, 'd:H');
+    			$date = dt::mysql2verbal($date, 'd:H');
     			
     			$res = ($date == $dateToCompare);
     			break;
