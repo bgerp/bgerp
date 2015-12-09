@@ -237,13 +237,16 @@ class core_Query extends core_FieldSet
         
         if(count($keylistArr)) {
             foreach($keylistArr as $key => $value) {
-                $cond .= ($cond ? " OR " : "") . "LOCATE('|{$key}|', #{$field})";
-            }
-
-            if($or === TRUE) {
-                $this->orWhere($cond);
-            } else {
-                $this->where($cond);
+                
+                $cond = "#{$field} LIKE '%|{$key}|%'";
+                
+                if($or === TRUE) {
+                    $this->orWhere($cond);
+                } else {
+                    $this->where($cond);
+                }
+                
+                $or = TRUE;
             }
         }
         
