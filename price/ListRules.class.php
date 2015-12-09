@@ -703,4 +703,29 @@ class price_ListRules extends core_Detail
 		
 		return $wrapTpl;
 	}
+	
+	
+	/**
+	 * Създава запис на себестойност на артикул
+	 * 
+	 * @param int    $productId    - ид на продукт
+	 * @param double $primeCost    - себестойност
+	 * @param date   $validFrom    - от кога е валидна
+	 * @param string $currencyCode - код на валута
+	 * @param yes|no $vat          - с ДДС или без
+	 * @return int				   - ид на създадения запис
+	 */
+	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode, $vat = 'no')
+	{
+		$obj = (object)array('productId' => $productId,
+				             'type'      => 'value',
+				             'validFrom' => $validFrom,
+							 'listId'    => price_ListRules::PRICE_LIST_COST,
+							 'price'     => $primeCost,
+							 'vat'       => $vat,
+							 'createdBy' => -1,
+							 'currency'  => $currencyCode);
+		
+		return self::save($obj);
+	}
 }

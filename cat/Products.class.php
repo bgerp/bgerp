@@ -2001,4 +2001,25 @@ class cat_Products extends embed_Manager {
     {
     	$mvc->createdProducts[] = $rec;
     }
+    
+    
+    /**
+     * Намира всички стандартни, продаваеми или купуваеми артикули
+     * 
+     * @return array $products - артикули
+     */
+    public static function getStandartProducts()
+    {
+    	$products = array();
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#isPublic = 'yes'");
+    	$pQuery->where("#state = 'active'");
+    	$pQuery->where("#canBuy = 'yes' OR #canSell = 'yes'");
+    	 
+    	while($pRec = $pQuery->fetch()){
+    		$products[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
+    	}
+    	
+    	return $products;
+    }
 }

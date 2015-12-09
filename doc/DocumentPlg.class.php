@@ -2502,10 +2502,10 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
-        // Отворен горен таб
-        $tabTop = Request::get('TabTop');
+        // Отворен таб на историята
+        $tab = Request::get('Tab');
 
-        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop . $isThisDoc;
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);

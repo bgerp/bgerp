@@ -267,7 +267,7 @@ class type_Key extends type_Int
                     
                     $keyIndex = $this->getKeyField();
                     
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex);
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
