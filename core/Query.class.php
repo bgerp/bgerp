@@ -572,11 +572,11 @@ class core_Query extends core_FieldSet
                 $options = implode(' ', $this->_selectOptions);
             }
            
-            $query = "SELECT SQL_CACHE {$options}\n   count(1) AS `_count`";
+            $query = "SELECT {$options}\n   count(1) AS `_count`";
 
             if ($temp->getGroupBy() ||
                 count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
-                $fields = $temp->getShowFields(FALSE, TRUE);
+                $fields = $temp->getShowFields();
                 $query .= ($fields ? ',' : '') . $fields;
             }
             
