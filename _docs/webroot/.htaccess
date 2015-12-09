@@ -5,6 +5,13 @@
 # Disable directory listing   
 Options -Indexes
 
+<IfModule mod_headers.c>
+    Header unset Server
+    Header unset X-Powered-By
+    Header unset Pragma
+</IfModule>
+
+
 # Disable server signature
 ServerSignature Off
 

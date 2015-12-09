@@ -515,7 +515,7 @@ class core_Mvc extends core_FieldSet
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
      * на $class отговарящи на условието where
      */
-    function makeArray4Select_($fields = NULL, $where = "", $index = 'id')
+    function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $orderBy = NULL)
     {
         $query = $this->getQuery();
 
@@ -524,7 +524,7 @@ class core_Mvc extends core_FieldSet
         if ($fields) {
             $query->show($fields);
             $query->show($index);
-            $query->orderBy($fields);
+            $query->orderBy($orderBy ? $orderBy : $fields);
         }
         
         $res = FALSE;

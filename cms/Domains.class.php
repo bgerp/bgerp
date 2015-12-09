@@ -340,11 +340,11 @@ class cms_Domains extends core_Embedder
                 foreach($langsInCountry as $lg) {
                     $langArr[$lg]++;
                 }
-            } else {
-                setIfNot($langArr['en'], 0.01);
-            }
+            } 
         }
-        
+
+        setIfNot($langArr['en'], 0.01);
+
         if($langArr['en']) {
             $langArr['en'] *= 0.99;
         }
