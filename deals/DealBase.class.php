@@ -548,32 +548,32 @@ abstract class deals_DealBase extends core_Master
     			$rec->quantity = (double) $rec->quantity;
     			$rec->shipQuantity = (double) $rec->shipQuantity;
     			$rec->bQuantity = (double) $rec->bQuantity;
+    
+    			$rCsv = '';
     			
-    			foreach ($rec as $field => $value) {
-    				$rCsv = '';
+    			foreach ($exportFields as $field => $caption) {
+    				$value = '';
     			
-    				foreach ($exportFields as $field => $caption) {
-    			
-    					if ($rec->{$field}) {
-    			
-    						$value = $rec->{$field};
-    						$value = html2text_Converter::toRichText($value);
-    						// escape
-    						if (preg_match('/\\r|\\n|,|"/', $value)) {
-    							$value = '"' . str_replace('"', '""', $value) . '"';
-    						}
-    						$rCsv .= $value. ",";
-    			
-    					} else {
-    						$rCsv .= '' . ",";
-    					}
-    				}
-    			}
+	    			if (isset($rec->{$field})) {
+	    			
+	    				$value = $rec->{$field};
+	    				if ($field == 'productId') {
+	    					$value = html2text_Converter::toRichText($value);
+	    				}
+	    				// escape
+	    				if (preg_match('/\\r|\\n|,|"/', $value)) {
+	    					$value = '"' . str_replace('"', '""', $value) . '"';
+	    				}
+	    				
+	    				$rCsv .= $value. ",";
 
+	    			} else {
+	    				$rCsv .= '-' . ",";
+	    			}
+    			}
     			$csv .= $rCsv;
     			$csv .=  "\n";
     		}
-    	
     		$csv = $header . "\n" . $csv;
     	}
     	
