@@ -44,7 +44,7 @@ class drdata_Countries extends core_Manager {
     /**
      * Списък с кодовете на държавите от европейския съюз
      */
-    static $euCountries = array('BE','BG','CY','CZ','DK','EE','EL','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR');
+    static $euCountries = array('BE','BG','CY','CZ','DK','EE','GR','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR');
     
     
     
@@ -140,19 +140,23 @@ class drdata_Countries extends core_Manager {
      * 
      * @param mixed mix id, 2 или 3 буквен
      */
-    static function getCountryName($mix)
+    static function getCountryName($mix, $lg = NULL)
     {
-        if(core_Lg::getDefaultLang() == 'bg') {
+        if(!$lg) {
+            $lg = core_Lg::getDefaultLang();
+        }
+        if($lg == 'bg') {
             $field = 'commonNameBg';
         } else {
             $field = 'commonName';
         }
+
         if(is_numeric($mix)) {
             $country = drdata_Countries::fetchField($mix, $field);
         } elseif(strlen($mix) == 2) {
             $country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $mix), $field);
         } else {
-            expect(strlen($mix) == 3);
+            expect(strlen($mix) == 3, $mix);
             $country = drdata_Countries::fetchField(array("#letterCode3 = '[#1#]'", $mix), $field);
         }
 
