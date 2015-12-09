@@ -200,7 +200,7 @@ class core_Pager extends core_BaseClass
             $qCnt = clone ($query);
             $qCnt->orderBy = array();
 
-            $q->show('id');
+            $qCnt->show('id');
             $this->itemsCount = $qCnt->count();
             $this->calc();
             if (isset($this->rangeStart) && isset($this->rangeEnd)) {
@@ -267,7 +267,7 @@ class core_Pager extends core_BaseClass
             $this->itemsCount = 100000000;
             $this->calc();
             if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit(1000000);
+                $q->limit(1000);
                 $q->startFrom($this->rangeStart); 
                 $cnt = $this->rangeStart + $q->select();
                 $i = 0;
