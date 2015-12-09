@@ -194,9 +194,12 @@ class core_Pager extends core_BaseClass
      */
     function setLimit(&$query)
     {
+        $q = clone ($query);
         
-        if(!Request::get('V') || Request::get('V') == 1) {
-            $q = clone ($query);
+        $wh = $q->getWhereAndHaving();
+        $wh = $wh->w . ' ' . $wh->h;
+
+        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)")) || Request::get('V') == 1) {
             $qCnt = clone ($query);
             $qCnt->orderBy = array();
 
@@ -205,13 +208,13 @@ class core_Pager extends core_BaseClass
             $this->calc();
             if (isset($this->rangeStart) && isset($this->rangeEnd)) {
                 $q->limit($this->rangeEnd - $this->rangeStart);
-                $q->startFrom($this->rangeStart); 
+                $q->startFrom($this->rangeStart);
+                $q->show('id');
                 $q->select();
                 while($rec = $q->fetch()) {
                     $ids[] = $rec->id;
                 }
             }
-            
 
             if(count($ids)) {
 
@@ -223,12 +226,11 @@ class core_Pager extends core_BaseClass
                 $this->calc();
                 $query->limit(0);
             } 
-        }
+        } 
         
-        // Вариант 2
-        
-        if(Request::get('V') == 2) {
-            $q = clone ($query);
+
+
+        if((!Request::get('V') && strpos($wh, "`doc_containers`.`search_keywords`)")) || Request::get('V') == 2) {
             $q->show('id');
             $q->addOption('SQL_CALC_FOUND_ROWS');
 
