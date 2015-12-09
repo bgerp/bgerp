@@ -272,6 +272,9 @@ body {
   padding: 3px 13px 1px; }
   .narrow #main-container > .tab-control > .tab-row .row-holder {
     width: 1000px; }
+    .narrow #main-container > .tab-control > .tab-row .row-holder a {
+      float: left;
+      display: block; }
 
 .userInfo {
   margin-right: 10px;
