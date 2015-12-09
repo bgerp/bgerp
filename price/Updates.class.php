@@ -201,7 +201,7 @@ class price_Updates extends core_Manager
     		}
     	} else {
     		if($mvc->haveRightFor('saveprimecost', $rec)){
-    			$row->updateMode = ht::createBtn('Обнови', array($mvc, 'saveprimecost', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
+    			$row->updateMode = ht::createBtn('Обнови', array($mvc, 'saveprimecost', $rec->id, 'ret_url' => TRUE), '|Сигурни ли сте, че искате да обновите себестойностите на всички артикули в категорията|*?', FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
     			$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
     		}
     	}
