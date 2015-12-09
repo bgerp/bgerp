@@ -1361,7 +1361,7 @@ class cat_Products extends embed_Manager {
     	// Ако артикула не е производим не търсим рецепта
     	if($rec->canManifacture == 'no') return FALSE;
     	
-    	$cond = "#productId = {$rec->id} AND #state = 'active'";
+    	$cond = "#productId = '{$rec->id}' AND #state = 'active'";
     	
     	if(isset($type)){
     		expect(in_array($type, array('sales', 'production')));
