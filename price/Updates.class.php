@@ -194,9 +194,16 @@ class price_Updates extends core_Manager
     	// Показваме името на правилото
     	$row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, TRUE) : cat_Products::getHyperlink($rec->objectId, TRUE);
     	
-    	if($mvc->haveRightFor('saveprimecost', $rec)){
-    		$row->updateMode = ht::createBtn('Обнови', array($mvc, 'saveprimecost', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
-    		$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
+    	if($rec->type == 'product'){
+    		if(price_ListRules::haveRightFor('add')){
+    			$row->updateMode = ht::createBtn('Обнови', array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_COST, 'price' => $rec->costValue, 'productId' => $rec->objectId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
+    			$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
+    		}
+    	} else {
+    		if($mvc->haveRightFor('saveprimecost', $rec)){
+    			$row->updateMode = ht::createBtn('Обнови', array($mvc, 'saveprimecost', $rec->id, 'ret_url' => TRUE), '|Сигурни ли сте, че искате да обновите себестойностите на всички артикули в категорията|*?', FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
+    			$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
+    		}
     	}
     	
     	$row->ROW_ATTR['class'] = 'state-active';
@@ -209,7 +216,7 @@ class price_Updates extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'saveprimecost' && isset($rec)){
-    		if($rec->updateMode != 'manual'){
+    		if($rec->updateMode != 'manual' || $rec->type == 'product'){
     			$requiredRoles = 'no_one';
     		}
     	}

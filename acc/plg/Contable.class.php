@@ -581,7 +581,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterGetValiorDate($mvc, &$res, $rec)
     {
     	if(!$res){
-    		$rec->{$mvc->valiorFld};
+    		$res = $rec->{$mvc->valiorFld};
     	}
     }
 }

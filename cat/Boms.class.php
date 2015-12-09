@@ -937,6 +937,11 @@ class cat_Boms extends core_Master
     				$price = static::getBomPrice($prodBom, $quantity, 0, 0, $date, $priceListId);
     			}
     		}
+    		
+    		// В краен случай взимаме мениджърската себестойност
+    		if(!isset($price)){
+    			$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
+    		}
     	}
     	
     	// Ако няма цена връщаме FALSE

@@ -194,63 +194,98 @@ class core_Pager extends core_BaseClass
      */
     function setLimit(&$query)
     {
-        $q = clone ($query);
-        $q->show('id');
-        $q->addOption('SQL_CALC_FOUND_ROWS');
+        
+        if(!Request::get('V') || Request::get('V') == 1) {
+            $q = clone ($query);
+            $qCnt = clone ($query);
+            $qCnt->orderBy = array();
 
-        $this->itemsCount = PHP_INT_MAX;
-        $this->calc();
-        if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
-            $q->startFrom($this->rangeStart); 
-            $q->select();
-            while($rec = $q->fetch()) {
-                $ids[] = $rec->id;
+            $q->show('id');
+            $this->itemsCount = $qCnt->count();
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit($this->rangeEnd - $this->rangeStart);
+                $q->startFrom($this->rangeStart); 
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+
+            if(count($ids)) {
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
+            } 
+        }
+        
+        // Вариант 2
+        
+        if(Request::get('V') == 2) {
+            $q = clone ($query);
+            $q->show('id');
+            $q->addOption('SQL_CALC_FOUND_ROWS');
+
+            $this->itemsCount = PHP_INT_MAX;
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
+                $q->startFrom($this->rangeStart); 
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+            if(count($ids)) {
+                $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
+                $cntArr = $q->mvc->db->fetchArray($dbRes);
+                $this->itemsCount  = array_shift($cntArr);
+                $this->calc();
+
+                $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
             }
         }
-        
-        if(count($ids)) {
-            $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
-            $cntArr = $q->mvc->db->fetchArray($dbRes);
-            $this->itemsCount  = array_shift($cntArr);
+
+        if(Request::get('V') == 3) {
+            $q = clone ($query);
+
+            $this->itemsCount = 100000000;
             $this->calc();
-
-            $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
-
-            $ids = implode(',', $ids);
-
-            $query->where("#id IN ($ids)");
-        } else {
-            $this->itemsCount = 0;
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit(1000000);
+                $q->startFrom($this->rangeStart); 
+                $cnt = $this->rangeStart + $q->select();
+                $i = 0;
+                while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+            $this->itemsCount  = $cnt; //array_shift($cntArr);
             $this->calc();
-            $query->limit(0);
-        }
-
-        /*
-                $q = clone ($query);
-
-        $this->itemsCount = 100000000;
-        $this->calc();
-        if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $q->limit(1000000);
-            $q->startFrom($this->rangeStart); 
-            $cnt = $this->rangeStart + $q->select();
-            $i = 0;
-            while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
-                $ids[] = $rec->id;
+            
+            if(count($ids)) {
+                $ids = implode(',', $ids);
+                $query->where("#id IN ($ids)");
+            } else {
+                $query->limit(0);
             }
         }
-        
-        $this->itemsCount  = $cnt; //array_shift($cntArr);
-        $this->calc();
-        
-        if(count($ids)) {
-            $ids = implode(',', $ids);
-            $query->where("#id IN ($ids)");
-        } else {
-            $query->limit(0);
-        }
-        */
     }
 
 
