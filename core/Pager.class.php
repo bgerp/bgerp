@@ -198,8 +198,10 @@ class core_Pager extends core_BaseClass
         
         $wh = $q->getWhereAndHaving();
         $wh = $wh->w . ' ' . $wh->h;
+        $this->itemsCount = PHP_INT_MAX;
+        $this->calc();
 
-        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)")) || Request::get('V') == 1) {
+        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
             $qCnt = clone ($query);
             $qCnt->orderBy = array();
 
@@ -226,16 +228,10 @@ class core_Pager extends core_BaseClass
                 $this->calc();
                 $query->limit(0);
             } 
-        } 
-        
-
-
-        if((!Request::get('V') && strpos($wh, "`doc_containers`.`search_keywords`)")) || Request::get('V') == 2) {
+        } elseif((!Request::get('V')) || Request::get('V') == 2) {
             $q->show('id');
             $q->addOption('SQL_CALC_FOUND_ROWS');
 
-            $this->itemsCount = PHP_INT_MAX;
-            $this->calc();
             if (isset($this->rangeStart) && isset($this->rangeEnd)) {
                 $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
                 $q->startFrom($this->rangeStart); 
@@ -261,9 +257,7 @@ class core_Pager extends core_BaseClass
                 $this->calc();
                 $query->limit(0);
             }
-        }
-
-        if(Request::get('V') == 3) {
+        } elseif(Request::get('V') == 3) {
             $q = clone ($query);
 
             $this->itemsCount = 100000000;
@@ -278,7 +272,7 @@ class core_Pager extends core_BaseClass
                 }
             }
             
-            $this->itemsCount  = $cnt; //array_shift($cntArr);
+            $this->itemsCount  = $cnt;  
             $this->calc();
             
             if(count($ids)) {
