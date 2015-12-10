@@ -68,7 +68,7 @@ class price_ProductCosts extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'price,ceo';
+	public $canList = 'admin,debug';
 	
 	
     /**
@@ -85,7 +85,7 @@ class price_ProductCosts extends core_Manager
     	
     	$this->FLD('activeDeliveryId', 'key(mvc=purchase_Purchases)', 'input=none');
     	$this->FLD('lastDeliveryId', 'key(mvc=purchase_Purchases)', 'input=none');
-    	$this->FLD('lastQuoteId', 'key(mvc=sales_Quotations)', 'input=none');
+    	$this->FLD('lastQuoteId', 'key(mvc=purchase_Offers)', 'input=none');
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none');
     	
     	// Поставяне на уникални индекси
@@ -100,18 +100,51 @@ class price_ProductCosts extends core_Manager
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
-    	foreach (array('lastQuote', 'activeDelivery', 'lastDelivery', 'bom') as $fld){
-    		if(isset($rec->{$fld}) && isset($rec->{$fld})){
-    			if($fld == 'bom'){
-    				$activeHandle = cat_Boms::getLink($rec->{"{$fld}Id"}, 0);
-    			} elseif($fld == 'lastQuote'){
-    				$activeHandle = sales_Quotations::getLink($rec->{"{$fld}Id"}, 0);
-    			} else {
-    				$activeHandle = purchase_Purchases::getLink($rec->{"{$fld}Id"}, 0);
-    			}
-    			
-    			$row->{$fld} .= " <small>/ {$activeHandle}</small>";
-    		}
+    	// Ако има последна оферта, намираме датата и линка към нея
+    	if(isset($rec->lastQuoteId)){
+    		$row->lastQuoteId = purchase_Offers::getLink($rec->lastQuoteId, 0);
+    		$row->lastQuoteDate = cls::get('type_DateTime')->toVerbal(purchase_Offers::fetchField($rec->lastQuoteId, 'date'));
+    	}
+    	
+    	// Ако има текуща поръчка, намираме датата и линка към нея
+    	if(isset($rec->activeDeliveryId)){
+    		$row->activeDeliveryId = purchase_Purchases::getLink($rec->activeDeliveryId, 0);
+    		$row->activeDeliveryDate = cls::get('type_DateTime')->toVerbal(purchase_Purchases::fetchField($rec->activeDeliveryId, 'valior'));
+    	}
+    	
+    	// Ако има последна доставка, намираме датата и линка към нея
+    	if(isset($rec->lastDeliveryId)){
+    		$row->lastDeliveryId = purchase_Purchases::getLink($rec->lastDeliveryId, 0);
+    		$row->lastDeliveryDate = cls::get('type_DateTime')->toVerbal(purchase_Purchases::fetchField($rec->lastDeliveryId, 'valior'));
+    	}
+    	
+    	// Ако има последна рецепта, намираме датата и линка към нея
+    	if(isset($rec->bomId)){
+    		$row->bomId = cat_Boms::getLink($rec->bomId, 0);
+    		$row->bomIdDate = cls::get('type_DateTime')->toVerbal(cat_Boms::fetchField($rec->bomId, 'modifiedOn'));
+    	}
+    	
+    	// Ако има складова себестойност
+    	if(isset($rec->accCost)){
+    		$row->accCostDate = cls::get('type_DateTime')->toVerbal(dt::now());
+    	}
+    	
+    	// Ако имаме чиста себестойност, намираме към коя дата е
+    	if(isset($rec->primeCost)){
+    		$row->primeCost = cls::get('type_Double')->toVerbal($rec->primeCost);
+    		$row->primeCostDate = cls::get('type_DateTime')->toVerbal($rec->primeCostDate);
+    	}
+    	
+    	// Ако имаме бъдеща себестойност, намираме към коя дата е
+    	if(isset($rec->futurePrimeCost)){
+    		$row->futurePrimeCost = cls::get('type_Double')->toVerbal($rec->futurePrimeCost);
+    		$row->futurePrimeCostDate = cls::get('type_DateTime')->toVerbal($rec->futurePrimeCostDate);
+    	}
+    	
+    	// Ако има каталожна цена, намираме към коя дата е
+    	if(isset($rec->catalogCost)){
+    		$row->catalogCost = cls::get('type_Double')->toVerbal($rec->catalogCost);
+    		$row->catalogCostDate = cls::get('type_DateTime')->toVerbal($rec->catalogCostDate);
     	}
     }
     
@@ -326,13 +359,14 @@ class price_ProductCosts extends core_Manager
      * 
      * @param array $productKeys - масив с ид-та на артикули
      * @return array $res - намерените цените по последна активна оферта
+     * @todo да се реализира когато станат готови входящите оферти
      */
     private function getLastQuoteCosts($productKeys)
     {
     	$res = array();
     	
     	// Намираме всички активни оферти с подадените артикули
-    	$qQuery = sales_QuotationsDetails::getQuery();
+    	/*$qQuery = sales_QuotationsDetails::getQuery();
     	$qQuery->EXT('state', 'sales_Quotations', 'externalName=state,externalKey=quotationId');
     	$qQuery->where("#state = 'active'");
     	$qQuery->show('price,productId,quotationId');
@@ -350,7 +384,7 @@ class price_ProductCosts extends core_Manager
     			$res[$quote->productId] = (object)array('documentId' => $quote->quotationId, 
     													'price' => round($quote->price, 5));
     		}
-    	}
+    	}*/
     	
     	// Връщаме намерените цени
     	return $res;
