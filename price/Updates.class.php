@@ -306,9 +306,6 @@ class price_Updates extends core_Manager
     		// Опитваме се да му изчислим себестойноста според източниците
     		$primeCost = self::getPrimeCost($productId, $rec->costSource1, $rec->costSource2, $rec->costSource3, $rec->costAdd);
     		
-    		//@TODO debug !!!
-    		$primeCost = 7;
-    		
     		// Намираме старата мус ебестойност (ако има)
     		$oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
     		
@@ -389,36 +386,10 @@ class price_Updates extends core_Manager
      */
     public static function getPrimeCost($productId, $costSource1, $costSource2 = NULL, $costSource3 = NULL, $costAdd = NULL)
     {
-    	$date = dt::now();
-    	$quantity = 1;
-    	$allSources = array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom');
     	$sources = array($costSource1, $costSource2, $costSource3);
     	foreach ($sources as $source){
     		if(isset($source)){
-    			expect(in_array($source, $allSources));
-    			
-    			switch($source){
-    				case 'accCost':
-    					//$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
-    					break;
-    				case 'lastDelivery':
-    					//@TODO
-    					break;
-    				case 'activeDelivery':
-    					//@TODO
-    					break;
-    				case 'lastQuote':
-    					//@TODO
-    					break;
-    				case 'bom':
-    					//$bomRec = cat_Products::getLastActiveBom($productId);
-    					//if(!empty($bomRec)){
-    						//$price = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST);
-    					//}
-    					//bp($bomId);
-    					//@TODO
-    					break;
-    			}
+    			$price = price_ProductCosts::getPrice($productId, $source);
     			
     			if(isset($price)) return $price;
     		}
@@ -474,10 +445,6 @@ class price_Updates extends core_Manager
      */
     private function canBeApplied($rec, $date)
     {
-    	//$rec->updateMode = 'nextMonth';
-    	//$date = '2015-12-11 15:00:00';
-    	//bp($date);
-    	
     	$res = FALSE;
     	switch($rec->updateMode){
     		case 'manual':

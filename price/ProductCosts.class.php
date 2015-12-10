@@ -38,7 +38,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId,accCost,activeDelivery,lastDelivery,bom';
+    public $listFields = 'id=Пулт, productId,accCost,activeDelivery,lastDelivery,lastQuote,bom';
     
     
     /**
@@ -100,17 +100,14 @@ class price_ProductCosts extends core_Manager
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
-    	foreach (array('lastQuote', 'activeDelivery', 'lastDelivery', 'bomId') as $fld){
+    	foreach (array('lastQuote', 'activeDelivery', 'lastDelivery', 'bom') as $fld){
     		if(isset($rec->{$fld}) && isset($rec->{$fld})){
-    			if($fld == 'bomId'){
+    			if($fld == 'bom'){
     				$activeHandle = cat_Boms::getLink($rec->{"{$fld}Id"}, 0);
     			} elseif($fld == 'lastQuote'){
     				$activeHandle = sales_Quotations::getLink($rec->{"{$fld}Id"}, 0);
     			} else {
     				$activeHandle = purchase_Purchases::getLink($rec->{"{$fld}Id"}, 0);
-    				//$activeHandle = purchase_Purchases::getHandle($rec->{"{$fld}Id"});
-    				//$url = purchase_Purchases::getSingleUrlArray($rec->{"{$fld}Id"});
-    				//$activeHandle = ht::createLink($activeHandle, $url);
     			}
     			
     			$row->{$fld} .= " <small>/ {$activeHandle}</small>";
@@ -404,16 +401,26 @@ class price_ProductCosts extends core_Manager
     {
     	core_App::setTimeLimit(360);
     	
-    	$date = dt::now();
+    	// Намираме всички станартни артикули
     	$products = cat_Products::getStandartProducts(TRUE);
     	$productKeys = array_combine(array_keys($products), array_keys($products));
     	
+    	// Тук ще събираме себестойностите
     	$res = array();
     	
+    	// Намираме счетоводните им себестойности
     	$res['accCost'] = $this->getAccCosts();
+    	
+    	// Намираме цените по текуща поръчка
     	$res['activeDelivery'] = $this->getActiveDeliveryCosts($productKeys);
+    	
+    	// Намираме цените по последна доставка
     	$res['lastDelivery'] = $this->getDeliveryCosts($productKeys);
+    	
+    	// Намираме цените по последна оферта
     	$res['lastQuote'] = $this->getLastQuoteCosts($productKeys);
+    	
+    	// Намираме цените по последна рецепта
     	$res['bom'] = $this->getLastBomCosts($productKeys);
     	
     	//echo "<li>" . count($products);
@@ -424,6 +431,8 @@ class price_ProductCosts extends core_Manager
     	//echo "<li>bom: " . core_Debug::$timers['bom']->workingTime;
     	
     	$values = array();
+    	
+    	// Нормализираме записите
     	foreach ($products as $productId => $productName){
     		$obj = (object)array(
     					'productId'      => $productId,
@@ -444,11 +453,35 @@ class price_ProductCosts extends core_Manager
     		$values[$productId] = $obj;
     	}
     	
+    	// Намираме старите записи
     	$query = static::getQuery();
     	$oldRecs = $query->fetchAll();
     	
+    	// Синхронизираме новите със старите
     	$synced = arr::syncArrays($values, $oldRecs, 'productId', 'lastQuote,activeDelivery,lastDelivery,bom,lastQuoteId,activeDeliveryId,lastDeliveryId,bomId');
+    	
+    	// Създаваме записите, които трябва
     	$this->saveArray($synced['insert']);
+    	
+    	// Обновяваме записите със промени
     	$this->saveArray($synced['update']);
+    }
+    
+    
+    /**
+     * Намира себестойноста на артикула по вида
+     * 
+     * @param int $productId - ид на артикула
+     * @param accCost|lastDelivery|activeDelivery|lastQuote|bom $priceType - вида на цената
+     * @return double $price - намерената себестойност
+     */
+    public static function getPrice($productId, $priceType)
+    {
+    	expect($productId);
+    	expect(in_array($priceType, array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom',)));
+    	
+    	$price = static::fetchField("#productId = {$productId}", $priceType);
+    	
+    	return $price;
     }
 }
