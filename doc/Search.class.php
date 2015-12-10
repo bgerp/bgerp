@@ -372,9 +372,9 @@ class doc_Search extends core_Manager
         
         foreach ($data->recs as $i=>&$rec) {
             $row = $data->rows[$i];
-            $folderRec = doc_Folders::fetch($rec->folderId);
-            $folderRow = doc_Folders::recToVerbal($folderRec);
-            $row->folderId = $folderRow->title;
+            // $folderRec = doc_Folders::fetch($rec->folderId);
+            // $folderRow = doc_Folders::recToVerbal($folderRec);
+            // $row->folderId = $folderRow->title;
             
             try {
                 $doc = doc_Containers::getDocument($rec->id);
