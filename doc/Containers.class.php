@@ -178,6 +178,71 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Регенерира ключовите думи, ако е необходимо
+     * 
+     * @param boolean $force
+     * 
+     * @return array
+     */
+    public static function regenerateSerchKeywords($force = FALSE)
+    {
+        $docContainers = cls::get('doc_Containers');
+        $query = self::getQuery();
+        $query->groupBy('docClass');
+        
+        $resArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!$rec->docClass) continue;
+            
+            if (!cls::load($rec->docClass, TRUE)) continue;
+            
+            $clsInst = cls::get($rec->docClass);
+            
+            if (!$clsInst) continue;
+            
+            $plugins = $clsInst->getPlugins();
+            
+            if (!isset($plugins['plg_Search'])) continue;
+            
+    		$clsQuery = $clsInst->getQuery();
+    		$clsQuery->show('searchKeywords, containerId');
+    		
+    		$i = 0;
+    		while ($cRec = $clsQuery->fetch()) {
+    			try {
+    			    // Ако новите ключови думи не отговарят на старите, записваме ги
+    			    $generatedKeywords = $clsInst->getSearchKeywords($cRec);
+    			    if (!$force && ($generatedKeywords == $cRec->searchKeywords)) continue;
+    			    $cRec->searchKeywords = $generatedKeywords;
+    				$clsInst->save_($cRec, 'searchKeywords');
+    				
+    				if (!$cRec->containerId) continue;
+    				
+    				// Записваме ключовите думи в контейнера
+    				$contRec = doc_Containers::fetch($cRec->containerId, 'searchKeywords');
+    				if (!$contRec) continue;
+    				$contRec->searchKeywords = $generatedKeywords;
+    				$docContainers->save_($contRec, 'searchKeywords');
+    				$i++;
+    			} catch(core_exception_Expect $e) {
+    			    reportException($e);
+        			continue;
+        		}
+    		}
+    		
+    		if ($i) {
+    		    $resArr[$rec->docClass] = $i;
+    		    $resArr[0] += $i;
+    		}
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
@@ -2251,6 +2316,40 @@ class doc_Containers extends core_Manager
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Поправяне на ключовете в документите
+     */
+    function act_RepairKeywords()
+    {
+        requireRole('admin');
+        
+        core_App::setTimeLimit(600);
+        
+        $force = Request::get('force');
+        
+        $rArr = self::regenerateSerchKeywords($force);
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array('core_Packs');
+        }
+        
+        if (empty($rArr)) {
+            $msg = '|Няма ключове за поправяне';
+        } else {
+            $cnt = $rArr[0];
+            if ($cnt == 1) {
+                $msg = "|Поправен|* {$cnt} |документ";
+            } else {
+                $msg = "|Поправени|* {$cnt} |документа";
+            }
+        }
+        
+        return new Redirect($retUrl, $msg);
     }
     
     
