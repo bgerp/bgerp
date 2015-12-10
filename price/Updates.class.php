@@ -211,6 +211,7 @@ class price_Updates extends core_Manager
     		}
     	}
     	
+    	// Кой може да модифицира
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
     		
     		// Трябва да има тип и ид на обект
@@ -225,9 +226,17 @@ class price_Updates extends core_Manager
     		}
     	}
     	
+    	// Дали можем да добавяме
     	if($action == 'add' && isset($rec->type) && isset($rec->objectId)){
     		if($mvc->fetchField("#type = '{$rec->type}' AND #objectId = {$rec->objectId}")){
     			$requiredRoles = 'no_one';
+    		} elseif($rec->type == 'product') {
+    			$pRec = cat_Products::fetch($rec->objectId);
+    			
+    			// Ако добавяме правило за артикул трябва да е активен,публичен,складируем и купуваем или производим
+    			if($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes'  || !($pRec->canBuy = 'yes' || $pRec->canManifacture = 'yes')){
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
     }

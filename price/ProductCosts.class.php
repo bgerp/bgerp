@@ -193,12 +193,13 @@ class price_ProductCosts extends core_Manager
     		$itemId = $dRec->{"ent{$positionId}Id"};
     		if(!array_key_exists($itemId, $tmpArr)){
     			$tmpArr[$itemId] = new stdClass();
-    			$tmpArr[$itemId]->name = acc_Items::getTitleById($itemId);
     		}
     		
     		// Сумираме сумите и количествата
-    		$tmpArr[$itemId]->quantity += abs($dRec->blQuantity);
-    		$tmpArr[$itemId]->amount += abs($dRec->blAmount);
+    		if($dRec->blQuantity >= 0){
+    			$tmpArr[$itemId]->quantity += $dRec->blQuantity;
+    			$tmpArr[$itemId]->amount += $dRec->blAmount;
+    		}
     	}
     	
     	// Намираме цената 
@@ -435,34 +436,53 @@ class price_ProductCosts extends core_Manager
     {
     	core_App::setTimeLimit(360);
     	
-    	// Намираме всички станартни артикули
-    	$products = cat_Products::getStandartProducts(TRUE);
-    	$productKeys = array_combine(array_keys($products), array_keys($products));
+    	$products = array();
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#isPublic = 'yes'");
+    	$pQuery->where("#state = 'active'");
+    	$pQuery->where("#canStore = 'yes'");
+    	$pQuery->where("#canBuy = 'yes' OR #canManifacture = 'yes'");
+    	$pQuery->show('id');
+    	
+    	while($pRec = $pQuery->fetch()){
+    		$products[$pRec->id] = $pRec->id;
+    	}
+    	
+    	$productKeys = array_combine($products, $products);
     	
     	// Тук ще събираме себестойностите
     	$res = array();
     	
     	// Намираме счетоводните им себестойности
+    	core_Debug::startTimer('accCost');
     	$res['accCost'] = $this->getAccCosts();
+    	core_Debug::stopTimer('accCost');
     	
     	// Намираме цените по текуща поръчка
+    	core_Debug::startTimer('activeDelivery');
     	$res['activeDelivery'] = $this->getActiveDeliveryCosts($productKeys);
+    	core_Debug::stopTimer('activeDelivery');
     	
     	// Намираме цените по последна доставка
+    	core_Debug::startTimer('lastDelivery');
     	$res['lastDelivery'] = $this->getDeliveryCosts($productKeys);
+    	core_Debug::stopTimer('lastDelivery');
     	
     	// Намираме цените по последна оферта
+    	core_Debug::startTimer('lastQuote');
     	$res['lastQuote'] = $this->getLastQuoteCosts($productKeys);
+    	core_Debug::stopTimer('lastQuote');
     	
     	// Намираме цените по последна рецепта
+    	core_Debug::startTimer('bom');
     	$res['bom'] = $this->getLastBomCosts($productKeys);
+    	core_Debug::stopTimer('bom');
     	
-    	//echo "<li>" . count($products);
-    	//echo "<li>accCost: " . core_Debug::$timers['accCost']->workingTime;
-    	//echo "<li>activeDelivery: " . core_Debug::$timers['activeDelivery']->workingTime;
-    	//echo "<li>lastDelivery: " . core_Debug::$timers['lastDelivery']->workingTime;
-    	//echo "<li>lastQuote: " . core_Debug::$timers['lastQuote']->workingTime;
-    	//echo "<li>bom: " . core_Debug::$timers['bom']->workingTime;
+    	core_Debug::log("CALC ACC_COSTS: " . round(core_Debug::$timers['accCost']->workingTime, 2));
+    	core_Debug::log("CALC ACTIVE_DELIVERY: " . round(core_Debug::$timers['activeDelivery']->workingTime, 2));
+    	core_Debug::log("CALC LAST_DELIVERY: " . round(core_Debug::$timers['lastDelivery']->workingTime, 2));
+    	core_Debug::log("CALC LAST_QUOTE: " . round(core_Debug::$timers['lastQuote']->workingTime, 2));
+    	core_Debug::log("CALC BOM: " . round(core_Debug::$timers['bom']->workingTime, 2));
     	
     	$values = array();
     	
@@ -499,6 +519,7 @@ class price_ProductCosts extends core_Manager
     	
     	// Обновяваме записите със промени
     	$this->saveArray($synced['update']);
+    	bp();
     }
     
     
