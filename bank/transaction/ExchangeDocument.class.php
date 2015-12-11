@@ -60,17 +60,17 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     			array('currency_Currencies', $cOwnAcc->currencyId),
     			'quantity' => $rec->creditQuantity);
     
-    	if($cOwnAcc->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-    		$entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toBank, 'credit' => $fromBank);
-    		$entry = array($entry);
-    	} else {
+    	if($dOwnAcc->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
     		$entry = array();
     		$entry[] = array('amount' => $rec->debitQuantity,
     				'debit' => $toBank,
     				'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
-    		$entry[] = array('amount' => $rec->debitQuantity,
+    		$entry[] = array(
     				'debit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity),
     				'credit' => $fromBank);
+    	} else {
+    		$entry = array('debit' => $toBank, 'credit' => $fromBank);
+    		$entry = array($entry);
     	}
     
     	// Подготвяме информацията която ще записваме в Журнала

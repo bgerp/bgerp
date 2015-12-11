@@ -1413,6 +1413,8 @@ class doc_Threads extends core_Manager
     private static function getFastButtons($folderId)
     {
     	$Cover = doc_Folders::getCover($folderId);
+    	if(!$Cover->haveInterface('doc_FolderIntf')) return;
+    	
     	$managers = $Cover->getDocButtonsInFolder();
     	
     	$res = array();

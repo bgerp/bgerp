@@ -169,27 +169,35 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	public static function on_AfterCreate($mvc, $rec)
 	{
 		// Ако е към задание
-		if($rec->originId){
+		$firstDocumentInThread = doc_Threads::getFirstDocument($rec->threadId);
+		if(!isset($firstDocumentInThread)) return;
+		if(!$firstDocumentInThread->isInstanceOf('planning_Jobs')) return;
 			
-			// Добавяме информацията за артикула от заданието
-			$originRec = doc_Containers::getDocument($rec->originId)->rec();
-			$Products = cls::get('cat_Products');
-			$pInfo = $Products->getProductInfo($originRec->productId);
+		// Добавяме информацията за артикула от заданието
+		$originRec = $firstDocumentInThread->rec();
+		$productRec = cat_Products::fetch($originRec->productId);
+		$toProduce = $originRec->quantity - $originRec->quantityProduced;
+		if($toProduce <= 0) return;
 			
-			// Ако артикула не е производим, не го добавяме
-			if(empty($pInfo->meta['canManifacture'])) return;
+		// Ако артикула не е производим, не го добавяме
+		if($productRec->canManifacture != 'yes') return;
+		$bomRec = cat_Products::getLastActiveBom($productRec, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($productRec, 'sales');
+		}
 			
-			$dRec = (object)array('noteId'    => $rec->id, 
-								  'productId' => $originRec->productId, 
-								  'quantity'  => $originRec->quantity, 
-								  'jobId'     => $originRec->id,
-								  'measureId' => $Products->fetchField($originRec->productId, 'measureId'),
-								  'classId'   => $Products->getClassId(),
-								  'selfValue' => $rec->selfValue,
-								  'bomId'     => $rec->bomId,
-								);
-			
-			// Запис на детайла
+		// Ако има рецепта, добавяме артикула от заданието като първи детайл
+		if($bomRec){
+			$dRec = (object)array('noteId'         => $rec->id,
+								  'productId'      => $originRec->productId,
+								  'quantity'       => $toProduce,
+								  'jobId'          => $originRec->id,
+								  'packagingId'    => $productRec->measureId,
+								  'quantityInPack' => 1,
+								  'bomId'          => $bomRec->id,
+				);
+					
+			// Добавяме артикула от заданието в протокола, с количеството оставащо за производство
 			planning_ProductionNoteDetails::save($dRec);
 		}
 	}
