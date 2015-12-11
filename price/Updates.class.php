@@ -62,7 +62,7 @@ class price_Updates extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canRead = 'no_one';
+	public $canRead = 'price,ceo';
 	
 	
 	/**
@@ -281,7 +281,10 @@ class price_Updates extends core_Manager
     		$pQuery = cat_Products::getQuery();
     		$pQuery->where("#folderId = {$folderId}");
     		$pQuery->show('id');
+    		
     		while($pRec = $pQuery->fetch()){
+    			if($this->fetchField("#objectId = {$pRec->id} AND #type = 'product'")) continue;
+    			
     			$products[$pRec->id] = $pRec->id;
     		}
     	}
@@ -302,18 +305,22 @@ class price_Updates extends core_Manager
     {
     	// На кои продукти ще обновяваме себестойностите
     	$products = $this->getProductsToUpdatePrimeCost($rec);
-    	 
+    	
     	// Подготвяме датата от която ще е валиден записа
     	$validFrom = $this->getValidFromDate($rec->updateMode);
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($validFrom);
     	
     	// За всеки артикул
     	foreach ($products as $productId){
+    		$pRec = cat_Products::fetch($productId);
+    		
+    		// Обновяваме себестойностите само ако артикула е складируем,публичен,активен, купуваем или производим
+    		if($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes'  || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) continue;
     		
     		// Опитваме се да му изчислим себестойноста според източниците
     		$primeCost = self::getPrimeCost($productId, $rec->costSource1, $rec->costSource2, $rec->costSource3, $rec->costAdd);
     		
-    		// Намираме старата мус ебестойност (ако има)
+    		// Намираме старата му себестойност (ако има)
     		$oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
     		
     		// Ако имаме изчислена себестойност
@@ -516,16 +523,7 @@ class price_Updates extends core_Manager
     	// За всеки запис (може да е максимум един)
     	while($rec = $query->fetch()){
     		$data->recs[$rec->id] = $rec;
-    		$row = self::recToVerbal($rec);
-    		//$row->sources = "<ol style='margin:0px'>";
-    		//foreach (array('costSource1', 'costSource2', 'costSource3') as $fld){
-    			//if(isset($rec->{$fld})){
-    				//$row->sources .= "<li style='text-align:left'>{$row->{$fld}}</li>";
-    			//}
-    		//}
-    		//$row->sources .= "</ol>";
-    	
-    		$data->rows[$rec->id] = $row;
+    		$data->rows[$rec->id] = self::recToVerbal($rec);
     	}
     }
     
@@ -559,6 +557,7 @@ class price_Updates extends core_Manager
     {
     	// Рендираме таблицата
     	$table = cls::get('core_TableView', array('mvc' => 'price_Updates'));
+    	$table->setFieldsToHideIfEmptyColumn('costAdd');
     	$details = $table->get($data->rows, 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Надценка,costValue=Стойност,updateMode=Обновяване');
     	
     	return $details;

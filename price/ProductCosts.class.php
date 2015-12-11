@@ -106,6 +106,10 @@ class price_ProductCosts extends core_Manager
     		$row->lastQuoteDate = cls::get('type_DateTime')->toVerbal(purchase_Offers::fetchField($rec->lastQuoteId, 'date'));
     	}
     	
+    	
+    	//, array('params' => array()
+    	
+    	
     	// Ако има текуща поръчка, намираме датата и линка към нея
     	if(isset($rec->activeDeliveryId)){
     		$row->activeDeliveryId = purchase_Purchases::getLink($rec->activeDeliveryId, 0);
