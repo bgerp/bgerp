@@ -193,7 +193,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
      */
     function writeOutputs($outputs, $config, &$persistentState)
     {
-        $baseUrl = "http://{$config->ip}:{$config->port}/status.xml?а={$config->user}:{$config->password}";
+        $baseUrl = "http://{$config->ip}:{$config->port}/status.xml?а={$config->user}:{$config->password}&";
         
         foreach ($this->outputs as $out => $attr) {
             if(isset($outputs[$out])) {
@@ -208,6 +208,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
             curl_setopt($ch, CURLOPT_TIMEOUT, 3); 
             $res[$out] = curl_exec($ch);
             curl_close($ch);
+            log_Debug::add('teracom_TCW181BCM', NULL, "{$cmd} | " . $res[$out]);
         }
 
         return $res;
