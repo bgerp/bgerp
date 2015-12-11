@@ -155,7 +155,7 @@ class cat_BomDetails extends doc_Detail
     	$masterProductUomId = cat_Products::fetchField($data->masterData->rec->productId, 'measureId');
     	
     	$data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
-    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Стойност|*";
+    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|К-во|*";
     	$data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
     	if(!haveRole('ceo, acc, cat, price')){
     		unset($data->listFields['primeCost']);
