@@ -407,6 +407,7 @@ class price_ProductCosts extends core_Manager
     	$res = array();
     	$Boms = cls::get('cat_Boms');
     	$cache = array();
+    	$now = dt::now();
     	
     	// За всеки артикул
     	foreach ($productKeys as $productId){
@@ -417,7 +418,7 @@ class price_ProductCosts extends core_Manager
     				
     				// Ако има, намираме и цената
     				$t = ($bomRec->quantityForPrice) ? $bomRec->quantityForPrice : $bomRec->quantity;
-    				$cache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $bomRec->modifiedOn, price_ListRules::PRICE_LIST_COST);
+    				$cache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $now, price_ListRules::PRICE_LIST_COST);
     			}
     			
     			$primeCost = $cache[$bomRec->id];

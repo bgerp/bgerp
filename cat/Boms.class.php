@@ -478,7 +478,7 @@ class cat_Boms extends core_Master
     	if($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
     		
     		$rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
-    		$price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, $rec->modifiedOn, price_ListRules::PRICE_LIST_COST);
+    		$price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
     		
     		if(haveRole('ceo, acc, cat, price')){
     			$row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
@@ -912,7 +912,10 @@ class cat_Boms extends core_Master
     	if($type == 'sales'){
     		
     		// Първо проверяваме имали цена по политиката
-    		$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
+    		if($productId != 15){
+    			$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
+    		}
+    		
     		
     		if(!isset($price)){
     			
