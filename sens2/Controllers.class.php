@@ -446,7 +446,7 @@ class sens2_Controllers extends core_Master
                 if($rec->persistentState) {
                     $hash = md5(serialize($rec->persistentState));
                 }
-                $res = $drv->writeOutputs($sets, $cRec->config, $cRec->persistentState);
+                $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
                 if($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
                     self::save($rec, 'persistentState');
                 }
