@@ -6,7 +6,7 @@
 Желателно е да се създаде потребител в базата данни, който да е посветен на архивирането.
 Трябва да има глобални привилегии:
 
-SELECT, RELOAD, SUPER, LOCK TABLES
+SELECT, RELOAD, SUPER, LOCK TABLES, REPLICATION SLAVE
 
     Място на архивиране:
 
