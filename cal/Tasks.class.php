@@ -280,6 +280,7 @@ class cal_Tasks extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $grey = new color_Object("#bbb");
+        $blue = new color_Object("#2244cc");
 
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
@@ -301,7 +302,7 @@ class cal_Tasks extends core_Master
         
         $bold = '';
         if($rec->progress) {
-            $grey->setGradient(new color_Object("#2244cc"), $rec->progress);
+            $grey->setGradient($blue, $rec->progress);
     
             $lastTime = bgerp_Recently::getLastDocumentSee($rec);
             if($lastTime < $rec->modifiedOn) {
