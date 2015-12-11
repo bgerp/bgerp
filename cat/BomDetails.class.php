@@ -181,6 +181,13 @@ class cat_BomDetails extends doc_Detail
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
+    	if($rec->type == 'pop'){
+    		$metas = 'canConvert,canStore';
+    		$form->setField('description', 'input=none');
+    	} else {
+    		$metas = 'canConvert';
+    	}
+    	
     	$metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
     	$products = cat_Products::getByProperty($metas);
     	
@@ -373,13 +380,14 @@ class cat_BomDetails extends doc_Detail
     		$packname = cat_UoM::getTitleById($rec->packagingId);
     		$form->setField('propQuantity', "unit={$packname}");
     		
-    		$description = cat_Products::getDescription($rec->resourceId)->getContent();
-    		$description = html2text_Converter::toRichText($description);
-    		$description = cls::get('type_RichText')->fromVerbal($description);
-    		$description = str_replace("\n\n", "\n", $description);
-    		
-    		$form->setDefault('description', $description);
-    		
+    		if($rec->type != 'pop'){
+    			$description = cat_Products::getDescription($rec->resourceId)->getContent();
+    			$description = html2text_Converter::toRichText($description);
+    			$description = cls::get('type_RichText')->fromVerbal($description);
+    			$description = str_replace("\n\n", "\n", $description);
+    			
+    			$form->setDefault('description', $description);
+    		}
     	} else {
     		$form->setReadOnly('packagingId');
     	}
