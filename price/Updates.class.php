@@ -24,12 +24,6 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Наименование на единичния обект
-     */
-    public $singleTitle = "Правилo за обновяване на себестойност";
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
@@ -54,12 +48,6 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Кой може да го промени?
-     */
-    public $canRead = 'price,ceo';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'price,ceo';
@@ -68,9 +56,15 @@ class price_Updates extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'price,ceo';
+	public $canList = 'debug,admin';
 
 
+	/**
+	 * Кой може да го разглежда?
+	 */
+	public $canRead = 'no_one';
+	
+	
 	/**
 	 * Кой може ръчно да обновява себестойностите?
 	 */
@@ -82,26 +76,26 @@ class price_Updates extends core_Manager
      */
     function description()
     {
-    	$this->FLD('objectId', 'int', 'caption=Обект,input=none');
-    	$this->FLD('type', 'enum(category,product)', 'caption=Обект вид,input=none');
+    	$this->FLD('objectId', 'int', 'caption=Обект,silent,mandatory');
+    	$this->FLD('type', 'enum(category,product)', 'caption=Обект вид,input=hidden,silent,mandatory');
     	$this->FLD('costSource1', 'enum(,accCost=Счетоводна себестойност,
-    									lastDelivery=Последна доставна,
+    									lastDelivery=Последна доставка,
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
-    									bom=Последна рецепта)', 'caption=Себестойност->Източник 1,mandatory');
+    									bom=Последна рецепта)', 'caption=Източник 1,mandatory');
     	$this->FLD('costSource2', 'enum(,accCost=Счетоводна себестойност,
-    									lastDelivery=Последна доставна,
+    									lastDelivery=Последна доставка,
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
-    									bom=Последна рецепа)', 'caption=Себестойност->Източник 2');
+    									bom=Последна рецепа)', 'caption=Източник 2');
     	$this->FLD('costSource3', 'enum(,accCost=Счетоводна себестойност,
-    									lastDelivery=Последна доставна,
+    									lastDelivery=Последна доставка,
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
-    									bom=Последна рецепа)', 'caption=Себестойност->Източник 3');
-    	$this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Себестойност->Процент');
+    									bom=Последна рецепа)', 'caption=Източник 3');
+    	$this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Процент');
     	$this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
-    	$this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасно,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Себестойност->Обновяване');
+    	$this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасно,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
     
     	$this->setDbUnique('objectId,type');
     }
@@ -115,22 +109,23 @@ class price_Updates extends core_Manager
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	// Добавяме функционални полета за по-хубав избор на категория или артикул
-    	$form->FNC('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория,input,before=costSource1,silent');
-    	$form->FNC('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,input,before=categoryId,silent');
-    	
-    	$form->input(NULL, 'silent');
-    	
-    	// Намираме всички активни стандартни, продаваеми или купуваеми артикули
-    	$products = cat_Products::getStandartProducts();
-    	
-    	// Задаваме намерените артикули за опции на полето
-    	$form->setOptions('productId', array('' => '') + $products);
     	if($rec->type == 'category'){
-    		$rec->categoryId = $rec->objectId;
-    	} elseif($rec->type == 'product') {
-    		$rec->productId = $rec->objectId;
+    		$form->setField('objectId', 'caption=Категория');
+    		$form->setOptions('objectId', array($rec->objectId => cat_Categories::getTitleById($rec->objectId)));
+    	} else {
+    		$form->setField('objectId', 'caption=Артикул');
+    		$form->setOptions('objectId', array($rec->objectId => cat_Products::getTitleById($rec->objectId)));
     	}
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$title =  ($data->form->rec->id) ? '|Редактиране на|*' : '|Добавяне на|*';
+    	$data->form->title = $title . ' |правило за обновяване на себестойност|*';
     }
     
     
@@ -146,11 +141,6 @@ class price_Updates extends core_Manager
     	if($form->isSubmitted()){
     		$rec->costSource2 = (!$rec->costSource2) ? NULL : $rec->costSource2;
     		$rec->costSource3 = (!$rec->costSource3) ? NULL : $rec->costSource3;
-    		
-    		// Трябва поне категория или артикул да е избран
-    		if((isset($rec->productId) && isset($rec->categoryId)) || (empty($rec->categoryId) && empty($rec->productId))){
-    			$form->setError('categoryId,productId', 'Точно едно поле трябва да е попълнено');
-    		} 
     		
     		$error = FALSE;
     		if($rec->costSource1 == $rec->costSource2 || $rec->costSource1 == $rec->costSource3){
@@ -221,13 +211,30 @@ class price_Updates extends core_Manager
     		}
     	}
     	
-    	if(($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'read') && isset($rec)){
-    		if(isset($rec->categoryId)){
-    			if(!cat_Categories::haveRightFor('single', $rec->categoryId)){
+    	// Кой може да модифицира
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+    		
+    		// Трябва да има тип и ид на обект
+    		if(empty($rec->type) || empty($rec->objectId)){
+    			$requiredRoles = 'no_one';
+    		} else{
+    			// Ако потребителя няма достъп до обекта, не може да модифицира
+    			$masterMvc = ($rec->type == 'product') ? 'cat_Products' : 'cat_Categories';
+    			if(!$masterMvc::haveRightFor('single', $rec->objectId)){
     				$requiredRoles = 'no_one';
     			}
-    		} elseif(isset($rec->productId)){
-    			if(!cat_Products::haveRightFor('single', $rec->productId)){
+    		}
+    	}
+    	
+    	// Дали можем да добавяме
+    	if($action == 'add' && isset($rec->type) && isset($rec->objectId)){
+    		if($mvc->fetchField("#type = '{$rec->type}' AND #objectId = {$rec->objectId}")){
+    			$requiredRoles = 'no_one';
+    		} elseif($rec->type == 'product') {
+    			$pRec = cat_Products::fetch($rec->objectId);
+    			
+    			// Ако добавяме правило за артикул трябва да е активен,публичен,складируем и купуваем или производим
+    			if($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes'  || !($pRec->canBuy = 'yes' || $pRec->canManifacture = 'yes')){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -305,9 +312,6 @@ class price_Updates extends core_Manager
     		
     		// Опитваме се да му изчислим себестойноста според източниците
     		$primeCost = self::getPrimeCost($productId, $rec->costSource1, $rec->costSource2, $rec->costSource3, $rec->costAdd);
-    		
-    		//@TODO debug !!!
-    		$primeCost = 7;
     		
     		// Намираме старата мус ебестойност (ако има)
     		$oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
@@ -389,36 +393,10 @@ class price_Updates extends core_Manager
      */
     public static function getPrimeCost($productId, $costSource1, $costSource2 = NULL, $costSource3 = NULL, $costAdd = NULL)
     {
-    	$date = dt::now();
-    	$quantity = 1;
-    	$allSources = array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom');
     	$sources = array($costSource1, $costSource2, $costSource3);
     	foreach ($sources as $source){
     		if(isset($source)){
-    			expect(in_array($source, $allSources));
-    			
-    			switch($source){
-    				case 'accCost':
-    					//$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
-    					break;
-    				case 'lastDelivery':
-    					//@TODO
-    					break;
-    				case 'activeDelivery':
-    					//@TODO
-    					break;
-    				case 'lastQuote':
-    					//@TODO
-    					break;
-    				case 'bom':
-    					//$bomRec = cat_Products::getLastActiveBom($productId);
-    					//if(!empty($bomRec)){
-    						//$price = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST);
-    					//}
-    					//bp($bomId);
-    					//@TODO
-    					break;
-    			}
+    			$price = price_ProductCosts::getPrice($productId, $source);
     			
     			if(isset($price)) return $price;
     		}
@@ -474,10 +452,6 @@ class price_Updates extends core_Manager
      */
     private function canBeApplied($rec, $date)
     {
-    	//$rec->updateMode = 'nextMonth';
-    	//$date = '2015-12-11 15:00:00';
-    	//bp($date);
-    	
     	$res = FALSE;
     	switch($rec->updateMode){
     		case 'manual':
@@ -527,6 +501,36 @@ class price_Updates extends core_Manager
     
     
     /**
+     * Подготовка на данните
+     */
+    public static function prepareUpdateData(&$data)
+    {
+    	$data->rows = $data->recs = array();
+    	 
+    	// Извличаме записа за артикула
+    	$query = self::getQuery();
+    	$type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
+    	$query->where("#type = '{$type}'");
+    	$query->where("#objectId = {$data->masterId}");
+    	 
+    	// За всеки запис (може да е максимум един)
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$row = self::recToVerbal($rec);
+    		//$row->sources = "<ol style='margin:0px'>";
+    		//foreach (array('costSource1', 'costSource2', 'costSource3') as $fld){
+    			//if(isset($rec->{$fld})){
+    				//$row->sources .= "<li style='text-align:left'>{$row->{$fld}}</li>";
+    			//}
+    		//}
+    		//$row->sources .= "</ol>";
+    	
+    		$data->rows[$rec->id] = $row;
+    	}
+    }
+    
+    
+    /**
      * Подготовка на себестойностите
      * 
      * @param stdClass $data
@@ -535,36 +539,29 @@ class price_Updates extends core_Manager
     public function prepareUpdates(&$data)
     {
     	// Можем ли да виждаме таба?
-    	$key = ($data->masterMvc instanceof cat_Categories) ? 'categoryId' : 'productId';
-    	if(!$this->haveRightFor('read', (object)array($key => $data->masterId))){
+    	$type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
+    	if(!$this->haveRightFor('read', (object)array('type' => $type, 'objectId' => $data->masterId))){
     		$data->hide = TRUE;
     		return;
     	}
     	
     	// Как да се казва таба
     	$data->TabCaption = 'Обновяване';
-    	$data->rows = $data->recs = array();
     	
-    	// Извличаме записа за артикула
-    	$query = $this->getQuery();
-    	$type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
-    	$query->where("#type = '{$type}'");
-    	$query->where("#objectId = {$data->masterId}");
+    	self::prepareUpdateData($data);
+    }
+    
+    
+    /**
+     * Рендиране на таблицата с данните
+     */
+    public static function renderUpdateData($data)
+    {
+    	// Рендираме таблицата
+    	$table = cls::get('core_TableView', array('mvc' => 'price_Updates'));
+    	$details = $table->get($data->rows, 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Надценка,costValue=Стойност,updateMode=Обновяване');
     	
-    	// За всеки запис (може да е максимум един)
-    	while($rec = $query->fetch()){
-    		$data->recs[$rec->id] = $rec;
-    		$row = $this->recToVerbal($rec);
-    		$row->sources = "<ol style='margin:0px'>";
-    		foreach (array('costSource1', 'costSource2', 'costSource3') as $fld){
-    			if(isset($rec->{$fld})){
-    				$row->sources .= "<li style='text-align:left'>{$row->{$fld}}</li>";
-    			}
-    		}
-    		$row->sources .= "</ol>";
-    		
-    		$data->rows[$rec->id] = $row;
-    	}
+    	return $details;
     }
     
     
@@ -585,15 +582,12 @@ class price_Updates extends core_Manager
     	 $tpl->append($title, 'title');
     	 
     	 // Добавяме бутон ако трябва
-    	 if(!count($data->recs)){
-    	 	$ht = ht::createLink('', array($this, 'add', 'categoryId' => $data->masterData->rec->id, 'ret_url' => TRUE), FALSE, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
+    	 $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : 'product';
+    	 if($this->haveRightFor('add', (object)array('type' => $type, 'objectId' => $data->masterId))){
+    	 	$ht = ht::createLink('', array($this, 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'title=Задаване на ново правило,ef_icon=img/16/add.png');
     	 	$tpl->append($ht, 'title');
     	 }
-    	 
-    	 // Рендираме таблицата
-    	 $table = cls::get('core_TableView', array('mvc' => $this));
-    	 $details = $table->get($data->rows, 'tools=Пулт,sources=Източници,costAdd=Надценка,updateMode=Обновяване');
-    	 $tpl->append($details, 'content');
+    	 $tpl->append(self::renderUpdateData($data), 'content');
     	 
     	 // Връщаме шаблона
     	 return $tpl;
