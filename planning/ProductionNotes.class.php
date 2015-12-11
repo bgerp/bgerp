@@ -204,27 +204,6 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
-		if($action == 'add' && isset($rec->originId)){
-			
-			// Ако добавяме към източник, трябва да е не оттеглено и чернова задание
-			$origin = doc_Containers::getDocument($rec->originId);
-			if(!($origin->instance() instanceof planning_Jobs)){
-				$requiredRoles = 'no_one';
-			}
-			
-			$state = $origin->fetchField('state');
-			if($state == 'rejected' || $state == 'draft'){
-				$requiredRoles = 'no_one';
-			}
-		}
-	}
-	
-	
-	/**
 	 * Извиква се след успешен запис в модела
 	 *
 	 * @param core_Mvc $mvc

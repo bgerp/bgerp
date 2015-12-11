@@ -398,7 +398,6 @@ class doc_LikesPlg extends core_Plugin
                     if ($likesCnt) {
                         $attr = array();
                         $attr['class'] = 'showLikes docSettingsCnt tooltip-arrow-link';
-                        $attr['title'] = tr('Показване на харесванията');
                         $attr['data-url'] = toUrl(array($mvc, 'showLikes', $rec->id), 'local');
                         $attr['data-useHover'] = '1';
                         $attr['data-useCache'] = '1';
