@@ -52,6 +52,8 @@ class price_Setup extends core_ProtoSetup
             'migrate::priceHistoryTruncate',
             'price_History',
         	'price_ListDocs',
+    		'price_ProductCosts',
+    		'price_Updates',
         );
     
 
