@@ -195,8 +195,15 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
      */
     function writeOutputs($outputs, $config, &$persistentState)
     {
-        $baseUrl = "http://{$config->user}:{$config->password}@{$config->ip}:{$config->port}/status.xml";
+        if($config['user']) {
+            $baseUrl = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml?");
+        } else {
+            $baseUrl = new ET("http://[#ip#]:[#port#]/status.xml?");
+        }
         
+        $baseUrl->placeArray($config);
+        $baseUrl = $baseUrl->getContent();
+
         foreach ($this->outputs as $out => $attr) {
             if(isset($outputs[$out])) {
                 $res[$out] = $baseUrl . $attr['cmd'] . "=" . $outputs[$out];
