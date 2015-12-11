@@ -440,6 +440,7 @@ class price_ProductCosts extends core_Manager
     {
     	core_App::setTimeLimit(360);
     	
+    	// Намираме всички публични,активни,складируеми и купуваеми или производими артикули
     	$products = array();
     	$pQuery = cat_Products::getQuery();
     	$pQuery->where("#isPublic = 'yes'");
@@ -448,6 +449,7 @@ class price_ProductCosts extends core_Manager
     	$pQuery->where("#canBuy = 'yes' OR #canManifacture = 'yes'");
     	$pQuery->show('id');
     	
+    	// За всеки от тях
     	while($pRec = $pQuery->fetch()){
     		$products[$pRec->id] = $pRec->id;
     	}
@@ -458,36 +460,21 @@ class price_ProductCosts extends core_Manager
     	$res = array();
     	
     	// Намираме счетоводните им себестойности
-    	core_Debug::startTimer('accCost');
     	$res['accCost'] = $this->getAccCosts();
-    	core_Debug::stopTimer('accCost');
     	
     	// Намираме цените по текуща поръчка
-    	core_Debug::startTimer('activeDelivery');
     	$res['activeDelivery'] = $this->getActiveDeliveryCosts($productKeys);
-    	core_Debug::stopTimer('activeDelivery');
     	
     	// Намираме цените по последна доставка
-    	core_Debug::startTimer('lastDelivery');
     	$res['lastDelivery'] = $this->getDeliveryCosts($productKeys);
-    	core_Debug::stopTimer('lastDelivery');
     	
     	// Намираме цените по последна оферта
-    	core_Debug::startTimer('lastQuote');
     	$res['lastQuote'] = $this->getLastQuoteCosts($productKeys);
-    	core_Debug::stopTimer('lastQuote');
     	
     	// Намираме цените по последна рецепта
-    	core_Debug::startTimer('bom');
     	$res['bom'] = $this->getLastBomCosts($productKeys);
-    	core_Debug::stopTimer('bom');
     	
-    	core_Debug::log("CALC ACC_COSTS: " . round(core_Debug::$timers['accCost']->workingTime, 2));
-    	core_Debug::log("CALC ACTIVE_DELIVERY: " . round(core_Debug::$timers['activeDelivery']->workingTime, 2));
-    	core_Debug::log("CALC LAST_DELIVERY: " . round(core_Debug::$timers['lastDelivery']->workingTime, 2));
-    	core_Debug::log("CALC LAST_QUOTE: " . round(core_Debug::$timers['lastQuote']->workingTime, 2));
-    	core_Debug::log("CALC BOM: " . round(core_Debug::$timers['bom']->workingTime, 2));
-    	
+    	// Тук ще събираме готовите записи
     	$values = array();
     	
     	// Нормализираме записите
@@ -523,7 +510,6 @@ class price_ProductCosts extends core_Manager
     	
     	// Обновяваме записите със промени
     	$this->saveArray($synced['update']);
-    	bp();
     }
     
     
