@@ -1301,6 +1301,10 @@ class callcenter_Talks extends core_Master
             // Ограничаваме дължината, за да може да се побере в полето, което е 255
             $namesStr = str::limitLen($namesStr, 200);
             
+            if (!$namesStr) {
+                $namesStr = '"|Скрит номер|*"';
+            }
+            
             // Добавяме номерата/имената към съобщението
             $message = $message . ' ' . $namesStr;
             
