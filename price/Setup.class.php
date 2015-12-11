@@ -41,6 +41,21 @@ class price_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    			'systemId'    => "Update primecosts",
+    			'description' => "Обновяване на себестойностите",
+    			'controller'  => "price_Updates",
+    			'action'      => "Updateprimecosts",
+    			'period'      => 60,
+    			'timeLimit'   => 55,
+    		),
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(

@@ -160,13 +160,7 @@ class price_Updates extends core_Manager
     		
     		// Попълваме скритите полета с данните от функционалните
     		if(!$form->gotErrors()){
-    			if(isset($rec->categoryId)){
-    				$rec->objectId = $rec->categoryId;
-    				$rec->type = 'category';
-    			} elseif(isset($rec->productId)) {
-    				$rec->objectId = $rec->productId;
-    				$rec->type = 'product';
-    			}
+    			$rec->costValue= NULL;
     		}
     	}
     }
@@ -185,9 +179,11 @@ class price_Updates extends core_Manager
     	$row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, TRUE) : cat_Products::getHyperlink($rec->objectId, TRUE);
     	
     	if($rec->type == 'product'){
-    		if(price_ListRules::haveRightFor('add')){
-    			$row->updateMode = ht::createBtn('Обнови', array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_COST, 'price' => $rec->costValue, 'productId' => $rec->objectId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
-    			$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
+    		if($rec->updateMode == 'manual'){
+    			if(price_ListRules::haveRightFor('add')){
+    				$row->updateMode = ht::createBtn('Обнови', array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_COST, 'price' => $rec->costValue, 'productId' => $rec->objectId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Ръчно обновяване на себестойностите');
+    				$row->updateMode = "<span style='float:right'>{$row->updateMode}</span>";
+    			}
     		}
     	} else {
     		if($mvc->haveRightFor('saveprimecost', $rec)){
@@ -426,8 +422,11 @@ class price_Updates extends core_Manager
     /**
      * Обновяване на себестойностите по разписание
      */
-    function cron_SavePrimeCosts()
+    function cron_Updateprimecosts()
     {
+    	// Обновяваме кеширането на себестойностите
+    	cls::get('price_ProductCosts')->cron_Recalcbomcost();
+    	
     	// Взимаме всички записи
     	$now = dt::now();
     	$query = $this->getQuery();
