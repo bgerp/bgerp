@@ -1052,7 +1052,7 @@ class cat_Boms extends core_Master
     	}
     	
     	// Ако реда е отпадък то ще извадим цената му от себестойността
-    	if($rec->type == 'pop'){
+    	if($rec->type == 'pop' && $price !== FALSE){
     		$price *= -1;
     	}
     	
