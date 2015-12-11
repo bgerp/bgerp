@@ -1164,6 +1164,8 @@ td.portal-date {
     text-align: right;
     display: inline-block;
     white-space: nowrap; }
+  .document .tab-control .detail-info {
+    font-size: 0.9em; }
 
 .small-padding td {
   padding: 3px !important; }
