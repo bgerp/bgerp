@@ -1928,7 +1928,8 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$rec) return $res;
-    	 
+    	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
     	if(is_array($details)){
@@ -1944,7 +1945,7 @@ class cat_Products extends embed_Manager {
     			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
-    			$obj->quantity = $dRec->rowQuantity;
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? '<span class="red">???</span>' : $Double->toVerbal($dRec->rowQuantity);
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
