@@ -913,6 +913,7 @@ class cat_Boms extends core_Master
     		
     		// Първо проверяваме имали цена по политиката
     		$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
+    		
     		if(!isset($price)){
     			
     			// Ако няма, търсим по последната търговска рецепта, ако има
@@ -1002,6 +1003,11 @@ class cat_Boms extends core_Master
     		if($rec->type == 'pop'){
     			// Ако е отпадък търсим твърдо мениджърската себестойност
     			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
+    			if(!isset($price)) {
+    				$price = FALSE;
+    			} else {
+    				$price *= $q * $rQuantity;
+    			}
     		} else {
     			// Ако не е търсим най-подходящата цена за рецептата
     			$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
@@ -1048,7 +1054,7 @@ class cat_Boms extends core_Master
     	}
     	
     	// Ако реда е отпадък то ще извадим цената му от себестойността
-    	if($rec->type == 'pop'){
+    	if($rec->type == 'pop' && $price !== FALSE){
     		$price *= -1;
     	}
     	

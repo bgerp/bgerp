@@ -119,6 +119,9 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			
 			// нефакторираното е разлика на доставеното и фактурираното
 			$data->notInv += $recSale->amountDelivered - $recSale->amountInvoiced;
+			
+			// плащаме в датат валутата на сделката
+			$data->currencyId = $recSale->currencyId;
 
 			// ако имаме едно ниво на толеранс от задължение > на 0,5
 			if ($recSale->amountDelivered - $rec->amountPaid >= '0.5') {
@@ -164,10 +167,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					} else {
 						$toPaid = abs($toPaid - $checkSum);
 					}
-					
-					// плащаме в датат валутата на сделката
-					$data->currencyId = $recSale->currencyId;
-	
+
 					// ако дължимата сума е около 0
 					// или стойноста на фактурата съвпадне с чек сумата
 					// игнорираме тези редове
@@ -222,6 +222,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		} elseif ((!count($data->recs) && $data->notInv != 0) || (count($data->recs)&& $data->notInv != 0)) {
 			//$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, dt::now(), $currencyNow, $data->sum->currencyId);
 			$data->sum->notInv = $data->notInv;
+			$data->sum->currencyId = $data->currencyId;
 		}
 
 		return $data;
