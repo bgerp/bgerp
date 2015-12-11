@@ -42,8 +42,8 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
      * Описание на изходите на драйвера
      */
     var $outputs = array(
-        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'?r1'),
-        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'?r2')
+        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'r1'),
+        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'r2')
     );
 
 

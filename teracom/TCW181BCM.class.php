@@ -34,14 +34,14 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
      * Описание на изходите на драйвера
      */
     var $outputs = array(
-        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'?r1'),
-        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'?r2'),
-        'OutD3' => array('caption'=>'Цифров изход 3', 'uom' => '', 'xmlPath'=>'/Relay3[1]', 'cmd'=>'?r3'),
-        'OutD4' => array('caption'=>'Цифров изход 4', 'uom' => '', 'xmlPath'=>'/Relay4[1]', 'cmd'=>'?r4'),
-        'OutD5' => array('caption'=>'Цифров изход 5', 'uom' => '', 'xmlPath'=>'/Relay5[1]', 'cmd'=>'?r5'),
-        'OutD6' => array('caption'=>'Цифров изход 6', 'uom' => '', 'xmlPath'=>'/Relay6[1]', 'cmd'=>'?r6'),
-        'OutD7' => array('caption'=>'Цифров изход 7', 'uom' => '', 'xmlPath'=>'/Relay7[1]', 'cmd'=>'?r7'),
-        'OutD8' => array('caption'=>'Цифров изход 8', 'uom' => '', 'xmlPath'=>'/Relay8[1]', 'cmd'=>'?r8')
+        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'r1'),
+        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'r2'),
+        'OutD3' => array('caption'=>'Цифров изход 3', 'uom' => '', 'xmlPath'=>'/Relay3[1]', 'cmd'=>'r3'),
+        'OutD4' => array('caption'=>'Цифров изход 4', 'uom' => '', 'xmlPath'=>'/Relay4[1]', 'cmd'=>'r4'),
+        'OutD5' => array('caption'=>'Цифров изход 5', 'uom' => '', 'xmlPath'=>'/Relay5[1]', 'cmd'=>'r5'),
+        'OutD6' => array('caption'=>'Цифров изход 6', 'uom' => '', 'xmlPath'=>'/Relay6[1]', 'cmd'=>'r6'),
+        'OutD7' => array('caption'=>'Цифров изход 7', 'uom' => '', 'xmlPath'=>'/Relay7[1]', 'cmd'=>'r7'),
+        'OutD8' => array('caption'=>'Цифров изход 8', 'uom' => '', 'xmlPath'=>'/Relay8[1]', 'cmd'=>'r8')
     );
 
 
@@ -194,7 +194,7 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
     function writeOutputs($outputs, $config, &$persistentState)
     {
         if($config->user) {
-            $baseUrl = new ET("http://[#ip#]:[#port#]/status.xml?а=[#user#]:[#password#]&");
+            $baseUrl = new ET("http://[#ip#]:[#port#]/status.xml?a=[#user#]:[#password#]&");
         } else {
             $baseUrl = new ET("http://[#ip#]:{[#port#]/status.xml?");
         }
