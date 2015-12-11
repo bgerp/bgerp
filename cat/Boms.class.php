@@ -1005,6 +1005,8 @@ class cat_Boms extends core_Master
     			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
     			if(!isset($price)) {
     				$price = FALSE;
+    			} else {
+    				$price *= $q * $rQuantity;
     			}
     		} else {
     			// Ако не е търсим най-подходящата цена за рецептата
