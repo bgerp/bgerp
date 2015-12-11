@@ -279,7 +279,6 @@ class cal_Tasks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $blue = new color_Object("#2244cc");
         $grey = new color_Object("#bbb");
 
         $progressPx = min(100, round(100 * $rec->progress));
@@ -299,10 +298,18 @@ class cal_Tasks extends core_Master
 
             }
         }
-
-        $grey->setGradient($blue, $rec->progress);
-
-        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        
+        $bold = '';
+        if($rec->progress) {
+            $grey->setGradient(new color_Object("#2244cc"), $rec->progress);
+    
+            $lastTime = bgerp_Recently::getLastDocumentSee($rec);
+            if($lastTime < $rec->modifiedOn) {
+                $bold = 'font-weight:bold;';
+            }
+    
+        }
+        $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
 
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {

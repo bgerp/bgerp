@@ -1011,7 +1011,7 @@ class cat_Boms extends core_Master
     		if($savePriceCost === TRUE){
     			$rec->primeCost = ($price === FALSE) ? NULL : $price;
     			$rec->params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
-    			cat_BomDetails::save($rec, 'primeCost,params');
+    			cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
     		}
     	} else {
     		$price = NULL;
@@ -1043,7 +1043,7 @@ class cat_Boms extends core_Master
 			
     		if($savePriceCost === TRUE){
     			$rec->params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
-    			cat_BomDetails::save($rec, 'params');
+    			cls::get('cat_BomDetails')->save_($rec, 'params');
     		}
     	}
     	

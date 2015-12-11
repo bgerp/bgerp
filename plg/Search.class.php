@@ -55,6 +55,7 @@ class plg_Search extends core_Plugin
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
