@@ -23,6 +23,12 @@ class cat_Categories extends core_Master
 	public $interfaces = 'cat_ProductFolderCoverIntf';
 	
 	
+	/**
+	 * Детайли
+	 */
+	public $details = 'updates=price_Updates';
+	
+	
     /**
      * Заглавие
      */
