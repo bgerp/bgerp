@@ -348,7 +348,7 @@ class core_Detail extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
         $masterKey = $this->masterKey;
         $masters = $this->getMasters($rec);
@@ -362,10 +362,10 @@ class core_Detail extends core_Manager
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
-            if ($type == 'info') {
-                $masterInstance->logInfo($newMsg, $masterId);
+            if ($type == 'write') {
+                $masterInstance->logWrite($newMsg, $masterId);
             } else {
-                $masterInstance->logErr($newMsg, $masterId);
+                $masterInstance->logRead($newMsg, $masterId);
             }
         }
         
