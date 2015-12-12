@@ -215,7 +215,6 @@ class teracom_TCW181BCM extends sens2_ProtoDriver
             curl_setopt($ch, CURLOPT_TIMEOUT, 3); 
             $res[$out] = curl_exec($ch);
             curl_close($ch);
-            log_Debug::add('teracom_TCW181BCM', NULL, "{$cmd} | " . $res[$out]);
         }
 
         return $res;
