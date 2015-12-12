@@ -114,7 +114,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         $url = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml");
         $url->placeArray($config);
         $url = $url->getContent();
-        log_Debug::add('log_Debug', NULL, "url: " . $url, 1);
+        log_Debug::add(get_called_class(), "url: " . $url);
 
         // Извличаме XML-a
         $ch = curl_init();
@@ -131,9 +131,9 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             return "Грешка при четене от {$config->ip}:{$config->port}";
         }
    
-        log_Debug::add('log_Debug', NULL, "url: " . $url, 1);
+        log_Debug::add(get_called_class(), "url: " . $url);
 
-        log_Debug::add('log_Debug', NULL, "xml: " . $xml, 1);
+        log_Debug::add(get_called_class(), "xml: " . $xml);
 
         // Парсираме XML-а
         $result = array();
@@ -177,7 +177,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             }
         }
 
-        log_Debug::add('log_Debug', NULL, "res: " . serialize($res), 1);
+        log_Debug::add(get_called_class(), "res: " . serialize($res));
 
         return $res;
     }
