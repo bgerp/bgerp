@@ -292,7 +292,6 @@ class backup_Start extends core_Manager
         $confFiles = array();
         $confFiles[] = " " . dirname($traceArr[$maxKey]['file']) . '/index.cfg.php';
         $confFiles[] = " " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
-        $confFiles[] = " " . EF_CONF_PATH . '/' . '_common.cfg.php';
         
         $cmd = "tar cfvz " . EF_TEMP_PATH . "/" . self::$confFileName;
         
