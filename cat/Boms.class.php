@@ -154,7 +154,7 @@ class cat_Boms extends core_Master
      */
     const PRICE_COEFFICIENT = 0.5;
     
-    
+    public $canEditActivated = TRUE;
     /**
      * Описание на модела
      */
@@ -533,7 +533,7 @@ class cat_Boms extends core_Master
     	$resources['resources'] = array_values($materials);
     	
     	if($rec->expenses){
-    		$resources['expenses'] = $rec->expenses * $resources['primeCost'];
+    		$resources['expenses'] = $rec->expenses;
     	}
     	
     	// Връщаме намерените ресурси
