@@ -215,7 +215,7 @@ class core_Plugins extends core_Manager
                         if (cls::load($plugin, TRUE)) {
                             $obj->loadSingle($name, $plugin);
                         } else {
-                            DEBUG::log("Липсващ плъгин: {$plugin}");
+                            $this->logWarning("Липсващ плъгин: {$plugin}");
                         }
                     }
                 }
