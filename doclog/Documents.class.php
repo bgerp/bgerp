@@ -2677,7 +2677,7 @@ class doclog_Documents extends core_Manager
     		// Съобщение в лога
     		$doc = doc_Containers::getDocument($rec->containerId);
     		$docInst = $doc->getInstance();
-    		$docInst->logInfo($msg, $doc->that, DOCLOG_DOCUMENTS_DAYS);
+    		$docInst->logRead($msg, $doc->that, DOCLOG_DOCUMENTS_DAYS);
     	}
     	
         return $rec;
