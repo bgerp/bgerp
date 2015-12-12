@@ -292,7 +292,6 @@ class backup_Start extends core_Manager
         $confFiles = array();
         $confFiles[] = " " . dirname($traceArr[$maxKey]['file']) . '/index.cfg.php';
         $confFiles[] = " " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
-        $confFiles[] = " " . EF_CONF_PATH . '/' . '_common.cfg.php';
         
         $cmd = "tar cfvz " . EF_TEMP_PATH . "/" . self::$confFileName;
         
@@ -363,7 +362,7 @@ class backup_Start extends core_Manager
         $unArchived = fileman_Data::getUnArchived();
         
         foreach ($unArchived as $fileObj) {
-            if (self::$storage->putFile($fileObj->path)) {
+            if (self::$storage->putFile(BACKUP_FILEMAN_PATH . "/" . $fileObj->path)) {
                 fileman_Data::setArchived($fileObj->id);
             }
         }

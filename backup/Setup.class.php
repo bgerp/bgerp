@@ -88,6 +88,12 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
 
 
 /**
+ * Поддиректория където ще се архивират файлвете от fileman-a
+ */
+defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
+
+
+/**
  * Парола за криптиране на архива
  */
 defIfNot('BACKUP_PASS_OFFSET', 'secret');
@@ -269,6 +275,11 @@ class backup_Setup extends core_ProtoSetup
         } else {
             unlink($touchFile);
             return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
+        }
+        
+        // Осигуряване поддиректория за fileman файловете
+        if (!is_dir($conf->BACKUP_LOCAL_PATH . "/" . BACKUP_FILEMAN_PATH)) {
+            mkdir($conf->BACKUP_LOCAL_PATH . "/" . BACKUP_FILEMAN_PATH);
         }
         
         // Проверка за наличие на tar, gz и mysqldump
