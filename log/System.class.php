@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'log_Debug' - Мениджър за запис на действията на потребителите
+ * Клас 'log_System' - Мениджър за запис на действията на потребителите
  *
  *
  * @category  ef
@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-class log_Debug extends core_Manager
+class log_System extends core_Manager
 {
     
     
@@ -39,7 +39,7 @@ class log_Debug extends core_Manager
     /**
      * 
      */
-    public $oldClassName = 'core_Logs';
+    public $oldClassName = 'log_Debug';
     
     
     /**
