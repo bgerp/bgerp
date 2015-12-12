@@ -53,6 +53,7 @@ class log_Setup extends core_ProtoSetup
     		'log_Referer',
     		'log_PhpErr',
     		'migrate::removeMaxCrc',
+    		'migrate::repairType'
         );
         
         
@@ -65,5 +66,21 @@ class log_Setup extends core_ProtoSetup
         log_Actions::delete("#crc = '{$max}'");
         log_Classes::delete("#crc = '{$max}'");
         log_Data::delete("#actionCrc = '{$max}' OR #classCrc = '{$max}'");
+    }
+
+    
+    /**
+     * Поправя типовете след промяната
+     */
+    public static function repairType()
+    {
+        $query = log_Data::getQuery();
+        $query->where("#type IS NULL OR #type = ''");
+        
+        while ($rec = $query->fetch()) {
+            $rec->type = 'read';
+            
+            log_Data::save($rec, 'type');
+        }
     }
 }
