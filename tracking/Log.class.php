@@ -195,8 +195,9 @@ class tracking_Log extends core_Master {
     
         if ($numRows = self::delete("#createdOn < '{$date}'")) {
     
+            $this->logWrite("Изтрити изтекли записи за тракери");
+            
             $info = "Изтрити са {$numRows} изтекли записи за тракери";
-    
             $this->logInfo($info);
         }
     
