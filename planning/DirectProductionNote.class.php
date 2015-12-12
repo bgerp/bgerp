@@ -364,7 +364,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	public static function on_AfterCreate($mvc, $rec)
 	{
 		// Ако записа е клониран не правим нищо
-		if($rec->isClone === TRUE) return;
+		if($rec->_isClone === TRUE) return;
 		
 		// Ако могат да се генерират детайли от артикула да се
 		$details = $mvc->getDefaultDetails($rec);

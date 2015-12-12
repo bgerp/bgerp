@@ -74,7 +74,7 @@ class plg_Clone extends core_Plugin
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
             
             // Маркираме записа като клониран
-            $nRec->isClone = TRUE;
+            $nRec->_isClone = TRUE;
             
             // Да няма дублиране на уникални полета
             if(!$mvc->isUnique($nRec, $fields)) {
