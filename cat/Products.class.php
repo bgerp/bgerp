@@ -1616,7 +1616,7 @@ class cat_Products extends embed_Manager {
     		$pRec = cat_Products::fetch(acc_Items::fetchField($itemId, 'objectId'));
     		$pRec->state = 'closed';
     		$this->save($pRec);
-    		acc_Items::logInfo("Затворено е перо", $itemId);
+    		acc_Items::logWrite("Затворено е перо", $itemId);
     	}
     }
     
@@ -1677,7 +1677,7 @@ class cat_Products extends embed_Manager {
     	
     	if (!Request::get('ajax_mode')) {
     		// Записваме, че потребителя е разглеждал този списък
-    		$this->logInfo('Показване на ограничения сингъл', $id);
+    		$this->logRead('Показване на ограничения сингъл', $id);
     	}
     	
     	return $tpl;

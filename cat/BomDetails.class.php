@@ -599,7 +599,7 @@ class cat_BomDetails extends doc_Detail
     	cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("|*{$title} |вече е етап|*");
-    	$this->Master->logInfo("Разпъване на материал", $rec->bomId);
+    	$this->Master->logRead("Разпъване на материал", $rec->bomId);
     	
     	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
     }
@@ -621,7 +621,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("Свиване на|* {$title}");
-    	$this->Master->logInfo("Свиване на етап", $rec->bomId);
+    	$this->Master->logRead("Свиване на етап", $rec->bomId);
     	
     	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
     }
