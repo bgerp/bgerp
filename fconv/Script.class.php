@@ -318,7 +318,7 @@ class fconv_Script
             $shell = $shellName;    
         }
         
-        log_Debug::add('fconv_Script', NULL, "Стартиран скрипт: " . $this->script);
+        log_Debug::add('fconv_Script', "Стартиран скрипт: " . $this->script);
         
         pclose(popen($shell, "r"));
     }
