@@ -190,7 +190,7 @@ class core_Cron extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
-                'log_Debug',
+                'log_System',
                 'class' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png');
@@ -391,7 +391,7 @@ class core_Cron extends core_Manager
      */
     function logThenStop($msg, $id = NULL, $type = 'info')
     {
-        log_Debug::add(get_called_class(), $msg, $id, $type, 7);
+        log_System::add(get_called_class(), $msg, $id, $type, 7);
         echo(core_Debug::getLog());
         shutdown();
     }

@@ -1217,7 +1217,7 @@ class core_Mvc extends core_FieldSet
     public static function logEmerg($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'emerg', $lifeDays);
+        log_System::add($className, $action, $objectId, 'emerg', $lifeDays);
     }
     
     
@@ -1231,7 +1231,7 @@ class core_Mvc extends core_FieldSet
     public static function logAlert($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'alert', $lifeDays);
+        log_System::add($className, $action, $objectId, 'alert', $lifeDays);
     }
     
     
@@ -1245,7 +1245,7 @@ class core_Mvc extends core_FieldSet
     public static function logCrit($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'crit', $lifeDays);
+        log_System::add($className, $action, $objectId, 'crit', $lifeDays);
     }
     
     
@@ -1259,7 +1259,7 @@ class core_Mvc extends core_FieldSet
     public static function logErr($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'err', $lifeDays);
+        log_System::add($className, $action, $objectId, 'err', $lifeDays);
     }
     
     
@@ -1273,7 +1273,7 @@ class core_Mvc extends core_FieldSet
     public static function logWarning($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'warning', $lifeDays);
+        log_System::add($className, $action, $objectId, 'warning', $lifeDays);
     }
     
     
@@ -1287,7 +1287,7 @@ class core_Mvc extends core_FieldSet
     public static function logNotice($action, $objectId = NULL, $lifeDays = 5)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'notice', $lifeDays);
+        log_System::add($className, $action, $objectId, 'notice', $lifeDays);
     }
     
     
@@ -1301,7 +1301,7 @@ class core_Mvc extends core_FieldSet
     public static function logInfo($action, $objectId = NULL, $lifeDays = 7)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'info', $lifeDays);
+        log_System::add($className, $action, $objectId, 'info', $lifeDays);
     }
     
     
@@ -1315,7 +1315,7 @@ class core_Mvc extends core_FieldSet
     public static function logDebug($action, $objectId = NULL, $lifeDays = 1)
     {
         $className = get_called_class();
-        log_Debug::add($className, $action, $objectId, 'debug', $lifeDays);
+        log_System::add($className, $action, $objectId, 'debug', $lifeDays);
     }
     
     
