@@ -354,7 +354,7 @@ class acc_Articles extends core_Master
         
         if (!Request::get('ajax_mode')) {
         	// Записваме, че потребителя е разглеждал този списък
-        	$this->logInfo('Създаване на обратен мемориален ордер', $result[1]);
+        	$this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
         }
         
         return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
