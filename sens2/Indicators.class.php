@@ -150,6 +150,8 @@ class sens2_Indicators extends core_Manager
             $query = self::getQuery();
             while($iRec = $query->fetch()) {
                 self::$contex[$iRec->title] = (double) $iRec->value;
+                $controller = self::getVerbal($iRec, 'controllerId');
+                self::$contex['$' . $controller . '->' . $iRec->port] = (double) $iRec->value;
             }
         }
         
