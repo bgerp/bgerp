@@ -1328,6 +1328,11 @@ class core_Mvc extends core_FieldSet
      */
     public static function logRead($action, $objectId = NULL, $lifeDays = 180)
     {
+        if (core_Users::getCurrent() <= 0) {
+            
+            return self::logInfo($action, $objectId);
+        }
+        
         $className = get_called_class();
         log_Data::add('read', $action, $className, $objectId, $lifeDays);
     }
@@ -1342,6 +1347,11 @@ class core_Mvc extends core_FieldSet
      */
     public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
     {
+        if (core_Users::getCurrent() <= 0) {
+            
+            return self::logInfo($action, $objectId);
+        }
+        
         $className = get_called_class();
         log_Data::add('write', $action, $className, $objectId, $lifeDays);
     }
@@ -1356,6 +1366,10 @@ class core_Mvc extends core_FieldSet
      */
     public static function logLogin($action, $objectId = NULL, $lifeDays = 180)
     {
+        if (core_Users::getCurrent() <= 0) {
+            
+            self::logInfo($action, $objectId);
+        }
         $className = get_called_class();
         log_Data::add('login', $action, $className, $objectId, $lifeDays);
     }
