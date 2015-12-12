@@ -29,8 +29,8 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Roles', 'Роли', 'admin');
         $this->TAB('core_Lg', 'Превод', 'admin');
         
-        $this->TAB('log_Data', 'Логове->Данни', 'admin');
-        $this->TAB('log_Debug', 'Логове->Дебъг', 'admin, debug');
+        $this->TAB('log_Data', 'Логове->Потребителски', 'admin');
+        $this->TAB('log_System', 'Логове->Системен', 'admin, debug');
         $this->TAB('log_Actions', 'Логове->Действия', 'admin');
         $this->TAB('log_Browsers', 'Логове->Браузъри', 'admin');
         $this->TAB('log_Classes', 'Логове->Класове', 'admin');
