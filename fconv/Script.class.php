@@ -104,7 +104,7 @@ class fconv_Script
             
             // Ако не е валиден файл, изписваме съобщение за грешка в лога
             if (!$isValid) {
-                log_Data::add('err', "Файлът не съществува: '{$file}'", 'fconv_Script');
+                log_System::add('fconv_Script', "Файлът не съществува: '{$file}'", NULL, 'err');
             }
         }
     }
