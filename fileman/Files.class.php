@@ -438,7 +438,7 @@ class fileman_Files extends core_Master
      */
     static function getContent($hnd)
     {
-        log_Debug::add(get_called_class(), "fileman_Files::getContent('{$hnd}')");
+        log_System::add(get_called_class(), "fileman_Files::getContent('{$hnd}')");
         //expect($path = fileman_Download::getDownloadUrl($hnd));  
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
