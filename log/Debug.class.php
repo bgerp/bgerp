@@ -21,7 +21,7 @@ class log_Debug extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    var $title = 'Логове';
+    var $title = 'Системен лог';
     
     
     /**
