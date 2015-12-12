@@ -51,7 +51,7 @@ class docoffice_Office
             // Нулираме брояча за конвертиранията
             static::emptyConvertCount();
             
-            log_Data::add('info', OFFICE_PACKET_PATH . ' е стартиран на порт ' . $port, 'docoffice_Office');
+            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е стартиран на порт ' . $port, NULL, 'info');
             
             // Отключваме процеса
             static::unlockOffice();
@@ -60,7 +60,7 @@ class docoffice_Office
         } else {
             
             // Ако има грешка при стартирането
-            log_Data::add('info', "Грешка при стартирането на " . OFFICE_PACKET_PATH, 'docoffice_Office');
+            log_System::add('docoffice_Office', "Грешка при стартирането на " . OFFICE_PACKET_PATH, NULL, 'info');
         }
         
         return FALSE;
@@ -129,13 +129,13 @@ class docoffice_Office
             // Отключваме процеса
             static::unlockOffice();
             
-            log_Data::add('info', OFFICE_PACKET_PATH . ' е спрян', 'docoffice_Office');
+            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е спрян', NULL, 'info');
             
             return TRUE;
         } else {
             
             // Ако има грешка при спирането
-            log_Data::add('err', "Грешка при спирането на " . OFFICE_PACKET_PATH, 'docoffice_Office');
+            log_System::add('docoffice_Office', "Грешка при спирането на " . OFFICE_PACKET_PATH, NULL, 'err');
         }
         
         return FALSE;
