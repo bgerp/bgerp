@@ -1160,7 +1160,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Контиране на документа
     		$this->conto($id);
     		 
-    		$this->logInfo("Активиране/Контиране на сделка", $id);
+    		$this->logWrite("Активиране/Контиране на сделка", $id);
     		
     		// Редирект
     		return redirect(array($this, 'single', $id));
@@ -1226,9 +1226,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$ClosedDeals->conto($clId);
     			 
     		} catch(core_exception_Expect $e){
-    			 
-    			// Ако има проблем при обновяването
-    			$this->logWarning("Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'", $rec->id);
+    			 reportException($e);
     		}
     	}
     }
@@ -1255,9 +1253,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			// Намира се метода на плащане от интерфейса
     			$dealInfo = $Class->getAggregateDealInfo($rec->id);
     		} catch(core_exception_Expect $e){
-    
-    			// Ако има проблем при извличането се продължава
-    			$this->logWarning("Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'", $rec->id);
+                reportException($e);
     			continue;
     		}
     
@@ -1280,9 +1276,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			try{
     				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
     			} catch(core_exception_Expect $e){
-    					
-    				// Ако има проблем при извличането се продължава
-    				$this->logWarning("Несъществуващ платежен план': '{$e->getMessage()}'", $rec->id);
+    			    reportException($e);
     				continue;
     			}
     		}
@@ -1301,9 +1295,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		try{
     			$Class->save_($rec, 'paymentState');
     		} catch(core_exception_Expect $e){
-    
-    			// Ако има проблем при обновяването
-    			$this->logWarning("Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'", $rec->id);
+                reportException($e);
     		}
     	}
     }
