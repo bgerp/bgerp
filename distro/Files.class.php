@@ -1336,7 +1336,7 @@ class distro_Files extends core_Detail
         if (!$resArr) return ;
         
         // Сетваме грешката
-        self::logErr('Възникна грешка: ' . serialize($resArr), $id);
+        self::logErr("Възникна грешка: " . serialize($resArr), $id);
     }
     
     
