@@ -79,11 +79,18 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 			
 			if(isset($dRec->bomId)){
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
-					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId, $quantityJob, $rec->valior);
+					
+					$quantityProduced = planning_Jobs::fetchField($dRec->jobId, 'quantityProduced');
+					$quantityToProduce = $dRec->quantity + $quantityProduced;
+					
+					// Извличаме информацията за ресурсите в рецептата за двете количества
+					$resourceInfoProduced = cat_Boms::getResourceInfo($dRec->bomId, $quantityProduced, $rec->valior);
+					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId, $quantityToProduce, $rec->valior);
 					
 					$mapArr = $resourceInfo['resources'];
 					if(count($mapArr)){
 						foreach ($mapArr as $index => $res){
+							$res->propQuantity = $res->propQuantity - $resourceInfoProduced['resources'][$index]->propQuantity;
 							
 							// Подготвяме количеството
 							$resQuantity = $dRec->quantity * ($res->propQuantity / $resourceInfo['quantity']);
@@ -137,7 +144,11 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					
 					// Ако има режийни разходи за разпределение
 					if($resourceInfo['expenses']){
-						$costAmount = $resourceInfo['expenses'];
+						$primeCost1 = $resourceInfoProduced['primeCost'];
+						$primeCost2 = $resourceInfo['primeCost'];
+						$amount = $primeCost2 * $quantityToProduce - $primeCost1 * $quantityProduced;
+						
+						$costAmount = $resourceInfo['expenses'] * $amount;
 						$costAmount = round($costAmount, 2);
 						
 						if($costAmount){

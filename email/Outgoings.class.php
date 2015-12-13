@@ -291,13 +291,13 @@ class email_Outgoings extends core_Master
             $options->delay = NULL;
             if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay, 'email_FaxSent')) {
                 status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
-                self::logInfo('Добавяне за отложено изпращане', $rec->id);
+                self::logWrite('Добавяне за отложено изпращане', $rec->id);
                 
                 $rec->modifiedOn = dt::now();
                 email_Outgoings::save($rec, 'modifiedOn');
             } else {
                 status_Messages::newStatus('|Грешка при добавяне в списъка за отложено изпращане', 'error');
-                self::logInfo('Грешка при добавяне за отложено изпращане', $rec->id);
+                self::logErr('Грешка при добавяне за отложено изпращане', $rec->id);
             }
             
             return TRUE;
@@ -462,7 +462,8 @@ class email_Outgoings extends core_Master
                     $rec->documents = keylist::fromArray($documents);
                 }
             } catch (core_exception_Expect $e) {
-                self::logErr("Грешка при генериране на файловете: " . $e->getMessage(), $rec->id);
+                self::logErr("Грешка при генериране на файловете", $rec->id);
+                reportException($e);
                 $convertStatus = FALSE;
             }
             
@@ -489,7 +490,8 @@ class email_Outgoings extends core_Master
                         $emailsCc
                     );
                 } catch (core_exception_Expect $e) {
-                    self::logErr("Грешка при изпращане на имейл: " . $e->getMessage(), $rec->id);
+                    self::logErr("Грешка при изпращане", $rec->id);
+                    reportException($e);
                     $status = FALSE;
                 }
                 
@@ -522,7 +524,7 @@ class email_Outgoings extends core_Master
                 }
                 
                 // Правим запис в лога
-                self::logInfo('Изпращане' , $rec->id);
+                self::logWrite('Изпращане' , $rec->id);
                 
                 // Добавяме в масива
                 $success[] = $allEmailsToStr;
@@ -2419,7 +2421,7 @@ class email_Outgoings extends core_Master
         if ($this->save($rec)) {
             $msg = '|Успешно затворен имейл';
             $type = 'notice';
-            $this->logInfo('Затваряне на имейла', $id);
+            $this->logWrite('Затваряне на имейла', $id);
         } else {
             $msg = '|Грешка при затваряне на имейла';
             $type = 'warning';

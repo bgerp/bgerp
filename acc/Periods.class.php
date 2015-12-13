@@ -483,7 +483,7 @@ class acc_Periods extends core_Manager
         $res = new Redirect(array('acc_Periods'), tr($res));
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo("Затваряне на период", $id);
+        $this->logWrite("Затваряне на период", $id);
         
         return $res;
     }

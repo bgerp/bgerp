@@ -406,6 +406,10 @@ class callcenter_Talks extends core_Master
     {
         $conf = core_Packs::getConfig('callcenter');
         
+        $url = toUrl(getCurrentUrl());
+        
+        self::logDebug('CALL BEGIN: ' . $url);
+        
         // Масив с грешките
         $errArr = array();
         
@@ -592,6 +596,10 @@ class callcenter_Talks extends core_Master
     function act_RegisterEndCall()
     {
         $conf = core_Packs::getConfig('callcenter');
+        
+        $url = toUrl(getCurrentUrl());
+        
+        self::logDebug('CALL END: ' . $url);
         
         // Масив с грешките
         $errArr = array();
@@ -1124,7 +1132,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме грешката
-            log_Debug::add(get_called_class(), $id, $err);
+            self::logErr($err, $err);
         }
     }
     
@@ -1144,8 +1152,10 @@ class callcenter_Talks extends core_Master
         // Ако не отговаря на посочения от нас
         if ($protectKey != $conf->CALLCENTER_PROTECT_KEY) {
             
+            $errMsg = 'Невалиден публичен ключ за обаждането';
+            
             // Записваме в лога
-            self::logErr('Невалиден публичен ключ за обаждането: ' . $protectKey);
+            self::logErr($errMsg . ': ' . $protectKey);
             
             // Връщаме
             return FALSE;

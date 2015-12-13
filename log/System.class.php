@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'log_Debug' - Мениджър за запис на действията на потребителите
+ * Клас 'log_System' - Мениджър за запис на действията на потребителите
  *
  *
  * @category  ef
@@ -14,14 +14,14 @@
  * @since     v 0.1
  * @link
  */
-class log_Debug extends core_Manager
+class log_System extends core_Manager
 {
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = 'Логове';
+    var $title = 'Системен лог';
     
     
     /**
@@ -39,7 +39,7 @@ class log_Debug extends core_Manager
     /**
      * 
      */
-    public $oldClassName = 'core_Logs';
+    public $oldClassName = 'log_Debug';
     
     
     /**
@@ -74,26 +74,38 @@ class log_Debug extends core_Manager
         $this->FLD('className', 'varchar(16)');
         $this->FLD('objectId', 'int');
         $this->FLD('detail', 'text');
-        $this->FLD('lifeTime', 'int', 'value=120');
+        $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
+        $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг)', 'caption=Тип, notNull');
     }
     
     
     /**
      * Добавяне на събитие в лога
+     * 
+     * @param string $className
+     * @param integer|NULL $objectId
+     * @param string $action
+     * @param string $type
+     * @param integer $lifeDays
      */
-    static function add($className, $objectId, $detail, $lifeTime = 7)
+    public static function add($className, $action, $objectId = NULL, $type = 'info', $lifeDays = 7)
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
         }
-        core_Debug::log("$className, $objectId, $detail");
+        
+        $logStr = $className;
+        $logStr .= $objectId ? " - " . $objectId : '';
+        $logStr .=  ": " . $action;
+        Debug::log($logStr);
+        
         expect(is_string($className));
         
         $rec = new stdClass();
         $rec->className = $className;
         $rec->objectId = $objectId;
-        $rec->detail = $detail;
-        $rec->lifeTime = $lifeTime;
+        $rec->detail = $action;
+        $rec->lifeDays = $lifeDays;
         
         return self::save($rec);
     }
@@ -104,7 +116,7 @@ class log_Debug extends core_Manager
      */
     function cron_DeleteOldRecords()
     {
-        $deletedRecs = $this->delete(" ADDDATE( #createdOn, #lifeTime ) < '" . dt::verbal2mysql() . "'");
+        $deletedRecs = $this->delete(" ADDDATE( #createdOn, #lifeDays ) < '" . dt::verbal2mysql() . "'");
         
         return "Log: <B>{$deletedRecs}</B> old records was deleted";
     }

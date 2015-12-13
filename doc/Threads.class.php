@@ -181,10 +181,10 @@ class doc_Threads extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
-        if (($type == 'info') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
-            doc_Folders::logInfo('Разглеждане на папка', $folderId);
+        if (($type == 'read') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
+            doc_Folders::logRead('Разглеждане на папка', $folderId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }
@@ -1565,7 +1565,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->logInfo('Отвори нишка', $id);
+        $this->logWrite('Отвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -1601,7 +1601,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->logInfo('Затвори нишка', $id);
+        $this->logWrite('Затвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }

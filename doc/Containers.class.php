@@ -167,10 +167,10 @@ class doc_Containers extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
-        if (($type == 'info') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
-            doc_Threads::logInfo('Разглеждане на нишка', $threadId);
+        if (($type == 'read') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
+            doc_Threads::logRead('Разглеждане на нишка', $threadId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }
@@ -1224,7 +1224,7 @@ class doc_Containers extends core_Manager
         	//Записваме данните в БД
         	$clsInst->save($recAct);
         	
-        	$document->instance->logInfo('Активиране', $document->that);
+        	$document->instance->logWrite('Активиране', $document->that);
         	
         	$rec->state = 'active';
         	$clsInst->invoke('AfterActivation', array(&$rec));

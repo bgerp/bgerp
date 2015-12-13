@@ -457,7 +457,7 @@ class colab_FolderToPartners extends core_Manager
     	if (!$isSended) {
     		$error = trim($PML->ErrorInfo);
     		if (isset($error)) {
-    			log_Data::add('err', "PML error: " . $error, 'phpmailer_Instance');
+    			log_System::add('phpmailer_Instance', "PML error: " . $error, NULL, 'err');
     		}
     	}
     	

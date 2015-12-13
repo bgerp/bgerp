@@ -51,7 +51,7 @@ class webkittopdf_Converter extends core_Manager
         
     	if (!webkittopdf_Setup::isEnabled()) {
             
-    	    self::logWarning("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
+    	    self::logAlert("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
     	    
             throw new core_exception_Expect("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
         }

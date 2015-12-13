@@ -318,6 +318,7 @@ class fileman_Data extends core_Manager {
         return $res;
     }
     
+    
     /**
      * Връща най-новите n неархивирани файла
      *
@@ -332,10 +333,16 @@ class fileman_Data extends core_Manager {
         $query->where("#archived is NULL");
         $query->orderBy("createdOn", 'DESC');
         $query->limit($n);
-        while ($res[] = $query->fetch());
+        $res = array();
+        while ($rec = $query->fetch()) {
+            if ($rec) {
+                $res[] = $rec;
+            }
+        }
 
         return ($res);
     }
+    
     
     /**
      * Маркира неархивиран файл като архивиран

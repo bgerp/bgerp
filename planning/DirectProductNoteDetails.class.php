@@ -128,6 +128,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	} else {
     		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
     		$products = array('' => '') + cat_Products::getByProperty($metas);
+    		unset($products[$data->masterRec->productId]);
     	}
     	$form->setOptions('productId', $products);
     }

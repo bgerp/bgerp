@@ -123,7 +123,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 			
 			$rec->{$mvc->lineFieldName} = $formRec->lineId;
 			$mvc->save($rec);
-			$mvc->logInfo('Редакция на транспорта', $rec->id);
+			$mvc->logWrite('Редакция на транспорта', $rec->id);
 			
             // Обновяване на modifiedOn на засегнатите транспортните линии
             if($rec->lineId) {

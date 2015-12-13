@@ -346,7 +346,7 @@ class acc_Features extends core_Manager
     	$this->syncAllItems();
     	
     	// Записваме, че потребителя е разглеждал този списък
-    	$this->logInfo("Синхронизиране на счетоводните свойства");
+    	$this->logWrite("Синхронизиране на счетоводните свойства");
     	
     	// Редирект към списъка на свойствата
     	return Redirect(array($this, 'list'), FALSE, tr('Всички свойства са синхронизирани успешно'));

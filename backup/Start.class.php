@@ -84,7 +84,7 @@ class backup_Start extends core_Manager
             , $output, $returnVar);
         
         if ($returnVar !== 0) {
-            self::logErr("Backup", "", "ГРЕШКА full Backup: {$returnVar}");
+            self::logErr("Грешка при FullBackup");
             self::unLock();
             
             shutdown();
@@ -272,7 +272,7 @@ class backup_Start extends core_Manager
             self::$storage->removeFile($fileName);
             $cnt++;
         }
-        self::logInfo("Успешно изтрити {$cnt} файла");
+        self::logInfo("Успешно изтрити файлове");
         
         return;
     }
@@ -339,7 +339,8 @@ class backup_Start extends core_Manager
         
         if ($returnVar !== 0) {
             $err = implode(",", $output);
-            self::logWarning("ГРЕШКА при криптиране!: {$err}");
+            self::logWarning("ГРЕШКА при криптиране");
+            self::logErr("ГРЕШКА при криптиране!: {$err}");
             self::unLock();
             
             shutdown();
@@ -360,10 +361,12 @@ class backup_Start extends core_Manager
     private static function saveFileMan()
     {
         $unArchived = fileman_Data::getUnArchived();
-        
+
         foreach ($unArchived as $fileObj) {
-            if (self::$storage->putFile(BACKUP_FILEMAN_PATH . "/" . $fileObj->path)) {
+            if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
                 fileman_Data::setArchived($fileObj->id);
+            } else {
+                throw new core_exception_Expect("backup не записва файл в storage!");
             }
         }
     }

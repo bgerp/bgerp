@@ -93,7 +93,7 @@ class price_Updates extends core_Manager
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
     									bom=Последна рецепа)', 'caption=Източник 3');
-    	$this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Процент');
+    	$this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
     	$this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
     	$this->FLD('updateMode', 'enum(manual=Ръчно,now=Ежечасно,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
     
