@@ -500,9 +500,8 @@ class doc_Threads extends core_Manager
         
         doc_Folders::requireRightFor('single', $folderRec);
 
-        $data->rejQuery = clone($data->query);
-
         $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
+        $data->rejQuery = clone($data->query);
 
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
