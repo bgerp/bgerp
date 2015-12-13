@@ -1876,24 +1876,30 @@ class email_Incomings extends core_Master
         // Превръщаме в масив
         $filesArr = keylist::toArray($rec->files);
          
-         // Ако има HTML файл
-         if ($rec->htmlFile) {
+        // Ако има HTML файл
+        if ($rec->htmlFile) {
              
-             // Добавяме го към файловете
-             $filesArr[$rec->htmlFile] = $rec->htmlFile;
-         }
+            // Добавяме го към файловете
+            $filesArr[$rec->htmlFile] = $rec->htmlFile;
+        }
          
-         // Добавяме EML файла, към файловете
-         $filesArr[$rec->emlFile] = $rec->emlFile;
-         
-         // Обхождаме всички файлове
-         foreach ($filesArr as $fileId) {
-             
-            // Вземаме записите за файловете
-            $fRec = fileman_Files::fetch($fileId);
-             
-            // Създаваме масив с прикачените файлове
-            $fhArr[$fRec->fileHnd] = $fRec->name;
+        // Ако има, добавяме EML файла, към файловете
+        if ($rec->emlFile) {
+            $filesArr[$rec->emlFile] = $rec->emlFile;
+        }
+
+        $fhArr = array();
+
+        // Обхождаме всички файлове
+        if(count($filesArr)) {
+            foreach ($filesArr as $fileId) {
+                 
+                // Вземаме записите за файловете
+                $fRec = fileman_Files::fetch($fileId);
+                 
+                // Създаваме масив с прикачените файлове
+                $fhArr[$fRec->fileHnd] = $fRec->name;
+            }
         }
          
         return $fhArr;
