@@ -233,7 +233,7 @@ class email_SendOnTime extends core_Manager
         $msg = 'Спряно изпращане';
         $type = 'notice';
         if (self::save($rec, 'state')) {
-            email_Outgoings::logInfo($msg, $rec->objectId);
+            email_Outgoings::logWrite($msg, $rec->objectId);
             email_Outgoings::touchRec($rec->objectId);
         } else {
             $msg = 'Грешка при спиране на изпращането';

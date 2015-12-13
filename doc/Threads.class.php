@@ -181,10 +181,10 @@ class doc_Threads extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
-        if (($type == 'info') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
-            doc_Folders::logInfo('Разглеждане на папка', $folderId);
+        if (($type == 'read') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
+            doc_Folders::logRead('Разглеждане на папка', $folderId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }
@@ -444,7 +444,7 @@ class doc_Threads extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
+        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите)', 
             'allowEmpty,caption=Подредба,input,silent,refreshForm');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
@@ -601,8 +601,42 @@ class doc_Threads extends core_Manager
         switch ($filter->order) {
         	default:
             case 'open':
+            case 'mine':
                 $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
                 $query->orderBy('#isOpened,#state=ASC,#last=DESC,#id=DESC');
+                if($filter->order == 'mine') {
+                    if($cu = core_Users::getCurrent()) {
+
+                        // Извличаме тредовете, където има добавени от потребителя документи;
+                        $cQuery = doc_Containers::getQuery();
+                        $cQuery->show('threadId');
+                        $cQuery->groupBy('threadId');
+                        $tList = array();
+                        $cond = "#createdBy = {$cu}";
+                        if($filter->folderId) {
+                            $cond .= " AND #folderId = $filter->folderId";
+                        }
+                        while($cRec = $cQuery->fetch($cond)) {
+                            $tList[] = $cRec->threadId;
+                        }
+
+                        // Извличаме тредовете, където потребителя е лайквал документи
+                        $lQuery = doc_Likes::getQuery();
+                        $lQuery->EXT('threadId', 'doc_Containers', 'externalKey=containerId');
+                        $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
+                        $cQuery->show('threadId');
+                        $cQuery->groupBy('threadId');
+                        while($lRec = $cQuery->fetch($cond)) {
+                            $tList[] = $lRec->threadId;
+                        }
+
+
+                        if(count($tList)) {
+                            $tList = implode(',', $tList);
+                            $query->where("#id IN ({$tList})"); // OR #createdBy = {$cu} OR #modifiedBy = {$cu}
+                        }
+                    }
+                }
                 break;
             case 'recent':
                 $query->orderBy('#last=DESC,#id=DESC');
@@ -1531,7 +1565,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->logInfo('Отвори нишка', $id);
+        $this->logWrite('Отвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -1567,7 +1601,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->logInfo('Затвори нишка', $id);
+        $this->logWrite('Затвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }

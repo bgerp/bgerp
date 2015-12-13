@@ -179,7 +179,7 @@ class planning_plg_StateManager extends core_Plugin
     	
     		// Обновяваме състоянието и старото състояние
     		if($mvc->save($rec, 'brState,state,modifiedOn,modifiedBy')){
-    			$mvc->logInfo($logAction, $rec->id);
+    			$mvc->logWrite($logAction, $rec->id);
     			$mvc->invoke('AfterChangeState', array(&$rec));
     		}
     		

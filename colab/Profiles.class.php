@@ -131,7 +131,7 @@ class colab_Profiles extends core_Master
         $tpl = $this->Profile->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->Profile->logInfo('Виждане', $data->rec->id);
+        $this->Profile->logRead('Виждане', $data->rec->id);
         
         // Връщане на шаблона
         return $tpl;
@@ -171,8 +171,8 @@ class colab_Profiles extends core_Master
 	        	// Записваме данните
 	         	if (core_Users::setPassword($form->rec->passNewHash))  {
 		               // Правим запис в лога
-		               $this->Profile->log('Промяна на парола', $form->rec->id);
-		            
+		               $this->Profile->logWrite('Промяна на парола', $form->rec->id);
+		               
 		               // Редиректваме към предварително установения адрес
 		               return new Redirect(getRetUrl(), "Паролата е сменена успешно");
 	            }

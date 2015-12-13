@@ -132,7 +132,7 @@ class doc_PdfCreator extends core_Manager
                     } catch (core_exception_Expect $e) {
                         
                         // Ако възникне грешка, добавяме в лога
-                        self::logErr('Не може да се взема CSS файла: ' . $cssPath);
+                        self::logErr("Не може да се взема CSS файла: {$cssPath}");
                     }
                 }
                 

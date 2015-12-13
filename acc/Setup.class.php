@@ -247,7 +247,7 @@ class acc_Setup extends core_ProtoSetup
 	                }
 	            }
             } catch (core_exception_Expect $e) {
-            	$Items->logErr($e->getMessage(), $iRec->id);
+            	reportException($e);
             	continue;
             }
             

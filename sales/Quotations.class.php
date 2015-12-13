@@ -880,7 +880,7 @@ class sales_Quotations extends core_Master
     	}
     	
     	// Записваме, че потребителя е разглеждал този списък
-    	$this->logInfo("Създаване на продажба от оферта", $id);
+    	$this->logWrite("Създаване на продажба от оферта", $id);
     	
     	// Редирект към новата продажба
     	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));

@@ -761,7 +761,7 @@ class acc_Items extends core_Manager
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo("Добавяне на обекти, като пера");
+        $this->logWrite("Добавяне на обекти, като пера");
         
         return $this->renderWrapping($form->renderHtml());
     }
@@ -894,6 +894,7 @@ class acc_Items extends core_Manager
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
         
         if($numRows){
+            $this->logWrite("Изтрити неизползвани, затворени пера");
             $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
     }

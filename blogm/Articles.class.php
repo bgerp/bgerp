@@ -363,7 +363,7 @@ class blogm_Articles extends core_Master {
                 if($id = $Comments->save($cRec)) {
                 
                     // Правим запис в лога
-                    $Comments->logInfo('add', $id);
+                    $Comments->logWrite('Добавяне', $id);
                     
                     // Редиректваме към предварително установения адрес
                     return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
@@ -395,7 +395,7 @@ class blogm_Articles extends core_Master {
         $tpl->append($ogpHtml);
 
 		// Записваме, че потребителя е разглеждал тази статия
-		$this->logInfo('Разгледана статия', $id);
+		$this->logRead('Разгледана статия', $id);
 		
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->row->title);
@@ -613,9 +613,9 @@ class blogm_Articles extends core_Master {
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->title ? str_replace('&nbsp;', ' ', strip_tags($data->title)) : tr('БЛОГ'));
         }
-
+        
 		// Записваме, че потребителя е разглеждал този списък
-		$this->logInfo('List: ' . ($data->log ? $data->log : $data->title));
+		$this->logRead('Листване');
 		
 		return $tpl;
 	}

@@ -646,36 +646,36 @@ class core_Users extends core_Manager
                 
                 if ($userRec->state == 'rejected') {
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
-                    $this->logLogin($inputs, 'missing_password');
+                    $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('reject', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'blocked') {
                     $form->setError('nick', 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
-                    $this->logLogin($inputs, 'blocked_user');
+                    $this->logLoginMsg($inputs, 'blocked_user');
                     core_LoginLog::add('block', $userRec->id, $inputs->time);
                 } elseif ($userRec->state == 'draft') {
                     $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
-                    $this->logLogin($inputs, 'draft_user');
+                    $this->logLoginMsg($inputs, 'draft_user');
                     core_LoginLog::add('draft', $userRec->id, $inputs->time);
                 } elseif (!$inputs->hash || $inputs->isEmptyPass) {
                     $form->setError('pass', 'Липсва парола!');
-                    $this->logLogin($inputs, 'missing_password');
+                    $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('missing_password', $userRec->id, $inputs->time);
 //                } elseif (!$inputs->pass && !core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
                 } elseif (!core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
-                    $this->logLogin($inputs, 'time_deviation');
+                    $this->logLoginMsg($inputs, 'time_deviation');
                     core_LoginLog::add('time_deviation', $userRec->id, $inputs->time);
                 } elseif (core_LoginLog::isTimestampUsed($inputs->time, $userRec->id)) {
                     $form->setError('pass', 'Грешка при логване|*!<br>|Опитайте пак|*.');
-                    $this->logLogin($inputs, 'used_timestamp');
+                    $this->logLoginMsg($inputs, 'used_timestamp');
                     core_LoginLog::add('used_timestamp', $userRec->id, $inputs->time);
                 } elseif (!$userRec->state) {
                     $form->setError('pass', $wrongLoginErr);
-                    $this->logLogin($inputs, $wrongLoginLog);
+                    $this->logLoginMsg($inputs, $wrongLoginLog);
 //                    core_LoginLog::add('wrong_username', NULL, $inputs->time);
                 } elseif (self::applyChallenge($userRec->ps5Enc, $inputs->time) != $inputs->hash) {
                     $form->setError('pass', $wrongLoginErr);
-                    $this->logLogin($inputs, 'wrong_password');
+                    $this->logLoginMsg($inputs, 'wrong_password');
                     core_LoginLog::add('wrong_password', $userRec->id, $inputs->time);
                 }
             } else {
@@ -695,7 +695,7 @@ class core_Users extends core_Manager
             // Ако има грешки, или липсва потребител изкарваме формата
             if ($userRec->id && !$form->gotErrors()) {
                 $this->loginUser($userRec->id, $inputs);
-                $this->logLogin($inputs, 'successful_login');
+                $this->logLoginMsg($inputs, 'successful_login');
 //                core_LoginLog::add('success', $userRec->id, $inputs->time);
             } else {
                 // връщаме формата, като опресняваме времето
@@ -738,7 +738,7 @@ class core_Users extends core_Manager
     /**
      * Записва лог за влизанията
      */
-    function logLogin_($inputs, $msg)
+    function logLoginMsg_($inputs, $msg)
     {
         $id = NULL;
         if ($inputs->nick) {
@@ -751,7 +751,7 @@ class core_Users extends core_Manager
             $id = $rec->id;
         }
 
-        $this->logInfo($msg, $id);
+        $this->logLogin($msg, $id);
     }
     
 

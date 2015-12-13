@@ -103,7 +103,7 @@ class log_Data extends core_Manager
          $this->FLD('brId', 'key(mvc=log_Browsers, select=brid)', 'caption=Идентификация->Браузър');
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител, notNull');
          $this->FLD('time', 'int', 'caption=Време на записа');
-         $this->FLD('type', 'enum(emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,info=Инфо,debug=Дебъг)', 'caption=Данни->Тип на събитието');
+         $this->FLD('type', 'enum(read=Прочитане, write=Запис, login=Вход)', 'caption=Данни->Тип на събитието');
          $this->FLD('actionCrc', 'bigint', 'caption=Данни->Действие');
          $this->FLD('classCrc', 'bigint', 'caption=Данни->Клас');
          $this->FLD('objectId', 'int', 'caption=Данни->Обект');
@@ -156,7 +156,10 @@ class log_Data extends core_Manager
                 
         self::$toAdd[] = $toAdd;
         
-        core_Debug::log("$className, $objectId, $message");
+        $logStr = $className;
+        $logStr .= $objectId ? " - " . $objectId : '';
+        $logStr .=  ": " . $message;
+        Debug::log($logStr);
     }
     
     
