@@ -745,10 +745,10 @@ class core_String
         $functions = '(?:sinh?|cosh?|tanh?|acosh?|asinh?|atanh?|exp|log(10)?|deg2rad|rad2deg|sqrt|pow|min|max|abs|intval|ceil|floor|round|(mt_)?rand|gmp_fact)';
         
         // Allowed math operators
-        $operators = '[\/*\^\+-,\%\>\<\=\&\|]{1,2}';
+        $operators = '[\/\*\^\+\-\,\%\>\<\=\&\|\!]{1,2}';
         
         // Final regexp, heavily using recursive patterns
-        $regexp = '/^([+-]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/'; 
+        $regexp = '/^([+\-\!]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/'; 
 
         if (preg_match($regexp, $expr)) {
             // Replace pi with pi function
