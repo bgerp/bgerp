@@ -112,6 +112,10 @@ class doc_Containers extends core_Manager
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
+        $this->setDbIndex('state');
+        $this->setDbIndex('createdBy');
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('modifiedOn');
         $this->setDbUnique('docClass, docId');
     }
     
