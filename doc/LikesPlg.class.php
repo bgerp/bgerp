@@ -115,7 +115,7 @@ class doc_LikesPlg extends core_Plugin
             $mvc->requireRightFor('like', $rec);
             
             if (doc_Likes::like($rec->containerId)) {
-                $mvc->logInfo('Харесване', $rec->id);
+                $mvc->logWrite('Харесване', $rec->id);
                 $mvc->touchRec($rec->id);
                 
                 $mvc->notifyUsersForLike($rec);
@@ -129,7 +129,7 @@ class doc_LikesPlg extends core_Plugin
             $mvc->requireRightFor('dislike', $rec);
             
             if (doc_Likes::dislike($rec->containerId)) {
-                $mvc->logInfo('Премахнато харесване', $rec->id);
+                $mvc->logWrite('Премахнато харесване', $rec->id);
                 $mvc->touchRec($rec->id);
             }
         } elseif ($action == 'showlikes') {

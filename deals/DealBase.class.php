@@ -139,7 +139,6 @@ abstract class deals_DealBase extends core_Master
 					$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
 					
 				} catch(core_exception_Expect $e){
-					$this->logErr('Проблем с пушването на данните на бизнес документ - ' . $e->getMessage(), $dealRec->id);
 					reportException($e);
 				}
 			}
@@ -313,7 +312,7 @@ abstract class deals_DealBase extends core_Master
     		}
     	   
     		// Записваме, че потребителя е разглеждал този списък
-    		$this->logInfo("Приключване на сделка с друга сделка", $id);
+    		$this->logWrite("Приключване на сделка с друга сделка", $id);
     		
     		return redirect(array($this, 'single', $id));
     	}

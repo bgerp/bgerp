@@ -1214,10 +1214,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logEmerg($action, $objectId = NULL, $lifeDays = 180)
+    public static function logEmerg($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        log_Data::add('emerg', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'emerg', $lifeDays);
     }
     
     
@@ -1228,10 +1228,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logAlert($action, $objectId = NULL, $lifeDays = 180)
+    public static function logAlert($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        log_Data::add('alert', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'alert', $lifeDays);
     }
     
     
@@ -1242,10 +1242,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logCrit($action, $objectId = NULL, $lifeDays = 180)
+    public static function logCrit($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        log_Data::add('crit', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'crit', $lifeDays);
     }
     
     
@@ -1256,10 +1256,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logErr($action, $objectId = NULL, $lifeDays = 180)
+    public static function logErr($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        log_Data::add('err', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'err', $lifeDays);
     }
     
     
@@ -1270,10 +1270,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logWarning($action, $objectId = NULL, $lifeDays = 180)
+    public static function logWarning($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        log_Data::add('warning', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'warning', $lifeDays);
     }
     
     
@@ -1284,10 +1284,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logNotice($action, $objectId = NULL, $lifeDays = 90)
+    public static function logNotice($action, $objectId = NULL, $lifeDays = 5)
     {
         $className = get_called_class();
-        log_Data::add('notice', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'notice', $lifeDays);
     }
     
     
@@ -1298,10 +1298,10 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logInfo($action, $objectId = NULL, $lifeDays = 180)
+    public static function logInfo($action, $objectId = NULL, $lifeDays = 7)
     {
         $className = get_called_class();
-        log_Data::add('info', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'info', $lifeDays);
     }
     
     
@@ -1312,10 +1312,66 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logDebug($action, $objectId = NULL, $lifeDays = 10)
+    public static function logDebug($action, $objectId = NULL, $lifeDays = 1)
     {
         $className = get_called_class();
-        log_Data::add('debug', $action, $className, $objectId, $lifeDays);
+        log_System::add($className, $action, $objectId, 'debug', $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     */
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    {
+        if (core_Users::getCurrent() <= 0) {
+            
+            return self::logInfo($action, $objectId);
+        }
+        
+        $className = get_called_class();
+        log_Data::add('read', $action, $className, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        if (core_Users::getCurrent() <= 0) {
+            
+            return self::logInfo($action, $objectId);
+        }
+        
+        $className = get_called_class();
+        log_Data::add('write', $action, $className, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     */
+    public static function logLogin($action, $objectId = NULL, $lifeDays = 180)
+    {
+        if (core_Users::getCurrent() <= 0) {
+            
+            self::logInfo($action, $objectId);
+        }
+        $className = get_called_class();
+        log_Data::add('login', $action, $className, $objectId, $lifeDays);
     }
     
     

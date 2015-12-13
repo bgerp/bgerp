@@ -44,7 +44,7 @@ class sens2_ScriptActionSignal
         if(!count($opt)) {
             redirect(array('sens2_Controllers'), FALSE, 'Моля, въведете поне един контролер с изход');
         }
-        $form->setOptions('output', $opt);
+        $form->setOptions('output', array('' => '') + $opt);
 
 
         $vars = sens2_ScriptDefinedVars::getContex($form->rec->scriptId);
@@ -69,8 +69,10 @@ class sens2_ScriptActionSignal
         $cQuery = sens2_Controllers::getQuery();
         while($cRec = $cQuery->fetch("#state = 'active'")) {
             $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
-            foreach($ports as $port => $pObj) {
+            foreach($ports as $port => $pObj) { 
                 $opt[$pObj->title] = $pObj->title;
+                list($ctr, $pTitle) = explode('->', $pObj->title);
+                $opt[$ctr . '->' . $port] = $ctr . '->' . $port;
             }
         }
         
@@ -92,11 +94,11 @@ class sens2_ScriptActionSignal
     function toVerbal($rec)
     {   
         $opt = self::getOutputOpts();
-        $output = $rec->output;
+        $output = sens2_Scripts::highliteExpr($rec->output, $rec->scriptId);
         if(!isset($opt[$rec->output])) {
             $output = "<span style='border-bottom:dashed 1px red;'>{$output}</span>";
         }
-
+ 
         $expr   = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
         $cond   = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
 

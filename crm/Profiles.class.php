@@ -518,7 +518,7 @@ class crm_Profiles extends core_Master
         		// Записваме данните
          		if (core_Users::setPassword($form->rec->passNewHash))  {
 	                // Правим запис в лога
-	                self::logInfo('Смяна на парола', $form->rec->id);
+	                self::logWrite('Смяна на парола', $form->rec->id);
 	                
 //             		if (EF_USSERS_EMAIL_AS_NICK) {
 //             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));

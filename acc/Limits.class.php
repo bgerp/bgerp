@@ -372,7 +372,7 @@ class acc_Limits extends core_Manager
     	core_Users::cancelSystemUser();
     	
     	// Записваме, че потребителя е разглеждал този списък
-    	$this->logInfo("Проверка на счетоводните лимити", $docId);
+    	$this->logRead("Проверка на счетоводните лимити");
     	
     	return redirect(array($this, 'list'));
     }

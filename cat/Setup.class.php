@@ -399,7 +399,7 @@ class cat_Setup extends core_ProtoSetup
     	$Pl = cls::get('price_ListDocs');
     	$Pl->setupMvc();
     	 
-    	acc_Balances::log("Започване на миграцията на ОПАКОВКИТЕ");
+    	acc_Balances::logInfo("Започване на миграцията на ОПАКОВКИТЕ");
     	 
     	$packs = array();
     	$pQuery = cat_Packagings::getQuery();
@@ -464,11 +464,13 @@ class cat_Setup extends core_ProtoSetup
     		try{
     			cls::get('price_ListDocs')->save_($lRec, 'packagings');
     		} catch(core_exception_Expect $e){
+    		    
+    		    reportException($e);
     		}
     	}
     	 
-    	sales_Sales::log(ht::arrayToHtml($packs));
-    	 
+    	sales_Sales::logInfo(ht::arrayToHtml($packs));
+    	
     	$details = array('sales_SalesDetails',
     			'purchase_PurchasesDetails',
     			'store_ShipmentOrderDetails',
@@ -527,7 +529,7 @@ class cat_Setup extends core_ProtoSetup
     		}
     
     		if(count($recsToSave)){
-    			sales_Sales::log("$Det->className: {$count}");
+    			sales_Sales::logInfo("$Det->className: {$count}");
     			$Det->saveArray_($recsToSave);
     		}
     	}

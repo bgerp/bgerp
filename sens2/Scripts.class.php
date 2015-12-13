@@ -235,21 +235,21 @@ class sens2_Scripts extends core_Master
      */
     public static function highliteExpr($expr, $scriptId)
     {
-        static $opts;
+        static $opts = array();
 
-        if(!$opts) {
+        if(!$opts[$scriptId]) {
             $opts = array();
             $inds = sens2_Indicators::getContex();
             
             foreach($inds as $name => $value) {
-                $opts[$name] = "<span style='color:blue;'>{$name}</span>";
+                $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
             }
             $vars = sens2_ScriptDefinedVars::getContex($scriptId);
             foreach($vars as $name => $value) {
-                $opts[$name] = "<span style='color:blue;'>{$name}</span>";
+                $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
             }
         }
-        
+  
         $value = self::calcExpr($expr, $scriptId );
 
         if($value === self::CALC_ERROR) {
@@ -258,7 +258,7 @@ class sens2_Scripts extends core_Master
             $style = 'border-bottom:solid 1px transparent;';
         }
 
-        $expr = strtr($expr, $opts);
+        $expr = strtr($expr, $opts[$scriptId]);
 
         $expr = "<span style='{$style}' title='{$value}'>{$expr}</span>";
 

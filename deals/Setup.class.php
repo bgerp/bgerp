@@ -85,7 +85,7 @@ class deals_Setup extends core_ProtoSetup
     				$dRec = $Class->fetch($rec->docId);
     				deals_OpenDeals::saveRec($dRec, $Class);
     			} catch(core_exception_Expect $e){
-    				$Class->logErr("Грешка при обновяване на чакаща сделка {$e->getMessage()}");
+    			    reportException($e);
     			}
     		}
     	}

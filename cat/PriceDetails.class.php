@@ -91,7 +91,12 @@ class cat_PriceDetails extends core_Manager
     		$rec->primeCostDate = $now;
     	}
     	
-    	$rec->catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId);
+    	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId);
+    	if($catalogCost == 0 && !isset($rec->primeCost)){
+    		$catalogCost = NULL;
+    	}
+    	$rec->catalogCost = $catalogCost;
+    	
     	if(isset($rec->catalogCost)){
     		$rec->catalogCostDate = $now;
     	}
@@ -162,7 +167,7 @@ class cat_PriceDetails extends core_Manager
     	// Рендираме информацията за себестойностите
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
     	$table->setFieldsToHideIfEmptyColumn('documentId');
-    	$primeCostTpl = $table->get($data->primeCostRows, "name=Себестойност,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small>");
+    	$primeCostTpl = $table->get($data->primeCostRows, "name=Себестойност,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
     	$tpl->append($primeCostTpl, 'primeCosts');
     	
     	// Рендираме информацията за обновяване
@@ -185,7 +190,7 @@ class cat_PriceDetails extends core_Manager
     	if(count($data->priceCostRows)){
     		$table = cls::get('core_TableView', array('mvc' => $fieldSet));
     		$table->setFieldsToHideIfEmptyColumn('documentId');
-    		$priceCost = $table->get($data->priceCostRows, "name=Цена,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small>");
+    		$priceCost = $table->get($data->priceCostRows, "name=Цена,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
     		$tpl->append($priceCost, 'priceCosts');
     	}
     	

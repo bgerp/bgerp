@@ -244,7 +244,8 @@ class email_Incomings extends core_Master
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
             $imapLastErr = $imapConn->getLastError();
-            email_Accounts::logErr("Грешка при свързване: " . $imapLastErr, $accRec->id, 14);
+            $errMsg = "Грешка при свързване";
+            email_Accounts::logErr("{$errMsg}: {$imapLastErr}", $accRec->id, 14);
             $htmlRes .= "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapLastErr . "";
             
             return;
@@ -270,7 +271,7 @@ class email_Incomings extends core_Master
                 }
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
-                    log_Debug::add('email_Accounts', $accRec->id, "Fetching message {$i}", 7);
+                    email_Accounts::logInfo("Fetching message {$i}", $accRec->id);
                 }
                 
                 // Изтриване на писмото, ако сметката е настроена така
@@ -334,7 +335,7 @@ class email_Incomings extends core_Master
         // Показваме стринга
         echo "<h3> $msg </h3>";
 
-        log_Debug::add('email_Accounts', $accRec->id, $logMsg, 7);
+        email_Accounts::logInfo($logMsg, $accRec->id);
     }
 
 
@@ -588,11 +589,11 @@ class email_Incomings extends core_Master
         static $isDown = array();
         $accId = $imapConn->accRec->id;
         
-        log_Debug::add('email_Accounts', $accId, "Check Down: $msgNum", 7);
+        email_Accounts::logInfo("Check Down: $msgNum", $accId);
         
         // Номерата почват от 1
         if($msgNum < 1) {
-            log_Debug::add('email_Accounts', $accId, "TRUE: $msgNum < 1", 7);
+            email_Accounts::logInfo("TRUE: $msgNum < 1", $accId);
             
             return TRUE;
         }
@@ -611,7 +612,7 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
         
-        log_Debug::add('email_Accounts', $accId, "Result: $msgNum  " . $isDown[$accId][$msgNum], 7);
+        email_Accounts::logInfo("Result: $msgNum  " . $isDown[$accId][$msgNum], $accId);
         
         return $isDown[$accId][$msgNum];
     }
@@ -1702,7 +1703,7 @@ class email_Incomings extends core_Master
             $i++;
             
             if($i % 100 == 1) {
-                log_Debug::add('email_Incomings', NULL, "Update email - " . $i, 7);
+                email_Incomings::logInfo("Update email - " . $i);
             }
             self::save($rec);
         }

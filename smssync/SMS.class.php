@@ -327,7 +327,7 @@ class smssync_SMS extends core_Manager
         if ($secret != $conf->SMSSYNC_SECRET_KEY) {
             
             // Записваме в лога
-            self::logWarning('Невалиден публичен ключ: ' . $secret);
+            self::logErr('Невалиден публичен ключ: ' . $secret);
             
             // Връщаме
             return FALSE;

@@ -319,7 +319,7 @@ class cams_Records extends core_Master
         // Рендираме плеъра
         $tpl = $this->renderSingle($data);
         
-        $this->logInfo("Single", $rec->id);
+        $this->logRead("Разглеждане", $rec->id);
         
         return $this->renderWrapping($tpl);
     }
@@ -367,8 +367,8 @@ class cams_Records extends core_Master
         
         $out = exec($cmd);
         
-        debug::log("cmd = {$cmd}");
-        debug::log("out = {$out}");
+        $this->logDebug("cmd = {$cmd}");
+        $this->logDebug("out = {$out}");
         
         return $out;
     }
@@ -382,8 +382,8 @@ class cams_Records extends core_Master
         $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvFile < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
-        debug::log("cmd = {$cmd}");
-        debug::log("out = {$out}");
+        $this->logDebug("cmd = {$cmd}");
+        $this->logDebug("out = {$out}");
         
         return $out;
     }

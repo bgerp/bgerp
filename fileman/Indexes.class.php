@@ -433,7 +433,7 @@ class fileman_Indexes extends core_Manager
                     
                     // Записваме грешката в дебъг лога
                     if ($errContent) {
-                        log_Debug::add('fileman_Indexes', NULL, $errContent, 20);
+                        fileman_Indexes::logErr($errContent);
                     }
                 }
             }
@@ -481,7 +481,7 @@ class fileman_Indexes extends core_Manager
      */
     static function createErrorLog($dataId, $type)
     {
-        fileman_Data::logErr("Възникна грешка при обработката на файла с данни в тип {$type}", $dataId);
+        fileman_Data::logErr("Възникна грешка при обработката на файла с данни", $dataId);
     }
     
     

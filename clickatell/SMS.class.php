@@ -216,7 +216,8 @@ class clickatell_SMS extends core_Manager
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
-            self::logErr("Възникна грешка при обновяване на състоянието с apiMsgId: " . $uid);
+            $errMsg = "Възникна грешка при обновяване на състоянието с apiMsgId";
+            self::logErr("{$errMsg}: " . $uid);
         }
     }
     

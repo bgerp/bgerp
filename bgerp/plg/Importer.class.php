@@ -87,7 +87,7 @@ class bgerp_plg_Importer extends core_Plugin
             $feedback = $mvc::import($rec);
             
             // Правим запис в лога
-            $mvc->logInfo($data->cmd, $feedback);
+            $mvc->logWrite($data->cmd, $feedback);
             
             // Подготвяме адреса, към който трябва да редиректнем,
             // при успешно записване на данните от формата

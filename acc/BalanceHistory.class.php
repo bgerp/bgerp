@@ -111,7 +111,7 @@ class acc_BalanceHistory extends core_Manager
         $tpl = $this->renderWrapping($tpl);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo("Разглеждане на хронология на сметка");
+        $this->logRead("Разглеждане на хронология на сметка");
         
         // Връщаме шаблона
         return $tpl;
