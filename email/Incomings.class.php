@@ -1876,10 +1876,8 @@ class email_Incomings extends core_Master
         // Превръщаме в масив
         $filesArr = keylist::toArray($rec->files);
          
-        // Ако има HTML файл
+        // Ако има HTML файл, добавяме го към файловете
         if ($rec->htmlFile) {
-             
-            // Добавяме го към файловете
             $filesArr[$rec->htmlFile] = $rec->htmlFile;
         }
          
@@ -1891,15 +1889,13 @@ class email_Incomings extends core_Master
         $fhArr = array();
 
         // Обхождаме всички файлове
-        if(count($filesArr)) {
-            foreach ($filesArr as $fileId) {
+        foreach ($filesArr as $fileId) {
+                     
+            // Вземаме записите за файловете
+            $fRec = fileman_Files::fetch($fileId);
                  
-                // Вземаме записите за файловете
-                $fRec = fileman_Files::fetch($fileId);
-                 
-                // Създаваме масив с прикачените файлове
-                $fhArr[$fRec->fileHnd] = $fRec->name;
-            }
+            // Създаваме масив с прикачените файлове
+            $fhArr[$fRec->fileHnd] = $fRec->name;
         }
          
         return $fhArr;
