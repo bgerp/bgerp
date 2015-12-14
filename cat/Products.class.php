@@ -1501,6 +1501,15 @@ class cat_Products extends embed_Manager {
     			$res = 'no_one';
     		}
     	}
+    	
+    	// Кой може да оттегля и възстановява
+    	if(($action == 'reject' || $action == 'restore') && isset($rec)){
+    		
+    		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
+    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -1862,6 +1871,9 @@ class cat_Products extends embed_Manager {
     	$block = $compTpl->getBlock('COMP');
     	foreach ($components as $obj){
     		$bTpl = clone $block;
+    		if($obj->quantity == cat_BomDetails::CALC_ERROR){
+    			$obj->quantity = "<span class='red'>???</span>";
+    		}
     		
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -1951,12 +1963,14 @@ class cat_Products extends embed_Manager {
     			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
-    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? '<span class="red">???</span>' : $Double->toVerbal($dRec->rowQuantity);
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $Double->toVerbal($dRec->rowQuantity);
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
     			if($obj->parent){
-    				$obj->quantity *= $res[$obj->parent]->quantity;
+    				if($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR){
+    					$obj->quantity *= $res[$obj->parent]->quantity;
+    				}
     			}
     			
     			if($dRec->description){

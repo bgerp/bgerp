@@ -4363,16 +4363,21 @@ only screen and (max-width: 320px) {
 .logs-type-warning {
   background-color: #fae3ca; }
 
+.logs-type-login {
+  background-color: #dbffdc; }
+
 .logs-type-debug {
   background-color: #eeeeee; }
 
-.logs-type-notice {
+.logs-type-notice,
+.logs-type-write {
   background-color: #dff4fa; }
 
 .logs-type-err {
   background-color: #fad0d1; }
 
-.logs-type-info {
+.logs-type-info,
+.logs-type-read {
   background-color: #fffef4; }
 
 /*

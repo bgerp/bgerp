@@ -326,7 +326,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			
 			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
 			foreach ($convertableProducts as $prodId => $prodName){
-				$quantities[$prodId] = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$prodId}", 'quantity');
+				$quantities[$prodId] = store_Products::fetchField("#storeId = {$rec->inputStoreId} AND #productId = {$prodId}", 'quantity');
 			}
 				
 			// Ако има такива
