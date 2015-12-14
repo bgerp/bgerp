@@ -119,7 +119,7 @@ class cat_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "cat,ceo,sales,purchase"),
+            array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "powerUser"),
         );
 
 
