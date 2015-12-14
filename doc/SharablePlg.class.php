@@ -321,9 +321,11 @@ class doc_SharablePlg extends core_Plugin
         
         // Ако създадетеля на оригиналния документ е текущия
         if (isset($createdBy)) {
-            if ($createdBy == core_Users::getCurrent()) {
+            $currUserId = core_Users::getCurrent();
+            if ($createdBy == $currUserId) {
                 if ($dRec->sharedUsers) {
                     $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
+                    unset($sharedArr[$currUserId]);
                     $res += $sharedArr;
                 }
         
