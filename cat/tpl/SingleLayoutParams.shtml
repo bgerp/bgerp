@@ -58,7 +58,7 @@
             
             <!--ET_BEGIN options-->
             <tr>
-                <td class="title-style">|Опции|*</td>
+                <td class="title-style" style='vertical-align:top'>|Опции|*</td>
                 <td>[#options#]</td>
             </tr>
             <!--ET_END options-->
