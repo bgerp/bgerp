@@ -2976,7 +2976,34 @@ function render_prepareContextMenu() {
 * Може да се комбинира с efae
 */
 function render_smartCenter() {
-   smartCenter();
+    smartCenter();
+}
+
+
+/**
+* Функция, която извиква подготвянето на sumOfChildrenWidth
+* Може да се комбинира с efae
+*/
+function render_sumOfChildrenWidth() {
+	sumOfChildrenWidth();
+}
+
+
+/**
+* Функция, която извиква подготвянето на editCopiedTextBeforePaste
+* Може да се комбинира с efae
+*/
+function render_editCopiedTextBeforePaste() {
+	editCopiedTextBeforePaste();
+}
+
+
+/**
+* Функция, която извиква подготвянето на editCopiedTextBeforePaste
+* Може да се комбинира с efae
+*/
+function render_removeNarrowScroll() {
+	removeNarrowScroll();
 }
 
 
@@ -2987,6 +3014,28 @@ function render_smartCenter() {
 function render_showTooltip() {
 	
 	showTooltip();
+}
+
+
+/**
+* Функция, която извиква подготвянето на показването на тоолтипове
+* Може да се комбинира с efae
+ */
+function render_runHljs() {
+	if (typeof hljs != 'undefined') {
+  		hljs.initHighlighting();
+	}
+}
+
+
+/**
+ * Стартира кода за оцветяване, ако има такава функция
+ */
+function runHljs() {
+	if (typeof hljs != 'undefined') {
+		hljs.tabReplace = '    ';
+  		hljs.initHighlightingOnLoad();
+	}
 }
 
 
