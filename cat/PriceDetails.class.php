@@ -27,6 +27,7 @@ class cat_PriceDetails extends core_Manager
      */
     public $canList = 'no_one';
     
+    
     /**
      * Кой може да пише
      */
@@ -34,10 +35,21 @@ class cat_PriceDetails extends core_Manager
     
     
     /**
+     * Кой може да чете
+     */
+    public $canSeeprices = 'cat,ceo,sales,purchase,price';
+    
+    
+    /**
      * Подготвя ценовата информация за артикула
      */
 	public function preparePrices($data)
     {
+    	if(!haveRole($this->canSeeprices)){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
     	$data->TabCaption = 'Цени';
     	$data->Tab = 'top';
     	$data->Order = 5;
@@ -61,6 +73,8 @@ class cat_PriceDetails extends core_Manager
      */
     public function renderPrices($data)
     {
+    	if($data->hide === TRUE) return;
+    	
     	$tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
     	$tpl->append($this->PriceGroup->renderPriceGroup($data->groupsData), 'PriceGroup');
     	$tpl->append($this->renderPriceInfo($data->listsData), 'PriceList');
