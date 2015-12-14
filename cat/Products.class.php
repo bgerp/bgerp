@@ -153,7 +153,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да го разгледа?
      */
-    public $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'powerUser';
     
     
     /**
@@ -189,7 +189,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой има достъп до единичния изглед
      */
-    public $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'powerUser';
     
 	
     /** 
@@ -583,7 +583,13 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,private=Частни)',
+    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Частни');
+    	if(!haveRole('cat,sales,ceo,purchase')){
+    		unset($orderOptions['private']);
+    	}
+    	$orderOptions = arr::fromArray($orderOptions);
+    	
+    	$data->listFilter->FNC('order', "enum({$orderOptions})",
             'caption=Подредба,input,silent,remember,refreshForm');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
