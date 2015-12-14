@@ -61,9 +61,7 @@ class hljs_Adapter
 
         // Добавяме JS
     	$tpl->push('hljs/' . $conf->HLJS_VERSION . '/highlight.pack.js', 'JS');
-    	$tpl->appendOnce("if(typeof hljs != 'undefined') {
-    						hljs.tabReplace = '    ';
-					  		hljs.initHighlightingOnLoad();
-    					}", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "runHljs();", TRUE);
+        jquery_Jquery::runAfterAjax($tpl, 'runHljs');
     }
 }

@@ -135,7 +135,11 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $resStatus[] = $resObj;
         
+        // JS функции, които да се пуснат след AJAX
         jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
+        jquery_Jquery::runAfterAjax($tpl, 'sumOfChildrenWidth');
+        jquery_Jquery::runAfterAjax($tpl, 'editCopiedTextBeforePaste');
+        jquery_Jquery::runAfterAjax($tpl, 'removeNarrowScroll');
         
         // Стойности на плейсхолдера
         $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
