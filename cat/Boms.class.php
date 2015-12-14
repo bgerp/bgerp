@@ -405,14 +405,9 @@ class cat_Boms extends core_Master
     	}
     	
     	if(($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)){
-    		if($res != 'no_one'){
-    			
-    			// Ако рецептата е работна само techno и ceo могат да я редактират
-    			$firstDocument = doc_Containers::getDocument($rec->originId);
-    			if($firstDocument->isInstanceOf('planning_Jobs')){
-    				if(!haveRole('techno,ceo', $userId)){
-    					$res = 'no_one';
-    				}
+    		if($rec->type == 'production'){
+    			if(!haveRole('techno,ceo', $userId)){
+    				$res = 'no_one';
     			}
     		}
     	}
