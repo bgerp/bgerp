@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
     	$form->setField('quantity', "unit={$uomName}");
     	$form->setSuggestions('tolerance', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
     	
-		if($tolerance = cat_Products::getParamValue($rec->productId, 'tolerance')){
+		if($tolerance = cat_Products::getParams($rec->productId, 'tolerance')){
     		$form->setDefault('tolerance', $tolerance);
     	}
     	
@@ -289,14 +289,9 @@ class planning_Jobs extends core_Master
     {
     	$rec = &$data->rec;
     	
-    	// Поставяме бутон за създаване на рецепта
-    	if($rec->state == 'active' || $rec->state == 'wakeup' || $rec->state == 'stopped'){
-    		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
-    			if(cat_Boms::haveRightFor('single', $bId)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
-    			}
-    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на нова технологична рецепта');
+    	if($rec->state != 'draft' && $rec->state != 'rejected'){
+    		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта');
     		}
     	}
 
@@ -327,10 +322,14 @@ class planning_Jobs extends core_Master
     		}
     		
     		// Колко е еденичното тегло
-    		if($weight = cat_Products::getParamValue($rec->productId, 'weight')){
+    		if($weight = cat_Products::getParams($rec->productId, 'weight')){
     			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
+    		}
+    		
+    		if($rec->dueDate < dt::today()){
+    			$form->setWarning('dueDate', 'Падежът е в миналото');
     		}
     		
     		// Форсираме заданието в дефолт папката според драйвера
@@ -371,7 +370,6 @@ class planning_Jobs extends core_Master
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
     	$row->quantityToProduce .=  " {$shortUom}";
     	
-    	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
@@ -385,20 +383,33 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
-    		if($bomId = cat_Products::getLastActiveBom($rec->productId)->id){
-    			$row->bomId = cat_Boms::getLink($bomId, 0);
+    		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
+    			$row->sBomId = cat_Boms::getLink($sBomId, 0);
+    		}
+    		
+    		if($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id){
+    			$row->pBomId = cat_Boms::getLink($pBomId, 0);
+    		} else {
+    			if($rec->state == 'draft' && cat_Products::getLastActiveBom($rec->productId, 'sales')){
+    				$row->pBomId = '<small style="font-style:italic;color:red">' . tr('Ще бъде създадена при активация') . '</small>';
+    			}
     		}
     		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
     		
-    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $rec->modifiedOn, 'detailed', 'internal');
+    		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal');
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
     		}
+    	}
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     }
     
@@ -550,6 +561,28 @@ class planning_Jobs extends core_Master
     {
     	// След активиране на заданието, добавяме артикула като перо
     	cat_Products::forceItem($rec->productId, 'catProducts');
+    	
+    	// При активиране, ако няма работна рецепта но има търговска копираме я като работна
+    	$prodBomRec = cat_Products::getLastActiveBom($rec->productId, 'production');
+    	
+    	if(!$prodBomRec){
+    		$salesBomRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
+    		
+    		if($salesBomRec){
+	    		$nRec = clone $salesBomRec;
+	    		$nRec->folderId  = $rec->folderId;
+	    		$nRec->threadId  = $rec->threadId;
+	    		$nRec->productId = $rec->productId;
+	    		$nRec->originId  = $rec->containerId;
+	    		$nRec->state     = 'draft';
+	    		$nRec->type      = 'production';
+	    		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
+	    			unset($nRec->{$fld});
+	    		}
+    			
+	    		cat_Boms::save($nRec);
+    		}
+    	}
     }
     
     
@@ -637,6 +670,14 @@ class planning_Jobs extends core_Master
     	}
     	
     	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    	
+    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    		$data->hide = TRUE;
+    		return;
+    	}
     	
     	$data->TabCaption = 'Задания';
     	$data->Tab = 'top';
@@ -644,10 +685,6 @@ class planning_Jobs extends core_Master
     	// Проверяваме можем ли да добавяме нови задания
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
     		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
-    	}
-    	
-    	if(!isset($masterInfo->meta['canManifacture'])){
-    		$data->notManifacturable = TRUE;
     	}
     }
     
@@ -660,11 +697,10 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
+    	 if($data->hide === TRUE) return;
+    	
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $title = tr('Задания за производство');
-    	 if($this->haveRightFor('list')){
-    	 	$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Към всички задания');
-    	 }
     	 $tpl->append($title, 'title');
     	 
     	 if(isset($data->addUrl)){

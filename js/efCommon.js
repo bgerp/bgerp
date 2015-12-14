@@ -22,22 +22,38 @@ function runOnLoad(functionName) {
 /**
  *  Показва тултип с данни идващи от ajax
  */
-function showTooltip(){
+function showTooltip() {
     if (!($('.tooltip-arrow-link').length)) {
         return;
     }
     // Aко има тултипи
     var element;
+    
+    var cachedArr = new Array();
+    
     $('body').on('click', function(e) {
         if ($(e.target).is(".tooltip-arrow-link")) {
             var url = $(e.target).attr("data-url");
             if (!url) {
                 return;
             }
-            resObj = new Object();
-            resObj['url'] = url;
-            getEfae().process(resObj);
-
+            
+            var getDataFromUrl = true;
+            
+            if ($(e.target).attr('data-useCache')) {
+            	if ($.inArray(url, cachedArr) == -1) {
+            		cachedArr.push(url);
+            	} else {
+            		getDataFromUrl = false;
+            	}
+            }
+            
+            if (getDataFromUrl) {
+            	resObj = new Object();
+                resObj['url'] = url;
+                getEfae().process(resObj);
+            }
+            
             // затваряме предишния тултип, ако има такъв
             if (typeof element != 'undefined') {
                 $(element).hide();
@@ -45,12 +61,12 @@ function showTooltip(){
 
             // намираме този, който ще покажем сега
             element = $(e.target).parent().find('.additionalInfo');
-
+            
             // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
             if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
                 $(element).addClass('bottom');
             }
-
+        	
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
@@ -58,6 +74,13 @@ function showTooltip(){
                 $(element).hide();
             }
         }
+    });
+    
+    $('.tooltip-arrow-link').each(function(){
+    	if ($(this).attr("data-useHover")) {
+    		
+    		$(this).hover(function(){$(this).click();}, function(){$(element).hide();});
+    	}
     });
 };
 
@@ -2059,8 +2082,8 @@ function smartCenter() {
         	$("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
         }
         
-        $("span.maxwidth").css('display', "block");
-        $("span.maxwidth").css('margin', "0 auto");
+        $("span.maxwidth:not('.notcentered')").css('display', "block");
+        $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
         
 }
 
@@ -2248,7 +2271,7 @@ jQuery.extend({
             if (match) {
                 var highlight = document.createElement(nodeName || 'span');
                 highlight.className = className || 'highlight';
-                if (node.data[match.index] == ' ') {
+                if (/\s/.test(node.data[match.index])) {
                     match.index++;
                 }
                 var wordNode = node.splitText(match.index);
@@ -2294,7 +2317,7 @@ jQuery.fn.highlight = function(words, options) {
         startsWith: true
     };
     jQuery.extend(settings, options);
-
+   
     if (words.constructor === String) {
         words = [words];
     }
@@ -2317,7 +2340,7 @@ jQuery.fn.highlight = function(words, options) {
         pattern = "(\\s|^)" + pattern;
     }
     var re = new RegExp(pattern, flag);
-
+    
     return this.each(function() {
         jQuery.highlight(this, re, settings.element, settings.className);
     });
@@ -2954,6 +2977,16 @@ function render_prepareContextMenu() {
 */
 function render_smartCenter() {
    smartCenter();
+}
+
+
+/**
+* Функция, която извиква подготвянето на показването на тоолтипове
+* Може да се комбинира с efae
+ */
+function render_showTooltip() {
+	
+	showTooltip();
 }
 
 

@@ -81,6 +81,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
+        $data->listFilter->FNC('liked', 'enum(no_matter=Без значение, someone=От някого, me=От мен)', 'caption=Харесвания');
         
         $conf = core_Packs::getConfig('doc');
         $lastFoldersArr = bgerp_Recently::getLastFolderIds($conf->DOC_SEARCH_FOLDER_CNT);
@@ -107,7 +108,7 @@ class doc_Search extends core_Manager
     
         $data->listFilter->setDefault('author', 'all_users');
 
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, state, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, liked, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(NULL, 'silent');
@@ -119,6 +120,7 @@ class doc_Search extends core_Manager
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
+        !empty($filterRec->liked) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
@@ -174,15 +176,20 @@ class doc_Search extends core_Manager
                 $data->query->where(array('#docClass = [#1#]', $filterRec->docClass));
             }
             
+
+            // Търсене по дата на създаване на документи (от-до)
+            if (!empty($filterRec->fromDate) && !empty($filterRec->toDate)) {
+                $data->query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#] 23:59:59'", $filterRec->fromDate, $filterRec->toDate));
+                $data->query->orWhere(array("#modifiedOn >= '[#1#]' AND #modifiedOn <= '[#2#] 23:59:59'", $filterRec->fromDate, $filterRec->toDate));
+            }
+            
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
-                $data->query->where(array("#createdOn >= '[#1#]'", $filterRec->fromDate));
-                $data->query->orWhere(array("#modifiedOn >= '[#1#]'", $filterRec->fromDate));
+                $data->query->where(array("NOT (#createdOn < '[#1#]') AND NOT(#modifiedOn < '[#1#]')", $filterRec->fromDate));
             }
             
             if (!empty($filterRec->toDate)) {
-                $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filterRec->toDate));
-                $data->query->orWhere(array("#modifiedOn <= '[#1#] 23:59:59'", $filterRec->toDate));
+                $data->query->where(array("NOT (#createdOn > '[#1#] 23:59:59') AND NOT (#modifiedOn > '[#1#] 23:59:59')", $filterRec->toDate));
             }
             
             // Ограничаване на търсенето до избрана папка
@@ -210,7 +217,7 @@ class doc_Search extends core_Manager
                     $firstTime = FALSE;
                 }
             }
-
+            
             // Ако не е избрано състояние или не са избрани всичките
             if (!empty($filterRec->state) && $filterRec->state != 'all') {
                 
@@ -228,6 +235,21 @@ class doc_Search extends core_Manager
             // id на текущия потребител
             $currUserId = core_Users::getCurrent();
             
+            if ($filterRec->liked && $filterRec->liked != 'no_matter') {
+                
+                // Всички харесвания
+                $data->query->EXT('likedCid', 'doc_Likes', 'externalName=containerId');
+                $data->query->where("#likedCid = #id");
+                
+                // Харесвания от текущия потребител
+                if ($filterRec->liked == 'me') {
+                    if ($currUserId > 0) {
+                        $data->query->EXT('likedBy', 'doc_Likes', 'externalName=createdBy');
+                        $data->query->where("#likedBy = {$currUserId}");
+                    }
+                }
+            }
+            
             // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query, $currUserId);
             
@@ -235,7 +257,6 @@ class doc_Search extends core_Manager
             $data->query->orWhere("#createdBy = '{$currUserId}'");
             
             // Експеримент за оптимизиране на бързодействието
-            $data->query->setStraight();
             $data->query->orderBy('#modifiedOn=DESC');
             
             /**
@@ -265,7 +286,7 @@ class doc_Search extends core_Manager
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
                 bgerp_Notifications::clear($url);
-              
+                
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
             }
@@ -349,9 +370,9 @@ class doc_Search extends core_Manager
         
         foreach ($data->recs as $i=>&$rec) {
             $row = $data->rows[$i];
-            $folderRec = doc_Folders::fetch($rec->folderId);
-            $folderRow = doc_Folders::recToVerbal($folderRec);
-            $row->folderId = $folderRow->title;
+            // $folderRec = doc_Folders::fetch($rec->folderId);
+            // $folderRow = doc_Folders::recToVerbal($folderRec);
+            // $row->folderId = $folderRow->title;
             
             try {
                 $doc = doc_Containers::getDocument($rec->id);

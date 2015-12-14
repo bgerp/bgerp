@@ -1,7 +1,19 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-    <div><b>[#innerClass#]</b>: [#title#]</div>
-    [#innerState#]
+	    <div><b>[#innerClass#]</b>: [#title#]</div>
+	    <!--ET_BEGIN proto--><div class='quiet'><small>|Базирано на|*: [#proto#]</small></div><!--ET_END proto--> 
+	    
+	    <!--ET_BEGIN inqDescription-->
+	    <fieldset class="detail-info">
+		    <legend class="groupTitle">|Съобщение|*</legend>
+		     [#inqDescription#]
+	    </fieldset>
+	    <!--ET_END inqDescription-->
+	    
+	    <fieldset class="detail-info">
+		    <legend class="groupTitle">|Описание|*</legend>
+		     [#innerState#]
+	     </fieldset>
     </div>
     
     <!--ET_BEGIN QUANTITY-->
@@ -16,18 +28,21 @@
                 <td  style='text-align:right'>[#quantity1#]</td>
             </tr>
             <!--ET_END quantity1-->
+            
             <!--ET_BEGIN quantity2-->
             <tr>
-                <td>|Количество|*</td>
+                <td>|Количество|* 2</td>
                 <td  style='text-align:right'>[#quantity2#]</td>
             </tr>
             <!--ET_END quantity2-->
+            
             <!--ET_BEGIN quantity3-->
             <tr>
-                <td>|Количество|*</td>
+                <td>|Количество|* 3</td>
                 <td  style='text-align:right'>[#quantity3#]</td>
             </tr>
             <!--ET_END quantity3-->
+            
             <!--ET_BEGIN QUANTITY_ROW-->
             <tr>
                 <td>|Количество|*</td>

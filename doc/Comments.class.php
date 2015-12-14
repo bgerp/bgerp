@@ -17,6 +17,12 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Дали да се споделя създадели на оригиналния документ
+     */
+    public $autoShareOriginCreator = TRUE;
+    
+    
+    /**
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf';
@@ -92,7 +98,7 @@ class doc_Comments extends core_Master
      * Кой може да променя активирани записи
      * @see plg_Change
      */
-    var $canChangerec = 'user';
+    var $canChangerec = 'powerUser';
     
     
     /**
@@ -213,9 +219,6 @@ class doc_Comments extends core_Master
                     $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
                 }
             }
-            
-            $defaultShared = $mvc->getDefaultShared($rec, $cid);
-            $data->form->setDefault('sharedUsers', $defaultShared);
         }
     }
     

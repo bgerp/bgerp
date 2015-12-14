@@ -245,11 +245,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     		
     		if($diff < 0){
-    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$row->packQuantity}</span>";
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойността') . "'>{$row->packPrice}</span>";
     		}
     	}
     }
@@ -260,11 +260,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
 
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
 
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

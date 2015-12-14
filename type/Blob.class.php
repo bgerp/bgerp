@@ -149,9 +149,11 @@ class type_Blob extends core_Type {
         if($value !== NULL && $value !== '') {
             
             $value = (string) $value;
-            
+
             if($value) {
-                $res = '0x' . bin2hex($value);
+                $res = "'" . $db->escape($value) . "'";
+
+                //$res = '0x' . bin2hex($value);
             } else {
                 $res = "''";
             }

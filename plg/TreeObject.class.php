@@ -190,8 +190,7 @@ class plg_TreeObject extends core_Plugin
 			// вече филтрирани записи по някакъв признак, да не се показват само намерените 
 			// редове, а и техните бащи
 			while($parentId){
-				if(!isset($data->recs[$parentId])){
-					$parentRec = $mvc->fetch($parentId);
+				if(!isset($data->recs[$parentId]) && ($parentRec = $mvc->fetch($parentId))){
 					$parentRec->show = TRUE;
 					$rec->show = TRUE;
 					$data->recs[$parentId] = $parentRec;

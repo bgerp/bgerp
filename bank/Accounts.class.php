@@ -142,11 +142,9 @@ class bank_Accounts extends core_Master {
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
         $contragentRec   = $Contragents->fetch($rec->contragentId);
-        $contragentTitle = $Contragents->getTitleById($contragentRec->id);
+        $data->Contragent = $Contragents;
         
-        if($rec->id) {
-            $data->form->title = 'Редактиране на банкова сметка на |*<b>' . $contragentTitle . "</b>";
-        } else {
+        if(!$rec->id) {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
@@ -158,8 +156,6 @@ class bank_Accounts extends core_Master {
                 $defaultCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
                 $data->form->setDefault('currencyId', $defaultCurrencyId);
             }
-            
-            $data->form->title = 'Нова банкова сметка на |*<b>' . $contragentTitle . "</b>";
         }
         
         if($iban = Request::get('iban')) {
@@ -177,6 +173,23 @@ class bank_Accounts extends core_Master {
         		$data->form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
         	}
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$url = $data->Contragent->getSingleUrlArray($data->form->rec->contragentId);
+    	$title = $data->Contragent->getTitleById($data->form->rec->contragentId);
+    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->Contragent->singleIcon, 'class' => 'linkInTitle'));
+    	
+    	if($data->form->rec->id) {
+    		$data->form->title = "Редактиране на банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	} else {
+    		$data->form->title = "Нова банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	}
     }
     
     

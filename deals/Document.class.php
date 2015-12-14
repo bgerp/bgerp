@@ -51,7 +51,7 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(smartRound)', 'caption=Сума,mandatory,summary=amount');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
-    	$mvc->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
+    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс');
     	$mvc->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
     	$mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
@@ -120,7 +120,8 @@ abstract class deals_Document extends core_Master
 			
 			if($rec->dealHandler){
 				$doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
-				if(isset($doc) && !$doc->haveRightFor('single')){
+				
+				if(($doc instanceof core_ObjectReference) && !$doc->haveRightFor('single')){
 					unset($doc);
 				}
 				

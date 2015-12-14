@@ -84,6 +84,24 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * 
+	 * 
+	 * @see core_Manager::act_List()
+	 */
+	function act_List()
+	{
+	    if (core_Users::isPowerUser()) {
+	        if (doc_Folders::haveRightFor('list')) {
+	            
+	            return new Redirect(array('doc_Folders', 'list'));
+	        }
+	    }
+	    
+	    return parent::act_List();
+	}
+	
+	
+	/**
 	 * Подготвя редовете във вербална форма
 	 */
 	function prepareListRows_(&$data)
@@ -126,7 +144,7 @@ class colab_Folders extends core_Manager
 	function getQuery_($params = array())
 	{
 		$res = $this->Folders->getQuery($params);
-		$sharedFolders = self::getSharedFolders($cu);
+		$sharedFolders = self::getSharedFolders();
 		
 		$res->in('id', $sharedFolders);
 		

@@ -476,7 +476,6 @@ class blast_ListDetails extends doc_Detail
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, array('ef_icon'=>'img/16/table-import-icon.png', 'title'=>'Внасяне на допълнителни данни'));
-        //bp($data, $data->masterId, $data->recs);
         
         if($data->recs) {
         	foreach($data->recs as $rec) {

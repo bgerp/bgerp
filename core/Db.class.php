@@ -69,6 +69,12 @@ class core_Db extends core_BaseClass
      * @access private
      */
     var $link;
+
+
+    /**
+     * Глобална константа за всички линкове
+     */
+    static $links = array();
     
     
     /**
@@ -80,13 +86,13 @@ class core_Db extends core_BaseClass
     /**
      * Номер на mySQL код за грешка при липсваща таблица
      */
-    const MYSQL_MISSING_TABLE = 1146;
+    const MYSQLI_MISSING_TABLE = 1146;
     
 
     /**
      * Номер на mySQL код за грешка при непозната колона в таблица
      */
-    const MYSQL_UNKNOWN_COLUMN = 1054;
+    const MYSQLI_UNKNOWN_COLUMN = 1054;
 
     function __construct()
     {
@@ -119,14 +125,18 @@ class core_Db extends core_BaseClass
      *
      * @return resource
      */
-    function connect($redirectOnErr = true)
+    function connect()
     {
+       
+        if(!($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
 
-        if (!isset($this->link)) {
-            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass);
-            if (!$link) {
+            $link = new mysqli($this->dbHost, $this->dbUser, $this->dbPass);
+
+            self::$links[$this->dbHost][$this->dbUser][$this->dbName] = $link;
+
+            if ($err = mysqli_connect_errno()) {
                 // Грешка при свързване с MySQL сървър
-	            error(500, $this->dbHost, mysql_error());
+	            error(500, $this->dbHost, $err);
             }
             
             // След успешно осъществяване на връзката изтриваме паролата
@@ -134,25 +144,20 @@ class core_Db extends core_BaseClass
             unset($this->dbPass);
             
             // Запомняме връзката към MySQL сървъра за по-късна употреба
-            $this->link = $link;
-            
-            // Задаваме настройките за символното кодиране на връзката
-            mysql_query('set character_set_results=' . $this->dbCharset, $link);
-            mysql_query('set collation_connection='  .  $this->dbCollation, $link);
-            mysql_query('set character_set_client='  .  $this->dbCharsetClient, $link);
+            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}");
+            $link->query("SET COLLATION_CONNECTION={$this->dbCollation}");
+            $link->query("SET CHARACTER_SET_CLIENT={$this->dbCharsetClient}");
  
- 		   // mysql_query('set character_set_database=' . 'utf8_bin', $link);
-	       // mysql_query('set character_set_server=' . 'utf8_bin', $link);
 
             // Избираме указаната база от данни на сървъра
-            if (!mysql_select_db("{$this->dbName}", $this->link)) {
+            if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
-                $dump = array('mysqlErrCode' => mysql_errno($this->link), 'mysqlErrMsg' => mysql_error($this->link), 'dbName' => $this->dbName);
+                $dump = array('mysqlErrCode' => $this->link->error_list[0]['errno'], 'mysqlErrMsg' => $this->link->error_list[0]['error'], 'dbName' => $this->dbName, 'dbLink' => $this->link);
                 throw new core_exception_Db('500 @Грешка при избиране на база', 'DB Грешка', $dump);
             }
         }
         
-        return $this->link;
+        return $link;
     }
     
     
@@ -161,9 +166,11 @@ class core_Db extends core_BaseClass
      * освобождаване на всички заделени ресурси.
      */
     function disconnect()
-    {
-        mysql_close($this->link);
-        unset($this->link);
+    {   
+        if($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName]) {
+            $link->close();
+            unset(self::$links[$this->dbHost][$this->dbUser][$this->dbName]);
+        }
     }
     
     
@@ -186,17 +193,15 @@ class core_Db extends core_BaseClass
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");
         
-        $this->connect();
+        $link = $this->connect();
         $this->query = $sqlQuery;
-        $res = mysql_query($sqlQuery, $this->link);
+        $dbRes = $link->query($sqlQuery);
         
-        $this->checkForErrors('изпълняване на заявка', $silent);
-        
-        $this->lastRes = $res;
+        $this->checkForErrors('изпълняване на заявка', $silent, $link);
         
         DEBUG::stopTimer('DB::query()');
-        
-        return $res;
+   
+        return $dbRes;
     }
     
     
@@ -206,13 +211,9 @@ class core_Db extends core_BaseClass
      * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
      * @return int
      */
-    function numRows($handle = NULL, $silent = FALSE)
+    function numRows($dbRes)
     {
-        if ($handle == NULL)
-        $handle = $this->lastRes;
-        $numRows = mysql_num_rows($handle);
-        
-        $this->checkForErrors('преброяване на резултата', $silent);
+        $numRows = $dbRes->num_rows;
         
         return $numRows;
     }
@@ -225,7 +226,9 @@ class core_Db extends core_BaseClass
      */
     function affectedRows()
     {
-        return mysql_affected_rows($this->link);
+        $link = $this->connect();
+
+        return $link->affected_rows;
     }
     
     
@@ -237,9 +240,11 @@ class core_Db extends core_BaseClass
      */
     function insertId($silent = NULL)
     {
-        $insertId = mysql_insert_id($this->link);
+        $link = $this->connect();
+
+        $insertId = $link->insert_id;
         
-        $this->checkForErrors('определяне индекса на последния вмъкнат ред', $silent);
+        $this->checkForErrors('определяне индекса на последния вмъкнат ред', $silent, $link);
         
         return $insertId;
     }
@@ -251,15 +256,14 @@ class core_Db extends core_BaseClass
      * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
      * @return object
      */
-    function fetchObject($handle = NULL, $silent = NULL)
+    function fetchObject($dbRes)
     {
-        if ($handle == NULL)
-        $handle = $this->lastRes;
-        $fetchObject = mysql_fetch_object($handle);
-        
-        $this->checkForErrors('извличане от резултата', $silent);
-        
-        return $fetchObject;
+        if($dbRes) {
+            $res = $dbRes->fetch_object();
+            $this->checkForErrors('извличане от резултата');
+
+            return $res;
+        }
     }
     
     
@@ -267,16 +271,18 @@ class core_Db extends core_BaseClass
      * Връща един запис, под формата на масив
      *
      * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
-     * @param int $resultType една от предефинираните константи MYSL_ASSOC или MYSQL_NUM
+     * @param int $resultType една от предефинираните константи MYSQLI_ASSOC или MYSQLI_NUM
      * @return array В зависимост от $resultType, индексите на този масив са или цели числа (0, 1, ...) или стрингове
      */
-    function fetchArray($handle = NULL, $resultType = MYSQL_ASSOC)
+    function fetchArray($dbRes, $resultType = MYSQLI_ASSOC)
     {
-        if ($handle == NULL)
-        $handle = $this->lastRes;
-        $r = mysql_fetch_array($handle, $resultType);
-        
-        return $r;
+        if($dbRes) {
+            $res = $dbRes->fetch_array($resultType);
+            $this->checkForErrors('извличане от резултата');
+                
+
+            return $res;
+        }
     }
     
     
@@ -290,9 +296,10 @@ class core_Db extends core_BaseClass
     {
         $dbRes = $this->query("SHOW TABLE STATUS LIKE \"$table\"");
         $lmt = 0;
-        
+    
         if ($this->numRows($dbRes) == 1) {
-            $lmt = mysql_result($dbRes, 0, 'Update_time');
+            $res = $dbRes->fetch_array(MYSQLI_ASSOC);
+            $lmt = $res['Update_time'];
             
             $year = $month = $day = $hour = $min = $sec = 0;
             
@@ -311,11 +318,12 @@ class core_Db extends core_BaseClass
      *
      * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
      */
-    function freeResult($handle = NULL)
+    function freeResult($dbRes)
     {
-        if ($handle == NULL)
-        $handle = $this->lastRes;
-        @mysql_free_result($handle);
+        if($dbRes instanceof MYSQLI_RESULT) {
+            $dbRes->free();
+            $dbRes = NULL;
+        }
     }
     
     
@@ -326,21 +334,14 @@ class core_Db extends core_BaseClass
      */
     function tableExists($tableName)
     {
-        $dbRes = $this->query("SHOW TABLES", TRUE);
+        $tableName = $this->escape($tableName);
+
+        $dbRes = $this->query("SHOW TABLES LIKE '{$tableName}'", TRUE);
         
-        $numTables = $this->numRows($dbRes);
-        
-        $res = FALSE;
-        
-        for ($i = 0; $i < $numTables; $i++) {
-            if (strtolower($tableName) == mysql_result($dbRes, $i, 0)) {
-                $res = TRUE;
-                break;
-            }
-        }
-        
+        $res = $dbRes->num_rows > 0;
+
         $this->freeResult($dbRes);
-        
+
         return $res;
     }
     
@@ -350,17 +351,12 @@ class core_Db extends core_BaseClass
      */
     function isFieldExists($tableName, $fieldName)
     {   
-        $this->connect();
-        $dbRes = mysql_list_fields($this->dbName, $tableName, $this->link);
-        $numFields = mysql_num_fields($dbRes);
-        $res = FALSE;
-        
-        for ($i = 0; $i < $numFields; $i++) {
-            if (mysql_field_name($dbRes, $i) == $fieldName) {
-                
-                $res = TRUE;
-            }
-        }
+        $tableName = $this->escape($tableName);
+        $fieldName = $this->escape($fieldName);
+
+        $dbRes = $this->query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{$this->dbName}' AND TABLE_NAME='{$tableName}' AND column_name='{$fieldName}'");
+
+        $res = $dbRes->num_rows > 0;
         
         $this->freeResult($dbRes);
         
@@ -389,7 +385,7 @@ class core_Db extends core_BaseClass
         // Правим допълнителните параметри към заявката
         $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATE'] . ";";
         
-        $this->query("CREATE TABLE `$tableName` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}");
+        $dbRes = $this->query("CREATE TABLE `$tableName` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}");
         
         return TRUE;
     }
@@ -404,13 +400,13 @@ class core_Db extends core_BaseClass
         
         $dbRes = $this->query($query);
         
-        if(!is_resource($dbRes)) {
+        if(!$dbRes) {
             
             return FALSE;
         }
         
         // Извличаме резултата
-        $arr = $this->fetchArray();
+        $arr = $this->fetchArray($dbRes);
         $this->freeResult($dbRes);
         
         // Ако няма атрибути - връщаме сигнал, че полето не съществува
@@ -642,20 +638,30 @@ class core_Db extends core_BaseClass
      *
      * @return int нула означава липса на грешка.
      */
-    function checkForErrors($action, $silent = FALSE)
-    {
-        global $_GET, $setupFlag;
+    function checkForErrors($action, $silent = FALSE, $link = NULL)
+    {   
+        if(!$link) {
+            $link = $this->connect();
+        }
         
-        if (mysql_errno($this->link) > 0) {
-                $errno = mysql_errno($this->link);
-                $error = mysql_error($this->link);
-                
+        if (is_array($link->error_list) && count($link->error_list) > 0) {
+            if (!$link->errno) {
+                $link->errno = $link->error_list[0]['errno'];
+            }
+            
+            if (!$link->error) {
+                $link->error = $link->error_list[0]['error'];
+            }
+        }
+        
+        if ($link->errno) {
+            
                 // Грешка в базата данни
-                $dump =  array('query' => $this->query, 'mysqlErrCode' => $errno, 'mysqlErrMsg' => $error);
+                $dump =  array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
                 throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);
         }
 
-        return mysql_errno();
+        return $link->errno;
     }
     
     
@@ -667,12 +673,11 @@ class core_Db extends core_BaseClass
      */
     function escape($value)
     {
-        if (!$this->link) {
-            $this->connect();
-        }
+        $link = $this->connect();
+
         expect(is_scalar($value) || !$value, $value);
         
-        return mysql_real_escape_string($value, $this->link);
+        return $link->real_escape_string($value);
     }
 
     /**
@@ -688,13 +693,13 @@ class core_Db extends core_BaseClass
                                     FROM INFORMATION_SCHEMA.TABLES 
                                     WHERE TABLE_SCHEMA = '" . $db->escape($db->dbName) ."'", TRUE);
         
-        if(!is_resource($dbRes)) {
+        if(!is_object($dbRes) || !$dbRes->num_rows) {
         
         	return TRUE;
         }
         
         // Извличаме резултата
-        $rows = $db->fetchObject();
+        $rows = $db->fetchObject($dbRes);
         
         $db->freeResult($dbRes);
         
@@ -722,14 +727,14 @@ class core_Db extends core_BaseClass
         $dbRes = $db->query("SELECT table_schema 'Name', Sum(table_rows) 'Rows',
         					 Sum(data_length + index_length) 'Size'
         					 FROM information_schema.tables
-        					 WHERE table_schema = '{$db->escape($db->dbName)}'", TRUE);
+        					 WHERE table_schema = '{$db->dbName}'", TRUE);
         
-        if (!is_resource($dbRes)) {
+        if (!is_object($dbRes)) {
         
         	return FALSE;
         }
         
-        $resArr = $db->fetchArray();
+        $resArr = $db->fetchArray($dbRes);
         
         $db->freeResult($dbRes);
         

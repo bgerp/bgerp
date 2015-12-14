@@ -105,7 +105,7 @@ class price_ListRules extends core_Detail
         
         // Цена за продукт 
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
-        $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory');
+        $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС,noChange'); 
         
@@ -159,34 +159,41 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт
      */
-    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
         // Проверка, дали цената я няма в кеша
     	$price = price_History::getPrice($listId, $datetime, $productId);
     	
         if(isset($price)) return $price;
-
+        
         price_ListToCustomers::canonizeTime($datetime);
 
         $datetime = price_History::canonizeTime($datetime);
         
-        // В коя ценова група се е намирал продукта към посочената дата?
-        $productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
-
-        if(!$productGroup) return;
- 
+        if($listId != self::PRICE_LIST_COST){
+        	
+        	// В коя ценова група се е намирал продукта към посочената дата?
+        	$productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
+        	if(!$productGroup) return;
+        }
+       
         $query = self::getQuery();
         
         // Общи ограничения
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
 
-        // Конкретни ограничения
-        $query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
+        if($productGroup){
+        	// Конкретни ограничения
+        	$query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
+        } else {
+        	// Конкретни ограничения
+        	$query->where("#productId = {$productId}");
+        }
         
         // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");
         $query->limit(1);
-
+		
         $rec = $query->fetch();
  
         if($rec) {
@@ -245,12 +252,15 @@ class price_ListRules extends core_Detail
         }
         
         $listRec = price_Lists::fetch($listId);
-        	
-        // По дефолт правим някакво машинно закръгляне
-        $price = round($price, 8);
         
-        // Записваме току-що изчислената цена в историята;
-        price_History::setPrice($price, $listId, $datetime, $productId);
+        if(isset($price)){
+        	
+        	// По дефолт правим някакво машинно закръгляне
+        	$price = round($price, 8);
+        	
+        	// Записваме току-що изчислената цена в историята;
+        	price_History::setPrice($price, $listId, $datetime, $productId);
+        }
 
         return $price;
     }
@@ -274,6 +284,7 @@ class price_ListRules extends core_Detail
 		    $parentTitle = $parentRec->title;
         }
 		
+        $form->setOptions('productId', cat_Products::getByProperty('canSell'));
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
         	$form->setOptions('productId', $availableProducts);
@@ -319,7 +330,7 @@ class price_ListRules extends core_Detail
                 break;
         }
 
-        $form->title = $title;
+        $data->formTitle = $title;
 
         if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
@@ -327,6 +338,15 @@ class price_ListRules extends core_Detail
         }
     }
 
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
+    }
+    
     
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
@@ -466,6 +486,11 @@ class price_ListRules extends core_Detail
         		$requiredRoles = 'no_one';
         	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
+        	} else {
+        		$isPublic = cat_products::fetchField($rec->productId, 'isPublic');
+        		if($isPublic == 'no'){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
     }
@@ -632,6 +657,11 @@ class price_ListRules extends core_Detail
 	public function preparePriceList($data)
 	{
 		$pRec = $data->masterData->rec;
+		
+		if($pRec->isPublic == 'no'){
+			$data->dontRender = TRUE;
+		}
+		
 		$listId = static::PRICE_LIST_COST;
 		$data->priceLists = new stdClass();
 		
@@ -657,6 +687,8 @@ class price_ListRules extends core_Detail
 	 */
 	public function renderPriceList($data)
 	{
+		if($data->dontRender === TRUE) return;
+		
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
@@ -670,5 +702,30 @@ class price_ListRules extends core_Detail
         $wrapTpl->append($tpl, 'CONTENT');
 		
 		return $wrapTpl;
+	}
+	
+	
+	/**
+	 * Създава запис на себестойност на артикул
+	 * 
+	 * @param int    $productId    - ид на продукт
+	 * @param double $primeCost    - себестойност
+	 * @param date   $validFrom    - от кога е валидна
+	 * @param string $currencyCode - код на валута
+	 * @param yes|no $vat          - с ДДС или без
+	 * @return int				   - ид на създадения запис
+	 */
+	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode, $vat = 'no')
+	{
+		$obj = (object)array('productId' => $productId,
+				             'type'      => 'value',
+				             'validFrom' => $validFrom,
+							 'listId'    => price_ListRules::PRICE_LIST_COST,
+							 'price'     => $primeCost,
+							 'vat'       => $vat,
+							 'createdBy' => -1,
+							 'currency'  => $currencyCode);
+		
+		return self::save($obj);
 	}
 }

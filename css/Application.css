@@ -370,6 +370,8 @@ div.folder-cover {
     margin-top: 20px; }
   div.folder-cover .top-tab-content {
     padding: 5px 10px 10px 10px; }
+  div.folder-cover .tab-control .detail-info {
+    font-size: 0.9em; }
 
 .noheader .listTable {
   width: 100%;
@@ -593,30 +595,77 @@ div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
 
-.product-component-list {
-  margin: 0;
-  list-style: disc;
-  padding: 4px 0 0px 25px;
-  border-left: 1px solid #cccccc; }
-
-.product-component-title {
-  margin: 0px 0 3px; }
-
-.product-component-holder {
-  padding-left: 0px;
-  margin-left: 20px; }
+  .product-component-title td {
+    border-top: 1px solid #dddddd;
+    padding: 5px 0;
+    vertical-align: middle !important; }
+  .product-component-title:first-child td {
+    border-top: none; }
+  .product-component-title .anchor-arrow {
+    margin-top: -3px; }
 
 .product-component-stage {
   background-color: #eeeeee;
   padding: 5px;
   border: 1px solid #cccccc; }
 
-.general-product-description .richtext {
-  margin: 0 0 2px; }
+  .detail-info .general-product-description .richtext,
+  .detail-info .general-product-description .groupList {
+    margin: 0 0 2px;
+    font-size: 0.9em;
+    color: #222222; }
+
+  .products-table a.fancybox img,
+  .jobTable a.fancybox img,
+  .general-product-description a.fancybox img,
+  .sales_SalesDetails .productImage a.fancybox img {
+    max-width: 120px;
+    max-height: 60px;
+    width: auto;
+    height: auto; }
 
 .component-title {
   padding: 5px 0;
   font-style: italic; }
+
+.componentCode {
+  margin: 0 10px 0 5px;
+  display: inline-block; }
+
+.product-component-list td {
+  border-left: none !important;
+  border-right: none !important; }
+
+.product-component-list .componentTitle {
+  font-weight: bold; }
+
+  .product-component-list .level0.product-component-title td {
+    padding: 7px 0;
+    background: rgba(230, 230, 230, 0.5); }
+
+  .product-component-list .level1.product-component-title td {
+    padding: 6px 0; }
+
+.product-component-list .level2.product-component-title {
+  color: #333333; }
+  .product-component-list .level2.product-component-title td {
+    padding: 5px 0; }
+
+.product-component-list .level3.product-component-title {
+  color: #444444; }
+  .product-component-list .level3.product-component-title td {
+    padding: 4px 0; }
+
+.product-component-list .level4.product-component-title {
+  color: #555555; }
+  .product-component-list .level4.product-component-title td {
+    padding: 3px 0; }
+
+.product-component-list .level5.product-component-title {
+  color: #666666;
+  font-size: 0.9em; }
+  .product-component-list .level5.product-component-title td {
+    padding: 2px 0; }
 
 .display-table .product-component-holder {
   margin-left: 10px; }
@@ -893,8 +942,17 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
-  .portal:not(.detail-info) .state-closed {
-    background-color: transparent !important; }
+  .portal .state-closed {
+    background-color: transparent; }
+  .portal.planning,
+  .portal.detail-info {
+    margin-bottom: 5px; }
+    .portal.planning .state-closed,
+    .portal.detail-info .state-closed {
+      background-color: #dddddd; }
+      .portal.planning .state-closed:hover,
+      .portal.detail-info .state-closed:hover {
+        background-color: #d0d0d0; }
   .portal .legend {
     position: absolute;
     top: -16px;
@@ -1106,6 +1164,8 @@ td.portal-date {
     text-align: right;
     display: inline-block;
     white-space: nowrap; }
+  .document .tab-control .detail-info {
+    font-size: 0.9em; }
 
 .small-padding td {
   padding: 3px !important; }
@@ -1120,13 +1180,70 @@ td.portal-date {
   .document-settings span,
   .document-settings a {
     margin-bottom: 0; }
+  .document-settings .additionalInfo {
+    left: auto;
+    right: -4px; }
+  .document-settings .pluginCountButtonNub {
+    height: 0;
+    left: 0px;
+    position: relative;
+    top: -14px;
+    width: 5px;
+    z-index: 2;
+    display: inline-block; }
+    .document-settings .pluginCountButtonNub s,
+    .document-settings .pluginCountButtonNub i {
+      border-color: transparent #9197a3;
+      border-style: solid;
+      border-width: 4px 5px 4px 0;
+      display: block;
+      position: relative;
+      top: 1px; }
+    .document-settings .pluginCountButtonNub i {
+      border-right-color: white;
+      left: 2px;
+      top: -7px; }
+  .document-settings .docSettingsCnt {
+    background: white;
+    border: 1px solid #9197a3;
+    border-radius: 2px;
+    color: #4e5665;
+    display: inline-block;
+    font-size: 0.7em;
+    height: auto;
+    line-height: 14px;
+    margin-left: 0px;
+    min-width: 10px;
+    padding: 0 2px;
+    position: relative;
+    top: -5px;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer; }
+  .document-settings .linkWithIcon {
+    padding-left: 0px !important;
+    opacity: 0.8;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    margin-left: 5px;
+    margin-right: 1px; }
+    .document-settings .linkWithIcon.liked:hover {
+      background-image: url(../img/16/redheart-broke.png) !important; }
+    .document-settings .linkWithIcon.disliked:not(.disable):hover {
+      background-image: url(../img/16/redheart.png) !important; }
+    .document-settings .linkWithIcon.disliked.disable {
+      cursor: default; }
 
 .docBgIcon {
   position: relative; }
 
+.narrow .docBgIcon {
+  font-size: 0.9em; }
+
 .narrow .document-settings {
   position: absolute;
-  right: -3px;
+  right: 2px;
   top: 50%;
   margin-top: -10px; }
 
@@ -1727,6 +1844,8 @@ ul.history {
       background-color: #ff9999; }
     ul.history .action.act b {
       background-color: #aaaaaa; }
+    ul.history .action.export b {
+      background-color: #3377ff; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {
@@ -1759,6 +1878,8 @@ div.sharing-history {
   font-size: 0.9em;
   clear: both;
   padding-right: 120px; }
+  div.sharing-history .timespan {
+    font-size: 0.9em; }
 
 div.change-log {
   border: none;
@@ -1950,6 +2071,10 @@ span.sharing-history-title {
 
 .wide #login-form .formTable {
   margin: 0; }
+
+.drawing {
+  max-width: 400px;
+  float: right; }
 
 /*
  * стилове за външната част при потребител контрактор
@@ -2538,8 +2663,9 @@ span.sharing-history-title {
 .overflow-scroll {
   width: 100% !important;
   overflow-x: auto !important;
+  overflow-y: hidden !important;
   _overflow: auto !important;
-  margin-bottom: 3px;
+  margin-bottom: 0;
   display: block; }
   .narrow-scroll .scrolling-holder .folder-cover,
   .overflow-scroll .folder-cover {
@@ -2802,9 +2928,9 @@ div.location.public {
   display: inline-block;
   width: auto !important; }
 
-.log_Debug table.listTable > tbody > tr > td:last-child {
+.log_System table.listTable > tbody > tr > td:last-child {
   max-width: 600px; }
-  .log_Debug table.listTable > tbody > tr > td:last-child table td {
+  .log_System table.listTable > tbody > tr > td:last-child table td {
     word-break: break-all; }
 
 .cCode {
@@ -3333,7 +3459,15 @@ only screen and (max-width: 1200px) {
   .wide #all,
   .wide #cmsTop,
   .wide #cmsTop img {
-    border-radius: 0; } }
+    border-radius: 0; }
+
+  .drawing {
+    max-width: 350px; } }
+
+@media handheld,
+only screen and (max-width: 1100px) {
+  .drawing {
+    max-width: 270px; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -3341,7 +3475,11 @@ only screen and (max-width: 1024px) {
     max-width: 52.5em; }
 
   .wide .app-name {
-    font-size: 6.4em; } }
+    font-size: 6.4em; }
+
+  .drawing {
+    max-width: 500px;
+    float: none; } }
 
 /*
  * Mobile
@@ -3813,6 +3951,8 @@ only screen and (max-width: 320px) {
     display: table !important; }
   .external .no-print {
     display: none; }
+  .external .row-negative {
+    color: black; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3998,7 +4138,10 @@ only screen and (max-width: 320px) {
     vertical-align: top; }
 
   .richtext a {
-    text-decoration: underline; } }
+    text-decoration: underline; }
+
+  .row-negative {
+    color: black; } }
 
   .printing .specialLink {
     font-weight: bold; }

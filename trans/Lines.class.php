@@ -43,6 +43,13 @@ class trans_Lines extends core_Master
                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_BusinessDoc';
 
     
+    
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'ceo, trans';
+    
+    
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
@@ -459,7 +466,7 @@ class trans_Lines extends core_Master
         $rec->controller  = "trans_Lines";
         $rec->action      = "CreateNewLines";
         $rec->period      = $period;
-        $rec->offset 	  = mt_rand(0,60);
+        $rec->offset 	  = mt_rand(0, $period - 1);
         $rec->delay 	  = 0;
         $rec->timeLimit   = 100;
         $res .= core_Cron::addOnce($rec);

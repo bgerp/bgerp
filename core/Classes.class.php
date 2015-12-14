@@ -83,6 +83,8 @@ class core_Classes extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->query->orderBy('name');
+        
     	$data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'placeholder=Интерфейс');
     	$data->listFilter->showFields = 'search,interface';
     	$data->listFilter->view = 'horizontal';

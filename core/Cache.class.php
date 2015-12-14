@@ -102,13 +102,13 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието на кеша за посочения обект
      */
-    static function get($type, $handler, $keepMinutes = 1, $depends = array())
+    static function get($type, $handler, $keepMinutes = NULL, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
         $key = $Cache->getKey($type, $handler);
         
-        if($data = $Cache->getData($key)) {
+        if($data = $Cache->getData($key, $keepMinutes)) {
             if($dHash = $Cache->getDependsHash($depends)) {
                 
                 // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
@@ -347,7 +347,7 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието записано на дадения ключ
      */
-    function getData($key)
+    function getData($key, $keepMinutes = NULL)
     {   
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
@@ -364,6 +364,11 @@ class core_Cache extends core_Manager
         }
  
         if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
+
+            if($keepMinutes) {
+                $rec->lifetime = time() + $keepMinutes * 60;
+                $this->save($rec,  'lifetime');
+            }
             
             $this->idByKey[$key] = $rec->id;
             

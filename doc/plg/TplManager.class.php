@@ -109,6 +109,9 @@ class doc_plg_TplManager extends core_Plugin
     {
     	$templates = doc_TplManager::getTemplates($mvc->getClassId());
     	(count($templates)) ? $data->form->setOptions('template', $templates) : $data->form->setReadOnly('template');
+		if(count($templates)){
+			$data->form->setField('template', 'input=hidden');
+		}
     }
     
     

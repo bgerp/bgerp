@@ -139,7 +139,7 @@ class doc_Notes extends core_Master
 	/**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'user';
+    var $canChangerec = 'powerUser';
     
     
     /**

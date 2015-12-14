@@ -93,7 +93,7 @@ class core_Type extends core_BaseClass
      */
     static function escape($value)
     {
-        $value = str_replace(array("&", "<"), array('&amp;', '&lt;'), $value);
+        $value = str_replace(array("&", "<", '&amp;lt;', '&amp;amp;'), array('&amp;', '&lt;', '&lt;', '&amp;'), $value);
         
         return $value;
     }
@@ -185,6 +185,8 @@ class core_Type extends core_BaseClass
             $res->collation = $this->params['collate'];
         } elseif($this->params['ci']) {
             $res->collation = 'utf8_general_ci';
+        } elseif($this->collation) {
+            $res->collation = $this->collation;
         }
         
         return $res;

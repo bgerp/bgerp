@@ -31,7 +31,7 @@ class core_String
         // Опитваме се да прихванем всички символи, които не са ASCII
         // Ако е подаден текст, който е изцяло от неаски символи, ще има само едно извикване на колбек функцията
         $me = get_called_class();
-        $text = preg_replace_callback('/[^\x00-\x7F]+((\s)*[^\x00-\x7F]+)*/iu', array($me, 'convertToAscii'), $text);
+        $text = preg_replace_callback('/([^\x21-\x7F]+)/u', array($me, 'convertToAscii'), $text);
         
         return $text;
     }
@@ -42,7 +42,7 @@ class core_String
      * 
      * @param array $match
      */
-    static function convertToAscii($match)
+    protected static function convertToAscii($match)
     {
         $text = $match[0];
         
@@ -351,14 +351,14 @@ class core_String
         $strLen = $length - $md5Len - strlen($separator);
         
         // Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина
-        expect($strlen >= 0, $length, $md5Len);
+        expect($strLen >= 0, $length, $md5Len);
         
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
             $md5Len++;
         }
         
-        $md5 = substr(md5(_SALT_ . $str), 0, $md5Len);
+        $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
         
         return substr($str, 0, $strLen) . $separator . $md5;
     }
@@ -745,15 +745,16 @@ class core_String
         $functions = '(?:sinh?|cosh?|tanh?|acosh?|asinh?|atanh?|exp|log(10)?|deg2rad|rad2deg|sqrt|pow|min|max|abs|intval|ceil|floor|round|(mt_)?rand|gmp_fact)';
         
         // Allowed math operators
-        $operators = '[\/*\^\+-,\%\>\<\=]{1,2}';
+        $operators = '[\/\*\^\+\-\,\%\>\<\=\&\|\!]{1,2}';
         
         // Final regexp, heavily using recursive patterns
-        $regexp = '/^([+-]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/'; 
+        $regexp = '/^([+\-\!]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/'; 
 
         if (preg_match($regexp, $expr)) {
             // Replace pi with pi function
             $result = preg_replace('!pi|π!', 'pi()', $expr); 
-            $result = preg_replace('!time!', 'time()', $expr); 
+            $result = preg_replace('!time!', 'time()', $expr);
+            $result = preg_replace('!\<\>!', '!=', $expr); 
         } else {
             $result = FALSE;
         }
@@ -837,4 +838,83 @@ class core_String
     }
 
 
+   /**
+    * Връща символ в UTF-8 енкодинг от уникод номера му
+    *
+    * @param int $u
+    * @return char
+    */
+    public static function unichr($u) 
+    {
+        return mb_convert_encoding('&#' . intval($u) . ';', 'UTF-8', 'HTML-ENTITIES');
+    }
+    
+    
+    
+    /**
+     * Връща най-доброто съвпадение за дума от масива
+     * 
+     * @param array $wordsArr
+     * @param strng $string
+     * @param NULL|double $percent
+     * @param boolean $ci
+     * 
+     * @return NULL|strng
+     */
+    public static function getClosestWord($wordsArr, $string, &$percent = NULL, $ci = FALSE)
+    {
+        $wordsArr = arr::make($wordsArr);
+        
+        // Ако в масива има търсения стринг
+        if ($wordsArr[$string]) {
+            $percent = 100;
+            
+            return $string;
+        }
+        
+        $shortestL = NULL;
+        $shortestW = '';
+        if ($ci) {
+            $string = mb_strtolower($string);
+        }
+        $strLen = mb_strlen($string);
+        
+        foreach ((array)$wordsArr as $word) {
+            
+            $oWord = $word;
+            
+            if ($ci) {
+                $word = mb_strtolower($word);
+            }
+            
+            // Ако стринга съвпада с търсения
+            if ($word == $string) {
+                
+                $shortestW = $oWord;
+                $percent = 100;
+                
+                break;
+            }
+            
+            // Търсим най-доборто съвпадение
+            $l = levenshtein($word, $string);
+            
+            if ((is_null($shortestL)) || $l <= $shortestL) {
+                
+                $nPercent = (1 - ($l / max($strLen, mb_strlen($word)))) * 100;
+                
+                if (!$percent || $percent <= $nPercent) {
+                    $percent = $nPercent;
+                    $shortestL = $l;
+                    $shortestW = $oWord;
+                }
+            }
+        }
+        
+        if ($percent) {
+            $percent = round($percent, 2);
+            
+            return $shortestW;
+        }
+    }
 }

@@ -246,7 +246,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Packs',
         'core_Cron',
         'core_CallOnTime',
-        'log_Debug',
+        'log_System',
         'core_Lg',
         'core_Roles',
         'core_Users',
@@ -340,6 +340,19 @@ class core_Setup extends core_ProtoSetup {
         $rec->offset = mt_rand(0,40);
         $rec->delay = 0;
         $rec->timeLimit = 200;
+        $html .= core_Cron::addOnce($rec);
+        
+        
+        // Нагласяване на Крон оптимизира таблиците
+        $rec = new stdClass();
+        $rec->systemId = 'OptimizeTables';
+        $rec->description = 'Оптимизиране на таблиците';
+        $rec->controller = 'core_Mvc';
+        $rec->action = 'OptimizeTables';
+        $rec->period = 22*60;
+        $rec->offset = mt_rand(0, 4*60);
+        $rec->delay = 0;
+        $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);
         
         $html .= core_Classes::add('core_page_Internal');        

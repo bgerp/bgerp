@@ -115,7 +115,7 @@ abstract class deals_ClosedDeals extends core_Master
         $this->FLD('docId', 'class(interface=doc_DocumentIntf)', 'input=none');
         $this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Сума');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,input=none');
-        $this->FLD('rate', 'double', 'caption=Плащане->Курс,input=none');
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,input=none');
         
         // От кой клас наследник на deals_ClosedDeals идва записа
         $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
@@ -380,6 +380,8 @@ abstract class deals_ClosedDeals extends core_Master
         
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
+        $valior = cls::get(get_called_class())->getValiorDate($rec);
+        $row->valior = cls::get('type_Date')->toVerbal($valior);
         
         return $row;
     }

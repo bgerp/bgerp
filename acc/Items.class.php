@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state,closedOn';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn';
     
     
     /**
@@ -299,78 +299,6 @@ class acc_Items extends core_Manager
         $data->title = "Пера в номенклатурата|* <span class=\"green\"> {$listRec->caption} </span>";
         
         return FALSE;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
-     */
-    static function on_AfterPrepareEditForm($mvc, $data)
-    {
-        $form = &$data->form;
-        $rec  = &$form->rec;
-        
-        if (!$rec->id && $rec->classId && $rec->objectId) {
-            if ($_rec = $mvc::fetchItem($rec->classId, $rec->objectId)) {
-                $rec = $_rec;
-            }
-        }
-        
-        if ($rec->classId && $rec->objectId) {
-            
-            expect($register = core_Cls::getInterface('acc_RegisterIntf', $rec->classId));
-            
-            $form->setField('num', 'input=none');
-            $form->setField('title', 'input=none');
-            
-            if (!$rec->id) {
-                // Попълва полетата на $rec с данни извлечени от съотв. регистър
-                static::syncItemRec($rec, $register, $rec->objectId);
-                
-                $mvc::on_CalcTitleLink($mvc, $rec);
-            }
-            
-            $form->info = $mvc->getVerbal($rec, 'titleLink');
-        }
-        
-        $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
-        $form->setDefault('ret_url', Request::get('ret_url'));
-        
-        if($listId = Request::get('listId', 'int')){
-            $form->setDefault('lists', array($listId => $listId));
-            $form->title = "|Добавяне на перо в|* " . acc_Lists::getVerbal($listId, 'name');
-        }
-        
-        if ($rec->id) {
-            $form->title = "|Редактиране на перо|*";
-        }
-        
-        $listId = $mvc->getCurrentListId();
-        $listRec = $mvc->Lists->fetch($listId);
-        if($listRec->isDimensional == 'no') {
-        	$form->setField('uomId', 'input=none');
-        }
-    }
-    
-    
-    /**
-     * Изпълнява се след въвеждане на данните от заявката във формата
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    static function on_AfterInputEditForm($mvc, $form)
-    {
-        if(!$form->rec->id) {
-            $listId = $mvc->getCurrentListId();
-            Mode::setPermanent('lastEnterItemNumIn' . $listId, $form->rec->num);
-        }
-        
-        if(!empty($form->rec->lists)){
-        	
-        	// Ако има избрани номенклатури: перото винаги става активно
-        	$form->rec->state = 'active';
-        }
     }
     
     
@@ -833,7 +761,7 @@ class acc_Items extends core_Manager
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo("Добавяне на обекти, като пера");
+        $this->logWrite("Добавяне на обекти, като пера");
         
         return $this->renderWrapping($form->renderHtml());
     }
@@ -966,6 +894,7 @@ class acc_Items extends core_Manager
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
         
         if($numRows){
+            $this->logWrite("Изтрити неизползвани, затворени пера");
             $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
     }
@@ -1087,5 +1016,20 @@ class acc_Items extends core_Manager
     	}
     	
     	return $itemsArr;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(isset($rec->classId) && isset($rec->objectId)){
+    		$oRec = cls::get($rec->classId)->fetch($rec->objectId);
+    		if(isset($oRec->valior)){
+    			$rec->createdOn = $oRec->valior;
+    			$mvc->save_($rec, 'createdOn');
+    		}
+    	}
     }
 }

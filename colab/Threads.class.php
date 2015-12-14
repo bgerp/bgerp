@@ -103,8 +103,16 @@ class colab_Threads extends core_Manager
 	 */
 	function act_Single()
 	{
+	    expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
+	    
+	    if (core_Users::isPowerUser()) {
+	        if (doc_Threads::haveRightFor('single', $id)) {
+	            
+	            return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
+	        }
+	    }
+	    
 		$this->requireRightFor('single');
-		expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
 		
 		$this->currentTab = 'Нишка';
 		
@@ -138,7 +146,7 @@ class colab_Threads extends core_Manager
 		
 		// Вербализираме записите
 		if(count($data->recs)) {
-		    doc_Containers::prepareDocsForHide($data->recs);
+		    doc_HiddenContainers::prepareDocsForHide($data->recs);
 			foreach($data->recs as $id => $rec) {
 				$data->rows[$id] = $this->Containers->recToVerbal($rec, arr::combine($data->listFields, '-list'));
 			}
@@ -153,6 +161,25 @@ class colab_Threads extends core_Manager
 		$tpl = $this->renderWrapping($tpl, $data);
 		
 		return $tpl;
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @see core_Manager::act_List()
+	 */
+	function act_List()
+	{
+	    if (core_Users::isPowerUser()) {
+	        $folderId = Request::get('folderId', 'int');
+	        if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+	            
+	            return new Redirect(array('doc_Threads', 'list', 'folderId' => $folderId));
+	        }
+	    }
+	    
+	    return parent::act_List();
 	}
 	
 	
@@ -247,39 +274,52 @@ class colab_Threads extends core_Manager
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'list' && isset($rec->folderId)){
+		if($action == 'list' && isset($rec->folderId)) {
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
 			}
 		}
 		
-		if($action == 'list'){
-			$folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
-			
-			$sharedFolders = colab_Folders::getSharedFolders($userId);
-				
-			if(!in_array($folderId, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
+		if($action == 'list') {
+		    
+    		if (is_null($userId)) {
+    	        $requiredRoles = 'no_one';
+    	    } else {
+        	    $folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
+    			
+    			$sharedFolders = colab_Folders::getSharedFolders($userId);
+    				
+    			if(!in_array($folderId, $sharedFolders)){
+    				$requiredRoles = 'no_one';
+    			}
+    	    }
 		}
 		
 		if($action == 'single' && isset($rec)){
 			
-			// Трябва папката на нишката да е споделена към текущия партньор
-			$sharedFolders = colab_Folders::getSharedFolders($userId);
-			if(!in_array($rec->folderId, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
+		    if (is_null($userId)) {
+    	        $requiredRoles = 'no_one';
+    	    } else {
+        	    // Трябва папката на нишката да е споделена към текущия партньор
+    			$sharedFolders = colab_Folders::getSharedFolders($userId);
+    			if(!in_array($rec->folderId, $sharedFolders)){
+    				$requiredRoles = 'no_one';
+    			}
+    	    }
 			
-			// Трябва първия документ в нишката да е видим за партньори
-			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-			if($firstDocumentIsVisible != 'yes'){
-				$requiredRoles = 'no_one';
-			} 
-			
-			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-			if($firstDocumentState == 'draft'){
-				$requiredRoles = 'no_one';
+			if ($rec->firstContainerId) {
+    			// Трябва първия документ в нишката да е видим за партньори
+    			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
+    			if($firstDocumentIsVisible != 'yes'){
+    				$requiredRoles = 'no_one';
+    			} 
+    			
+    			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
+    			if($firstDocumentState == 'draft'){
+    				$requiredRoles = 'no_one';
+    			}
+			} else {
+			    $requiredRoles = 'no_one';
 			}
 			
 			// Ако треда е оттеглен, не може да се гледа от партньора

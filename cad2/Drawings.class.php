@@ -109,6 +109,8 @@ class cad2_Drawings extends embed_Manager {
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, remember=info,width=100%');
+        $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input=hidden,silent,refreshForm,placeholder=Популярни продукти");
+		
     }
 
     function on_AfterRenderSingle($mvc, $tpl, $data)

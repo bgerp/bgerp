@@ -73,6 +73,9 @@ class plg_Clone extends core_Plugin
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
             
+            // Маркираме записа като клониран
+            $nRec->_isClone = TRUE;
+            
             // Да няма дублиране на уникални полета
             if(!$mvc->isUnique($nRec, $fields)) {
                 $data->form->setError($fields, "Вече съществува запис със същите данни");
@@ -99,8 +102,8 @@ class plg_Clone extends core_Plugin
                     $redirectUrl = array($mvc, 'list');
                 }
                 
-                $mvc->logInfo('Клониране', $rec->id);
-                $mvc->logInfo('Създаване с клониране', $nRec->id);
+                $mvc->logWrite('Клониране', $rec->id);
+                $mvc->logWrite('Създаване с клониране', $nRec->id);
                 
                 // За да се редиректне към съответната страница
                 $res = new Redirect($redirectUrl);
@@ -292,27 +295,30 @@ class plg_Clone extends core_Plugin
     				$Detail = cls::get($det);
     				if(!isset($Detail->masterKey)) continue;
     				
-    				// Клонираме записа и го свързваме към новия запис
-    				$query = $Detail->getQuery();
-    				$query->where("#{$Detail->masterKey} = {$rec->id}");
-    				$details = $query->fetchAll();
-    				
-    				$Detail->invoke('BeforeCloneDetails', array(&$details));
-    				
-    				if(is_array($details)){
-    					foreach($details as $dRec){
-    						$oldRec = clone $dRec;
-    						$dRec->{$Detail->masterKey} = $nRec->id;
-    						unset($dRec->id);
-    							
-    						$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
-    							
-    						if($Detail->isUnique($dRec, $fields)){
+    				if(method_exists($Detail, 'cloneDetails')){
+    					$Detail->cloneDetails($rec->id, $nRec->id);
+    				} else {
+
+    					// Клонираме записа и го свързваме към новия запис
+    					$query = $Detail->getQuery();
+    					$query->where("#{$Detail->masterKey} = {$rec->id}");
+    					$details = $query->fetchAll();
     					
-    							// Записваме клонирания детайл
-    							$Detail->save($dRec);
-    						} else {
-    							$notClones = TRUE;
+    					if(is_array($details)){
+    						foreach($details as $dRec){
+    							$oldRec = clone $dRec;
+    							$dRec->{$Detail->masterKey} = $nRec->id;
+    							unset($dRec->id);
+    								
+    							$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
+    								
+    							if($Detail->isUnique($dRec, $fields)){
+    									
+    								// Записваме клонирания детайл
+    								$Detail->save($dRec);
+    							} else {
+    								$notClones = TRUE;
+    							}
     						}
     					}
     				}

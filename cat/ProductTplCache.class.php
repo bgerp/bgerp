@@ -158,7 +158,7 @@ class cat_ProductTplCache extends core_Master
 		self::truncate();
 		 
 		// Записваме, че потребителя е разглеждал този списък
-		$this->logInfo("Изтриване на кеша на изгледите на артикула");
+		$this->logWrite("Изтриване на кеша на изгледите на артикула");
 		
 		Redirect(array($this, 'list'), FALSE, 'Записите са изчистени успешно');
 	}
@@ -223,7 +223,9 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->documentType = $documentType;
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
 		
-		self::save($cacheRec);
+		if(isset($time)){
+			self::save($cacheRec);
+		}
 		
 		return $cacheRec->cache;
 	}
@@ -262,7 +264,9 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->documentType = $documentType;
 		$cacheRec->cache = $data;
 		
-		self::save($cacheRec);
+		if(isset($time)){
+			self::save($cacheRec);
+		}
 			
 		return $cacheRec->cache;
 	}

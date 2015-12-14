@@ -25,49 +25,49 @@ class cat_Boms extends core_Master
    /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Технологични рецепти";
+    public $title = "Технологични рецепти";
     
    
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'productId,notes';
+    public $searchFields = 'productId,notes';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'cat_BomDetails';
+    public $details = 'cat_BomDetails';
     
     
     /**
@@ -80,55 +80,61 @@ class cat_Boms extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Технологична рецепта';
+    public $singleTitle = 'Технологична рецепта';
     
     
     /**
-     * Икона на единичния изглед
+     * Икона на единичния изглед на търговската рецепта
      */
-    var $singleIcon = 'img/16/article.png';
+    public $singleIcon = 'img/16/article2.png';
     
+    
+    /**
+     * Икона на единичния изглед на работната рецепта
+     */
+    public $singleProductionBomIcon = 'img/16/article.png';
+  
     
     /**
      * Абревиатура
      */
-    var $abbr = "Bom";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'cat,ceo';
+    public $abbr = "Bom";
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cat,ceo';
+    public $canEdit = 'cat,ceo,techno,sales';
+    
+    
+    /**
+     * Кой може да добавя?
+     */
+    public $canAdd = 'cat,ceo,techno,sales';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cat,ceo';
+    public $canReject = 'cat,ceo,techno,sales';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,cat';
+    public $canList = 'ceo,cat';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,cat';
+    public $canSingle = 'ceo,cat';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
     
     
     /**
@@ -138,16 +144,29 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'cat,ceo';
+    
+    
+    /**
+     * Коефициент за изчисляване на минималния и максималния тираж
+     */
+    const PRICE_COEFFICIENT = 0.5;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
+    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
+    	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
+    	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
     	$this->setDbIndex('productId');
@@ -167,13 +186,22 @@ class cat_Boms extends core_Master
     		$dQuery->where("#bomId = '{$rec->id}'");
     		while($dRec = $dQuery->fetch()){
     			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
-    			if($dRec->stageId){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
-    			}
     		}
     		
     		$res = " " . $res . " " . $detailsKeywords;
     	}
+    }
+    
+    
+    /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	$type = Request::get('type');
+    	if(!$type) return;
+    	
+    	$mvc->singleTitle = ($type == 'sales') ? 'Търговска рецепта' : 'Работна рецепта';
     }
     
     
@@ -196,58 +224,35 @@ class cat_Boms extends core_Master
     	
     	// При създаване на нова рецепта
     	if(empty($form->rec->id)){
-    		if($expenses = cat_Products::getParamValue($form->rec->productId, 'expenses')){
+    		if($expenses = cat_Products::getParams($form->rec->productId, 'expenses')){
     			$form->setDefault('expenses', $expenses);
-    		}
-    		
-    		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    		
-    		$alreadyUsedResources = array();
-    		 
-    		// Опитваме се да намерим последно използваните ресурси в рецепти към този артикул
-    		$dQuery = cat_BomDetails::getQuery();
-    		$dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
-    		$dQuery->where("#productId = {$form->rec->productId} AND #type = 'input'");
-    		$dQuery->groupBy('resourceId');
-    		$dQuery->show('resourceId');
-    		$dQuery->limit($limit);
-    		while($dRec = $dQuery->fetch()){
-    			$alreadyUsedResources[] = $dRec->resourceId;
-    		}
-    		 
-    		// Ако има такива, добавяме ги като полета във формата
-    		if(count($alreadyUsedResources)){
-    			foreach ($alreadyUsedResources as $i => $resId){
-    				$form->FNC("resourceId{$i}", 'key(mvc=cat_Products,select=name,allowEmpty)', 'input=hidden');
-    				$form->setDefault("resourceId{$i}", $resId);
-    				$caption = cat_Products::getTitleById($resId);
-    				$caption = str_replace(',', '.', $caption);
-    				 
-    				if(isset($form->rec->quantity)){
-    					$right = "за {$form->rec->quantity} {$shortUom}";
-    				}
-    				 
-    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|Количества|*");
-    			}
     		}
     	}
     }
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
+     * Преди запис
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	$rec = &$form->rec;
-    	if($form->isSubmitted()){
-    		if(!isset($rec->quantityForPrice)){
-    			$rec->quantityForPrice = $rec->quantity;
+    	if(isset($rec->threadId)){
+    		$rec->type = 'sales';
+    		$firstDocument = doc_Containers::getDocument($rec->originId);
+    		
+    		if($firstDocument->isInstanceOf('planning_Jobs')){
+    			$rec->type = 'production';
     		}
     	}
+    }
+    
+    
+    /**
+     * Преди запис на клониран запис
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	$nRec->cloneDetails = TRUE;
     }
     
     
@@ -256,29 +261,9 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    	$count = $count -1;
+    	if($rec->cloneDetails === TRUE) return;
     	
-    	// Проверяваме имали избрани ресурси още от формата
-    	foreach (range(0, $count) as $i){
-    		if(isset($rec->{"resourceId{$i}"})){
-    			if(!empty($rec->{"quantities{$i}"})){
-    				$parts = type_ComplexType::getParts($rec->{"quantities{$i}"});
-    	
-    				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
-    				$dRec = (object)array('bomId' => $rec->id,
-    									  'packagingId' => cat_Products::getProductInfo($rec->{"resourceId{$i}"})->productRec->measureId,
-    									  'quantityInPack' => 1,
-				    					  'type' => 'input',
-				    					  'resourceId' => $rec->{"resourceId{$i}"},
-				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
-				    					  'propQuantity' => ($parts['right']) ? $parts['right'] : NULL);
-    	
-    				// Запис на детайла
-    				cat_BomDetails::save($dRec);
-    			}
-    		}
-    	}
+    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL);
     }
     
     
@@ -295,10 +280,10 @@ class cat_Boms extends core_Master
     	
     	// Намираме последната приключена рецепта (различна от текущата за артикула)
     	$query = $this->getQuery();
-    	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId}");
+    	$query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
     	$query->orderBy('id', 'DESC');
     	$query->limit(1);
-    	 
+    	
     	$nextActiveBomRec = $query->fetch();
     	if($nextActiveBomRec){
     		$nextActiveBomRec->state = 'active';
@@ -336,7 +321,7 @@ class cat_Boms extends core_Master
     		
     		// Намираме всички останали активни рецепти
     		$query = static::getQuery();
-    		$query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId}");
+    		$query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$cRec->productId} AND #type = '{$cRec->type}'");
     		
     		// Затваряме ги
     		$idCount = 0;
@@ -351,9 +336,27 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	// Обновяваме датата на модифициране на артикула след промяна по рецептата
+    	if($rec->productId){
+    		$bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
     		
-    		if($cRec->productId){
-    			$pRec = cat_Products::fetch($cRec->productId);
+    		if(($rec->type == 'sales' && !$bRec) || $bRec->id == $rec->id){
+    			
+    			$pRec = cat_Products::fetch($rec->productId);
     			$pRec->modifiedOn = dt::now();
     			cat_Products::save($pRec);
     		}
@@ -378,7 +381,7 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'write' || $action == 'add') && isset($rec)){
+    	if(($action == 'add' || $action == 'edit') && isset($rec)){
     		
     		// Може да се добавя само ако има ориджин
     		if(empty($rec->productId)){
@@ -401,11 +404,16 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(($action == 'add') && isset($rec->productId) && $res != 'no_one'){
-    		
-    		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
-    			$res = 'no_one';
+    	if(($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)){
+    		if($res != 'no_one'){
+    			
+    			// Ако рецептата е работна само techno и ceo могат да я редактират
+    			$firstDocument = doc_Containers::getDocument($rec->originId);
+    			if($firstDocument->isInstanceOf('planning_Jobs')){
+    				if(!haveRole('techno,ceo', $userId)){
+    					$res = 'no_one';
+    				}
+    			}
     		}
     	}
     	
@@ -459,6 +467,7 @@ class cat_Boms extends core_Master
     {
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
+    	$row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
@@ -466,22 +475,26 @@ class cat_Boms extends core_Master
     		$row->quantity .= " " . $shortUom;
     	}
     	
-    	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
-	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
-	        $rec->primeCost = 0;
-	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
-	        
-	        if($priceObj) {
-	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
-        	}
-        	
-        	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-        	$row->primeCost = $Double->toVerbal($rec->primeCost);
-        	$row->primeCost .= tr("|* ( |за|* {$row->quantityForPrice} {$shortUom} )");
-        	 
-        	if(haveRole('ceo, acc, cat, price') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-        		$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
-        	}
+    	if($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
+    		
+    		$rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
+    		$price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+    		
+    		if(haveRole('ceo, acc, cat, price')){
+    			$row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
+    			$rec->primeCost = ($price) ? $price : 0;
+    			
+    			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
+    			$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    			$row->primeCost = $Double->toVerbal($rec->primeCost);
+    			$row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
+    			
+    			$row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
+    		
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    				$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
+    			}
+    		}
     	}
     }
     
@@ -498,60 +511,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Връща сумата на спецификацията според подадения ориджин
-     * Ако някой от ресурсите няма себестойност не може да се пресметне сумата
-     * 
-     * @param int $productId - ид на артикул
-     * @return mixed $total - обект съдържащ сумарната пропорционална и начална цена
-     * 		 o $total->base - началната сума (в основната валута за периода)
-     * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
-     */
-    public static function getPrice($productId, $bomId = NULL)
-    {
-    	// Намираме активната карта за обекта
-    	if($bomId){
-    		$rec = self::fetch($bomId);
-    	} else {
-    	    $rec = cat_Products::getLastActiveBom($productId);
-    	}
-    	
-    	// Ако няма, връщаме нулеви цени
-    	if(empty($rec)) return FALSE;
-    	
-    	// Кои ресурси участват в спецификацията
-    	$rInfo = static::getResourceInfo($rec);
-    	$amounts = (object)array('base' => 0, 'prop' => 0, 'expenses' => 0);
-    	//bp($rInfo);
-    	// За всеки ресурс
-    	if(count($rInfo['resources'])){
-    		foreach ($rInfo['resources'] as $dRec){
-    			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			
-    			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
-    			
-    			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
-    			if(!$selfValue) return FALSE;
-    			
-    			$base = $dRec->baseQuantity * $selfValue * $sign / $rInfo['quantity'];
-    			$prop = $dRec->propQuantity * $selfValue * $sign / $rInfo['quantity'];
-    			
-    			$amounts->expenses += $base * $dRec->expensePercent + $prop * $dRec->expensePercent;
-    			$base *= (1 + $dRec->expensePercent);
-    			$prop *= (1 + $dRec->expensePercent);
-    			
-    			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $base;
-    			$amounts->prop += $prop;
-    		}
-    	}
-    	
-    	// Връщаме изчислените суми
-    	return $amounts;
-    }
-    
-    
-    /**
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
@@ -563,33 +522,18 @@ class cat_Boms extends core_Master
 	 * 			        o $res->baseQuantity   - начално количество наматериала (к-во в опаковка по брой опаковки)
 	 * 			        o $res->propQuantity   - пропорционално количество на ресурса (к-во в опаковка по брой опаковки)
      */
-    public static function getResourceInfo($id)
+    public static function getResourceInfo($id, $quantity, $date)
     {
     	$resources = array();
     	
     	expect($rec = static::fetchRec($id));
     	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
-    	$resources['expenses'] = ($rec->expenses) ? $rec->expenses : NULL;
-    	$resources['resources'] = array();
+    	$resources['expenses'] = NULL;
+    	$resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
+    	$resources['resources'] = array_values($materials);
     	
-    	// Намираме всички етапи в рецептата
-    	$dQuery = cat_BomDetails::getQuery();
-    	$dQuery->where("#bomId = {$rec->id}");
-    	$dQuery->orderBy('id', 'ASC');
-    	
-    	// За всеки етап
-    	while($dRec = $dQuery->fetch()){
-    		
-    		$arr = array();
-    		$arr['productId']      = $dRec->resourceId;
-    		$arr['type']           = $dRec->type;
-    		$arr['expensePercent'] = $dRec->expensePercent;
-    		$arr['packagingId']    = $dRec->packagingId;
-    		$arr['quantityInPack'] = $dRec->quantityInPack;
-    		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
-    		$arr['propQuantity']   = $dRec->propQuantity * $dRec->quantityInPack;
-    		 
-    		$resources['resources'][] = (object)$arr;
+    	if($rec->expenses){
+    		$resources['expenses'] = $rec->expenses;
     	}
     	
     	// Връщаме намерените ресурси
@@ -632,19 +576,22 @@ class cat_Boms extends core_Master
      * @param double $expenses - процент режийни разходи
      * @return int $id         - ид на новосъздадената рецепта
      */
-    public static function createNewDraft($productId, $quantity, $details = array(), $notes = NULL, $expenses = NULL)
+    public static function createNewDraft($productId, $quantity, $originId, $details = array(), $notes = NULL, $expenses = NULL)
     {
     	// Проверка на подадените данни
     	expect($pRec = cat_Products::fetch($productId));
     	expect($pRec->canManifacture == 'yes', $pRec);
+    	$origin = doc_Containers::getDocument($originId);
+    	$type = ($origin->isInstanceOf('planning_Jobs')) ? 'production' : 'sales';
     	
     	$Double = cls::get('type_Double');
     	$Richtext = cls::get('type_RichText');
     	
     	$rec = (object)array('productId' => $productId,
-    						 'originId'  => $pRec->containerId, 
-    						 'folderId'  => $pRec->folderId, 
-    						 'threadId'  => $pRec->threadId, 
+    						 'type'		 => $type,
+    						 'originId'  => $originId,
+    						 'folderId'  => $origin->rec()->folderId,
+    						 'threadId'  => $origin->rec()->threadId,
     						 'quantity'  => $Double->fromVerbal($quantity), 
     						 'expenses'  => $expenses);
     	if($notes){
@@ -663,13 +610,11 @@ class cat_Boms extends core_Master
     			$d->propQuantity   = $Double->fromVerbal($d->propQuantity);
     			$d->quantityInPack = $Double->fromVerbal($d->quantityInPack);
     			expect($d->baseQuantity || $d->propQuantity);
-    			if($d->stageId){
-    				expect(planning_Stages::fetch($d->stageId));
-    			}
     		}
     	}
     	
     	// Ако всичко е наред, записваме мастъра на рецептата
+    	$rec->cloneDetails = TRUE;
     	$id = self::save($rec);
     	
     	// За всеки детайл, добавяме го към рецептата
@@ -753,7 +698,6 @@ class cat_Boms extends core_Master
     				}
     				
     				// Форсираме производствения етап
-    				$nRec->stageId = planning_Stages::force($matRec->stage);
     				$details[] = $nRec;
     				
     				if($nRec->type == 'input'){
@@ -793,7 +737,7 @@ class cat_Boms extends core_Master
     			
     			// Създаваме нова дефолтна рецепта от системния потребител
     			core_Users::forceSystemUser();
-    			$bomId = static::createNewDraft($productId, $bomInfo['quantity'], $details, 'Автоматична рецепта', $bomInfo['expenses']);
+    			$bomId = static::createNewDraft($productId, $bomInfo['quantity'], $pRec->containerId, $details, 'Автоматична рецепта', $bomInfo['expenses']);
     			$bomRec = static::fetchRec($bomId);
     			$bomRec->state = 'active';
     			$bomRec->hash = $hash;
@@ -806,6 +750,450 @@ class cat_Boms extends core_Master
     			// Ако има проблем, репортваме
     			core_Statuses::newStatus(tr('Проблем при създаването на нова базова рецепта'), 'error');
     			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвяне на рецептите за един артикул
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareBoms(&$data)
+    {
+    	$data->rows = array();
+    	$data->hideToolsCol = TRUE;
+    	
+    	// Намираме неоттеглените задания
+    	$query = cat_Boms::getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	$query->where("#state != 'rejected'");
+    	$query->orderBy("id", 'DESC');
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		if($this->haveRightFor('edit', $rec)){
+    			$data->hideToolsCol = FALSE;
+    		}
+    	}
+    	 
+    	$masterInfo = cat_Products::getProductInfo($data->masterId);
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
+    	}
+    	
+    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
+    	$data->TabCaption = 'Рецепти';
+    	$data->Tab = 'top';
+    	 
+    	// Проверяваме можем ли да добавяме нови рецепти
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))){
+    		$data->addUrl = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => TRUE);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на рецептите на един артикул
+     * 
+     * @param stdClass $data
+     * @return core_ET
+     */
+    public function renderBoms($data)
+    {
+    	 if($data->hide === TRUE) return;
+    	
+    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	 $title = tr('Технологични рецепти');
+    	 $tpl->append($title, 'title');
+    	 
+    	 if(isset($data->addUrl)){
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова търговска технологична рецепта');
+    	 	$tpl->append($addBtn, 'title');
+    	 }
+    	 
+    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=За к-во,createdBy=Oт,createdOn=На');
+    	 if($data->hideToolsCol){
+    	 	unset($listFields['tools']);
+    	 }
+    	 
+    	 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $details = $table->get($data->rows, $listFields);
+    	 
+    	 // Ако артикула не е производим, показваме в детайла
+    	 if($data->notManifacturable === TRUE){
+    	 	$tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ")</span>", 'title');
+    	 	$tpl->append("state-rejected", 'TAB_STATE');
+    	 }
+    	 
+    	 $tpl->replace($details, 'content');
+    	 
+    	 return $tpl;
+    }
+    
+    
+    /**
+     * Клонира и разпъва рецептата на един артикул към друг
+     * 
+     * @param int $fromProductId
+     * @param int $toProductId
+     */
+    public static function cloneBom($fromProductId, $toProductId)
+    {
+    	$toProductRec = cat_Products::fetchRec($toProductId);
+    	$activeBom = cat_Products::getLastActiveBom($fromProductId, 'sales');
+    	
+    	// Ако има рецепта за клониране
+    	if($activeBom){
+    		$nRec = clone $activeBom;
+    		$nRec->folderId  = $toProductRec->folderId;
+    		$nRec->threadId  = $toProductRec->threadId;
+    		$nRec->productId = $toProductRec->id;
+    		$nRec->originId  = $toProductRec->containerId;
+    		$nRec->state     = 'draft';
+    		foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld){
+    			unset($nRec->{$fld});
+    		}
+    		
+    		if(static::save($nRec)) {
+    			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
+    		} else {
+    			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+    		}
+    	}
+    }
+    
+    
+    
+    /**
+     * Връща допустимите параметри за формулите
+     *
+     * @param stdClass $rec - запис
+     * @return array - допустимите параметри с техните стойностти
+     */
+    public static function getRowParams($productId)
+    {
+    	$res = array();
+    	
+    	$params = cat_Products::getParams($productId);
+    	if(is_array($params)){
+    		foreach ($params as $paramName => $value){
+    			if(!is_numeric($value)) continue;
+    
+    			$key = mb_strtolower($paramName);
+    			$key = preg_replace("/\s+/", "_", $key);
+    			$key = "$" . $key;
+    			$res[$key] = $value;
+    		}
+    	}
+    
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща цената на материала за рецептата
+     * 
+     * @param sales|production $type - типа за която рецепта ще проверяваме
+     * @param int $productId         - ид на артикула
+     * @param double $quantity       - количество за което искаме цената
+     * @param date $date             - към коя дата
+     * @param int $priceListId       - по кой ценоразпис
+     * @return double|FALSE $price   - намерената цена или FALSE ако няма
+     */
+    private static function getPriceForBom($type, $productId, $quantity, $date, $priceListId)
+    {
+    	// Ако търсим цената за търговска рецепта
+    	if($type == 'sales'){
+    		
+    		// Първо проверяваме имали цена по политиката
+    		if($productId != 15){
+    			$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
+    		}
+    		
+    		
+    		if(!isset($price)){
+    			
+    			// Ако няма, търсим по последната търговска рецепта, ако има
+    			if($salesBom = cat_Products::getLastActiveBom($productId, 'sales')){
+    				$price = static::getBomPrice($salesBom, $quantity, 0, 0, $date, $priceListId);
+    			}
+    		}
+    	} else {
+    		$pInfo = cat_Products::getProductInfo($productId);
+    		
+    		// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
+    		if(isset($pInfo->meta['canStore'])){
+    			$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    		} else {
+    			$price = planning_ObjectResources::getWacAmountInProduction($quantity, $productId, $date);
+    		}
+    		
+    		if(!isset($price)){
+    			
+    			// Ако няма такава, търсим по последната работна рецепта, ако има
+    			if($prodBom = cat_Products::getLastActiveBom($productId)){
+    				$price = static::getBomPrice($prodBom, $quantity, 0, 0, $date, $priceListId);
+    			}
+    		}
+    		
+    		// В краен случай взимаме мениджърската себестойност
+    		if(!isset($price)){
+    			$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
+    		}
+    	}
+    	
+    	// Ако няма цена връщаме FALSE
+    	if(!isset($price)) return FALSE;
+    	if(!$quantity) return FALSE;
+    	
+    	// Умножаваме цената по количеството
+    	$price *= $quantity;
+    	
+    	// Връщаме намерената цена
+    	return $price;
+    }
+    
+    
+    /**
+     * Изчислява сумата на реда и я записва
+     * 
+     * @param stdCladd $rec          - Записа на реда
+     * @param array $params          - Параметрите за реда
+     * @param double $t              - Тиража
+     * @param double $q              - Изчислимото количество
+     * @param date $date             - Към коя дата
+     * @param int $priceListId       - ид на ценоразпис
+     * @param boolean $savePriceCost - дали да кешираме изчислената цена
+     * @param array $materials       - масив със сумираните вложени материали
+     * @return double|FALSE $price   - намерената цена или FALSE ако не можем
+     */
+    private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = FALSE, &$materials = array())
+    {
+    	// Изчисляваме количеството ако можем
+    	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $params);
+    	
+    	// Сумираме какви количества ще вложим към материалите
+    	if($rec->type != 'stage'){
+    		$index = "{$rec->resourceId}|$rec->type";
+    		if(!isset($materials[$index])){
+    			$materials[$index] = (object)array('productId'      => $rec->resourceId, 
+    											   'packagingId'    => $rec->packagingId, 
+    											   'quantityInPack' => $rec->quantityInPack, 
+    											   'type'           => $rec->type,
+    											   'propQuantity'   => $t * $rQuantity);
+    		} else {
+    			$d = &$materials[$index];
+    			if($rQuantity != cat_BomDetails::CALC_ERROR){
+    				$d->propQuantity += $t * $rQuantity;
+    			} else {
+    				$d->propQuantity = $rQuantity;
+    			}
+    		}
+    	}
+    	
+    	// Какъв е типа на рецептата
+    	$type = static::fetchField($rec->bomId, 'type');
+    	
+    	// Ако реда не е етап а е материал или отпадък
+    	if($rec->type != 'stage'){
+    		
+    		if($rec->type == 'pop'){
+    			// Ако е отпадък търсим твърдо мениджърската себестойност
+    			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
+    			if(!isset($price)) {
+    				$price = FALSE;
+    			} else {
+    				$price *= $q * $rQuantity;
+    			}
+    		} else {
+    			// Ако не е търсим най-подходящата цена за рецептата
+    			$price = static::getPriceForBom($type, $rec->resourceId, $q * $rQuantity, $date, $priceListId);
+    		}
+    		
+    		// Записваме намерената цена
+    		if($savePriceCost === TRUE){
+    			$rec->primeCost = ($price === FALSE) ? NULL : $price;
+    			$rec->params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
+    			cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
+    		}
+    	} else {
+    		$price = NULL;
+    		
+    		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
+    		$newParams = static::getRowParams($rec->resourceId);
+    		$newParams['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
+    		
+    		// Намираме кои редове са му детайли
+    		$query = cat_BomDetails::getQuery();
+    		$query->where("#parentId = {$rec->id}");
+    		
+    		// За всеки детайл
+    		while($dRec = $query->fetch()){
+    			
+    			// Опитваме се да намерим цената му
+    			$dRec->primeCost = static::getRowCost($dRec, $newParams, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+    			
+    			// Ако няма цена връщаме FALSE
+    			if($dRec->primeCost === FALSE){
+					$price = FALSE;
+    			}
+    			
+    			// Добавяме цената на реда към цената на етапа
+    			if($dRec->primeCost !== FALSE && $price !== FALSE){
+    				$price += $dRec->primeCost;
+    			}
+    		}
+			
+    		if($savePriceCost === TRUE){
+    			$rec->params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
+    			cls::get('cat_BomDetails')->save_($rec, 'params');
+    		}
+    	}
+    	
+    	// Ако реда е отпадък то ще извадим цената му от себестойността
+    	if($rec->type == 'pop' && $price !== FALSE){
+    		$price *= -1;
+    	}
+    	
+    	// Връщаме намерената цена
+    	return $price;
+    }
+    
+    
+    /**
+     * Връща цената на артикул по рецепта
+     * 
+     * @param int $id - ид на рецепта
+     * @param double $quantity    - количеството
+     * @param double $minDelta    - минималната търговска отстъпка
+     * @param double $maxDelta    - максималната търговска надценка
+     * @param date   $date        - към коя дата
+     * @param int    $priceListId - ид на ценоразпис
+     * @param array  $materials   - какви материали са вложени
+     * @return FALSE|double       - намерената цена или FALSE ако няма
+     */
+    public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array())
+    {
+    	$baseAmount = NULL;
+    	$price = NULL;
+    	$primeCost1 = $primeCost2 = NULL;
+    	
+    	// Трябва да има такъв запис
+    	expect($rec = static::fetchRec($id));
+    	
+    	$savePrimeCost = FALSE;
+    	$bomQuantity = ($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
+    	 
+    	if($minDelta === 0 && $maxDelta === 0 && $priceListId == price_ListRules::PRICE_LIST_COST && $bomQuantity == $quantity){
+    		$savePrimeCost = TRUE;
+    	}
+    	
+    	$quantity /= $rec->quantity;
+    	
+    	// Количеството за което изчисляваме е 1-ца
+    	$q = 1;
+    	
+    	// Изчисляваме двата тиража (минимум и максимум)
+    	$t1 = $quantity / self::PRICE_COEFFICIENT;
+    	$t2 = $quantity * self::PRICE_COEFFICIENT;
+    	
+    	// Намираме всички детайли от първи етап
+    	$query = cat_BomDetails::getQuery();
+    	$query->where("#bomId = {$rec->id}");
+    	$query->where('#parentId IS NULL');
+    	$details = $query->fetchAll();
+    	
+    	// Ако изчисляваме цената на рецептата по себестойност, ще кешираме изчислените цени на редовете
+    	$canCalcPrimeCost = TRUE;
+    	
+    	// За всеки от тях
+    	if(is_array($details)){
+    		foreach ($details as $dRec){
+    			// Параметрите са на продукта на рецепата
+    			$params = static::getRowParams($rec->productId);
+    			$params['$T'] = $quantity;
+    			
+    			// Опитваме се да намерим себестойността за основното количество
+    			$rowCost1 = static::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
+    			
+    			// Ако няма връщаме FALSE
+    			if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
+    			
+    			// Ако мин и макс делта са различни изчисляваме редовете за двата тиража
+    			if($minDelta != $maxDelta){
+    				
+    				$params['$T'] = $t1;
+    				$rowCost1 = static::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
+    				
+    				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
+    				$primeCost1 += $rowCost1;
+    					
+    				$params['$T'] = $t2;
+    				$rowCost2 = static::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
+    				if($rowCost2 === FALSE) $canCalcPrimeCost = FALSE;
+    				$primeCost2 += $rowCost2;
+    				
+    			} else {
+    				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
+    				$primeCost1 += $rowCost1;
+    			}
+    		}
+    	}
+    	
+    	if($canCalcPrimeCost === FALSE) return NULL;
+    	
+    	// Ако са равни връщаме себестойността
+    	if($minDelta == $maxDelta){
+    		$price = $primeCost1 * (1 + $minDelta);
+    
+    	} else {
+    	
+	    	// Изчисляваме началната и пропорционалната сума
+	    	$basePrice = ($primeCost2 * $t1 - $primeCost1 * $t2) / ($t1 - $t2); 
+	    	$propPrice = ($primeCost1 - $primeCost2) / ($t1 - $t2);
+	    	
+	    	// Прилагаме и максималната надценка и минималната отстъпка
+	    	$price = $basePrice * (1 + $maxDelta) / $quantity + $propPrice * (1 + $minDelta);
+    	}
+    	
+    	$price /= $rec->quantity;
+    	
+    	// Връщаме намерената цена
+    	return $price;
+    }
+    
+    
+    /**
+     * Връща иконата за сметката
+     */
+    function getIcon($id)
+    {
+    	$rec = $this->fetch($id);
+    	$icon = ($rec->type == 'sales') ? $this->singleIcon : $this->singleProductionBomIcon;
+    	
+    	return $icon;
+    }
+    
+    
+    /**
+     * След подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    {
+    	$data->listFilter->showFields .= ',type';
+    	$data->listFilter->setOptions('type', array('all' => 'Всички', 'sales' => 'Търговски', 'production' => 'Работни'));
+    	$data->listFilter->setDefault('type', 'all');
+    	
+    	$data->listFilter->input();
+    	if($filter = $data->listFilter->rec) {
+    		if($filter->type != 'all'){
+    			$data->query->where("#type = '{$filter->type}'");
     		}
     	}
     }

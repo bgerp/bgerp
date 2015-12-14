@@ -168,7 +168,9 @@ class core_Cron extends core_Manager
      */
     function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('#period'); 
+        $data->query->orderBy('period'); 
+        $data->query->orderBy('offset');
+        $data->query->orderBy('systemId');
     }
     
     
@@ -188,7 +190,7 @@ class core_Cron extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
-                'log_Debug',
+                'log_System',
                 'class' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png');
@@ -237,20 +239,20 @@ class core_Cron extends core_Manager
         // и ги стартираме наред
         $query = $this->getQuery();
         $i = 0;
+        
         while ($rec = $query->fetch("#state != 'stopped'")) {
             
             // Кога е бил последно стартиран този процес?
             $lastStarting = $rec->lastStart;
-
+            
             // В коя минута е трябвало за последен път да се стартира този процес?
-            $lastSchedule = dt::timestamp2mysql((floor($currentMinute / $rec->period) * $rec->period + $rec->offset) * 60 -  date('Z'));
+            $lastSchedule = dt::timestamp2mysql((floor(($currentMinute - $rec->offset) / $rec->period) * $rec->period + $rec->offset) * 60 -  date('Z'));
             $now = dt::timestamp2mysql($currentMinute   * 60 -  date('Z'));
 
             // Колко минути остават до следващото стартиране
-            $remainMinutes = floor($currentMinute / $rec->period) * $rec->period + $rec->period + $rec->offset - $currentMinute;
-
+            $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period ) * $rec->period + $rec->period + $rec->offset - $currentMinute;
             // echo "<li> $rec->systemId | $lastStarting | $lastSchedule | $now  | $remainMinutes | $rec->period | ";
-
+            
             if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
                
                 // echo "OK------";
@@ -337,7 +339,7 @@ class core_Cron extends core_Manager
         
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
-                log_Debug::add('core_Cron', $rec->id, "Стартиран процес: " . $rec->action, 7);
+                self::logInfo("Стартиран процес: " . $rec->action, $rec->id);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
@@ -363,10 +365,7 @@ class core_Cron extends core_Manager
                 
                 $workingTime = round($this->getMicrotime() - $startingMicroTime, 2);
                 
-                // Колко време да пазим лога?
-                $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
-                
-                log_Debug::add('core_Cron', $rec->id, "Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $logLifeTime);
+                self::logInfo("Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $rec->id);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
@@ -385,14 +384,14 @@ class core_Cron extends core_Manager
         echo(core_Debug::getLog());
         shutdown();
     }
-
-
+    
+    
     /**
      * Записва в лога и спира
      */
     function logThenStop($msg, $id = NULL, $type = 'info')
     {
-        log_Data::add($type, $msg, 'core_Cron', $id, 7);
+        log_System::add(get_called_class(), $msg, $id, $type, 7);
         echo(core_Debug::getLog());
         shutdown();
     }
@@ -546,11 +545,11 @@ class core_Cron extends core_Manager
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
                 if ( $systemDataChanged || $rec->period != $exRec->period ||
-                      floor($rec->offset) != floor($exRec->offset) ||
                       floor($rec->delay) != floor($exRec->delay) ||
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
                     $mustSave = TRUE;
+                    $rec->offset = $exRec->offset;
                     $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
                 } else { // ако няма промени го пропускаме
                     $mustSave = FALSE;
@@ -562,7 +561,7 @@ class core_Cron extends core_Manager
                 unset($rec->offset);
                 unset($rec->delay);
                 unset($rec->timeLimit);
-                $msg = "<li class=\"debug-update\">Обновени системни настройки на разписание за {$description} </li>";
+                $msg = "<li class=\"debug-notice\">Запазени потребителски настройки на разписание за {$description}</li>";
             }
         } else {
             $mustSave = TRUE;

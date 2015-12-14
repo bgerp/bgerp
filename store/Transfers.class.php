@@ -335,8 +335,7 @@ class store_Transfers extends core_Master
     	$dQuery->EXT('state', 'store_Transfers', 'externalKey=transferId');
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
-    		$sProd = store_Products::fetch($dRec->productId);
-    		$cid = cat_Products::fetchField($sProd->productId, 'containerId');
+    		$cid = cat_Products::fetchField($dRec->newProductId, 'containerId');
     		$res[$cid] = $cid;
     	}
     	

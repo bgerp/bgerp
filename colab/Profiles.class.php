@@ -87,7 +87,23 @@ class colab_Profiles extends core_Master
      * Връща единичния изглед към профила на текущия потребител
      */
     function act_Single()
-    {        
+    {
+        // Ако потребителя е powerUser, да се редиректне в профилите
+        if (core_Users::isPowerUser()) {
+            $id = Request::get('id', 'int');
+            if ($id) {
+                if (crm_Profiles::haveRightFor('single', $id)) {
+                    
+                    return new Redirect(array('crm_Profiles', 'single', $id));
+                }
+            } else {
+                if (crm_Profiles::haveRightFor('list')) {
+                    
+                    return new Redirect(array('crm_Profiles', 'list'));
+                }
+            }
+        }
+          
         $this->requireRightFor('single');
         
     	// Създаваме обекта $data
@@ -113,9 +129,9 @@ class colab_Profiles extends core_Master
         
         // Опаковаме изгледа
         $tpl = $this->Profile->renderWrapping($tpl, $data);
-       
+        
         // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo('Single', $data->rec->id);
+        $this->Profile->logRead('Виждане', $data->rec->id);
         
         // Връщане на шаблона
         return $tpl;
@@ -155,8 +171,8 @@ class colab_Profiles extends core_Master
 	        	// Записваме данните
 	         	if (core_Users::setPassword($form->rec->passNewHash))  {
 		               // Правим запис в лога
-		               $this->Profile->log('Промяна на парола', $form->rec->id);
-		            
+		               $this->Profile->logWrite('Промяна на парола', $form->rec->id);
+		               
 		               // Редиректваме към предварително установения адрес
 		               return new Redirect(getRetUrl(), "Паролата е сменена успешно");
 	            }

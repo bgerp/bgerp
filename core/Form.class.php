@@ -673,29 +673,6 @@ class core_Form extends core_FieldSet
                 }
                 
                 
-                if ($field->maxRadio) {
-                    setIfNot($type->params['maxRadio'], $field->maxRadio);
-                }
-                
-                if ($field->maxColumns) {
-                    setIfNot($type->params['maxColumns'], $field->maxColumns);
-                }
-                
-                if ($field->columns) {
-                    setIfNot($type->params['columns'], $field->columns);
-                }
-                
-                if ($field->mandatory) {
-                    setIfNot($type->params['mandatory'], $field->mandatory);
-                }
-                
-                if ($field->options) {
-                    $type->options = $field->options;
-                }
-                
-                if ($field->maxCaptionLen) {
-                	$type->maxCaptionLen = $field->maxCaptionLen;
-                }
                 
                 // Стойността на полето
                 $value = $vars[$name];
@@ -732,7 +709,12 @@ class core_Form extends core_FieldSet
                     
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
- 
+                    
+                    // Гупиране по часта преди посочения разделител
+                    if($div = $field->groupByDiv) {
+                        $options = ht::groupOptions($options, $div);
+                    }
+
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
                         $type->params['maxColumns'],

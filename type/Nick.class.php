@@ -55,10 +55,12 @@ class type_Nick extends type_Varchar {
      */
     public static function normalize($nick)
     {
-        $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
-	    $nick = str::toUpperAfter($nick);
-	    $nick = str::toUpperAfter($nick, '.');
-	    $nick = str::toUpperAfter($nick, '_');
+        if(!strpos($nick, '@')) {
+            $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
+            $nick = str::toUpperAfter($nick);
+            $nick = str::toUpperAfter($nick, '.');
+            $nick = str::toUpperAfter($nick, '_');
+        }
 
         return $nick;
     }

@@ -181,10 +181,10 @@ class doc_Threads extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
-        if (($type == 'info') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
-            doc_Folders::logInfo('Разглеждане на папка', $folderId);
+        if (($type == 'read') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
+            doc_Folders::logRead('Разглеждане на папка', $folderId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }
@@ -235,6 +235,8 @@ class doc_Threads extends core_Manager
         $query->orWhere("#lastAuthor IS NULL");
         $query->orWhere("#lastState IS NULL");
         
+        $query->limit(500);
+
         while ($rec = $query->fetch()) {
             try {
             
@@ -442,7 +444,7 @@ class doc_Threads extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
+        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите)', 
             'allowEmpty,caption=Подредба,input,silent,refreshForm');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
@@ -498,9 +500,8 @@ class doc_Threads extends core_Manager
         
         doc_Folders::requireRightFor('single', $folderRec);
 
-        $data->rejQuery = clone($data->query);
-
         $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
+        $data->rejQuery = clone($data->query);
 
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -599,8 +600,42 @@ class doc_Threads extends core_Manager
         switch ($filter->order) {
         	default:
             case 'open':
+            case 'mine':
                 $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
                 $query->orderBy('#isOpened,#state=ASC,#last=DESC,#id=DESC');
+                if($filter->order == 'mine') {
+                    if($cu = core_Users::getCurrent()) {
+
+                        // Извличаме тредовете, където има добавени от потребителя документи;
+                        $cQuery = doc_Containers::getQuery();
+                        $cQuery->show('threadId');
+                        $cQuery->groupBy('threadId');
+                        $tList = array();
+                        $cond = "#createdBy = {$cu}";
+                        if($filter->folderId) {
+                            $cond .= " AND #folderId = $filter->folderId";
+                        }
+                        while($cRec = $cQuery->fetch($cond)) {
+                            $tList[] = $cRec->threadId;
+                        }
+
+                        // Извличаме тредовете, където потребителя е лайквал документи
+                        $lQuery = doc_Likes::getQuery();
+                        $lQuery->EXT('threadId', 'doc_Containers', 'externalKey=containerId');
+                        $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
+                        $cQuery->show('threadId');
+                        $cQuery->groupBy('threadId');
+                        while($lRec = $cQuery->fetch($cond)) {
+                            $tList[] = $lRec->threadId;
+                        }
+
+
+                        if(count($tList)) {
+                            $tList = implode(',', $tList);
+                            $query->where("#id IN ({$tList})"); // OR #createdBy = {$cu} OR #modifiedBy = {$cu}
+                        }
+                    }
+                }
                 break;
             case 'recent':
                 $query->orderBy('#last=DESC,#id=DESC');
@@ -629,47 +664,51 @@ class doc_Threads extends core_Manager
 
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+            $docRow = $docProxy->getDocumentRow();
+            $attr = array();
+            $attr['class'] .= 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
+
+            if(mb_strlen($docRow->title) > self::maxLenTitle) {
+                $attr['title'] = $docRow->title;
+            }
+            
+            $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+                array('doc_Containers', 'list',
+                    'threadId' => $rec->id,
+                    'folderId' => $rec->folderId,
+                    'Q' => Request::get('search') ? Request::get('search') : NULL),
+                NULL, $attr);
+
+            if($docRow->subTitle) {
+                $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+            }
+
+            if($docRow->authorId > 0) {
+                $row->author = crm_Profiles::createLink($docRow->authorId);
+            } else {
+                $row->author = $docRow->author;
+            }
+            $row->hnd = "<div class='rowtools'>";
+            $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
+            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
+            $row->hnd .= '</div>';
+            $row->hnd .= '</div>';
         } catch (core_Exception_Expect $expect) {
-
-            return;
+            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
+            $row->title = '?????????????';
+            if($rec->firstContainerId) {
+                $cRec = doc_Containers::fetch($rec->firstContainerId);
+            }
+            $row->author = crm_Profiles::createLink($rec->createdBy);
+        
+            if($cRec->docClass ) {
+                if($classRec =  core_Classes::fetch($cRec->docClass )) {
+                    $row->title = $classRec->title;
+                }
+            }
+            
         }
-        
-        $docRow = $docProxy->getDocumentRow();
-        
-        $attr = array();
-        $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
-
-        if(mb_strlen($docRow->title) > self::maxLenTitle) {
-            $attr['title'] = $docRow->title;
-        }
-		
-        $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
-            array('doc_Containers', 'list',
-                'threadId' => $rec->id,
-                'folderId' => $rec->folderId,
-                'Q' => Request::get('search') ? Request::get('search') : NULL),
-            NULL, $attr);
-
-        if($docRow->subTitle) {
-            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
-        }
-
-        if($docRow->authorId > 0) {
-        	$row->author = crm_Profiles::createLink($docRow->authorId);
-        } else {
-            $row->author = $docRow->author;
-        }
-        
-        $row->hnd = "<div class='rowtools'>";
-        
-        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-        
-        $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
-        
-        $row->hnd .= '</div>';
-        
-        $row->hnd .= '</div>';
     }
     
     
@@ -1360,7 +1399,10 @@ class doc_Threads extends core_Manager
         		if($data->rejectedCnt) {
         			$curUrl = getCurrentUrl();
         			$curUrl['Rejected'] = 1;
-                    
+                    if(isset($data->pager->pageVar)) {
+                        unset($curUrl[$data->pager->pageVar]);
+                    }
+
                     $data->rejQuery->orderBy('modifiedOn', 'DESC');
                     $data->rejQuery->limit(1); 
                     $lastRec = $data->rejQuery->fetch();
@@ -1404,6 +1446,8 @@ class doc_Threads extends core_Manager
     private static function getFastButtons($folderId)
     {
     	$Cover = doc_Folders::getCover($folderId);
+    	if(!$Cover->haveInterface('doc_FolderIntf')) return;
+    	
     	$managers = $Cover->getDocButtonsInFolder();
     	
     	$res = array();
@@ -1520,7 +1564,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->logInfo('Отвори нишка', $id);
+        $this->logWrite('Отвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -1556,7 +1600,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->logInfo('Затвори нишка', $id);
+        $this->logWrite('Затвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -1728,7 +1772,7 @@ class doc_Threads extends core_Manager
             $query->XPR('threadShared', 'varchar', '#shared');
         }
         
-        $query->orWhere("#threadShared LIKE '%|{$userId}|%'");
+        $query->orWhere("LOCATE('|{$userId}|', #threadShared)");
     }
     
     

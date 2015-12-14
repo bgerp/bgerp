@@ -63,7 +63,7 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms';
     
     
     /**
@@ -105,7 +105,7 @@ class cat_Products extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
+    public $listFields = 'code,name,measureId,quantity,price,folderId';
     
     
     /**
@@ -113,7 +113,13 @@ class cat_Products extends embed_Manager {
      */
     public $rowToolsSingleField = 'name';
     
-    
+
+    /**
+     *
+     */
+    public $rowToolsField = 'code';
+
+
     /**
      * Кой може да го прочете?
      */
@@ -240,7 +246,8 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 'meta'    => 'lastDocUser|lastDoc',);
+											 'meta'    => 'lastDocUser|lastDoc',
+	);
 	
 	
 	/**
@@ -255,6 +262,12 @@ class cat_Products extends embed_Manager {
 	protected static $productInfos = array();
 	
 	
+	/**
+	 * Масив със създадените артикули
+	 */
+	protected $createdProducts = array();
+	
+	
     /**
      * Описание на модела
      */
@@ -265,12 +278,14 @@ class cat_Products extends embed_Manager {
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting');
+        $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание,input=none');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
-        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
-        
+        $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
+        $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
+        $this->FNC('price', 'double(decimals=2)', 'input=none,caption=Цена,smartCenter');
+
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
@@ -284,7 +299,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируем,
                                 canConvert=Вложим,
                                 fixedAsset=Дълготраен актив,
-        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,mandatory');
+        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -317,6 +332,7 @@ class cat_Products extends embed_Manager {
             		
             		if($proto = Request::get('proto', 'int')) {
             			if($pRec = self::fetch($proto)) {
+            				unset($pRec->code);
             				$Cmd = Request::get('Cmd');
             				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
             					Request::push($pRec->driverRec);
@@ -334,13 +350,21 @@ class cat_Products extends embed_Manager {
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
     		
-    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
-
-    		if($Driver = $mvc->getDriver($form->rec)){
-    			$defMetas = $Driver->getDefaultMetas($defMetas);
-    			$measureName = $Driver->getDefaultUom();
-    			$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
+    		$defMetas = array();
+    		if(isset($form->rec->proto)){
+    			$defMetas = $mvc->fetchField($form->rec->proto, 'meta');
+    			$defMetas = type_Set::toArray($defMetas);
+    		} else {
+    			$defMetas = $cover->getDefaultMeta();
     			
+    			if($Driver = $mvc->getDriver($form->rec)){
+    				$defMetas = $Driver->getDefaultMetas($defMetas);
+    				$measureName = $Driver->getDefaultUom();
+    				$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
+    			}
+    		}
+    		
+    		if(count($defMetas)){
     			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
     		}
@@ -393,9 +417,15 @@ class cat_Products extends embed_Manager {
     		$document = doc_Containers::getDocument($form->rec->originId);
     	
     		// Задаваме за дефолти полетата от източника
+    		$Driver = $document->getDriver();
     		$fields = $document->getInstance()->getDriverFields($Driver);
     		$sourceRec = $document->rec();
     	
+    		if($data->action != 'clone'){
+    			$form->info = cls::get('type_RichText')->toVerbal($sourceRec->inqDescription);
+    			$form->info = "<small>{$form->info}</small>";
+    		}
+    		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
     			$form->setDefault($name, $sourceRec->driverRec[$name]);
@@ -488,6 +518,15 @@ class cat_Products extends embed_Manager {
 
     
     /**
+     * Преди запис на клониран запис
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	unset($nRec->originId);
+    }
+    
+    
+    /**
      * Рутира публичен артикул в папка на категория
      */
 	private function routePublicProduct($categorySysId, &$rec)
@@ -545,18 +584,18 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,private=Частни)',
-            'caption=Подредба,input,silent,remember');
+            'caption=Подредба,input,silent,remember,refreshForm');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Всички,caption=Група,input,silent,remember');
+            'placeholder=Маркери,caption=Група,input,silent,remember,refreshForm');
 		
         $data->listFilter->FNC('meta1', 'enum(all=Свойства,
-        						canSell=Продаваеми,
+       				canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими)', 'input');
+        			canManifacture=Производими)', 'input,refreshForm');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -643,10 +682,12 @@ class cat_Products extends embed_Manager {
      * 							        данни, на които трябва да отговарят
      * @param mixed $hasnotProperties - комбинация на горе посочените мета 
      * 							        които не трябва да имат
+     * @param int $limit			  - лимит
+     * @return array				  - намерените артикули
      */
-    public static function getByProperty($properties, $hasnotProperties = NULL)
+    public static function getByProperty($properties, $hasnotProperties = NULL, $limit = NULL)
     {
-    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties);
+    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties, $limit);
     }
     
     
@@ -820,6 +861,15 @@ class cat_Products extends embed_Manager {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
         }
+        
+        // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
+        if(count($mvc->createdProducts)){
+        	foreach ($mvc->createdProducts as $rec) {
+        		if($rec->canManifacture == 'yes'){
+        			static::createDefaultBom($rec);
+        		}
+        	}
+        }
     }
     
     
@@ -956,8 +1006,13 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
     	if(!$price){
-    		if($amounts = cat_Boms::getPrice($productId)){
-    			$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
+    		$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+    		if(empty($bomRec)){
+    			$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+    		}
+    		
+    		if($bomRec){
+    			$price = cat_Boms::getBomPrice($bomRec, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST);
     		}
     	}
     	
@@ -983,7 +1038,7 @@ class cat_Products extends embed_Manager {
     	$baseId = $measureId;
     	
     	// За всяка опаковка, извличаме опциите и намираме имали основна такава
-    	if(count($pInfo->packagings)){
+    	if(count($pInfo->packagings) && isset($pInfo->meta['canStore'])){
     		foreach ($pInfo->packagings as $packRec){
     			$options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId);
     			if($packRec->isBase == 'yes'){
@@ -1006,20 +1061,21 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща стойността на параметъра с това име
-     *
-     * @param string $id   - ид на записа
-     * @param string $name - име на параметъра
-     * @return mixed - стойност или FALSE ако няма
-     */
-    public static function getParamValue($id, $name)
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
+	 */
+    public static function getParams($id, $name = NULL)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
-    		
-    		return $Driver->getParamValue($id, $name);
-    	}
     	
+    		return $Driver->getParams(cat_Products::getClassId(), $id, $name);
+    	}
+    	 
     	// Ако няма връщаме FALSE
     	return FALSE;
     }
@@ -1040,7 +1096,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$weight){
-    		$weight = static::getParamValue($productId, 'transportWeight');
+    		$weight = static::getParams($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1062,7 +1118,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$volume){
-    		$volume = static::getParamValue($productId, 'transportVolume');
+    		$volume = static::getParams($productId, 'transportVolume');
     	}
     	
     	return $volume;
@@ -1124,6 +1180,34 @@ class cat_Products extends embed_Manager {
     			$row->proto = $mvc->getHyperlink($rec->proto);
     		}
     	}
+        
+        if($fields['-list']){
+
+            $meta = arr::make($rec->meta, TRUE);
+     
+           if($meta['canStore']) {  
+                $spQuery = store_Products::getQuery();
+                while($spRec = $spQuery->fetch("#productId = {$rec->id}")) {
+                    $rec->quantity  += $spRec->quantity;
+                }
+            }
+            
+            if($rec->quantity) {
+                $row->quantity = $mvc->getVerbal($rec, 'quantity');
+                if($rec->quantity < 0) {
+                    $row->quantity = "<span style='color:red;'>" . $row->quantity . "</span>";
+                }
+            }
+            
+            if($meta['canSell']) { 
+                if($rec->price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->id)) {
+                    $vat = self::getVat($rec->id);
+                    $rec->price *= (1+$vat);
+                    $row->price = $mvc->getVerbal($rec, 'price');
+                }
+            }
+        }
+        
     }
     
     
@@ -1230,6 +1314,7 @@ class cat_Products extends embed_Manager {
     	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
     	    }
     	    
+    	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
     	}
     	
@@ -1266,14 +1351,25 @@ class cat_Products extends embed_Manager {
      * Връща последната активна рецепта на спецификацията
      *
      * @param mixed $id - ид или запис
+     * @param sales|production $type - вид работна или търговска
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public static function getLastActiveBom($id)
+    public static function getLastActiveBom($id, $type = NULL)
     {
     	$rec = self::fetchRec($id);
-    	 
+    	
+    	// Ако артикула не е производим не търсим рецепта
+    	if($rec->canManifacture == 'no') return FALSE;
+    	
+    	$cond = "#productId = '{$rec->id}' AND #state = 'active'";
+    	
+    	if(isset($type)){
+    		expect(in_array($type, array('sales', 'production')));
+    		$cond .= " AND #type = '{$type}'";
+    	}
+    	
     	// Какво е к-то от последната активна рецепта
-    	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return cat_Boms::fetch($cond);
     }
     
     
@@ -1421,16 +1517,6 @@ class cat_Products extends embed_Manager {
     			}
     		}
     	}
-    	
-    	if($data->rec->state == 'active'){
-    		if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state != 'rejected'")){
-    			if(cat_Boms::haveRightFor('single', $bRec)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула,order=19');
-    			}
-    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,order=19,title=Създаване на нова технологична рецепта');
-    		}
-    	}
     }
     
     
@@ -1530,7 +1616,7 @@ class cat_Products extends embed_Manager {
     		$pRec = cat_Products::fetch(acc_Items::fetchField($itemId, 'objectId'));
     		$pRec->state = 'closed';
     		$this->save($pRec);
-    		acc_Items::logInfo("Затворено е перо", $itemId);
+    		acc_Items::logWrite("Затворено е перо", $itemId);
     	}
     }
     
@@ -1591,7 +1677,7 @@ class cat_Products extends embed_Manager {
     	
     	if (!Request::get('ajax_mode')) {
     		// Записваме, че потребителя е разглеждал този списък
-    		$this->logInfo('Показване на ограничения сингъл', $id);
+    		$this->logRead('Показване на ограничения сингъл', $id);
     	}
     	
     	return $tpl;
@@ -1662,14 +1748,20 @@ class cat_Products extends embed_Manager {
      * 			o productId - ид на продукта
      * 			o quantity - к-то на продукта
      */
-    public static function getMaterialsForProduction($id, $quantity = 1)
+    public static function getMaterialsForProduction($id, $quantity = 1, $date = NULL)
     {
+    	if(!$date){
+    		$date = dt::now();
+    	}
+    	
     	$res = array();
-    	$bomId = static::getLastActiveBom($id)->id;
+    	$bomId = static::getLastActiveBom($id, 'production')->id;
+    	if(!$bomId) {
+    		$bomId = static::getLastActiveBom($id, 'sales')->id;
+    	}
     	
     	if (isset($bomId)) {
-    	
-	    	$info = cat_Boms::getResourceInfo($bomId);
+	    	$info = cat_Boms::getResourceInfo($bomId, $quantity, $date);
 	    	
 	    	foreach ($info['resources'] as $materialId => $rRec){
 	    		if($rRec->type != 'input') continue;
@@ -1738,7 +1830,9 @@ class cat_Products extends embed_Manager {
     	
     	if($Driver){
     		$tpl = $Driver->renderProductDescription($data);
-    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$showLinks = ($data->documentType == 'public') ? FALSE : TRUE;
+    		
+    		$componentTpl = cat_Products::renderComponents($data->components, $showLinks);
     		$tpl->append($componentTpl, 'COMPONENTS');
     	} else {
     		$tpl = new ET(tr("|*<span class='red'>|Проблем с показването|*</span>"));
@@ -1762,7 +1856,6 @@ class cat_Products extends embed_Manager {
     	$block = $compTpl->getBlock('COMP');
     	foreach ($components as $obj){
     		$bTpl = clone $block;
-    		if($obj->code === '0') unset($obj->code);
     		
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -1770,17 +1863,17 @@ class cat_Products extends embed_Manager {
     			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
     		}
     		
-    		$bTpl->placeArray(array('componentTitle'       => $obj->title, 
-    								'componentDescription' => $obj->description,
-    								'componentCode'        => $obj->code,
-    								'componentStage'       => $obj->stageName,
-    								'componentQuantity'    => $obj->quantity,
-    								'componentMeasureId'   => $obj->measureId));
+    		$arr = array('componentTitle'       => $obj->title, 
+    				     'componentDescription' => $obj->description,
+    					 'titleClass'           => $obj->titleClass,
+    					 'componentCode'        => $obj->code,
+    					 'componentStage'       => $obj->stageName,
+    					 'componentQuantity'    => $obj->quantity,
+    					 'level'				=> $obj->level,
+    				     'leveld'				=> $obj->leveld,
+    					 'componentMeasureId'   => $obj->measureId);
     		
-    		if(count($obj->components)){
-    			$bTpl->append(static::renderComponents($obj->components), 'componentComponents');
-    		}
-    		
+    		$bTpl->placeArray($arr);
     		$bTpl->removeBlocks();
     		$bTpl->append2Master();
     	}
@@ -1796,7 +1889,7 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal');
+    	cat_Products::prepareComponents($data->rec->id, $data->components);
     }
     
     
@@ -1821,59 +1914,117 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'public', $level = 0, $code = '')
+    public static function prepareComponents($productId, &$res = array())
     {
-    	// Имали последна активна рецепта артикула?
-    	$rec = cat_Products::getLastActiveBom($productId);
+    	// Имали последна активна търговска рецепта за артикула?
+    	$rec = cat_Products::getLastActiveBom($productId, 'sales');
+    	
+    	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
+    	if(!$rec && $level == 0){
+    		$bQuery = cat_Boms::getQuery();
+    		$bQuery->where("#productId = {$productId} AND #state = 'draft' AND #type = 'sales'");
+    		$bQuery->orderBy('id', 'DESC');
+    		$rec = $bQuery->fetch();
+    	}
+    	
     	if(!$rec) return $res;
-    	 
+    	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    	
     	// Кои детайли от нея ще показваме като компоненти
-    	$dQuery = cat_BomDetails::getQuery();
-    	$dQuery->where("#bomId = {$rec->id}");
-    	$dQuery->where("#showInProduct != 'hide' AND #showInProduct IS NOT NULL");
-    	$level++;
-    	 
-    	// За всеки
-    	while($dRec = $dQuery->fetch()){
-    		$obj = new stdClass();
-    		$obj->componentId = $dRec->resourceId;
-    
-    		$obj->code = $code . "." . (($dRec->position) ? $dRec->position : 0);
-    		$obj->code = trim($obj->code, '.');
-    		$obj->title = cat_Products::getTitleById($dRec->resourceId);
-    		$obj->measureId = cat_BomDetails::getVerbal($dRec, 'packagingId');
-    		$obj->quantity = $dRec->baseQuantity + $dRec->propQuantity / $rec->quantity;
-    		$obj->stageName = planning_Stages::getTitleById($dRec->stageId);
-    
-    		$stageOrder = ($dRec->stageId) ? planning_Stages::fetchField($dRec->stageId, 'order') : 0;
-    		$obj->order = (($stageOrder) ? $stageOrder : $obj->stageName) . "." . $obj->code;
-    
-    		// Ако показваме описанието, показваме го
-    		if($dRec->showInProduct == 'description' || $dRec->showInProduct == 'components'){
-    			$obj->description = cat_Products::getDescription($dRec->resourceId, $documentType);
-    		}
-    
-    		// Ако има компоненти и сме в допустимото ниво, викаме функцията рекурсивно
-    		if($dRec->showInProduct == 'components'){
-    			if($level < core_Packs::getConfigValue('cat', 'CAT_BOM_MAX_COMPONENTS_LEVEL')){
-    				$obj->components = array();
-    				self::prepareComponents($dRec->resourceId, $obj->components, $documentType, $level, $obj->code);
+    	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
+    	if(is_array($details)){
+    		foreach ($details as $dRec){
+    			$obj = new stdClass();
+    			$obj->componentId = $dRec->resourceId;
+    			$row = cat_BomDetails::recToVerbal($dRec);
+    			$obj->code = $row->position;
+    			
+    			$codeCount = strlen($obj->code);
+    			$length = $codeCount - strlen(".{$dRec->position}");
+    			$obj->parent = substr($obj->code, 0, $length);
+    			 
+    			$obj->title = cat_Products::getTitleById($dRec->resourceId);
+    			$obj->measureId = $row->packagingId;
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? '<span class="red">???</span>' : $Double->toVerbal($dRec->rowQuantity);
+    			$obj->level = substr_count($obj->code, '.');
+    			$obj->titleClass = 'product-component-title';
+    			 
+    			if($obj->parent){
+    				$obj->quantity *= $res[$obj->parent]->quantity;
     			}
-    		}
-    
-    		$res[] = $obj;
-    	}
-    	 
-    	// Сортираме по етапа и кода
-    	arr::order($res, 'order', 'ASC');
-    	 
-    	// Премахваме повтарящите се етапи
-    	foreach ($res as $index => &$r){
-    		if(isset($r->stageName)){
-    			if($res[$index - 1]->stageName === $r->stageName){
-    				unset($r->stageName);
+    			
+    			if($dRec->description){
+    				$obj->description = $row->description;
+    				$obj->leveld = $obj->level;
     			}
+    			$res[$obj->code] = $obj;
+    			
     		}
     	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Създава дефолтната рецепта за артикула.
+     * Ако е по прототип клонира и разпъва неговата,
+     * ако не проверява дали от драйвера може да се генерира
+     * 
+     * @param int $id - ид на артикул
+     * @return void;
+     */
+    private static function createDefaultBom($id)
+    {
+    	$rec = static::fetchRec($id);
+    	
+    	// Ако не е производим артикула, не правим рецепта
+    	if($rec->canManifacture == 'no') return;
+    	
+    	// Ако има прототипен артикул, клонираме му рецептата и я разпъваме
+    	if(isset($rec->proto)){
+    		cat_Boms::cloneBom($rec->proto, $rec);
+    	} else {
+    		
+    		// Ако не е прототипен, питаме драйвера може ли да се генерира рецепта
+    		if($Driver = static::getDriver($rec)){
+    			$defaultData = $Driver->getDefaultBom($rec);
+    			//@TODO от драйвера
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$mvc->createdProducts[] = $rec;
+    }
+    
+    
+    /**
+     * Намира всички стандартни, продаваеми или купуваеми артикули
+     * 
+     * @param boolean $onlyStorable - дали да са само складируемите
+     * @return array $products - артикули
+     */
+    public static function getStandartProducts($onlyStorable = FALSE)
+    {
+    	$products = array();
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->where("#isPublic = 'yes'");
+    	$pQuery->where("#state = 'active'");
+    	$pQuery->where("#canBuy = 'yes' OR #canSell = 'yes'");
+    	if($onlyStorable === TRUE){
+    		$pQuery->where("#canStore = 'yes'");
+    	}
+    	
+    	while($pRec = $pQuery->fetch()){
+    		$products[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
+    	}
+    	
+    	return $products;
     }
 }

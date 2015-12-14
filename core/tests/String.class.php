@@ -45,5 +45,10 @@ class core_tests_String extends unit_Class
         $expectedText = 'Zdraveyte, tova e test. Hello. Zdravey i ti, TESt. Zdravey, Test Test';
         
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
+        
+        $originalText = 'hello HEllo HeLLo. HELLO!!! HEllo?';
+        $expectedText = 'hello HEllo HeLLo. HELLO!!! HEllo?';
+        
+        ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
     }
 }

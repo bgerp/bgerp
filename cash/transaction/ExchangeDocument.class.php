@@ -57,19 +57,22 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     			array('currency_Currencies', $rec->creditCurrency),
     			'quantity' => $rec->creditQuantity);
     
-    	if($rec->creditCurrency == acc_Periods::getBaseCurrencyId($rec->valior)){
-    		$entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toCase, 'credit' => $fromCase);
-    		$entry = array($entry);
-    	} else {
+    	if($rec->debitCurrency == acc_Periods::getBaseCurrencyId($rec->valior)){
+    		$dCode = currency_Currencies::getCodeById($rec->debitCurrency);
+    		$rate = currency_CurrencyRates::getRate($rec->valior, $dCode, NULL);
+    		
     		$entry = array();
-    		$entry[] = array('amount' => $rec->debitQuantity * $rec->debitPrice,
-    				'debit' => $toCase,
-    				'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
-    		$entry[] = array('amount' => $rec->debitQuantity * $rec->debitPrice,
+    		$entry[] = array('amount' => $rec->debitQuantity,
+			    			'debit' => $toCase,
+			    			'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+    		$entry[] = array(
     				'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
     				'credit' => $fromCase);
+    	} else {
+    		$entry = array('debit' => $toCase, 'credit' => $fromCase);
+    		$entry = array($entry);
     	}
-    	 
+    	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
     			'reason' => $rec->reason,   // основанието за ордера

@@ -111,6 +111,15 @@ class core_Plugins extends core_Manager
     
     
     /**
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('name');
+    }
+    
+    
+    /**
      * Инсталира нов плъгин, към определен клас
      */
     static function setupPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
@@ -206,7 +215,7 @@ class core_Plugins extends core_Manager
                         if (cls::load($plugin, TRUE)) {
                             $obj->loadSingle($name, $plugin);
                         } else {
-                            DEBUG::log("Липсващ плъгин: {$plugin}");
+                            $this->logWarning("Липсващ плъгин: {$plugin}");
                         }
                     }
                 }

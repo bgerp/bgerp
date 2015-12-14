@@ -99,8 +99,8 @@ class core_page_InternalModern extends core_page_Active
      */
     static function getTemplate()
     {
-    	if (isset($_COOKIE['menuInformation']) && $_COOKIE['menuInformation']) {
-    		$openMenuInfo = $_COOKIE['menuInformation'];
+    	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
+    		$openMenuInfo = $_COOKIE['menuInfo'];
     		$mainContainerClass = '';
     		
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
@@ -391,7 +391,6 @@ class core_page_InternalModern extends core_page_Active
         
         $attr = array();
         $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
-        
         $searchLink = '';
         
         if (doc_Search::haveRightFor('list')) {

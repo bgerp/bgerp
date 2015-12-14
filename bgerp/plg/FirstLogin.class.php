@@ -30,7 +30,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
             
             email_Accounts::loadData();
             
-            $mvc->logInfo('Зареждане на данни за фирмите и акаунтите след първото логване');
+            $mvc->logRead('Зареждане на данни за фирмите и акаунтите след първото логване');
             
             // Добавяме еднократно изивкване на функцията по крон
             $callOn = dt::addSecs(120);
@@ -99,7 +99,7 @@ class bgerp_plg_FirstLogin extends core_Plugin
         }
         
         // Превеждаме заглавието
-        $subject = tr('Първи стъпки');
+        $subject = tr('Първи стъпки с bgERP');
         
         // Спираме 
         core_Users::exitSudo();

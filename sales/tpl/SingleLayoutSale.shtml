@@ -7,6 +7,15 @@
        	 	</div>
         	<!--ET_END DEAL_HISTORY-->
         	
+        	<!--ET_BEGIN DEAL_REPORT-->
+            <div class="scrolling-holder" style='padding-bottom:10px'>
+            [#DEAL_REPORT#]
+            </div>
+            <div style='padding-bottom:10px'>
+            [#TABEXP#]
+            </div>
+            <!--ET_END DEAL_REPORT-->
+        	
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
             <!--ET_END STATISTIC_BAR-->

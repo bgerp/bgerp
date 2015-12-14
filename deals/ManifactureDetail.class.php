@@ -28,8 +28,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public function setDetailFields($mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,mandatory');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
@@ -136,10 +136,10 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
-		if (!empty($data->toolbar->buttons['btnAdd'])) {
+		if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
 				unset($data->toolbar->buttons['btnAdd']);
-				$products = cat_Products::getByProperty($mvc->defaultMeta);
-	
+				$products = cat_Products::getByProperty($mvc->defaultMeta, NULL, 1);
+				
 				if(!count($products)){
 					$error = "error=Няма артикули, ";
 				}

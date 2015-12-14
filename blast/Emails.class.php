@@ -277,7 +277,7 @@ class blast_Emails extends core_Master
      */
     public static function activateEmail($id, $sendPerCall = 5)
     {   
-        self::logInfo('Активиран бласт имейл', $id);
+        self::logWrite('Активиран бласт имейл', $id);
 
         // Записа
         $rec = self::getRec($id);
@@ -385,6 +385,7 @@ class blast_Emails extends core_Master
                 if (($sec <= 0) || ($sec <= $period)) {
                     $rec->state = 'active';
                     $this->save($rec, 'state');
+                    $this->touchRec($rec->id);
                     
                     if (!($sec <= 0)) continue;
                 }
@@ -392,6 +393,7 @@ class blast_Emails extends core_Master
                 if ($sec > $period) {
                     $rec->state = 'pending';
                     $this->save($rec, 'state');
+                    $this->touchRec($rec->id);
                 } elseif ($sec) {
                     continue ;
                 }
@@ -408,6 +410,7 @@ class blast_Emails extends core_Master
                 $rec->state = 'closed';
                 $rec->progress = 1;
                 $this->save($rec, 'state, progress');
+                $this->touchRec($rec->id);
                 continue;
             }
             
@@ -525,7 +528,8 @@ class blast_Emails extends core_Master
             }
             
             $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
-            $this->save($rec, 'progress, modifiedOn');
+            $this->save($rec, 'progress');
+            $this->touchRec($rec->id);
         }
     }
     

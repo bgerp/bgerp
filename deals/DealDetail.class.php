@@ -182,7 +182,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         if($rec->productId){
         	
-        	$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+        	$tolerance = cat_Products::getParams($rec->productId, 'tolerance');
         	if(!empty($tolerance)){
         		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
         		$data->form->setField('tolerance', 'input');
@@ -309,11 +309,12 @@ abstract class deals_DealDetail extends doc_Detail
     	$rows = &$data->rows;
     	
     	core_Lg::push($data->masterData->rec->tplLang);
+    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}

@@ -103,7 +103,7 @@ class sens2_ScriptActionSMS
             $res = FALSE; 
             $dump = $e->getdump();
             $logMsg = $dump[0] ? $dump[0] : $e->getMessage();
-            log_Data::add('warning', $logMsg, 'sens2_Scripts', $rec->scriptId, 2);
+            log_System::add('sens2_Scripts', $logMsg, $rec->scriptId, 'warning', 2);
         }
         
         if($res !== FALSE) {

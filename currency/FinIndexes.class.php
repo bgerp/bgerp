@@ -225,8 +225,9 @@ class currency_FinIndexes extends core_Manager {
                 $res .= "Създадени са {$createdRecs} нови индекса.</li>";
             } else {
                 $errStr = "Не може да бъде отворен файла '{$csvFile}'";
-                $res .= "<li style='color:red'> {$errStr}";
                 self::logErr($errStr);
+                $res .= "<li style='color:red'> {$errStr}";
+                
             }
         }
         
@@ -293,8 +294,8 @@ class currency_FinIndexes extends core_Manager {
                 $res .= "Създадени са {$createdRecs} нови индекса.</li>";
             } else {
                 $errStr = "Не може да бъде отворен файла '{$csvFile}'";
-                $res .= "<li style='color:red'> {$errStr}";
                 self::logErr($errStr);
+                $res .= "<li style='color:red'> {$errStr}";
             }
         }
         
@@ -475,8 +476,8 @@ class currency_FinIndexes extends core_Manager {
                 $res .= "Създадени са {$createdRecs} нови индекса.</li>";
             } else {
                 $errStr = "Не може да бъде отворен файла '{$csvFile}'";
-                $res .= "<li style='color:red'> {$errStr}";
                 self::logErr($errStr);
+                $res .= "<li style='color:red'> {$errStr}";
             }
         }
         

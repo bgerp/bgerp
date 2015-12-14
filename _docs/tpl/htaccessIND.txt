@@ -7,6 +7,7 @@ Options -Indexes
 <IfModule mod_headers.c>
     Header unset Server
     Header unset X-Powered-By
+    Header unset Pragma
 </IfModule>
 
 # Very important for URL rewriting

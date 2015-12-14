@@ -7,12 +7,19 @@
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
                         <td>[#dueDate#]</td>
                     </tr>
-                    <!--ET_BEGIN bomId-->
+                    <!--ET_BEGIN sBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Последна рецепта|*:</td>
-                        <td>[#bomId#]</td>
+                        <td class='quiet' style='text-align: right;white-space: nowrap;'>|Търговска рецепта|*:</td>
+                        <td>[#sBomId#]</td>
                     </tr>
-                    <!--ET_END bomId-->
+                    <!--ET_END sBomId-->
+                    
+                    <!--ET_BEGIN pBomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: right;white-space: nowrap;'>|Работна рецепта|*:</td>
+                        <td>[#pBomId#]</td>
+                    </tr>
+                    <!--ET_END pBomId-->
                 </table>
 	       </td>
 	       <td>
@@ -133,7 +140,7 @@
      <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
           <b>|Задачи за производство|*</b> [#ADD_BTN#]
      </div>
-     <div class="clearfix21 portal planning" style="background-color:transparent">
+     <div class="clearfix21 portal planning" style='border-top: none'>
             [#Tasks#]
      </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

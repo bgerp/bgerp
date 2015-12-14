@@ -114,8 +114,10 @@ class core_Forwards extends core_Manager
      *
      * @return string
      */
-    public static function getSysId($class, $method, $data, $lifetime = 0)
+    public static function getSysId($classObj, $method, $data, $lifetime = 0)
     {
+        $class = is_object($classObj) ? cls::getClassName($classObj) : $classObj;
+
         $expiry = $lifetime > 0 ? dt::addSecs($lifetime) : NULL;
 
         $hash = md5($class . $method . json_encode($data) . '/');
@@ -154,7 +156,7 @@ class core_Forwards extends core_Manager
      * @param string|object $class     Клас на колбек функцията
      * @param string        $method    Метод за колбек функцията
      * @param string        $data      Данни, които ще се предадат на колбек функцията
-     * @param int           $expiry    Колко секунди да е валиден записа
+     * @param int           $lifetime    Колко секунди да е валиден записа
      *
      * @return string
      */
@@ -165,6 +167,25 @@ class core_Forwards extends core_Manager
         return toUrl(array($sysId), 'absolute');
     }
 
+
+    /**
+     * Функция която изтрива криптираното URL
+     *
+     * @param string|object $class     Клас на колбек функцията
+     * @param string        $method    Метод за колбек функцията
+     * @param string        $data      Данни, които ще се предадат на колбек функцията
+     * @param int           $lifetime    Колко секунди да е валиден записа
+     *
+     * @return integer
+     */
+    public static function deleteUrl($class, $method, $data, $lifetime = 0)
+    {
+        $sysId = self::getSysId($class, $method, $data, $lifetime);
+        
+        $deleted = self::delete(array("#sysId = '[#1#]'", $sysId));
+        
+        return $deleted;
+    }
 
 
     /**

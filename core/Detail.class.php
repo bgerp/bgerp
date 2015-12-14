@@ -239,27 +239,35 @@ class core_Detail extends core_Manager
  
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
-        $title = $data->masterMvc->getTitleById($data->masterId);
-        $title = str::limitLen($title, 32);
         
-        $url = $data->masterMvc->getSingleUrlArray($data->masterId);
-
-        if(count($url)) {
-            $title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
-        }
-
-        if ($data->singleTitle) {
-            $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
-       
-        }
- 
-        $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-        $data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
- 
         return $data;
     }
     
 
+    /**
+     * Подготвя заглавието на формата
+     */
+    function prepareEditTitle_($data)
+    {
+    	$title = $data->masterMvc->getTitleById($data->masterId);
+    	$title = str::limitLen($title, 32);
+    	
+    	$url = $data->masterMvc->getSingleUrlArray($data->masterId);
+    	
+    	if(count($url)) {
+    		$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
+    	}
+    	
+    	if ($data->singleTitle) {
+    		$single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
+    		 
+    	}
+    	
+    	$data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
+    	$data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    }
+    
+    
     /**
      * Дефолт функция за определяне мастера, спрямо дадения запис
      */
@@ -340,7 +348,7 @@ class core_Detail extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
         $masterKey = $this->masterKey;
         $masters = $this->getMasters($rec);
@@ -354,10 +362,10 @@ class core_Detail extends core_Manager
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
             
-            if ($type == 'info') {
-                $masterInstance->logInfo($newMsg, $masterId);
+            if ($type == 'write') {
+                $masterInstance->logWrite($newMsg, $masterId);
             } else {
-                $masterInstance->logErr($newMsg, $masterId);
+                $masterInstance->logRead($newMsg, $masterId);
             }
         }
         
@@ -425,5 +433,31 @@ class core_Detail extends core_Manager
     public function getMasters_($rec)
     {
         return isset($this->Master) ? array($this->masterKey => $this->Master) : array();
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $rec = $inst->fetch($objId);
+            
+            $masterKey = $inst->masterKey;
+            
+            $masterId = $rec->{$masterKey};
+            
+            return $inst->Master->getLinkForObject($masterId);
+        }
+        
+        return parent::getLinkForObject($objId);
     }
 }

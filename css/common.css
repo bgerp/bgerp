@@ -975,7 +975,8 @@ th .rowtools .l {
  * Хипервръзки към профилите на потребители
  */
 a.profile {
-  padding: 2px; }
+  padding: 2px;
+  border-radius: 3px; }
   a.profile.ceo {
     color: #0000cc; }
     a.profile.ceo.inactive {
@@ -1049,7 +1050,7 @@ a.profile {
   background-color: #ffbb33; }
 
 .state-rejected {
-  background-color: #cc6666; }
+  background-color: rgba(204, 102, 102, 0.8); }
 
 .state-rejected td,
 .state-rejected .document th,
@@ -1359,7 +1360,7 @@ td.formElement {
   padding-bottom: 7px !important; }
 
 .narrow .formFields table > tbody > tr > td {
-  padding-bottom: 3px !important; }
+  padding-bottom: 1px !important; }
 
 .formFields > table .richedit-toolbar {
   margin-bottom: 5px; }
@@ -1653,9 +1654,11 @@ table.keylist {
     table.keylist.shrinked:not(.keylist-wide) td {
       padding-right: 20px; }
 
-.narrow table.keylist td {
-  padding-top: 0.1em;
-  padding-bottom: 0 !important; }
+.narrow table.keylist {
+  margin-bottom: -3px; }
+  .narrow table.keylist td {
+    padding-top: 0.1em;
+    padding-bottom: 0 !important; }
 
 td.keylist-group {
   padding: 0 !important; }
@@ -2078,7 +2081,7 @@ div.alphabet div.tab-page {
         padding: 4px;
         border: 1px solid #bbbbbb;
         margin: 0 3px 0 0;
-        background-color: #f1f1f1 !important; }
+        background-color: #ffffcc !important; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,
         .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
         div.tab-control.deal-history-tab .tab-row .tab.selected a,

@@ -132,6 +132,62 @@ class core_Html
 
 
     /**
+     * Прави групиране на опциите, като за групи използва предната част, преди разделителя
+     */
+    static function groupOptions($options, $div = '»')
+    {        
+        if(count($options) > 1){
+        	$groups = $newOptions = array();
+        	
+        	// За всяка опция
+            $defaultGroup = '';
+        	foreach ($options as $index => $opt){
+                if(is_object($opt)) {
+                    if($opt->group) {
+                        $defaultGroup = trim($opt->title);
+                        continue;
+                    }
+                    $title = $opt->title;
+                } else {
+                    $title = $opt;
+                }
+         			
+                // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
+        	    list($group, $caption) = explode($div, $title);
+        			
+                if(!$caption) {
+                    $caption = $group;
+                    $group = $defaultGroup;
+                } elseif(!$group) {
+                    $group = $lastGroup;
+                }
+    
+                $groups[$lastGroup = trim($group)][$index] = trim($caption);
+        	}
+        	 //bp($groups);
+        	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
+        	if(count($groups)){
+        		
+        		foreach($groups as $group => $optArr) {
+        		    // Добавяме името като OPTGROUP
+                    if($group) {
+                        $newOptions[$group] = (object)array(
+                                    'title' => $group,
+                                    'group' => TRUE,
+                            );
+                    }
+                    $newOptions += $optArr;
+                }
+
+                $options = $newOptions;
+        	}
+        }
+
+        return $options;
+    }
+
+
+    /**
      * Създава SELECT елемент
      */
     static function createSelect($name, $options, $selected = NULL, $selAttr = array())

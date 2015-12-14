@@ -17,6 +17,17 @@
  */
 class doc_DocumentPlg extends core_Plugin
 {
+    
+    
+    /**
+     * Плъгини, които да се закачат
+     */
+    public $loadInMvc = 'doc_LikesPlg';
+    
+    
+    /**
+     * Състояния
+     */
     static $stateArr = array(
         'draft'    => 'Чернова',
         'pending'  => 'Чакащо',
@@ -93,7 +104,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
         
-        // Дали мжое да се редактират активирани документи
+        // Дали можое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
         $mvc->setDbIndex('state');
@@ -249,11 +260,13 @@ class doc_DocumentPlg extends core_Plugin
 
         }
         
-        $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
-        
-        if ($historyCnt) {
-            $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
-            "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
+        if($mvc->haveRightFor('single') && !core_Users::isContractor()){
+            $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+            
+            if ($historyCnt) {
+                $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+                "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
+            }
         }
     }
     
@@ -277,6 +290,9 @@ class doc_DocumentPlg extends core_Plugin
                     $color = dt::getColorByTime($lastRec->modifiedOn);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
+                    if(isset($data->pager->pageVar)) {
+                        unset($curUrl[$data->pager->pageVar]);
+                    }
                     $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, "id=binBtn,class=btn-bin fright,order=50,row=2", "ef_icon = img/16/bin_closed.png,style=color:#{$color};" );
                 }
             }
@@ -319,6 +335,10 @@ class doc_DocumentPlg extends core_Plugin
             if($rec->state == 'rejected') {
                 $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
                 $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+            }
+            
+            if (Mode::is('screenMode', 'narrow')) {
+                unset($row->state);
             }
         }
         
@@ -364,7 +384,6 @@ class doc_DocumentPlg extends core_Plugin
             if(!isset($rec->folderId) || !isset($rec->threadId)) {
                 $mvc->route($rec);
             }
-            
             // ... този документ няма ключ към контейнер, тогава 
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
@@ -405,7 +424,7 @@ class doc_DocumentPlg extends core_Plugin
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
         } catch (core_exception_Expect $e) {
-            
+          
             // Ако възникне грешка при записването
             $mvc->logErr("Грешка при записване на файла", $id);
         }
@@ -437,7 +456,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
-        if($rec->state == 'active' || $rec->state == 'rejected'){
+        if($rec->state == 'active' || $rec->state == 'rejected' && !Mode::is('MassImporting')){
             
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach((array)$usedDocuments as $usedCid){
@@ -673,10 +692,9 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
+                    doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
+                    $mvc->logInAct('Оттегляне', $rec);
                 }
-                
-                doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-                $mvc->logInAct('Оттегляне', $rec);
             }
             
             // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
@@ -715,9 +733,9 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         doc_Threads::restoreThread($rec->threadId);
                     }
+                    
+                    $mvc->logInAct('Възстановяване', $rec);
                 }
-                
-                $mvc->logInAct('Възстановяване', $rec);
             }
             
             // Пренасочваме контрола
@@ -1088,6 +1106,23 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        if ($rec->originId) {
+            
+            $cid = $rec->originId;
+        } elseif ($rec->threadId) {
+            
+            // Ако добавяме коментар в нишката
+            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+        }
+        
+        // Споделените потребители по подразбиране
+        $defaultShared = $mvc->getDefaultShared($rec, $cid);
+        if ($defaultShared) {
+            unset($defaultShared[-1]);
+            unset($defaultShared[0]);
+            $data->form->setDefault('sharedUsers', $defaultShared);
+        }
     }
 
     
@@ -1113,11 +1148,14 @@ class doc_DocumentPlg extends core_Plugin
 
     
     /**
-     *
+     * След подготовката на заглавието на формата
      */
-    static function on_AfterInputEditForm($mvc, $form)
-    {  
-        //Добавяме текст по подразбиране за титлата на формата
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	//Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
@@ -1148,14 +1186,24 @@ class doc_DocumentPlg extends core_Plugin
         
         if($rec->threadId) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
+            setIfNot($data->singleTitle, $mvc->singleTitle);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
                 list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
+                $title = tr(mb_strtolower($data->singleTitle)) . $in . $t;
             }
         }
        
         $form->title .= $title;
+    }
+    
+    
+    /**
+     *
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {  
+        $rec = &$form->rec;
         
     	if($form->isSubmitted()){
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){
@@ -1369,7 +1417,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
                    
                 	// Ако е инсталиран пакета 'colab'
-                	if(core_Packs::isInstalled('colab')){
+                	if(core_Packs::isInstalled('colab') && $oRec->threadId){
                 		
                 		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
         				// е споделена с партньора)
@@ -2230,15 +2278,17 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Дефолт метод филтриращ опциите от корици на папка в които
-     * може да се постави даден документ
-     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     * Дефолт метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Mvc   $mvc     Мениджър на документи
+     * @param void       $res     Резултат - не се използва
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    function on_AfterGetCoverOptions($mvc, &$res, $coverClass)
+    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
     {
-    	if(empty($res)){
-    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected'");
-    	}
+    	$query = doc_Folders::restrictAccess($query);
     }
     
     
@@ -2287,45 +2337,6 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         unset($nRec->containerId);
-    }
-    
-    
-    /**
-     * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
-     */
-    function on_AfterSetupMVC($mvc, &$res)
-    {
-    	$plugins = $mvc->getPlugins();
-    	
-    	// Ако мениджъра има закачен 'plg_Search'
-    	if(isset($plugins['plg_Search'])){
-    		$i = 0;
-    		$query = $mvc->getQuery();
-    		$query->show('searchKeywords');
-    		
-    		// Извличаме всички записи
-    		while($rec = $query->fetch()){
-    			
-    			// Хендлъра на документа
-    			$handle = $mvc->getHandle($rec->id);
-    			$handle = plg_Search::normalizeText($handle);
-    			
-    			// Ако хендлъра не е включен към ключовите думи, се добавят
-	    		if (strpos($rec->searchKeywords, $handle) === false) {
-	    			$rec->searchKeywords .= " " . $handle;
-	    			try{
-	    				$mvc->save_($rec, 'searchKeywords');
-	    				$i++;
-	    			}catch(core_exception_Expect $e) {
-            			continue;
-            		}
-				}
-    		}
-    		
-	    	if($i) {
-	            $res .= "<li style='color:green;'>Добавени са хендлърите към ключовите думи за {$i} записа.</li>";
-	        }
-    	}
     }
     
     
@@ -2452,10 +2463,10 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
-        // Отворен горен таб
-        $tabTop = Request::get('TabTop');
+        // Отворен таб на историята
+        $tab = Request::get('Tab');
 
-        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop . $isThisDoc;
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);
@@ -2507,7 +2518,7 @@ class doc_DocumentPlg extends core_Plugin
     	if(!$res){
     		if(is_object($rec)){
     			$rec->modifiedOn = dt::now();
-    			$mvc->save($rec, 'modifiedOn');
+    			$mvc->save_($rec, 'modifiedOn');
     		}
     	}
     }
@@ -2704,13 +2715,29 @@ class doc_DocumentPlg extends core_Plugin
         
         $haveVal = FALSE;
         
+        $collspan = 0;
+        $firstRowCnt = 0;
+        $secondRowCnt = count($secondRowArr);
+        $showCnt = count($showHeaderArr);
+        
+        if (!$isNarrow && $haveSecondRow) {
+            $firstRowCnt = $showCnt - $secondRowCnt;
+            $collspan = $firstRowCnt - $secondRowCnt;
+        }
+        
+        $row1Cnt = 0;
+        $row2Cnt = 0;
+        $i = 0;
+        $addedColspan = FALSE;
         foreach ((array)$showHeaderArr as $key => $value) {
+            
+            $colspanPlace = '_colspan_' . $i++;
             
             $haveVal = TRUE;
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td><b>{$value['val']}</b></td>");
+            $val = new ET("<td [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
@@ -2719,9 +2746,37 @@ class doc_DocumentPlg extends core_Plugin
                 $res->append($val);
                 $res->append("</tr>");
             } else {
-                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd;'>{$value['name']}{$colon}</td>");
+                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd; [#_styleTop_#]' [#{$colspanPlace}#]>{$value['name']}{$colon}</td>");
+                
+                if (!$addedColspan) {
+                    if ($value['row']) {
+                        $row2Cnt++;
+                    } else {
+                        $row1Cnt++;
+                    }
+                }
+                
+                $collspanStr = '';
+                
+                if ($collspan > 0) {
+                    // Последният елемент на втората таблица ще има
+                    if (($row2Cnt == $secondRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . ($collspan + 1);
+                        $addedColspan = TRUE;
+                    }
+                } elseif ($collspan < 0) {
+                    // Последния елемент на първата таблица ще има
+                    if (($row1Cnt == $firstRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . (($collspan * -1) + 1);
+                        $addedColspan = TRUE;
+                    }
+                }
+                
+                $name->replace($collspanStr, $colspanPlace);
+                $val->replace($collspanStr, $colspanPlace);
                 
                 if ($haveSecondRow && $value['row'] == 2) {
+                    $name->replace('border-top: 5px solid #ddd;', '_styleTop_');
                     $res->append($name, $firstSecondRow);
                     $res->append($val, $secondSecondRow);
                 } else {
@@ -2739,7 +2794,6 @@ class doc_DocumentPlg extends core_Plugin
     
     /**
      * Връща споделените потребители по подразбиране.
-     * Ако създаделе не е текущият потребител, тогава се връща.
      * 
      * @param core_Master $mvc
      * @param NULL|array $res
@@ -2750,6 +2804,8 @@ class doc_DocumentPlg extends core_Plugin
         $res = arr::make($res, TRUE);
         
         if (!$originId) return ;
+        
+        if (!$mvc->autoShareOriginCreator) return ;
         
         $document = doc_Containers::getDocument($originId);
         $dRec = $document->fetch();
@@ -2767,5 +2823,19 @@ class doc_DocumentPlg extends core_Plugin
                 $res[$createdBy] = $createdBy;
             }
         }
+    }
+    
+    
+    /**
+     * Намираме потребители, които да се нотифицират допълнително за документа
+     * Извън споделени/абонирани в нишката
+     * 
+     * @param core_Manager $mvc
+     * @param NULL|array $res
+     * @param stdObject $rec
+     */
+    function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
+    {
+        $res = arr::make($res);
     }
 }

@@ -184,6 +184,28 @@ class tracking_Log extends core_Master {
     
     
     /**
+     * Функция по крон, която се стартира ежеседмично и изтрива старите записи
+     * 
+     */
+    function cron_DeleteOldRecords()
+    {
+        $conf = core_Packs::getConfig('tracking');
+    
+        $date = dt::addDays( -$conf->DAYS_TO_KEEP );
+    
+        if ($numRows = self::delete("#createdOn < '{$date}'")) {
+    
+            $this->logWrite("Изтрити изтекли записи за тракери");
+            
+            $info = "Изтрити са {$numRows} изтекли записи за тракери";
+            $this->logInfo($info);
+        }
+    
+        return $info;
+    }
+    
+    
+    /**
      * Връща Tracking данните
      *
      * @param string стринг с данните - GPRMC + другите от тракера

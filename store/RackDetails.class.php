@@ -118,7 +118,7 @@ class store_RackDetails extends core_Detail
         $rackId = $data->form->rec->rackId;
         $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
         
-        $data->form->title = 'Добавяне на параметри за стелаж № ' . $rackNum;
+        $data->formTitle = 'Добавяне на параметри за стелаж|* № ' . $rackNum;
         
         $rRows = store_Racks::fetchField("#id = {$rackId}", 'rows');
         $rColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
@@ -137,6 +137,15 @@ class store_RackDetails extends core_Detail
         
         $data->form->setOptions('rRow', $rRowsOpt);
         $data->form->setOptions('rColumn', $rColumnsOpt);
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
     }
     
     
@@ -206,7 +215,6 @@ class store_RackDetails extends core_Detail
                 if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
                     $form->setError('rRow,rColumn', 'На (към) зададената позиция има|*, 
                                          <br/>|палети или наредени движения|*!');
-                    break;
                 }
                 
                 // Проверка дали има вече съществуващ детайл за тази клетка с този 'action'

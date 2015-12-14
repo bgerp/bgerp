@@ -193,7 +193,7 @@ class price_GroupOfProducts extends core_Detail
         
         if($rec->groupId) {
 	        $groupName = price_Groups::getTitleById($rec->groupId);
-	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
+	        $data->formTitle = '|Добавяне на артикул към група|* "' . $groupName . '"';
         }
         
         // За опции се слагат само продаваемите продукти
@@ -201,7 +201,7 @@ class price_GroupOfProducts extends core_Detail
         expect(count($products), 'Няма продаваеми продукти');
         
         if($data->masterMvc instanceof cat_Products) {
-            $data->form->title = "Добавяне в ценова група";
+            $data->formTitle = "Добавяне в ценова група";
             $data->form->setField('productId', 'input');
             $data->form->setReadOnly('productId');
             $pInfo = cat_Products::getProductInfo($rec->productId);
@@ -217,7 +217,7 @@ class price_GroupOfProducts extends core_Detail
         		if(is_object($product)) continue;
         		 
         		if($groupId = self::getGroup($id, $now)){
-        			$groupTitle = price_Groups::getVerbal($groupId, 'title');
+        			$groupTitle = price_Groups::fetchField($groupId, 'title');
         			$product .=  " -- " . tr('група') . " {$groupTitle}";
         		}
         	}
@@ -227,6 +227,15 @@ class price_GroupOfProducts extends core_Detail
     }
     
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
+    }
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
@@ -363,7 +372,11 @@ class price_GroupOfProducts extends core_Detail
      */
     public function preparePriceGroup($data)
     { 
-        $query = $this->getQuery();
+    	if($data->masterData->rec->isPublic == 'no'){
+    		$data->dontRender = TRUE;
+    	}
+    	
+    	$query = $this->getQuery();
        	$query->where("#productId = {$data->masterId}");
        	$query->orderBy("#validFrom", "DESC");
        	$data->recs = $data->rows = array();
@@ -396,6 +409,8 @@ class price_GroupOfProducts extends core_Detail
      */
     public function renderPriceGroup($data)
     {
+        if($data->dontRender === TRUE) return;
+        
         // Премахваме продукта - в случая той е фиксиран и вече е показан 
         unset($data->listFields[$this->masterKey]);
         

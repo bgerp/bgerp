@@ -189,8 +189,10 @@ class embed_Manager extends core_Master
 
         // Ако има драйвър, добавяме полетата от него към полетата за показване
         if($driver = $this->getDriver($data->rec)){
-        	$driverFields = self::getDriverFields($driver);
-        	$data->singleFields += $driverFields;
+        	$driverFields = self::getDriverFields($driver, TRUE);
+        	if(is_array($driverFields)){
+        		$data->singleFields += $driverFields;
+        	}
         }
 	}
 
@@ -232,8 +234,12 @@ class embed_Manager extends core_Master
 
 	/**
 	 * Връща полетата добавени от драйвера
+	 * 
+	 * @param core_BaseClass $driver - драйвер
+	 * @param boolean $onlySingleFields - дали да са само полетата за сингъл
+	 * @return array $res - добавените полета от драйвера
 	 */
-    public static function getDriverFields($driver)
+    public static function getDriverFields($driver, $onlySingleFields = FALSE)
     {
         $fieldset = cls::get('core_Fieldset');
         $driver->addFields($fieldset);
@@ -241,6 +247,7 @@ class embed_Manager extends core_Master
         $res = array(); 
         if(is_array($fieldset->fields)) {
             foreach($fieldset->fields as $name => $f) {
+            	if($onlySingleFields === TRUE && $f->single == 'none') continue;
                 $res[$name] = $f->caption;
             }
         }

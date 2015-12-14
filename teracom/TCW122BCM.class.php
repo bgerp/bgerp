@@ -42,8 +42,8 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
      * Описание на изходите на драйвера
      */
     var $outputs = array(
-        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'?r1'),
-        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'?r2')
+        'OutD1' => array('caption'=>'Цифров изход 1', 'uom' => '', 'xmlPath'=>'/Relay1[1]', 'cmd'=>'r1'),
+        'OutD2' => array('caption'=>'Цифров изход 2', 'uom' => '', 'xmlPath'=>'/Relay2[1]', 'cmd'=>'r2')
     );
 
 
@@ -114,7 +114,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         $url = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml");
         $url->placeArray($config);
         $url = $url->getContent();
-        log_Debug::add('log_Debug', NULL, "url: " . $url, 1);
+        log_System::add(get_called_class(), "url: " . $url);
 
         // Извличаме XML-a
         $ch = curl_init();
@@ -131,9 +131,9 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             return "Грешка при четене от {$config->ip}:{$config->port}";
         }
    
-        log_Debug::add('log_Debug', NULL, "url: " . $url, 1);
+        log_System::add(get_called_class(), "url: " . $url);
 
-        log_Debug::add('log_Debug', NULL, "xml: " . $xml, 1);
+        log_System::add(get_called_class(), "xml: " . $xml);
 
         // Парсираме XML-а
         $result = array();
@@ -177,7 +177,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             }
         }
 
-        log_Debug::add('log_Debug', NULL, "res: " . serialize($res), 1);
+        log_System::add(get_called_class(), "res: " . serialize($res));
 
         return $res;
     }
@@ -195,8 +195,15 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
      */
     function writeOutputs($outputs, $config, &$persistentState)
     {
-        $baseUrl = "http://{$config->user}:{$config->password}@{$config->ip}:{$config->port}/status.xml";
+        if($config->user) {
+            $baseUrl = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml?");
+        } else {
+            $baseUrl = new ET("http://[#ip#]:[#port#]/status.xml?");
+        }
         
+        $baseUrl->placeArray($config);
+        $baseUrl = $baseUrl->getContent();
+
         foreach ($this->outputs as $out => $attr) {
             if(isset($outputs[$out])) {
                 $res[$out] = $baseUrl . $attr['cmd'] . "=" . $outputs[$out];

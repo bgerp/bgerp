@@ -1004,6 +1004,7 @@ a {
 /*Хипервръзки към профилите на потребители*/
 a.profile {
 	padding: 2px;
+    border-radius:3px;
 	&.ceo {
 		color: #0000cc;
 		&.inactive {
@@ -1097,7 +1098,7 @@ a.profile {
 }
 
 .state-rejected { 
-    background-color: #c66;
+    background-color: rgba(204, 102, 102, 0.8);
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
@@ -1430,7 +1431,7 @@ td.formElement {
 }
 
 .narrow .formFields table > tbody > tr > td {
-	padding-bottom: 3px !important;
+	padding-bottom: 1px !important;
 }
 
 .formFields > table .richedit-toolbar {
@@ -1769,10 +1770,12 @@ table.keylist {
 	}
 }
 
-.narrow table.keylist td {
-	padding-top: 0.1em;
-	padding-bottom: 0 !important;
-	
+.narrow table.keylist{
+	margin-bottom: -3px;
+	td {
+		padding-top: 0.1em;
+		padding-bottom: 0 !important;
+	}
 }
 
 td.keylist-group{
@@ -2234,7 +2237,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
                 padding: 4px;
                 border: 1px solid #bbb;
                 margin: 0 3px 0 0;
-                background-color: #f1f1f1 !important;
+                background-color: #ffffcc !important;
                 a {
                     color: #333;
                 }

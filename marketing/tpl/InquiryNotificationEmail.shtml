@@ -1,13 +1,22 @@
 <div>
+[#inqDescription#]<br>
     <b>|Информация за продукта|*</b><br>
     <!--ET_BEGIN DATA_ROW-->
     [#CAPTION#]: [#VALUE#]<br>
     <!--ET_END DATA_ROW-->
-    <!--ET_BEGIN quantity-->[#quantity#]|КОЛИЧЕСТВА|*<br>
-    <!--ET_BEGIN QUANTITY_ROW-->
-	|Количество|*: [#QUANTITY_ROW#]<br>
-	<!--ET_END QUANTITY_ROW-->
-    <br/><!--ET_END quantity-->
+    
+    <br>
+    <!--ET_BEGIN quantity1-->
+	|Количество|*: [#quantity1#]<br>
+	<!--ET_END quantity1-->
+	 <!--ET_BEGIN quantity2-->
+	|Количество|* 2: [#quantity2#]<br>
+	<!--ET_END quantity2-->
+	 <!--ET_BEGIN quantity3-->
+	|Количество|* 3: [#quantity3#]<br>
+	<!--ET_END quantity3-->
+    <br>
+    
     <b>|Контактни дани|*</b><br>
     <!--ET_BEGIN company-->
     |Фирма|*: [#company#]<br>

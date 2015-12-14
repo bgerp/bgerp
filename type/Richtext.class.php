@@ -628,9 +628,13 @@ class type_Richtext extends type_Blob
      * Обработва [html] ... [/html]
      */
     function _catchHtml($match)
-    {
+    {  
         if(Mode::is('text', 'plain')) {
-            $res = html2text_Converter::toRichText($match[1]);
+            if(Mode::is('htmlEntity', 'none')) {
+                $res = strip_tags($match[1]);
+            } else {
+                $res = html2text_Converter::toRichText($match[1]);
+            }
         } else {
             $place = $this->getPlace();
             $this->_htmlBoard[$place] = $match[1];
@@ -1489,14 +1493,21 @@ class type_Richtext extends type_Blob
             $lastPart = implode('#', $explodeArr);
         }
         
+        $haveLastPart = FALSE;
+        
         if($lastPart{0} == '?') {
+           $haveLastPart = TRUE;
            $lastPart = ltrim($lastPart, '?');
            $lastPart = str_replace('&amp;', '&', $lastPart);
            parse_str($lastPart, $params);
-           if ($anchor) {
-               $params['#'] = $anchor;
-           }
-           unset($restArr[count($restArr)-1]);
+        }
+        
+        if ($anchor) {
+           $params['#'] = $anchor;
+        }
+        
+        if ($haveLastPart || $anchor) {
+            unset($restArr[count($restArr)-1]);
         }
         
         setIfNot($params['Ctr'], $restArr[0]);

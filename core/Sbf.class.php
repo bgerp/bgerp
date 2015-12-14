@@ -133,7 +133,7 @@ class core_Sbf extends core_Mvc
                          // self::logWarning("Файла не може да се запише в '{$sbfPath}'.");
                     }  
                 } else {
-                    debug::log("Липсващ файл: $rPath");
+                    self::logWarning("Липсващ файл: $rPath");
                     $ext = str::getFileExt($rPath);
                     if(in_array($ext, array('jpg', 'jpeg', 'png', 'bmp'))) {
                         $rPath = 'img/1x1.gif';

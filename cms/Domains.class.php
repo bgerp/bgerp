@@ -217,16 +217,20 @@ class cms_Domains extends core_Embedder
             }
             
             // Определяме домейна, който отговаря на езика
+            $domainRecsCnt = count($domainRecs);
             foreach($domainRecs as $dRec) {
-                if($dRec->lang == $lang || !$domainRec ||  (count($domainRecs) == 1)) {
+                if($dRec->lang == $lang || !$domainRec ||  ($domainRecsCnt == 1)) {
                     $domainRec = $dRec;
                 }
             }
-
-            // Задаваме действителния домейн, на който е намерен този
-            $domainRec->actualDomain = $domain;
-
-            Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            
+            if ($domainRec) {
+                
+                // Задаваме действителния домейн, на който е намерен този
+                $domainRec->actualDomain = $domain;
+        
+                Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            }
         }
               
         if($part) {
@@ -336,11 +340,11 @@ class cms_Domains extends core_Embedder
                 foreach($langsInCountry as $lg) {
                     $langArr[$lg]++;
                 }
-            } else {
-                setIfNot($langArr['en'], 0.01);
-            }
+            } 
         }
-        
+
+        setIfNot($langArr['en'], 0.01);
+
         if($langArr['en']) {
             $langArr['en'] *= 0.99;
         }
@@ -370,8 +374,9 @@ class cms_Domains extends core_Embedder
     public static function getCmsSkin()
     {
         $dRec = self::getPublicDomain();
-
-        $driver = self::getDriver($dRec->id);
+		if($dRec){
+			$driver = self::getDriver($dRec->id);
+		}
 
         return $driver;
     }
@@ -437,7 +442,7 @@ class cms_Domains extends core_Embedder
      * Подготвя формата
      * - Прави списъка с езиците
      */
-    public static function on_AfterPrepareeditform($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $langQuery = drdata_Languages::getQuery();
         $langOpt = array();

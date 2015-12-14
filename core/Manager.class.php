@@ -51,7 +51,7 @@ class core_Manager extends core_Mvc
     /**
      * Колко дни да пазим логовете за този клас?
      */
-    public static $logKeepDays = 180;
+    public static $logKeepDays = 7;
     
     
     /**
@@ -168,7 +168,7 @@ class core_Manager extends core_Mvc
         
         if (!Request::get('ajax_mode')) {
             // Записваме, че потребителя е разглеждал този списък
-            $this->logInAct('Листване');
+            $this->logInAct('Листване', NULL, 'read');
         }
         
         return $tpl;
@@ -244,7 +244,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->logInfo('Изтриване', $data->id);
+        $this->logWrite('Изтриване', $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -297,10 +297,10 @@ class core_Manager extends core_Mvc
         
         // Генерираме събитие в $this, след въвеждането на формата
         $this->invoke('AfterInputEditForm', array($data->form));
-        
+       
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
-        
+       
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
             
@@ -326,6 +326,9 @@ class core_Manager extends core_Mvc
         // Подготвяме лентата с инструменти на формата
         $this->prepareEditToolbar($data);
         
+        // Подготвяме заглавието на формата
+        $this->prepareEditTitle($data);
+        
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
@@ -340,23 +343,33 @@ class core_Manager extends core_Mvc
     
     
     /**
+     * Подготвя заглавието на формата
+     */
+    function prepareEditTitle_($data)
+    {
+    	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
+    }
+    
+    
+    /**
      * Логва действието
      * 
      * @param string $msg
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
         $id = NULL;
         
         if ($rec) {
             $id = $rec->id;
         }
-        if ($type == 'info') {
-            $this->logInfo($msg, $id);
+        if ($type == 'write') {
+            $this->logWrite($msg, $id);
         } else {
-            $this->logErr($msg, $id);
+            $this->logRead($msg, $id);
         }
     }
     
@@ -576,9 +589,6 @@ class core_Manager extends core_Mvc
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         $data->form->input(NULL, 'silent');
-   
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
-        "|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
 
         // Ако имаме 
         if($data->form->rec->id && $data->form->cmd != 'refresh') {
@@ -896,22 +906,6 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Добавя запис в лога
-     * @deprecated
-     */
-    static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
-    {
-        if (!$logKeepDays) {
-            $logKeepDays = self::$logKeepDays;
-        }
-        
-        $className = get_called_class();
-        
-        log_Debug::add(get_called_class(), $objectId, $detail, $logKeepDays);
-    }
-    
-    
-    /**
      * Разшифрова лог съобщение
      */
     function logToVerbal($objectId, $detail)
@@ -1121,7 +1115,7 @@ class core_Manager extends core_Mvc
         if (!Request::get('ajax_mode') && !count(log_Data::$toAdd)) {
             
             if (Request::$vars['_POST']) {
-                self::logInfo(ucfirst($act), Request::get('id'), 180);
+                self::logWrite(ucfirst($act), Request::get('id'), 180);
             }
         }
         

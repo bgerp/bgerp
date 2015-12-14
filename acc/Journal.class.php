@@ -307,7 +307,7 @@ class acc_Journal extends core_Master
         $mvc->conto($docId);
         
         // Записваме, че потребителя е разглеждал този списък
-        $mvc->logInfo("Контиране на документ", $docId);
+        $mvc->logWrite("Контиране на документ", $docId);
         
         // Редирект към сингъла
         return redirect(array($mvc, 'single', $docId));
@@ -345,7 +345,7 @@ class acc_Journal extends core_Master
         list($docClassId, $docId) = $result;
         
         // Записваме, че потребителя е разглеждал този списък
-        $mvc->logInfo("Сторниране на документ", $docId);
+        $mvc->logWrite("Сторниране на документ", $docId);
         
         return new Redirect(array($docClassId, 'single', $docId));
     }
@@ -434,11 +434,17 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Връща записа отговарящ на даден документ
+     * Връща записа в журнала породен от подадения документ
+     * 
+     * @param mixed $doc - документа
+     * @param int $docId - ид на документа
+     * @return stdClass|FALSE - намерения запис
      */
-    public static function fetchByDoc($docClassId, $docId)
+    public static function fetchByDoc($doc, $docId)
     {
-        return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+    	$docClassId = cls::get($doc)->getClassId();
+    	
+    	return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
     }
     
     
@@ -540,7 +546,7 @@ class acc_Journal extends core_Master
                 acc_Journal::delete("#id = {$rec->id}");
                 
                 // Логваме в журнала
-                self::logInfo("Изтрит ред от журнала на документ {$document->className}", $rec->id);
+                self::logWrite("Изтрит ред от журнала на документ", $rec->id);
             }
         }
     }
@@ -572,8 +578,12 @@ class acc_Journal extends core_Master
         // Извличаме ид-та на журналите, имащи ред с участник това перо
         expect($itemRec = acc_Items::fetchRec($item));
         $jQuery = acc_JournalDetails::getQuery();
-        
+
         acc_JournalDetails::filterQuery($jQuery, NULL, NULL, NULL, $itemRec->id);
+        
+        // Искаме вальора да е след датата на създаване на перото за което търсим
+        $createdOn = dt::verbal2mysql($itemRec->createdOn, FALSE);
+        $jQuery->where("#valior >= '{$createdOn}'");
         
         if($showAllRecs === FALSE) return $jQuery->fetchAll();
         
@@ -762,6 +772,8 @@ class acc_Journal extends core_Master
     			}
     			$res = $this->reconto($accounts, $rec->from, $rec->to, $types);
     			
+    			$this->logWrite("Реконтиране на документ", $rec->id);
+    			
     			return followRetUrl(NULL, tr("|Реконтирани са|* {$res} |документа|*"));
     		}
     	}
@@ -772,7 +784,7 @@ class acc_Journal extends core_Master
     	$tpl = $this->renderWrapping($form->renderHtml());
     	
     	// Записваме, че потребителя е разглеждал този списък
-    	$this->logInfo("Реконтиране на документ", $docId);
+    	$this->logRead("Разглеждане на реконтиране на документ", $form->rec->id);
     	
     	return $tpl;
     }

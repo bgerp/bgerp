@@ -77,29 +77,6 @@ class backup_Start extends core_Manager
             shutdown();
         }
         
-        // проверка дали всичко е наред с mysqldump-a
-        $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
-        . self::$conf->BACKUP_MYSQL_HOST . " -u"
-        . self::$conf->BACKUP_MYSQL_USER_NAME . " -p"
-        . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
-        exec($cmd, $output ,  $returnVar);
-        
-        if ($returnVar !== 0) {
-            self::logErr("FULL Backup mysqldump ERROR!" . $output[0]);
-            self::unLock();
-            
-            shutdown();
-        }
-        
-        // проверка дали gzip е наличен
-        exec("gzip --help", $output,  $returnVar);
-        
-        if ($returnVar !== 0) {
-            self::logWarning("gzip NOT found");
-            self::unLock();
-            
-            shutdown();
-        }
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME
@@ -107,7 +84,7 @@ class backup_Start extends core_Manager
             , $output, $returnVar);
         
         if ($returnVar !== 0) {
-            self::logErr("Backup", "", "ГРЕШКА full Backup: {$returnVar}");
+            self::logErr("Грешка при FullBackup");
             self::unLock();
             
             shutdown();
@@ -139,10 +116,10 @@ class backup_Start extends core_Manager
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
         // Качваме бекъп-а
-        self::$storage->putFile(self::$backupFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$backupFileName);
         
         // Качваме и мета файла
-        self::$storage->putFile(self::$metaFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
         
         // Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$backupFileName);
@@ -206,8 +183,8 @@ class backup_Start extends core_Manager
         );
         
         // 2. взимаме името на текущия лог
-        $db->query("SHOW MASTER STATUS");
-        $resArr = $db->fetchArray();
+        $dbRes = $db->query("SHOW MASTER STATUS");
+        $resArr = $db->fetchArray($dbRes);
         
         // $resArr['file'] e името на текущия бинлог
         
@@ -238,10 +215,10 @@ class backup_Start extends core_Manager
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
         // 7. Качва се binloga с подходящо име
-        self::$storage->putFile(self::$binLogFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$binLogFileName);
         
         // 8. Качва се и мета файла
-        self::$storage->putFile(self::$metaFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
         
         // 9. Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
@@ -275,7 +252,7 @@ class backup_Start extends core_Manager
             file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($keeped));
             
             // Качваме МЕТАТ-а в сториджа
-            self::$storage->putFile(self::$metaFileName);
+            self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
             
             // Отключваме бекъп-а, защото изтриването на файлове може да е бавна операция
             self::unLock();
@@ -295,7 +272,7 @@ class backup_Start extends core_Manager
             self::$storage->removeFile($fileName);
             $cnt++;
         }
-        self::logInfo("Успешно изтрити {$cnt} файла");
+        self::logInfo("Успешно изтрити файлове");
         
         return;
     }
@@ -315,7 +292,6 @@ class backup_Start extends core_Manager
         $confFiles = array();
         $confFiles[] = " " . dirname($traceArr[$maxKey]['file']) . '/index.cfg.php';
         $confFiles[] = " " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
-        $confFiles[] = " " . EF_CONF_PATH . '/' . '_common.cfg.php';
         
         $cmd = "tar cfvz " . EF_TEMP_PATH . "/" . self::$confFileName;
         
@@ -336,7 +312,7 @@ class backup_Start extends core_Manager
             self::$confFileName = self::crypt(self::$confFileName);
         }
         
-        self::$storage->putFile(self::$confFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$confFileName);
         
         @unlink(EF_TEMP_PATH . "/" . self::$confFileName);
         
@@ -363,7 +339,8 @@ class backup_Start extends core_Manager
         
         if ($returnVar !== 0) {
             $err = implode(",", $output);
-            self::logWarning("ГРЕШКА при криптиране!: {$err}");
+            self::logWarning("ГРЕШКА при криптиране");
+            self::logErr("ГРЕШКА при криптиране!: {$err}");
             self::unLock();
             
             shutdown();
@@ -384,18 +361,17 @@ class backup_Start extends core_Manager
     private static function saveFileMan()
     {
         $unArchived = fileman_Data::getUnArchived();
-        
+
         foreach ($unArchived as $fileObj) {
-            if (@copy($fileObj->path, EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj))) {
-                if (self::$storage->putFile(fileman_Data::getFileName($fileObj))) {
-                    fileman_Data::setArchived($fileObj->id);
-                    @unlink(EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj));
-                }
+            if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
+                fileman_Data::setArchived($fileObj->id);
+            } else {
+                throw new core_exception_Expect("backup не записва файл в storage!");
             }
         }
     }
     
-    
+
     /**
      * Вдига семафор за стартиран бекъп
      * Връща false ако семафора е вече вдигнат

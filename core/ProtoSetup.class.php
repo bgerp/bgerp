@@ -9,7 +9,7 @@
  *
  *
  * @category  bgerp
- * @package   currency
+ * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -92,7 +92,7 @@ class core_ProtoSetup
 
 
     /**
-     * Масив с настойки за Kron
+     * Масив с настойки за Cron
      *
      * @var array
      */
@@ -122,7 +122,7 @@ class core_ProtoSetup
      */
     public function install()
     {  
-        // Вземаме името на пакета
+        // Взимаме името на пакета
         $packName = $this->getPackName();
         
         // Създаване моделите в базата данни
@@ -133,7 +133,7 @@ class core_ProtoSetup
 
         foreach (arr::make($this->managers) as $manager) {
 
-            // Ако менидръжит е миграция - изпълняваме я еднократно
+            // Ако мениджърът е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
                 
                 Mode::push('isMigrate', TRUE);
@@ -165,7 +165,7 @@ class core_ProtoSetup
 
             $instances[$manager] = &cls::get($manager);
 
-            // Допълваме списъка, защото проверяваме дали мениджърите имат интерфеси
+            // Допълваме списъка, защото проверяваме дали мениджърите имат интерфейси
             $this->defClasses[$manager] = $manager;
 
             expect(method_exists($instances[$manager], 'setupMVC'), $instances, $manager);

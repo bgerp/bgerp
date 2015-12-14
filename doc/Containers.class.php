@@ -112,6 +112,10 @@ class doc_Containers extends core_Manager
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
+        $this->setDbIndex('state');
+        $this->setDbIndex('createdBy');
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('modifiedOn');
         $this->setDbUnique('docClass, docId');
     }
     
@@ -167,13 +171,78 @@ class doc_Containers extends core_Manager
      * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec = NULL, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'write')
     {
-        if (($type == 'info') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
-            doc_Threads::logInfo('Разглеждане на нишка', $threadId);
+        if (($type == 'read') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
+            doc_Threads::logRead('Разглеждане на нишка', $threadId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }
+    }
+    
+    
+    /**
+     * Регенерира ключовите думи, ако е необходимо
+     * 
+     * @param boolean $force
+     * 
+     * @return array
+     */
+    public static function regenerateSerchKeywords($force = FALSE)
+    {
+        $docContainers = cls::get('doc_Containers');
+        $query = self::getQuery();
+        $query->groupBy('docClass');
+        
+        $resArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!$rec->docClass) continue;
+            
+            if (!cls::load($rec->docClass, TRUE)) continue;
+            
+            $clsInst = cls::get($rec->docClass);
+            
+            if (!$clsInst) continue;
+            
+            $plugins = $clsInst->getPlugins();
+            
+            if (!isset($plugins['plg_Search'])) continue;
+            
+    		$clsQuery = $clsInst->getQuery();
+    		$clsQuery->show('searchKeywords, containerId');
+    		
+    		$i = 0;
+    		while ($cRec = $clsQuery->fetch()) {
+    			try {
+    			    // Ако новите ключови думи не отговарят на старите, записваме ги
+    			    $generatedKeywords = $clsInst->getSearchKeywords($cRec);
+    			    if (!$force && ($generatedKeywords == $cRec->searchKeywords)) continue;
+    			    $cRec->searchKeywords = $generatedKeywords;
+    				$clsInst->save_($cRec, 'searchKeywords');
+    				
+    				if (!$cRec->containerId) continue;
+    				
+    				// Записваме ключовите думи в контейнера
+    				$contRec = doc_Containers::fetch($cRec->containerId, 'searchKeywords');
+    				if (!$contRec) continue;
+    				$contRec->searchKeywords = $generatedKeywords;
+    				$docContainers->save_($contRec, 'searchKeywords');
+    				$i++;
+    			} catch(core_exception_Expect $e) {
+    			    reportException($e);
+        			continue;
+        		}
+    		}
+    		
+    		if ($i) {
+    		    $resArr[$rec->docClass] = $i;
+    		    $resArr[0] += $i;
+    		}
+        }
+        
+        return $resArr;
     }
     
     
@@ -348,8 +417,8 @@ class doc_Containers extends core_Manager
         }
         
         if (!$hidden) {
-            
-            if($docRow->authorId || $docRow->authorEmail) {
+
+            if($docRow->authorId > 0 || ($docRow->authorEmail && !($rec->createdBy > 0))) {
                 $avatar = avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail);
             } else {
                 $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
@@ -567,7 +636,7 @@ class doc_Containers extends core_Manager
                 $sharedArr = keylist::toArray($shared);
                 
                 // Нотифицираме споделените
-                static::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
                 
                 // Всички абонирани потребилите
                 $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
@@ -580,7 +649,43 @@ class doc_Containers extends core_Manager
                 $subscribedWithoutSharedArr = array_diff($subscribedArr, $sharedArr);
                 
                 // Нотифицираме абонираните потребители
-                static::addNotifications($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+                self::addNotifications($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+                
+                
+                // Нотифицира потребителите, които са свързани с документа
+                // и са избрали съответната настройка за нотификация
+                $usersArrForNotify = $docMvc->getUsersArrForNotifyInDoc($docRec);
+                
+                if ($usersArrForNotify) {
+                    
+                    // Кои потребители ще се нотифицират за отворена нишка
+                    $fRec = doc_Folders::fetch($rec->folderId);
+                    $notifyForOpenInFolder = doc_Folders::getUsersArrForNotify($fRec);
+                    
+                    // Премахваме всички потребители, които ще се нотифицират за отворена нишка
+                    // и са абонирани в нишката и ще получат нотификация от там
+                    $usersArrForNotify = array_diff($usersArrForNotify, $notifyForOpenInFolder);
+                    $usersArrForNotify = array_diff($usersArrForNotify, $subscribedArr);
+                    $usersArrForNotify = array_diff($usersArrForNotify, $sharedArr);
+                    
+                    if ($usersArrForNotify) {
+                        
+                        $key = doc_Folders::getSettingsKey($rec->folderId);
+                        $usersArr = core_Settings::fetchUsers($key, 'personalEmailIncoming', 'yes');
+                        if ($usersArr) {
+                            $usersArr = array_keys($usersArr);
+                            $usersArr = arr::make($usersArr, TRUE);
+                            
+                            $usersArr = array_intersect($usersArr, $usersArrForNotify);
+                            
+                            if ($usersArr) {
+                                $usersArr = array_keys($usersArr);
+                                $usersArr = arr::make($usersArr, TRUE);
+                                self::addNotifications($usersArr, $docMvc, $rec, 'добави');
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -1123,7 +1228,7 @@ class doc_Containers extends core_Manager
         	//Записваме данните в БД
         	$clsInst->save($recAct);
         	
-        	$document->instance->logInfo('Активиране', $document->that);
+        	$document->instance->logWrite('Активиране', $document->that);
         	
         	$rec->state = 'active';
         	$clsInst->invoke('AfterActivation', array(&$rec));
@@ -1460,6 +1565,8 @@ class doc_Containers extends core_Manager
         
         $query->orWhere("#activatedBy IS NULL AND #state != 'rejected' AND #state != 'draft'");
         
+        $query->limit(500);
+
         $resArr = array();
         
         while($rec = $query->fetch()) {
@@ -2060,8 +2167,9 @@ class doc_Containers extends core_Manager
     	$now = dt::now();
     	$offset = -1 * $conf->DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC;
     	$from = dt::addSecs($offset, $now);
-    	$from = dt::verbal2mysql($from, FALSE);
-    
+    	$from = $fromDate = dt::verbal2mysql($from, FALSE);
+        $from .= ' 00:00:00';
+    	
     	$authorTemasArr = array();
     	
     	// За всеки потребител
@@ -2091,7 +2199,7 @@ class doc_Containers extends core_Manager
     		// Ако има неактивирани бизнес документи
     		if(count($notArr)){
     			foreach ($notArr as $clsId => $count){
-    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $from);
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $fromDate);
     				 
     				if($count == 1){
     					$name = cls::get($clsId)->singleTitle;
@@ -2100,6 +2208,8 @@ class doc_Containers extends core_Manager
     					$name = cls::get($clsId)->title;
     					$str = 'Имате създадени, но неактивирани';
     				}
+    				
+    				$name = mb_strtolower($name);
     				
     				$msg = "|{$str}|* {$count} {$name}";
     				 
@@ -2214,6 +2324,40 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Поправяне на ключовете в документите
+     */
+    function act_RepairKeywords()
+    {
+        requireRole('admin');
+        
+        core_App::setTimeLimit(600);
+        
+        $force = Request::get('force');
+        
+        $rArr = self::regenerateSerchKeywords($force);
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array('core_Packs');
+        }
+        
+        if (empty($rArr)) {
+            $msg = '|Няма ключове за поправяне';
+        } else {
+            $cnt = $rArr[0];
+            if ($cnt == 1) {
+                $msg = "|Поправен|* {$cnt} |документ";
+            } else {
+                $msg = "|Поправени|* {$cnt} |документа";
+            }
+        }
+        
+        return new Redirect($retUrl, $msg);
+    }
+    
+    
+    /**
      * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
      */
     function cron_Repair()
@@ -2300,34 +2444,7 @@ class doc_Containers extends core_Manager
         
         if ($ajaxMode) {
             
-            $row = self::recToVerbal($rec);
-            
-            $id = $document->getDocumentRowId();
-            
-            $html = '<td>' . $row->document . '</td>';
-            
-            if (Mode::is('screenMode', 'wide')) {
-                $html = '<td>' . $row->created . '</td>' . $html;
-            }
-            
-            $resObj = new stdClass();
-    		$resObj->func = "html";
-    		$resObj->arg = array('id' => $id, 'html' => $html, 'replace' => TRUE);
-            
-            $resStatus = array($resObj);
-            
-            // Добавя всички функции в масива, които ще се виката
-            $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
-            if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
-                
-                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
-                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
-                    $resObjAjax = new stdClass();
-                    $resObjAjax->func = $runAfterAjax;
-                    
-                    $resStatus[] = $resObjAjax;
-                }
-            }
+            $resStatus = self::getDocumentForAjaxShow($id);
     		
     		return $resStatus;
         } else {
@@ -2361,6 +2478,52 @@ class doc_Containers extends core_Manager
             
             return $showDocument;
         }
+    }
+    
+    
+    /**
+     * Връща рендиран документ, който може да се използва по AJAX
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public static function getDocumentForAjaxShow($id)
+    {
+        $rec = self::fetch($id);
+        
+        $row = self::recToVerbal($rec);
+
+        $document = self::getDocument($rec->id);
+        
+        $rowId = $document->getDocumentRowId();
+        
+        $html = '<td>' . $row->document . '</td>';
+        
+        if (Mode::is('screenMode', 'wide')) {
+            $html = '<td>' . $row->created . '</td>' . $html;
+        }
+        
+        $resObj = new stdClass();
+		$resObj->func = "html";
+		$resObj->arg = array('id' => $rowId, 'html' => $html, 'replace' => TRUE);
+        
+        $resStatus = array($resObj);
+        
+        // Добавя всички функции в масива, които ще се виката
+        $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
+        if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
+            
+            $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                $resObjAjax = new stdClass();
+                $resObjAjax->func = $runAfterAjax;
+                
+                $resStatus[] = $resObjAjax;
+            }
+        }
+        
+        return $resStatus;
     }
     
     

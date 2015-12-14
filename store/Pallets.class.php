@@ -350,7 +350,7 @@ class store_Pallets extends core_Manager
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $form->title = "|Добавяне на палети в склад|* '<b>" . store_Stores::getTitleById($selectedStoreId) . "</b>'";
+        $data->formTitle = "|Добавяне на палети в склад|* '<b>" . store_Stores::getTitleById($selectedStoreId) . "</b>'";
         
         // По подразбиране за нов запис
         if (!$rec->id) {
@@ -386,6 +386,15 @@ class store_Pallets extends core_Manager
         }
         
         $data->form->showFields = 'label, productId, quantity, palletsCnt, comment, dimensions, zone, palletPlaceHowto';
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
     }
     
     

@@ -140,7 +140,7 @@ class acc_AllocatedExpenses extends core_Master
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
-    	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс');
+    	$this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
     	//$this->FLD('chargeVat', 'enum(yes=С ДДС,no=Без ДДС)', 'caption=ДДС,maxRadio=2');
     	
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
@@ -430,12 +430,12 @@ class acc_AllocatedExpenses extends core_Master
     				$products[$p->productId]->inStores = $p->inStores;
     			}
     			
-    			$transportWeight = cat_Products::getParamValue($p->productId, 'transportWeight');
+    			$transportWeight = cat_Products::getParams($p->productId, 'transportWeight');
     			if(!empty($transportWeight)){
     				$products[$p->productId]->transportWeight = $transportWeight;
     			}
     			
-    			$transportVolume = cat_Products::getParamValue($p->productId, 'transportVolume');
+    			$transportVolume = cat_Products::getParams($p->productId, 'transportVolume');
     			if(!empty($transportVolume)){
     				$products[$p->productId]->transportVolume = $transportVolume;
     			}
@@ -508,8 +508,6 @@ class acc_AllocatedExpenses extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
-    	$originTitle = $form->origin->getHyperLink(TRUE);
-    	$form->title = "|Корекция на стойностите в|* " . $originTitle;
     	
     	// Ако е събмитната формата
     	if($form->isSubmitted()){

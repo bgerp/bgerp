@@ -9,16 +9,18 @@
  * @category  ef
  * @package   plg
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class plg_AlignDecimals2 extends core_Plugin
 {
+	
+	
 	/**
      * Преди рендиране на таблицата
      */
-    static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
@@ -57,8 +59,10 @@ class plg_AlignDecimals2 extends core_Plugin
 	                );
 					$Type->params['decimals'] = $optDecimals;
 					
-					
+					// Вербализираме числово само ако наистина е число
+					if(is_numeric($rec->$fName)){
 						$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
+					}
 				}
 			}
 		}

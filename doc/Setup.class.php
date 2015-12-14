@@ -125,6 +125,16 @@ class doc_Setup extends core_ProtoSetup
     
     
     /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+        
+        'Ключови думи' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE)
+    
+    );
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
@@ -164,6 +174,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_TplManager',
     	'doc_HiddenContainers',
     	'doc_DocumentCache',
+    	'doc_Likes',
         'migrate::repairAllBrokenRelations'
     );
 

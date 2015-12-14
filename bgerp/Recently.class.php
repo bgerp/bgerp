@@ -227,6 +227,34 @@ class bgerp_Recently extends core_Manager
         
         return $objectTitle;
     }
+
+
+    /**
+     * Връща кога за последен път потребителя е виждал този документ
+     */
+    static function getLastDocumentSee($doc, $userId = NULL)
+    {
+        if(is_object($doc)) {
+            $cRec = $doc;
+        } else {
+            expect(is_numeric($doc));
+            $cRec = doc_Containers::fetch($doc);
+        }
+
+        if(!$cRec->threadId) return;
+
+        $fid = doc_Threads::getFirstContainerId($cRec->threadId);
+
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+
+        if($fid && $userId) {
+            $lastTime = bgerp_Recently::fetchField("#type = 'document' AND #objectId = {$fid} AND #userId = {$userId}", 'last');
+        }
+
+        return $lastTime;
+    }
     
     
     /**

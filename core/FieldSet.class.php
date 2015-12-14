@@ -175,6 +175,7 @@ class core_FieldSet extends core_BaseClass
         $paramsS = $params;
 
         foreach ($names as $name => $caption) {
+
             
             $params = $paramsS;
             
@@ -216,7 +217,19 @@ class core_FieldSet extends core_BaseClass
             
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
-            
+
+            // Параметри, които се предават на типа
+            $typeParams = array('maxRadio' => 0, 'maxColumns' => 0, 'columns' => 0, 'mandatory' => 0, 'groupByDiv' => 0, 'maxCaptionLen' => 1, 'options' => 1);
+            foreach($typeParams as $pName => $force) {
+                if(isset($this->fields[$name]->{$pName}) && ($force || !isset($this->fields[$name]->type->params[$pName]))) {
+                    if($pName == 'options') {
+                        $this->fields[$name]->type->{$pName} = $this->fields[$name]->{$pName};
+                    } else {
+                        $this->fields[$name]->type->params[$pName] = $this->fields[$name]->{$pName};
+                    }
+                }
+            }
+
             // Слага полета с еднаква група последователно, независимо от реда на постъпването им
             if(strpos($this->fields[$name]->caption, '->')) {
                 list($group, $caption) = explode('->', $this->fields[$name]->caption);
@@ -461,7 +474,7 @@ class core_FieldSet extends core_BaseClass
             ));
         
         foreach ($fArr as $name => $caption) {
-            if (!$where || eval("return $cond;")) {
+            if (!$where || @eval("return $cond;")) {
                 $res[$name] = $this->fields[$name];
             }
         }

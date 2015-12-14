@@ -267,13 +267,16 @@ function posActions() {
 	});
 	
 	var tabContent = $('#tools-wide-tabs li.active a').attr('href');
+	$('.tab-content.active').find('input[type=text]').focus();
 	$(tabContent).addClass('active');
 	
 	// Скриване на табовете
 	$(document.body).on('click', ".pos-tabs a ", function(e){
 		var currentAttrValue= $(this).attr('href');
 		$('.tab-content' + currentAttrValue).show().siblings().hide();
+		
 		$(this).parent('li').addClass('active').siblings().removeClass('active');
+		$('.tab-content' + currentAttrValue).find('input[type=text]').focus();
 		if($('body').hasClass('wide')){
 			calculateWidth();
 		}

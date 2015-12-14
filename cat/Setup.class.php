@@ -100,18 +100,19 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateDocs',
     		'migrate::truncatCache',
             'migrate::fixProductsSearchKeywords',
-    		'migrate::replaceResources4',
     		'migrate::replacePackagings',
     		'migrate::updateProductsNew',
     		'migrate::deleteCache1',
-    		'migrate::updateParams'
+    		'migrate::updateParams',
+    		'migrate::addClassIdToParams',
+    		'migrate::updateBomType'
         );
 
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cat,sales,purchase';
+    var $roles = 'cat,sales,purchase,techno';
  
     
     /**
@@ -374,185 +375,6 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
-    /**
-     * Миграционна функция
-     */
-    public function replaceResources4()
-    {
-    	if(!acc_Balances::count()) return;
-    	cls::get('cat_Products')->setupMVC();
-    	
-    	cls::load('cat_Products');
-    	$Products = cls::get('cat_Products');
-    	cls::get('planning_ObjectResources')->setupMVC();
-    	 
-    	$pClassId = cat_Products::getClassId();
-    	$rClass = planning_Resources::getClassId();
-    
-    	$Resources = cls::get('planning_ObjectResources');
-    	$oQuery = $Resources->getQuery();
-    	$oQuery->groupBy('resourceId');
-    	$oQuery->where("#classId = {$pClassId}");
-    	$map = array();
-    	while($oRec = $oQuery->fetch()){
-    		if($oRec->resourceId){
-    			$map[$oRec->resourceId] = $oRec->objectId;
-    			 
-    			$oRec->measureId = $resource->measureId;
-    			$oRec->selfValue = $resource->selfValue;
-    			$Resources->save($oRec, 'measureId,selfValue');
-    		}
-    	}
-    
-    	$Bom = cls::get('cat_BomDetails');
-    	$bomQuery = $Bom->getQuery();
-    	while ($bomRec = $bomQuery->fetch()){
-    		$bomRec->resourceId = $map[$bomRec->resourceId];
-    		
-    		try{
-    			$Bom->save($bomRec, NULL, 'REPLACE');
-    		} catch(core_exception_Expect $e){
-    		}
-    	}
-    
-    	$Items = cls::get('acc_Items');
-    	$itemsQuery = $Items->getQuery();
-    	$itemsQuery->where("#classId = {$rClass}");
-    	$itemMap = array();
-    
-    	while($iRec = $itemsQuery->fetch()){
-    		if(isset($map[$iRec->objectId])){
-    			if($productItem = acc_Items::fetchItem($pClassId, $map[$iRec->objectId])){
-    				$itemMap[$iRec->id] = $productItem->id;
-    			}
-    		} else {
-    			$sysId = planning_Resources::fetchField($iRec->objectId, 'systemId');
-    			unset($pId);
-    			switch($sysId){
-    				case 'commonLabor':
-    					$pId = cat_Products::fetchField("#code = 'labor'", 'id');
-    					break;
-    				case 'commonMaterial':
-    					$pId = cat_Products::fetchField("#code = 'materials'", 'id');
-    					break;
-    				case 'commonService':
-    					$pId = cat_Products::fetchField("#code = 'services'", 'id');
-    					break;
-    				case 'commonEquipment':
-    					$pId = cat_Products::fetchField("#code = 'fixedAssets'", 'id');
-    					break;
-    			}
-    			$itemMap[$iRec->id] = acc_Items::fetchItem($pClassId, $pId)->id;
-    		}
-    	}
-    
-    	$replaceIds = array_keys($itemMap);
-    
-    	$Balances = cls::get('acc_BalanceDetails');
-    	$bQuery = $Balances->getQuery();
-    	$bQuery->in('ent1Id', $replaceIds);
-    	$bQuery->in('ent2Id', $replaceIds, FALSE, TRUE);
-    	$bQuery->in('ent3Id', $replaceIds, FALSE, TRUE);
-    
-    	while($bRec = $bQuery->fetch()){
-    		foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $fld){
-    			if(isset($itemMap[$bRec->$fld])){
-    				$bRec->$fld = $itemMap[$bRec->$fld];
-    			}
-    		}
-    
-    		try{
-    			$Balances->save($bRec);
-    		} catch(core_exception_Expect $e){
-    		}
-    	}
-    
-    	$Journal = cls::get('acc_JournalDetails');
-    	 
-    	$jQuery = $Journal->getQuery();
-    
-    	$jQuery->in('debitItem1', $replaceIds);
-    	$jQuery->in('debitItem2', $replaceIds, FALSE, TRUE);
-    	$jQuery->in('debitItem3', $replaceIds, FALSE, TRUE);
-    	$jQuery->in('creditItem1', $replaceIds, FALSE, TRUE);
-    	$jQuery->in('creditItem2', $replaceIds, FALSE, TRUE);
-    	$jQuery->in('creditItem3', $replaceIds, FALSE, TRUE);
-    
-    	while($jRec = $jQuery->fetch()){
-    		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $fld){
-    			if(isset($itemMap[$jRec->$fld])){
-    				$jRec->$fld = $itemMap[$jRec->$fld];
-    			}
-    		}
-    
-    		try{
-    			$Journal->save($jRec);
-    		} catch(core_exception_Expect $e){
-    		}
-    	}
-    
-    	$Articles = cls::get('acc_ArticleDetails');
-    	$mQuery = $Articles->getQuery();
-    	$mQuery->in('debitEnt1', $replaceIds);
-    	$mQuery->in('debitEnt2', $replaceIds, FALSE, TRUE);
-    	$mQuery->in('debitEnt3', $replaceIds, FALSE, TRUE);
-    	$mQuery->in('creditEnt1', $replaceIds, FALSE, TRUE);
-    	$mQuery->in('creditEnt2', $replaceIds, FALSE, TRUE);
-    	$mQuery->in('creditEnt3', $replaceIds, FALSE, TRUE);
-    
-    	while($mRec = $mQuery->fetch()){
-    		foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
-    			if(isset($itemMap[$mRec->$fld])){
-    				$mRec->$fld = $itemMap[$mRec->$fld];
-    			}
-    		}
-    
-    		try{
-    			$Articles->save($mRec);
-    		} catch(core_exception_Expect $e){
-    		}
-    	}
-    
-    	$Trans = cls::get('acc_BalanceTransfers');
-    	$tQuery = $Trans->getQuery();
-    	$tQuery->in('fromEnt1Id', $replaceIds);
-    	$tQuery->in('fromEnt2Id', $replaceIds, FALSE, TRUE);
-    	$tQuery->in('fromEnt3Id', $replaceIds, FALSE, TRUE);
-    	$tQuery->in('toEnt1Id', $replaceIds, FALSE, TRUE);
-    	$tQuery->in('toEnt2Id', $replaceIds, FALSE, TRUE);
-    	$tQuery->in('toEnt3Id', $replaceIds, FALSE, TRUE);
-    
-    	while($tRec = $tQuery->fetch()){
-    		foreach (array('fromEnt1Id', 'fromEnt2Id', 'fromEnt3Id', 'toEnt1Id', 'toEnt3Id', 'toEnt3Id') as $fld){
-    			if(isset($itemMap[$tRec->$fld])){
-    				$tRec->$fld = $itemMap[$tRec->$fld];
-    			}
-    		}
-    		 
-    		try{
-    			$Trans->save($tRec);
-    		} catch(core_exception_Expect $e){
-    		}
-    	}
-    	 
-    	 
-    	try{
-    		if(count($itemMap)){
-    			foreach ($itemMap as $delItemId => $newItem){
-    				acc_Items::delete($delItemId);
-    			}
-    		}
-    		 
-    		acc_Lists::delete("#systemId = 'resources'");
-    	} catch(core_exception_Expect $e){
-    	}
-    	
-    	if(core_Packs::fetch("#name = 'synthesia'")){
-    		$this->replaceBoms();
-    	}
-    }
-    
-    
     function replacePackagings()
     {
     	core_App::setTimeLimit(400);
@@ -577,7 +399,7 @@ class cat_Setup extends core_ProtoSetup
     	$Pl = cls::get('price_ListDocs');
     	$Pl->setupMvc();
     	 
-    	acc_Balances::log("Започване на миграцията на ОПАКОВКИТЕ");
+    	acc_Balances::logInfo("Започване на миграцията на ОПАКОВКИТЕ");
     	 
     	$packs = array();
     	$pQuery = cat_Packagings::getQuery();
@@ -642,11 +464,13 @@ class cat_Setup extends core_ProtoSetup
     		try{
     			cls::get('price_ListDocs')->save_($lRec, 'packagings');
     		} catch(core_exception_Expect $e){
+    		    
+    		    reportException($e);
     		}
     	}
     	 
-    	sales_Sales::log(ht::arrayToHtml($packs));
-    	 
+    	sales_Sales::logInfo(ht::arrayToHtml($packs));
+    	
     	$details = array('sales_SalesDetails',
     			'purchase_PurchasesDetails',
     			'store_ShipmentOrderDetails',
@@ -705,7 +529,7 @@ class cat_Setup extends core_ProtoSetup
     		}
     
     		if(count($recsToSave)){
-    			sales_Sales::log("$Det->className: {$count}");
+    			sales_Sales::logInfo("$Det->className: {$count}");
     			$Det->saveArray_($recsToSave);
     		}
     	}
@@ -835,6 +659,53 @@ class cat_Setup extends core_ProtoSetup
     		}
     	} catch(core_exception_Expect $e){
     		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на параметрите
+     */
+    public static function addClassIdToParams()
+    {
+    	$Params = cls::get('cat_products_Params');
+    	$Params->setupMvc();
+    	$classId = cat_Products::getClassId();
+    	
+    	try{
+    		$query = $Params->getQuery();
+    		$query->where("#classId IS NULL");
+    		while($rec = $query->fetch()){
+    			$rec->classId = $classId;
+    			$Params->save_($rec, 'classId');
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на типа на рецептите
+     */
+    public function updateBomType()
+    {
+    	$Boms = cls::get('cat_Boms');
+    	$Boms->setupMvc();
+    	
+    	$query = $Boms->getQuery();
+    	while($rec = $query->fetch()){
+    		try{
+    			$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+    			$type = 'sales';
+    			if($firstDocument && $firstDocument->isInstanceOf('planning_Jobs')){
+    				$type = 'production';
+    			}
+    			$rec->type = $type;
+    			$Boms->save_($rec, 'type');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
     	}
     }
 }

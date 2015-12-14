@@ -183,7 +183,7 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойността') . "'>{$row->packPrice}</span>";
     		}
     	}
     }
@@ -199,7 +199,7 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
-    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		$term = cat_Products::getParams($rec->productId, 'term');
     		if(!empty($term)){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){

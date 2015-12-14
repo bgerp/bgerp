@@ -116,11 +116,11 @@ class core_Master extends core_Manager
         
         if (!Request::get('ajax_mode')) {
             if (Mode::is('printing')) {
-                $this->logInfo('Отпечатване', $id);
+                $this->logRead('Отпечатване', $id);
             } elseif(Mode::is('pdf')) {
-                $this->logInfo('PDF', $id);
+                $this->logRead('PDF', $id);
             } else {
-                $this->logInfo('Виждане', $id);
+                $this->logRead('Виждане', $id);
             }
         }
         
@@ -203,7 +203,7 @@ class core_Master extends core_Manager
             }
             
             // Добавяме в лога
-            self::logInfo("Преизчисляване на полетата на мастера", $data->rec->id, 7);
+            self::logWrite("Преизчисляване на полетата на мастера", $data->rec->id, 7);
         }
         
         return $data;

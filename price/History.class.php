@@ -247,7 +247,7 @@ class price_History extends core_Manager
         $rec->validFrom   = $validFrom;
         $rec->productId   = $productId;
         $rec->price       = $price;
-        self::save($rec);
+        self::save($rec, NULL, 'REPLACE');
 
         return $rec;
     }

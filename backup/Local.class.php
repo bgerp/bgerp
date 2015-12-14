@@ -58,10 +58,16 @@ class backup_Local extends core_Master
      *
      * @return boolean
      */
-    static function putFile($fileName)
+    static function putFile($fileName, $subDir = null)
     {
         $conf = core_Packs::getConfig('backup');
-        $result = @copy(EF_TEMP_PATH . "/" . $fileName, $conf->BACKUP_LOCAL_PATH . '/' . $fileName);
+        if ($subDir) {
+            $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . $subDir . '/' . basename($fileName));
+        } else {
+            $destFileName = $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName);
+        }
+
+        $result = @copy($fileName, $destFileName);
         
         return $result;
     }
@@ -79,7 +85,7 @@ class backup_Local extends core_Master
     static function removeFile($fileName)
     {
         $conf = core_Packs::getConfig('backup');
-        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . $fileName);
+        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
         
         return $result;
     }

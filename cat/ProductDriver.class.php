@@ -72,19 +72,26 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
+		$driverFields = array_keys($Embedder->getDriverFields($Driver));
+		
+		$driverRefreshedFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm');
+		$driverRefreshedFields = explode('|', $driverRefreshedFields);
+		
+		$refreshFieldsDriver = array_unique(array_merge($driverFields, $driverRefreshedFields));
+		$driverRefreshFields = implode('|', $refreshFieldsDriver);
+		
+		if($unIndex = array_search('proto', $refreshFieldsDriver)){
+			unset($refreshFieldsDriver[$unIndex]);
+		}
+		
+		$protoRefreshFields = implode('|', $refreshFieldsDriver);
+		
+		// Добавяме при смяна на драйвева или на прототип полетата от драйвера да се рефрешват и те
+		$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$driverRefreshFields}");
+		$form->setField('proto', "removeAndRefreshForm={$protoRefreshFields}");
 		
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
-		
-		if(is_array($data->driverParams) && count($data->driverParams)){
-			
-			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
-			foreach ($fields as $name => $fld){
-				if(isset($data->driverParams[$name])){
-					$form->setDefault($name, $data->driverParams[$name]);
-				}
-			}
-		}
 		
 		// Ако има полета
 		if(count($fields)){
@@ -142,13 +149,15 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 
 	/**
-	 * Връща стойността на параметъра с това име
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
 	 * 
-	 * @param string $name - име на параметъра
+	 * @param string $classId - ид на ембедъра
 	 * @param string $id   - ид на записа
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParamValue($name, $id)
+	public function getParams($classId, $id, $name = NULL)
 	{
 		return FALSE;
 	}
@@ -279,7 +288,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#$name#]</td</tr>");
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#{$name}#]</td></tr>");
                         $tpl->append($dhtml, 'INFO');
                     }
 				}
@@ -335,11 +344,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 			['quantity'] - К-во за което е рецептата
 	 * 			['expenses'] - % режийни разходи
 	 * 			['materials'] array
-	 * 				 o code          string  - Код на материала
-     * 				 o baseQuantity  double  - Начално количество на вложения материал
-     * 				 o propQuantity  double  - Пропорционално количество на вложения материал
-     * 				 o waste         boolean - Дали материала е отпадък
-     * 				 o stageName']   string  - Име на производствения етап
+	 * 				 o code              string          - Код на материала
+     * 				 o baseQuantity      double          - Начално количество на вложения материал
+     * 				 o propQuantity      double          - Пропорционално количество на вложения материал
+     * 				 o type              input|pop|stage - вида на записа материал|отпадък|етап
+     * 				 o parentResourceId  string          - ид на артикула на етапа
+     * 				 o expenses          double          - % режийни разходи
 	 * 				
 	 */
 	public function getDefaultBom($rec)

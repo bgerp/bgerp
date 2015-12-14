@@ -438,7 +438,7 @@ class fileman_Files extends core_Master
      */
     static function getContent($hnd)
     {
-        Debug::log("fileman_Files::getContent('{$hnd}')");
+        log_System::add(get_called_class(), "fileman_Files::getContent('{$hnd}')");
         //expect($path = fileman_Download::getDownloadUrl($hnd));  
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
@@ -455,7 +455,7 @@ class fileman_Files extends core_Master
         
         if($sRec->state != 'active') return FALSE;
         
-        return $this->setData($fileHnd, $sRec->dataId);
+        return $this->setData($dHnd, $sRec->dataId);
     }
     
     

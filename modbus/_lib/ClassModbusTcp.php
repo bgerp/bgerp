@@ -424,7 +424,7 @@ class ModbusTcp {
 		//--------- LECTURE DU SOCKET ---------------
 		$OctetRecu = fgetc($this->Fp); //Lire le 1er octet du socket pour utiliser apr?socket_get_status()
 		$status = socket_get_status($this->Fp);
-		$OctetRecu .= fread($this->Fp, $status["unread_bytes"]); //Lire les octets restants
+		$OctetRecu .= @fread($this->Fp, $status["unread_bytes"]); //Lire les octets restants
 
 		if ( $OctetRecu[7] != $obuf[7] ) { 
 			echo "<FONT SIZE='3' COLOR='#FFFF00'><b>";

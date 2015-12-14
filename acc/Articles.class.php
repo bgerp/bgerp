@@ -151,6 +151,12 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Да се правили проверка дали документа може да се контира в нишката
+     */
+    var $checkIfCanContoInThread = FALSE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -348,7 +354,7 @@ class acc_Articles extends core_Master
         
         if (!Request::get('ajax_mode')) {
         	// Записваме, че потребителя е разглеждал този списък
-        	$this->logInfo('Създаване на обратен мемориален ордер', $result[1]);
+        	$this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
         }
         
         return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");

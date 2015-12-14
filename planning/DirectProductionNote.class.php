@@ -145,7 +145,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 		
-		$this->setField('storeId', 'caption=Складове->Заприхождаване в');
+		$this->setField('storeId', 'caption=Складове->В');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Вложено от, mandatory,after=storeId');
 		
 		$this->setField('deadline', 'input=none');
@@ -179,7 +179,10 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$form->setDefault('quantity', $quantity);
 		}
 		
-		$bomRec = cat_Products::getLastActiveBom($originRec->productId);
+		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'sales');
+		}
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
 		}
@@ -264,31 +267,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		if($form->isSubmitted()){
 			
 			// Ако могат да се генерират детайли от артикула да се
-			$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+			if(empty($rec->id)){
+				$details = $mvc->getDefaultDetails($rec);
+			}
 			
 			if($details === FALSE){
-				$form->setWarning('productId', 'Не може да се генерира списък с материалите за влагане от рецептата, защото ресурс от нея не е обвързан с артикул');
-			}
-		}
-	}
-	
-	
-	/**
-	 * Изпълнява се след създаване на нов запис
-	 */
-	public static function on_AfterCreate($mvc, $rec)
-	{
-		// Ако могат да се генерират детайли от артикула да се
-		$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
-		
-		if($details !== FALSE){
-			
-			// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
-			if(count($details)){
-				foreach ($details as $dRec){
-					$dRec->noteId = $rec->id;
-					planning_DirectProductNoteDetails::save($dRec);
-				}
+				$form->setWarning('productId', 'Няма да може да се генерират материали от рецептата');
 			}
 		}
 	}
@@ -298,27 +282,33 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	 * Връща дефолт детайлите на документа, които съотвестват на ресурсите
 	 * в последната активна рецепта за артикула
 	 * 
-	 * @param int $productId       - ид на артикул
-	 * @param int $storeId         - ид на склад
-	 * @param double $prodQuantity - количество за произвеждане
-	 * @param double $jobQuantity  - количество от заданието
-	 * @return array $details      - масив с дефолтните детайли
+	 * @param stdClass $rec   - запис
+	 * @return array $details - масив с дефолтните детайли
 	 */
-	protected function getDefaultDetails($productId, $storeId, $prodQuantity, $jobQuantity)
+	protected function getDefaultDetails($rec)
 	{
 		$details = array();
+		$originRec = doc_Containers::getDocument($rec->originId)->rec();
 		
 		// Ако артикула има активна рецепта
-		$bomId = cat_Products::getLastActiveBom($productId)->id;
+		$bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
+		if(!$bomId){
+			$bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
+		}
 		
 		// Ако ням рецепта, не могат да се определят дефолт детайли за влагане
 		if(!$bomId) return $details;
 		
-		// Извличаме информацията за ресурсите в рецептата
-		$bomInfo = cat_Boms::getResourceInfo($bomId);
+		// К-ко е произведено до сега и колко ще произвеждаме
+		$quantityProduced = $originRec->quantityProduced;
+		$quantityToProduce = $rec->quantity + $quantityProduced;
+		
+		// Извличаме информацията за ресурсите в рецептата за двете количества
+		$bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+		$bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
 		
 		// За всеки ресурс
-		foreach($bomInfo['resources'] as $resource){
+		foreach($bomInfo2['resources'] as $index =>$resource){
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
@@ -326,15 +316,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;
 			$dRec->quantityInPack = $resource->quantityInPack;
-			$dRec->expensePercent = $resource->expensePercent;
-				
+			
+			// Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
+			$dRec->quantity       = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
-				
-			// Изчисляваме к-то според наличните данни
-			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
-			
-			// Намираме артикулите, които могат да се влагат като този артикул
 			$quantities = array();
 			
 			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
@@ -363,18 +350,35 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 				$dRec->quantity = $quantity;
 			}
 			
-			$index = "{$dRec->productId}|$dRec->type";
-			if(!isset($details[$index])){
-				$details[$index] = $dRec;
-			} else {
-				$d = &$details[$index];
-				
-				$d->quantity += $dRec->quantity;
-			}
+			$details[] = $dRec;
 		}
 		
 		// Връщаме генерираните детайли
 		return $details;
+	}
+
+
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		// Ако записа е клониран не правим нищо
+		if($rec->_isClone === TRUE) return;
+		
+		// Ако могат да се генерират детайли от артикула да се
+		$details = $mvc->getDefaultDetails($rec);
+	
+		if($details !== FALSE){
+				
+			// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
+			if(count($details)){
+				foreach ($details as $dRec){
+					$dRec->noteId = $rec->id;
+					planning_DirectProductNoteDetails::save($dRec);
+				}
+			}
+		}
 	}
 	
 	
@@ -406,7 +410,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$rec = $data->rec;
 	
 		if($rec->state == 'active'){
-			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId))){
+			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
 				$bomUrl = array($mvc, 'createBom', $data->rec->id);
 				$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
 			}
@@ -423,7 +427,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		expect($id = Request::get('id', 'int'));
 		expect($rec = $this->fetch($id));
 		
-		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId));
+		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId));
 		
 		// Подготвяме детайлите на рецептата
 		$details = array();
@@ -434,7 +438,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$nRec->resourceId     = $dRec->productId;
 			$nRec->type           = $dRec->type;
 			$nRec->propQuantity   = $dRec->quantity;
-			$nRec->expensePercent = $dRec->expensePercent;
 			$nRec->packagingId    = $dRec->packagingId;
 			$nRec->quantityInPack = $dRec->quantityInPack;
 			
@@ -442,10 +445,10 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		}
 		
 		// Създаваме новата рецепта
-		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $details, NULL, $rec->expenses);
+		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $details, NULL, $rec->expenses);
 		
 		// Записваме, че потребителя е разглеждал този списък
-		cat_Boms::logInfo("Създаване на рецепта от протокол за бързо производство", $newId);
+		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
 		
 		return Redirect(array('cat_Boms', 'single', $newId), NULL, 'Успешно е създадена нова рецепта');
 	}

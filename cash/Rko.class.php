@@ -195,7 +195,7 @@ class cash_Rko extends core_Master
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
-    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс');
+    	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)', 
@@ -250,7 +250,7 @@ class cash_Rko extends core_Master
     		 			
     		 $defaultOperation = $dealInfo->get('defaultCaseOperation');
     		 if($defaultOperation == 'case2supplierAdvance'){
-    		 	$amount = ($dealInfo->get('agreedDownpayment') - $dealInfo->get('downpayment')) / $dealInfo->get('rate');
+    		 	$amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
     		 }
     	}
     		 		

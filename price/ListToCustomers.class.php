@@ -381,14 +381,40 @@ class price_ListToCustomers extends core_Detail
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-        // Опит за намиране на цената по ценовата политика на клиента
-    	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
-    	
-    	// Ако няма цена по политика
-        if(is_null($rec->price)){
+        $isProductPublic = cat_Products::fetchField($productId, 'isPublic');
+        
+        // Проверяваме дали артикула е частен или стандартен
+        if($isProductPublic == 'no'){
         	
-        	// Опитваме се да намерим цената според рецептата и заданието
-        	$rec = $this->getPriceByBom($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        	$rec = (object)array('price' => NULL);
+        	
+        	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+        	if(!isset($quantity)){
+        		$quantityJob = cat_Products::getLastJob($productId)->quantity;
+        		if(isset($quantityJob)){
+        			$quantity = $quantityJob;
+        		}
+        	}
+        	
+        	// търсим първо активната търговска рецепта, ако няма търсим активната работна
+        	$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+        	if(empty($bomRec)){
+        		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+        	}
+        	
+        	// Ако има рецепта връщаме по нея
+        	if($bomRec){
+        		$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId);
+        		$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+        		if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
+        			$defPriceListId = price_ListRules::PRICE_LIST_COST;
+        		}
+        		
+        		$rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
+        	}
+        } else {
+        	// За стандартните артикули търсим себестойността в ценовите политики
+        	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
         
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
@@ -402,6 +428,44 @@ class price_ListToCustomers extends core_Detail
     }
     
 	
+    /**
+     * Връща минималната отстъпка и максималната надценка за даден контрагент
+     * 
+     * @param mixed $customerClass - ид на клас на контрагента
+     * @param int $customerId      - ид на контрагента
+     * @return object $res		   - масив с надценката и отстъпката
+     * 				 o minDelta  - минималната отстъпка
+     * 				 o maxDelta  - максималната надценка
+     */
+    public static function getMinAndMaxDelta($customerClass, $customerId)
+    {
+    	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
+    	
+    	$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+    	 
+    	// Ако контрагента има зададен ценоразпис, който не е дефолтния
+    	if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
+    		 
+    		// Взимаме максималната и минималната надценка от него, ако ги има
+    		$defPriceList = price_Lists::fetch($defPriceListId);
+    		$res->minDelta = $defPriceList->minSurcharge;
+    		$res->maxDelta = $defPriceList->maxSurcharge;
+    	}
+    	 
+    	// Ако няма мин надценка, взимаме я от търговските условия
+    	if(!$res->minDelta){
+    		$res->minDelta = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    	}
+    	 
+    	// Ако няма макс надценка, взимаме я от търговските условия
+    	if(!$res->maxDelta){
+    		$res->maxDelta = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    	}
+    	
+    	return $res;
+    }
+    
+    
     /**
      * Опит за намиране на цената според политиката за клиента (ако има такава)
      */
@@ -434,62 +498,6 @@ class price_ListToCustomers extends core_Detail
     	}
     	
     	return $rec;
-    }
-    
-    
-    /**
-     * Намиране на цената според технологичната рецепта и задание (ако има такива)
-     */
-    private function getPriceByBom($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
-    {
-    	$price = (object)array('price' => NULL);
-    	 
-    	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-    	if(!isset($quantity)){
-    		
-    		$quantityJob = cat_Products::getLastJob($productId)->quantity;
-    		if(isset($quantityJob)){
-    			$quantity = $quantityJob;
-    		}
-    	}
-    	
-    	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = cat_Boms::getPrice($productId)){
-    		$defPriceListId = self::getListForCustomer($customerClass, $customerId);
-    		
-    		$minCharge = $maxCharge = NULL;
-    		
-    		// Ако контрагента има зададен ценоразпис, който не е дефолтния
-    		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
-    			
-    			// Взимаме максималната и минималната надценка от него, ако ги има
-    			$defPriceList = price_Lists::fetch($defPriceListId);
-    			$minCharge = $defPriceList->minSurcharge;
-    			$maxCharge = $defPriceList->maxSurcharge;
-    		}
-    		
-    		// Ако няма мин надценка, взимаме я от търговските условия
-    		if(!isset($minCharge)){
-    			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		}
-    		
-    		// Ако няма макс надценка, взимаме я от търговските условия
-    		if(!isset($maxCharge)){
-    			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    		}
-    		
-    		if(!$quantity){
-    			$quantity = 1;
-    		}
-    		
-    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
-    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
-    	
-    		return $price;
-    	}
-    	
-    	// Връщаме цената
-    	return $price;
     }
     
     

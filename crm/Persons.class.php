@@ -682,6 +682,11 @@ class crm_Persons extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
+        
+        if (crm_Profiles::fetch("#personId = {$rec->id}")) {
+            $Profiles = cls::get('crm_Profiles');
+            $Profiles->invoke('AfterMasterSave', array($rec, $mvc));
+        }
     }
     
     

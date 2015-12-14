@@ -262,7 +262,7 @@ class store_Movements extends core_Manager
         
         switch ($do) {
             case 'palletUp' :
-                $form->title = "|КАЧВАНЕ|* <b>|от пода|*</b> |на палет с|* ID=<b>{$palletId}</b>";
+                $data->formTitle = "|КАЧВАНЕ|* <b>|от пода|*</b> |на палет с|* ID=<b>{$palletId}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 // Как да се постави палета
@@ -290,7 +290,7 @@ class store_Movements extends core_Manager
                 $position = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);
                 
-                $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
+                $data->formTitle = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
                                 <br/>|от пoзиция|* <b>{$position}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
@@ -330,7 +330,7 @@ class store_Movements extends core_Manager
                     unset($ppRackId2RackNumResult);
                 }
                 
-                $form->title = "|ПРЕМЕСТВАНЕ от палет място|* <b>{$position}</b> |на палет с|* ID=<b>{$palletId}</b>
+                $data->formTitle = "|ПРЕМЕСТВАНЕ от палет място|* <b>{$position}</b> |на палет с|* ID=<b>{$palletId}</b>
                                 <br/>|към друго палет място в склада|*";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
@@ -352,6 +352,15 @@ class store_Movements extends core_Manager
                 $form->setHidden('do', 'palletMove');
                 break;
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
     }
     
     

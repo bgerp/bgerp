@@ -302,13 +302,13 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
-    		$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+    		$tolerance = cat_Products::getParams($rec->productId, 'tolerance');
     		if(!empty($tolerance)){
     			$form->setField('tolerance', 'input');
     			$form->setDefault('tolerance', $tolerance);
     		}
     		
-    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		$term = cat_Products::getParams($rec->productId, 'term');
     		if(!empty($term)){
     			$form->setField('term', 'input');
     			$form->setDefault('term', $term);
@@ -687,6 +687,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$data->discountsOptional = $data->discounts = array();
     	
     	core_Lg::push($data->masterData->rec->tplLang);
+    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
@@ -697,7 +698,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
 
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
@@ -780,11 +781,11 @@ class sales_QuotationsDetails extends doc_Detail {
     		$dRec->vatPercent = cat_Products::getVat($dRec->productId, $rec->date);
     		$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
     		
-    		if($tolerance = cat_Products::getParamValue($dRec->productId, 'tolerance')){
+    		if($tolerance = cat_Products::getParams($dRec->productId, 'tolerance')){
     			$dRec->tolerance = $tolerance;
     		}
     		
-    		if($term = cat_Products::getParamValue($dRec->productId, 'term')){
+    		if($term = cat_Products::getParams($dRec->productId, 'term')){
     			$dRec->term = $term;
     		}
     		

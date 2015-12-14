@@ -147,7 +147,8 @@ class blast_Setup extends core_ProtoSetup
         'migrate::addEmailSendHash',
         'migrate::updateListLg2',
         'migrate::stateOfBlockedEmails',
-        'migrate::calcProgress'
+        'migrate::calcProgress',
+        'migrate::removeEmptyLines'
     );
     
     
@@ -278,7 +279,7 @@ class blast_Setup extends core_ProtoSetup
         $blsInst->db->connect();
         
         $listId = str::phpToMysqlName('listId');
-        
+       
         if (!$blsInst->db->isFieldExists($blsInst->dbTableName, $listId)) return ;
         
         $blsInst->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист, mandatory');
@@ -416,5 +417,14 @@ class blast_Setup extends core_ProtoSetup
                 
             blast_Emails::save($rec, 'progress');
         }
+    }
+    
+    
+    /**
+     * Премахва празните редове имейли
+     */
+    public static function removeEmptyLines()
+    {
+        blast_BlockedEmails::delete("#email IS NULL OR #email = ''");
     }
 }

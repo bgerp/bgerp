@@ -279,8 +279,8 @@ class cal_Tasks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $blue = new color_Object("#2244cc");
         $grey = new color_Object("#bbb");
+        $blue = new color_Object("#2244cc");
 
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
@@ -299,24 +299,32 @@ class cal_Tasks extends core_Master
 
             }
         }
-
-        $grey->setGradient($blue, $rec->progress);
-
-        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        
+        $bold = '';
+        if($rec->progress) {
+            $grey->setGradient($blue, $rec->progress);
+    
+            $lastTime = bgerp_Recently::getLastDocumentSee($rec);
+            if($lastTime < $rec->modifiedOn) {
+                $bold = 'font-weight:bold;';
+            }
+    
+        }
+        $row->progress = "<span style='color:{$grey};{$bold}'>{$row->progress}</span>";
 
         // Ако имаме само начална дата на задачата
         if ($rec->timeStart && !$rec->timeEnd) {
             // я парвим хипервръзка към календара- дневен изглед
-            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
             // Ако имаме само крайна дата на задачата
         } elseif ($rec->timeEnd && !$rec->timeStart) {
             // я правим хипервръзка към календара - дневен изглед
-            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
             // Ако задачата е с начало и край едновременно
         } elseif ($rec->timeStart && $rec->timeEnd) {
             // и двете ги правим хипервръзка към календара - дневен изглед
-            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
         }
     }
 
@@ -2070,8 +2078,9 @@ class cal_Tasks extends core_Master
 	    // можем да кажем кога е началото й
 	    } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
 	    	$expEnd = $timeEnd;
-	    	$expStart = self::fetchField($rec->id, "modifiedOn");
-	    		
+	    	if ($rec->id) {
+	    		$expStart = self::fetchField($rec->id, "modifiedOn");
+	    	}	
 	    // ако има и начало и край
 	    // то очакваните начало и край са тези
 	    } elseif ($timeStart && $timeEnd) {

@@ -57,7 +57,6 @@ class cond_type_Enum extends cond_type_Proto
 		
 		foreach ($options as &$opt){
 			$opt = trim($opt);
-			$opt = type_Varchar::escape($opt);
 		}
 		
 		$options = array_combine($options, $options);

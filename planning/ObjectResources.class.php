@@ -115,7 +115,7 @@ class planning_ObjectResources extends core_Manager
     	$measureId = cat_Products::getProductInfo($rec->objectId)->productRec->measureId;
     	
     	// Кои са възможните подобни артикули за избор
-    	$products = $mvc->getAvailableSimilarProducts($measureId);
+    	$products = $mvc->getAvailableSimilarProducts($measureId, $rec->objectId);
     	
     	// Добавяме възможностите за избор на заместващи артикули за влагане
     	if(count($products)){
@@ -125,9 +125,20 @@ class planning_ObjectResources extends core_Manager
     	} else {
     		$form->setReadOnly('likeProductId');
     	}
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$url = cat_Products::getSingleUrlArray($data->form->rec->objectId);
+    	$objectName = cat_Products::getTitleById($data->form->rec->objectId);
+    	$objectName = ht::createLink($objectName, $url, NULL, array('ef_icon' => cls::get('cat_Products')->singleIcon, 'class' => 'linkInTitle'));
     	
-    	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
-    	$form->title = $title . "|* <b>". cat_Products::getTitleByid($rec->objectId) . "</b>";
+    	$title = ($data->form->rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
+    	$data->form->title = $title . "|* <b style='color:#ffffcc;'>". $objectName . "</b>";
     }
     
     
@@ -137,14 +148,14 @@ class planning_ObjectResources extends core_Manager
      * @param int $measureId - ид на мярка
      * @return array $products - опции за избор на артикули
      */
-    private function getAvailableSimilarProducts($measureId)
+    private function getAvailableSimilarProducts($measureId, $productId)
     {
     	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
     	
     	// Намираме всички артикули, които са били влагане в производството от документи
     	$consumedProducts = array();
     	$consumedProducts = cat_Products::getByProperty('canConvert');
-    	unset($consumedProducts[$rec->objectId]);
+    	unset($consumedProducts[$productId]);
     	
     	return $consumedProducts;
     }
@@ -293,10 +304,10 @@ class planning_ObjectResources extends core_Manager
      * @param int $objectId - ид на артикула - материал
      * @return double $selfValue - себестойността му
      */
-    public static function getSelfValue($objectId, $date = NULL)
+    public static function getSelfValue($objectId, $quantity = 1, $date = NULL)
     {
     	// Проверяваме имали зададена търговска себестойност
-    	$selfValue = cat_Products::getSelfValue($objectId, NULL, 1, $date);
+    	$selfValue = cat_Products::getSelfValue($objectId, NULL, $quantity, $date);
     	
     	// Ако няма търговска себестойност: проверяваме за счетоводна
     	if(!isset($selfValue)){
@@ -308,16 +319,33 @@ class planning_ObjectResources extends core_Manager
     			
     		// Ако артикула е складируем взимаме среднопритеглената му цена от склада
     		if(isset($pInfo->meta['canStore'])){
-    			$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
+    			$selfValue = cat_Products::getWacAmountInStore($quantity, $objectId, $date);
     		} else {
-    				
-    			// Ако не е складируем взимаме среднопритеглената му цена в производството
-    			$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
-    			if(isset($item1)){
-    				// Намираме сумата която струва к-то от артикула в склада
-    				$selfValue = acc_strategy_WAC::getAmount(1, $date, '61101', $item1, NULL, NULL);
-    				$selfValue = round($selfValue, 4);
-    			}
+    			$selfValue = static::getWacAmountInProduction($quantity, $objectId, $date);
+    		}
+    	}
+    	
+    	return $selfValue;
+    }
+    
+    
+    /**
+     * Връща среднопритеглената цена на артикула в сметката на незавършеното производство
+     * 
+     * @param int $quantity      - к-во
+     * @param int $objectId      - ид на артикул
+     * @param date $date         - към коя дата
+     * @return double $selfValue - среднопритеглената цена
+     */
+    public static function getWacAmountInProduction($quantity, $objectId, $date)
+    {
+    	// Ако не е складируем взимаме среднопритеглената му цена в производството
+    	$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
+    	if(isset($item1)){
+    		// Намираме сумата която струва к-то от артикула в склада
+    		$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL);
+    		if($selfValue){
+    			$selfValue = round($selfValue, 4);
     		}
     	}
     	
@@ -368,12 +396,23 @@ class planning_ObjectResources extends core_Manager
     	$res = array();
     	
     	$query = self::getQuery();
-    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL");
     	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
     	$query->where("#state = 'active'");
-    	$query->show("objectId");
+    	$query->show("objectId,likeProductId");
+    	
+    	$query2 = clone $query;
+    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL AND #objectId != '{$productId}'");
     	while($rec = $query->fetch()){
     		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
+    	}
+    	
+    	$query2->where("#objectId = {$productId} AND #likeProductId != {$productId}");
+    	while($rec = $query2->fetch()){
+    		if($rec->likeProductId){
+    			$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
+    			$replaceable = self::fetchConvertableProducts($rec->likeProductId);
+    			$res += $replaceable;
+    		}
     	}
     	
     	return $res;

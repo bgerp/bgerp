@@ -132,6 +132,8 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         // Вземаме съдържанието на файла
         $text = fileman_Files::getContent($params['fileHnd']);
         
+        $text = mb_strcut($text, 0, 1000000);
+        
         $text = i18n_Charset::convertToUtf8($text);
         
         // Текстовата част

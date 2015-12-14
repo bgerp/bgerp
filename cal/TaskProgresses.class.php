@@ -53,7 +53,18 @@ class cal_TaskProgresses extends core_Detail
     public $singleIcon = 'img/16/task.png';
 
     
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleTitle = 'прогрес';
+    
+    
+    /**
+     * 
+     * @var unknown
+     */
     public $canAdd = 'powerUser';
+    
     
     /**
      * Активен таб на менюто
@@ -92,14 +103,9 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
-    	
-        expect($data->form->rec->taskId);
+    	expect($data->form->rec->taskId);
 
         $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
-
-        $data->form->title = "|Прогрес по|* \"" . type_Varchar::escape($masterRec->title) . "\"";
-    
-
         $progressArr[''] = '';
 
         for($i = 0; $i <= 100; $i += 10) {

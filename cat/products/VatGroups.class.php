@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_VatGroups extends core_Manager
+class cat_products_VatGroups extends core_Detail
 {
     
     

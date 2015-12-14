@@ -195,12 +195,92 @@ class core_Pager extends core_BaseClass
     function setLimit(&$query)
     {
         $q = clone ($query);
-        $this->itemsCount = $q->count();
-        $this->calc();
         
-        if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $query->limit($this->rangeEnd - $this->rangeStart);
-            $query->startFrom($this->rangeStart);
+        $wh = $q->getWhereAndHaving();
+        $wh = $wh->w . ' ' . $wh->h;
+        $this->itemsCount = PHP_INT_MAX;
+        $this->calc();
+
+        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+            $qCnt = clone ($query);
+            $qCnt->orderBy = array();
+
+            $qCnt->show('id');
+            $this->itemsCount = $qCnt->count();
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit($this->rangeEnd - $this->rangeStart);
+                $q->startFrom($this->rangeStart);
+                $q->show('id');
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+
+            if(count($ids)) {
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
+            } 
+        } elseif((!Request::get('V')) || Request::get('V') == 2) {
+            $q->show('id');
+            $q->addOption('SQL_CALC_FOUND_ROWS');
+
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
+                $q->startFrom($this->rangeStart); 
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+            if(count($ids)) {
+                $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
+                $cntArr = $q->mvc->db->fetchArray($dbRes);
+                $this->itemsCount  = array_shift($cntArr);
+                $this->calc();
+
+                $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
+            }
+        } elseif(Request::get('V') == 3) {
+            $q = clone ($query);
+
+            $this->itemsCount = 100000000;
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit(1000);
+                $q->startFrom($this->rangeStart); 
+                $cnt = $this->rangeStart + $q->select();
+                $i = 0;
+                while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+            $this->itemsCount  = $cnt;  
+            $this->calc();
+            
+            if(count($ids)) {
+                $ids = implode(',', $ids);
+                $query->where("#id IN ($ids)");
+            } else {
+                $query->limit(0);
+            }
         }
     }
 
