@@ -63,7 +63,7 @@ class log_System extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_SystemWrapper, plg_AutoFilter, plg_Created';
+    var $loadList = 'plg_SystemWrapper, plg_Created';
     
     
     /**
@@ -75,7 +75,7 @@ class log_System extends core_Manager
         $this->FLD('objectId', 'int');
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
-        $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг)', 'caption=Тип, notNull');
+        $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг)', 'caption=Тип');
     }
     
     
@@ -106,6 +106,7 @@ class log_System extends core_Manager
         $rec->objectId = $objectId;
         $rec->detail = $action;
         $rec->lifeDays = $lifeDays;
+        $rec->type = $type;
         
         return self::save($rec);
     }
@@ -127,15 +128,19 @@ class log_System extends core_Manager
      * Форма за търсене по дадена ключова дума
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
-    {   
+    {
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
         $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,refreshForm, allowEmpty, silent');
-
+        
+        $data->listFilter->fields['type']->caption = 'Тип';
+        $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
+        $data->listFilter->fields['type']->refreshForm = 'refreshForm';
+        
         $data->listFilter->setSuggestions('class', core_Classes::makeArray4Select('name'));
-        $data->listFilter->showFields = 'date,class';
+        $data->listFilter->showFields = 'date, class, type';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input('date,class', 'silent'); 
+        $data->listFilter->input($data->listFilter->showFields, 'silent'); 
 
     	$query = $data->query;
         $query->orderBy('#id=DESC');
@@ -178,9 +183,14 @@ class log_System extends core_Manager
             $data->listFilter->setOptions('class', $classSuggArr);
         }
         
-        if ($data->listFilter->rec->class) {
-            $class = mb_strtolower($data->listFilter->rec->class);
+        if ($fRec->class) {
+            $class = mb_strtolower($fRec->class);
             $query->where(array("LOWER (#className) = '[#1#]'", $class));
+        }
+        
+        // Филтрираме по тип
+        if (trim($fRec->type)) {
+            $query->where(array("#type = '[#1#]'", $fRec->type));
         }
     }
     
@@ -203,6 +213,8 @@ class log_System extends core_Manager
         } else {
             $row->what = $rec->className . " * " . $rec->objectId . " * " . $rec->detail;
         }
+        
+        $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
     }
     
     
