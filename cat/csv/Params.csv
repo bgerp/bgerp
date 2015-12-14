@@ -1,6 +1,6 @@
 Дължина,cond_type_Double,см,length,,,yes
 Височина,cond_type_Double,см,height,,,yes
-Тегло,cond_type_Double,кг,weight,,,no
+Тегло,cond_type_Double,кг,weightKg,,,no
 Дебелина,cond_type_Double,см,thickness,,,yes
 Обем,cond_type_Double,куб.м,volume,,,no
 Обем,cond_type_Double,л,volumel,,,no
