@@ -1501,6 +1501,15 @@ class cat_Products extends embed_Manager {
     			$res = 'no_one';
     		}
     	}
+    	
+    	// Кой може да оттегля и възстановява
+    	if(($action == 'reject' || $action == 'restore') && isset($rec)){
+    		
+    		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
+    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     

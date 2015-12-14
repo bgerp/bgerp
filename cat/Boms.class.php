@@ -420,11 +420,17 @@ class cat_Boms extends core_Master
     	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
+    	} elseif($action == 'activate' && isset($rec->id)){
+    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
+    			$res = 'no_one';
+    		}
     	}
     	
-    	// Не може да се активира, ако няма избрани ресурси
-    	if($action == 'activate' && isset($rec->id)){
-    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
+    	// Кой може да оттегля и възстановява
+    	if(($action == 'reject' || $action == 'restore') && isset($rec)){
+    	
+    		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
+    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
     			$res = 'no_one';
     		}
     	}
