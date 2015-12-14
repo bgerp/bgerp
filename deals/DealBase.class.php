@@ -54,6 +54,9 @@ abstract class deals_DealBase extends core_Master
 	public $addToListOnActivation = 'deals';
 	
 	
+	public $canExport = 'powerUser';
+	
+	
 	/**
 	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
 	 */
@@ -157,6 +160,14 @@ abstract class deals_DealBase extends core_Master
     		$options = $mvc->getDealsToCloseWith($rec);
     		if(!count($options) || $rec->state != 'draft'){
     			$res = 'no_one';
+    		}
+    	}
+    	
+        // Ако документа е активен, може да се експортва
+    	if($action == 'export' && isset($rec)){
+    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
+    		if($state != 'active'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
