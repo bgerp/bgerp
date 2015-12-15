@@ -75,7 +75,9 @@ class price_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'price';
+    var $roles = array(array('priceWatcher'),
+    				   array('price', 'priceWatcher'),
+    );
     
 
     /**

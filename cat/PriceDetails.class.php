@@ -37,7 +37,7 @@ class cat_PriceDetails extends core_Manager
     /**
      * Кой може да чете
      */
-    public $canSeeprices = 'cat,ceo,sales,purchase,price';
+    public $canSeeprices = 'ceo,priceWatcher';
     
     
     /**
