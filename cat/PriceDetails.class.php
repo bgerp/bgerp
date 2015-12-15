@@ -131,7 +131,7 @@ class cat_PriceDetails extends core_Manager
     		$primeCostRows[] = (object)array('name' => tr('Бъдеща'), 'date' => $row->futurePrimeCostDate, 'price' => $row->futurePrimeCost, 'ROW_ATTR' => array('class' => 'state-draft'));
     	}
     	if(isset($rec->primeCost)){
-    		$primeCostRows[] = (object)array('name' => tr('Активна'), 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
+    		$primeCostRows[] = (object)array('name' => tr('Мениджърска'), 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
     	}
     	if(isset($rec->accCost)){
     		$primeCostRows[] = (object)array('name' => tr('Складова'), 'date' => $row->accCostDate, 'price' => $row->accCost, 'ROW_ATTR' => array('class' => 'state-active'));
