@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_ConsumptionNotes' - Документ за Протокол за производство
+ * Клас 'planning_ProductionNotes' - Документ за Протокол за производство
  *
  * 
  *
@@ -10,11 +10,11 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_ProductionNotes extends deals_ManifactureMaster
+class planning_ProductionNotes extends planning_ProductionDocument
 {
 	
 	
