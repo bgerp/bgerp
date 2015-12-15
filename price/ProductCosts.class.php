@@ -229,8 +229,15 @@ class price_ProductCosts extends core_Manager
     {
     	$pQuery = purchase_PurchasesDetails::getQuery();
     	$pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+    	$pQuery->EXT('modifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
     	$pQuery->EXT('amountDelivered', 'purchase_Purchases', 'externalName=amountDelivered,externalKey=requestId');
+    	
+    	// Всички активни
     	$pQuery->where("#state = 'active'");
+    	
+    	// и тези които са затворени и са последно модифицирани до два часа
+    	$from = dt::addSecs(-2 * 60 * 60, dt::now());
+    	$pQuery->orWhere("#state = 'closed' AND #modifiedOn >= '{$from}'");
     	
     	if($withDelivery === TRUE){
     		$pQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');

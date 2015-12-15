@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_DirectProductionNote extends deals_ManifactureMaster
+class planning_DirectProductionNote extends planning_ProductionDocument
 {
 	
 	
@@ -398,8 +398,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			planning_Jobs::updateProducedQuantity($origin->that);
 		}
 	}
-	
-
 
 
 	/**
