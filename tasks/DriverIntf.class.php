@@ -177,12 +177,12 @@ class tasks_DriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Кой детайл да бъде добавен към мастъра
+	 * Кои са детайлите на драйвера
 	 * 
-	 * @return varchar - името на детайла
+	 * @return array - детайлите
 	 */
-	public function getDetail()
+	public function getDetails()
 	{
-		$this->class->getDetail();
+		$this->class->getDetails();
 	}
 }

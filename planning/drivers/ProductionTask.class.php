@@ -45,7 +45,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Кои детайли да се заредят динамично към мастъра
 	 */
-	protected $detail = 'planning_drivers_ProductionTaskDetails';
+	protected $details = 'planning_drivers_ProductionTaskDetails';
 	
 	
 	/**
@@ -189,27 +189,32 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	if(empty($rec->id)) return;
     	
-    	$Detail = cls::get($Driver->getDetail());
-    	
-    	$dQuery = $Detail->getQuery();
-    	$dQuery->where("#taskId = {$rec->id}");
-    	 
-    	$detailsKeywords = '';
-    	while($dRec = $dQuery->fetch()){
-    		 
-    		// Добавяме данните от детайла към ключовите думи
-    		$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'operation'));
-    		if($dRec->code){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'code'));
-    		}
-    		 
-    		if($dRec->fixedAsset){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
+    	$details = $Driver->getDetails();
+    	if(is_array($details)){
+    		foreach ($details as $Detail){
+    			$Detail = cls::get($Detail);
+    			 
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->where("#taskId = {$rec->id}");
+    			
+    			$detailsKeywords = '';
+    			while($dRec = $dQuery->fetch()){
+    				 
+    				// Добавяме данните от детайла към ключовите думи
+    				$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'operation'));
+    				if($dRec->code){
+    					$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'code'));
+    				}
+    				 
+    				if($dRec->fixedAsset){
+    					$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
+    				}
+    			}
+    			
+    			// Добавяме новите ключови думи към старите
+    			$res = " " . $res . " " . $detailsKeywords;
     		}
     	}
-    	 
-    	// Добавяме новите ключови думи към старите
-    	$res = " " . $res . " " . $detailsKeywords;
     }
     
     
