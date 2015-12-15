@@ -99,54 +99,54 @@ class price_ProductCosts extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
     	// Ако има последна оферта, намираме датата и линка към нея
     	if(isset($rec->lastQuoteId)){
     		$row->lastQuoteId = purchase_Offers::getLink($rec->lastQuoteId, 0);
-    		$row->lastQuoteDate = cls::get('type_DateTime')->toVerbal(purchase_Offers::fetchField($rec->lastQuoteId, 'date'));
+    		$row->lastQuoteDate = $Datetime->toVerbal(purchase_Offers::fetchField($rec->lastQuoteId, 'date'));
     	}
     	
     	// Ако има текуща поръчка, намираме датата и линка към нея
     	if(isset($rec->activeDeliveryId)){
     		$row->activeDeliveryId = purchase_Purchases::getLink($rec->activeDeliveryId, 0);
-    		$row->activeDeliveryDate = cls::get('type_DateTime')->toVerbal(purchase_Purchases::fetchField($rec->activeDeliveryId, 'valior'));
+    		$row->activeDeliveryDate = $Datetime->toVerbal(purchase_Purchases::fetchField($rec->activeDeliveryId, 'valior'));
     	}
     	
     	// Ако има последна доставка, намираме датата и линка към нея
     	if(isset($rec->lastDeliveryId)){
     		$row->lastDeliveryId = purchase_Purchases::getLink($rec->lastDeliveryId, 0);
-    		$row->lastDeliveryDate = cls::get('type_DateTime')->toVerbal(purchase_Purchases::fetchField($rec->lastDeliveryId, 'valior'));
+    		$row->lastDeliveryDate = $Datetime->toVerbal(purchase_Purchases::fetchField($rec->lastDeliveryId, 'valior'));
     	}
     	
     	// Ако има последна рецепта, намираме датата и линка към нея
     	if(isset($rec->bomId)){
     		$row->bomId = cat_Boms::getLink($rec->bomId, 0);
-    		$row->bomIdDate = cls::get('type_DateTime')->toVerbal(cat_Boms::fetchField($rec->bomId, 'modifiedOn'));
+    		$row->bomIdDate = $Datetime->toVerbal(cat_Boms::fetchField($rec->bomId, 'modifiedOn'));
     	}
     	
     	// Ако има складова себестойност
     	if(isset($rec->accCost)){
     		$lastBalance = acc_Balances::getLastBalance();
-    		
-    		$row->accCostDate = cls::get('type_DateTime')->toVerbal($lastBalance->lastCalculate);
+    		$row->accCostDate = $Datetime->toVerbal($lastBalance->lastCalculate);
     	}
     	
     	// Ако имаме чиста себестойност, намираме към коя дата е
     	if(isset($rec->primeCost)){
     		$row->primeCost = cls::get('type_Double')->toVerbal($rec->primeCost);
-    		$row->primeCostDate = cls::get('type_DateTime')->toVerbal($rec->primeCostDate);
+    		$row->primeCostDate = $Datetime->toVerbal($rec->primeCostDate);
     	}
     	
     	// Ако имаме бъдеща себестойност, намираме към коя дата е
     	if(isset($rec->futurePrimeCost)){
     		$row->futurePrimeCost = cls::get('type_Double')->toVerbal($rec->futurePrimeCost);
-    		$row->futurePrimeCostDate = cls::get('type_DateTime')->toVerbal($rec->futurePrimeCostDate);
+    		$row->futurePrimeCostDate = $Datetime->toVerbal($rec->futurePrimeCostDate);
     	}
     	
     	// Ако има каталожна цена, намираме към коя дата е
     	if(isset($rec->catalogCost)){
     		$row->catalogCost = cls::get('type_Double')->toVerbal($rec->catalogCost);
-    		$row->catalogCostDate = cls::get('type_DateTime')->toVerbal($rec->catalogCostDate);
+    		$row->catalogCostDate = $Datetime->toVerbal($rec->catalogCostDate);
     	}
     }
     
