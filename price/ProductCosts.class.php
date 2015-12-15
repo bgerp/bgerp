@@ -77,7 +77,7 @@ class price_ProductCosts extends core_Manager
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-    	$this->FLD('accCost', 'double', 'caption=Цени->Счетоводна');
+    	$this->FLD('accCost', 'double', 'caption=Цени->Складова');
     	$this->FLD('activeDelivery', 'double', 'caption=Цени->Текуща поръчка,tdClass=accCell');
     	$this->FLD('lastDelivery', 'double', 'caption=Цени->Последна доставка,tdClass=accCell');
     	$this->FLD('lastQuote', 'double', 'caption=Цени->Последна оферта,tdClass=accCell');
