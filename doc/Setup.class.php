@@ -164,7 +164,6 @@ class doc_Setup extends core_ProtoSetup
         'doc_Folders',
         'doc_Threads',
         'doc_Containers',
-        'doc_Search',
         'doc_Folders',
         'doc_Comments',
         'doc_Notes',
