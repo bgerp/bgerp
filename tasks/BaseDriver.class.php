@@ -44,7 +44,7 @@ abstract class tasks_BaseDriver extends core_BaseClass
     /**
      * Кои детайли да се заредят динамично към мастъра
      */
-    protected $details;
+    protected $detail;
 
     
     /**
@@ -194,10 +194,8 @@ abstract class tasks_BaseDriver extends core_BaseClass
      * 
      * @return varchar - името на детайла
      */
-    public function getDetails()
+    public function getDetail()
     {
-    	$details = arr::make($this->details, TRUE);
-    	
-    	return $details;
+    	return $this->detail;
     }
 }
