@@ -770,6 +770,7 @@ class core_String
     static function calcMathExpr($expr, &$success = NULL)
     { 
         $expr = self::prepareMathExpr($expr);
+        $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
         
         if(strlen($expr)) {
             $last = error_reporting(0);

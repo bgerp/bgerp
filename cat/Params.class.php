@@ -31,6 +31,12 @@ class cat_Params extends embed_Manager
     
     
     /**
+     * Единично заглавие
+     */
+    var $singleTitle = "Параметър";
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
