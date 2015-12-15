@@ -199,31 +199,8 @@ class price_ListRules extends core_Detail
         if($rec) {
             if($rec->type == 'value') {
                 
-                $price = $rec->price;
-
-                $listRec = price_Lists::fetch($listId);
-                list($date, $time) = explode(' ', $datetime);
-
-                // В каква цена е този ценоразпис?
-                $currency = $rec->currency;
-
-                if(!$currency) {
-                    $currency = $listRec->currency; 
-                }
-
-                if(!$currency) {
-                    $currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
-                }
-               
-                // Конвертираме в базова валута
-                $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
-
-                // Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
-                if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
-                    // TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
-                    $vat = cat_Products::getVat($productId, $date);
-                    $price = $price / (1 + $vat);
-                }
+            	$vat = cat_Products::getVat($productId, $date);
+            	$price = self::normalizePrice($rec, $vat, $datetime);
 
 			} else {
                 expect($parent = price_Lists::fetchField($listId, 'parent'));
@@ -263,6 +240,45 @@ class price_ListRules extends core_Detail
         }
 
         return $price;
+    }
+    
+    
+    /**
+     * Обръща цената от записа в основна валута без ддс
+     * 
+     * @param stdClass $rec
+     * @param double $vat
+     * @param datetime $datetime
+     * @return double $price
+     */
+    public static function normalizePrice($rec, $vat, $datetime)
+    {
+    	$price = $rec->price;
+    	
+    	$listRec = price_Lists::fetch($rec->listId);
+    	list($date, $time) = explode(' ', $datetime);
+    	
+    	// В каква цена е този ценоразпис?
+    	$currency = $rec->currency;
+    	
+    	if(!$currency) {
+    		$currency = $listRec->currency;
+    	}
+    	
+    	if(!$currency) {
+    		$currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
+    	}
+    	
+    	// Конвертираме в базова валута
+    	$price = currency_CurrencyRates::convertAmount($price, $date, $currency);
+    	
+    	// Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
+    	if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
+    		// TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
+    		$price = $price / (1 + $vat);
+    	}
+    	
+    	return $price;
     }
     
     
