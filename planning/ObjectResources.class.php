@@ -166,6 +166,11 @@ class planning_ObjectResources extends core_Manager
      */
     public function prepareResources(&$data)
     {
+    	if(!haveRole('ceo,planning')){
+    		$data->notConvertableAnymore = TRUE;
+    		return;
+    	}
+    	
     	$data->rows = array();
     	$query = $this->getQuery();
     	$query->where("#objectId = {$data->masterId}");

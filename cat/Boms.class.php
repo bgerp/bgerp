@@ -405,14 +405,9 @@ class cat_Boms extends core_Master
     	}
     	
     	if(($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore') && isset($rec)){
-    		if($res != 'no_one'){
-    			
-    			// Ако рецептата е работна само techno и ceo могат да я редактират
-    			$firstDocument = doc_Containers::getDocument($rec->originId);
-    			if($firstDocument->isInstanceOf('planning_Jobs')){
-    				if(!haveRole('techno,ceo', $userId)){
-    					$res = 'no_one';
-    				}
+    		if($rec->type == 'production'){
+    			if(!haveRole('techno,ceo', $userId)){
+    				$res = 'no_one';
     			}
     		}
     	}
@@ -420,11 +415,17 @@ class cat_Boms extends core_Master
     	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
+    	} elseif($action == 'activate' && isset($rec->id)){
+    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
+    			$res = 'no_one';
+    		}
     	}
     	
-    	// Не може да се активира, ако няма избрани ресурси
-    	if($action == 'activate' && isset($rec->id)){
-    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
+    	// Кой може да оттегля и възстановява
+    	if(($action == 'reject' || $action == 'restore') && isset($rec)){
+    	
+    		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
+    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
     			$res = 'no_one';
     		}
     	}
@@ -783,7 +784,7 @@ class cat_Boms extends core_Master
     		$data->notManifacturable = TRUE;
     	}
     	
-    	if($data->notManifacturable === TRUE && !count($data->rows)){
+    	if(!haveRole('ceo,sales,cat,planning') || ($data->notManifacturable === TRUE && !count($data->rows))){
     		$data->hide = TRUE;
     		return;
     	}

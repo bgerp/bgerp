@@ -16,6 +16,13 @@
             </tr>
             <!--ET_END suffix-->
             
+            <!--ET_BEGIN sysId-->
+            <tr>
+                <td class="title-style">|Системен №|*</td>
+                <td>[#sysId#]</td>
+            </tr>
+            <!--ET_END sysId-->
+            
             <!--ET_BEGIN lastUsedOn-->
             <tr>
                 <td class="title-style nowrap">|Последно използване|*</td>
@@ -51,7 +58,7 @@
             
             <!--ET_BEGIN options-->
             <tr>
-                <td class="title-style">|Опции|*</td>
+                <td class="title-style" style='vertical-align:top'>|Опции|*</td>
                 <td>[#options#]</td>
             </tr>
             <!--ET_END options-->

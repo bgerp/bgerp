@@ -153,7 +153,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да го разгледа?
      */
-    public $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'powerUser';
     
     
     /**
@@ -189,7 +189,7 @@ class cat_Products extends embed_Manager {
     /**
      * Кой има достъп до единичния изглед
      */
-    public $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'powerUser';
     
 	
     /** 
@@ -583,7 +583,13 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,private=Частни)',
+    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Частни');
+    	if(!haveRole('cat,sales,ceo,purchase')){
+    		unset($orderOptions['private']);
+    	}
+    	$orderOptions = arr::fromArray($orderOptions);
+    	
+    	$data->listFilter->FNC('order', "enum({$orderOptions})",
             'caption=Подредба,input,silent,remember,refreshForm');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
@@ -1495,6 +1501,15 @@ class cat_Products extends embed_Manager {
     			$res = 'no_one';
     		}
     	}
+    	
+    	// Кой може да оттегля и възстановява
+    	if(($action == 'reject' || $action == 'restore') && isset($rec)){
+    		
+    		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
+    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -1856,6 +1871,9 @@ class cat_Products extends embed_Manager {
     	$block = $compTpl->getBlock('COMP');
     	foreach ($components as $obj){
     		$bTpl = clone $block;
+    		if($obj->quantity == cat_BomDetails::CALC_ERROR){
+    			$obj->quantity = "<span class='red'>???</span>";
+    		}
     		
     		// Ако ще показваме компонента като линк, го правим такъв
     		if($makeLinks === TRUE && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -1945,12 +1963,14 @@ class cat_Products extends embed_Manager {
     			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
-    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? '<span class="red">???</span>' : $Double->toVerbal($dRec->rowQuantity);
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $Double->toVerbal($dRec->rowQuantity);
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
     			if($obj->parent){
-    				$obj->quantity *= $res[$obj->parent]->quantity;
+    				if($res[$obj->parent]->quantity != cat_BomDetails::CALC_ERROR){
+    					$obj->quantity *= $res[$obj->parent]->quantity;
+    				}
     			}
     			
     			if($dRec->description){

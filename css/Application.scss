@@ -4805,11 +4805,15 @@ body.narrow {
     background-color: #fae3ca;
 }
 
+.logs-type-login {
+    background-color: #dbffdc;
+}
+
 .logs-type-debug {
     background-color: #eee;
 }
 
- .logs-type-notice {
+ .logs-type-notice,  .logs-type-write {
     background-color: #dff4fa;
 }
 
@@ -4817,7 +4821,7 @@ body.narrow {
     background-color: #fad0d1;
 }
 
-.logs-type-info {
+.logs-type-info, .logs-type-read {
     background-color: #fffef4;
 }
  
