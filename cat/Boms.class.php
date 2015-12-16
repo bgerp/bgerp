@@ -154,7 +154,7 @@ class cat_Boms extends core_Master
      */
     const PRICE_COEFFICIENT = 0.5;
     
-    
+    public $preventCache = TRUE;
     /**
      * Описание на модела
      */
@@ -929,9 +929,9 @@ class cat_Boms extends core_Master
     			
     			// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
     			if(isset($pInfo->meta['canStore'])){
-    				$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    				$price = cat_Products::getWacAmountInStore(1, $productId, $date);
     			} else {
-    				$price = planning_ObjectResources::getWacAmountInProduction($quantity, $productId, $date);
+    				$price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
     			}
     		}
     	} else {
@@ -939,9 +939,9 @@ class cat_Boms extends core_Master
     		
     		// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
     		if(isset($pInfo->meta['canStore'])){
-    			$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    			$price = cat_Products::getWacAmountInStore(1, $productId, $date);
     		} else {
-    			$price = planning_ObjectResources::getWacAmountInProduction($quantity, $productId, $date);
+    			$price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
     		}
     		
     		if(!isset($price)){
