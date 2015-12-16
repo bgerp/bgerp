@@ -159,6 +159,17 @@ class plg_State2 extends core_Plugin
 
             $rec->state = ($rec->state == $this->activeState ? $this->closedState : $this->activeState);
             
+            $act = '';
+            if ($rec->state == $this->activeState) {
+                $act = 'Активиране';
+            } elseif ($rec->state == $this->closedState) {
+                $act = 'Затваряне';
+            }
+            
+            if ($act) {
+                $mvc->logWrite($act, $rec->id);
+            }
+            
             $mvc->save($rec, 'state');
         }
         
