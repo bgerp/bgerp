@@ -100,10 +100,19 @@ class cat_PriceDetails extends core_Manager
     	price_Updates::prepareUpdateData($pData);
     	$data->updateData = $pData;
     	
-    	$rec->primeCost = price_ListRules::getPrice($primeCostListId, $data->masterId);
-    	if(isset($rec->primeCost)){
-    		$rec->primeCostDate = $now;
-    	}
+    	$vat = cat_Products::getVat($data->masterId);
+    	
+    	$lQuery = price_ListRules::getQuery();
+    	$lQuery->where("#listId = {$primeCostListId} AND #validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
+    	$lQuery->orderBy("#validFrom,#id", "DESC");
+        $lQuery->limit(1);
+        if($pRec = $lQuery->fetch()){
+        	$rec->primeCost = price_ListRules::normalizePrice($pRec, $vat, $now);
+        	
+	        if(isset($rec->primeCost)){
+	    		$rec->primeCostDate = $pRec->validFrom;
+	    	}
+        }
     	
     	$catalogCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $data->masterId);
     	if($catalogCost == 0 && !isset($rec->primeCost)){
@@ -120,7 +129,7 @@ class cat_PriceDetails extends core_Manager
     	$lQuery->orderBy('validFrom', 'ASC');
     	$lQuery->limit(1);
     	if($lRec = $lQuery->fetch()){
-    		$rec->futurePrimeCost = $lRec->price;
+    		$rec->futurePrimeCost = price_ListRules::normalizePrice($lRec, $vat, $now);
     		$rec->futurePrimeCostDate = $lRec->validFrom;
     	}
     	
@@ -128,7 +137,7 @@ class cat_PriceDetails extends core_Manager
     	
     	$priceCostRows = $primeCostRows = array();
     	if(isset($rec->futurePrimeCost)){
-    		$primeCostRows[] = (object)array('name' => tr('Бъдеща'), 'date' => $row->futurePrimeCostDate, 'price' => $row->futurePrimeCost, 'ROW_ATTR' => array('class' => 'state-draft'));
+    		$primeCostRows[] = (object)array('name' => tr('|Мениджърска|* (|Бъдеща|*)'), 'date' => $row->futurePrimeCostDate, 'price' => $row->futurePrimeCost, 'ROW_ATTR' => array('class' => 'state-draft'));
     	}
     	if(isset($rec->primeCost)){
     		$primeCostRows[] = (object)array('name' => tr('Мениджърска'), 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
