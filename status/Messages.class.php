@@ -362,13 +362,13 @@ class status_Messages extends core_Manager
      * 
      * @param string $type
      * 
-     * @return stdClass
+     * @return stdClass|NULL
      */
     public static function getSoundNotifications($type)
     {
-        $obj = new stdClass();
-        
         if ($type == 'error') {
+            
+            $obj = new stdClass();
             
             $notifyArr = array('title' => tr('Грешка'), 'blinkTimes' => 2);
             
@@ -377,9 +377,9 @@ class status_Messages extends core_Manager
             
             $obj->func = 'Notify';
             $obj->arg = $notifyArr;
+            
+            return $obj;
         }
-        
-        return $obj;
     }
     
     
