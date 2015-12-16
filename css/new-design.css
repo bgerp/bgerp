@@ -205,10 +205,17 @@ body {
 
 .planning.portal,
 .jobTaskDetails.portal {
-  padding: 0; }
+  padding: 0;
+  border: none; }
+  .planning.portal .tab-control.alphabet,
+  .jobTaskDetails.portal .tab-control.alphabet {
+    border: none; }
   .planning.portal .legend,
   .jobTaskDetails.portal .legend {
     margin: 0; }
+  .planning.portal .listTable,
+  .jobTaskDetails.portal .listTable {
+    border: 1px solid #cccccc; }
   .planning.portal td,
   .jobTaskDetails.portal td {
     padding-top: 5px;
@@ -219,6 +226,9 @@ body {
   .planning.portal .overflow-scroll,
   .jobTaskDetails.portal .overflow-scroll {
     margin: 0; }
+  .planning.portal .listToolbar,
+  .jobTaskDetails.portal .listToolbar {
+    border: none; }
 
 .narrow .portal {
   margin-top: -10px;

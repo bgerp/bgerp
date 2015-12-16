@@ -154,7 +154,7 @@ class cat_Boms extends core_Master
      */
     const PRICE_COEFFICIENT = 0.5;
     
-    
+    public $preventCache = TRUE;
     /**
      * Описание на модела
      */
@@ -913,10 +913,7 @@ class cat_Boms extends core_Master
     	if($type == 'sales'){
     		
     		// Първо проверяваме имали цена по политиката
-    		if($productId != 15){
-    			$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
-    		}
-    		
+    		$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
     		
     		if(!isset($price)){
     			
@@ -925,14 +922,26 @@ class cat_Boms extends core_Master
     				$price = static::getBomPrice($salesBom, $quantity, 0, 0, $date, $priceListId);
     			}
     		}
+    		
+    		// Ако и по рецепта няма тогава да гледа по складова
+    		if(!isset($price)){
+    			$pInfo = cat_Products::getProductInfo($productId);
+    			
+    			// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
+    			if(isset($pInfo->meta['canStore'])){
+    				$price = cat_Products::getWacAmountInStore(1, $productId, $date);
+    			} else {
+    				$price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
+    			}
+    		}
     	} else {
     		$pInfo = cat_Products::getProductInfo($productId);
     		
     		// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
     		if(isset($pInfo->meta['canStore'])){
-    			$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    			$price = cat_Products::getWacAmountInStore(1, $productId, $date);
     		} else {
-    			$price = planning_ObjectResources::getWacAmountInProduction($quantity, $productId, $date);
+    			$price = planning_ObjectResources::getWacAmountInProduction(1, $productId, $date);
     		}
     		
     		if(!isset($price)){

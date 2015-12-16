@@ -2879,22 +2879,33 @@ function render_scrollTo(docId) {
     getEO().scrollTo(docId);
 }
 
+
+/**
+ * 
+ */
 function render_replaceById(data) {
 
     // Неоходимите параметри
     var id = data.id;
     var html = data.html;
-
+    
     var idsArr = data.Ids.split(",");
-
-
+    
 	var id;
 
 	for (index = 0; index < idsArr.length; ++index) {
 		id = "#" + idsArr[index];
 		$(id).html( $(html).find(id).html() );
 	}
+}
 
+
+/**
+ * Форсира презареждането на страницта след връщане назад
+ */
+function render_forceReloadAfterBack()
+{
+	getEO().saveBodyId();
 }
 
 
@@ -3323,6 +3334,9 @@ function Experta() {
 
     // id на атрибута в който ще се добавя локацията
     Experta.prototype.geolocationId;
+    
+    // Име на сесията за id-та на body тага
+    Experta.prototype.bodyIdSessName = 'bodyIdArr';
 }
 
 
@@ -3699,6 +3713,66 @@ Experta.prototype.log = function(txt) {
         console.log(txt);
     }
 };
+
+
+/**
+ * Записва id-то на body в сесията на браузъра
+ */
+Experta.prototype.saveBodyId = function() {
+	// Ако не е дефиниран
+    if (typeof sessionStorage == "undefined") return ;
+
+    var bodyId = $('body').attr('id');
+    
+    if (!bodyId) return ;
+    
+    var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
+    
+    if (bodyIds) {
+    	bodyIds =  $.parseJSON(bodyIds);
+    } else {
+    	bodyIds = new Array();
+    }
+    
+    if ($.inArray(bodyId, bodyIds) == -1) {
+    	bodyIds.push(bodyId);
+    }
+    
+    sessionStorage.setItem(this.bodyIdSessName, JSON.stringify(bodyIds));
+};
+
+
+/**
+ * Проверява дали id-то на body се съдържа в сесията на браузъра
+ */
+Experta.prototype.checkBodyId = function(bodyId) {
+	if (!bodyId || typeof bodyId == 'undefined') {
+		bodyId = $('body').attr('id');
+	}
+	
+	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
+	
+	if (!bodyIds) return ;
+	
+	bodyIds =  $.parseJSON(bodyIds);
+	
+	if ($.inArray(bodyId, bodyIds) != -1) {
+    	
+		return true;
+    }
+};
+
+
+/**
+ * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
+ */
+function reloadOnPageShow() {
+	getEO().addEvent(window, 'pageshow', function() {
+        if (getEO().checkBodyId()) {
+        	location.reload();
+        }
+    });
+}
 
 
 /**
@@ -4087,3 +4161,4 @@ runOnLoad(editCopiedTextBeforePaste);
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);
 runOnLoad(onBeforeUnload);
+runOnLoad(reloadOnPageShow);

@@ -189,12 +189,22 @@ class tasks_TaskConditions extends doc_Detail
     
     
     /**
+     * Подготвя детайла
+     */
+    public function prepareDetail_($data)
+    {
+    	$data->TabCaption = 'Условия';
+    	$data->Tab = 'top';
+    	
+    	parent::prepareDetail_($data);
+    }
+    
+    
+    /**
      * Рендираме общия изглед за 'List'
      */
     public function renderDetail_($data)
     {
-    	// Ако няма записи не рендираме нищо
-    	if(!count($data->rows)) return NULL;
     	unset($data->listFields['taskId']);
     	
     	// Рендираме изгледа на детайла
@@ -210,7 +220,9 @@ class tasks_TaskConditions extends doc_Detail
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
+    	if($data->toolbar->hasBtn('btnAdd')){
+    		$data->toolbar->renameBtn('btnAdd', 'Условие');
+    	}
     }
     
     

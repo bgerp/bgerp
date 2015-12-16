@@ -200,33 +200,87 @@ class csv_Lib
     /**
      * Създава csv
      */
-    static function createCsv($recs, $listFields, $mvc)
+    static function createCsv($recs, core_FieldSet &$fieldSet, $listFields = NULL)
     {
+    	// ще вземем конфигурационните константи
+    	$conf = core_Packs::getConfig('csv');
+    	
+    	$fields = arr::make($fieldSet->fields, TRUE);
+
+    	if (isset($listFields)) {
+    		if (!is_array($listFields)) {
+    			$listFields = arr::make($listFields, TRUE);
+    		}
+    	}
+    	
+    	$exportCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
+    	if(count($recs) > $exportCnt) {
+    		redirect(array($this, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    	}
 
         foreach($recs as $rec) {
             // Всеки нов ред ва началото е празен
             $rCsv = '';
-             
-            /* за всяка колона */
-            foreach($listFields as $field) {
-                $type = $mvc->fields[$field]->type;
-                 
-                if ($type instanceof type_Key) {
-                    $value = $mvc->getVerbal($rec, $field);
-                } else {
-                    $value = $rec->{$field};
-                }
-                 
-                // escape
-                if (preg_match('/\\r|\\n|,|"/', $value)) {
-                    $value = '"' . str_replace('"', '""', $value) . '"';
-                }
-                 
-                $rCsv .= ($rCsv ? ',' : '') . $value;
-            }
+         
+             foreach ($fields as $field) { 
+	            /* за всяка колона */
+				$type = $field->type;
+	                 
+	            if ($type instanceof type_Key) {
+	                	
+	    			Mode::push('text', 'plain');
+	    			$value = $this->mvc->getVerbal($rec, $field);
+	    			Mode::pop('text');
+	    				
+	    		} elseif($type instanceof type_Double){
+	    				
+	    			$decimals = 2;
+	    				
+	    			// Закръгляме числото преди да го обърнем в нормален вид
+	    			$value = round($value, $decimals);
+	    				
+	    			$value = number_format($rec->{$field->name}, $decimals, $conf->CSV_DELIMITER_DECIMAL_SING, '');
+	    				
+	    			if(!Mode::is('text', 'plain')) {
+	    				$value = str_replace(' ', '&nbsp;', $value);
+	    			}
+	    				
+	    		} elseif($type instanceof type_Date){
+	    				
+	    			if ($conf->CSV_FORMAT_DATE == 'dot') {
+	    				$value = dt::mysql2verbal($value, 'd.m.Y');
+	    			} else {
+	    				$value = dt::mysql2verbal($value, 'm/d/y');
+	    			}
+	    				
+	    		} elseif($type instanceof type_Richtext){
+	    				
+	    			if(Mode::is('text', 'plain')) {
+	    					
+	    				Mode::push('text', 'plain');
+	    				$value = $this->mvc->getVerbal($rec, $field);
+	    				Mode::pop('text');
+	    			}
+	    
+	    		} else {
+	    			$value = $rec->{$field->name};
+	    		}
+	    			
+	    		$value = strip_tags($value);
+	    			
+	            // escape
+	            if (preg_match('/\\r|\\n|,|"/', $value)) {
+	            	$value = '"' . str_replace('"', '""', $value) . '"';
+	            }
+	                
+	            if (strpos($value, "&nbsp;")){
+	            	$value = str_replace('&nbsp;', '', $value);
+	            }
+	              
+	            $rCsv .= ($rCsv ? $conf->CSV_DELIMITER : '') . $value;
+        	}
              
             /* END за всяка колона */
-             
             $csv .= $rCsv . "\n";
         }
          
@@ -242,12 +296,25 @@ class csv_Lib
      * @param string $firstRow - първи ред данни или имена на колони
      * @return array $rows - масив с парсирани редовете на csv-то
      */
-    public static function getCsvRows($csvData, $delimiter, $enclosure, $firstRow)
+    public static function getCsvRows($csvData, $delimiter = FALSE, $enclosure = FALSE, $firstRow)
     {
+    	// ще вземем конфигурационните константи
+    	$conf = core_Packs::getConfig('csv');
+    	
+    	if (!isset($delimiter)) {
+    		$delimiter = $conf->CSV_DELIMITER;
+    	}
+    	
+    	if (!isset($enclosure)) {
+    		$enclosure = $conf->CSV_ENCLOSURE;
+    	}
+    	
     	$textArr = explode(PHP_EOL, trim($csvData));
     
     	foreach($textArr as $line){
     		$arr = str_getcsv($line, $delimiter, $enclosure);
+    		$arr = iconv('utf-8', $conf->CSV_ENCODING, $arr);
+    		
     		array_unshift($arr, "");
     		unset($arr[0]);
     		$rows[] = $arr;

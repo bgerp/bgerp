@@ -209,9 +209,15 @@ body {
 
 .planning.portal, .jobTaskDetails.portal {
     padding: 0;
- 
+    border: none;
+ 	.tab-control.alphabet{
+ 		border: none;
+ 	}
     .legend {
         margin: 0;
+    }
+    .listTable {
+   		border: 1px solid #cccccc;
     }
     td {
         padding-top: 5px;
@@ -223,7 +229,11 @@ body {
     .overflow-scroll {
         margin: 0;
     }
+    .listToolbar {
+    	border: none;
+    }
 }
+
 .narrow .portal {
     margin-top: -10px;
     margin-left: 2px;
