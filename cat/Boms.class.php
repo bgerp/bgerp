@@ -913,10 +913,7 @@ class cat_Boms extends core_Master
     	if($type == 'sales'){
     		
     		// Първо проверяваме имали цена по политиката
-    		if($productId != 15){
-    			$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
-    		}
-    		
+    		$price = price_ListRules::getPrice($priceListId, $productId, NULL, $date);
     		
     		if(!isset($price)){
     			
