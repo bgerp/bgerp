@@ -417,9 +417,9 @@ class doc_LikesPlg extends core_Plugin
                         $likesLink = "<span>" . $likesLink . "</span>";
                     }
                     
-                    $row->DocumentSettings = new ET($row->DocumentSettings);
-                    $row->DocumentSettings->append($likesLink);
-                    jquery_Jquery::runAfterAjax($row->DocumentSettings, 'showTooltip');
+                    $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
+                    $row->DocumentSettingsLeft->append($likesLink);
+                    jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'showTooltip');
                 }
             }
         }

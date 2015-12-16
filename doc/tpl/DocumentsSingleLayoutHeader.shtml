@@ -12,6 +12,12 @@
 			<div class='docBgIcon' style='[#iconStyle#]'>
 		        [#singleTitle#] <b>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
 				
+				<!--ET_BEGIN DocumentSettingsLeft-->
+					<div class='document-settings-left'>
+						[#DocumentSettingsLeft#]
+					</div>
+				<!--ET_END DocumentSettingsLeft-->
+				
 				<!--ET_BEGIN DocumentSettings-->
 					<div class='document-settings'>
 						[#DocumentSettings#]
