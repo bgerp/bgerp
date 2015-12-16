@@ -108,10 +108,12 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
     	$templates = doc_TplManager::getTemplates($mvc->getClassId());
-    	(count($templates)) ? $data->form->setOptions('template', $templates) : $data->form->setReadOnly('template');
-		if(count($templates)){
-			$data->form->setField('template', 'input=hidden');
-		}
+    	
+    	if(count($templates) >= 1){
+    		$data->form->setOptions('template', $templates);
+    	} else {
+    		$data->form->setField('template', 'input=hidden');
+    	}
     }
     
     
