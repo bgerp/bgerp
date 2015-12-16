@@ -78,17 +78,17 @@ class price_Updates extends core_Manager
     {
     	$this->FLD('objectId', 'int', 'caption=Обект,silent,mandatory');
     	$this->FLD('type', 'enum(category,product)', 'caption=Обект вид,input=hidden,silent,mandatory');
-    	$this->FLD('costSource1', 'enum(,accCost=Счетоводна себестойност,
+    	$this->FLD('costSource1', 'enum(,accCost=Складова,
     									lastDelivery=Последна доставка,
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
     									bom=Последна рецепта)', 'caption=Източник 1,mandatory');
-    	$this->FLD('costSource2', 'enum(,accCost=Счетоводна себестойност,
+    	$this->FLD('costSource2', 'enum(,accCost=Складова,
     									lastDelivery=Последна доставка,
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,
     									bom=Последна рецепа)', 'caption=Източник 2');
-    	$this->FLD('costSource3', 'enum(,accCost=Счетоводна себестойност,
+    	$this->FLD('costSource3', 'enum(,accCost=Складова,
     									lastDelivery=Последна доставка,
     									activeDelivery=Текуща поръчка,
     									lastQuote=Последна оферта,

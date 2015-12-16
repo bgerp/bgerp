@@ -640,6 +640,8 @@ class acc_Journal extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
+        if(!$rec) return;
+        
         $rec->totalAmount = 0;
         
         $dQuery = acc_JournalDetails::getQuery();
