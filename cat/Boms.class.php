@@ -922,6 +922,18 @@ class cat_Boms extends core_Master
     				$price = static::getBomPrice($salesBom, $quantity, 0, 0, $date, $priceListId);
     			}
     		}
+    		
+    		// Ако и по рецепта няма тогава да гледа по складова
+    		if(!isset($price)){
+    			$pInfo = cat_Products::getProductInfo($productId);
+    			
+    			// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
+    			if(isset($pInfo->meta['canStore'])){
+    				$price = cat_Products::getWacAmountInStore($quantity, $productId, $date);
+    			} else {
+    				$price = planning_ObjectResources::getWacAmountInProduction($quantity, $productId, $date);
+    			}
+    		}
     	} else {
     		$pInfo = cat_Products::getProductInfo($productId);
     		
