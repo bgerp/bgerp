@@ -2510,6 +2510,11 @@ class doc_Containers extends core_Manager
         
         $resStatus = array($resObj);
         
+        // Да предизвикаме релоад след връщане назад
+        $resObjReload = new stdClass();
+        $resObjReload->func = 'forceReloadAfterBack';
+        $resStatus[] = $resObjReload;
+        
         // Добавя всички функции в масива, които ще се виката
         $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
         if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
