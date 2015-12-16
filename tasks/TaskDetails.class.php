@@ -287,4 +287,16 @@ abstract class tasks_TaskDetails extends doc_Detail
     
     	return $status;
     }
+    
+    
+    /**
+     * Подготвя детайла
+     */
+    public function prepareDetail_($data)
+    {
+    	$data->TabCaption = 'Прогрес';
+    	$data->Tab = 'top';
+    	 
+    	parent::prepareDetail_($data);
+    }
 }
