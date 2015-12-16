@@ -1343,7 +1343,7 @@ td.portal-date {
 	padding: 2px 3px 0!important;
 }
 
-.document-settings {
+.document-settings, .document-settings-left {
     display: inline-block;
     height: 16px;
     float: right;
@@ -1412,6 +1412,11 @@ td.portal-date {
 			cursor: default;
 		}
 	}
+}
+
+.document-settings-left, .document-title-group {
+	float: left;
+	display: inline-block;
 }
 
 .docBgIcon {
