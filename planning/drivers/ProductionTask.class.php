@@ -21,7 +21,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Шаблон за обвивката този драйвер
 	 */
-	protected $singleLayoutFile = 'planning/tpl/SingleLayoutProductionTask.shtml';
+	//protected $singleLayoutFile = '';
 	
 	
 	/**
@@ -58,20 +58,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
-	}
-	
-	
-	/**
-	 * Преди рендиране на шаблона
-	 * 
-	 * @param tasks_BaseDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param core_ET $tpl
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterRenderSingleLayout(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
-	{
-		$tpl = getTplFromFile($Driver->singleLayoutFile);
 	}
 	
 	
@@ -140,26 +126,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$form->setField('code', 'input');
 		}
 	}
-	
-	
-	/**
-     * Възможност за промяна след рендирането на детайла
-     * 
-     * @param tasks_TaskDetails $Detail
-     * @param core_ET $tpl
-     * @param stdClass $data
-     * @return void
-     */
-    public function renderDetail(tasks_TaskDetails $Detail, &$tpl, $data)
-    {
-    	// Добавяме бутон за добавяне на прогрес при нужда
-    	if($Detail->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    			$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
-    			$tpl->append($ht, 'ADD_BTN');
-    		}
-    	} 
-    }
     
     
     /**
@@ -171,9 +137,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public function prepareListToolbarDetail(tasks_TaskDetails $Detail, &$data)
     {
-    	// Премахваме стандартния бутон за добавяне
-    	parent::prepareListToolbarDetail($Detail, $data);
-    	$data->toolbar->removeBtn('btnAdd');
+    	if($data->toolbar->hasBtn('btnAdd')){
+    		$data->toolbar->renameBtn('btnAdd', $Detail->singleTitle);
+    	}
     }
 
 
