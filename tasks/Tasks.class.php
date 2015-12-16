@@ -153,7 +153,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Клас обграждащ горния таб
      */
-    public $tabTopClass = 'tasksTopTab';
+    public $tabTopClass = 'portal planning';
     
     
     /**
