@@ -537,57 +537,35 @@ abstract class deals_DealBase extends core_Master
      * Екшън подготвя данните за експортира 
      */
     protected function prepareCsvExport(&$data)
-    {
+    { 	
     	$exportFields = $this->getExportFields();
- 
-    	$conf = core_Packs::getConfig('core');
+    	$fields = $this->getFields();
     	
-    	if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-    		redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-    	}
+    	$csv = csv_Lib::createCsv($data, $fields, $exportFields);
     	
-    	$csv = "";
-    	
-    	foreach ($exportFields as $caption) {
-    		$header .= $caption. ",";
-    	}
-    	
-    	if(count($data)) {
-    		foreach ($data as $id => $rec) {
-    			// от вербална стойност ги правим в числа
-    			$rec->quantity = (double) $rec->quantity;
-    			$rec->shipQuantity = (double) $rec->shipQuantity;
-    			$rec->bQuantity = (double) $rec->bQuantity;
+    	return $csv;
+    }
     
-    			$rCsv = '';
-    			
-    			foreach ($exportFields as $field => $caption) {
-    				$value = '';
-    			
-	    			if (isset($rec->{$field})) {
-	    			
-	    				$value = $rec->{$field};
-	    				if ($field == 'productId') {
-	    					$value = html2text_Converter::toRichText($value);
-	    				}
-	    				// escape
-	    				if (preg_match('/\\r|\\n|,|"/', $value)) {
-	    					$value = '"' . str_replace('"', '""', $value) . '"';
-	    				}
-	    				
-	    				$rCsv .= $value. ",";
-
-	    			} else {
-	    				$rCsv .= '-' . ",";
-	    			}
-    			}
-    			$csv .= $rCsv;
-    			$csv .=  "\n";
-    		}
-    		$csv = $header . "\n" . $csv;
-    	}
-    	
-    	return $csv; 
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getFields_()
+    {
+    	// Кои полета ще се показват
+		$f = new core_FieldSet;
+    	$f->FLD('code', 'varchar');
+    	$f->FLD('productId', 'varchar');
+    	$f->FLD('measure', 'varchar');
+    	$f->FLD('quantity', 'int');
+    	$f->FLD('shipQuantity', 'int');
+    	$f->FLD('bQuantity', 'int');
+    
+    	return $f;
     }
     
     
@@ -601,7 +579,7 @@ abstract class deals_DealBase extends core_Master
     protected function getExportFields_()
     {
     	// Кои полета ще се показват
-		$fields = arr::make("code=Код,
+    	$fields = arr::make("code=Код,
     					     productId=Продукт,
     					     measure=Мярка,
     					     quantity=Количество - Поръчано,
@@ -629,22 +607,25 @@ abstract class deals_DealBase extends core_Master
     	if(count($dealInfo->products)){
     		foreach ($dealInfo->products as $id => $product) { 
 		    	// ако можем да го покажем на страницата	
-		    	//if($count >= $start && $count <= $end){
-			    	$obj = new stdClass();
-			    	// информацията за продукта
-			    	$productInfo = cat_Products::getProductInfo($product->productId);
-				    // кода на продукта	
-			    	$obj->code = $productInfo->productRec->code;
-			    	// името на продукта с линк
-				    $obj->productId = cat_Products::getShortHyperLink($product->productId);
-				    // мярката му
-				    $measureId = $productInfo->productRec->measureId;
-				    $obj->measure = cat_UoM::fetchField($measureId,'shortName');
+				$obj = new stdClass();
+			    // информацията за продукта
+			    $productInfo = cat_Products::getProductInfo($product->productId);
+				// кода на продукта	
+			    $obj->code = $productInfo->productRec->code;
+			    // името на продукта с линк
+				$obj->productId = cat_Products::getShortHyperLink($product->productId);
+				// мярката му
+				$measureId = $productInfo->productRec->measureId;
+				$obj->measure = cat_UoM::fetchField($measureId,'shortName');
 				    
-				    // поръчаното количество
-				    $obj->quantity = $Int->toVerbal($product->quantity);
+				// поръчаното количество
+				$obj->quantity = $Int->toVerbal($product->quantity);
+				
+				if (!$dealInfo->shippedProducts[$id]) {
+					$obj->bQuantity = $obj->quantity;
+				}
 	
-				    $report[$id] = $obj;			    	
+				$report[$id] = $obj;			    	
 		    }
 		    
 		    // за всеки един масив от доставени продукти
@@ -667,10 +648,10 @@ abstract class deals_DealBase extends core_Master
 			    					
 			    	);
 			    // ако вече е добавен		
-			    } else {
+			    } else { 
 			    	// ще го ъпдейтнем		
 			    	$shipObj = &$report[$idShip];
-			    	
+			    
 			    	if($shipStoreId = $dealInfo->storeId){
 			    		$shipQuantityInStore = (double) store_Products::fetchField("#productId = {$shipProduct->productId} AND #storeId = {$shipStoreId}", 'quantity');
 			    			
@@ -684,11 +665,16 @@ abstract class deals_DealBase extends core_Master
 			    		if($shipDiff < 0){
 			    			$shipObj->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($shipObj->quantity)}</span>";
 			    		}
+			    	} else { 
+			    		// като добавим доставеното количесто
+			    		$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    		// и намерим остатъка за доставяне
+			    		$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
 			    	}
 			    }
 		    }
     	}
-
+    	
     	$data->dealReportCSV = $report;
     	
     	// правим странициране

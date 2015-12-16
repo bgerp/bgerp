@@ -103,9 +103,10 @@ class cat_PriceDetails extends core_Manager
     	$vat = cat_Products::getVat($data->masterId);
     	
     	$lQuery = price_ListRules::getQuery();
-    	$lQuery->where("#listId = {$primeCostListId} AND #validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
+    	$lQuery->where("#listId = {$primeCostListId} AND #productId = {$data->masterId} AND #validFrom <= '{$now}' AND (#validUntil IS NULL OR #validUntil > '{$now}')");
     	$lQuery->orderBy("#validFrom,#id", "DESC");
         $lQuery->limit(1);
+        
         if($pRec = $lQuery->fetch()){
         	$rec->primeCost = price_ListRules::normalizePrice($pRec, $vat, $now);
         	

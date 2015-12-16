@@ -393,7 +393,7 @@ class core_Master extends core_Manager
 					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
     					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
     						
-    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
+    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
     					$detailsTpl->append($tabHtml);
 					}
 				}

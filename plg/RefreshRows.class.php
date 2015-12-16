@@ -151,6 +151,11 @@ class plg_RefreshRows extends core_Plugin
             $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE);
             
             $res = array($resObj);
+            
+            // Да предизвикаме релоад след връщане назад
+            $resObjReload = new stdClass();
+            $resObjReload->func = 'forceReloadAfterBack';
+            $res[] = $resObjReload;
         }
         
         return FALSE;

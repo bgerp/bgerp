@@ -135,6 +135,11 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $resStatus[] = $resObj;
         
+        // Да предизвикаме релоад след връщане назад
+        $resObjReload = new stdClass();
+        $resObjReload->func = 'forceReloadAfterBack';
+        $resStatus[] = $resObjReload;
+        
         // JS функции, които да се пуснат след AJAX
         jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
         jquery_Jquery::runAfterAjax($tpl, 'sumOfChildrenWidth');

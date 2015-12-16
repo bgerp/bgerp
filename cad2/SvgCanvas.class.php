@@ -608,6 +608,24 @@ class cad2_SvgCanvas extends core_BaseClass {
 	}
 	
 	
+	/**
+	 * Преобразуване от градуси към радиани
+	 */
+	function gradusToRad($gradus)
+	{
+		return $gradus*(pi()/180);
+	}
+	
+	
+	/**
+	 * Преобразуване от радиани към градуси
+	 */
+	function radToGradus($rad)
+	{
+		return $rad*180/pi();
+	}
+	
+	
     /**
      * Връща XML текста на SVG чертежа
      */
