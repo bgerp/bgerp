@@ -6,7 +6,8 @@
                     <td class="cell custom-header-bg" style='width:35%;'><b>Receiver</b></td>
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
                         <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>QUOTATION </b></div>
-                        <div><b>№[#number#] / [#date#]</b></div>
+                        <div><b>№[#number#]</b></div>
+                        <div style='margin-top:5px;'><b>[#date#]</b></div>
                         <!--ET_BEGIN buzPlace-->
                         <div class='quiet-small'>Place</div>
                         <div><b>[#buzPlace#]</b></div>
