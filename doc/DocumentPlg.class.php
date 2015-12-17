@@ -2534,7 +2534,10 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterTouchRec($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $mvc->save($rec, 'modifiedOn, modifiedBy');
+        
+        if ($rec) {
+            $mvc->save($rec, 'modifiedOn, modifiedBy');
+        }
     }
     
     
@@ -2837,5 +2840,19 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
     {
         $res = arr::make($res);
+    }
+    
+    
+    /**
+     * Поддържа точна информацията за записите в детайла
+     * 
+     * @param core_Manager $mvc
+     * @param integer $id
+     * @param core_Manager $detailMvc
+     */
+    static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+        // Обновява modified полетата
+        $mvc->touchRec($id);
     }
 }

@@ -50,6 +50,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	{
 		
 		$form->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент,silent,input');
+		$form->FNC('from', 'date', 'caption=Към дата,silent,input');
 		
 		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}
@@ -63,6 +64,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
 		$form->setOptions('contragentFolderId', array('' => '') + doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf'));
+		$form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
 		
 		$this->invoke('AfterPrepareEmbeddedForm', array($form));
 	}
@@ -89,7 +91,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		// Подготвяне на данните
 		$data = new stdClass();
 		$data->recs = array();
-		//$data->invRec = array();
 		
 		$data->rec = $this->innerForm;
 		$this->prepareListFields($data);
@@ -101,7 +102,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			
 			// всичко за контрагента
 			$contragentRec = cls::get($contragentCls)->fetch($contragentId);
-
 		}
 
 		// записваме го в датата
@@ -112,55 +112,50 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		$querySales = sales_Sales::getQuery();
 		$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND #state = 'active'");
 		
-		// коя е текущата ни валута
-		$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId(dt::now()),'code');
-		
+		if (isset($data->rec->from))  { 
+			// коя е текущата ни валута
+			$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId($data->rec->from),'code');
+		} else {
+			$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId(dt::now()),'code');
+		}
+	
 		while ($recSale = $querySales->fetch()) {
-			
+			$toPaid = '';
 			// нефакторираното е разлика на доставеното и фактурираното
 			$data->notInv += $recSale->amountDelivered - $recSale->amountInvoiced;
 			
 			// плащаме в датат валутата на сделката
 			$data->currencyId = $recSale->currencyId;
-
+		
 			// ако имаме едно ниво на толеранс от задължение > на 0,5
-			if ($recSale->amountDelivered - $rec->amountPaid >= '0.5') {
-
+			if ($recSale->amountDelivered - $recSale->amountPaid >= '0.5') {
+				
 				// то ще търсим всички фактури
 				// които са в нишката на тази продажба
 				// и са активни
 				$queryInvoices = sales_Invoices::getQuery();
 				$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active'");
 				$queryInvoices->orderBy("#date", "DESC");
-				$toPaid = '';
 
 				while ($invRec = $queryInvoices->fetch()){
-
 					// платеното е разлика на достовеното и салдото
-					$paid =  $recSale->amountDelivered - $recSale->amountBl;
+					$paid = $recSale->amountDelivered - $recSale->amountBl;
+					
 					// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
 					$amountVat =  $invRec->dealValue + $invRec->vatAmount;
 					// имаме една чек сума, която е по-малкото от двете числа:
 					// платено и сумата на фактурата
 					$checkSum =  min($paid,$amountVat);
+				
+					
 
-					// ако валутата на сделката е разлина от сегашната ни валута
-					// обръщаме всичко във валутата на сделката	
-					if ($recSale->currencyId != $currencyNow) { 
-						$paid = currency_CurrencyRates::convertAmount($paid, $invRec->date, $currencyNow, $recSale->currencyId);
-						$amountVat = currency_CurrencyRates::convertAmount($amountVat, $invRec->date, $currencyNow, $recSale->currencyId);
-						$toPaid = currency_CurrencyRates::convertAmount($toPaid, $invRec->date, $currencyNow, $recSale->currencyId);
-						
-						$checkSum =  min($paid,$amountVat);
-					}
-						
 				    // на първа стъпка остатъка за плащане е разликата
 				    // на платеното и стойността на фактурата
-					if(!$toPaid && $paid  !=  '0') {
+					if(!$toPaid && $paid  !=  '0') { 
 						$toPaid = abs($paid - $amountVat);
 						// ако нищо не е платено по тази сделка
 						// дължимата сума е сумата по фактура
-					} elseif ($paid  ==  '0') { 
+					} elseif ($paid  ==  '0') { bp();
 						$toPaid = $amountVat;
 						// на всяка следваща стъпка, остатъка намалява с 
 						// чек сумата
@@ -195,23 +190,28 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					$sumToPaid += $toPaid;
 					// сумираме за общия ред всички стойности на фактури
 					$sumInvVat += $amountVat;
-					
+				
 					// сумарбния ред 
 					$data->sum = (object) array('amountVat'=> $sumInvVat,
 							                    'toPaid'=> $sumToPaid,
 							                    'currencyId'=>$recSale->currencyId);
+					
 					// ако има остатък за плащане
 					if ($toPaid) {
 						// и дадата за плащане е някъде в миналото
 						if ($invRec->dueDate == NULL || $invRec->dueDate < dt::now()) {
 							// то тази сума е просрочена
-							$data->sum->arrears = $sumToPaid;
+							$data->sum->arrears += $toPaid;
+							
+							if($invRec->currencyId != $currencyNow) {
+								$data->sum->arrears = currency_CurrencyRates::convertAmount($data->sum->arrears,$invRec->date, $currencyNow, $data->sum->currencyId);
+							}
 						}
 					}
 				}
 			}
 		}
-		
+
 		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, dt::now(), $currencyNow, $data->currencyId);
 
 		// ако нямаме рекове, но имаме нефактурирана стойност
@@ -220,10 +220,26 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			
 			$data->sum = (object) array('notInv'=>  $data->notInv);
 		} elseif ((!count($data->recs) && $data->notInv != 0) || (count($data->recs)&& $data->notInv != 0)) {
-			//$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, dt::now(), $currencyNow, $data->sum->currencyId);
 			$data->sum->notInv = $data->notInv;
 			$data->sum->currencyId = $data->currencyId;
 		}
+
+		foreach ($data->recs as $rec) { 
+			// ако валутата на сделката е разлина от сегашната ни валута
+			// обръщаме всичко във валутата на сделката
+			if ($rec->currencyId != $currencyNow) {
+			 $rec->amountVat = currency_CurrencyRates::convertAmount($rec->amountVat, $rec->date, $currencyNow, $rec->currencyId);
+			 $rec->amountRest = currency_CurrencyRates::convertAmount($rec->amountRest, $rec->date, $currencyNow, $rec->currencyId);
+			 $rec->amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->date, $currencyNow, $rec->currencyId);
+
+			}
+		}
+		
+		if ($data->sum->currencyId !=  $currencyNow) {
+			$data->sum->amountVat = currency_CurrencyRates::convertAmount($data->sum->amountVat, $data->rec->from, $currencyNow,$data->sum->currencyId);
+			$data->sum->toPaid = currency_CurrencyRates::convertAmount($data->sum->toPaid, $data->rec->from, $currencyNow, $data->sum->currencyId);
+			$data->sum->currencyId = currency_CurrencyRates::convertAmount($data->sum->currencyId, $data->rec->from, $currencyNow, $data->sum->currencyId);
+         }		
 
 		return $data;
 	}
@@ -254,7 +270,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					'amountToPaid' => $Double->toVerbal($data->sum->toPaid),
 					'amountArrears' => $Double->toVerbal($data->sum->arrears)
 			);
-			
+	
 			foreach ($data->recs as $rec) {
 				if(!$pager->isOnPage()) continue;
 		
@@ -283,7 +299,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					</div>";
 				} else {
 					unset ($row->amount);
-					unset ($data->summary->amountArrears);
+					$data->summary->amountArrears -= $row->amount;
 				}
 		
 				$data->rows[] = $row;
@@ -316,6 +332,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				);
             // ако вече има
 			} else {
+
 				// добавяме нафактурираното към сумата на вече намерените 
 				$data->summary->amountInv += $data->sum->notInv;
 				$data->summary->amountInv = $Double->toVerbal($data->summary->amountInv);
@@ -360,9 +377,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     
     	$form->rec = $data->rec;
     	$form->class = 'simpleForm';
-    
-    	//$tpl->prepend($form->renderStaticHtml(), 'FORM');
-    	//bp($data);
+
     	$tpl->replace($data->contragent->titleLink, 'contragent');
     	$tpl->replace($data->contragent->vatId, 'eic');
     	
@@ -570,9 +585,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	
 		$exportFields =  $this->getExportFields();
 		$rec = self::getVerbal($rec);
-		//$rec = frame_CsvLib::prepareCsvRows($rec);// Ще оцветим всеки ред в състоянието на записа
-		
-	
+
 		$rCsv = '';
 	
 		foreach ($rec as $field => $value) {

@@ -402,9 +402,14 @@ class core_Cron extends core_Manager
      */
     function unlockProcess($rec)
     {
-        $rec->state = 'free';
-        $rec->lastDone = dt::verbal2mysql();
-        $this->save($rec, 'state,lastDone');
+        if (!$rec || !$rec->id) return ;
+        $rec = $this->fetch($rec->id);
+        
+        if ($rec->state == 'locked') {
+            $rec->state = 'free';
+            $rec->lastDone = dt::verbal2mysql();
+            $this->save($rec, 'state,lastDone');
+        }
     }
     
     
