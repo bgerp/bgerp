@@ -183,10 +183,8 @@ class oembed_Plugin extends core_Plugin
         
         if ($response['cache_age'] !== 0) {
             
-            if (core_App::isConnectionSecure()) {
-                if ($api['forceSecureSrc']) {
-                    $response['html'] = preg_replace_callback('/\s+src\s*=\s*(\'|\")(http:\/\/)/', array(get_called_class(), 'replaceHttp'), $response['html']);
-                }
+            if ($api['forceSecureSrc']) {
+                $response['html'] = preg_replace_callback('/\s+src\s*=\s*(\'|\")(http:\/\/)/', array(get_called_class(), 'replaceHttp'), $response['html']);
             }
             
             $cacheRec = array(
