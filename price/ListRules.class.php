@@ -198,7 +198,7 @@ class price_ListRules extends core_Detail
  
         if($rec) {
             if($rec->type == 'value') {
-                
+                //bp($rec);
             	$vat = cat_Products::getVat($productId, $datetime);
             	$price = self::normalizePrice($rec, $vat, $datetime);
 

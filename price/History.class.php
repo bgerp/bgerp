@@ -75,13 +75,13 @@ class price_History extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'price,ceo';
+	var $canList = 'priceMaster,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'price,ceo';
+	var $canSingle = 'priceMaster,ceo';
 
 	
     /**

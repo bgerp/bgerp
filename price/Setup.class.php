@@ -75,8 +75,9 @@ class price_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = array(array('priceWatcher'),
-    				   array('price', 'priceWatcher'),
+    var $roles = array(array('priceDealer'),
+    				   array('price', 'priceDealer'),
+    				   array('priceMaster', 'price'),
     );
     
 
@@ -84,7 +85,7 @@ class price_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price, ceo"),
+            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "priceMaster, ceo"),
         );
     
     
