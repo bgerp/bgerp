@@ -1057,4 +1057,21 @@ class core_App
     		self::$timeSetTimeLimit = $now;
     	}
     }
+    
+    
+    /**
+     * Проверка дали връзката е по https
+     * 
+     * @return boolean
+     */
+    public static function isConnectionSecure()
+    {
+        static $isSecure = NULL;
+        
+        if (!isset($isSecure)) {
+            $isSecure = (boolean) ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
+        }
+        
+        return $isSecure;
+    }
 }
