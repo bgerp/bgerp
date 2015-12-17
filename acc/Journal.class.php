@@ -385,6 +385,9 @@ class acc_Journal extends core_Master
         	if($notifyDocument === TRUE){
         		$docClass->finalizeTransaction($docRec);
         	}
+        	
+        	// Нотифицираме документа че транзакцията му е записана
+        	$mvc->invoke('AfterTransactionIsSaved', array($docRec));
         }
         
         return $success;
@@ -466,6 +469,10 @@ class acc_Journal extends core_Master
     		// Инвалидираме балансите, които се променят от този вальор
     		acc_Balances::alternate($rec->valior);
     	}
+    	
+    	// Нотифицираме документа че транзакцията му е записана
+    	$DocClass = cls::get($docClassId);
+    	$DocClass->invoke('AfterTransactionIsDeleted', array($DocClass->fetchRec($docId)));
     	
     	return array($docClassId, $docId);
     }

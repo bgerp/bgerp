@@ -57,37 +57,37 @@ class price_Groups extends core_Master
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'price,ceo';
+    var $canEdit = 'priceMaster,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'price,ceo';
+	var $canList = 'priceMaster,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'price,ceo';
+	var $canSingle = 'priceMaster,ceo';
     
 	
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'price,ceo';
+    var $canAdd = 'priceMaster,ceo';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'price,ceo';
+    var $canDelete = 'priceMaster,ceo';
 
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'price,ceo';
+    var $canEditsysdata = 'priceMaster,ceo';
     
 
     /**

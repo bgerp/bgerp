@@ -44,13 +44,13 @@ class price_Updates extends core_Manager
     /**
      * Кой може да го промени?
      */
-    public $canWrite = 'price,ceo';
+    public $canWrite = 'priceMaster,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'price,ceo';
+    public $canDelete = 'priceMaster,ceo';
     
     
     /**
@@ -62,13 +62,13 @@ class price_Updates extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canRead = 'price,ceo';
+	public $canRead = 'priceMaster,ceo';
 	
 	
 	/**
 	 * Кой може ръчно да обновява себестойностите?
 	 */
-	public $canSaveprimecost = 'price,ceo';
+	public $canSaveprimecost = 'priceMaster,ceo';
 	
 	
     /**

@@ -196,8 +196,8 @@ class blogm_Articles extends core_Master {
     {
         if($Detail->className == 'blogm_Comments') {
             $queryC = $detailMvc->getQuery();
-            $queryC->where("#articleId = {$articleId} AND #state = 'active'");
-            $rec = $mvc->fetch($articleId);
+            $queryC->where("#articleId = {$id} AND #state = 'active'");
+            $rec = $mvc->fetch($id);
             $rec->commentsCnt = $queryC->count();
             $mvc->save($rec);
         }
