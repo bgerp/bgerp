@@ -63,31 +63,31 @@ class price_Lists extends core_Master
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'price,ceo';
+    var $canEdit = 'priceMaster,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'sales,price,ceo';
+    var $canAdd = 'sales,priceMaster,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'price,ceo';
+    var $canList = 'priceMaster,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'price,ceo';
+	var $canSingle = 'priceMaster,ceo';
 	
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'price,ceo';
+    var $canDelete = 'priceMaster,ceo';
  
      
     /**  

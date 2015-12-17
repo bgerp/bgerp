@@ -51,19 +51,19 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'price,ceo';
+    var $canEdit = 'priceMaster,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'price,ceo';
+    var $canAdd = 'priceMaster,ceo';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'price,ceo';
+    var $canDelete = 'priceMaster,ceo';
     
     
     /**

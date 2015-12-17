@@ -37,7 +37,7 @@ class cat_PriceDetails extends core_Manager
     /**
      * Кой може да чете
      */
-    public $canSeeprices = 'ceo,priceWatcher';
+    public $canSeeprices = 'ceo,priceDealer';
     
     
     /**
@@ -96,10 +96,6 @@ class cat_PriceDetails extends core_Manager
     		$rec = new stdClass();
     	}
     	
-    	$pData = clone $data;
-    	price_Updates::prepareUpdateData($pData);
-    	$data->updateData = $pData;
-    	
     	$vat = cat_Products::getVat($data->masterId);
     	
     	$lQuery = price_ListRules::getQuery();
@@ -137,31 +133,41 @@ class cat_PriceDetails extends core_Manager
     	$row = price_ProductCosts::recToVerbal($rec);
     	
     	$priceCostRows = $primeCostRows = array();
-    	if(isset($rec->futurePrimeCost)){
-    		$primeCostRows[] = (object)array('name' => tr('|Мениджърска|* (|Бъдеща|*)'), 'date' => $row->futurePrimeCostDate, 'price' => $row->futurePrimeCost, 'ROW_ATTR' => array('class' => 'state-draft'));
+    	
+    	if(haveRole('priceDealer,ceo')){
+    		if(isset($rec->futurePrimeCost)){
+    			$primeCostRows[] = (object)array('name' => tr('|Мениджърска|* (|Бъдеща|*)'), 'date' => $row->futurePrimeCostDate, 'price' => $row->futurePrimeCost, 'ROW_ATTR' => array('class' => 'state-draft'));
+    		}
+    		if(isset($rec->primeCost)){
+    			$primeCostRows[] = (object)array('name' => tr('Мениджърска'), 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
+    		}
     	}
-    	if(isset($rec->primeCost)){
-    		$primeCostRows[] = (object)array('name' => tr('Мениджърска'), 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
-    	}
-    	if(isset($rec->accCost)){
-    		$primeCostRows[] = (object)array('name' => tr('Складова'), 'date' => $row->accCostDate, 'price' => $row->accCost, 'ROW_ATTR' => array('class' => 'state-active'));
-    	}
-    	if(isset($rec->activeDelivery)){
-    		$primeCostRows[] = (object)array('name' => tr('Текуща поръчка'), 'documentId' => $row->activeDeliveryId, 'date' => $row->activeDeliveryDate, 'price' => $row->activeDelivery, 'ROW_ATTR' => array('class' => 'state-active'));
-    	}
-    	if(isset($rec->lastDelivery)){
-    		$primeCostRows[] = (object)array('name' => tr('Последна доставка'), 'documentId' => $row->lastDeliveryId, 'date' => $row->lastDeliveryDate, 'price' => $row->lastDelivery, 'ROW_ATTR' => array('class' => 'state-active'));
-    	}
-    	if(isset($rec->bom)){
-    		$primeCostRows[] = (object)array('name' => tr('Последна рецепта'), 'documentId' => $row->bomId, 'date' => $row->bomIdDate, 'price' => $row->bom, 'ROW_ATTR' => array('class' => 'state-active'));
+    	
+    	if(haveRole('price,ceo')){
+    		$pData = clone $data;
+    		price_Updates::prepareUpdateData($pData);
+    		$data->updateData = $pData;
+    		
+    		if(isset($rec->accCost)){
+    			$primeCostRows[] = (object)array('name' => tr('Складова'), 'date' => $row->accCostDate, 'price' => $row->accCost, 'ROW_ATTR' => array('class' => 'state-active'));
+    		}
+    		if(isset($rec->activeDelivery)){
+    			$primeCostRows[] = (object)array('name' => tr('Текуща поръчка'), 'documentId' => $row->activeDeliveryId, 'date' => $row->activeDeliveryDate, 'price' => $row->activeDelivery, 'ROW_ATTR' => array('class' => 'state-active'));
+    		}
+    		if(isset($rec->lastDelivery)){
+    			$primeCostRows[] = (object)array('name' => tr('Последна доставка'), 'documentId' => $row->lastDeliveryId, 'date' => $row->lastDeliveryDate, 'price' => $row->lastDelivery, 'ROW_ATTR' => array('class' => 'state-active'));
+    		}
+    		if(isset($rec->bom)){
+    			$primeCostRows[] = (object)array('name' => tr('Последна рецепта'), 'documentId' => $row->bomId, 'date' => $row->bomIdDate, 'price' => $row->bom, 'ROW_ATTR' => array('class' => 'state-active'));
+    		}
+    		
+    		if(isset($rec->lastQuote)){
+    			$priceCostRows[] = (object)array('name' => tr('Последна оферта'), 'documentId' => $row->lastQuoteId, 'date' => $row->lastQuoteDate, 'price' => $row->lastQuote, 'ROW_ATTR' => array('class' => 'state-active'));
+    		}
     	}
     	
     	if(isset($rec->catalogCost)){
     		$priceCostRows[] = (object)array('name' => tr('Каталог'), 'date' => $row->catalogCostDate, 'price' => $row->catalogCost, 'ROW_ATTR' => array('class' => 'state-active'));
-    	}
-    	
-    	if(isset($rec->lastQuote)){
-    		$priceCostRows[] = (object)array('name' => tr('Последна оферта'), 'documentId' => $row->lastQuoteId, 'date' => $row->lastQuoteDate, 'price' => $row->lastQuote, 'ROW_ATTR' => array('class' => 'state-active'));
     	}
     	
     	$data->primeCostRows = $primeCostRows;
@@ -189,10 +195,12 @@ class cat_PriceDetails extends core_Manager
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	
     	// Рендираме информацията за себестойностите
-    	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
-    	$table->setFieldsToHideIfEmptyColumn('documentId');
-    	$primeCostTpl = $table->get($data->primeCostRows, "name=Себестойност,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
-    	$tpl->append($primeCostTpl, 'primeCosts');
+    	if(count($data->primeCostRows)){
+    		$table = cls::get('core_TableView', array('mvc' => $fieldSet));
+    		$table->setFieldsToHideIfEmptyColumn('documentId');
+    		$primeCostTpl = $table->get($data->primeCostRows, "name=Себестойност,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
+    		$tpl->append($primeCostTpl, 'primeCosts');
+    	}
     	
     	// Рендираме информацията за обновяване
     	if(count($data->updateData->rows)){
