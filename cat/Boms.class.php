@@ -425,7 +425,7 @@ class cat_Boms extends core_Master
     	if(($action == 'reject' || $action == 'restore') && isset($rec)){
     	
     		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
-    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
+    		if(!haveRole($mvc->getRequiredRoles('edit'))){
     			$res = 'no_one';
     		}
     	}
