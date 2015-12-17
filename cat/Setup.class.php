@@ -517,7 +517,7 @@ class cat_Setup extends core_ProtoSetup
     					$recsToSave[] = $dRec;
     						
     				} else {
-    					if(empty($measureArr[$dRec->productId])){
+    					if(empty($measureArr[$dRec->productId]) && isset($dRec->productId)){
     						$measureArr[$dRec->productId] = cat_Products::fetchField($dRec->productId, 'measureId');
     					}
     					$dRec->packagingId = $measureArr[$dRec->productId];

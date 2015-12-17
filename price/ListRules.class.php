@@ -68,19 +68,19 @@ class price_ListRules extends core_Detail
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo,price';
+    var $canRead = 'ceo,priceMaster';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'ceo,price';
+    var $canEdit = 'ceo,priceMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,price';
+    var $canAdd = 'ceo,priceMaster';
     
     
     /**
