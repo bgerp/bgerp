@@ -197,7 +197,6 @@ class drdata_Vats extends core_Manager
      */
     public function check($vat)
     {
-        Debug::startTimer('DRDATA_CHECK');
         $canonocalVat = $this->canonize($vat);
         
         $rec = $this->fetch(array("#vat = '[#1#]'", $canonocalVat));
@@ -229,7 +228,6 @@ class drdata_Vats extends core_Manager
                 }
             }
         }
-        Debug::stopTimer('DRDATA_CHECK');
         
         return array($rec->status, $rec->info);        
     }
@@ -298,7 +296,7 @@ class drdata_Vats extends core_Manager
         foreach ($this->updateOnShutdown as $rec) {
             list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec, 'status, info, status');
+            $this->save($rec, 'status, info, lastChecked');
         }
     }
     
