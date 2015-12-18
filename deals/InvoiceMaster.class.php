@@ -83,7 +83,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
-    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
+    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime,input=hidden');
+    	$mvc->FLD('displayRate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
     	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
     	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
@@ -172,9 +173,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$this->$Detail->calculateAmount($recs, $rec);
     	
-    	$rec->dealValue = $this->_total->amount * $rec->rate;
-    	$rec->vatAmount = $this->_total->vat * $rec->rate;
-    	$rec->discountAmount = $this->_total->discount * $rec->rate;
+    	$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+    	
+    	$rec->dealValue = $this->_total->amount * $rate;
+    	$rec->vatAmount = $this->_total->vat * $rate;
+    	$rec->discountAmount = $this->_total->discount * $rate;
     	
     	if($save){
     		return $this->save($rec);
@@ -608,7 +611,9 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		}
 	   		
 	   		$this->invoke('BeforePrepareSummary', array($this->_total));
-	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, $rec->tplLang);
+	   		
+	   		$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, TRUE, $rec->tplLang);
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
 	   		$data->row->vatAmount = $data->summary->vatAmount;
 	   	}
@@ -691,7 +696,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		$form->rec->vatRate    = $aggregateInfo->get('vatType');
     		$form->rec->currencyId = $aggregateInfo->get('currency');
-    		$form->setSuggestions('rate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
+    		$form->rec->rate       = $aggregateInfo->get('rate');
+    		$form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
     		
     		if($aggregateInfo->get('paymentMethodId')){
     			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
@@ -747,14 +753,14 @@ abstract class deals_InvoiceMaster extends core_Master
     			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
     		}
     		
-    		if(!$rec->rate){
-    			$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
-    			if(!$rec->rate){
+    		if(!$rec->displayRate){
+    			$rec->displayRate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
+    			if(!$rec->displayRate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
     		} else {
-    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
-    				$form->setWarning('rate', $msg);
+    			if($msg = currency_CurrencyRates::hasDeviation($rec->displayRate, $rec->date, $rec->currencyId, NULL)){
+    				$form->setWarning('displayRate', $msg);
     			}
     		}
     		 
@@ -843,6 +849,8 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function getVerbalInvoice($mvc, $rec, $row, $fields)
     {
+    	$row->rate = ($rec->displayRate) ? $row->displayRate : $row->rate;
+    	
     	if($rec->number){
     		$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	}
@@ -909,6 +917,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->vatDate = $mvc->getFieldType('vatDate')->toVerbal($rec->date);
     		}
     		
+    		
     		$mvc->prepareMyCompanyInfo($row);
     		core_Lg::pop();
     	}
@@ -926,8 +935,8 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	return tr("|{$row->type}|* №{$num}");
     }
-
-
+    
+    
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
