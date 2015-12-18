@@ -91,6 +91,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		// Подготвяне на данните
 		$data = new stdClass();
 		$data->recs = array();
+		$data->sum = array();
 		
 		$data->rec = $this->innerForm;
 		$this->prepareListFields($data);
@@ -137,41 +138,20 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				$queryInvoices->where("#threadId = '{$recSale->threadId}' AND #state = 'active'");
 				$queryInvoices->orderBy("#date", "DESC");
 
+				// платеното е разлика на достовеното и салдото
+				$paid = $recSale->amountDelivered - $recSale->amountBl;
+
 				while ($invRec = $queryInvoices->fetch()){
-					// платеното е разлика на достовеното и салдото
-					$paid = $recSale->amountDelivered - $recSale->amountBl;
-					
+
 					// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
 					$amountVat =  $invRec->dealValue + $invRec->vatAmount;
-					// имаме една чек сума, която е по-малкото от двете числа:
-					// платено и сумата на фактурата
-					$checkSum =  min($paid,$amountVat);
-				
+
+					if (!$checkSum) { 
+						$checkSum = $paid - $amountVat;
+					} else{
+						$toPaid = $amountVat - $checkSum;
+					}
 					
-
-				    // на първа стъпка остатъка за плащане е разликата
-				    // на платеното и стойността на фактурата
-					if(!$toPaid && $paid  !=  '0') { 
-						$toPaid = abs($paid - $amountVat);
-						// ако нищо не е платено по тази сделка
-						// дължимата сума е сумата по фактура
-					} elseif ($paid  ==  '0') { bp();
-						$toPaid = $amountVat;
-						// на всяка следваща стъпка, остатъка намалява с 
-						// чек сумата
-					} else {
-						$toPaid = abs($toPaid - $checkSum);
-					}
-
-					// ако дължимата сума е около 0
-					// или стойноста на фактурата съвпадне с чек сумата
-					// игнорираме тези редове
-					if (round($toPaid,2) == 0) {
-						continue;
-					} else {
-						//if ($checkSum == $amountVat) continue;  
-					}
-
 					// правим рековете
 					$data->recs[] = (object) array ("contragentCls" => $contragentCls,
 													'contragentId' => $contragentId,
@@ -182,64 +162,45 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 													'number'=>$invRec->number,
 													'amountVat'=> $amountVat,
 													'amountRest'=> $toPaid ,
-													'amount'=> $toPaid,
 													'paymentState'=>$recSale->paymentState,
+							                        'dueDate'=>$invRec->dueDate
 					);
-					
-					// сумираме за общия ред всички остатъци
-					$sumToPaid += $toPaid;
-					// сумираме за общия ред всички стойности на фактури
-					$sumInvVat += $amountVat;
-				
-					// сумарбния ред 
-					$data->sum = (object) array('amountVat'=> $sumInvVat,
-							                    'toPaid'=> $sumToPaid,
-							                    'currencyId'=>$recSale->currencyId);
-					
-					// ако има остатък за плащане
-					if ($toPaid) {
-						// и дадата за плащане е някъде в миналото
-						if ($invRec->dueDate == NULL || $invRec->dueDate < dt::now()) {
-							// то тази сума е просрочена
-							$data->sum->arrears += $toPaid;
-							
-							if($invRec->currencyId != $currencyNow) {
-								$data->sum->arrears = currency_CurrencyRates::convertAmount($data->sum->arrears,$invRec->date, $currencyNow, $data->sum->currencyId);
-							}
-						}
-					}
 				}
 			}
 		}
 
-		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, dt::now(), $currencyNow, $data->currencyId);
+        foreach ($data->recs as $rec) {
+        	
+        	if ($rec->dueDate == NULL || $rec->dueDate < dt::now()) {
+        		$rec->amount = $rec->amountRest;
+        	}
+        	
+        	if ($rec->currencyId != $currencyNow) {
+        		$rec->amountVat = currency_CurrencyRates::convertAmount($rec->amountVat, $rec->date, $currencyNow, $rec->currencyId);
+        		$rec->amountRest = currency_CurrencyRates::convertAmount($rec->amountRest, $rec->date, $currencyNow, $rec->currencyId);
+        		$rec->amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->date, $currencyNow, $rec->currencyId);
+        	} 
 
-		// ако нямаме рекове, но имаме нефактурирана стойност
-		if (!$data->sum && $data->notInv){ 
-			// добавяме нафактурираното в датата
-			
-			$data->sum = (object) array('notInv'=>  $data->notInv);
-		} elseif ((!count($data->recs) && $data->notInv != 0) || (count($data->recs)&& $data->notInv != 0)) {
-			$data->sum->notInv = $data->notInv;
-			$data->sum->currencyId = $data->currencyId;
-		}
+        }
+        
+        if (isset ($data->notInv)) { 
+        	if ($data->currencyId != $currencyNow) {
+        		$data->notInv = currency_CurrencyRates::convertAmount($data->notInv, $data->rec->from, $currencyNow, $data->currencyId);
+        	}
+        }
+        
+        $data->sum = new stdClass();
+        foreach ($data->recs as $currRec) { 
+        	
+        	$data->sum->amountVat += $currRec->amountVat;
+        	$data->sum->toPaid += $currRec->amountRest;
+        	$data->sum->currencyId = $currRec->currencyId;
 
-		foreach ($data->recs as $rec) { 
-			// ако валутата на сделката е разлина от сегашната ни валута
-			// обръщаме всичко във валутата на сделката
-			if ($rec->currencyId != $currencyNow) {
-			 $rec->amountVat = currency_CurrencyRates::convertAmount($rec->amountVat, $rec->date, $currencyNow, $rec->currencyId);
-			 $rec->amountRest = currency_CurrencyRates::convertAmount($rec->amountRest, $rec->date, $currencyNow, $rec->currencyId);
-			 $rec->amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->date, $currencyNow, $rec->currencyId);
-
-			}
-		}
-		
-		if ($data->sum->currencyId !=  $currencyNow) {
-			$data->sum->amountVat = currency_CurrencyRates::convertAmount($data->sum->amountVat, $data->rec->from, $currencyNow,$data->sum->currencyId);
-			$data->sum->toPaid = currency_CurrencyRates::convertAmount($data->sum->toPaid, $data->rec->from, $currencyNow, $data->sum->currencyId);
-			$data->sum->currencyId = currency_CurrencyRates::convertAmount($data->sum->currencyId, $data->rec->from, $currencyNow, $data->sum->currencyId);
-         }		
+        	if ($currRec->dueDate == NULL || $currRec->dueDate < dt::now()) { 
+        		$data->sum->arrears += $currRec->amountRest;
+        	}
+        	
+        }
 
 		return $data;
 	}
@@ -288,7 +249,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 					<span class='cCode'>$data->currencyId</span>
 				 	<span>$row->amountRest</span>
 				</div>";
-				
+		
 				$dueDate = sales_Invoices::fetchField($rec->invId,dueDate);
 				
 				if ($dueDate == NULL || $dueDate < dt::now()) { 
