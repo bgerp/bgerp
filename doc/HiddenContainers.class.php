@@ -93,8 +93,6 @@ class doc_HiddenContainers extends core_Manager
         
         if (self::checkCntLimitForShow($cnt)) return ;
         
-        ksort($containerRecsArr, SORT_NUMERIC);
-        
         // Условия за скриване/показване
         $conf = core_Packs::getConfig('doc');
         $begin = $conf->DOC_SHOW_DOCUMENTS_BEGIN;
@@ -103,17 +101,21 @@ class doc_HiddenContainers extends core_Manager
         
         $i = 0;
         
-        $firstId = key($containerRecsArr);
-        
         $userId = core_Users::getCurrent();
         
         if (!$userId) return ;
         
+        $firstCid = NULL;
+        
         foreach ((array)$containerRecsArr as $cId => $cRec) {
             $i++;
             
+            if (!$firstCid && $cRec->threadId) {
+                $firstCid = doc_Threads::getFirstContainerId($cRec->threadId);
+            }
+            
             // Първия, да не се скрива, и да не може да се скрива
-            if ($cId == $firstId) continue;
+            if ($cId && ($cId == $firstCid)) continue;
             
             $rec = self::fetch("#containerId = '{$cId}' AND #userId = '{$userId}'");
             

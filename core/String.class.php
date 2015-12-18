@@ -753,8 +753,8 @@ class core_String
         if (preg_match($regexp, $expr)) {
             // Replace pi with pi function
             $result = preg_replace('!pi|π!', 'pi()', $expr); 
-            $result = preg_replace('!time!', 'time()', $expr);
-            $result = preg_replace('!\<\>!', '!=', $expr); 
+            $result = preg_replace('!time!', 'time()', $result);
+            $result = preg_replace('!\<\>!', '!=', $result); 
         } else {
             $result = FALSE;
         }
