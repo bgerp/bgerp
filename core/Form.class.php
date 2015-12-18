@@ -1151,6 +1151,11 @@ class core_Form extends core_FieldSet
                 $msg = FALSE;
             }
         }
+        
+        // Ако възникне грешка в скрито поле, да се покаже полето
+        if ($this->fields[$field]->input == 'hidden') {
+            $this->fields[$field]->input = 'input';
+        }
     }
     
     
