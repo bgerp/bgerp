@@ -47,8 +47,14 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
+    
+    /**
+     * Детайли за клониране
+     */
+    public $cloneDetailes = 'store_TransfersDetails';
+    
     
     /**
      * Дали може да бъде само в началото на нишка
