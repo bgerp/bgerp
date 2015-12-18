@@ -868,8 +868,14 @@ class doc_Threads extends core_Manager
             foreach($selArr as $threadId) {
                 try {
                     $this->move($threadId, $folderId);
+                    
+                    doc_Threads::logWrite('Преместена нишка', $threadId);
+                    
                     $successCnt++;
-                } catch ( core_Exception_Expect $expect ) { $errCnt++; }
+                } catch (core_Exception_Expect $expect) { 
+                    reportException($expect);
+                    $errCnt++; 
+                }
             }
             
             // Изходяща папка
