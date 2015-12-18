@@ -195,12 +195,10 @@ class cat_PriceDetails extends core_Manager
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	
     	// Рендираме информацията за себестойностите
-    	if(count($data->primeCostRows)){
-    		$table = cls::get('core_TableView', array('mvc' => $fieldSet));
-    		$table->setFieldsToHideIfEmptyColumn('documentId');
-    		$primeCostTpl = $table->get($data->primeCostRows, "name=Себестойност,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
-    		$tpl->append($primeCostTpl, 'primeCosts');
-    	}
+    	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
+    	$table->setFieldsToHideIfEmptyColumn('documentId');
+    	$primeCostTpl = $table->get($data->primeCostRows, "name=Себестойност,documentId=Документ,date=Дата,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
+    	$tpl->append($primeCostTpl, 'primeCosts');
     	
     	// Рендираме информацията за обновяване
     	if(count($data->updateData->rows)){
