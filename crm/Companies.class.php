@@ -110,7 +110,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId,id';
+    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,info,uicId,id';
     
 
     /**
@@ -1632,5 +1632,22 @@ class crm_Companies extends core_Master
     public function getDefaultProductParams($id)
     {
     	return array();
+    }
+    
+    
+    /**
+     * След извличане на ключовите думи
+     */
+    function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
+    {
+       	$rec = $mvc->fetchRec($rec);
+    	
+       	if (!isset($searchKeywords)) {
+       	    $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+       	}
+       	
+       	if ($rec->vatId) {
+       	    $searchKeywords .= " " . plg_Search::normalizeText($rec->vatId);
+       	}
     }
 }
