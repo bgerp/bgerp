@@ -197,6 +197,7 @@ class drdata_Vats extends core_Manager
      */
     public function check($vat)
     {
+        Debug::startTimer('DRDATA_CHECK');
         $canonocalVat = $this->canonize($vat);
         
         $rec = $this->fetch(array("#vat = '[#1#]'", $canonocalVat));
@@ -228,7 +229,8 @@ class drdata_Vats extends core_Manager
                 }
             }
         }
- 
+        Debug::stopTimer('DRDATA_CHECK');
+        
         return array($rec->status, $rec->info);        
     }
     
