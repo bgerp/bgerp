@@ -193,6 +193,8 @@ class batch_Movements extends core_Detail {
 		
 		$result = TRUE;
 		
+		if(!count($entries)) return $result;
+		
 		// За всяко движение
 		foreach ($entries as $entry2){
 			try{
