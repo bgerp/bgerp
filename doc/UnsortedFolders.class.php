@@ -352,7 +352,7 @@ class doc_UnsortedFolders extends core_Master
         	while ($recThread = $queryThread->fetch()) {		
         	
         		// ако тя последно е модифицирана преди (сега - времето за затваряне)
-        		if ($recThread->modifiedOn <= dt::timestamp2mysql($now - $rec->closeTime - 86400)){
+        		if ($recThread->modifiedOn <= dt::timestamp2mysql($now - $rec->closeTime)){
         			// автоматично я затваряме
         			$recThread->state = 'closed';
                    
