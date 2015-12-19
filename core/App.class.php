@@ -192,7 +192,7 @@ class core_App
 
                 // Дали това не е името на приложението?
                 if (!isset($q['App']) && $id == 0) {
-                    $q['App'] = strtolower($prm);
+                    $q['App'] =  preg_replace("/[^a-zA-Z0-9_\-]*/", '', strtolower($prm));
                     continue;
                 }
 
@@ -207,7 +207,7 @@ class core_App
                             $className{0} = strtoupper($prm{0});
                         }
                     }
-                    $q['Ctr'] = $prm;
+                    $q['Ctr'] =  preg_replace("/[^a-zA-Z0-9_]*/", '', strtolower($prm));
                     continue;
                 }
 
