@@ -102,7 +102,8 @@ class oembed_Plugin extends core_Plugin
             'regex' => '#vbox7.com/play:.+#i',
             'api' => 'http://vbox7.com/etc/oembed/',
             'format' => 'xml',
-            'example' => 'http://vbox7.com/play:7981015ce8'),
+            'example' => 'http://vbox7.com/play:7981015ce8',
+            'forceSecureSrc' => TRUE),
         'Cacco' => array (
             'regex' => '#cacoo.com/diagrams/.*#i',
             'api' => 'http://cacoo.com/oembed.json',
@@ -148,13 +149,23 @@ class oembed_Plugin extends core_Plugin
             return FALSE;
         }
         
-        if (($html = oembed_Cache::getCachedHtml($url)) !== FALSE) {
+        $nUrl = $url;
+        if (core_App::isConnectionSecure()) {
+            $nUrl = str_ireplace('http://', 'https://', $nUrl);
+        }
+        
+        if (($html = oembed_Cache::getCachedHtml($nUrl)) !== FALSE) {
             // Попадение в кеша!
             return $html;
         }
         
         if (!$api = static::getOembedServer($url)) {
             return FALSE;
+        }
+        
+        // Ако не е зададено да се спира форсирането за https
+        if (!$api['stopForceSecure']) {
+            $url = $nUrl;
         }
         
         if (!$response = static::oembedRequest($api, $url)) {
@@ -172,9 +183,9 @@ class oembed_Plugin extends core_Plugin
         
         if ($response['cache_age'] !== 0) {
             
-//            if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443) {
+            if ($api['forceSecureSrc']) {
                 $response['html'] = preg_replace_callback('/\s+src\s*=\s*(\'|\")(http:\/\/)/', array(get_called_class(), 'replaceHttp'), $response['html']);
-//            }
+            }
             
             $cacheRec = array(
                 'url' => $url,

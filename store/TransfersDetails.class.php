@@ -84,6 +84,12 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
+     * 
+     */
+    public $productFieldName = 'newProductId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
