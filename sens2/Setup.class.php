@@ -79,7 +79,7 @@ class sens2_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.4, 'Мониторинг', 'MOM2', 'sens2_Indicators', 'default', "sens, ceo,admin"),
+            array(3.4, 'Мониторинг', 'Сензори', 'sens2_Indicators', 'default', "sens, ceo,admin"),
         );
     
         
