@@ -207,7 +207,7 @@ class core_App
                             $className{0} = strtoupper($prm{0});
                         }
                     }
-                    $q['Ctr'] =  preg_replace("/[^a-zA-Z0-9_]*/", '', strtolower($prm));
+                    $q['Ctr'] =  preg_replace("/[^a-zA-Z0-9_]*/", '', $prm);
                     continue;
                 }
 
