@@ -254,6 +254,9 @@ class cat_BomDetails extends doc_Detail
     public static function calcExpr($expr, $params)
     {
     	$expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
+
+        $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
+
     	if(is_array($params)){
     		$expr = strtr($expr, $params);
     	}
