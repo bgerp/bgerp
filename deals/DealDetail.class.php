@@ -281,9 +281,9 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec->price  = $price;
     		
     		// Ако има такъв запис, сетваме грешка
-    		$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term);
+    		$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
     		if($exRec){
-    			$form->setError('productId,packagingId,packPrice,discount,tolerance,term', 'Вече съществува запис със същите данни');
+    			$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
     			unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
     		}
     	
