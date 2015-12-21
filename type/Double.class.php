@@ -142,11 +142,15 @@ class type_Double extends core_Type {
             $this->params['decimals'] = $this->params['decimals'];
         }
         
+        if(!$this->params['decimals']) {
+        	$this->params['decimals'] = EF_NUMBER_DECIMALS;
+        }
+        
         // Ако закръгляме умно
         if($this->params['smartRound']){
         	
         	// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-        	$this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
+        	$this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
         }
 
         // Закръгляме числото преди да го обърнем в нормален вид
