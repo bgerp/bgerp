@@ -586,7 +586,7 @@ class cat_Boms extends core_Master
     	$type = ($origin->isInstanceOf('planning_Jobs')) ? 'production' : 'sales';
     	
     	$Double = cls::get('type_Double');
-    	$Richtext = cls::get('type_RichText');
+    	$Richtext = cls::get('type_Richtext');
     	
     	$rec = (object)array('productId' => $productId,
     						 'type'		 => $type,
