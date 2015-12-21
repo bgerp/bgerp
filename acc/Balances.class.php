@@ -503,13 +503,7 @@ class acc_Balances extends core_Master
         acc_Journal::clearDrafts();
     }
     
-    function act_Test()
-    {
-    	$p = acc_Periods::fetch(19);
-    	$p->state = 'pending';
-    	acc_Periods::save($p, 'state');
-    	bp();
-    }
+    
     /**
      * Връща последния баланс
      * 
