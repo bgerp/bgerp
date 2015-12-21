@@ -709,10 +709,10 @@ a.bookmark-external-url {
   padding: 0 4px; }
 
 .notificationsCnt a.haveNtf {
-  background-color: #edd;
-  border: 1px solid #d66 !important;
-  box-shadow: 0 1px 2px 0 #f99;
-  color: #e00; }
+  background-color: #eedddd;
+  border: 1px solid #dd6666 !important;
+  box-shadow: 0 1px 2px 0 #ff9999;
+  color: #ee0000; }
 
 .notificationsCnt a.noNtf {
   display: none; }
@@ -1024,4 +1024,3 @@ only screen and (max-width: 600px) {
       right: 7px; }
     .bookmarkLink.listBookmarkLink {
       left: 7px; } }
-
