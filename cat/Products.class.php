@@ -422,7 +422,7 @@ class cat_Products extends embed_Manager {
     		$sourceRec = $document->rec();
     	
     		if($data->action != 'clone'){
-    			$form->info = cls::get('type_RichText')->toVerbal($sourceRec->inqDescription);
+    			$form->info = cls::get('type_Richtext')->toVerbal($sourceRec->inqDescription);
     			$form->info = "<small>{$form->info}</small>";
     		}
     		
