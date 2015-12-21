@@ -76,7 +76,6 @@ class marketing_Setup extends core_ProtoSetup
             'marketing_Bulletins',
             'marketing_BulletinSubscribers',
             'migrate::updateBulletinsRecs5',
-            'migrate::updateBulletinsBrid',
     		'migrate::updateInquiries',
         );
 
