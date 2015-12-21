@@ -251,6 +251,7 @@ class log_System extends core_Manager
     function cron_NotifyForSysErr()
     {
         $period = core_Cron::getPeriod(self::$notifySysId);
+        $period += 59;
         
         $from = dt::subtractSecs($period);
         
