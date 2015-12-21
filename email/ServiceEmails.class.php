@@ -72,7 +72,7 @@ class email_ServiceEmails extends core_Manager
         $headers = $mime->getHeadersVerbal();
 
         $text = $mime->textPart;
-        $textType = cls::get('type_RichText');
+        $textType = cls::get('type_Richtext');
         if($text) {
             $text = $textType->toVerbal(str::truncate($text, 20000));
 
