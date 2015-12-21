@@ -98,6 +98,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
         parent::setDocumentFields($this);
         
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -143,6 +144,11 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short');
+    			if(!empty($rec->batch)){
+    				$rec->notes .= ($rec->notes) ? "\n" : '';
+    				$rec->notes .= "lot: {$rec->batch}";
+    			}
+    			
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}

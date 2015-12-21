@@ -77,8 +77,8 @@ abstract class deals_DealDetail extends doc_Detail
     public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
-    	
-        $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
+    	$mvc->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
     	
     	// Количество в основна мярка
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
@@ -315,6 +315,11 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = $recs[$id];
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+    		if(!empty($rec->batch)){
+    			$rec->notes .= ($rec->notes) ? "\n" : '';
+    			$rec->notes .= "lot: {$rec->batch}";
+    		}
+    		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}

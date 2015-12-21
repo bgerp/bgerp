@@ -116,6 +116,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
+    	$this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
     	parent::setDocumentFields($this);
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -264,11 +265,15 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-
+    			
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
-
+                if(!empty($rec->batch)){
+                	$rec->notes .= ($rec->notes) ? "\n" : '';
+                	$rec->notes .= "lot: {$rec->batch}";
+                }
+                
     			if($rec->notes){
-    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
+    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes, $rec->batch);
     			}
     		}
     	}
