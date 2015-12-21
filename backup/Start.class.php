@@ -366,7 +366,7 @@ class backup_Start extends core_Manager
             if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
                 fileman_Data::setArchived($fileObj->id);
             } else {
-                throw new core_exception_Expect("backup не записва файл в storage!");
+                self::logErr("backup не записва файл в storage!");
             }
         }
     }
