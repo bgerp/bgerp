@@ -63,6 +63,12 @@ class docoffice_Setup extends core_ProtoSetup
     
     
     /**
+     * От кои други пакети зависи
+     */
+    var $depends = 'permanent=0.1';
+    
+    
+    /**
      * Версията на пакета
      */
     var $version = '0.1';
