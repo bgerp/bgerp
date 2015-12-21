@@ -22,6 +22,19 @@ class batch_MovementSourceIntf
 	public $class;
 	
 	
+	/**
+	 * Връща масива с партидните движения, които поражда документа,
+	 * Ако никой от артикулите няма партида връща празен масив
+	 * 
+	 * @param mixed $id - ид или запис
+	 * @return array $res - движенията
+	 * 			o int productId         - ид на артикула
+	 * 			o int storeId           - ид на склада
+	 * 			o varchar batch         - номера на партидата
+	 * 			o double quantity       - количеството
+	 * 			o in|out|stay operation - операция (влиза,излиза,стои)
+	 * 			o date date             - дата на операцията
+	 */
 	function getMovements($id)
 	{
 		return $this->class->getMovements($id);
