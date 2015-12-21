@@ -100,7 +100,7 @@ class backup_Start extends core_Manager
         }
         
         if (!is_array($metaArr)) {
-            self::logWarning("Лоша МЕТА информация!");
+            self::logErr("Лоша МЕТА информация!");
             self::unLock();
             
             shutdown();
@@ -143,7 +143,7 @@ class backup_Start extends core_Manager
         // 1. сваля се метафайла
         if (!self::$storage->getFile(self::$metaFileName)) {
             // Ако го няма - пропускаме - не е минал пълен бекъп
-            self::logWarning("ГРЕШКА при сваляне на МЕТА-а!");
+            self::logErr("ГРЕШКА при сваляне на МЕТА-а!");
             self::unLock();
             
             shutdown();
@@ -169,7 +169,7 @@ class backup_Start extends core_Manager
         $metaArr = self::getMETA();
         
         if (!is_array($metaArr)) {
-            self::logWarning("Лоша МЕТА информация!");
+            self::logErr("Лоша МЕТА информация!");
             self::unLock();
             
             shutdown();
@@ -339,7 +339,6 @@ class backup_Start extends core_Manager
         
         if ($returnVar !== 0) {
             $err = implode(",", $output);
-            self::logWarning("ГРЕШКА при криптиране");
             self::logErr("ГРЕШКА при криптиране!: {$err}");
             self::unLock();
             

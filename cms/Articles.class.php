@@ -723,7 +723,7 @@ class cms_Articles extends core_Master
             $query->where("#menuId = {$inRec->menuId} AND #state = 'active'");
             $commaList = str_replace('|', ',', trim($inRec->articles, '|'));
             $query->where("#id IN ({$commaList})");
-            $rt = cls::get('type_RichText');
+            $rt = cls::get('type_Richtext');
             $query->orderBy("#level=ASC");
 
             while($rec = $query->fetch()) {

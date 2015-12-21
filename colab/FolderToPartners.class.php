@@ -421,11 +421,11 @@ class colab_FolderToPartners extends core_Manager
     	$PML->Encoding = "quoted-printable";
     	
     	Mode::push('text', 'plain');
-    	$bodyAlt = cls::get('type_RichText')->toVerbal($rec->body);
+    	$bodyAlt = cls::get('type_Richtext')->toVerbal($rec->body);
     	Mode::pop('text');
     	
     	Mode::push('text', 'xhtml');
-    	$bodyTpl = cls::get('type_RichText')->toVerbal($rec->body);
+    	$bodyTpl = cls::get('type_Richtext')->toVerbal($rec->body);
     	email_Sent::embedSbfImg($PML);
     	
     	Mode::pop('text');

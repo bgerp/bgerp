@@ -121,6 +121,83 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logRead($action, $objectId, $lifeDays)
+     */
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    {
+        if (self::logToDocument('read', $action, $objectId, $lifeDays)) {
+            
+            return ;
+        }
+        
+        return parent::logRead($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        if (self::logToDocument('write', $action, $objectId, $lifeDays)) {
+            
+            return ;
+        }
+        
+        return parent::logWrite($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $type
+     * @param string $action
+     * @param integer|NULL $objectId
+     * @param integer|NULL $lifeDays
+     */
+    protected static function logToDocument($type, $action, $objectId, $lifeDays)
+    {
+        if (!$objectId) return ;
+        
+        $allowedType = array('read', 'write');
+        
+        if (!in_array($type, $allowedType)) {
+            
+            return ;
+        }
+        
+        try {
+            $type = strtolower($type);
+            $type = ucfirst($type);
+            
+            $fncName = 'log' . $type;
+            
+            $doc = doc_Containers::getDocument($objectId);
+            
+            $doc->getInstance()->{$fncName}($action, $doc->that, $lifeDays);
+            
+            return TRUE;
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+        }
+    }
+    
+    
+    /**
      * Връща линк към подадения обект
      * 
      * @param integer $objId
