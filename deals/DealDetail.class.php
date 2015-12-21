@@ -78,7 +78,7 @@ abstract class deals_DealDetail extends doc_Detail
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
     	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
-    	$mvc->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
+    	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
     	// Количество в основна мярка
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');

@@ -43,7 +43,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 	/**
 	 * Изпълнява се преди контиране на документа
 	 */
-	public static function on_BeforeConto1(core_Mvc $mvc, &$res, $id)
+	public static function on_BeforeConto1111(core_Mvc $mvc, &$res, $id)
 	{
 		$mvc1 = cls::get('purchase_PurchasesDetails');
 		$query = $mvc1->getQuery();

@@ -29,7 +29,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
+		$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');

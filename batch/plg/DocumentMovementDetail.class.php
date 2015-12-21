@@ -25,7 +25,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
-		$mvc->FLD('batch', 'varchar(128)', 'input=hidden,caption=Партиден №,after=productId,forceField');
+		$mvc->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
 		setIfNot($mvc->productFieldName, 'productId');
 	}
 	
@@ -56,8 +56,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
 				$form->setField('batch', 'input');
-				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($this, 1));
+				$newRow = isset($rec->id) ? FALSE : TRUE;
+				
+				$form->setFieldType('batch', $BatchClass->getBatchClassType($newRow));
+				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, 1));
 			} else {
 				$form->setField('batch', 'input=none');
 				unset($rec->batch);
@@ -65,30 +67,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			
 			if($form->isSubmitted()){
 				if(is_object($BatchClass)){
-					if(!$BatchClass->isValid($rec->batch, $msg)){
+					if(!$BatchClass->isValid($rec->batch, $rec->packQuantity, $msg)){
 						$form->setError('batch', $msg);
 					}
-				}
-			}
-		}
-	}
-	
-	
-	/**
-	 * Преди рендиране на таблицата
-	 */
-	public static function on_BeforeRenderListTable($mvc, &$res, $data)
-	{
-		if(!count($data->rows)) return;
-		$recs = $data->recs;
-		
-		foreach ($data->rows as $id => &$row){
-			if($recs[$id]->batch){
-				$batch = $mvc->getFieldType('batch')->toVerbal($recs[$id]->batch);
-				if(is_object($row->{$mvc->productFieldName})){
-					$row->productId->append('Парт. №: ' . $batch);
-				} else {
-					$row->productId .= "<br><small>lot. №: {$batch}</small>";
 				}
 			}
 		}
