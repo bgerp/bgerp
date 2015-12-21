@@ -345,9 +345,11 @@ class doc_UnsortedFolders extends core_Master
         	// заявка към базата на "нишките"
         	$queryThread = doc_Threads::getQuery();
 
+        	$closedTime = dt::timestamp2mysql($now - $rec->closeTime);
         	// търсим нишка, която отговаря на тази папка и е отворена
         	// и също така нищката трябгва да е променяна преди сега-времето за затваряне
-        	$queryThread->where("#folderId = '{$rec->folderId}' AND #state = 'opened' AND #modifiedOn <= '{dt::timestamp2mysql($now - $rec->closeTime)}' ");
+        	$queryThread->where("#folderId = '{$rec->folderId}' AND #state = 'opened' AND #modifiedOn <= '{$closedTime}' ");
+     
         	// и я взимаме
         	while ($recThread = $queryThread->fetch()) {		
         		
