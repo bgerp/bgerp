@@ -1034,6 +1034,9 @@ class cat_Boms extends core_Master
     		}
     	} else {
     		$price = NULL;
+    		if(isset($rec->coefficient)){
+    			$rQuantity /= $rec->coefficient;
+    		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
     		$newParams = static::getRowParams($rec->resourceId);
