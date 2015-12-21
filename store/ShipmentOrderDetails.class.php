@@ -116,8 +116,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public function description()
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
     	parent::setDocumentFields($this);
+    	$this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
