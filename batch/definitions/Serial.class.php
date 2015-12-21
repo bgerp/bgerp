@@ -16,15 +16,17 @@
 class batch_definitions_Serial extends batch_definitions_Proto
 {
 	
+	
 	/**
-	 * Добавя полетата на драйвера към Fieldset
+	 * Проверява дали стойността е невалидна
 	 *
-	 * @param core_Fieldset $fieldset
+	 * @return core_Type - инстанция на тип
 	 */
-	public function addFields(core_Fieldset &$fieldset)
+	public function getBatchClassType()
 	{
-		$fieldset->FLD('from', 'int', 'caption=Обхват->От,mandatory');
-		$fieldset->FLD('to', 'int', 'caption=Обхват->До,mandatory');
+		$Type = core_Type::getByName('text(rows=3)');
+	
+		return $Type;
 	}
 	
 	

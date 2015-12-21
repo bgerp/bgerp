@@ -40,12 +40,14 @@ class batch_movements_Deal
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
     	$dQuery->where("#batch IS NOT NULL OR #batch != ''");
     	
+    	$operation = ($this->class instanceof sales_Sales) ? 'out' : 'in';
+    	
     	while($dRec = $dQuery->fetch()){
     		$entries[] = (object)array('productId' => $dRec->productId,
 					    			   'batch'     => $dRec->batch,
 					    			   'storeId'   => $storeId,
 					    			   'quantity'  => $dRec->quantity,
-					    			   'operation' => 'out',
+					    			   'operation' => $operation,
 					    			   'date'	   => $rec->valior,
     		);
     	}

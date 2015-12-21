@@ -25,7 +25,20 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
-		$mvc->FLD('batch', 'varchar(128)', 'input=hidden,caption=Партиден №,after=productId');
+		$mvc->FLD('batch', 'varchar(128)', 'input=hidden,caption=Партиден №,after=productId,forceField');
+		setIfNot($mvc->productFieldName, 'productId');
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$data->form->setField('batch', 'input=hidden');
 	}
 	
 	
@@ -39,10 +52,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	{
 		$rec = &$form->rec;
 		
-		if(isset($rec->productId)){
-			$BatchClass = batch_Defs::getBatchDef($rec->productId);
+		if(isset($rec->{$mvc->productFieldName})){
+			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
-				$form->setField('batch', 'input,mandatory');
+				$form->setField('batch', 'input');
+				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				$form->setDefault('batch', $BatchClass->getAutoValue($this, 1));
 			} else {
 				$form->setField('batch', 'input=none');
@@ -71,10 +85,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		foreach ($data->rows as $id => &$row){
 			if($recs[$id]->batch){
 				$batch = $mvc->getFieldType('batch')->toVerbal($recs[$id]->batch);
-				if(is_object($row->productId)){
+				if(is_object($row->{$mvc->productFieldName})){
 					$row->productId->append('Парт. №: ' . $batch);
 				} else {
-					$row->productId .= "<br><small>Парт. №: {$batch}</small>";
+					$row->productId .= "<br><small>lot. №: {$batch}</small>";
 				}
 			}
 		}
