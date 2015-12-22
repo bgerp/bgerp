@@ -66,7 +66,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			
 			if($form->isSubmitted()){
 				if(is_object($BatchClass)){
-					if(!$BatchClass->isValid($rec->batch, $rec->packQuantity, $msg)){
+					if(!$BatchClass->isValid($rec->batch, $rec->packagingId, $rec->packQuantity, $msg)){
 						$form->setError('batch', $msg);
 					}
 				}

@@ -55,13 +55,18 @@ class batch_movements_Deal
     	$operation = ($this->class instanceof sales_Sales) ? 'out' : 'in';
     	
     	while($dRec = $dQuery->fetch()){
-    		$entries[] = (object)array('productId' => $dRec->productId,
-					    			   'batch'     => $dRec->batch,
-					    			   'storeId'   => $storeId,
-					    			   'quantity'  => $dRec->quantity,
-					    			   'operation' => $operation,
-					    			   'date'	   => $rec->valior,
-    		);
+    		$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
+    		$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
+    		
+    		foreach ($batches as $b){
+    			$entries[] = (object)array('productId' => $dRec->productId,
+					    				   'batch'     => $b,
+					    				   'storeId'   => $storeId,
+					    				   'quantity'  => $quantity,
+					    				   'operation' => $operation,
+					    				   'date'	   => $rec->valior,
+    			);
+    		}
     	}
     	
     	return $entries;
