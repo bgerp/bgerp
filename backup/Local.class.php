@@ -58,14 +58,11 @@ class backup_Local extends core_Master
      *
      * @return boolean
      */
-    static function putFile($fileName, $subDir = null)
+    static function putFile($fileName)
     {
         $conf = core_Packs::getConfig('backup');
-        if ($subDir) {
-            $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . $subDir . '/' . basename($fileName));
-        } else {
-            $destFileName = $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName);
-        }
+
+        $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . basename($fileName));
 
         $result = @copy($fileName, $destFileName);
         
