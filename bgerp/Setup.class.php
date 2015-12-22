@@ -89,9 +89,7 @@ class bgerp_Setup extends core_ProtoSetup {
      * Описание на системните действия
      */
     var $systemActions = array(
-        
-        'Поправка' => array ('doc_Containers', 'repair', 'ret_url' => TRUE)
-    
+        array('title' => 'Поправка', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на системата'))
     );
     
     /**
@@ -142,7 +140,7 @@ class bgerp_Setup extends core_ProtoSetup {
         // Списък на основните модули на bgERP
         $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
                   email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cash,bank,
-                  budget,purchase,accda,sens,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
+                  budget,purchase,accda,permanent,sens2,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
         

@@ -144,6 +144,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$rec = &$form->rec;
     	
+		if($rec->type == 'pop'){
+    		$form->setField('batch', 'input=none');
+    	}
+    	
     	if($rec->productId){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		if(isset($pInfo->meta['canStore'])){

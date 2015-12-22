@@ -200,18 +200,16 @@ class csv_Lib
     /**
      * Създава csv
      */
-    static function createCsv($recs, core_FieldSet &$fieldSet, $listFields = NULL)
+    static function createCsv($recs, core_FieldSet $fieldSet, $listFields = NULL, $mode = array())
     {
+        $mode = arr::make($mode, TRUE);
+
     	// ще вземем конфигурационните константи
     	$conf = core_Packs::getConfig('csv');
     	
-    	$fields = arr::make($fieldSet->fields, TRUE);
-
-    	if (isset($listFields)) {
-    		if (!is_array($listFields)) {
-    			$listFields = arr::make($listFields, TRUE);
-    		}
-    	}
+        if(isset($listFields)) {
+            $listFields = arr::make($listFields, TRUE);
+        }
     	
     	$exportCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
     	if(count($recs) > $exportCnt) {
@@ -219,33 +217,34 @@ class csv_Lib
     	}
 
         foreach($recs as $rec) {
-            // Всеки нов ред ва началото е празен
+            
+            // Всеки нов ред в началото е празен
             $rCsv = '';
          
-             foreach ($fields as $field) { 
-	            /* за всяка колона */
+            foreach ($fieldSet->fields as $name => $field) { 
+	            
+                // Пропускаме не-посочените в $listFields полета
+                if(is_array($listFields) && !$listFields[$name]) continue;
+
+                // Вземаме типа
 				$type = $field->type;
 	                 
 	            if ($type instanceof type_Key) {
 	                	
 	    			Mode::push('text', 'plain');
-	    			$value = $this->mvc->getVerbal($rec, $field);
+	    			$value = $fieldSet->getVerbal($rec, $name);
 	    			Mode::pop('text');
 	    				
-	    		} elseif($type instanceof type_Double){
+	    		} elseif($type instanceof type_Double) {
 	    				
-	    			$decimals = 2;
+	    			$type->params['decPoint'] = $conf->CSV_DELIMITER_DECIMAL_SING;
+	    			$type->params['thousandsSep'] = '';
+                    
+                    Mode::push('text', 'plain');
+                    $value = $this->mvc->getVerbal($rec, $name);
+                    Mode::pop('text');
 	    				
-	    			// Закръгляме числото преди да го обърнем в нормален вид
-	    			$value = round($value, $decimals);
-	    				
-	    			$value = number_format($rec->{$field->name}, $decimals, $conf->CSV_DELIMITER_DECIMAL_SING, '');
-	    				
-	    			if(!Mode::is('text', 'plain')) {
-	    				$value = str_replace(' ', '&nbsp;', $value);
-	    			}
-	    				
-	    		} elseif($type instanceof type_Date){
+	    		} elseif($type instanceof type_Date) {
 	    				
 	    			if ($conf->CSV_FORMAT_DATE == 'dot') {
 	    				$value = dt::mysql2verbal($value, 'd.m.Y');
@@ -253,22 +252,24 @@ class csv_Lib
 	    				$value = dt::mysql2verbal($value, 'm/d/y');
 	    			}
 	    				
-	    		} elseif($type instanceof type_Richtext){
+	    		} elseif($type instanceof type_Richtext && $mode['text'] == 'plain') {
 	    				
-	    			if(Mode::is('text', 'plain')) {
-	    					
-	    				Mode::push('text', 'plain');
-	    				$value = $this->mvc->getVerbal($rec, $field);
-	    				Mode::pop('text');
-	    			}
+                    Mode::push('text', 'plain');
+	    			
+                    $value = $this->mvc->getVerbal($rec, $name);
+	    			
+                    Mode::pop('text');
 	    
 	    		} else {
-	    			$value = $rec->{$field->name};
+	    			$value = $rec->{$name};
 	    		}
+	            
+                // Ако не генерираме html премахваме таговете
+                if($mode['text'] == 'xhtml' && !($type instanceof type_Richtext)) {
+	    		    $value = strip_tags($value);
+                }
 	    			
-	    		$value = strip_tags($value);
-	    			
-	            // escape
+	            // Ескейпваме - твърдо с "
 	            if (preg_match('/\\r|\\n|,|"/', $value)) {
 	            	$value = '"' . str_replace('"', '""', $value) . '"';
 	            }

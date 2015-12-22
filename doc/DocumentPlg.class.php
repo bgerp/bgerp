@@ -1205,14 +1205,66 @@ class doc_DocumentPlg extends core_Plugin
     {  
         $rec = &$form->rec;
         
-    	if($form->isSubmitted()){
+        // Ако има полета за редуциране на текста
+        if ($form->isSubmitted() || $form->gotErrors())  {
+            $fieldsForReduce = $mvc->selectFields("#reduceText");
+            
+            if ($fieldsForReduce) {
+                
+                foreach ($fieldsForReduce as $name => $type) {
+                    $form->rec->{$name} = self::reduceString($form->rec->{$name});
+                }
+            }
+        }
+    	if ($form->isSubmitted()) {
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){
 		        unset($rec->threadId);
 		    }
         }
-     }
+    }
     
-     
+    
+    /**
+     * Замества повтарящите се стрингове с точки
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    protected static function reduceString($str)
+    {
+        $reduceArr = type_Set::toArray(doc_Setup::get('STRING_FOR_REDUCE'));
+        
+        foreach ($reduceArr as $rStr) {
+            
+            if (!($rStr = trim($rStr))) continue;
+            
+            $rStr = preg_quote($rStr, '/');
+            
+            $pattern .= ($pattern) ? '|' . $rStr : $rStr;
+        }
+        
+        if ($pattern) {
+            $str = preg_replace_callback("/(?'first'({$pattern})\:\s*)(?'others'(\k'first')+)(?'last'(\k'first'))/iu", array(get_called_class(), 'reduceMatches'), $str);
+        }
+        
+        return $str;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param array $matches
+     */
+    protected static function reduceMatches($matches)
+    {
+        $second = str_ireplace($matches['first'], '.', $matches['others']);
+        
+        return trim($matches['first']) . ' ' . $second . ' ' . $matches['last'];
+    }
+    
+    
     /**
      * Рендиране на документи за вътрешно представяне
      */

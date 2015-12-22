@@ -438,6 +438,8 @@ class email_Incomings extends core_Master
         // Декодираме и запазваме събджекта на писмото
         $rec->subject = $mime->getSubject();
         
+        $rec->subject = str::limitLen($rec->subject, 245, 20, '.....');
+        
         // Извличаме информация за изпращача
         $rec->fromName = $mime->getFromName();
         $rec->fromEml = $mime->getFromEmail();

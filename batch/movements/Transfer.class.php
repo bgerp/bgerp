@@ -2,7 +2,7 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса batch_MovementSourceIntf за наследниците на deals_DealMaster
+ * Помощен клас-имплементация на интерфейса batch_MovementSourceIntf за наследниците на store_Transfers
  *
  * @category  bgerp
  * @package   batch
@@ -14,12 +14,13 @@
  * @see batch_MovementSourceIntf
  *
  */
-class batch_movements_Deal
+class batch_movements_Transfer
 {
 	
 	
 	/**
-     * @var deals_DealMaster
+     * 
+     * @var store_Transfers
      */
     public $class;
     
@@ -41,32 +42,30 @@ class batch_movements_Deal
     {
     	$entries = array();
     	$rec = $this->class->fetchRec($rec);
+    	$inStore = $rec->toStore;
+    	$outStore = $rec->fromStore;
     	
-    	$actions = type_Set::toArray($rec->contoActions);
-    	if(!isset($actions['ship'])) return $entries;
-    	
-    	$storeId = $rec->shipmentStoreId;
-    	
-    	$Detail = cls::get($this->class->mainDetail);
-    	$dQuery = $Detail->getQuery();
-    	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+    	$dQuery = store_TransfersDetails::getQuery();
+    	$dQuery->where("#transferId = {$rec->id}");
     	$dQuery->where("#batch IS NOT NULL OR #batch != ''");
-    	
-    	$operation = ($this->class instanceof sales_Sales) ? 'out' : 'in';
+    	$dQuery->show('newProductId,batch,quantity');
     	
     	while($dRec = $dQuery->fetch()){
-    		$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
-    		$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
+    		$entries[] = (object)array('productId' => $dRec->newProductId,
+					    			   'batch'        => $dRec->batch,
+					    			   'storeId'      => $outStore,
+					    			   'quantity'     => $dRec->quantity,
+					    			   'operation'    => 'out',
+					    			   'date'	      => $rec->valior,
+    		);
     		
-    		foreach ($batches as $b){
-    			$entries[] = (object)array('productId' => $dRec->productId,
-					    				   'batch'     => $b,
-					    				   'storeId'   => $storeId,
-					    				   'quantity'  => $quantity,
-					    				   'operation' => $operation,
-					    				   'date'	   => $rec->valior,
-    			);
-    		}
+    		$entries[] = (object)array('productId' => $dRec->newProductId,
+					    			   'batch'        => $dRec->batch,
+					    			   'storeId'      => $inStore,
+					    			   'quantity'     => $dRec->quantity,
+					    			   'operation'    => 'in',
+					    			   'date'	      => $rec->valior,
+    		);
     	}
     	
     	return $entries;

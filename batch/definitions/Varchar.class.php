@@ -16,8 +16,4 @@
 class batch_definitions_Varchar extends batch_definitions_Proto
 {
 	
-	public function getAutoValue($class, $id)
-	{
-		return str::getRand() . str::getRand();
-	}
 }

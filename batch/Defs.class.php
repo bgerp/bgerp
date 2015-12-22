@@ -131,4 +131,50 @@ class batch_Defs extends embed_Manager {
     	// Ако не може да се намери
     	return FALSE;
     }
+    
+    
+    /**
+     * Разбира партидата на масив от партиди
+     */
+    public static function getBatchArray($productId, $batch)
+    {
+    	$array = array($batch => $batch);
+    	
+    	$DefClass = self::getBatchDef($productId);
+    	if(is_object($DefClass)){
+    		$array = $DefClass->makeArray($batch);
+    	}
+    	
+    	return $array;
+    }
+    
+    
+    /**
+     * Добавя партидите към стринг
+     * 
+     * @param text $batch - партида или партиди
+     * @param text $string - към кой стринг да се добавят
+     * @return void
+     */
+    public static function appendBatch($productId, $batch, &$string = '')
+    {
+    	if(!empty($batch)){
+    		$batch = self::getBatchArray($productId, $batch);
+    		
+    		foreach ($batch as &$b){
+    			$b = cls::get('type_Varchar')->toVerbal($b);
+    			if(batch_Movements::haveRightFor('list')){
+    				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $b))->getContent();
+    			}
+    		}
+    		
+    		$count = count($batch);
+    		$batch = implode(', ', $batch);
+    		$batch = "[html]{$batch}[/html]";
+    		$string .= ($string) ? "\n" : '';
+    		
+    		$label = ($count == 1) ? 'lot' : 'serials';
+    		$string .= "{$label}: {$batch}";
+    	}
+    }
 }

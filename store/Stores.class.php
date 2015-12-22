@@ -203,7 +203,7 @@ class store_Stores extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
+        $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Отговорници,mandatory');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');

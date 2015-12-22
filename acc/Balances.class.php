@@ -505,7 +505,9 @@ class acc_Balances extends core_Master
     
     
     /**
-     * Връща последно калкулирания баланс
+     * Връща последния баланс
+     * 
+     * @return stdClass
      */
     public static function getLastBalance()
     {
@@ -513,7 +515,10 @@ class acc_Balances extends core_Master
         
         // Подреждаме ги по последно калкулиране и по начална дата в обратен ред
         $query->where("#periodId IS NOT NULL");
-        $query->orderBy('#lastCalculate,#fromDate', 'DESC');
+        $query->orderBy('#toDate', 'DESC');
+        
+        $today = dt::today();
+        $query->where("#fromDate <= '{$today}' AND #toDate >= '{$today}'");
         
         return $query->fetch();
     }

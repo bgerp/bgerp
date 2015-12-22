@@ -233,10 +233,11 @@ class log_Data extends core_Manager
      * 
      * @param object|string $className
      * @param integer $objectId
+     * @param NULL|string $type
      * 
      * @return NULL|integer
      */
-    public static function getObjectCnt($className, $objectId)
+    public static function getObjectCnt($className, $objectId, $type = NULL)
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
@@ -250,6 +251,10 @@ class log_Data extends core_Manager
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
         
+        if ($type) {
+            $query->where(array("#type = '[#1#]'", $type));
+        }
+        
         return $query->count();
     }
     
@@ -260,10 +265,11 @@ class log_Data extends core_Manager
      * @param object|string $className
      * @param integer $objectId
      * @param core_Pager $pager
+     * @param NULL|string $type
      * 
      * @return array|NULL
      */
-    public static function getRecs($className, $objectId, $pager)
+    public static function getRecs($className, $objectId, $pager, $type = NULL)
     {
         $resArr = array();
         
@@ -279,6 +285,9 @@ class log_Data extends core_Manager
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
         
+        if ($type) {
+            $query->where(array("#type = '[#1#]'", $type));
+        }
         
         $query->orderBy("time", "DESC");
         $query->orderBy("id", "DESC");
