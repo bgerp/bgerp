@@ -42,7 +42,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal';
     
     
     /**
