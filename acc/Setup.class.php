@@ -145,7 +145,7 @@ class acc_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-    		'Реконтиране' => array ('acc_Journal', 'reconto', 'ret_url' => TRUE)
+        array('title' => 'Реконтиране', 'url' => array('acc_Journal', 'reconto', 'ret_url' => TRUE), 'params' => array('title' => 'Реконтиране на документите'))
     );
     
     
