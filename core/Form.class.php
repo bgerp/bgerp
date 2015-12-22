@@ -197,6 +197,7 @@ class core_Form extends core_FieldSet
                 if ((!isset($options[$value]) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
                 
@@ -204,6 +205,7 @@ class core_Form extends core_FieldSet
                 if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
                 
@@ -222,7 +224,7 @@ class core_Form extends core_FieldSet
                     $result = array('error' => $type->error);
                     
                     $this->setErrorFromResult($result, $field, $name);
-                    
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
                 
@@ -1149,11 +1151,6 @@ class core_Form extends core_FieldSet
             if(!$this->errors[$f] || ($this->errors[$f]->ignorable && !$ignorable)) {
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
-            }
-            
-            // Ако възникне грешка в скрито поле, да се покаже полето
-            if ($this->fields[$f] && $this->fields[$f]->input == 'hidden') {
-            	$this->fields[$f]->input = 'input';
             }
         }
     }
