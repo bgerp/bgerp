@@ -121,7 +121,7 @@ class batch_Movements extends core_Detail {
     {
     	if(isset($data->masterMvc) && $data->masterMvc instanceof batch_Items) return;
     	
-    	$data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида');
+    	$data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
     	$data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$data->listFilter->setOptions('productId', array('' => '') + batch_Items::getProductsWithDefs());
     	
@@ -129,6 +129,8 @@ class batch_Movements extends core_Detail {
     	$data->listFilter->showFields = 'batch,productId,storeId';
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input(NULL, 'silent');
+    	
     	$data->listFilter->input();
     	
     	$data->query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
