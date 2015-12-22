@@ -74,6 +74,16 @@ class crm_Setup extends core_ProtoSetup
     
     
     /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+        
+        'Ключови думи' => array ('crm_Persons', 'repairKeywords', 'ret_url' => TRUE)
+    
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
