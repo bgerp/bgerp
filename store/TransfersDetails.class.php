@@ -95,6 +95,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter');
@@ -155,6 +156,12 @@ class store_TransfersDetails extends doc_Detail
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 $row->newProductId = cat_Products::getShortHyperlink($rec->newProductId);
+                
+                if($rec->batch){
+                	batch_Defs::appendBatch($rec->newProductId, $rec->batch, $notes);
+                	$RichText = cls::get('type_Richtext');
+                	$row->newProductId .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
+                }
                 
                 // Показваме подробната информация за опаковката при нужда
                 deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);
