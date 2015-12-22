@@ -56,9 +56,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
 				$form->setField('batch', 'input');
-				$newRow = isset($rec->id) ? FALSE : TRUE;
 				
-				$form->setFieldType('batch', $BatchClass->getBatchClassType($newRow));
+				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, 1));
 			} else {
 				$form->setField('batch', 'input=none');

@@ -140,7 +140,7 @@ class batch_Defs extends embed_Manager {
      * @param text $string - към кой стринг да се добавят
      * @return void
      */
-    public static function appendBatch($batch, &$string)
+    public static function appendBatch($batch, &$string = '')
     {
     	if(!empty($batch)){
     		$batch = explode("\n", str_replace("\r", '', $batch));
