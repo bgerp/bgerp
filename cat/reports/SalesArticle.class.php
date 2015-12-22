@@ -125,6 +125,8 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	 
     	$form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
     	$form->setDefault('to', dt::addDays(-1,$today));
+    	
+    	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
     
@@ -144,7 +146,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	}
 
     }  
-    
+
     
     /**
      * Подготвя вътрешното състояние, на база въведените данни
@@ -156,6 +158,8 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	$data = new stdClass();
         $data->articleCnt = array();
         $fRec = $data->fRec = $this->innerForm;
+        
+        $this->prepareListFields($data);
       
         $querySales = sales_SalesDetails::getQuery();
         $queryShipment = store_ShipmentOrderDetails::getQuery();
@@ -212,6 +216,96 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
 
+        // Подготвяме страницирането
+        $data = $res;
+        
+        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+
+        $pager->itemsCount = count($data->articleCnt, COUNT_RECURSIVE);
+        $pager->calc();
+        $data->pager = $pager;
+
+        $rows = $mvc->getVerbal($data->articleCnt);
+
+        if(is_array($rows)) {
+            foreach ($rows as $id => $row) { 
+                if (!$pager->isOnPage()) continue;
+
+                $data->rows[$id] = $row;
+            }
+        }
+    }
+    
+    
+    /**
+     * Вербалното представяне на ред от таблицата
+     */
+    protected function getVerbal_($rec)
+    {
+        $Users = cls::get('type_Users');
+        $Int = cls::get('type_Int');
+
+        foreach ($rec as $doc => $artCnt) {
+            foreach ($artCnt as $artClassId => $productCnt) {
+                foreach ($productCnt as $product => $cnt) {
+                 
+                    $row = new stdClass();
+                    $row->article = cat_Products::getTitleById($product);
+        
+                    if ($doc == 'sales') {
+                        $row->salesCnt = $Int->toVerbal($cnt);
+                    }
+                    if ($doc == 'shipment' || $doc == 'services') {
+                        $row->shipmentCnt = $Int->toVerbal($cnt);
+                    }
+        
+        
+                    if (!$user) {
+                        $row->createdBy = "Анонимен";
+                    } elseif ($user == -1) {
+                        $row->createdBy = "Система";
+                    } else {
+                        $row->createdBy = $Users->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+                    }
+        
+                    $rows[] = $row;
+                }
+            }
+        }
+        
+        return $rows;
+    }
+    
+
+    /**
+     * Връща шаблона на репорта
+     *
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReportLayout_()
+    {
+        $tpl = getTplFromFile('cat/tpl/SalesArticleReportLayout.shtml');
+         
+        return $tpl;
+    }
+    
+    
+    /**
+     * Полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    protected function prepareListFields_(&$data)
+    {
+        // Кои полета ще се показват
+        $data->listFiеlds = arr::make("article=Продукт,
+    					     salesCnt=Продажба (бр.),
+    					     shipmentCnt=Доставка (бр.),
+                             createdBy=Създаден от", TRUE);
+  
     }
     
     
@@ -222,82 +316,94 @@ class cat_reports_SalesArticle extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	$tpl = new ET(tr("
-            |*<h1>|Продажбени артикули|*</h1>
-            [#FORM#]
-    		[#PAGER#]
-            [#ARTICLE#]
-    		[#PAGER#]
-        "
-    	));
-
-    	$form = cls::get('core_Form');
-    
-    	$this->addEmbeddedFields($form);
-    
-    	$form->rec = $data->fRec;
-    	$form->class = 'simpleForm';
     	
-    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
-    
-    	$tpl->placeObject($data->rec);
-    
-    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+    	if(empty($data)) return;
+    	 
+    	$tpl = $this->getReportLayout();
+    	
+    	$explodeTitle = explode(" » ", $this->title);
+    	
+    	$title = tr("|{$explodeTitle[1]}|*");
+    	 
+    	$tpl->replace($title, 'TITLE');
+    	 
+    	$this->prependStaticForm($tpl, 'FORM');
+    	 
+    	$tpl->placeObject($data->row);
+    	 
+    	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
+    	$tableMvc->FLD('salesCnt', 'int', 'tdClass=itemClass');
+    	$tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass');
 
-    	$pager->itemsCount = count($data->articleCnt, COUNT_RECURSIVE);
+    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
 
-    	$f = cls::get('core_FieldSet');
-    
-    	$f->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Продукт->Тип');
-    	$f->FLD('salesCnt', 'int', 'caption=Брой срещания->Продажба');
-    	$f->FLD('shipmentCnt', 'int', 'caption=Брой срещания->Доставка');
+    	$tpl->append($table->get($data->rows, "article=Продукт,
+    					     salesCnt=Продажба (бр.),
+    					     shipmentCnt=Доставка (бр.),
+                             "), 'CONTENT');
 
-    	$rows = array();
-
-    	$ft = $f->fields;
-
-        $userType = $ft['createdBy']->type;
-        $cntType = $ft['salesCnt']->type;
-
-    	foreach ($data->articleCnt as $doc => $artCnt) {
-    		foreach ($artCnt as $artClassId => $productCnt) {
-                foreach ($productCnt as $product => $cnt) {
-                        if (!$pager->isOnPage()) continue;
-
-                        $row = new stdClass();
-                        $row->article = cat_Products::getTitleById($product);
-
-                        if ($doc == 'sales') {
-                            $row->salesCnt = $cntType->toVerbal($cnt);
-                        }
-                        if ($doc == 'shipment' || $doc == 'services') {
-                            $row->shipmentCnt = $cntType->toVerbal($cnt);
-                        }
-
-
-                        if (!$user) {
-                            $row->createdBy = "Анонимен";
-                        } elseif ($user == -1) {
-                            $row->createdBy = "Система";
-                        } else {
-                            $row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
-                        }
-
-                        $rows[] = $row;
-                }
-    		}
-    	}
-
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'article=Продукт->Тип,salesCnt=Брой срещания->Продажба,shipmentCnt=Брой срещания->Доставка');
-    
-    	$tpl->append($html, 'ARTICLE');
-        $tpl->append($pager->getHtml(), 'PAGER');
+        if($data->pager){
+            $tpl->append($data->pager->getHtml(), 'PAGER');
+        }
+         
     
     	$embedderTpl->append($tpl, 'data');
-    }  
+    } 
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getFields_()
+    {
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
+        $f->FLD('article', 'varchar');
+        $f->FLD('salesCnt', 'int');
+        $f->FLD('shipmentCnt', 'int');
+
+    
+        return $f;
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    protected function getExportFields_()
+    {
+        // Кои полета ще се показват
+        $fields = arr::make("article=Продукт,
+    					     salesCnt=Продажба (бр.),
+    					     shipmentCnt=Доставка (бр.)", TRUE);
+        
+        return $fields;
+    }
+    
+    
+    /**
+     * Създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function exportCsv()
+    {
+        $exportFields = $this->getExportFields();
+        $fields = $this->getFields();
+
+        $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields, NULL);
+         
+        return $csv;
+    }
      
     
     /**
