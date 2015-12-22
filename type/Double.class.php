@@ -138,11 +138,11 @@ class type_Double extends core_Type {
         }
         
         
-        if(!$this->params['decimals']) {
+        if(!isset($this->params['decimals'])) {
             $this->params['decimals'] = $this->params['decimals'];
         }
         
-        if(!$this->params['decimals']) {
+        if(!isset($this->params['decimals'])) {
         	$this->params['decimals'] = EF_NUMBER_DECIMALS;
         }
         
