@@ -43,7 +43,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 	/**
 	 * Изпълнява се преди контиране на документа
 	 */
-	public static function on_BeforeConto11(core_Mvc $mvc, &$res, $id)
+	public static function on_BeforeConto111111(core_Mvc $mvc, &$res, $id)
 	{
 		expect($MovementImpl = cls::getInterface('batch_MovementSourceIntf', $mvc));
 		expect($docRec = $mvc->fetchRec($id));

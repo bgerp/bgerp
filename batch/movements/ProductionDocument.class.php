@@ -43,14 +43,19 @@ class batch_movements_ProductionDocument
     	$entries = array();
     	$rec = $this->class->fetchRec($rec);
 		$storeId = $rec->storeId;
-		
+    	
 		$Detail = cls::get($this->class->mainDetail);
     	$dQuery = $Detail->getQuery();
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
 		$dQuery->where("#batch IS NOT NULL OR #batch != ''");
-		$dQuery->show('productId,batch,quantity');
 		
-		$operation = ($this->class instanceof planning_ConsumptionNotes) ? 'out' : 'in';
+		if($this->class instanceof planning_DirectProductionNote){
+			$dQuery->where("#type = 'input'");
+			$storeId = $rec->inputStoreId;
+		}
+		
+		$dQuery->show('productId,batch,quantity');
+		$operation = ($this->class instanceof planning_ProductionNotes) ? 'in' : 'out';
 		
 		while($dRec = $dQuery->fetch()){
 			$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
@@ -63,6 +68,21 @@ class batch_movements_ProductionDocument
 										   'quantity'  => $quantity,
 										   'operation' => $operation,
 										   'date'	   => $rec->valior,
+				);
+			}
+		}
+		
+		if($this->class instanceof planning_DirectProductionNote){
+			$batches = batch_Defs::getBatchArray($rec->productId, $rec->batch);
+			$quantity = (count($batches) == 1) ? $rec->quantity : $rec->quantity / count($batches);
+			
+			foreach ($batches as $b1){
+				$entries[] = (object)array('productId' => $rec->productId,
+										   'batch'     => $b1,
+										   'storeId'   => $rec->storeId,
+										   'quantity'  => $quantity,
+										   'operation' => 'in',
+										   'date'	    => $rec->valior,
 				);
 			}
 		}
