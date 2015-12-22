@@ -1122,8 +1122,9 @@ class core_Packs extends core_Manager
 
         // Добавяне на допълнителни системни действия
         if (count($setup->systemActions)) {
-            foreach ($setup->systemActions as $name => $url) {
-                $form->toolbar->addBtn($name, $url);
+            foreach ($setup->systemActions as $sysActArr) {
+                
+                $form->toolbar->addBtn($sysActArr['title'], $sysActArr['url'], $sysActArr['params']);
             }
         }
         

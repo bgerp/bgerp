@@ -255,10 +255,12 @@ class doc_FolderPlg extends core_Plugin
             // забраняваме достъпа
             if (!doc_Folders::haveRightToObject($rec, $userId)) {
                 
-                if($requiredRoles != 'no_one'){
+                if($requiredRoles != 'no_one' && $rec->access == 'team'){
                 	
                 	// Ако има зададени мастър роли за достъп
             		$requiredRoles = $mvc->coverMasterRoles ? $mvc->coverMasterRoles : 'no_one';
+            	} else {
+            		$requiredRoles = 'no_one';
             	}
             }
 

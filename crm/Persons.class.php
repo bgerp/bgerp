@@ -80,7 +80,7 @@ class crm_Persons extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export';
     
     
     /**
@@ -89,6 +89,12 @@ class crm_Persons extends core_Master
     var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
 
 
+    /**
+     * Полета за експорт
+     */
+    var $exportableCsvFields = 'name,egn,country,place,email,info,birthday,pCode,place,address,tel,fax,mobile';
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -2072,7 +2078,79 @@ class crm_Persons extends core_Master
         return static::renderWrapping($form->renderHtml());
     }
     
-
+    
+    /**
+     * Поправяне на ключовете в документите
+     */
+    function act_RepairKeywords()
+    {
+        requireRole('admin');
+        
+        core_App::setTimeLimit(600);
+        
+        $force = Request::get('force');
+        
+        $rArr = self::regenerateSerchKeywords($force);
+        $cnt = $rArr['crm_Persons'] + $rArr['crm_Companies'];
+        
+        if ($cnt == 0) {
+            $msg = '|Няма ключове за поправяне';
+        } else {
+            
+            if ($cnt == 1) {
+                $msg = "|Поправен|* {$cnt} |запис";
+            } else {
+                $msg = "|Поправени|* {$cnt} |записа";
+            }
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array('core_Packs');
+        }
+        
+        return new Redirect($retUrl, $msg);
+    }
+    
+    
+    /**
+     * Регенерира ключовите думи, ако е необходимо
+     * 
+     * @param boolean $force
+     * @param array $rClassArr
+     * 
+     * @return array
+     */
+    public static function regenerateSerchKeywords($force = FALSE, $rClassArr = array('crm_Persons', 'crm_Companies'))
+    {
+        $resArr = array();
+        
+        $rClassArr = arr::make($rClassArr);
+        
+        foreach ($rClassArr as $class) {
+            $clsInst = cls::get($class);
+            
+            $query = $clsInst->getQuery();
+            $query->show('searchKeywords');
+            $resArr[$class] = 0;
+            while ($rRec = $query->fetch()) {
+                $generatedKeywords = $clsInst->getSearchKeywords($rRec);
+                
+                if (!$force && ($generatedKeywords == $rRec->searchKeywords)) continue;
+                
+                $rRec->searchKeywords = $generatedKeywords;
+                
+                $clsInst->save_($rRec, 'searchKeywords');
+                
+                $resArr[$class]++;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Подготвяме рожденния ден. Ако няма въведение хубави данни, използваме ЕГН' то
      */

@@ -85,6 +85,12 @@ defIfNot('DOC_CACHE_LIFETIME', 5*60);
 
 
 /**
+ * Стрингове, които да се замества с точка при повторение
+ */
+defIfNot('DOC_STRING_FOR_REDUCE', 'За,Отн,Относно,回复,转发,SV,VS,VS,VL,RE,FW,FRW,TR,AW,WG,ΑΠ,ΣΧΕΤ,ΠΡΘ,R,RIF,I,SV,FS,SV,VB,RE,RV,RES,ENC,Odp,PD,YNT,İLT');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -128,9 +134,7 @@ class doc_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-        
-        'Ключови думи' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE)
-    
+        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете'))
     );
     
     

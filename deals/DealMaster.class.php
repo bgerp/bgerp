@@ -153,7 +153,11 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 		
 		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
-		$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
+		
+		if(empty($form->rec->id)){
+			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
+		}
+		
 		$form->setDefault('makeInvoice', 'yes');
 		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
 		
