@@ -134,16 +134,33 @@ class batch_Defs extends embed_Manager {
     
     
     /**
+     * Разбира партидата на масив от партиди
+     */
+    public static function getBatchArray($productId, $batch)
+    {
+    	$array = array($batch => $batch);
+    	
+    	$DefClass = self::getBatchDef($productId);
+    	if(is_object($DefClass)){
+    		$array = $DefClass->makeArray($batch);
+    	}
+    	
+    	return $array;
+    }
+    
+    
+    /**
      * Добавя партидите към стринг
      * 
      * @param text $batch - партида или партиди
      * @param text $string - към кой стринг да се добавят
      * @return void
      */
-    public static function appendBatch($batch, &$string = '')
+    public static function appendBatch($productId, $batch, &$string = '')
     {
     	if(!empty($batch)){
-    		$batch = explode("\n", str_replace("\r", '', $batch));
+    		$batch = self::getBatchArray($productId, $batch);
+    		
     		foreach ($batch as &$b){
     			$b = cls::get('type_Varchar')->toVerbal($b);
     			if(batch_Movements::haveRightFor('list')){

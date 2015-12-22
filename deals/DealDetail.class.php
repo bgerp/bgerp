@@ -315,7 +315,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = $recs[$id];
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
-    		batch_Defs::appendBatch($rec->batch, $rec->notes);
+    		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

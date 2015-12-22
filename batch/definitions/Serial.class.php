@@ -63,10 +63,9 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 */
 	public function makeArray($value)
 	{
-		$serials = explode("\n", $value);
+		$array = explode("\n", str_replace("\r", '', $value));
+    	$array = array_combine($array, $array);
 		
-		$serials = array_combine($serials, $serials);
-		
-		return $serials;
+		return $array;
 	}
 }

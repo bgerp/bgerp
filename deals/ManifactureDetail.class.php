@@ -162,7 +162,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 	
 		if($rec->batch){
-			batch_Defs::appendBatch($rec->batch, $notes);
+			batch_Defs::appendBatch($rec->productId, $rec->batch, $notes);
 			$RichText = cls::get('type_Richtext');
 			$row->productId .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
 		}
