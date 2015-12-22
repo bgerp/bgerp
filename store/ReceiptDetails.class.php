@@ -146,10 +146,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short');
-    			if(!empty($rec->batch)){
-    				$rec->notes .= ($rec->notes) ? "\n" : '';
-    				$rec->notes .= "lot: {$rec->batch}";
-    			}
+    			batch_Defs::appendBatch($rec->batch, $rec->notes);
     			
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
