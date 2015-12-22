@@ -165,7 +165,7 @@ class help_Info extends core_Master
             $recs[] = $r;
         }
         
-        $csv = csv_Lib::createCsv($recs, array('class', 'action', 'lg', 'text'), $mvc);
+        $csv = csv_Lib::createCsv($recs, $mvc, array('class', 'action', 'lg', 'text'));
         
         $file = "help/data/HelpInfo.csv";
         $path = getFullPath($file);

@@ -779,8 +779,10 @@ a.bookmark-external-url {
 }
 
 .notificationsCnt a.haveNtf {
-    border: solid 1px red !important;
-    color: red;
+  background-color: #edd;
+  border: 1px solid #d66 !important;
+  box-shadow: 0 1px 2px 0 #f99;
+  color: #e00;
 }
 
 .notificationsCnt a.noNtf {

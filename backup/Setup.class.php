@@ -88,7 +88,7 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
 
 
 /**
- * Поддиректория където ще се архивират файлвете от fileman-a
+ * Поддиректория където ще се архивират файловете от fileman-a
  */
 defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
 
@@ -295,22 +295,21 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>mysqldump грешка при свързване!</li>";
         }
         
-        // проверка дали gzip е наличен
+        // Проверка дали gzip е наличен
         exec("gzip --version", $output,  $returnVar);
-        
         if ($returnVar !== 0) {
 
             return "<li class='debug-error'>липсва gzip!</li>";
         }
         
-        // проверка дали tar е наличен
+        // Проверка дали tar е наличен
         exec("tar --version", $output,  $returnVar);
-        
         if ($returnVar !== 0) {
         
             return "<li class='debug-error'>липсва tar!</li>";
         }
         
+        // Проверка дали МySql сървъра е настроен за binlog
         $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
@@ -326,7 +325,7 @@ class backup_Setup extends core_ProtoSetup
 
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
-    
+        
         return NULL;
     }
     

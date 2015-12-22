@@ -422,7 +422,7 @@ class cat_Products extends embed_Manager {
     		$sourceRec = $document->rec();
     	
     		if($data->action != 'clone'){
-    			$form->info = cls::get('type_RichText')->toVerbal($sourceRec->inqDescription);
+    			$form->info = cls::get('type_Richtext')->toVerbal($sourceRec->inqDescription);
     			$form->info = "<small>{$form->info}</small>";
     		}
     		
@@ -1946,15 +1946,19 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$rec) return $res;
-    	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
     	if(is_array($details)){
+    		$fields = cls::get('cat_BomDetails')->selectFields();
+    		$fields['-components'] = TRUE;
+    		
     		foreach ($details as $dRec){
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
-    			$row = cat_BomDetails::recToVerbal($dRec);
+    			$row = cat_BomDetails::recToVerbal($dRec, $fields);
+    			
     			$obj->code = $row->position;
     			
     			$codeCount = strlen($obj->code);

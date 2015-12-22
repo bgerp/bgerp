@@ -181,7 +181,7 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * 
      * 
-     * @param marketing_Bulletin $mvc
+     * @param marketing_BulletinSubscribers $mvc
      * @param object $data
      * @param object $res
      */

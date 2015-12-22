@@ -85,7 +85,7 @@ class callcenter_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-       'Актуализиране' => array ('callcenter_Numbers', 'update', 'ret_url' => TRUE),
+        array('title' => 'Актуализиране', 'url' => array('callcenter_Numbers', 'update', 'ret_url' => TRUE), 'params' => array('title' => 'Актуализиране на номерата'))
     );
     
     

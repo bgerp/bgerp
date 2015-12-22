@@ -277,4 +277,20 @@ class type_UserOrRole extends type_User
             }
         }
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        // Позволените са латински цифри и _
+        $key = preg_replace('/[^0-9\_\-]/i', '', $key);
+        
+        return $key;
+    }
 }

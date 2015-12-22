@@ -2078,7 +2078,79 @@ class crm_Persons extends core_Master
         return static::renderWrapping($form->renderHtml());
     }
     
-
+    
+    /**
+     * Поправяне на ключовете в документите
+     */
+    function act_RepairKeywords()
+    {
+        requireRole('admin');
+        
+        core_App::setTimeLimit(600);
+        
+        $force = Request::get('force');
+        
+        $rArr = self::regenerateSerchKeywords($force);
+        $cnt = $rArr['crm_Persons'] + $rArr['crm_Companies'];
+        
+        if ($cnt == 0) {
+            $msg = '|Няма ключове за поправяне';
+        } else {
+            
+            if ($cnt == 1) {
+                $msg = "|Поправен|* {$cnt} |запис";
+            } else {
+                $msg = "|Поправени|* {$cnt} |записа";
+            }
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array('core_Packs');
+        }
+        
+        return new Redirect($retUrl, $msg);
+    }
+    
+    
+    /**
+     * Регенерира ключовите думи, ако е необходимо
+     * 
+     * @param boolean $force
+     * @param array $rClassArr
+     * 
+     * @return array
+     */
+    public static function regenerateSerchKeywords($force = FALSE, $rClassArr = array('crm_Persons', 'crm_Companies'))
+    {
+        $resArr = array();
+        
+        $rClassArr = arr::make($rClassArr);
+        
+        foreach ($rClassArr as $class) {
+            $clsInst = cls::get($class);
+            
+            $query = $clsInst->getQuery();
+            $query->show('searchKeywords');
+            $resArr[$class] = 0;
+            while ($rRec = $query->fetch()) {
+                $generatedKeywords = $clsInst->getSearchKeywords($rRec);
+                
+                if (!$force && ($generatedKeywords == $rRec->searchKeywords)) continue;
+                
+                $rRec->searchKeywords = $generatedKeywords;
+                
+                $clsInst->save_($rRec, 'searchKeywords');
+                
+                $resArr[$class]++;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Подготвяме рожденния ден. Ако няма въведение хубави данни, използваме ЕГН' то
      */

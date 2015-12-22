@@ -78,7 +78,7 @@ class log_Setup extends core_ProtoSetup
         $query->where("#type IS NULL OR #type = ''");
         
         while ($rec = $query->fetch()) {
-            $rec->type = 'read';
+            $rec->type = 'write';
             
             log_Data::save($rec, 'type');
         }

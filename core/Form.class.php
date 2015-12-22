@@ -1150,11 +1150,11 @@ class core_Form extends core_FieldSet
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
             }
-        }
-        
-        // Ако възникне грешка в скрито поле, да се покаже полето
-        if ($this->fields[$field]->input == 'hidden') {
-            $this->fields[$field]->input = 'input';
+            
+            // Ако възникне грешка в скрито поле, да се покаже полето
+            if ($this->fields[$f] && $this->fields[$f]->input == 'hidden') {
+            	$this->fields[$f]->input = 'input';
+            }
         }
     }
     
