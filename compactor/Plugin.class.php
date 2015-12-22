@@ -69,7 +69,7 @@ class compactor_Plugin extends core_Plugin
             
             // Ако достигне до тук без да са заместени плейсхолдерите
             // Може да се стигне до тук ако е закачен плъгина, но не е инсталиран пакета
-            if (strpos($file, '[#') && strpos($file, '#]')) {
+            if ((strpos($file, '[#') !== FALSE) && (strpos($file, '#]') !== FALSE)) {
                 $file = compactor_Setup::preparePacksPath('compactor', $file);
             }
             
