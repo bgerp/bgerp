@@ -309,18 +309,16 @@ class doc_FolderPlg extends core_Plugin
             }
         }
     }
-
-
+    
+    
     /**
      * Предпазва от листване скритите папки
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
-    { 
-        if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
-            $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");
-        }
+    {
+        $mvc->restrictAccess($data->query);
     }
-
+    
     
     /**
      * Дефолт имплементация на метод, която форсира създаването на обект - корица
@@ -575,39 +573,51 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $conditions = array(
-            "#shared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
-            "#inCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
+            "LOCATE('|{$userId}|', #folderShared) ", // Всеки има достъп до споделените с него папки
+            "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
         );
         
         // Всеки (освен конракторите) имат достъп до публичните папки
         if (!core_Users::isContractor()) {
-            $conditions[] = "#access = 'public'";
+            $conditions[] = "#folderAccess = 'public'";
         }
         
         if ($teammates) {
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник
-            $conditions[] = "#access = 'team' AND #inCharge IN ({$teammates})";
+            $conditions[] = "#folderAccess = 'team' AND #folderInCharge IN ({$teammates})";
         }
         
         switch (true) {
             case core_Users::haveRole('ceo') :
                 // CEO вижда всичко с изключение на private и secret папките на другите CEO
                 if ($ceos) {
-                    $conditions[] = "#inCharge NOT IN ({$ceos})";
+                    $conditions[] = "#folderInCharge NOT IN ({$ceos})";
                 }
                 
                 // CEO да може да вижда private папките на друг `ceo`
                 if ($fullAccess) {
-                    $conditions[] = "#access != 'secret'";
+                    $conditions[] = "#folderAccess != 'secret'";
                 }
                 
             break;
             case core_Users::haveRole('manager') :
                 // Manager вижда private папките на подчинените в екипите си
                 if ($subordinates) {
-                    $conditions[] = "#access = 'private' AND #inCharge IN ({$subordinates})";
+                    $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
                 }
             break;
+        }
+        
+        if (!$query->fields['folderAccess']) {
+            $query->XPR('folderAccess', 'varchar', '#access');
+        }
+        
+        if (!$query->fields['folderInCharge']) {
+            $query->XPR('folderInCharge', 'varchar', '#inCharge');
+        }
+        
+        if (!$query->fields['folderShared']) {
+            $query->XPR('folderShared', 'varchar', '#shared');
         }
         
         $query->where(core_Query::buildConditions($conditions, 'OR'));
