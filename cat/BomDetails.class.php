@@ -833,13 +833,15 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-		$hasSameQuantities = TRUE;
-    	if(is_array($data->recs)){
-    		foreach ($data->recs as $rec){
-    			if($rec->rowQuantity != $rec->propQuantity){
-    				$hasSameQuantities = FALSE;
-    			}
-    		}
+		if(is_array($data->recs)){
+			foreach ($data->recs as $id => &$rec){
+				if($rec->parentId){
+					if($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR){
+						$rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
+						$data->recs[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+					}
+				}
+			}
     	}
 
     	// Ако формулите и изчислените к-ва са равни, показваме само едната колонка
