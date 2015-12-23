@@ -107,7 +107,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function makeArray($value)
     {
-    	$value = $this->verbalize($value);
+    	$value = $this->denormalize($value);
     	
     	return array($value => $value);
     }
