@@ -100,7 +100,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$value = explode("\n", trim(str_replace("\r", '', $value)));
 		$value = implode('|', $value);
 		
-		return $value;
+		return ($value == '') ? NULL : $value;
 	}
 	
 	

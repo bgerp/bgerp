@@ -89,11 +89,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		// Нормализираме полето за партидата
+		//bp($rec->batch,empty($rec->batch));
 		if(!empty($rec->batch)){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if(is_object($BatchClass)){
 				$rec->batch = $BatchClass->normalize($rec->batch);
 			}
+		} else {
+			$rec->batch = NULL;
 		}
 	}
 }
