@@ -57,4 +57,40 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
     	return $this->class->getBatchClassType();
     }
+    
+    
+    /**
+     * Нормализира стойноста на партидата в удобен за съхранение вид
+     *
+     * @param text $value
+     * @return text $value
+     */
+    public function normalize($value)
+    {
+    	return $this->class->normalize($value);
+    }
+    
+    
+    /**
+     * Денормализира партидата
+     *
+     * @param text $value
+     * @return text $value
+     */
+    public function denormalize($value)
+    {
+    	return $this->class->denormalize($value);
+    }
+    
+    
+    /**
+     * Разбива партидата в масив
+     *
+     * @param varchar $value - партида
+     * @return array $array - масив с партидата
+     */
+    public function makeArray($value)
+    {
+    	return $this->class->makeArray($value);
+    }
 }

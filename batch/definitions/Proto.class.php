@@ -107,6 +107,32 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function makeArray($value)
     {
+    	$value = $this->verbalize($value);
+    	
     	return array($value => $value);
+    }
+    
+    
+    /**
+     * Нормализира стойноста на партидата в удобен за съхранение вид
+     * 
+     * @param text $value
+     * @return text $value
+     */
+    public function normalize($value)
+    {
+    	return trim($value);
+    }
+    
+    
+    /**
+     * Денормализира партидата
+     * 
+     * @param text $value
+     * @return text $value
+     */
+    public function denormalize($value)
+    {
+    	return $value;
     }
 }

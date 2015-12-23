@@ -69,9 +69,39 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 */
 	public function makeArray($value)
 	{
-		$array = explode("\n", str_replace("\r", '', $value));
-    	$array = array_combine($array, $array);
+		$value = explode('|', $value);
+    	$array = array_combine($value, $value);
 		
 		return $array;
+	}
+	
+	
+	/**
+     * Нормализира стойноста на партидата в удобен за съхранение вид
+     * 
+     * @param text $value
+     * @return text $value
+     */
+	public function normalize($value)
+	{
+		$value = explode("\n", trim(str_replace("\r", '', $value)));
+		$value = implode('|', $value);
+		
+		return $value;
+	}
+	
+	
+	/**
+     * Денормализира партидата
+     * 
+     * @param text $value
+     * @return text $value
+     */
+	public function denormalize($value)
+	{
+		$value = explode('|', $value);
+		$value = implode("\n", $value);
+		
+		return $value;
 	}
 }

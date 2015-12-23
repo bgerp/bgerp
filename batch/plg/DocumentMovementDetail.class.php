@@ -59,6 +59,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, 1));
+				if(!empty($rec->batch)){
+					$rec->batch = $BatchClass->denormalize($rec->batch);
+				}
+				
 			} else {
 				$form->setField('batch', 'input=none');
 				unset($rec->batch);
@@ -70,6 +74,21 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 						$form->setError('batch', $msg);
 					}
 				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Преди запис на документ
+	 */
+	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		// Нормализираме полето за партидата
+		if(!empty($rec->batch)){
+			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+			if(is_object($BatchClass)){
+				$rec->batch = $BatchClass->normalize($rec->batch);
 			}
 		}
 	}
