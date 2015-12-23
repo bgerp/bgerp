@@ -77,6 +77,25 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	
 	
 	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $form
+	 */
+	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	{
+		$rec = &$form->rec;
+		
+		// Само артикули с основна мярка в брой, могат да имат серийни номера
+		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+		if(cat_UoM::fetchBySysId('pcs')->id != $measureId){
+			$form->setError("driverClass", "Само артикули с основна мярка 'брой' могат да имат серийни номера");
+		}
+	}
+	
+	
+	/**
      * Нормализира стойноста на партидата в удобен за съхранение вид
      * 
      * @param text $value
