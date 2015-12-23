@@ -34,26 +34,20 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @param string $value - стойноста, която ще проверяваме
-	 * @param int $packagingId - опаковка
-	 * @param quantity $packQuantity - количество опаковки
+	 * @param quantity $quantity - количеството
 	 * @param string &$msg - текста на грешката ако има
 	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
 	 */
-	public function isValid($value, $packagingId, $packQuantity, &$msg)
+	public function isValid($value, $quantity, &$msg)
 	{
-		$serials = explode("\n", str_replace("\r", '', $value));
+		$serials = $this->normalize($value);
+		$serials = $this->makeArray($serials);
 		$count = count($serials);
 		
-		if($packagingId != cat_UoM::fetchBySysId('pcs')->id){
-			$msg = "Само артикулите в мярка 'брой', могат да имат серийни номера";
+		if($count != $quantity){
+			$msg = ($quantity != 1) ? "|Трябва да са въведени точно|* <b>'{$quantity}'</b> |серийни номера|*" : "Трябва да е въведен само един сериен номер";
+				
 			return FALSE;
-		}
-		
-		if($count > 1){
-			if($count != $packQuantity){
-				$msg = 'Въведените серийни номера на нов ред, трябва да отговарят на въведеното количество';
-				return FALSE;
-			}
 		}
 		
 		// Ако сме стигнали до тук всичко е наред

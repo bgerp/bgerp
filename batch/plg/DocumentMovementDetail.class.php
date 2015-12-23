@@ -70,7 +70,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			
 			if($form->isSubmitted()){
 				if(is_object($BatchClass)){
-					if(!$BatchClass->isValid($rec->batch, $rec->packagingId, $rec->packQuantity, $msg)){
+					$productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
+					$quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+					$quantity = $rec->packQuantity * $quantityInPack;
+					
+					if(!$BatchClass->isValid($rec->batch, $quantity, $msg)){
 						$form->setError('batch', $msg);
 					}
 				}

@@ -33,9 +33,9 @@ class batch_plg_DocumentMovement extends core_Plugin
 			if(isset($saveFileds)) return;
 			//if($i == 2) bp();
 			//core_Statuses::newStatus(str::getRand(), 'warning');
-			batch_Movements::saveMovement($mvc, $rec->id);
+			//batch_Movements::saveMovement($mvc, $rec->id);
 		} elseif($rec->state == 'rejected'){
-			batch_Movements::removeMovement($mvc, $rec->id);
+			//batch_Movements::removeMovement($mvc, $rec->id);
 		}
 	}
 	

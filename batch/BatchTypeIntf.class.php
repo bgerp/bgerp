@@ -39,10 +39,11 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      * Проверява дали стойността е невалидна
      *
      * @param string $value - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
      * @param string &$msg -текста на грешката ако има
      * @return boolean - валиден ли е кода на партидата според дефиницията или не
      */
-    function isValid($value, &$msg)
+    function isValid($value, $quantity, &$msg)
     {
     	return $this->class->isValid($value, $msg);
     }
