@@ -661,9 +661,17 @@ class doc_Folders extends core_Master
     {
         if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
-            $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
-            $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
-            $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
+            if (!$query->fields['folderAccess']) {
+                $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
+            }
+            
+            if (!$query->fields['folderInCharge']) {
+                $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
+            }
+            
+            if (!$query->fields['folderShared']) {
+                $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
+            }
         }
     }
     
