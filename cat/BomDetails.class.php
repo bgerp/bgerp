@@ -592,10 +592,8 @@ class cat_BomDetails extends doc_Detail
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     	} else {
-    		
-    		
-    		$rec->rowQuantity /= $rec->quantityInPack;
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
+    		//$rec->rowQuantity /= $rec->quantityInPack;
     	}
     	
     	if(is_numeric($rec->propQuantity)){
