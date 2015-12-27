@@ -16,15 +16,17 @@
 class batch_definitions_Serial extends batch_definitions_Proto
 {
 	
+	
 	/**
-	 * Добавя полетата на драйвера към Fieldset
+	 * Проверява дали стойността е невалидна
 	 *
-	 * @param core_Fieldset $fieldset
+	 * @return core_Type - инстанция на тип
 	 */
-	public function addFields(core_Fieldset &$fieldset)
+	public function getBatchClassType()
 	{
-		$fieldset->FLD('from', 'int', 'caption=Обхват->От,mandatory');
-		$fieldset->FLD('to', 'int', 'caption=Обхват->До,mandatory');
+		$Type = core_Type::getByName('text(rows=3)');
+		
+		return $Type;
 	}
 	
 	
@@ -32,22 +34,19 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @param string $value - стойноста, която ще проверяваме
-	 * @param string &$msg -текста на грешката ако има
+	 * @param quantity $quantity - количеството
+	 * @param string &$msg - текста на грешката ако има
 	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
 	 */
-	public function isValid($value, &$msg)
+	public function isValid($value, $quantity, &$msg)
 	{
-		$Type = core_Type::getByName("int");
+		$serials = $this->normalize($value);
+		$serials = $this->makeArray($serials);
+		$count = count($serials);
 		
-		// Стойноста трябва да е цяло число
-		if(!$Type->fromVerbal($value)){
-			$msg = 'Не е въведено цяло число';
-			return FALSE;
-		}
-		
-		// Стойноста трябва да е в допустимия интервал
-		if($value < $this->rec->from || $value > $this->rec->to){
-			$msg = "Стойноста не е в интервала|* <b>{$this->rec->from}</b> - <b>{$this->rec->to}</b>";
+		if($count != $quantity){
+			$msg = ($quantity != 1) ? "|Трябва да са въведени точно|* <b>'{$quantity}'</b> |серийни номера|*" : "Трябва да е въведен само един сериен номер";
+				
 			return FALSE;
 		}
 		
@@ -57,25 +56,65 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	
 	
 	/**
-	 * Връща автоматичния партиден номер според класа
+	 * Разбива партидата в масив
 	 *
-	 * @param mixed $class - класа за който ще връщаме партидата
-	 * @param int $id - ид на документа за който ще връщаме партидата
-	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 * @param varchar $value - партида
+	 * @return array $array - масив с партидата
 	 */
-	public function getAutoValue($class, $id)
+	public function makeArray($value)
 	{
-		$query = batch_Items::getQuery();
-		$query->where("#productId = {$this->rec->productId}");
-    	$query->XPR('maxNum', 'int', 'MAX(#batch)');
-    	
-    	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $this->rec->from;
-    	}
-    	$nextNum = $maxNum + 1;
-    	
-    	if($nextNum > $this->rec->to) return NULL;
-    	
-    	return $nextNum;
+		$value = explode('|', $value);
+    	$array = array_combine($value, $value);
+		
+		return $array;
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $form
+	 */
+	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	{
+		$rec = &$form->rec;
+		
+		// Само артикули с основна мярка в брой, могат да имат серийни номера
+		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+		if(cat_UoM::fetchBySysId('pcs')->id != $measureId){
+			$form->setError("driverClass", "Само артикули с основна мярка 'брой' могат да имат серийни номера");
+		}
+	}
+	
+	
+	/**
+     * Нормализира стойноста на партидата в удобен за съхранение вид
+     * 
+     * @param text $value
+     * @return text $value
+     */
+	public function normalize($value)
+	{
+		$value = explode("\n", trim(str_replace("\r", '', $value)));
+		$value = implode('|', $value);
+		
+		return ($value == '') ? NULL : $value;
+	}
+	
+	
+	/**
+     * Денормализира партидата
+     * 
+     * @param text $value
+     * @return text $value
+     */
+	public function denormalize($value)
+	{
+		$value = explode('|', $value);
+		$value = implode("\n", $value);
+		
+		return $value;
 	}
 }

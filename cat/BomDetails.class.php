@@ -122,7 +122,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->К-во,primeCost';
+    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->К-во,primeCost,coefficient';
     
     
     /**
@@ -143,6 +143,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
     	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=К-во,input=none,tdClass=accCell');
+    	$this->FLD("coefficient", 'double', 'input=none');
     }
 
 
@@ -277,7 +278,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Проверява за коректност израз и го форматира.
      */
-    public static function highliteExpr($expr, $params)
+    public static function highliteExpr($expr, $params, $coefficient)
     {
     	$rQuantity = cat_BomDetails::calcExpr($expr, $params);
     	if($rQuantity === self::CALC_ERROR) {
@@ -301,6 +302,10 @@ class cat_BomDetails extends doc_Detail
     		$expr = "<span class='{$style}'>{$expr}</span>";
     	}
     	$expr = preg_replace('/\$Начално\s*=\s*/iu', "<span style='color:blue'>" . tr('Начално') . "</span>=", $expr);
+    	
+    	if(isset($coefficient)){
+    		$expr .= " / <span style='color:darkgreen' title='" . tr('Количеството от оригиналната рецепта') . "'>{$coefficient}</span>";
+    	}
     	
     	return $expr;
     }
@@ -386,7 +391,7 @@ class cat_BomDetails extends doc_Detail
     		if($rec->type != 'pop'){
     			$description = cat_Products::getDescription($rec->resourceId)->getContent();
     			$description = html2text_Converter::toRichText($description);
-    			$description = cls::get('type_RichText')->fromVerbal($description);
+    			$description = cls::get('type_Richtext')->fromVerbal($description);
     			$description = str_replace("\n\n", "\n", $description);
     			
     			$form->setDefault('description', $description);
@@ -568,16 +573,27 @@ class cat_BomDetails extends doc_Detail
     		$row->resourceId .= "<br><small>{$row->description}</small>";
     	}
     	
+    	$propQuantity = $rec->propQuantity;
+    	$coefficient = NULL;
+    	
+    	if(isset($rec->parentId)){
+    		$coefficient = $mvc->fetchField($rec->parentId, 'coefficient');
+    		
+    		if(isset($coefficient)){
+    			$rec->propQuantity .= " / $coefficient";
+    		}
+    	}
+    	
     	$rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
     	
-    	$highlightedExpr = static::highliteExpr($rec->propQuantity, $rec->params);
+    	$highlightedExpr = static::highliteExpr($propQuantity, $rec->params, $coefficient);
     	$row->propQuantity = $highlightedExpr;
     	
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     	} else {
-    		$rec->rowQuantity /= $rec->quantityInPack;
-    		$row->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+    		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
+    		//$rec->rowQuantity /= $rec->quantityInPack;
     	}
     	
     	if(is_numeric($rec->propQuantity)){
@@ -598,8 +614,13 @@ class cat_BomDetails extends doc_Detail
     	
     	$rec->type = 'stage';
     	$rec->primeCost = NULL;
-    	$this->save($rec, 'type,primeCost');
-    	cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
+    	
+    	cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
+    	if(isset($bomRec)){
+    		$rec->coefficient = $bomRec->quantity;
+    	}
+    	$this->save($rec, 'type,primeCost,coefficient');
+    	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("|*{$title} |вече е етап|*");
     	$this->Master->logRead("Разпъване на материал", $rec->bomId);
@@ -620,7 +641,8 @@ class cat_BomDetails extends doc_Detail
     	
     	$rec->type = 'input';
     	$this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
-    	$this->save($rec, 'type');
+    	$rec->coefficient = NULL;
+    	$this->save($rec);
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = tr("Свиване на|* {$title}");
@@ -811,19 +833,22 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
-		$hasSameQuantities = TRUE;
-    	if(is_array($data->recs)){
-    		foreach ($data->recs as $rec){
-    			if($rec->rowQuantity != $rec->propQuantity){
-    				$hasSameQuantities = FALSE;
-    			}
-    		}
+		if(is_array($data->recs)){
+			foreach ($data->recs as $id => &$rec){
+				if($rec->parentId){
+					if($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR){
+						$rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
+						$data->recs[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+					}
+				}
+			}
     	}
 
     	// Ако формулите и изчислените к-ва са равни, показваме само едната колонка
     	if($hasSameQuantities === TRUE){
     		unset($data->listFields['propQuantity']);
     	}
+    	unset($data->listFields['coefficient']);
     }
     
     
@@ -883,7 +908,11 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако сме добавили нов етап
     	if($rec->stageAdded === TRUE){
-    		static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id);
+    		static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
+    		if($bomRec){
+    			$rec->coefficient = $bomRec->quantity;
+    			$mvc->save_($rec, 'coefficient');
+    		}
     	}
     }
     
@@ -916,7 +945,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $componentId - на кой ред в рецептата е артикула
      * @return void
      */
-    public static function addProductComponents($productId, $toBomId, $componentId)
+    public static function addProductComponents($productId, $toBomId, $componentId, &$activeBom = NULL)
     {
     	$me = cls::get(get_called_class());
     	$toBomRec = cat_Boms::fetch($toBomId);
@@ -931,6 +960,7 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако етапа има рецепта
     	if($activeBom){
+    		
     		$outArr = static::getOrderedBomDetails($activeBom->id);
     		$cu = core_Users::getCurrent();
     		

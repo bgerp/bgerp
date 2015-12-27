@@ -67,6 +67,18 @@ class log_System extends core_Manager
     
     
     /**
+     * 
+     */
+    protected static $notifySysId = 'notifyForSysErr';
+    
+    
+    /**
+     * 
+     */
+    protected static $notifyErrArr = array('emerg', 'alert', 'crit', 'err', 'warning');
+    
+    
+    /**
      * Описание на полетата на модела
      */
     function description()
@@ -219,6 +231,52 @@ class log_System extends core_Manager
     
     
     /**
+     * Добавя div със стил за състоянието на треда
+     */
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        $type = $data->listFilter->rec->type;
+        
+        if ($type && in_array($type, self::$notifyErrArr)) {
+            // Изчистване на нотификации за възникнали грешки
+            $url = array($mvc, 'list', 'type' => $type);
+            bgerp_Notifications::clear($url);
+        }
+    }
+    
+    
+    /**
+     * Нотифициране на администраторите по крон за възникнали грешк
+     */
+    function cron_NotifyForSysErr()
+    {
+        $period = core_Cron::getPeriod(self::$notifySysId);
+        $period += 59;
+        
+        $from = dt::subtractSecs($period);
+        
+        $query = $this->getQuery();
+        $query->where("#createdOn >= '{$from}'");
+        $query->orWhereArr('type', self::$notifyErrArr);
+        $query->groupBy('type');
+        
+        $roleId = core_Roles::fetchByName('admin');
+        $adminsArr = core_Users::getByRole($roleId);
+        while($rec = $query->fetch()) {
+            
+            $errType = $this->getVerbal($rec, 'type');
+            $msg = '|Грешка в системата от тип|*: |' . $errType;
+            
+            foreach ($adminsArr as $userId) {
+                if (!$this->haveRightFor('list', NULL, $userId)) continue;
+                $urlArr = array($this, 'list', 'type' => $rec->type);
+                bgerp_Notifications::add($msg, $urlArr, $userId, 'warning');
+            }
+        }
+    }
+    
+    
+    /**
      * Начално установяване на модела
      */
     static function on_AfterSetupMVC($mvc, &$res)
@@ -227,12 +285,24 @@ class log_System extends core_Manager
         $rec = new stdClass();
         $rec->systemId = 'DeleteExpiredLogs';
         $rec->description = 'Изтриване на старите логове в системата';
-        $rec->controller = "{$mvc->className}";
+        $rec->controller = $mvc->className;
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
         $rec->offset = rand(1320, 1439); // ot 22h до 24h
         $rec->delay = 0;
         $rec->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec);
+        
+        // Нагласяване на Крон за нотификация на администраторите       
+        $rec = new stdClass();
+        $rec->systemId = self::$notifySysId;
+        $rec->description = 'Нотифициране на администраторите за грешки';
+        $rec->controller = $mvc->className;
+        $rec->action = 'notifyForSysErr';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
     }
 }

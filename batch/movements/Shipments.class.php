@@ -2,7 +2,7 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса batch_MovementSourceIntf за наследниците на deals_DealMaster
+ * Помощен клас-имплементация на интерфейса batch_MovementSourceIntf за наследниците на store_DocumentMaster
  *
  * @category  bgerp
  * @package   batch
@@ -14,12 +14,13 @@
  * @see batch_MovementSourceIntf
  *
  */
-class batch_movements_Deal
+class batch_movements_Shipments
 {
 	
 	
 	/**
-     * @var deals_DealMaster
+     * 
+     * @var store_DocumentMaster
      */
     public $class;
     
@@ -41,34 +42,31 @@ class batch_movements_Deal
     {
     	$entries = array();
     	$rec = $this->class->fetchRec($rec);
-    	
-    	$actions = type_Set::toArray($rec->contoActions);
-    	if(!isset($actions['ship'])) return $entries;
-    	
-    	$storeId = $rec->shipmentStoreId;
-    	
-    	$Detail = cls::get($this->class->mainDetail);
+		$storeId = $rec->storeId;
+		
+		$Detail = cls::get($this->class->mainDetail);
     	$dQuery = $Detail->getQuery();
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-    	$dQuery->where("#batch IS NOT NULL OR #batch != ''");
-    	
-    	$operation = ($this->class instanceof sales_Sales) ? 'out' : 'in';
-    	
-    	while($dRec = $dQuery->fetch()){
-    		$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
-    		$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
-    		
-    		foreach ($batches as $b){
-    			$entries[] = (object)array('productId' => $dRec->productId,
-					    				   'batch'     => $b,
-					    				   'storeId'   => $storeId,
-					    				   'quantity'  => $quantity,
-					    				   'operation' => $operation,
-					    				   'date'	   => $rec->valior,
-    			);
-    		}
-    	}
-    	
-    	return $entries;
+		$dQuery->where("#batch IS NOT NULL OR #batch != ''");
+		$dQuery->show('productId,batch,quantity');
+		
+		$operation = ($this->class instanceof store_ShipmentOrders) ? 'out' : 'in';
+		
+		while($dRec = $dQuery->fetch()){
+			$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
+			$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
+			
+			foreach ($batches as $b){
+				$entries[] = (object)array('productId' => $dRec->productId,
+										   'batch'     => $b,
+										   'storeId'   => $storeId,
+										   'quantity'  => $quantity,
+										   'operation' => $operation,
+										   'date'	   => $rec->valior,
+				);
+			}
+		}
+		
+		return $entries;
     }
 }

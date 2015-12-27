@@ -52,7 +52,7 @@ class compactor_Plugin extends core_Plugin
     {   
         $filesArr = arr::make($filesArr, TRUE);
         $configFilesArr = arr::make($configFilesArr, TRUE);
- 
+        
         // Не правим нищо, ако конфигурационните файлове и текущите нямат сечение
         if(!count(array_intersect_key($filesArr, $configFilesArr))) return;
         
@@ -66,6 +66,13 @@ class compactor_Plugin extends core_Plugin
         $content = '';
 
         foreach($configFilesArr as $file) {
+            
+            // Ако достигне до тук без да са заместени плейсхолдерите
+            // Може да се стигне до тук ако е закачен плъгина, но не е инсталиран пакета
+            if ((strpos($file, '[#') !== FALSE) && (strpos($file, '#]') !== FALSE)) {
+                $file = compactor_Setup::preparePacksPath('compactor', $file);
+            }
+            
             sbf($file);
             $sbfFilePath = core_Sbf::getSbfFilePath($file);
             if(!file_exists($sbfFilePath)) {

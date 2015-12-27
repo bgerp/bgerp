@@ -459,7 +459,7 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		Mode::push('text', 'plain');
     		$altText = html2text_Converter::toRichText($altText);
-    		$altText = cls::get('type_RichText')->toVerbal($altText);
+    		$altText = cls::get('type_Richtext')->toVerbal($altText);
     		Mode::pop('text');
     		
     		$PML->AltBody = $altText;

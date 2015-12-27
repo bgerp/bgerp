@@ -197,6 +197,7 @@ class core_Form extends core_FieldSet
                 if ((!isset($options[$value]) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
                 
@@ -204,6 +205,7 @@ class core_Form extends core_FieldSet
                 if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
                 
@@ -222,7 +224,6 @@ class core_Form extends core_FieldSet
                     $result = array('error' => $type->error);
                     
                     $this->setErrorFromResult($result, $field, $name);
-                    
                     continue;
                 }
                 
@@ -321,6 +322,7 @@ class core_Form extends core_FieldSet
                 if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
         
@@ -328,6 +330,7 @@ class core_Form extends core_FieldSet
                 if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
                     continue;
                 }
         
@@ -393,8 +396,9 @@ class core_Form extends core_FieldSet
     function setErrorFromResult($result, $field, $name)
     {
         $captions = str_replace('->', '|* » |', $field->caption);
-
+        
         if ($result['warning'] && !$result['error']) {
+            $haveErr = TRUE;
             $this->setWarning($name, "Възможен проблем с полето|" .
                 "* <b>'|" . $captions .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
@@ -402,12 +406,17 @@ class core_Form extends core_FieldSet
         }
         
         if ($result['error']) {
+            $haveErr = TRUE;
             $this->setError($name, "Некоректна стойност на полето|" .
                 "* <b>'|" . $captions .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
                 $result['error'] .
                 ($result['warning'] ? ("|*<br>|" .
                         $result['warning']) : "") . "|*</small>");
+        }
+        
+        if ($haveErr && $field->input == 'hidden') {
+            $field->input = 'input';
         }
     }
     
@@ -1150,11 +1159,6 @@ class core_Form extends core_FieldSet
                 $this->errors[$f] = $errRec;
                 $msg = FALSE;
             }
-        }
-        
-        // Ако възникне грешка в скрито поле, да се покаже полето
-        if ($this->fields[$field]->input == 'hidden') {
-            $this->fields[$field]->input = 'input';
         }
     }
     

@@ -63,10 +63,11 @@ abstract class batch_definitions_Proto extends core_BaseClass
      * Проверява дали стойността е невалидна
      *
      * @param string $value - стойноста, която ще проверяваме
+     * @param quantity $quantity - количеството
      * @param string &$msg -текста на грешката ако има
      * @return boolean - валиден ли е кода на партидата според дефиницията или не
      */
-    public function isValid($value, &$msg)
+    public function isValid($value, $quantity, &$msg)
     {
     	return TRUE;
     }
@@ -94,5 +95,43 @@ abstract class batch_definitions_Proto extends core_BaseClass
     	$Type = core_Type::getByName('varchar');
 
     	return $Type;
+    }
+    
+    
+    /**
+     * Разбива партидата в масив
+     * 
+     * @param varchar $value - партида
+     * @return array $array - масив с партидата
+     */
+    public function makeArray($value)
+    {
+    	$value = $this->denormalize($value);
+    	
+    	return array($value => $value);
+    }
+    
+    
+    /**
+     * Нормализира стойноста на партидата в удобен за съхранение вид
+     * 
+     * @param text $value
+     * @return text $value
+     */
+    public function normalize($value)
+    {
+    	return trim($value);
+    }
+    
+    
+    /**
+     * Денормализира партидата
+     * 
+     * @param text $value
+     * @return text $value
+     */
+    public function denormalize($value)
+    {
+    	return $value;
     }
 }

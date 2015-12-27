@@ -19,37 +19,58 @@ class batch_plg_DocumentMovement extends core_Plugin
 	
 	
 	/**
-	 * Извиква се преди изпълняването на екшън
-	 *
-	 * @param core_Mvc $mvc
-	 * @param mixed $res
-	 * @param string $action
-	 */
-	public static function on_BeforeAction($mvc, &$res, $action)
-	{
-		if($action == 'test'){
-			//batch_Movements::saveMovement($mvc, 2149);
-			//batch_Movements::removeMovement($mvc, 2149);
-			return FALSE;
-			
-			//bp('LOVE');
-		}
-	}
-	
-	
-	/**
 	 * Извиква се след успешен запис в модела
 	 *
 	 * @param core_Mvc $mvc
 	 * @param int $id първичния ключ на направения запис
 	 * @param stdClass $rec всички полета, които току-що са били записани
 	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = NULL)
 	{
+		//static $i = 0;
+		
 		if($rec->state == 'active'){
-			batch_Movements::saveMovement($mvc, $rec->id);
+			if(isset($saveFileds)) return;
+			//if($i == 2) bp();
+			//core_Statuses::newStatus(str::getRand(), 'warning');
+			//batch_Movements::saveMovement($mvc, $rec->id);
 		} elseif($rec->state == 'rejected'){
-			batch_Movements::removeMovement($mvc, $rec->id);
+			//batch_Movements::removeMovement($mvc, $rec->id);
 		}
+	}
+	
+	public static function on_AfterCanActivateMovementDocument($mvc, &$res, $id)
+	{
+		if(!$res){
+			$rec = $mvc->fetchRec($id);
+			$Detail = cls::get($mvc->mainDetail);
+			$query = $Detail->getQuery();
+			$query->where("#{$Detail->masterKey} = {$rec->id}");
+			//$query->show();
+			
+			//bp($Detail);
+		}
+	}
+	/**
+	 * Изпълнява се преди контиране на документа
+	 */
+	public static function on_BeforeConto1111(core_Mvc $mvc, &$res, $id)
+	{
+		
+		$r = $mvc->canActivateMovementDocument($id);
+		return;
+		expect($MovementImpl = cls::getInterface('batch_MovementSourceIntf', $mvc));
+		expect($docRec = $mvc->fetchRec($id));
+		
+		$entries = $MovementImpl->getMovements($docRec);
+		bp($entries);
+		
+		$mvc1 = cls::get('purchase_PurchasesDetails');
+		$query = $mvc1->getQuery();
+		$query->where("#{$mvc1->masterKey} = {$rec->{$mvc1->masterKey}}");
+		bp($query->fetchAll());
+		
+		
+		return FALSE;
 	}
 }

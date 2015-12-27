@@ -586,7 +586,7 @@ class cat_Boms extends core_Master
     	$type = ($origin->isInstanceOf('planning_Jobs')) ? 'production' : 'sales';
     	
     	$Double = cls::get('type_Double');
-    	$Richtext = cls::get('type_RichText');
+    	$Richtext = cls::get('type_Richtext');
     	
     	$rec = (object)array('productId' => $productId,
     						 'type'		 => $type,
@@ -994,9 +994,9 @@ class cat_Boms extends core_Master
     		if(!isset($materials[$index])){
     			$materials[$index] = (object)array('productId'      => $rec->resourceId, 
     											   'packagingId'    => $rec->packagingId, 
-    											   'quantityInPack' => $rec->quantityInPack, 
+    											   'quantityInPack' => $rec->quantityInPack,
     											   'type'           => $rec->type,
-    											   'propQuantity'   => $t * $rQuantity);
+    											   'propQuantity'   => $t * $rQuantity * $rec->quantityInPack);
     		} else {
     			$d = &$materials[$index];
     			if($rQuantity != cat_BomDetails::CALC_ERROR){
@@ -1034,6 +1034,9 @@ class cat_Boms extends core_Master
     		}
     	} else {
     		$price = NULL;
+    		if(isset($rec->coefficient)){
+    			$rQuantity /= $rec->coefficient;
+    		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
     		$newParams = static::getRowParams($rec->resourceId);

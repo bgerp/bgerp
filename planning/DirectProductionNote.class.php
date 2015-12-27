@@ -33,7 +33,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
 	
 	
 	/**
@@ -150,6 +150,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
+		$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
@@ -168,7 +169,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		$form = &$data->form;
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
-		$form->setReadOnly('productId', $originRec->productId);
+		$form->setDefault('productId', $originRec->productId);
+		$form->setReadOnly('productId');
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($originRec->productId, 'measureId'));
 		$form->setField('quantity', "unit={$shortUom}");
 		
@@ -203,6 +205,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
 		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+		
+		if(!empty($rec->batch)){
+			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
+			$row->batch = cls::get('type_RichText')->toVerbal($batch);
+		}
 	}
 	
 	
