@@ -994,9 +994,9 @@ class cat_Boms extends core_Master
     		if(!isset($materials[$index])){
     			$materials[$index] = (object)array('productId'      => $rec->resourceId, 
     											   'packagingId'    => $rec->packagingId, 
-    											   'quantityInPack' => $rec->quantityInPack, 
+    											   'quantityInPack' => $rec->quantityInPack,
     											   'type'           => $rec->type,
-    											   'propQuantity'   => $t * $rQuantity);
+    											   'propQuantity'   => $t * $rQuantity * $rec->quantityInPack);
     		} else {
     			$d = &$materials[$index];
     			if($rQuantity != cat_BomDetails::CALC_ERROR){
