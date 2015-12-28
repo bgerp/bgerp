@@ -153,11 +153,13 @@ class store_TransfersDetails extends doc_Detail
         $rows = $data->rows;
         
         if(count($data->rows)) {
+        	
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 $row->newProductId = cat_Products::getShortHyperlink($rec->newProductId);
                 
                 if($rec->batch){
+                	unset($notes);
                 	batch_Defs::appendBatch($rec->newProductId, $rec->batch, $notes);
                 	$RichText = cls::get('type_Richtext');
                 	$row->newProductId .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";

@@ -123,6 +123,14 @@ class store_Transfers extends core_Master
     
 
     /**
+     * Кой е главния детайл
+     *
+     * @var string - име на клас
+     */
+    public $mainDetail = 'store_TransfersDetails';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Междускладов трансфер';
@@ -150,6 +158,12 @@ class store_Transfers extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Как се казва полето в което е избран склада
+     */
+    public $storeFieldName = 'fromStore';
     
     
     /**
