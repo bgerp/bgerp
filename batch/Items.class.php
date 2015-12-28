@@ -103,6 +103,24 @@ class batch_Items extends core_Master {
     
     
     /**
+     * Връща наличното количество от дадена партида
+     * 
+     * @param int $productId    - артикул
+     * @param string $batch     - партида
+     * @param int $storeId      - склад
+     * @return double $quantity - к-во на партидата в склада
+     */
+    public static function getQuantity($productId, $batch, $storeId)
+    {
+    	$quantity = self::fetchField(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $batch), 'quantity');
+    
+    	$quantity = empty($quantity) ? 0 : $quantity;
+    	
+    	return $quantity;
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
