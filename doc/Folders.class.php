@@ -196,8 +196,6 @@ class doc_Folders extends core_Master
 			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
 		}
 		
-		// Ограничения при показване на папките
-		static::restrictAccess($data->query);
 		switch($data->listFilter->rec->order) {
 			case 'last' :
 				$data->query->orderBy('#last', 'DESC');
@@ -659,80 +657,22 @@ class doc_Folders extends core_Master
      * @param int $userId key(mvc=core_Users)
      * @param boolean $fullAccess - Възможно най - много права за папката
      */
-    static function restrictAccess(&$query, $userId = NULL, $fullAccess=TRUE)
+    static function restrictAccess_(&$query, $userId = NULL, $fullAccess=TRUE)
     {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-            
-            if (!isset($userId)) {
-                $userId = 0;
-            }
-        }
-        
-        $teammates = keylist::toArray(core_Users::getTeammates($userId));
-        $managers  = core_Users::getByRole('manager');
-        $ceos = core_Users::getByRole('ceo');
-        
-        // Подчинените в екипа (използва се само за мениджъри)
-        $subordinates = array_diff($teammates, $managers);
-        $subordinates = array_diff($subordinates, $ceos);
-        
-        foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
-            if (${$v}) {
-                ${$v} = implode(',', ${$v});
-            } else {
-                ${$v} = FALSE;
-            }
-        }
-        
-        $conditions = array(
-            "LOCATE('|{$userId}|', #folderShared) ", // Всеки има достъп до споделените с него папки
-            "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
-        );
-        
-        // Всеки (освен конракторите) имат достъп до публичните папки
-        if (!core_Users::isContractor()) {
-            $conditions[] = "#folderAccess = 'public'";
-        }
-        
-        if ($teammates) {
-            // Всеки има достъп до екипните папки, за които отговаря негов съекипник
-            $conditions[] = "#folderAccess = 'team' AND #folderInCharge IN ({$teammates})";
-        }
-        
-        switch (true) {
-            case core_Users::haveRole('ceo') :
-                // CEO вижда всичко с изключение на private и secret папките на другите CEO
-                if ($ceos) {
-                    $conditions[] = "#folderInCharge NOT IN ({$ceos})";
-                }
-                
-                // CEO да може да вижда private папките на друг `ceo`
-                if ($fullAccess) {
-                    $conditions[] = "#folderAccess != 'secret'";
-                }
-                
-            break;
-            case core_Users::haveRole('manager') :
-                // Manager вижда private папките на подчинените в екипите си
-                if ($subordinates) {
-                    $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
-                }
-            break;
-        }
-        
         if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
-            $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
-            $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
-            $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
-        } else {
-            $query->XPR('folderAccess', 'varchar', '#access');
-            $query->XPR('folderInCharge', 'varchar', '#inCharge');
-            $query->XPR('folderShared', 'varchar', '#shared');
+            if (!$query->fields['folderAccess']) {
+                $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
+            }
+            
+            if (!$query->fields['folderInCharge']) {
+                $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
+            }
+            
+            if (!$query->fields['folderShared']) {
+                $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
+            }
         }
-        
-        $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
     
     

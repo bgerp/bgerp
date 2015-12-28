@@ -142,15 +142,34 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				$paid = $recSale->amountDelivered - $recSale->amountBl;
 
 				while ($invRec = $queryInvoices->fetch()){
-
-					// сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
-					$amountVat =  $invRec->dealValue + $invRec->vatAmount;
-
-					if (!$checkSum) { 
-						$checkSum = $paid - $amountVat;
-					} else{
-						$toPaid = $amountVat - $checkSum;
-					}
+				 
+				    // платеното е разлика на достовеното и салдото
+				    $paid =  $recSale->amountDelivered - $recSale->amountBl;
+				    // сумата на фактурата с ДДС е суматана на факурата и ДДС стойността
+				    $amountVat =  $invRec->dealValue + $invRec->vatAmount;
+				    // имаме една чек сума, която е по-малкото от двете числа:
+				    // платено и сумата на фактурата
+				    $checkSum =  min($paid,$amountVat);
+				    
+				    if(!$toPaid && $paid  !=  '0') {
+    				    $toPaid = abs($paid - $amountVat);
+    				        // ако нищо не е платено по тази сделка
+    				        // дължимата сума е сумата по фактура
+    				} elseif ($paid  ==  '0') {
+    				    $toPaid = $amountVat;
+    				        // на всяка следваща стъпка, остатъка намалява с
+    				        // чек сумата
+    				} else {	
+    				    $toPaid = abs($toPaid - $checkSum); 
+    				}
+    				    // ако дължимата сума е около 0
+    				    // или стойноста на фактурата съвпадне с чек сумата
+    				    // игнорираме тези редове
+    				if (round($toPaid,2) == 0) {
+    				        continue;
+    				} else {
+    				       //if ($checkSum == $amountVat) continue;
+    				}
 					
 					// правим рековете
 					$data->recs[] = (object) array ("contragentCls" => $contragentCls,
@@ -169,12 +188,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			}
 		}
 
-        foreach ($data->recs as $rec) {
+        foreach ($data->recs as $rec) { 
         	
-        	if ($rec->dueDate == NULL || $rec->dueDate < dt::now()) {
+        	if ($rec->dueDate == NULL || $rec->dueDate < dt::now()) { 
         		$rec->amount = $rec->amountRest;
+        	} else {
+        	   unset($rec->amountRest);
         	}
-        	
+        
         	if ($rec->currencyId != $currencyNow) {
         		$rec->amountVat = currency_CurrencyRates::convertAmount($rec->amountVat, $rec->date, $currencyNow, $rec->currencyId);
         		$rec->amountRest = currency_CurrencyRates::convertAmount($rec->amountRest, $rec->date, $currencyNow, $rec->currencyId);

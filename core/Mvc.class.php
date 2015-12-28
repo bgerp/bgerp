@@ -1330,7 +1330,7 @@ class core_Mvc extends core_FieldSet
     {
         if (core_Users::getCurrent() <= 0) {
             
-            return self::logInfo($action, $objectId);
+            self::logInfo($action, $objectId);
         }
         
         $className = get_called_class();
@@ -1349,7 +1349,7 @@ class core_Mvc extends core_FieldSet
     {
         if (core_Users::getCurrent() <= 0) {
             
-            return self::logInfo($action, $objectId);
+            self::logInfo($action, $objectId);
         }
         
         $className = get_called_class();
