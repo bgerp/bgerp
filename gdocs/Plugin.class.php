@@ -76,7 +76,7 @@ class gdocs_Plugin extends core_Plugin
         // Ако е презентация, трябва да се промени линка
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
-        } elseif (strpos($url, '/file/')) {
+        } elseif (strpos($url, '/drawings/') || strpos($url, '/file/')) {
             
             $urlArr = parse_url($url);
             
@@ -90,6 +90,7 @@ class gdocs_Plugin extends core_Plugin
                     ($urlPathArr[$lastKey] == 'preview') || 
                     ($urlPathArr[$lastKey] == 'edit') || 
                     ($urlPathArr[$lastKey] == 'view') || 
+                    ($urlPathArr[$lastKey] == 'pub') || 
                     ($urlPathArr[$lastKey] == 'share'))
                 ) {
                 $urlPathArr[$lastKey] = 'preview';
