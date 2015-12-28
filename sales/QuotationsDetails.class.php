@@ -536,18 +536,19 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	// Шаблон за задължителните продукти
+    	$shortest = FALSE;
     	$templateFile = ($data->countNotOptional && $data->notOptionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
     	if($data->countNotOptional == 1 && $data->notOptionalHaveOneQuantity){
     		$templateFile = 'sales/tpl/LayoutQuoteDetailsShortest.shtml';
-    		
-    		//$data->masterData->row
-    		//$others = "<li>tol</li>";
-    		
+    		$shortest = TRUE;
     	}
     	
     	$dTpl = getTplFromFile($templateFile);
-    	 
-    	
+    	if($shortest === TRUE){
+    		if($masterRec->state != 'draft'){
+    			$dTpl->replace('display:none;', 'none');
+    		}
+    	}
     	
     	// Шаблон за опционалните продукти
     	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
@@ -644,7 +645,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	if($masterRec->state == 'draft' || $dCount > 1){
     		$tpl->append($this->renderListToolbar($data), 'ListToolbar');
     		$dTpl->append(tr('Оферирани'), 'TITLE');
-    		$dTpl->append($miscMandatory, "MISC");
+    		
+    		if($shortest !== TRUE){
+    			$dTpl->append($miscMandatory, "MISC");
+    		}
+    		
     		if(isset($data->addNotOptionalBtn)){
     			$dTpl->append($data->addNotOptionalBtn, 'ADD_BTN');
     		}

@@ -363,7 +363,7 @@ class sales_Quotations extends core_Master
     	$dData = $data->sales_QuotationsDetails;
     	if($dData->countNotOptional && $dData->notOptionalHaveOneQuantity){
     		$firstProductRow = $dData->rows[key($dData->rows)][0];
-    		if(isset($firstProductRow->tolerance)){
+    		if($firstProductRow->tolerance){
     			$data->row->others .= "<li>" . tr('Толеранс:') ." {$firstProductRow->tolerance}</li>";
     		}
     		
