@@ -47,7 +47,13 @@ class core_Query extends core_FieldSet
      */
     var $exprShow = array();
     
+
+    /**
+     * Кои полета са използвани за даден израз
+     */
+    private $usedFields = array();
     
+
     /**
      * Масив, където съхраняваме WHERE и HAVE условията
      */
@@ -573,7 +579,6 @@ class core_Query extends core_FieldSet
             }
            
             $query = "SELECT {$options}\n   count(*) AS `_count`";
-
             if ($temp->getGroupBy() ||
                 count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
                 $fields = $temp->getShowFields();
@@ -601,7 +606,9 @@ class core_Query extends core_FieldSet
             // Връщаме брояча на редовете
             return $r->_count;
         } else {
+            
             $temp->orderBy = array();
+
             $i = $temp->select();
             
             return $i;
@@ -836,6 +843,7 @@ class core_Query extends core_FieldSet
                 
                 if ($this->useExpr) {
                     $having .= ($having ? " AND\n   " : "   ") . "({$expr})";
+                    $this->exprShow = arr::combine($this->exprShow, $this->usedFields);
                 } else {
                     $where .= ($where ? " AND\n   " : "   ") . "({$expr})";
                 }
@@ -967,7 +975,8 @@ class core_Query extends core_FieldSet
     function expr2mysql($expr)
     {
         $this->useExpr = FALSE;
-        
+        $this->usedFields = array();
+
         return str::prepareExpression($expr, array(
                 &$this,
                 'getMysqlField'
@@ -1009,7 +1018,11 @@ class core_Query extends core_FieldSet
             bp($field);
         }
         
-        return "`{$tableName}`.`{$mysqlName}`";
+        $res = "`{$tableName}`.`{$mysqlName}`";
+        
+        $this->usedFields[$name] = $name;
+
+        return $res;
     }
     
     

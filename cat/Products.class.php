@@ -441,7 +441,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
-    	if(isset($form->rec->id)){
+    	if(isset($form->rec->id) && $data->action != 'clone'){
     		if(cat_products_Packagings::isUsed($form->rec->id)){
     			$form->setReadOnly('measureId');
     		}
