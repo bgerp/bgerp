@@ -177,4 +177,23 @@ class batch_Defs extends embed_Manager {
     		$string .= "{$label}: {$batch}";
     	}
     }
+    
+    
+    /**
+     * Връща масив с ид-та на артикулите с дефиниции на партида
+     * 
+     * @return array $result - масив
+     */
+    public static function getProductsWithDefs()
+    {
+    	$result = array();
+    	
+    	$query = self::getQuery();
+    	$query->show('productId');
+    	while($rec = $query->fetch()){
+    		$result[$rec->productId] = $rec->productId;
+    	}
+    	
+    	return $result;
+    }
 }
