@@ -51,11 +51,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
+		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 		
 		if(isset($rec->{$mvc->productFieldName})){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
 				$form->setField('batch', 'input');
+				$suggestions = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
 				
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
 				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, 1));
@@ -63,6 +65,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 					$rec->batch = $BatchClass->denormalize($rec->batch);
 				}
 				
+				if($mvc->Master->batchMovementDocument == 'out'){
+					if(count($suggestions)){
+						$form->setSuggestions('batch', array('' => '') + $suggestions);
+					}
+				}
 			} else {
 				$form->setField('batch', 'input=none');
 				unset($rec->batch);
@@ -114,7 +121,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		
 		// Кой е избрания склад в мастъра
 		$storeName = $mvc->Master->storeFieldName;
-		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $storeName);
+		
+		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "state,{$storeName}");
 
 		// Ако реда има партидност
 		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
@@ -160,15 +168,19 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			}
 			
 			// Ако има склад и партида
-			if(isset($storeId) && !empty($rec->batch) && $mvc->Master->batchMovementDocument == 'out'){
+			if($masterRec->state == 'draft' && isset($masterRec->{$storeName}) && !empty($rec->batch) && $mvc->Master->batchMovementDocument == 'out'){
+				$batchArr = $BatchClass->makeArray($rec->batch);
 				
-				// Проверяваме наличното к-во от партидата в склада
-				$batchQuantity = batch_Items::getQuantity($rec->{$mvc->productFieldName}, $rec->batch, $storeId);
-				
-				// Ако текущото количество е по-голямо от експедираното сетваме грешка
-				if($rec->quantity > $batchQuantity){
-					$msg2 = 'Няма достатъчно количество от избраната партида в склада';
-					$msg = ($msg === FALSE) ? $msg2 : $msg . "<br>" . $msg2;
+				foreach ($batchArr as $b){
+					$batchQuantity = batch_Items::getQuantity($rec->{$mvc->productFieldName}, $b, $masterRec->{$storeName});
+					$quantity = $rec->quantity / count($batchQuantity);
+					
+					// Ако текущото количество е по-голямо от експедираното сетваме грешка
+					if($quantity > $batchQuantity){
+						$msg2 = 'Няма достатъчно количество от избраната партида в склада';
+						$msg = ($msg === FALSE) ? $msg2 : $msg . "<br>" . $msg2;
+						break;
+					}
 				}
 			}
 		}
@@ -193,7 +205,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			// Ако има проблем с партидите, показваме грешката и маркираме реда
 			if($msg = self::getBatchRecInvalidMessage($mvc, $rec)){
 				$msg = tr($msg);
-				$rows[$id]->productId .= "<div style='font-size:0.75em;color:red;'>{$msg}</div>";
+				$rows[$id]->{$mvc->productFieldName} .= "<div style='font-size:0.75em;color:red;'>{$msg}</div>";
 				$rows[$id]->ROW_ATTR['style'] = 'background-color:#ffb3b3';
 			}
 		}
