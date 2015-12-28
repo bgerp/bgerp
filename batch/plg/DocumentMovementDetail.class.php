@@ -160,7 +160,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			}
 			
 			// Ако има склад и партида
-			if(isset($storeId) && !empty($rec->batch)){
+			if(isset($storeId) && !empty($rec->batch) && $mvc->Master->batchMovementDocument == 'out'){
 				
 				// Проверяваме наличното к-во от партидата в склада
 				$batchQuantity = batch_Items::getQuantity($rec->{$mvc->productFieldName}, $rec->batch, $storeId);
