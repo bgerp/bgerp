@@ -326,7 +326,7 @@ class doc_UnsortedFolders extends core_Master
         $res .= core_Cron::addOnce($rec);
     }
     
-    
+
     /**
      * Метод за Cron за зареждане на валутите
      */
@@ -337,7 +337,7 @@ class doc_UnsortedFolders extends core_Master
     	
     	// заявка към текущата база
     	$query = static::getQuery();
-
+	
     	// търсим всички проекти, които не са отхвърлени и имат време за автоматично затваряне
         $query->where("#state != 'rejected' AND #closeTime IS NOT NULL");
 
@@ -357,7 +357,11 @@ class doc_UnsortedFolders extends core_Master
         		$recThread->state = 'closed';
         			
         		doc_Threads::save($recThread, 'state');
-        	}
+        		
+        		doc_Threads::updateThread($recThread->id);
+        		
+        		doc_Threads::logWrite('Затвори нишка', $recThread->id);
+           	}
         }
     }
     
