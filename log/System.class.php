@@ -212,21 +212,9 @@ class log_System extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if (FALSE && cls::load($rec->className, TRUE)) {
-            $Class = & cls::get($rec->className);
-            
-            if(is_object($Class)) {
-                if (method_exists($Class, 'logToVerbal')) {
-                    $row->what = $Class->logToVerbal($rec->objectId, $rec->detail);
-                } else {
-                    $row->what = $rec->detail;
-                }
-            }
-        } else {
-            $row->what = $rec->className . " * " . $rec->objectId . " * " . $rec->detail;
-        }
-        
         $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
+        
+        $row->what = log_Data::prepareText($rec->detail, $rec->className, $rec->objectId);
     }
     
     
