@@ -322,23 +322,24 @@ class blast_ListDetails extends doc_Detail
     	
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
-    	
-    	$exportFields = new core_FieldSet;
-   
-    	foreach ($this->selectFields("#export") as $fld) {
-    	    // Масива с избраните полета за export
-    	    $exportFields->FLD($fld->name, $fld->type);
-    	}
 
     	// взимаме от базата целия списък отговарящ на този бюлетин
     	$query = self::getQuery();
     	$query->where("#listId = '{$rec->listId}'");
 
+    	$allFields = blast_Lists::fetch($rec->listId, 'allFields');
+    	
+    	$fieldSet = cls::get('blast_ListDetails');
+    	$fieldSet->addFNC($allFields->allFields);
+    	
+    	$listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
+
     	while ($fRec = $query->fetch()) { 
-    	    $data[] = $fRec;
+
+    	     $data[] = (object) unserialize($fRec->data);
     	}
     	
-    	$csv = csv_Lib::createCsv($data, $exportFields);
+    	$csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
 
     	$listTitle = blast_Lists::fetchField("#id = '{$rec->listId}'", 'title');
     	
@@ -353,7 +354,6 @@ class blast_ListDetails extends doc_Detail
     	header("Content-Disposition: attachment; filename={$fileName}.csv");
     	header("Pragma: no-cache");
     	header("Expires: 0");
-    	
     
     	echo $csv;
     
@@ -448,6 +448,9 @@ class blast_ListDetails extends doc_Detail
                 case 'country' :
                     $type = 'varchar';
                     $attr = ",remember";
+                    break;
+                case 'date' :
+                    $type = 'type_Date';
                     break;
                 default :
                 $type = 'varchar';
