@@ -229,11 +229,14 @@ class blogm_Comments extends core_Detail {
             if($rec->web) $sr += 1;
             
             // Ако има файлови окончания +1
-            $sr += self::hasWord($rec->web, '.pdf,.html,.htm');
+            $sr += self::hasWord($rec->web, '.pdf,.html,.htm,#');
             
             // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
             $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
             
+            // Ако в името на сайта има директория
+            $sr += explode('/', $rec->web) > 2 ? 0.5 : 0;
+    
             // Ако има линкове в описанието
             $sr += self::hasWord($rec->comment, array('href=', 'src='));
  
@@ -242,9 +245,12 @@ class blogm_Comments extends core_Detail {
 
             // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
             $sr += self::hasWord($rec->comment, 'http://');
+            
+            // Ако в коментара има линк 
+            $sr += self::hasWord($rec->comment, array('[link='));
 
             // Ако е написано за под 50 секунди
-            if(isset($rec->userDelay) && $rec->userDelay < 50) {
+            if(isset($rec->userDelay) && $rec->userDelay < 20) {
                 $sr += 1;
             }
 
@@ -254,14 +260,28 @@ class blogm_Comments extends core_Detail {
             }
 
             // Ако е написано за над 24 часа
-            if(!$rec->id && $rec->userDelay > 24*3600) {
+            if(isset($rec->userDelay) && $rec->userDelay > 24*3600) {
                 $sr += 1;
             }
 
+
             // Ако имаме от същото IP над 3 чакащи постинга
-            $sr += (int) pow(self::count("#state = 'pending' AND #ip = '{$rec->ip}'"), 1/3);
+            $query = self::getQuery();
+            $query->where("#state != 'active' AND #ip = '{$rec->ip}'");
+            $query->limit(28);
             
-            $rec->spamRate = $sr;
+            if($rec->id) {
+                $idCond = " AND #id != {$rec->id}";
+            } else {
+                $idCond = "";
+            }
+
+            $cnt = self::count("#state != 'active' AND (#ip = '{$rec->ip}' || #brid = '{$brid}')" . $idCond);
+            if($cnt) {
+                $sr +=  pow($cnt, 1/3);
+            }
+            
+            $rec->spamRate = (int) $sr;
 
     }
 
@@ -372,5 +392,28 @@ class blogm_Comments extends core_Detail {
         }
         
         $data->query->orderBy("#createdOn=DESC");
+    }
+
+
+    /**
+     * Изтрива спам коментарите
+     */
+    function cron_DeleteSPAM()
+    {
+        // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 10 и са по-стари от 1 ден
+        // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 5 и са по-стари от 7 дни
+        // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 3 и са по-стари от 10 дни
+
+        $before1 = dt::addDays(-1);
+        $before7 = dt::addDays(-7);
+        $before30 = dt::addDays(-30);
+
+        $cnt = $this->delete("#state != 'active' AND ((#spamRate>=5 AND #createdOn < '{$before1}') OR (#spamRate>=4 AND #createdOn < '{$before7}') OR (#spamRate>=3 AND #createdOn < '{$before30}'))");
+        
+        if($cnt) {
+            $res = "Бяха изтрити {$cnt} СПАМ коментара от блога.";
+        }
+
+        return $res;
     }
 }

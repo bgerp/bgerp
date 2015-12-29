@@ -702,9 +702,9 @@ class doc_Threads extends core_Manager
                         $lQuery = doc_Likes::getQuery();
                         $lQuery->EXT('threadId', 'doc_Containers', 'externalKey=containerId');
                         $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
-                        $cQuery->show('threadId');
-                        $cQuery->groupBy('threadId');
-                        while($lRec = $cQuery->fetch($cond)) {
+                        $lQuery->show('threadId');
+                        $lQuery->groupBy('threadId');
+                        while($lRec = $lQuery->fetch($cond)) {
                             $tList[] = $lRec->threadId;
                         }
 
