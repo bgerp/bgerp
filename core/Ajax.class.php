@@ -110,6 +110,8 @@ class core_Ajax extends core_Mvc
                 
             } catch (core_exception_Expect $e) {
                 
+                reportException($e);
+                
                 // Записваме в лога
                 self::logErr("Грешка при вземане на данни за URL", NULL, self::$logKeepDays);
                 
