@@ -438,7 +438,7 @@ class log_Data extends core_Manager
      * 
      * @return string
      */
-    protected static function prepareText($action, $className, $objectId = NULL)
+    public static function prepareText($action, $className, $objectId = NULL)
     {
         $clsInst = NULL;
         
