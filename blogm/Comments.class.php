@@ -42,7 +42,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'name, email, web, ip, brid, articleId, comment=@, createdOn=Създаване';
+	var $listFields = 'name, email, web, ip, brid, userDelay, spamRate, articleId, comment=@, createdOn=Създаване';
 	
 		
 	/**
@@ -101,6 +101,9 @@ class blogm_Comments extends core_Detail {
   		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none, oldFieldName=browserId');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
+        $this->FLD('userDelay', 'time', 'caption=Спам->Закъснение,input=none');
+        $this->FLD('spamRate', 'int', 'caption=Спам->Рейтинг,input=none');
+
 	}
 
 
@@ -215,31 +218,71 @@ class blogm_Comments extends core_Detail {
             $key = Mode::getPermanentKey();
             $rec->userDelay = time() - $Crypt->decodeVar($rec->renderOn, $key);
             
+            // Да се записва само при нов запис и и когато няма регистриран потребител
+            log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
+        }
+
             // Начален рейтинг
             $sr = 0;
-
+ 
             // Ако потребителя е посочил уеб-сайт +1
             if($rec->web) $sr += 1;
             
             // Ако има файлови окончания +1
-            // $sr += 1 - 1/(1 + str::countInside($rec->web, array('.pdf', '.htm', 'html')));
-
-            // if(stripos($rec->web, '.html')) $sr += 1;
-
+            $sr += self::hasWord($rec->web, '.pdf,.html,.htm');
+            
+            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+            $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
+            
+            // Ако има линкове в описанието
+            $sr += self::hasWord($rec->comment, array('href=', 'src='));
+ 
+            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+            $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
 
             // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+            $sr += self::hasWord($rec->comment, 'http://');
 
-            // Колко линка се съдържат в тялото
+            // Ако е написано за под 50 секунди
+            if(isset($rec->userDelay) && $rec->userDelay < 50) {
+                $sr += 1;
+            }
 
-            // Колко href= се съдържат или  src=
+            // Ако е написано за под 10 секунди
+            if(isset($rec->userDelay) && $rec->userDelay < 10) {
+                $sr += 1;
+            }
 
-            // Дали е от UA или RU
+            // Ако е написано за над 24 часа
+            if(!$rec->id && $rec->userDelay > 24*3600) {
+                $sr += 1;
+            }
 
-            // Да се записва само при нов запис и и когато няма регистриран потребител
-            log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
-        }
+            // Ако имаме от същото IP над 3 чакащи постинга
+            $sr += (int) pow(self::count("#state = 'pending' AND #ip = '{$rec->ip}'"), 1/3);
+            
+            $rec->spamRate = $sr;
+
     }
-    
+
+
+    /**
+     * Проверка дали стринг съдържа дума от подаден списък. 
+     * caseinsensitive
+     */
+    static function hasWord($str, $words)
+    {
+        $words = arr::make($words);
+ 
+        foreach($words as $w) {  
+            if(stripos($str, $w) !== FALSE) {
+                return TRUE;
+            }
+        }
+
+        return FALSE;
+    }
+
 
     /**
      * Махаме articleId когато показваме списък коментари към конкретна статия
