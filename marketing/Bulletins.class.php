@@ -831,8 +831,10 @@ class marketing_Bulletins extends core_Master
     	}
 
     	$csv = csv_Lib::createCsv($detailRecs, $detail, $listFields);
-
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	
+    	$listTitle = $this->title. " за домейн ". self::fetchField("#id = '{$rec->id}'", 'domain');
+    	
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($listTitle));
     	
     	// правим CSV-то
     	header("Content-type: application/csv");
