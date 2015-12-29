@@ -811,6 +811,7 @@ class marketing_Bulletins extends core_Master
     	$this->requireRightFor('export', $rec);
     
     	$detail = cls::get('marketing_BulletinSubscribers');
+    	
     	// Масива с избраните полета за export
     	$exportFields = $detail->selectFields("#export");
     	
@@ -829,32 +830,11 @@ class marketing_Bulletins extends core_Master
     		$detailRecs[] = $recs; 
     	}
 
-    	// новите ни ролове
-    	$rCsv = '';
-    	$csv = '';
+    	$csv = csv_Lib::createCsv($detailRecs, $detail, $listFields);
     	
-    	/* за всеки ред */
-    	foreach($detailRecs as $rec) { 
-
-	    	foreach ($rec as $field => $value) {
-	    		if($exportFields[$field]) {
-
-					$val = html2text_Converter::toRichText($value);
-					// escape
-					if (preg_match('/\\r|\\n|,|"/', $val)) {
-						$val = '"' . str_replace('"', '""', $val) . '"';
-					}
-					$rCsv .= $val. "," . "\n";
-		
-				} else {
-					$rCsv .= "";
-				}	
-	    	}
-    	}
+    	$listTitle = $this->title. " за домейн ". self::fetchField("#id = '{$rec->id}'", 'domain');
     	
-    	$csv = $rCsv;
-    
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($listTitle));
     	
     	// правим CSV-то
     	header("Content-type: application/csv");
