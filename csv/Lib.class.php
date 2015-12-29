@@ -220,9 +220,9 @@ class csv_Lib
             
             // Всеки нов ред в началото е празен
             $rCsv = '';
-         
+          
             foreach ($fieldSet->fields as $name => $field) { 
-	            
+                
                 // Пропускаме не-посочените в $listFields полета
                 if(is_array($listFields) && !$listFields[$name]) continue;
 
@@ -260,6 +260,16 @@ class csv_Lib
 	    			
                     Mode::pop('text');
 	    
+	    		} elseif ($type instanceof type_Blob) {
+	    	
+	    		    $valueArr = (object) unserialize($rec->{$name});
+	    		    
+	    		    foreach ($valueArr as $val) {
+	
+	    		        $rCsv .= ($rCsv ? $conf->CSV_DELIMITER : '') . $val;
+	    		        continue;
+	    		    }
+	    		    
 	    		} else {
 	    			$value = $rec->{$name};
 	    		}
@@ -280,11 +290,11 @@ class csv_Lib
 	              
 	            $rCsv .= ($rCsv ? $conf->CSV_DELIMITER : '') . $value;
         	}
-             
+            
             /* END за всяка колона */
             $csv .= $rCsv . "\n";
         }
-         
+        
         return $csv;
     }
 

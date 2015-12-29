@@ -223,7 +223,7 @@ class core_Cron extends core_Manager
         while ($rec = $query->fetch()) {
             $rec->state = 'free';
             $this->save($rec, 'state');
-            $this->logWarning("Отключен процес", $rec->id, 7);
+            $this->logWarning("Отключен процес, започнал в " . $rec->lastStart, $rec->id, 7);
         }
         
         // Коя е текущата секинда?

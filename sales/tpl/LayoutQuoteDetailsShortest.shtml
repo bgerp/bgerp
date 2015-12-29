@@ -1,15 +1,15 @@
-<p class='table-detail-header' style='margin-top:10px'><b>[#TITLE#] |продукти и услуги|*</b> (|цените са в|* [#MISC#])</p>
+<p class='table-detail-header' style='margin-top:10px'><b>[#TITLE#] |продукти и услуги|*</b> <!--ET_BEGIN MISC-->(|цените са в|* [#MISC#])<!--ET_END MISC--></p>
 <div class='scrolling-holder'>
     <table  class = 'products-table' style='width:100%;'>
         <tr>
-            <th style='width:4%;'>№</th>
+            <th style='width:4%;[#none#]'>№</th>
             <th>|Описание|*</th>
         </tr>
         [#ROWS#]
         <!--ET_BEGIN ROW-->
         [#ROW#]
         <tr class='[#TR_CLASS#]'>
-            <td class = '[#rowspanId#]'>
+            <td class = '[#rowspanId#]' style='[#none#]'>
                 <div class='offer-rowtools-id nowrap'>[#tools#]<span>[#index#]</span></div>
             </td>
             <!--ET_BEGIN productId-->
@@ -48,6 +48,6 @@
         <!--ET_END totalPlace-->
     </table>   
     <div class='quotation-detail-add-btn'>
-        [#ADD_BTN#]
-        </div> 
+      [#ADD_BTN#]
+    </div> 
 </div>

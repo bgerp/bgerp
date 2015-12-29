@@ -906,21 +906,6 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Разшифрова лог съобщение
-     */
-    function logToVerbal($objectId, $detail)
-    {
-        $text = ucfirst($detail) . ' "' . tr($this->title ? $this->title : $this->className) . '"';
-        
-        if ($objectId) {
-            $text .= ', ' . $objectId . " - " . $this->getTitleById($objectId);
-        }
-        
-        return $text;
-    }
-    
-    
-    /**
      * Връща списък е елементи <option> при ajax заявка
      */
     function act_ajax_GetOptions()
