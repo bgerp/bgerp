@@ -217,12 +217,20 @@ class csv_Lib
     	}
     	
     	if (is_array($listFields)) {
+    	    $firstRow = '';
         	foreach ($listFields as $fld => $caption) {
+        	   
+        	    if (!$listFields[$fld]) {
+        	        $listFields[$fld] = $fld;
+        	        $caption = $fld;
+        	    }
+        	    
         	    if (preg_match('/\\r|\\n|,|"/', $caption)) {
         	        $caption = '"' . str_replace('"', '""', $caption) . '"';
         	    }
         	    
         	    $firstRow .= ($firstRow ? $conf->CSV_DELIMITER : '') . $caption;
+        	   
         	}
     	}
 
@@ -230,11 +238,11 @@ class csv_Lib
             
             // Всеки нов ред в началото е празен
             $rCsv = '';
-          
+
             foreach ($fieldSet->fields as $name => $field) { 
-                
+
                 // Пропускаме не-посочените в $listFields полета
-                if(is_array($listFields) && !$listFields[$name]) continue;
+                if(is_array($listFields) && !isset($listFields[$name])) continue;
 
                 // Вземаме типа
 				$type = $field->type;
