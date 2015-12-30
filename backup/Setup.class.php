@@ -274,18 +274,12 @@ class backup_Setup extends core_ProtoSetup
             unlink($touchFile);
         } else {
             unlink($touchFile);
-            return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_STORAGE_TYPE .": / </li>";
+            return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
         }
         
-        // Проверяваме дали имаме права за писане в директорията за бекъп на файловете
-        $touchFile = tempnam(EF_TEMP_PATH, "bgERP");
-        file_put_contents($touchFile, "1");
-        
-        if (@$storage->putFile(BACKUP_FILEMAN_PATH . "/" . $touchFile) && @$storage->removeFile(BACKUP_FILEMAN_PATH . "/" . $touchFile)) {
-            unlink($touchFile);
-        } else {
-            unlink($touchFile);
-            return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_STORAGE_TYPE . ": " . BACKUP_FILEMAN_PATH . "/</li>";
+        // Осигуряване поддиректория за fileman файловете
+        if (!is_dir($conf->BACKUP_LOCAL_PATH . "/" . BACKUP_FILEMAN_PATH)) {
+            mkdir($conf->BACKUP_LOCAL_PATH . "/" . BACKUP_FILEMAN_PATH);
         }
         
         // Проверка за наличие на tar, gz и mysqldump
