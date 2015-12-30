@@ -707,9 +707,9 @@ class doc_Threads extends core_Manager
                         while($lRec = $lQuery->fetch($cond)) {
                             $tList[] = $lRec->threadId;
                         }
-
-
-                        if(count($tList)) {
+                        
+                        if (!empty($tList)) {
+                            $tList = array_unique($tList);
                             $tList = implode(',', $tList);
                             $query->where("#id IN ({$tList})"); // OR #createdBy = {$cu} OR #modifiedBy = {$cu}
                         }
