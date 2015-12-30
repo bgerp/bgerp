@@ -241,7 +241,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     	// Ако има избран повече от един обект, се показва грешка
     	if(count($errFields)){
     		array_unshift($errFields, $selectedField);
-    		$form->setError(implode(',', $errFields), 'Трябва да е избрана една папка');
+    		$form->setError(implode(',', $errFields), 'Попълнете само едно от посочените полета');
     		return;
     	}
     	
