@@ -301,7 +301,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         // Кои полета ще се показват
-        $data->listFiеlds = arr::make("article=Продукт,
+        $data->listFields = arr::make("article=Продукт,
     					     salesCnt=Продажба (бр.),
     					     shipmentCnt=Доставка (бр.),
                              createdBy=Създаден от", TRUE);
