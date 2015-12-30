@@ -653,32 +653,123 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Връща масив с ключ имейлите и стойността за това поле в модела
+     * Може да се премахнат зададените типове от акаунтите
+     * 
+     * @param array $emailsArr
+     * @param string $field
+     * @param boolean $removeCommonAndCorporate
+     * 
+     * @return array
+     */
+    public static function getEmailsRecField($emailsArr, $field = 'id', $removeAccType = array('common', 'corporate'))
+    {
+        static $resArr = array();
+        
+        $removeAccType = arr::make($removeAccType);
+        
+        $hash = md5(implode('|', $emailsArr) . '||' . $field . '||' . implode('|', $removeAccType));
+        
+        if (isset($resArr[$hash])) return $resArr[$hash];
+        
+        $resArr[$hash] = array();
+    
+        // Премахваме зададените акаунти от имейлите
+        if ($removeAccType) {
+		    $emailArrForRemove = email_Accounts::getEmailsByType($removeAccType);
+		    
+		    if ($emailArrForRemove) {
+		        $emailsArr = array_diff((array)$emailsArr, (array)$emailArrForRemove);
+		    }
+        }
+        
+        if (!$emailsArr) return $resArr[$hash];
+        
+        $query = self::getQuery();
+        $query->orWhereArr('email', $emailsArr);
+        
+        while ($rec = $query->fetch()) {
+            
+            $resArr[$hash][$rec->email] = $rec->{$field};
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
+     * Връща масив с id-та, на които текущия потребител е отговорник (или споделен)
+     * 
+     * @param NULL|integer $userId
+     * @param boolean $checkShared
+     * 
+     * @return array
+     */
+    public static function getUserInboxesIds($userId = NULL, $checkShared = FALSE)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $query = self::getQuery();
+        $query->where(array("#inCharge = '[#1#]'", $userId));
+        
+        if ($checkShared) {
+            $query->orWhere(array("#shared LIKE '%|{$userId}|%'"));
+        }
+        
+        $resArr = array();
+        
+        while($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->id;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Намира всички потребители, които са `inCharge` на подадените масиви
      * 
      * @param array $emailsArr
      * @param boolean $removeCommonAndCorporate
      * 
+     * @deprecated
+     * 
      * @return array
      */
-    public static function getInChargeForEmails($emailsArr, $removeCommonAndCorporate = TRUE)
+    public static function getInChargeForEmails($emailsArr, $removeAccType = array('common', 'corporate'))
     {
+        static $usersArr = array();
+        
+        $removeAccType = arr::make($removeAccType);
+        
+        $hash = md5(implode('|', $emailsArr) . '||' . implode('|', $removeAccType));
+        
+        if (isset($usersArr[$hash])) return $usersArr[$hash];
+        
+        $usersArr[$hash] = array();
+        
         // Премахваме корпоративния и общите акаунти
-        if ($removeCommonAndCorporate) {
-		    $commAndCorpEmailArr = email_Accounts::getCommonAndCorporateEmails();
-		    $emailsArr = array_diff((array)$emailsArr, (array)$commAndCorpEmailArr);
+        if ($removeAccType) {
+		    $emailArrForRemove = email_Accounts::getEmailsByType($removeAccType);
+		    
+		    if ($emailArrForRemove) {
+		        $emailsArr = array_diff((array)$emailsArr, (array)$emailArrForRemove);
+		    }
         }
+        
+        if (!$emailsArr) return $usersArr[$hash];
         
         $query = self::getQuery();
         $query->orWhereArr('email', $emailsArr);
         
-        $usersArr = array();
-        
         while ($rec = $query->fetch()) {
             
-            $usersArr[$rec->inCharge] = $rec->inCharge;
+            $usersArr[$hash][$rec->inCharge] = $rec->inCharge;
         }
         
-        return $usersArr;
+        return $usersArr[$hash];
     }
     
     
