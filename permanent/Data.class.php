@@ -94,7 +94,7 @@ class permanent_Data extends core_Manager {
     static function read($key, $lock = TRUE)
     {
         if ($lock && !core_Locks::get($key)) {  
-            self::logErr("Грешка при четене - заключен обект");
+            self::logWarning("Грешка при четене - заключен обект");
             exit (1);
         }
         
