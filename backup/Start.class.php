@@ -100,7 +100,7 @@ class backup_Start extends core_Manager
         }
         
         if (!is_array($metaArr)) {
-            self::logErr("Лоша МЕТА информация!");
+            self::logErr("Лоша информация в метафайла!");
             self::unLock();
             
             shutdown();
@@ -143,7 +143,7 @@ class backup_Start extends core_Manager
         // 1. сваля се метафайла
         if (!self::$storage->getFile(self::$metaFileName)) {
             // Ако го няма - пропускаме - не е минал пълен бекъп
-            self::logErr("ГРЕШКА при сваляне на МЕТА-а!");
+            self::logErr("ГРЕШКА при сваляне на метафайла!");
             self::unLock();
             
             shutdown();
@@ -169,7 +169,7 @@ class backup_Start extends core_Manager
         $metaArr = self::getMETA();
         
         if (!is_array($metaArr)) {
-            self::logErr("Лоша МЕТА информация!");
+            self::logErr("Лоша информация в метафайла!");
             self::unLock();
             
             shutdown();
@@ -268,11 +268,11 @@ class backup_Start extends core_Manager
         $cnt = 0;
         
         foreach ($garbage as $backups)
-        foreach ($backups as $fileName) {
-            self::$storage->removeFile($fileName);
-            $cnt++;
-        }
-        self::logInfo("Успешно изтрити файлове");
+            foreach ($backups as $fileName) {
+                self::$storage->removeFile($fileName);
+                $cnt++;
+            }
+        self::logInfo("Успешно изтрити {$cnt} файла.");
         
         return;
     }
@@ -302,7 +302,7 @@ class backup_Start extends core_Manager
         exec($cmd, $output, $returnVar);
         
         if ($returnVar !== 0) {
-            self::logErr("Tar gzip configuration!");
+            self::logErr("Лоша tar и/или gzip конфигурация!");
             
             shutdown();
         }
@@ -365,7 +365,7 @@ class backup_Start extends core_Manager
             if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
                 fileman_Data::setArchived($fileObj->id);
             } else {
-                self::logErr("backup не записва файл в storage!");
+                self::logErr("backup не записва файл в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
             }
         }
     }
