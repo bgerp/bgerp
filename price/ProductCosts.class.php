@@ -509,7 +509,7 @@ class price_ProductCosts extends core_Manager
     	$oldRecs = $query->fetchAll();
     	
     	// Синхронизираме новите със старите
-    	$synced = arr::syncArrays($values, $oldRecs, 'productId', 'lastQuote,activeDelivery,lastDelivery,bom,lastQuoteId,activeDeliveryId,lastDeliveryId,bomId');
+    	$synced = arr::syncArrays($values, $oldRecs, 'productId', 'lastQuote,activeDelivery,lastDelivery,bom,lastQuoteId,activeDeliveryId,lastDeliveryId,bomId,accCost');
     	
     	// Създаваме записите, които трябва
     	$this->saveArray($synced['insert']);
