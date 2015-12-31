@@ -135,7 +135,7 @@ class docoffice_Office
         } else {
             
             // Ако има грешка при спирането
-            log_System::add('docoffice_Office', "Грешка при спирането на " . OFFICE_PACKET_PATH, NULL, 'err');
+            log_System::add('docoffice_Office', "Грешка при спирането на " . OFFICE_PACKET_PATH, NULL, 'warning');
         }
         
         return FALSE;

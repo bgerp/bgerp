@@ -277,12 +277,6 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
         }
         
-        // Осигуряване поддиректория за fileman файловете
-        if (!is_dir($conf->BACKUP_LOCAL_PATH . "/" . BACKUP_FILEMAN_PATH)) {
-            mkdir($conf->BACKUP_LOCAL_PATH . "/" . BACKUP_FILEMAN_PATH);
-        }
-        
-        // Проверка за наличие на tar, gz и mysqldump
         // проверка дали всичко е наред с mysqldump-a
         $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
                 . $conf->BACKUP_MYSQL_HOST . " -u"

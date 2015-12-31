@@ -27,7 +27,8 @@ class marketing_InquiryRouter extends core_Manager
 			try{
 				expect($rec->name, $rec);
 			} catch(core_exception_Expect $e){
-				$e->logError();
+				reportException($e);
+				$this->logErr('Липсва име за контактни данни');
 			}
 			// Рутиране на запитване от лице
 			$folderId = $this->routeInquiryFromPerson($rec, $inCharge);
