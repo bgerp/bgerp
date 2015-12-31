@@ -236,7 +236,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         }
         
         foreach ($data->recs as $id => $recs) {
-        	if ($recs->quantityТоDelivered < $recs->store) {
+        	if ($recs->quantityToDelivered < $recs->store) {
         		unset($data->recs[$id]);
         	}
         }

@@ -89,8 +89,15 @@ class cat_PriceDetails extends core_Manager
      */
     private function preparePriceInfo($data)
     {
-    	$now = dt::now();
+    	// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
     	$primeCostListId = price_ListRules::PRICE_LIST_COST;
+    	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value',
+    				'listId' => $primeCostListId, 'productId' => $data->masterId, 'ret_url' => TRUE);
+    	}
+    	
+    	$now = dt::now();
+    	
     	$rec = price_ProductCosts::fetch("#productId = {$data->masterId}");
     	if(!$rec){
     		$rec = new stdClass();
@@ -138,9 +145,32 @@ class cat_PriceDetails extends core_Manager
     		if(isset($rec->futurePrimeCost)){
     			$primeCostRows[] = (object)array('name' => tr('|Мениджърска|* (|Бъдеща|*)'), 'date' => $row->futurePrimeCostDate, 'price' => $row->futurePrimeCost, 'ROW_ATTR' => array('class' => 'state-draft'));
     		}
-    		if(isset($rec->primeCost)){
-    			$primeCostRows[] = (object)array('name' => tr('Мениджърска'), 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
+    		
+    		if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    			$btns = '';
+    			$uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}");
+    			$newCost = NULL;
+    			if(isset($uRec->costValue)){
+    				$newCost = $uRec->costValue;
+    			}
+    			if($newCost != $rec->primeCost){
+    				$data->addPriceUrl['price'] = $newCost;
+    			}
+    			
+    			if(isset($rec->primeCost)){
+    				$btns .= " " . ht::createLink('', $data->addPriceUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова мениджърска себестойност');
+    			} else {
+    				$btns .= " " . ht::createLink('<b>R</b>', $data->addPriceUrl, FALSE, 'title=Добавяне на нова мениджърска себестойност');
+    			}
+    			
+    			if(isset($uRec)){
+    				if(price_Updates::haveRightFor('saveprimecost', $uRec)){
+    					$btns .= " " . ht::createLink('', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => TRUE), FALSE, 'title=Обновяване на себестойноста според зададеното правило,ef_icon=img/16/arrow_refresh.png');
+    				}
+    			}
     		}
+    		
+    		$primeCostRows[] = (object)array('name' => tr('Мениджърска') .$btns, 'date' => $row->primeCostDate, 'price' => $row->primeCost, 'ROW_ATTR' => array('class' => 'state-active'));
     	}
     	
     	if(haveRole('price,ceo')){
@@ -172,12 +202,6 @@ class cat_PriceDetails extends core_Manager
     	
     	$data->primeCostRows = $primeCostRows;
     	$data->priceCostRows = $priceCostRows;
-    	
-    	// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
-    	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
-    		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value',
-    								  'listId' => $primeCostListId, 'productId' => $data->masterId, 'ret_url' => TRUE);
-    	}
     }
     
     
@@ -209,12 +233,8 @@ class cat_PriceDetails extends core_Manager
     	// Бутон за задаване на правило за обновяване
     	$type = ($data->masterMvc instanceof cat_Products) ? 'product' : 'category';
     	if(price_Updates::haveRightFor('add', (object)array('type' => $type, 'objectId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Обновяване', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Създаване на ново правило за обновяване'), 'updateInfo');
+    		$tpl->append(ht::createBtn('Правило за обновяване', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на ново правило за обновяване'), 'updateInfo');
     	}
-    	
-    	if($data->addPriceUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-			$tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addPriceUrl, FALSE, 'title=Добавяне на нова себестойност'), 'addBtn');
-		}
     	
     	// Ако има ценова информация, рендираме я
     	if(count($data->priceCostRows)){

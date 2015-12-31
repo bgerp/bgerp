@@ -234,7 +234,7 @@ class log_Browsers extends core_Master
                 
                 // Ако не отговаря на хеша
                 $errMsg = 'Грешен хеш за BRID';
-                self::logErr("{$errMsg}: {$bridC}");
+                self::logWarning("{$errMsg}: {$bridC}");
                 
 //                return FALSE;
             }
