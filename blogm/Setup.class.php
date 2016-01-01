@@ -163,8 +163,8 @@ class blogm_Setup extends core_ProtoSetup
         $rec->description = 'Изтриване на спам коментарите';
         $rec->controller = 'blogm_Comments';
         $rec->action = 'deleteSPAM';
-        $rec->period = 5*60;
-        $rec->offset = rand(2, 150);
+        $rec->period = 5;
+        $rec->offset = rand(1, 4);
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
