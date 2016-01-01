@@ -30,7 +30,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, blogm_Wrapper, plg_State, plg_Sorting, plg_LastUsedKeys, plg_RowNumbering';
+	var $loadList = 'plg_RowTools, plg_Created, blogm_Wrapper, plg_State, plg_Sorting, plg_LastUsedKeys, plg_RowNumbering, plg_Rejected';
 	
     
 	/**
@@ -229,7 +229,7 @@ class blogm_Comments extends core_Detail {
             if($rec->web) $sr += 1;
             
             // Ако има файлови окончания +1
-            $sr += self::hasWord($rec->web, '.pdf,.html,.htm,#');
+            $sr += self::hasWord($rec->web, '.pdf,.html,.htm,.doc,.xls,.ppt,#');
             
             // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
             $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
