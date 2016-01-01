@@ -1037,7 +1037,7 @@ class support_Issues extends core_Master
         
         if ($rec->SrcId && $rec->SrcClass && cls::haveInterface('support_IssueCreateIntf', $rec->SrcClass)) {
             $srcInst = cls::getInterface('support_IssueCreateIntf', $rec->SrcClass);
-            $srcInst->afterCreateIssue($rec->SrcId);
+            $srcInst->afterCreateIssue($rec->SrcId, $rec);
         }
     }
     
