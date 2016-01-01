@@ -47,9 +47,9 @@ class support_IssueCreateIntf
 	 * 
 	 * @param integer $originId
 	 */
-    function afterCreateIssue($id)
+    function afterCreateIssue($id, $iRec)
     {
         
-        return $this->class->afterCreateIssue($id);
+        return $this->class->afterCreateIssue($id, $iRec);
     }
 }
