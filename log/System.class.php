@@ -75,7 +75,7 @@ class log_System extends core_Manager
     /**
      * 
      */
-    protected static $notifyErrArr = array('emerg', 'alert', 'crit', 'err', 'warning');
+    protected static $notifyErrArr = array('emerg', 'alert', 'crit', 'err');
     
     
     /**
@@ -225,7 +225,7 @@ class log_System extends core_Manager
     {
         $type = $data->listFilter->rec->type;
         
-        if ($type && in_array($type, self::$notifyErrArr)) {
+        if ($type) {
             // Изчистване на нотификации за възникнали грешки
             $url = array($mvc, 'list', 'type' => $type);
             bgerp_Notifications::clear($url);
@@ -252,8 +252,20 @@ class log_System extends core_Manager
         $adminsArr = core_Users::getByRole($roleId);
         while($rec = $query->fetch()) {
             
-            $errType = $this->getVerbal($rec, 'type');
-            $msg = '|Грешка в системата от тип|*: |' . $errType;
+            switch ($rec->type) {
+                case 'emerg':
+                case 'alert':
+                    $msg = '|Нови спешни грешки в системния лог';
+                break;
+                
+                case 'crit':
+                    $msg = '|Нови критични грешки в системния лог';
+                break;
+                
+                default:
+                    $msg = '|Нови грешки в системния лог';
+                break;
+            }
             
             foreach ($adminsArr as $userId) {
                 if (!$this->haveRightFor('list', NULL, $userId)) continue;

@@ -695,7 +695,7 @@ class doc_Threads extends core_Manager
                             $cond .= " AND #folderId = $filter->folderId";
                         }
                         while($cRec = $cQuery->fetch($cond)) {
-                            $tList[] = $cRec->threadId;
+                            $tList[$cRec->threadId] = $cRec->threadId;
                         }
 
                         // Извличаме тредовете, където потребителя е лайквал документи
@@ -705,13 +705,32 @@ class doc_Threads extends core_Manager
                         $lQuery->show('threadId');
                         $lQuery->groupBy('threadId');
                         while($lRec = $lQuery->fetch($cond)) {
-                            $tList[] = $lRec->threadId;
+                            $tList[$lRec->threadId] = $lRec->threadId;
                         }
-
-
-                        if(count($tList)) {
+                        
+                        // Добавяме нишките, в които има входящи имейли към съответния потребител
+                        $currUsersInboxesIdsArr = email_Inboxes::getUserInboxesIds($cu);
+                        if (!empty($currUsersInboxesIdsArr)) {
+                            $userInboxesKeylist = type_Keylist::fromArray($currUsersInboxesIdsArr);
+                            $iQuery = email_Incomings::getQuery();
+                            $iQuery->show('threadId');
+                            $iQuery->groupBy('threadId');
+                            if ($filter->folderId) {
+                                $iQuery->where("#folderId = '{$filter->folderId}'");
+                            }
+                            
+                            $iQuery->likeKeylist('userInboxes', $userInboxesKeylist);
+                            
+                            while ($iRec = $iQuery->fetch()) {
+                                $tList[$iRec->threadId] = $iRec->threadId;
+                            }
+                        }
+                        
+                        if (!empty($tList)) {
                             $tList = implode(',', $tList);
                             $query->where("#id IN ({$tList})"); // OR #createdBy = {$cu} OR #modifiedBy = {$cu}
+                        } else {
+                            $query->where("1 = 2");
                         }
                     }
                 }
