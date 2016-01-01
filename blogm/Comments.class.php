@@ -404,11 +404,11 @@ class blogm_Comments extends core_Detail {
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 5 и са по-стари от 7 дни
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 3 и са по-стари от 10 дни
 
-        $before1 = dt::addDays(-1);
+        $before1 = dt::addSecs(-600);
         $before7 = dt::addDays(-7);
         $before30 = dt::addDays(-30);
 
-        $cnt = $this->delete("#state != 'active' AND ((#spamRate>=5 AND #createdOn < '{$before1}') OR (#spamRate>=4 AND #createdOn < '{$before7}') OR (#spamRate>=3 AND #createdOn < '{$before30}'))");
+        $cnt = $this->delete("#state != 'active' AND ((#spamRate>5 AND #createdOn < '{$before1}') OR (#spamRate>=4 AND #createdOn < '{$before7}') OR (#spamRate>=3 AND #createdOn < '{$before30}'))");
         
         if($cnt) {
             $res = "Бяха изтрити {$cnt} СПАМ коментара от блога.";
