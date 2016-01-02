@@ -554,7 +554,9 @@ class core_Cron extends core_Manager
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
                     $mustSave = TRUE;
-                    $rec->offset = $exRec->offset;
+                    if($exRec->offset < $rec->period) {
+                        $rec->offset = $exRec->offset;
+                    }
                     $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
                 } else { // ако няма промени го пропускаме
                     $mustSave = FALSE;

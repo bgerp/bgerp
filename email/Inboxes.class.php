@@ -645,7 +645,7 @@ class email_Inboxes extends core_Master
         $email = mb_strtolower($email);
         
         //Намираме записа за съответния имейл
-        $rec = email_Inboxes::fetch("#email='{$email}'");
+        $rec = email_Inboxes::fetch(array("#email = '[#1#]'", $email));
         
         //Връщаме inCharge id' то
         return $rec->inCharge;
