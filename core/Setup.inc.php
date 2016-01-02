@@ -1053,7 +1053,7 @@ function gitLastCommitDate($repoPath, &$log)
     // Първият ред съдържа резултата
     if (gitExec($command, $res)) {
 
-        return trim(substr($res[0], 0, strpos($res[0], " +")));
+        return trim(substr(trim($res[0], "'"), 0, strpos($res[0], " +")));
     }
 
     return FALSE;
