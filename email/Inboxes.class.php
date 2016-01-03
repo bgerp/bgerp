@@ -744,6 +744,11 @@ class email_Inboxes extends core_Master
         
         $removeAccType = arr::make($removeAccType);
         
+        if(!is_array($emailsArr) || !count($emailsArr)) {
+
+            return array();
+        }
+
         $hash = md5(implode('|', $emailsArr) . '||' . implode('|', $removeAccType));
         
         if (isset($usersArr[$hash])) return $usersArr[$hash];
