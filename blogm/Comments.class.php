@@ -98,7 +98,7 @@ class blogm_Comments extends core_Detail {
 		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
 		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
-  		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
+  		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none, oldFieldName=browserId');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
         $this->FLD('userDelay', 'time', 'caption=Спам->Закъснение,input=none');
@@ -136,6 +136,9 @@ class blogm_Comments extends core_Detail {
             } elseif($data->commentsRecs[$rec->id]->state == 'rejected') {
                 $data->commentsRows[$rec->id]->status = 'Отхвърлен';
                 $data->commentsRows[$rec->id]->stateColor = '#cc6666';
+            } elseif($data->commentsRecs[$rec->id]->state == 'closed') {
+                $data->commentsRows[$rec->id]->status = 'Затворен';
+                $data->commentsRows[$rec->id]->stateColor = '#cccccc';
             }
 
             $data->commentsRows[$rec->id]->name = str::limitLen($data->commentsRows[$rec->id]->name, 32);
@@ -224,78 +227,77 @@ class blogm_Comments extends core_Detail {
             log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
         }
 
-            // Начален рейтинг
-            $sr = 0;
+        // Начален рейтинг
+        $sr = 0;
  
-            // Ако потребителя е посочил уеб-сайт +1
-            if($rec->web) $sr += 1;
-            
-            // Ако има файлови окончания +1
-            $sr += self::hasWord($rec->web, '.pdf,.html,.htm,.doc,.xls,.ppt,#') ? 1 : 0;
-            
-            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
-            $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
-            
-            // Ако в името на сайта има директория
-            $sr += explode('/', $rec->web) > 2 ? 0.5 : 0;
+        // Ако потребителя е посочил уеб-сайт +1
+        if($rec->web) $sr += 1;
+        
+        // Ако има файлови окончания +1
+        $sr += self::hasWord($rec->web, '.pdf,.html,.htm,.doc,.xls,.ppt,#') ? 1 : 0;
+        
+        // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+        $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
+        
+        // Ако в името на сайта има директория
+        $sr += explode('/', $rec->web) > 2 ? 0.5 : 0;
     
-            // Ако има линкове в описанието
-            $sr += self::hasWord($rec->comment, array('href=', 'src='));
+        // Ако има линкове в описанието
+        $sr += self::hasWord($rec->comment, array('href=', 'src='));
  
-            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
-            $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
+        // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+        $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
 
-            // Ако в коментара има http://
-            $sr += self::hasWord($rec->comment, 'http://');
+        // Ако в коментара има http://
+        $sr += self::hasWord($rec->comment, 'http://');
+        
+        // Ако в коментара има линк 
+        $sr += self::hasWord($rec->comment, array('[link=')) ? 2 : 0;
+
+        // Ако е написано за под 50 секунди
+        if(isset($rec->userDelay) && $rec->userDelay < 20) {
+            $sr += 1;
+        }
+
+        // Ако е написано за под 10 секунди
+        if(isset($rec->userDelay) && $rec->userDelay < 10) {
+            $sr += 1;
+        }
+        
+        // Ако е написано за под 65 секунди
+        if(isset($rec->userDelay) && $rec->userDelay < 65) {
+            $sr += 0.5;
+        }
+
+        // Ако е написано за над 24 часа
+        if(isset($rec->userDelay) && $rec->userDelay > 24*3600) {
+            $sr += 1;
+        }
+
+        // Изключваме текущия запис, ако е записан
+        if($rec->id) {
+            $idCond = " AND #id != {$rec->id}";
+        } else {
+            $idCond = "";
+        }
             
-            // Ако в коментара има линк 
-            $sr += self::hasWord($rec->comment, array('[link=')) ? 2 : 0;
+        // Има ли от същото IP
+        $query = self::getQuery();
+        $query->limit(28);
+        $cnt = $query->count("#state != 'active' AND #state != 'closed' AND #ip = '{$rec->ip}'" . $idCond);
+        if($cnt > 1) {
+            $sr +=  pow($cnt, 1/3);
+        }
 
-            // Ако е написано за под 50 секунди
-            if(isset($rec->userDelay) && $rec->userDelay < 20) {
-                $sr += 1;
-            }
-
-            // Ако е написано за под 10 секунди
-            if(isset($rec->userDelay) && $rec->userDelay < 10) {
-                $sr += 1;
-            }
-            
-            // Ако е написано за под 65 секунди
-            if(isset($rec->userDelay) && $rec->userDelay < 65) {
-                $sr += 0.5;
-            }
-
-            // Ако е написано за над 24 часа
-            if(isset($rec->userDelay) && $rec->userDelay > 24*3600) {
-                $sr += 1;
-            }
-
-            // Изключваме текущия запис, ако е записан
-            if($rec->id) {
-                $idCond = " AND #id != {$rec->id}";
-            } else {
-                $idCond = "";
-            }
-            
-            // Има ли от същото IP
-            $query = self::getQuery();
-            $query->limit(28);
-            $cnt = $query->count("#state != 'active' AND #ip = '{$rec->ip}'" . $idCond);
-            if($cnt > 1) {
-                $sr +=  pow($cnt, 1/3);
-            }
-
-            // Има ли от същия brid?
-            $query = self::getQuery();
-            $query->limit(28);
-            $cnt = $query->count("#state != 'active' AND #brid = '{$rec->brid}'" . $idCond);
-            if($cnt > 1) {
-                $sr +=  pow($cnt, 1/3);
-            }
-         
-            $rec->spamRate = (int) $sr;
-
+        // Има ли от същия brid?
+        $query = self::getQuery();
+        $query->limit(28);
+        $cnt = $query->count("#state != 'active' AND #state != 'closed' AND #brid = '{$rec->brid}'" . $idCond);
+        if($cnt > 1) {
+            $sr +=  pow($cnt, 1/3);
+        }
+        
+        $rec->spamRate = (int) $sr;
     }
 
 
@@ -417,14 +419,22 @@ class blogm_Comments extends core_Detail {
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 5 и са по-стари от 7 дни
         // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 3 и са по-стари от 10 дни
 
-        $before1 = dt::addSecs(-600);
-        $before7 = dt::addDays(-7);
-        $before30 = dt::addDays(-30);
+        $before25m = dt::addSecs(-25*60);
+        $before5d = dt::addDays(-5);
+        $before14d = dt::addDays(-14);
 
-        $cnt = $this->delete("#state != 'active' AND ((#spamRate>5 AND #createdOn < '{$before1}') OR (#spamRate>=4 AND #createdOn < '{$before7}') OR (#spamRate>=3 AND #createdOn < '{$before30}'))");
+        // Оттегляме, всички, които по-голям рейтинг от 5 и са на повече от 25 минути или имат по-голям рейтинг от 3 и са от преди повече от 5 дни
+        $query = $this->getQuery();
+        $query->where("#state = 'pending' AND ((#spamRate > 5 AND #createdOn < '{$before25m}') OR (#spamRate > 3 AND #createdOn < '{$before5d}'))");
+        while($rec = $query->fetch()) {
+            $rec->state = 'rejected';
+            $rejectedCnt++;
+        }
+
+        $deleteCnt = $this->delete("#state = 'rejected' AND #createdOn < '{$before14d}'");
         
         if($cnt) {
-            $res = "Бяха изтрити {$cnt} СПАМ коментара от блога.";
+            $res = "Бяха оттеглени {$rejectedCnt} и изтрити {$deleteCnt} СПАМ коментара от блога.";
         }
 
         return $res;

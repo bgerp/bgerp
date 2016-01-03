@@ -157,14 +157,14 @@ class blogm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         
-        // Изтриване на старите коментари.
+        // Изтриване на СПАМ коментари
         $rec = new stdClass();
         $rec->systemId = 'Delete SPAM comments';
         $rec->description = 'Изтриване на спам коментарите';
         $rec->controller = 'blogm_Comments';
         $rec->action = 'deleteSPAM';
-        $rec->period = 5;
-        $rec->offset = rand(1, 4);
+        $rec->period = 24;
+        $rec->offset = rand(1, 24);
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
