@@ -33,7 +33,10 @@ class type_Password extends type_Varchar {
         } elseif($value && !$this->params['allowEmpty']) {
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
-        } else {
+        } else { 
+            if($value) {
+                $attr['placeholder'] = html_entity_decode("&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;");  
+            }
             $value = '';
         }
         
