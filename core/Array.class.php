@@ -433,7 +433,7 @@ class core_Array
     	$vFields = arr::make($valueFields, TRUE);
     	
     	// Нормализираме масива със същ. данни във вид лесен за обработка
-    	if(count($old)){
+    	if(arr::count($old)){
     		foreach ($old as $oRec){
     			$oKey = self::makeUniqueIndex($oRec, $keyFields);
     			$vKey = self::makeUniqueIndex($oRec, $vFields);
@@ -448,7 +448,7 @@ class core_Array
     	$insert = $upArr = array();
     	
     	// Обикаляме масива с нови данни
-    	if(count($new)){
+    	if(arr::count($new)){
     		foreach ($new as $nRec){
     			$nKey = self::makeUniqueIndex($nRec, $keyFields);
     			$nValKey = self::makeUniqueIndex($nRec, $vFields);
@@ -473,7 +473,7 @@ class core_Array
     	
     	// Обръщаме останалите елементи в масив само с ид-та
     	$delete = array();
-    	if(count($modOld)){
+    	if(arr::count($modOld)){
     		foreach ($modOld as $ar){
     			$delete[$ar[1]] = $ar[1];
     		}
@@ -501,5 +501,21 @@ class core_Array
     	}
     	
     	return $nKey;
+    }
+
+
+    /**
+     * Връща броя на елементите в масива
+     * Ако аргумента не е масив - предполага, че се каства към FALSE
+     */
+    public static function count($arr)
+    {
+        if(is_array($arr)) {
+
+            return count($arr);
+        } else {
+            // Очаква се или масив или == FALSE
+            expect(!$arr, $arr);
+        }
     }
 }
