@@ -428,6 +428,7 @@ class blogm_Comments extends core_Detail {
         $query->where("#state = 'pending' AND ((#spamRate > 5 AND #createdOn < '{$before25m}') OR (#spamRate > 3 AND #createdOn < '{$before5d}'))");
         while($rec = $query->fetch()) {
             $rec->state = 'rejected';
+            $this->save_($rec, 'state');
             $rejectedCnt++;
         }
 
