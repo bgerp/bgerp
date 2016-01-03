@@ -671,11 +671,9 @@ class support_Issues extends core_Master
                 if ($srcClass = Request::get('srcClass')) {
                     if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
                         $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
-                        $defTitle = $srcInst->getDefaultIssueTitle($srcId);
-                        $defBody = $srcInst->getDefaultIssueBody($srcId);
                         
-                        $data->form->setDefault('title', $defTitle);
-                        $data->form->setDefault('description', $defBody);
+                        $defaults = (array) $srcInst->getDefaultIssueRec($srcId);
+                        $data->form->setDefaults($defaults);
                         
                         $data->form->setDefault('SrcId', $srcId);
                         $data->form->setDefault('SrcClass', $srcClass);
