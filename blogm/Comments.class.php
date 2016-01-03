@@ -229,7 +229,7 @@ class blogm_Comments extends core_Detail {
             if($rec->web) $sr += 1;
             
             // Ако има файлови окончания +1
-            $sr += self::hasWord($rec->web, '.pdf,.html,.htm,.doc,.xls,.ppt,#');
+            $sr += self::hasWord($rec->web, '.pdf,.html,.htm,.doc,.xls,.ppt,#') ? 1 : 0;
             
             // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
             $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
@@ -243,11 +243,11 @@ class blogm_Comments extends core_Detail {
             // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
             $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
 
-            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+            // Ако в коментара има http://
             $sr += self::hasWord($rec->comment, 'http://');
             
             // Ако в коментара има линк 
-            $sr += self::hasWord($rec->comment, array('[link='));
+            $sr += self::hasWord($rec->comment, array('[link=')) ? 2 : 0;
 
             // Ако е написано за под 50 секунди
             if(isset($rec->userDelay) && $rec->userDelay < 20) {
@@ -257,6 +257,11 @@ class blogm_Comments extends core_Detail {
             // Ако е написано за под 10 секунди
             if(isset($rec->userDelay) && $rec->userDelay < 10) {
                 $sr += 1;
+            }
+            
+            // Ако е написано за под 65 секунди
+            if(isset($rec->userDelay) && $rec->userDelay < 65) {
+                $sr += 0.5;
             }
 
             // Ако е написано за над 24 часа
