@@ -2019,6 +2019,8 @@ class email_Incomings extends core_Master
         
         $allEmailsArr = array_merge($rec->allTo, $rec->allCc);
         
+        $emailArr = array();
+
         foreach ($allEmailsArr as $allTo) {
             $email = $allTo['address'];
             $email = trim($email);
