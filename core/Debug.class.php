@@ -273,7 +273,7 @@ class core_Debug
                 $file = self::getEditLink($frame['file']);
                 $file =  $file . ' : ' . $line;
                 if($rUrl = self::getGithubSourceUrl($frame['file'], $frame['line'])) {
-                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png'));
+                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png', '"', TRUE));
                 } 
             } else {
                 $githubLink = '';
