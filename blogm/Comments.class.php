@@ -104,6 +104,8 @@ class blogm_Comments extends core_Detail {
         $this->FLD('userDelay', 'time', 'caption=Спам->Закъснение,input=none');
         $this->FLD('spamRate', 'int', 'caption=Спам->Рейтинг,input=none');
 
+        $this->setDbIndex('ip');
+        $this->setDbIndex('brid');
 	}
 
 
@@ -269,23 +271,29 @@ class blogm_Comments extends core_Detail {
                 $sr += 1;
             }
 
-
-            // Ако имаме от същото IP над 3 чакащи постинга
-            $query = self::getQuery();
-            $query->where("#state != 'active' AND #ip = '{$rec->ip}'");
-            $query->limit(28);
-            
+            // Изключваме текущия запис, ако е записан
             if($rec->id) {
                 $idCond = " AND #id != {$rec->id}";
             } else {
                 $idCond = "";
             }
-
-            $cnt = self::count("#state != 'active' AND (#ip = '{$rec->ip}' || #brid = '{$brid}')" . $idCond);
-            if($cnt) {
+            
+            // Има ли от същото IP
+            $query = self::getQuery();
+            $query->limit(28);
+            $cnt = $query->count("#state != 'active' AND #ip = '{$rec->ip}'" . $idCond);
+            if($cnt > 1) {
                 $sr +=  pow($cnt, 1/3);
             }
-            
+
+            // Има ли от същия brid?
+            $query = self::getQuery();
+            $query->limit(28);
+            $cnt = $query->count("#state != 'active' AND #brid = '{$rec->brid}'" . $idCond);
+            if($cnt > 1) {
+                $sr +=  pow($cnt, 1/3);
+            }
+         
             $rec->spamRate = (int) $sr;
 
     }
