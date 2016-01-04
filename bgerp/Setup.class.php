@@ -178,6 +178,8 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $haveError = array();
         
+        core_Debug::$isLogging = FALSE;
+
         do {
             $loop++;
             
@@ -241,6 +243,9 @@ class bgerp_Setup extends core_ProtoSetup {
             
         } while (!empty($haveError) && ($loop<5));
         
+
+        core_Debug::$isLogging = TRUE;
+
         $html .= implode("\n", $haveError);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
