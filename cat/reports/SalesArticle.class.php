@@ -333,8 +333,8 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	 
     	$tableMvc = new core_Mvc;
     	$tableMvc->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
-    	$tableMvc->FLD('salesCnt', 'int', 'tdClass=itemClass');
-    	$tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass');
+    	$tableMvc->FLD('salesCnt', 'int', 'tdClass=itemClass,smartCenter');
+    	$tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
 

@@ -285,9 +285,9 @@ class doc_reports_Docs extends frame_BaseDriver
     
     	
     	$tableMvc = new core_Mvc;
-    	$tableMvc->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Създадени документи->Тип');
-    	$tableMvc->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
-    	$tableMvc->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
+    	$tableMvc->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
+    	$tableMvc->FLD('createdBy', 'key(mvc=core_Users,select=names)','tdClass=itemClass');
+    	$tableMvc->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
     	
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	
