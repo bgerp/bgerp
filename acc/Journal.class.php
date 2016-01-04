@@ -227,6 +227,7 @@ class acc_Journal extends core_Master
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
                     if(isset($dRec->$item)){
                         $mvc->affectedItems[$dRec->$item] = $dRec->$item;
+                        acc_Items::updateEarliestUsedOn($dRec->$item, $rec->valior);
                     }
                 }
             }
@@ -589,7 +590,7 @@ class acc_Journal extends core_Master
         acc_JournalDetails::filterQuery($jQuery, NULL, NULL, NULL, $itemRec->id);
         
         // Искаме вальора да е след първия ден от периода, в който е датата на създаване на перото за което търсим
-        $fromDate = dt::mysql2verbal($itemRec->createdOn, 'Y-m-01');
+        $fromDate = dt::mysql2verbal($itemRec->earliestUsedOn, 'Y-m-01');
         $fromDate = dt::verbal2mysql($fromDate, FALSE);
         $jQuery->where("#valior >= '{$fromDate}'");
         
