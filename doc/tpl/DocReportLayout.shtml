@@ -1,0 +1,7 @@
+<h1>Създадени документи тип "[#DOCTYPE#]"</h1>
+[#FORM#]
+[#PAGER#]
+<div class='overflow-scroll'>
+    [#DOCS#]
+</div>
+[#PAGER#]

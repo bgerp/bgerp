@@ -131,6 +131,7 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
+                                        <hr>
                                         <!--ET_END paymentBlock-->
 
                                         <!--ET_BEGIN deliveryInfo-->
@@ -142,13 +143,14 @@
                                         <!--ET_BEGIN deliveryPlaceId-->
                                         [#deliveryPlaceId#]
                                         <!--ET_END deliveryPlaceId-->
+                                        <hr>
                                         <!--ET_END deliveryInfo-->
                                         <!--ET_BEGIN additionalInfo-->
-                                        <hr>
+                                       
                                         <div>|Бележки|*</div>
                                         <div>[#additionalInfo#]</div>
+                                         <hr>
                                         <!--ET_END additionalInfo-->
-                                        <hr>
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
                                                 <td class='centered'>|Съставил|*:</td>

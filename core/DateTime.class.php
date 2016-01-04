@@ -159,7 +159,7 @@ class core_DateTime
      *
      * @return string mysql форматирана дата, напр. '2011-02-23'
      */
-    static function firstDayOfMounthTms($month, $year, $wDay)
+    static function firstDayOfMonthTms($month, $year, $wDay)
     {
         list($base, $dayName) = explode('-', $wDay);
         

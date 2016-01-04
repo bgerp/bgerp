@@ -258,7 +258,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
     		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
     		$detailsPop = $table->get($data->popArr, $data->listFields);
-    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
+    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;'), $detailsPop);
     		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
     	}
     	

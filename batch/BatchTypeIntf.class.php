@@ -25,13 +25,13 @@ class batch_BatchTypeIntf extends embed_DriverIntf
 	/**
 	 * Връща автоматичния партиден номер според класа
 	 * 
-	 * @param mixed $class - класа за който ще връщаме партидата
+	 * @param mixed $documentClass - класа за който ще връщаме партидата
 	 * @param int $id - ид на документа за който ще връщаме партидата
 	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
 	 */
-	function getAutoValue($class, $id)
+	function getAutoValue($documentClass, $id)
 	{
-		return $this->class->getAutoValue($class, $id);
+		return $this->class->getAutoValue($documentClass, $id);
 	}
 	
 	

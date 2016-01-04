@@ -417,7 +417,7 @@ class price_Updates extends core_Manager
     function act_Recalc()
     {
     	expect(haveRole('debug'));
-    	$this->cron_SavePrimeCosts();
+    	$this->cron_Updateprimecosts();
     }
     
     
