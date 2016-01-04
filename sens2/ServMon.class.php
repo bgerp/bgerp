@@ -35,7 +35,8 @@ class sens2_ServMon  extends sens2_ProtoDriver
                 'freeRam' => (object) array('caption' => 'Свободна RAM', 'uom' => '%'),
                 'freeDir1' => (object) array('caption' => 'Свободна памет в Dir1', 'uom' => 'B'),
                 'freeDir2' => (object) array('caption' => 'Свободна памет в Dir2', 'uom' => 'B'),
-                
+                'mysqlCnt' => (object) array('caption' => 'MySQL връзки'),
+
                 'proc1cnt' => (object) array('caption' => 'Стартирани Proc1'),
                 'proc2cnt' => (object) array('caption' => 'Стартирани Proc2'),
                 'proc3cnt' => (object) array('caption' => 'Стартирани Proc3'),
@@ -56,8 +57,8 @@ class sens2_ServMon  extends sens2_ProtoDriver
         $form->FLD('dir2', 'varchar', 'caption=Пътища->Dir1');
 
         $form->FLD('proc1', 'identifier(allowed=.)', 'caption=Процеси->Proc1');
-        $form->FLD('proc2', 'identifier', 'caption=Процеси->Proc2');
-        $form->FLD('proc3', 'identifier', 'caption=Процеси->Proc3');
+        $form->FLD('proc2', 'identifier(allowed=.)', 'caption=Процеси->Proc2');
+        $form->FLD('proc3', 'identifier(allowed=.)', 'caption=Процеси->Proc3');
         
         $form->FLD('conn1', 'varchar', 'caption=Връзки->Conn1');
         $form->FLD('conn2', 'varchar', 'caption=Връзки->Conn2');
@@ -88,6 +89,10 @@ class sens2_ServMon  extends sens2_ProtoDriver
             $res['freeDir2'] = $this->getFreeDiskSpace($config->dir2);
         }
         
+        if($inputs['mysqlCnt']) {
+            $res['mysqlCnt'] = $this->countMysqlConnections();
+        }
+       
         // Проверка на броя процеси
         if($inputs['proc1cnt']) {
             $os = cls::get('core_Os');
@@ -136,6 +141,20 @@ class sens2_ServMon  extends sens2_ProtoDriver
         $res = @fsockopen($domain, round($port), $errno, $errstr, 3) ? 1 : 0;
         
         return $res;
+    }
+
+
+    /**
+     * Връща броя на MySQL връзките
+     */
+    function countMysqlConnections()
+    {
+        
+        $db = cls::get('core_Db');
+        $dbRes = $db->query("SHOW STATUS WHERE `variable_name` = 'Threads_connected'");
+        $res = $db->fetchObject($dbRes);
+
+        return $res->Value;
     }
 
 
