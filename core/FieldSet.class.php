@@ -53,7 +53,7 @@ class core_FieldSet extends core_BaseClass
     /**
      * Данни за полетата
      */
-    var $fields = array();
+    public $fields = array();
     
     
     /**

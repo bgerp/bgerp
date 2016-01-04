@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=Пулт, productId,accCost,activeDelivery,lastDelivery,lastQuote,bom';
+    public $listFields = 'id=Пулт, productId, type, price, document=Документ, modifiedOn';
     
     
     /**
@@ -71,25 +71,24 @@ class price_ProductCosts extends core_Manager
 	public $canList = 'admin,debug';
 	
 	
+	//public $listItemsPerPage = 500000; 
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-    	$this->FLD('accCost', 'double', 'caption=Цени->Складова');
-    	$this->FLD('activeDelivery', 'double', 'caption=Цени->Текуща поръчка,tdClass=accCell');
-    	$this->FLD('lastDelivery', 'double', 'caption=Цени->Последна доставка,tdClass=accCell');
-    	$this->FLD('lastQuote', 'double', 'caption=Цени->Последна оферта,tdClass=accCell');
-    	$this->FLD('bom', 'double', 'caption=Цени->Последна рецепта,tdClass=accCell');
+    	$this->FLD('type', 'enum(accCost=Складова,
+    							 lastDelivery=Последна доставка,
+    							 activeDelivery=Текуща поръчка,
+    							 lastQuote=Последна оферта,
+    							 bom=Последна рецепа)', 'caption=Тип');
+    	$this->FLD('price', 'double', 'caption=Цена');
+    	$this->FLD('documentClassId', 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
+    	$this->FLD('documentId', 'int', 'caption=Документ->Ид');
+    	$this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Създадено на');
     	
-    	$this->FLD('activeDeliveryId', 'key(mvc=purchase_Purchases)', 'input=none');
-    	$this->FLD('lastDeliveryId', 'key(mvc=purchase_Purchases)', 'input=none');
-    	$this->FLD('lastQuoteId', 'key(mvc=purchase_Offers)', 'input=none');
-    	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none');
-    	
-    	// Поставяне на уникални индекси
-    	$this->setDbUnique('productId');
+    	$this->setDbUnique('productId,type');
     }
     
     
@@ -101,53 +100,11 @@ class price_ProductCosts extends core_Manager
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
-    	// Ако има последна оферта, намираме датата и линка към нея
-    	if(isset($rec->lastQuoteId)){
-    		$row->lastQuoteId = purchase_Offers::getLink($rec->lastQuoteId, 0);
-    		$row->lastQuoteDate = $Datetime->toVerbal(purchase_Offers::fetchField($rec->lastQuoteId, 'date'));
+    	if(cls::load($rec->documentClassId, TRUE)){
+    		$row->document = cls::get($rec->documentClassId)->getLink($rec->documentId, 0);
     	}
     	
-    	// Ако има текуща поръчка, намираме датата и линка към нея
-    	if(isset($rec->activeDeliveryId)){
-    		$row->activeDeliveryId = purchase_Purchases::getLink($rec->activeDeliveryId, 0);
-    		$row->activeDeliveryDate = $Datetime->toVerbal(purchase_Purchases::fetchField($rec->activeDeliveryId, 'valior'));
-    	}
-    	
-    	// Ако има последна доставка, намираме датата и линка към нея
-    	if(isset($rec->lastDeliveryId)){
-    		$row->lastDeliveryId = purchase_Purchases::getLink($rec->lastDeliveryId, 0);
-    		$row->lastDeliveryDate = $Datetime->toVerbal(purchase_Purchases::fetchField($rec->lastDeliveryId, 'valior'));
-    	}
-    	
-    	// Ако има последна рецепта, намираме датата и линка към нея
-    	if(isset($rec->bomId)){
-    		$row->bomId = cat_Boms::getLink($rec->bomId, 0);
-    		$row->bomIdDate = $Datetime->toVerbal(cat_Boms::fetchField($rec->bomId, 'modifiedOn'));
-    	}
-    	
-    	// Ако има складова себестойност
-    	if(isset($rec->accCost)){
-    		$lastBalance = acc_Balances::getLastBalance();
-    		$row->accCostDate = $Datetime->toVerbal($lastBalance->lastCalculate);
-    	}
-    	
-    	// Ако имаме чиста себестойност, намираме към коя дата е
-    	if(isset($rec->primeCost)){
-    		$row->primeCost = cls::get('type_Double')->toVerbal($rec->primeCost);
-    		$row->primeCostDate = $Datetime->toVerbal($rec->primeCostDate);
-    	}
-    	
-    	// Ако имаме бъдеща себестойност, намираме към коя дата е
-    	if(isset($rec->futurePrimeCost)){
-    		$row->futurePrimeCost = cls::get('type_Double')->toVerbal($rec->futurePrimeCost);
-    		$row->futurePrimeCostDate = $Datetime->toVerbal($rec->futurePrimeCostDate);
-    	}
-    	
-    	// Ако има каталожна цена, намираме към коя дата е
-    	if(isset($rec->catalogCost)){
-    		$row->catalogCost = cls::get('type_Double')->toVerbal($rec->catalogCost);
-    		$row->catalogCostDate = $Datetime->toVerbal($rec->catalogCostDate);
-    	}
+    	$row->ROW_ATTR = array('class' => 'state-active');
     }
     
     
@@ -481,27 +438,55 @@ class price_ProductCosts extends core_Manager
     	$res['bom'] = $this->getLastBomCosts($productKeys);
     	
     	// Тук ще събираме готовите записи
-    	$values = array();
+    	$nRes = array();
+    	$today = dt::now();
     	
     	// Нормализираме записите
     	foreach ($products as $productId => $productName){
-    		$obj = (object)array(
-    					'productId'      => $productId,
-    					'accCost'        => $res['accCost'][$productId],
-    					'bom'            => $res['bom'][$productId],
-    		);
+    		$bObject = (object)array('productId' => $productId, 'modifiedOn' => $today);
     		
-    		foreach (array('lastQuote', 'activeDelivery', 'lastDelivery', 'bom') as $fld){
-    			if(isset($res[$fld][$productId])){
-    				$obj->{$fld} = $res[$fld][$productId]->price;
-    				$obj->{"{$fld}Id"} = $res[$fld][$productId]->documentId;
-    			} else {
-    				$obj->{$fld} = NULL;
-    				$obj->{"{$fld}Id"} = NULL;
-    			}
+    		if(isset($res['accCost'][$productId])){
+    			$obj = clone $bObject;
+    			$obj->type = 'accCost';
+    			$obj->price = $res['accCost'][$productId];
+    			$nRes[] = $obj;
     		}
     		
-    		$values[$productId] = $obj;
+    		if(isset($res['lastQuote'][$productId])){
+    			$obj = clone $bObject;
+    			$obj->type = 'lastQuote';
+    			$obj->price = $res['lastQuote'][$productId]->price;
+    			$obj->documentClassId = purchase_Offers::getClassId();
+    			$obj->documentId = $res['lastQuote'][$productId]->documentId;
+    			$nRes[] = $obj;
+    		}
+    		
+    		if(isset($res['activeDelivery'][$productId])){
+    			$obj = clone $bObject;
+    			$obj->type = 'activeDelivery';
+    			$obj->price = $res['activeDelivery'][$productId]->price;
+    			$obj->documentClassId = purchase_Purchases::getClassId();
+    			$obj->documentId = $res['activeDelivery'][$productId]->documentId;
+    			$nRes[] = $obj;
+    		}
+    		
+    		if(isset($res['lastDelivery'][$productId])){
+    			$obj = clone $bObject;
+    			$obj->type = 'lastDelivery';
+    			$obj->price = $res['lastDelivery'][$productId]->price;
+    			$obj->documentClassId = purchase_Purchases::getClassId();
+    			$obj->documentId = $res['lastDelivery'][$productId]->documentId;
+    			$nRes[] = $obj;
+    		}
+    		
+    		if(isset($res['bom'][$productId])){
+    			$obj = clone $bObject;
+    			$obj->type = 'bom';
+    			$obj->price = $res['bom'][$productId]->price;
+    			$obj->documentClassId = purchase_Purchases::getClassId();
+    			$obj->documentId = $res['bom'][$productId]->documentId;
+    			$nRes[] = $obj;
+    		}
     	}
     	
     	// Намираме старите записи
@@ -509,13 +494,19 @@ class price_ProductCosts extends core_Manager
     	$oldRecs = $query->fetchAll();
     	
     	// Синхронизираме новите със старите
-    	$synced = arr::syncArrays($values, $oldRecs, 'productId', 'lastQuote,activeDelivery,lastDelivery,bom,lastQuoteId,activeDeliveryId,lastDeliveryId,bomId,accCost');
+    	$synced = arr::syncArrays($nRes, $oldRecs, 'productId,type', 'price,documentClassId,documentId');
     	
     	// Създаваме записите, които трябва
     	$this->saveArray($synced['insert']);
     	
     	// Обновяваме записите със промени
     	$this->saveArray($synced['update']);
+    	
+    	if(count($synced['delete'])){
+    		foreach ($synced['delete'] as $id){
+    			$this->delete($id);
+    		}
+    	}
     }
     
     
@@ -531,7 +522,7 @@ class price_ProductCosts extends core_Manager
     	expect($productId);
     	expect(in_array($priceType, array('accCost', 'lastDelivery', 'activeDelivery', 'lastQuote', 'bom',)));
     	
-    	$price = static::fetchField("#productId = {$productId}", $priceType);
+    	$price = static::fetchField("#productId = {$productId} AND #type = '{$priceType}'", 'price');
     	
     	return $price;
     }

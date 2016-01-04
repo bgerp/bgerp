@@ -109,6 +109,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::updateItemsNum1',
     	'migrate::updateClosedItems3',
     	'migrate::fixExpenses',
+    	'migrate::updateItemsEarliestUsedOn',
     );
     
     
@@ -341,6 +342,28 @@ class acc_Setup extends core_ProtoSetup
     		$rec->currencyId = 'BGN';
     		$rec->rate = 1;
     		acc_AllocatedExpenses::save($rec);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейтва полето за най-ранно използване
+     */
+    function updateItemsEarliestUsedOn()
+    {
+    	$Items = cls::get('acc_Items');
+    	$Items->setupMvc();
+    	
+    	$query = $Items->getQuery();
+    	while($rec = $query->fetch()){
+    		if(empty($rec->earliestUsedOn)){
+    			try{
+    				$rec->earliestUsedOn = dt::verbal2mysql($rec->createdOn, FALSE);
+    				$Items->save_($rec, 'earliestUsedOn');
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    		}
     	}
     }
 }

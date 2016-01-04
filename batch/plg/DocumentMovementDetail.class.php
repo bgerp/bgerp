@@ -60,7 +60,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				$suggestions = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
 				
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, 1));
+				$form->setDefault('batch', $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}));
 				if(!empty($rec->batch)){
 					$rec->batch = $BatchClass->denormalize($rec->batch);
 				}

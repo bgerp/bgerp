@@ -164,7 +164,7 @@ abstract class deals_DealBase extends core_Master
     	}
     	
         // Ако документа е активен, може да се експортва
-    	if($action == 'export' && isset($rec)){
+    	if($action == 'export' && isset($rec)){ 
     		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
     		if($state != 'active'){
     			$requiredRoles = 'no_one';
@@ -510,15 +510,15 @@ abstract class deals_DealBase extends core_Master
     protected function еxportReport(&$data)
     {
         expect(Request::get('export', 'int'));
-        
-    	expect($rec = $data->dealReportCSV);
+  
+    	expect($rec = $data->rec);
 
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
-        
+
     	$title = $this->title . " Поръчано/Доставено";
     
-    	$csv = $this->prepareCsvExport($rec);
+    	$csv = $this->prepareCsvExport($data->dealReportCSV);
     
     	$fileName = str_replace(' ', '_', Str::utf2ascii($title));
     	 

@@ -43,7 +43,7 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 			$BatchClass = batch_Defs::getBatchDef($rec->productId);
 			if(is_object($BatchClass)){
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, 1));
+				$form->setDefault('batch', $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}));
 			}
 		}
 		
