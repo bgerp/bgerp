@@ -112,12 +112,14 @@
                                             <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] per day</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
                                         </div>
+                                       
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN deadlineForBalancePayment-->
                                         <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
+                                        <hr>
                                         <!--ET_END deadlineForBalancePayment-->
                                         <!--ET_BEGIN accountId-->
-                                        <hr>
+                                        
                                         <div>
                                             <span class='quiet'>Bank Account:</span> [#accountId#]
                                             <div class="smallData">
@@ -132,6 +134,7 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
+                                        <hr>
                                         <!--ET_END paymentBlock-->
 
                                         <!--ET_BEGIN deliveryInfo-->
@@ -145,12 +148,11 @@
                                         <!--ET_END deliveryPlaceId-->
                                         <!--ET_END deliveryInfo-->
                                         <!--ET_BEGIN additionalInfo-->
-                                        <hr>
                                         <div>Notes</div>
                                         <div>[#additionalInfo#]</div>
+                                        <hr>
                                         <!--ET_END additionalInfo-->
 
-                                        <hr>
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
                                                 <td class='centered'>Prepared By:</td>
