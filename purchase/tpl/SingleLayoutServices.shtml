@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-        <table class="innerTable" style='width:100%'>
+        <table class="innerTable paddingCells" style='width:100%'>
             <tbody>
                 <tr>
                     <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
