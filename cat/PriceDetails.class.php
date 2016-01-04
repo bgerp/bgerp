@@ -100,18 +100,6 @@ class cat_PriceDetails extends core_Manager
     	
     	$priceCostRows = $primeCostRows = array();
     	
-    	
-    	
-    	
-    	
-    	
-    	
-    	
-    	
-    	
-    	//bp($cQuery->fetchAll());
-    	
-    	
     	$rec = price_ProductCosts::fetch("#productId = {$data->masterId}");
     	if(!$rec){
     		$rec = new stdClass();
