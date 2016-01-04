@@ -1421,6 +1421,24 @@ function setMinHeightExt() {
     }
 }
 
+function getCalculatedElementWidth() {
+	var winWidth = parseInt($(window).width());
+	// Приемаме, че най-малкият екран е 320px
+    if (winWidth < 320) {
+        winWidth = 320;
+    }
+    // разстояние около формата
+	var outsideWidth = 42;
+	if($('#all').length) {
+		outsideWidth = 30;
+	} else if ($('.modern-theme').length && $('input').length) {
+        outsideWidth = parseInt($('input').offset().left * 2  + 2);
+    }
+    // изчислена максимална ширина формата
+    var formElWidth = winWidth - outsideWidth;
+    
+    return formElWidth;
+}
 
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
@@ -1429,22 +1447,12 @@ function setFormElementsWidth() {
 
 
     if ($('body').hasClass('narrow')){
-    	var winWidth = parseInt($(window).width());
-    	// Приемаме, че най-малкият екран е 320px
-        if (winWidth < 320) {
-            winWidth = 320;
-        }
         // предпочитана ширина в em
         var preferredSizeInEm = 42;
         // разстояние около формата
-    	var outsideWidth = 42;
-    	if($('#all').length) {
-    		outsideWidth = 30;
-    	} else if ($('.modern-theme').length && $('.formTable input').length) {
-            outsideWidth = parseInt($('.formTable input').offset().left * 2  + 2);
-        }
+    	
         // изчислена максимална ширина формата
-        var formElWidth = winWidth - outsideWidth;
+        var formElWidth = getCalculatedElementWidth();
 
         // колко ЕМ е широка страницата
         var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
@@ -1478,7 +1486,7 @@ function setFormElementsWidth() {
 
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
-        $('.formTable .select2-container').css('maxWidth', formElWidth);
+        $('.formTable .select2-container').css('maxWidth', formElWidth - 50);
         $('.formTable select').css('maxWidth', formElWidth);
     } else {
     	 $('.formTable label').each(function() {
@@ -1495,6 +1503,17 @@ function setFormElementsWidth() {
              }
          });
     }
+}
+
+
+/**
+ * Задава ширина на селект2 в зависимост от ширината на прозореца/устройството
+ */
+function maxSelectWidth(){
+	 if ($('.narrow .horizontal .select2-container').length ) {
+		 var formElWidth = getCalculatedElementWidth();
+		 $('.narrow .horizontal .select2-container').css('maxWidth', formElWidth - 15);
+	 }
 }
 
 
@@ -4154,7 +4173,11 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+function test(){
+	alert();
+}
 
+runOnLoad(maxSelectWidth);
 runOnLoad(smartCenter);
 runOnLoad(sumOfChildrenWidth);
 runOnLoad(editCopiedTextBeforePaste);
