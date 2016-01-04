@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -154,6 +154,7 @@ class acc_Items extends core_Manager
         $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
         $this->FLD('closedOn', 'date', 'caption=Затваряне,input=none');
+        $this->FLD('earliestUsedOn', 'date(format=smartTime)', 'caption=Най-ранно използване,input=none');
         
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
@@ -1020,16 +1021,21 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Изпълнява се след създаване на нов запис
+     * Обновява датата на най-ранно използване на перото, като по-малката от
+     * текущата спрямо датата за сравняване
+     * 
+     * @param mixed $id - ид или запис
+     * @param date $dateToCompare - Дата
+     * @return void
      */
-    public static function on_AfterCreate($mvc, $rec)
+    public static function updateEarliestUsedOn($id, $dateToCompare)
     {
-    	if(isset($rec->classId) && isset($rec->objectId)){
-    		$oRec = cls::get($rec->classId)->fetch($rec->objectId);
-    		if(isset($oRec->valior)){
-    			$rec->createdOn = $oRec->valior;
-    			$mvc->save_($rec, 'createdOn');
-    		}
-    	}
+    	$Items = cls::get(get_called_class());
+    	expect($rec = $Items->fetchRec($id));
+    	
+    	$colName = str::phpToMysqlName('earliestUsedOn');
+    	$query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', $colName, '{$dateToCompare}') WHERE id = {$rec->id}";
+    	
+    	$Items->db->query($query);
     }
 }
