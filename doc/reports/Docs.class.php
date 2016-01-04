@@ -190,7 +190,78 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
+        // Подготвяме страницирането
+        $data = $res;
+        
+        $pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+        
+        $pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
+        
+        $pager->calc();
+        $data->pager = $pager;
 
+        $rows = $mvc->getVerbal($data->docCnt);
+        
+        if(is_array($rows)) {
+            foreach ($rows as $id => $row) {
+                if (!$pager->isOnPage()) continue;
+        
+                $data->rows[$id] = $row;
+            }
+        }
+    }
+    
+    
+    /**
+     * Вербалното представяне на ред от таблицата
+     */
+    protected function getVerbal_($rec)
+    {
+        
+        $Class = cls::get('type_Class');
+        $Class->params['interface'] = "doc_DocumentIntf";
+        $Class->params['select'] = "title";
+        $Class->params['allowEmpty'] = "allowEmpty";
+
+        $Users = cls::get('type_Users');
+        $Int = cls::get('type_Int');
+
+        
+        foreach ($rec as $docClass => $userCnt) {
+            foreach ($userCnt as $user => $cnt) {
+    
+                $row = new stdClass();
+                $row->docClass = $Class->toVerbal($docClass);
+                $row->cnt = $Int->toVerbal($cnt);
+                 
+                if(!$user) {
+                    $row->createdBy = "Анонимен";
+                } elseif($user == -1) {
+                    $row->createdBy = "Система";
+                } else {
+                    $row->createdBy = $Users->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+                }
+        
+                $rows[] = $row;
+            }
+        }
+
+        return $rows;
+    }
+    
+    
+    /**
+     * Връща шаблона на репорта
+     *
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReportLayout_()
+    {
+        $tpl = getTplFromFile('doc/tpl/DocReportLayout.shtml');
+         
+        return $tpl;
     }
     
     
@@ -201,76 +272,88 @@ class doc_reports_Docs extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	$tpl = new ET("
-            <h1>Създадени документи тип \"[#DOCTYPE#]\"</h1>
-            [#FORM#]
-    		[#PAGER#]
-            [#DOCS#]
-    		[#PAGER#]
-        "
-    	);
+    	if(empty($data)) return;
+    	 
+    	$tpl = $this->getReportLayout();
     
     	$docClass = cls::get($data->fRec->docClass);
     	$tpl->replace($docClass->singleTitle,'DOCTYPE');
     	
-    	$form = cls::get('core_Form');
+    	$this->prependStaticForm($tpl, 'FORM');
+    	 
+    	$tpl->placeObject($data->row);
     
-    	$this->addEmbeddedFields($form);
-    
-    	$form->rec = $data->fRec;
-    	$form->class = 'simpleForm';
     	
-    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
-    
-    	$tpl->placeObject($data->rec);
-    
-    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
-
-    	$pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
+    	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Създадени документи->Тип');
+    	$tableMvc->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
+    	$tableMvc->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
     	
-    	$f = cls::get('core_FieldSet');
-    
-    	$f->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Създадени документи->Тип');
-    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
-    	$f->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
+    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	
-    	$rows = array();
-
-    	$ft = $f->fields;
-    	$docClassType = $ft['docClass']->type;
-        $userType = $ft['createdBy']->type;
-        $cntType = $ft['cnt']->type;
-        
-    	foreach ($data->docCnt as $docClass => $userCnt) {
-    		foreach ($userCnt as $user => $cnt) {
-	    		if(!$pager->isOnPage()) continue;
-	    		
-	    		$row = new stdClass();
-	    		$row->docClass = $docClassType->toVerbal($docClass);
-	    		$row->cnt = $cntType->toVerbal($cnt);
-	    		
-	    		if(!$user) {
-	    			$row->createdBy = "Анонимен";
-	    		} elseif($user == -1) {
-	    			$row->createdBy = "Система";
-	    		} else {
-	    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
-	    		}
-
-	    		$rows[] = $row;
-    		}
+    	$tpl->append($table->get($data->rows, "docClass=Създадени документи->Тип,
+    	                                       createdBy=Създадени документи->Автор,
+    	                                       cnt=Създадени документи->Брой"), 'DOCS');
+    	
+    	if($data->pager){
+    	    $tpl->append($data->pager->getHtml(), 'PAGER');
     	}
 
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'docClass=Създадени документи->Тип,createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой');
-    
-    	$tpl->append($html, 'DOCS');
-        $tpl->append($pager->getHtml(), 'PAGER');
-    
     	$embedderTpl->append($tpl, 'data');
     }  
+    
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getFields_()
+    {
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
+        $f->FLD('docClass', 'varchar');
+        $f->FLD('createdBy', 'varchar');
+        $f->FLD('cnt', 'int');
+    
+        return $f;
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    protected function getExportFields_()
+    {
+        // Кои полета ще се показват
+        $fields = arr::make("docClass=Тип на документа,
+    					     createdBy=Автор,
+    					     cnt=Създадени документи (бр.)", TRUE);
+    
+        return $fields;
+    }
+    
+    
+    /**
+     * Създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function exportCsv()
+    {
+        $exportFields = $this->getExportFields();
+        $fields = $this->getFields();
+    
+        $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields, array('text'=>'xhtml'));
+         
+        return $csv;
+    }
      
     
     /**
