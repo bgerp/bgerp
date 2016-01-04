@@ -264,9 +264,9 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 
     	$f = cls::get('core_FieldSet');
     	
-    	$f->FLD('id', 'varchar');
-    	$f->FLD('quantity', 'double');
-    	$f->FLD('store', 'double');
+    	$f->FLD('id', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('quantity', 'double', 'tdClass=itemClass,smartCenter');
+    	$f->FLD('store', 'double', 'tdClass=itemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
@@ -342,12 +342,32 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     	} else {
     		$time = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now())+$this->innerForm->time);
     	}
-    	
-    	$activateOn = "{$time} 23:59:59";
+
+    	$activateOn = "{$time} 13:59:59";
       	  	
       	return $activateOn;
 	}
 
+	
+	/**
+	 * Ще се експортирват полетата, които се
+	 * показват в табличния изглед
+	 *
+	 * @return array
+	 * @todo да се замести в кода по-горе
+	 */
+	protected function getFields_()
+	{
+	    // Кои полета ще се показват
+	    $f = new core_FieldSet;
+	
+	    $f->FLD('id', 'varchar');
+	    $f->FLD('quantity', 'double');
+	    $f->FLD('store', 'double');
+	    
+	    return $f;
+	}
+	
 	
      /**
       * Ако имаме в url-то export създаваме csv файл с данните
@@ -358,95 +378,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
      public function exportCsv()
      {
 
-         $exportFields = $this->getExportFields();
+        $exportFields = $this->innerState->listFields;
+        $fields = $this->getFields();
 
-         $conf = core_Packs::getConfig('core');
-
-         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-             redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-         }
-
-         $csv = "";
-
-         foreach ($exportFields as $caption) {
-             $header .=  $caption. ',';
-         }
-
+        $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields, array('text'=>'xhtml'));
          
-         if(count($this->innerState->recs)) {
-			foreach ($this->innerState->recs as $id => $rec) {
-				
-				$rCsv = $this->generateCsvRows($rec);
-
-				
-				$csv .= $rCsv;
-				$csv .=  "\n";
-		
-			}
-
-			$csv = $header . "\n" . $csv;
-	    } 
-
         return $csv;
     }
-
-
-    /**
-     * Ще се експортирват полетата, които се
-     * показват в табличния изглед
-     *
-     * @return array
-     */
-    protected function getExportFields_()
-    {
-
-        $exportFields = $this->innerState->listFields;
-    
-        return $exportFields;
-    }
-    
-    
-    /**
-	 * Ще направим row-овете в CSV формат
-	 *
-	 * @return string $rCsv
-	 */
-	protected function generateCsvRows_($rec)
-	{
-	
-		$exportFields = $this->getExportFields();
-
-		$rec = self::getVerbal($rec);
-
-		$rCsv = '';
-
-		foreach ($rec as $field => $value) {
-			$rCsv = '';
-
-		
-			foreach ($exportFields as $field => $caption) {
-
-				if ($rec->{$field}) {
-					$value = $rec->{$field};
-					
-					if ($field == 'materials') {
-						$value = str_replace("<br>", "", $value);
-					}
-
-					$value = html2text_Converter::toRichText($value);
-					// escape
-					if (preg_match('/\\r|\\n|,|"/', $value)) {
-						$value = '"' . str_replace('"', '""', $value) . '"';
-					}
-					$rCsv .=  $value . ",";
-		
-				} else {
-					$rCsv .=  ''. ",";
-				}
-			}
-		}
-
-		return $rCsv;
-	}
-
 }
