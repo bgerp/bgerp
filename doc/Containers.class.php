@@ -251,7 +251,7 @@ class doc_Containers extends core_Manager
     function logInAct($msg, $rec = NULL, $type = 'write')
     {
         if (($type == 'read') && ($threadId = Request::get('threadId', 'int')) && ($msg == 'Листване')) {
-            doc_Threads::logRead('Разглеждане на нишка', $threadId);
+            log_Data::add($type, 'Разглеждане на нишка', 'doc_Threads', $threadId);
         } else {
             parent::logInAct($msg, $rec, $type);
         }
