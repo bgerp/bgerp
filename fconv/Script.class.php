@@ -19,7 +19,7 @@ class fconv_Script
     /**
      * @param array files - Масив за входните файлове
      */
-    var $files = array();
+    public $files = array();
     
     
     /**
@@ -31,19 +31,19 @@ class fconv_Script
     /**
      * @param array programs - Масив за изпълнимите команди
      */
-    var $programs = array();
+    public $programs = array();
     
     
     /**
      * @param array params - Масив за параметрите на скрипта
      */
-    var $params = array();
+    public $params = array();
     
     
     /**
      * @param string script - Текст на скрипта
      */
-    var  $script;
+    public  $script;
     
     
     /**
