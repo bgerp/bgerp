@@ -69,6 +69,7 @@ class price_Setup extends core_ProtoSetup
         	'price_ListDocs',
     		'price_ProductCosts',
     		'price_Updates',
+    		'migrate::truncateProductCosts',
         );
     
 
@@ -111,5 +112,14 @@ class price_Setup extends core_ProtoSetup
         if($history->db->tableExists($history->dbTableName)) {
             $history->truncate();
         }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на кешираните цени
+     */
+    function truncateProductCosts()
+    {
+    	price_ProductCosts::truncate();
     }
 }
