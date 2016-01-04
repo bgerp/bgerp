@@ -911,14 +911,14 @@ class cal_Reminders extends core_Master
 					$rec->monthsWeek = $monthsWeek;
 					$rec->weekDayNames = $weekDayNames[$data[wday]];
 					
-					$nextStartTime = date("Y-m-d {$data[hours]}:{$data[minutes]}:{$data[seconds]}", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+					$nextStartTime = date("Y-m-d {$data[hours]}:{$data[minutes]}:{$data[seconds]}", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
 					        		
 					if(dt::mysql2timestamp($nextStartTime) < $nowTs) continue;
 					
 					if($rec->timePreviously !== NULL){
-						$nextStartTimeD = date("d", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
-						$nextStartTimeM = date("m", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
-						$nextStartTimeG = date("Y", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+						$nextStartTimeD = date("d", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+						$nextStartTimeM = date("m", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+						$nextStartTimeG = date("Y", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
 				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds] - $rec->timePreviously, $nextStartTimeM, $nextStartTimeD, $nextStartTimeG));
 				    	
 				    	return $nextStartTime;

@@ -153,10 +153,7 @@ class doc_Threads extends core_Manager
      */
     public static function logRead($action, $objectId = NULL, $lifeDays = 180)
     {
-        if (self::logToDocument('read', $action, $objectId, $lifeDays)) {
-            
-            return ;
-        }
+        self::logToDocument('read', $action, $objectId, $lifeDays);
         
         return parent::logRead($action, $objectId, $lifeDays);
     }
@@ -173,10 +170,7 @@ class doc_Threads extends core_Manager
      */
     public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
     {
-        if (self::logToDocument('write', $action, $objectId, $lifeDays)) {
-            
-            return ;
-        }
+        self::logToDocument('write', $action, $objectId, $lifeDays);
         
         return parent::logWrite($action, $objectId, $lifeDays);
     }

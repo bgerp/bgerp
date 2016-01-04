@@ -322,7 +322,7 @@ class cal_Holidays extends core_Master
                     $delta = 0;
                 } elseif($rec->weekday && $rec->base) {
                     $month = $rec->base;
-					$base = dt::firstDayOfMounthTms($month, $year, $rec->weekday);  
+					$base = dt::firstDayOfMonthTms($month, $year, $rec->weekday);  
 					$delta = 0;  
                 } else {              	
                     $base = mktime(23, 59, 59, $rec->base, 1, $year);

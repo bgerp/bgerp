@@ -98,7 +98,7 @@ class cat_PriceDetails extends core_Manager
     	
     	$now = dt::now();
     	
-    	$priceCostRows = $primeCostRows = array();
+    	$priceCostRows = $primeCostRows = $primeCostRecs = $priceCostRecs = array();
     	
     	$rec = price_ProductCosts::fetch("#productId = {$data->masterId}");
     	if(!$rec){
@@ -143,6 +143,7 @@ class cat_PriceDetails extends core_Manager
     	
     	if(haveRole('priceDealer,ceo')){
     		if(isset($futurePrimeCost)){
+    			$primeCostRecs[] = (object)array('price' => $futurePrimeCost);
     			$primeCostRows[] = (object)array('type' => tr('|Мениджърска|* (|Бъдеща|*)'), 
     											 'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate), 
     											 'price' => $Double->toVerbal($futurePrimeCost), 'ROW_ATTR' => array('class' => 'state-draft'));
@@ -172,7 +173,7 @@ class cat_PriceDetails extends core_Manager
     			}
     		}
     		
-    		
+    		$primeCostRecs[] = (object)array('price' => $primeCost);
     		$primeCostRows[] = (object)array('type'       => tr('Мениджърска') .$btns, 
     										 'modifiedOn' => $DateTime->toVerbal($primeCostDate), 
     										 'price'      => $Double->toVerbal($primeCost), 
@@ -188,13 +189,18 @@ class cat_PriceDetails extends core_Manager
     		$cQuery->where("#productId = {$data->masterId}");
     		while($cRec = $cQuery->fetch()){
     			$cRow = price_ProductCosts::recToVerbal($cRec);
+    			$primeCostRecs[] = (object)array('price' => $cRec->price);
     			$primeCostRows[] = $cRow;
     		}
     	}
     	
     	if(isset($catalogCost)){
+    		$priceCostRecs[] = (object)array('price' => $catalogCost);
     		$priceCostRows[] = (object)array('type' => tr('Каталог'), 'modifiedOn' => $DateTime->toVerbal($catalogCostDate), 'price' => $Double->toVerbal($catalogCost), 'ROW_ATTR' => array('class' => 'state-active'));
     	}
+    	
+    	$data->primeCostRecs = $primeCostRecs;
+    	$data->priceCostRecs = $priceCostRecs;
     	
     	$data->primeCostRows = $primeCostRows;
     	$data->priceCostRows = $priceCostRows;
@@ -211,12 +217,14 @@ class cat_PriceDetails extends core_Manager
     {
     	$tpl = getTplFromFile('cat/tpl/PrimeCostValues.shtml');
     	$fieldSet = cls::get('core_FieldSet');
-    	$fieldSet->FLD('price', 'double');
+    	$fieldSet->FLD('price', 'double(minDecimals=2)');
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	
     	// Рендираме информацията за себестойностите
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
     	$table->setFieldsToHideIfEmptyColumn('document');
+    	
+    	plg_AlignDecimals2::alignDecimals($fieldSet, $data->primeCostRecs, $data->primeCostRows);
     	$primeCostTpl = $table->get($data->primeCostRows, "type=Себестойност,document=Документ,modifiedOn=Модифициране,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
     	$tpl->append($primeCostTpl, 'primeCosts');
     	
@@ -234,6 +242,8 @@ class cat_PriceDetails extends core_Manager
     	
     	// Ако има ценова информация, рендираме я
     	if(count($data->priceCostRows)){
+    		plg_AlignDecimals2::alignDecimals($fieldSet, $data->priceCostRecs, $data->priceCostRows);
+    		
     		$table = cls::get('core_TableView', array('mvc' => $fieldSet));
     		$table->setFieldsToHideIfEmptyColumn('document');
     		$priceCost = $table->get($data->priceCostRows, "type=Цена,document=Документ,modifiedOn=Модифициране,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");

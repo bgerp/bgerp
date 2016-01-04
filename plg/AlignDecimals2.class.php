@@ -20,12 +20,12 @@ class plg_AlignDecimals2 extends core_Plugin
 	/**
 	 * Метод за подравняване на десетичните числа
 	 * 
-	 * @param core_Mvc $mvc - модел
+	 * @param core_FieldSet $mvc - модел
 	 * @param array $recs - записите във вътрешен вид
 	 * @param array $rows - записите във вербален вид
 	 * @return void
 	 */
-	public static function alignDecimals(core_Mvc $mvc, $recs, &$rows)
+	public static function alignDecimals(core_FieldSet $mvc, $recs, &$rows)
 	{
 		// Намираме всички полета, които се показват от типа Double
 		$decFields = array();

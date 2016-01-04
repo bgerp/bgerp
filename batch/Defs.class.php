@@ -164,6 +164,8 @@ class batch_Defs extends embed_Manager {
     		foreach ($batch as &$b){
     			$b = cls::get('type_Varchar')->toVerbal($b);
     			if(batch_Movements::haveRightFor('list')){
+    				
+    				Request::setProtected('batch');
     				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $b))->getContent();
     			}
     		}

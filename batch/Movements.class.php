@@ -74,7 +74,7 @@ class batch_Movements extends core_Detail {
     	$this->FLD('quantity', 'double', 'input=hidden,mandatory,caption=Количество');
     	$this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
     	$this->FLD('docId', 'int', 'caption=Документ номер');
-    	$this->FLD('date', 'datetime(format=smartTime)', 'caption=Дата');
+    	$this->FLD('date', 'date', 'caption=Дата');
     }
     
     
@@ -120,17 +120,28 @@ class batch_Movements extends core_Detail {
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	if(isset($data->masterMvc) && $data->masterMvc instanceof batch_Items) return;
+    	$data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
     	
     	$data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
+    	$data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+    	
     	$data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$data->listFilter->setOptions('productId', array('' => '') + batch_Items::getProductsWithDefs());
+    	$data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
+    	$data->listFilter->FLD('from', 'date', 'caption=От,silent');
+    	$data->listFilter->FLD('to', 'date', 'caption=До,silent');
     	
-    	$data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-    	$data->listFilter->showFields = 'batch,productId,storeId';
-    	$data->listFilter->view = 'horizontal';
+    	if(haveRole('batch,ceo')){
+    		$data->listFilter->showFields = 'batch,productId,storeId,action,from,to';
+    	} else {
+    		if(Request::get('batch', 'varchar')){
+    			$data->listFilter->setField('batch', 'input=hidden');
+    		}
+    		$data->listFilter->showFields = 'batch,storeId,from,to';
+    	}
+    	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->input(NULL, 'silent');
-    	
     	$data->listFilter->input();
     	
     	$data->query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
@@ -153,6 +164,18 @@ class batch_Movements extends core_Detail {
     		
     		if(isset($fRec->batch)){
     			$data->query->like('batch', $fRec->batch);
+    		}
+    		
+    		if(isset($fRec->action) && $fRec->action != 'all'){
+    			$data->query->where("#operation = '{$fRec->action}'");
+    		}
+    		
+    		if(isset($fRec->from)){
+    			$data->query->where("#date >= '{$fRec->from}'");
+    		}
+    		
+    		if(isset($fRec->to)){
+    			$data->query->where("#date <= '{$fRec->to}'");
     		}
     	}
     }

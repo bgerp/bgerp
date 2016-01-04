@@ -1420,13 +1420,16 @@ function setMinHeightExt() {
         }
     }
 }
-
-function getCalculatedElementWidth() {
+function getWindowWidth() {
 	var winWidth = parseInt($(window).width());
 	// Приемаме, че най-малкият екран е 320px
     if (winWidth < 320) {
         winWidth = 320;
     }
+}
+
+function getCalculatedElementWidth() {
+	var winWidth = getWindowWidth();
     // разстояние около формата
 	var outsideWidth = 42;
 	if($('#all').length) {
@@ -1453,6 +1456,7 @@ function setFormElementsWidth() {
     	
         // изчислена максимална ширина формата
         var formElWidth = getCalculatedElementWidth();
+        var winWidth = getWindowWidth();
 
         // колко ЕМ е широка страницата
         var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));

@@ -83,14 +83,14 @@ class core_tests_DateTime extends unit_Class
      *
      * @return string mysql форматирана дата, напр. '2011-02-23'
      */
-    static function test_FirstDayOfMounthTms()
+    static function test_FirstDayOfMonthTms()
     {
-        ut::expectEqual(date('Y-m-d', dt::firstDayOfMounthTms(2, 2012, 'last-friday')), '2012-02-24');
-        ut::expectEqual(date('Y-m-d', dt::firstDayOfMounthTms(12, 2012, 'first-friday')), '2012-12-07');
+        ut::expectEqual(date('Y-m-d', dt::firstDayOfMonthTms(2, 2012, 'last-friday')), '2012-02-24');
+        ut::expectEqual(date('Y-m-d', dt::firstDayOfMonthTms(12, 2012, 'first-friday')), '2012-12-07');
     }
 
 
-    static function firstDayOfMounthTms($month, $year, $wDay)
+    static function firstDayOfMonthTms($month, $year, $wDay)
     {
         list($base, $dayName) = explode('-', $wDay);
         

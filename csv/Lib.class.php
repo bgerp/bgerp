@@ -257,9 +257,11 @@ class csv_Lib
 	    				
 	    			$type->params['decPoint'] = $conf->CSV_DELIMITER_DECIMAL_SING;
 	    			$type->params['thousandsSep'] = '';
-                    
+     
                     Mode::push('text', 'plain');
-                    $value = $this->mvc->getVerbal($rec, $name);
+                    //$value = $this->mvc->getVerbal($rec, $name);
+                    $value = $type->toVerbal($rec->{$name});
+
                     Mode::pop('text');
 	    				
 	    		} elseif($type instanceof type_Date) {

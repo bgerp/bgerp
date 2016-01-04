@@ -108,7 +108,6 @@
                     </div>
                     <!--ET_END bankAccountId-->
                     <!--ET_BEGIN caseId-->
-                    <hr>
                     <div class='cellRow'>
                         <span class='quiet'>|Каса|*: </span>[#caseId#]
                     </div>
