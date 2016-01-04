@@ -37,7 +37,6 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, FALSE);
-        setIfNot($mvc->checkIfCanContoInThread, TRUE);
         
         // Зареждаме плъгина, който проверява можели да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -135,10 +134,6 @@ class acc_plg_Contable extends core_Plugin
             // Проверка на счетоводния период, ако има грешка я показваме
             if(!self::checkPeriod($mvc->getValiorDate($rec), $error)){
                 $error = ",error={$error}";
-            } else {
-            	if(!self::canContoInThread($mvc, $rec)){
-            		$error = ",error=Вальора на документа трябва да е след датата на създаване на перото на сделката";
-            	}
             }
             
             $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
@@ -204,29 +199,6 @@ class acc_plg_Contable extends core_Plugin
         }
         
         return ($error) ? FALSE : TRUE;
-    }
-    
-    
-    /**
-     * Проверка дали документа може да се контира в нишка започната от сделка
-     */
-    private static function canContoInThread($mvc, $rec)
-    {
-    	if($mvc->checkIfCanContoInThread === TRUE){
-    		if($firstDocInThread = doc_Threads::getFirstDocument($rec->threadId)){
-    			if($firstDocItem = acc_Items::fetchItem($firstDocInThread->getInstance(), $firstDocInThread->that)){
-    				$createdOn = dt::verbal2mysql($firstDocItem->createdOn, FALSE);
-    				
-    				// Ако създаването на перото е след вальора на документа, да не може да се контира
-    				if($createdOn > $mvc->getValiorDate($rec)){
-    				
-    					return FALSE;
-    				}
-    			}
-    		}
-    	}
-    	
-    	return TRUE;
     }
     
     
@@ -393,7 +365,6 @@ class acc_plg_Contable extends core_Plugin
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
         $period = acc_Periods::fetchByDate($rec->valior);
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
-        expect(self::canContoInThread($mvc, $rec));
         
         try{
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
