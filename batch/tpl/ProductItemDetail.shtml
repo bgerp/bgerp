@@ -1,0 +1,14 @@
+<div class='scrolling-holder'>
+	<fieldset class='top-tab-content'>
+	<legend class='groupTitle'>|Партиди|*</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		    	[#FILTER#]
+		        <!--ET_BEGIN content-->
+		        <div class='accTitle' style='margin-top:[#CONTENT_MARGIN_TOP#]'>[#storeId#]</div>
+		        [#content#]
+		        <!--ET_END content-->
+		    </div>
+	    </div>
+	</fieldset>
+</div>

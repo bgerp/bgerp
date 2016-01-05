@@ -126,71 +126,8 @@ class batch_Items extends core_Master {
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('debug')){
-    		$data->toolbar->addBtn('TEST', array($mvc, 'test', 'ret_url' => TRUE), 'title=Дебъг');
     		$data->toolbar->addBtn('Изтрий', array($mvc, 'Truncate', 'ret_url' => TRUE), 'title=Дебъг');
     	}
-    }
-    
-    
-    /**
-     * Тестово създаване на записи за партиди
-     * @TODO да се махне, когато записите започнат да се генерират от документите
-     */
-    function act_Test()
-    {
-    	requireRole('debug');
-    	
-    	$form = $this->getForm();
-    	$form->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,mandatory,before=quantity');
-    	$form->title = 'Тест';
-    	
-    	$form->setOptions('productId', array('' => '') + self::getProductsWithDefs());
-    	$form->setField('batch', 'input=hidden');
-    	$form->setDefault('quantity', rand(1, 2000));
-    	
-    	$form->setField('productId', 'removeAndRefreshForm,silent');
-    	$form->input(NULL, 'silent');
-    	$rec = &$form->rec;
-    	
-    	if(isset($rec->productId)){
-    		$BatchClass = batch_Defs::getBatchDef($rec->productId);
-    		if($BatchClass){
-    			$form->setField('batch', 'input');
-    			$form->setDefault('batch', $BatchClass->getAutoValue($this, 1));
-    		}
-    	}
-    	
-    	$form->input();
-    	
-    	if($form->isSubmitted()){
-    		if(!$BatchClass->isValid($rec->batch, $msg)){
-    			$form->setError('batch', $msg);
-    		}
-    		
-    		if(!$form->gotErrors()){
-    			
-    			expect($itemId = self::forceItem($rec->productId, $rec->batch, $rec->storeId));
-    			$movementRec = (object)array('itemId' => $itemId, 
-    										 'operation' => $rec->operation, 
-    										 'quantity' => $rec->quantity,
-    										 'docType' => store_ShipmentOrders::getClassId(),
-    										 'docId'  => 1,
-    										 'date' => dt::now(),
-    			);
-    			$dRec = batch_Movements::save($movementRec);
-    			if($dRec){
-    				redirect(array($this, 'list'), FALSE, 'Успех');
-    			}
-    		}
-    	}
-    	
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-    	
-    	$tpl = $form->renderHtml();
-    	$tpl = $this->renderWrapping($tpl);
-    	
-    	return $tpl;
     }
     
     
@@ -360,5 +297,125 @@ class batch_Items extends core_Master {
     	}
     	
     	return $res;
+    }
+    
+
+	/**
+     * Подготовка на наличните партиди за един артикул
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareBatches(&$data)
+    {
+    	// Ако артикула няма партидност, не показваме таба
+    	if(!batch_Defs::getBatchDef($data->masterId)){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	 
+    	// Име на таба
+    	$data->TabCaption = 'Партиди';
+    	$data->Tab = 'top';
+    	$data->recs = $data->rows = array();
+    	
+    	$attr = array();
+        $attr['class'] = 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
+        $attr['title'] = tr("История на движенията");
+        
+        // Подготвяме формата за филтър по склад
+        $form = cls::get('core_Form');
+        $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
+        $form->view = 'horizontal';
+        $form->toolbar->addSbBtn('', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Инпутваме формата
+        $form->input();
+        $data->form = $form;
+        
+        // Намираме наличните партиди на артикула
+    	$query = $this->getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	
+    	// Ако филтрираме по склад, оставяме само тези в избрания склад
+    	if(isset($data->form->rec->{"storeId{$data->masterId}"})){
+    		$data->storeId = $data->form->rec->{"storeId{$data->masterId}"};
+    		$query->where("#storeId = {$data->storeId}");
+    	}
+    	
+    	$data->recs = $query->fetchAll();
+    	
+    	// Подготвяме страницирането
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => 10));
+    	$pager->setPageVar($data->masterMvc->className, $data->masterId);
+    	$pager->itemsCount = count($data->recs);
+    	$data->pager = $pager;
+    	
+    	// Обръщаме записите във вербален вид
+    	foreach ($data->recs as $id => $rec){
+    		
+    		// Пропускаме записите, които не трябва да са на тази страница
+    		if(!$pager->isOnPage()) continue;
+    		
+    		// Вербално представяне на записа
+    		$row = $this->recToVerbal($rec);
+    		$row->batch = "<span style='float:left'>{$row->batch}</span>";
+    		
+    		// Линк към историята защитена
+    		Request::setProtected('batch,productId,storeId');
+    		$histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
+    		
+    		$row->icon = ht::createLink('', $histUrl, NULL, $attr);
+    		$data->rows[$rec->id] = $row;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на наличните партиди за един артикул
+     * 
+     * @param stdClass $data
+     * @return NULL|core_Et $tpl;
+     */
+    public function renderBatches($data)
+    {
+    	// Ако не рендираме таба, не правим нищо
+    	if($data->hide === TRUE) return;
+    	
+    	// Кой е шаблона?
+    	$tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
+    	
+    	// Ако има филтър форма, показваме я
+    	if(isset($data->form)){
+    		$tpl->append($data->form->renderHtml(), 'FILTER');
+    	}
+    	
+    	$fieldSet = cls::get('core_FieldSet');
+    	$fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol');
+    	$fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
+    	$fieldSet->FLD('quantity', 'double');
+    	
+    	// Подготвяме таблицата за рендиране
+    	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
+    	$fields = arr::make("batch=Партида,storeId=Склад,quantity=К-во", TRUE);
+    	$fields = array('icon' => ' ') + $fields;
+    	
+    	// Ако е филтрирано по склад, скриваме колонката на склада
+    	if(isset($data->storeId)){
+    		unset($fields['storeId']);
+    	}
+    	
+    	// Рендиране на таблицата с резултатите
+    	$dTpl = $table->get($data->rows, $fields);
+    	$tpl->append($dTpl, 'content');
+    	
+    	// Ако има пейджър го рендираме
+    	if(isset($data->pager)){
+    		$tpl->append($data->pager->getHtml(), 'content');
+    	}
+    	
+    	// Връщаме шаблона
+    	return $tpl;
     }
 }

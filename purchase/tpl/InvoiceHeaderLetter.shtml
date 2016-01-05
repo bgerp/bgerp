@@ -45,6 +45,8 @@
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>|Курс|*:</span>  [#rate#]
                                         <!--ET_END rate-->  
+                                        <!--ET_BEGIN payment_block-->
+                                        [#payment_block#]
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
                                        	<!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
@@ -61,7 +63,6 @@
                                         </div>
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN accountId-->
-                                        <hr>
                                         <div>
                                             <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
                                             <div class="smallData">
@@ -76,6 +77,8 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
+                                        <!--ET_END payment_block-->
+                                        
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
                                         <div class='custom-bg-block'><b>|Доставка|*</b></div>

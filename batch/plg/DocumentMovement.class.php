@@ -78,12 +78,31 @@ class batch_plg_DocumentMovement extends core_Plugin
 	
 	
 	/**
+	 * Извиква се преди изпълняването на екшън
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param string $action
+	 */
+	public static function on_BeforeAction($mvc, &$res, $action)
+	{
+		if(strtolower($action) == 'chooseaction'){
+			expect($id = Request::get('id', 'int'));
+			
+			if(!self::canActivateMovementDoc($mvc, $id)){
+				redirect(array($mvc, 'single', $id), FALSE, '|Не може да се контира|*, |докато има несъответствия|*', 'error');
+			}
+		}
+	}
+	
+	
+	/**
 	 * Изпълнява се преди контиране на документа
 	 */
 	public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
 	{
 		if(!self::canActivateMovementDoc($mvc, $id)){
-			redirect(array($mvc, 'single', $id), FALSE, '|Не може да се контира|*, |докато има несъответствия|*');
+			redirect(array($mvc, 'single', $id), FALSE, '|Не може да се контира|*, |докато има несъответствия|*', 'error');
 		}
 	}
 }

@@ -280,7 +280,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',
             'migrate::repairSendOnTimeClasses',
-            'migrate::updateUserInboxes',
+            'migrate::updateUserInboxesD',
         );
     
 
@@ -451,21 +451,58 @@ class email_Setup extends core_ProtoSetup
     /**
      * Обновява имейл акаунтите в userInboxes в email_Incomings
      */
-    public static function updateUserInboxes()
+    public static function updateUserInboxesD()
     {
-        $saved = core_Debug::$isLogging;
-
-        core_Debug::$isLogging = FALSE;
-
-        $inst = cls::get('email_Incomings');
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('email_Setup', 'migrateEmails', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Извиква се от core_CallOnTime
+     * Прави миграцията на updateUserInboxesD - добавя стойности за userInboxes и toAndCc
+     * 
+     * @see core_CallOnTime
+     */
+    public static function callback_migrateEmails()
+    {
+        $isLogging = core_Debug::$isLogging;
         
-        $query = $inst->getQuery();
-        $query->where("#userInboxes IS NULL");
-        
-        while ($rec = $query->fetch('1=1', NULL, FALSE)) {
-            $inst->updateUserInboxes($rec);
+        try {
+            core_Debug::$isLogging = FALSE;
+            
+            $inst = cls::get('email_Incomings');
+            
+            $query = $inst->getQuery();
+            $query->where("#headers IS NOT NULL");
+            $query->orWhere("#emlFile IS NOT NULL");
+            
+            $query->where("#userInboxes IS NULL");
+            $query->orWhere("#toAndCc IS NULL");
+            
+            $query->limit(1000);
+            $query->orderBy('createdOn', 'DESC');
+            
+            while ($rec = $query->fetch()) {
+                
+                $haveRec = TRUE;
+                
+                $inst->calcAllToAndCc($rec);
+                
+                $inst->updateUserInboxes($rec);
+            }
+            
+            if ($haveRec) {
+                $callOn = dt::addSecs(120);
+                core_CallOnTime::setCall('email_Setup', 'migrateEmails', NULL, $callOn);
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+            
+            $callOn = dt::addSecs(300);
+            core_CallOnTime::setCall('email_Setup', 'migrateEmails', NULL, $callOn);
         }
-
-        core_Debug::$isLogging = $saved;
+        
+        core_Debug::$isLogging = $isLogging;
     }
 }
