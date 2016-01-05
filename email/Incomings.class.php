@@ -1377,14 +1377,12 @@ class email_Incomings extends core_Master
      */
     public function updateUserInboxes($rec)
     {
-        $oRec = $this->fetchRec($rec->id);
-        
-        $oRec->userInboxes = '';
-        
-        if ($oRec) {
-            self::calcAllToAndCc($oRec);
+        if ($rec) {
+            $rec->userInboxes = '';
             
-            $allEmailsArr = array_merge($oRec->AllTo, $oRec->AllCc);
+            self::calcAllToAndCc($rec);
+            
+            $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
             
             foreach ($allEmailsArr as $allTo) {
                 $email = $allTo['address'];
@@ -1399,12 +1397,12 @@ class email_Incomings extends core_Master
                     $emailIdArr = array_values($emailIdArr);
                     $emailIdArr = arr::make($emailIdArr, TRUE);
                     
-                    $oRec->userInboxes = type_Keylist::fromArray($emailIdArr);
+                    $rec->userInboxes = type_Keylist::fromArray($emailIdArr);
                 }
             }
         }
         
-        return $this->save_($oRec, 'userInboxes');
+        return $this->save_($rec, 'userInboxes');
     }
     
     
