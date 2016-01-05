@@ -18,6 +18,19 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	
 	
 	/**
+	 * Добавя полетата на драйвера към Fieldset
+	 *
+	 * @param core_Fieldset $fieldset
+	 */
+	public function addFields(core_Fieldset &$fieldset)
+	{
+		$fieldset->FLD('numbers', 'int', 'caption=Цифри,mandatory,unit=брой');
+		$fieldset->FLD('prefix', 'varchar(10)', 'caption=Представка');
+		$fieldset->FLD('suffix', 'varchar(10)', 'caption=Наставка');
+	}
+	
+	
+	/**
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @return core_Type - инстанция на тип
@@ -48,6 +61,30 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			$msg = ($quantity != 1) ? "|Трябва да са въведени точно|* <b>'{$quantity}'</b> |серийни номера|*" : "Трябва да е въведен само един сериен номер";
 				
 			return FALSE;
+		}
+		
+		$pattern = "^";
+		$errMsg = '|Всички номера трябва да отговарят на формата|*: ';
+		if(!empty($this->rec->prefix)){
+			$prefix = preg_quote($this->rec->prefix, '/');
+			$pattern .= "{$prefix}{1}";
+			$errMsg .= "|да започват с|* <b>{$this->rec->prefix}</b>, ";
+		}
+		$pattern .= "[0-9]{{$this->rec->numbers}}";
+		$errMsg .= "|да имат точно|* <b>{$this->rec->numbers}</b> |цифри|*";
+		
+		if(!empty($this->rec->suffix)){
+			$suffix = preg_quote($this->rec->suffix, '/');
+			$pattern .= "{$suffix}{1}";
+			$errMsg .= " |и да завършват на|* <b>{$this->rec->suffix}</b>";
+		}
+		$pattern .= "\z";
+		
+		foreach ($serials as $serial){
+			if(!preg_match("/{$pattern}/", $serial)){
+				$msg = $errMsg;
+				return;
+			}
 		}
 		
 		// Ако сме стигнали до тук всичко е наред
