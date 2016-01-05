@@ -1430,6 +1430,7 @@ function getWindowWidth() {
     return winWidth;
 }
 
+
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
 
@@ -1437,12 +1438,18 @@ function getCalculatedElementWidth() {
 	var outsideWidth = 42;
 	if($('#all').length) {
 		outsideWidth = 30;
-	}
+		if($('#login-form input').length) {
+			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
+		}
+	}  else if ($('.modern-theme').length && $('.vertical input').length) {
+        outsideWidth = parseInt($('.vertical input').offset().left * 2 + 2);
+    }
 	
     var formElWidth = winWidth - outsideWidth;
 
     return formElWidth;
 }
+
 
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
@@ -1488,7 +1495,7 @@ function setFormElementsWidth() {
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
         
-        $('.formTitle').css('min-width', formElWidth);
+        $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth - 50);
