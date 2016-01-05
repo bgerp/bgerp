@@ -198,4 +198,35 @@ class batch_Defs extends embed_Manager {
     	
     	return $result;
     }
+    
+    
+    /**
+     * Пушва информацията за партидите в дийл интерфейса
+     * 
+     * @param int $productId - ид на артикул
+     * @param varchar $batch - партиден номер
+     * @param bgerp_iface_DealAggregator $aggregator - агрегатор на сделката
+     */
+    public static function pushBatchInfo($productId, $batch, bgerp_iface_DealAggregator &$aggregator)
+    {
+    	if(!core_Packs::isInstalled('batch')) return;
+    	
+    	if(!empty($batch)){
+    		if($batches = batch_Defs::getBatchArray($productId, $batch)){
+    			if(is_array($batches)){
+    				foreach ($batches as $b){
+    					if(!isset($aggregator->productBatches)){
+    						$aggregator->productBatches = array();
+    					}
+    					
+    					if(!isset($aggregator->productBatches[$productId])){
+    						$aggregator->productBatches[$productId] = array();
+    					}
+    					
+    					$aggregator->productBatches[$productId][$b] = $b;
+    				}
+    			}
+    		}
+    	}
+    }
 }
