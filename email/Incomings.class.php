@@ -185,6 +185,8 @@ class email_Incomings extends core_Master
         
         $this->FLD('userInboxes', 'keylist(mvc=email_Inboxes, select=email)', 'caption=Имейли на потребители');
         
+        $this->FLD("toAndCc", "blob(serialize,compress)", 'caption=Имейл до');
+        
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
     }
@@ -698,31 +700,31 @@ class email_Incomings extends core_Master
                 }
             }
             
-            static::calcAllToAndCc($rec);
+            self::calcAllToAndCc($rec);
             
             $errEmailInNameStr = tr('Имейлът в името не съвпада с оригиналния|*.');
             
             // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
-            $row->allTo = self::getVerbalEmail($rec->allTo);
+            $row->AllTo = self::getVerbalEmail($rec->AllTo);
             
-            if ($rec->allTo && $rec->headers) {
-                if (!self::checkNamesInEmails($rec->allTo)) {
-                    $row->allTo = self::addErrToEmailStr($row->allTo, $errEmailInNameStr, 'error');
+            if ($rec->AllTo && $rec->headers) {
+                if (!self::checkNamesInEmails($rec->AllTo)) {
+                    $row->AllTo = self::addErrToEmailStr($row->AllTo, $errEmailInNameStr, 'error');
                 }
             
-                if ($clostStr = $mvc->getClosestEmail($rec->allTo)) {
-                    $row->allTo .= $clostStr;
+                if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
+                    $row->AllTo .= $clostStr;
                 }
             }
             
-            $row->allCc = self::getVerbalEmail($rec->allCc);
-            if ($rec->allCc && $rec->headers) {
-                if (!self::checkNamesInEmails($rec->allCc)) {
-                    $row->allCc = self::addErrToEmailStr($row->allCc, $errEmailInNameStr,'error');
+            $row->AllCc = self::getVerbalEmail($rec->AllCc);
+            if ($rec->AllCc && $rec->headers) {
+                if (!self::checkNamesInEmails($rec->AllCc)) {
+                    $row->AllCc = self::addErrToEmailStr($row->AllCc, $errEmailInNameStr,'error');
                 }
                 
-                if ($clostStr = $mvc->getClosestEmail($rec->allCc)) {
-                    $row->allCc .= $clostStr;
+                if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
+                    $row->AllCc .= $clostStr;
                 }
             }
             
@@ -1020,12 +1022,22 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Пресмята стойностите за AllTo и AllCc - всички получатели на имейла
      * 
-     * Enter description here ...
-     * @param unknown_type $rec
+     * @param stdObject $rec
+     * @param boolean $saveIfNotExist
      */
-    protected static function calcAllToAndCc($rec)
+    public static function calcAllToAndCc($rec, $saveIfNotExist = TRUE)
     {
+        if (isset($rec->AllTo) || isset($rec->AllCc)) return ;
+        
+        if ($rec->toAndCc) {
+            $rec->AllTo = $rec->toAndCc['allTo'];
+            $rec->AllCc = $rec->toAndCc['allCc'];
+            
+            return ;
+        }
+        
         // Ако няма хедъри
         if (!$rec->headers && $rec->emlFile) {
                         
@@ -1061,22 +1073,22 @@ class email_Incomings extends core_Master
         // Парсираме To хедъра
         $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
         $toParser = new email_Rfc822Addr();
-        $rec->allTo = array();
-        $toParser->ParseAddressList($allTo, $rec->allTo);
+        $rec->AllTo = array();
+        $toParser->ParseAddressList($allTo, $rec->AllTo);
         
         // Парсираме cc хедъра
         $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
         
-        // Към cc добавяме и bcc, ако има такива
-        $allBcc = email_Mime::getHeadersFromArr($headersArr, 'bcc', '*');
-        $allBcc = trim($allBcc);
-        if ($allBcc) {
-            $allCc = trim($allCc);
-            $allCc = ($allCc) ? $allCc . ', ' . $allBcc : $allBcc;
-        }        
         $ccParser = new email_Rfc822Addr();
-        $rec->allCc = array();
-        $ccParser->ParseAddressList($allCc, $rec->allCc);
+        $rec->AllCc = array();
+        $ccParser->ParseAddressList($allCc, $rec->AllCc);
+        
+        $rec->toAndCc = array('allTo' => $rec->AllTo, 'allCc' => $rec->AllCc);
+        
+        if ($rec->id && $saveIfNotExist) {
+            $inst = cls::get(get_called_class());
+            $inst->save_($rec, 'toAndCc');
+        }
      }
     
  
@@ -1319,6 +1331,25 @@ class email_Incomings extends core_Master
     
     /**
      * Извиква се след вкарване на запис в таблицата на модела
+     * 
+     * @param email_Incomings $mvc
+     * @param integer|NULL $id
+     * @param stdObject $rec
+     * @param mixed $saveFileds
+     */
+    static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        $mvc->calcAllToAndCc($rec, FALSE);
+    }
+    
+    
+    /**
+     * Извиква се след вкарване на запис в таблицата на модела
+     * 
+     * @param email_Incomings $mvc
+     * @param integer|NULL $id
+     * @param stdObject $rec
+     * @param mixed $saveFileds
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
@@ -1348,28 +1379,30 @@ class email_Incomings extends core_Master
     {
         $oRec = $this->fetchRec($rec->id);
         
-        if (!$oRec) return FALSE;
+        $oRec->userInboxes = '';
         
-        static::calcAllToAndCc($oRec);
-        
-        $allEmailsArr = array_merge($oRec->allTo, $oRec->allCc);
-        
-        foreach ($allEmailsArr as $allTo) {
-            $email = $allTo['address'];
-            $email = trim($email);
-            $emailArr[$email] = $email;
+        if ($oRec) {
+            self::calcAllToAndCc($oRec);
+            
+            $allEmailsArr = array_merge($oRec->AllTo, $oRec->AllCc);
+            
+            foreach ($allEmailsArr as $allTo) {
+                $email = $allTo['address'];
+                $email = trim($email);
+                $emailArr[$email] = $email;
+            }
+            
+            if ($emailArr) {
+                $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
+                
+                if ($emailIdArr) {
+                    $emailIdArr = array_values($emailIdArr);
+                    $emailIdArr = arr::make($emailIdArr, TRUE);
+                    
+                    $oRec->userInboxes = type_Keylist::fromArray($emailIdArr);
+                }
+            }
         }
-        
-        if (!$emailArr) return FALSE;
-        
-        $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
-        
-        if (!$emailIdArr) return FALSE;
-        
-        $emailIdArr = array_values($emailIdArr);
-        $emailIdArr = arr::make($emailIdArr, TRUE);
-        
-        $oRec->userInboxes = type_Keylist::fromArray($emailIdArr);
         
         return $this->save_($oRec, 'userInboxes');
     }
@@ -2015,9 +2048,9 @@ class email_Incomings extends core_Master
      */
     public function getUsersArrForNotifyInDoc($rec)
     {
-        static::calcAllToAndCc($rec);
+        self::calcAllToAndCc($rec);
         
-        $allEmailsArr = array_merge($rec->allTo, $rec->allCc);
+        $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
         
         $emailArr = array();
 
