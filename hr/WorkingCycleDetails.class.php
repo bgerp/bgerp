@@ -175,7 +175,7 @@ class hr_WorkingCycleDetails extends core_Detail
     {
         
         $start = max($start1, $start2);
-        $end = min($start1 + $duration1, $start2 + $duration2);
+        $end   = min($start1 + $duration1, $start2 + $duration2);
         
         $sec = max(0, $end - $start);
         
