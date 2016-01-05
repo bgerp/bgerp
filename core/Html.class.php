@@ -848,6 +848,30 @@ class core_Html
 
     
     /**
+     * Създава лейаут, по зададени блокове, като плейсхолдери
+     * 
+     * @param mixed $body
+     * @param title $hint
+     * @param notice|warning|error $type
+     * @return core_ET $element
+     */
+    static function createHint($body, $hint, $type = 'notice')
+    {
+    	expect(in_array($type, array('notice', 'warning', 'error')));
+    	$iconPath = ($type == 'notice') ? 'img/Help-icon-small.png' : (($type == 'warning') ? 'img/dialog_warning-small.png' : 'img/dialog_error-small.png');
+    	
+    	$icon = ht::createElement("img", array('src' => sbf($iconPath, '')));
+    	
+    	$element = new core_ET("<span title='[#hint#]'>[#icon#]</span> [#body#]");
+    	$element->append($body, 'body');
+    	$element->append($hint, 'hint');
+    	$element->append($icon, 'icon');
+    	
+    	return $element;
+    }
+    
+    
+    /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
     static function wrapMixedToHtml($html, $wholeDocument = FALSE)

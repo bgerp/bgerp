@@ -18,6 +18,19 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	
 	
 	/**
+	 * Добавя полетата на драйвера към Fieldset
+	 *
+	 * @param core_Fieldset $fieldset
+	 */
+	public function addFields(core_Fieldset &$fieldset)
+	{
+		$fieldset->FLD('numbers', 'int', 'caption=Цифри,mandatory,unit=брой');
+		$fieldset->FLD('prefix', 'varchar(10)', 'caption=Представка');
+		$fieldset->FLD('suffix', 'varchar(10)', 'caption=Наставка');
+	}
+	
+	
+	/**
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @return core_Type - инстанция на тип
@@ -44,14 +57,87 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$serials = $this->makeArray($serials);
 		$count = count($serials);
 		
+		$errMsg = '|Всички номера трябва да отговарят на формата|*: ';
+		if(!empty($this->rec->prefix)){
+			$prefix = preg_quote($this->rec->prefix, '/');
+			$pattern .= "{$prefix}{1}";
+			$errMsg .= "|да започват с|* <b>{$this->rec->prefix}</b>, ";
+		}
+		$pattern .= "[0-9]{{$this->rec->numbers}}";
+		$errMsg .= "|да имат точно|* <b>{$this->rec->numbers}</b> |цифри|*";
+		
+		if(!empty($this->rec->suffix)){
+			$suffix = preg_quote($this->rec->suffix, '/');
+			$pattern .= "{$suffix}{1}";
+			$errMsg .= " |и да завършват на|* <b>{$this->rec->suffix}</b>";
+		}
+		
+		foreach ($serials as $serial){
+			if($serial  === FALSE){
+				$msg = "Не могат да се генерират серийни номера от зададеният диапазон";
+				return;
+			}
+			
+			if(!preg_match("/^{$pattern}\z/", $serial)){
+				$msg = $errMsg;
+				return;
+			}
+		}
+		
 		if($count != $quantity){
 			$msg = ($quantity != 1) ? "|Трябва да са въведени точно|* <b>'{$quantity}'</b> |серийни номера|*" : "Трябва да е въведен само един сериен номер";
-				
+		
 			return FALSE;
 		}
 		
 		// Ако сме стигнали до тук всичко е наред
 		return TRUE;
+	}
+	
+	
+	/**
+	 * Генерира серийни номера в интервал
+	 * 
+	 * @param varchar $from - начало на диапазона
+	 * @param varchar $to - край на диапазона
+	 * @return FALSE|array $res - генерираните номера или FALSE ако не може да се генерират
+	 */
+	private function getByRange($from, $to)
+	{
+		$oldFrom = $from;
+		
+		$prefix = $this->rec->prefix;
+		$suffix = $this->rec->suffix;
+		
+		if(!empty($prefix)){
+			if(strpos($from, $prefix) === FALSE || strpos($to, $prefix) === FALSE) return FALSE;
+		}
+		
+		if(!empty($suffix)){
+			if(strpos($from, $suffix) === FALSE || strpos($to, $suffix) === FALSE) return FALSE;
+		}
+		
+		$from = str_replace($prefix, '', $from);
+		$from = str_replace($suffix, '', $from);
+		
+		$to = str_replace($prefix, '', $to);
+		$to = str_replace($suffix, '', $to);
+		
+		$res = array();
+		$start = $from;
+		while($start < $to){
+			$serial = str::increment($start);
+			$v = "{$prefix}{$serial}{$suffix}";
+			$res[$v] = $v;
+			$start = $serial;
+		}
+		
+		if(count($res)){
+			$res = array($oldFrom => $oldFrom) + $res;
+			return $res;
+		}
+		
+		return FALSE;
 	}
 	
 	
@@ -63,10 +149,24 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	 */
 	public function makeArray($value)
 	{
-		$value = explode('|', $value);
-    	$array = array_combine($value, $value);
+		$res = array();
 		
-		return $array;
+		$value = explode('|', $value);
+		foreach ($value as &$v){
+			$vArr = explode(':', $v);
+			if(count($vArr) == 2){
+				$rangeArr = $this->getByRange($vArr[0], $vArr[1]);
+				if(is_array($rangeArr)){
+					$res = array_merge($res, $rangeArr);
+				} else {
+					$res[$v] = FALSE;
+				}
+			} else {
+				$res[$vArr[0]] = $vArr[0];
+			}
+		}
+		
+		return $res;
 	}
 	
 	
