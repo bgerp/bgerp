@@ -295,6 +295,22 @@ class blast_ListDetails extends doc_Detail
     	}
     }
     
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getExportFields_()
+    {
+        // Кои полета ще се показват
+        $fields = arr::make("email=Имейл,
+    					     company=Компания", TRUE);
+    
+        return $fields;
+    }
+    
     
     /**
      * Екшън който експортира данните
@@ -306,45 +322,30 @@ class blast_ListDetails extends doc_Detail
     	
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
-  
-    	// Масива с избраните полета за export
-    	$exportFields = $this->selectFields("#export");
- 
+
     	// взимаме от базата целия списък отговарящ на този бюлетин
     	$query = self::getQuery();
     	$query->where("#listId = '{$rec->listId}'");
+
+    	$allFields = blast_Lists::fetch($rec->listId, 'allFields');
     	
-    	// новите ни ролове
-    	$csv = '';
+    	$fieldSet = cls::get('blast_ListDetails');
+    	$fieldSet->addFNC($allFields->allFields);
     	
-    	while ($fRec = $query->fetch()) {
-    	    foreach ((array)$fRec as $field => $value) {
-    			if (!$exportFields[$field]) continue;
-                
-    			if ($this->fields[$field]->type instanceof type_Blob) {
-    			    $valArr = unserialize($value);
-    			} else {
-    			    $valArr = array($value);
-    			}
-    			
-    			foreach ($valArr as $val) {
-    			    $val = html2text_Converter::toRichText($val);
-    				// escape
-    				if (preg_match('/\\r|\\n|\,|"/', $val)) {
-    					$val = '"' . str_replace('"', '""', $val) . '"';
-    				}
-    				$csv .= ($csv ?  "," : " ") . $val;
-    			}
-    		}
-    		$csv = rtrim($csv, ',');
-    		$csv .= "\n";
+    	$listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
+
+    	while ($fRec = $query->fetch()) { 
+
+    	     $data[] = (object) unserialize($fRec->data);
     	}
     	
+    	$csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
+
     	$listTitle = blast_Lists::fetchField("#id = '{$rec->listId}'", 'title');
     	
     	// името на файла на кирилица
-    	//$fileName = basename($this->title);
-      	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	$fileName = basename($this->title);
+      	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
     	
     	$fileName = fileman_Files::normalizeFileName($listTitle);
     	
@@ -447,6 +448,9 @@ class blast_ListDetails extends doc_Detail
                 case 'country' :
                     $type = 'varchar';
                     $attr = ",remember";
+                    break;
+                case 'date' :
+                    $type = 'type_Date';
                     break;
                 default :
                 $type = 'varchar';

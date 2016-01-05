@@ -19,6 +19,19 @@ class batch_plg_DocumentMovement extends core_Plugin
 	
 	
 	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		setIfNot($mvc->storeFieldName, 'storeId');
+		setIfNot($mvc->batchMovementDocument, 'out');
+	}
+	
+	
+	
+	/**
 	 * Извиква се след успешен запис в модела
 	 *
 	 * @param core_Mvc $mvc
@@ -33,44 +46,44 @@ class batch_plg_DocumentMovement extends core_Plugin
 			if(isset($saveFileds)) return;
 			//if($i == 2) bp();
 			//core_Statuses::newStatus(str::getRand(), 'warning');
-			//batch_Movements::saveMovement($mvc, $rec->id);
+			batch_Movements::saveMovement($mvc, $rec->id);
 		} elseif($rec->state == 'rejected'){
-			//batch_Movements::removeMovement($mvc, $rec->id);
+			batch_Movements::removeMovement($mvc, $rec->id);
 		}
 	}
 	
-	public static function on_AfterCanActivateMovementDocument($mvc, &$res, $id)
+	
+	/**
+	 * Можели да се активира документа за движение
+	 * 
+	 * @param core_Master $mvc
+	 * @param int $id
+	 * @return boolean
+	 */
+	private static function canActivateMovementDoc(core_Master $mvc, $id)
 	{
-		if(!$res){
-			$rec = $mvc->fetchRec($id);
-			$Detail = cls::get($mvc->mainDetail);
-			$query = $Detail->getQuery();
-			$query->where("#{$Detail->masterKey} = {$rec->id}");
-			//$query->show();
+		$rec = $mvc->fetchRec($id);
+		$Detail = cls::get($mvc->mainDetail);
+		$qQuery = $Detail->getQuery();
+		$qQuery->where("#{$Detail->masterKey} = {$rec->id}");
 			
-			//bp($Detail);
+		while($dRec = $qQuery->fetch()){
+			if(batch_plg_DocumentMovementDetail::getBatchRecInvalidMessage($Detail, $dRec)){
+				return FALSE;
+			}
 		}
+			
+		return TRUE;
 	}
+	
+	
 	/**
 	 * Изпълнява се преди контиране на документа
 	 */
-	public static function on_BeforeConto1111(core_Mvc $mvc, &$res, $id)
+	public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
 	{
-		
-		$r = $mvc->canActivateMovementDocument($id);
-		return;
-		expect($MovementImpl = cls::getInterface('batch_MovementSourceIntf', $mvc));
-		expect($docRec = $mvc->fetchRec($id));
-		
-		$entries = $MovementImpl->getMovements($docRec);
-		bp($entries);
-		
-		$mvc1 = cls::get('purchase_PurchasesDetails');
-		$query = $mvc1->getQuery();
-		$query->where("#{$mvc1->masterKey} = {$rec->{$mvc1->masterKey}}");
-		bp($query->fetchAll());
-		
-		
-		return FALSE;
+		if(!self::canActivateMovementDoc($mvc, $id)){
+			redirect(array($mvc, 'single', $id), FALSE, '|Не може да се контира|*, |докато има несъответствия|*');
+		}
 	}
 }

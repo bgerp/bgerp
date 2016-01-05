@@ -227,6 +227,7 @@ class acc_Journal extends core_Master
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
                     if(isset($dRec->$item)){
                         $mvc->affectedItems[$dRec->$item] = $dRec->$item;
+                        acc_Items::updateEarliestUsedOn($dRec->$item, $rec->valior);
                     }
                 }
             }
@@ -588,9 +589,10 @@ class acc_Journal extends core_Master
 
         acc_JournalDetails::filterQuery($jQuery, NULL, NULL, NULL, $itemRec->id);
         
-        // Искаме вальора да е след датата на създаване на перото за което търсим
-        $createdOn = dt::verbal2mysql($itemRec->createdOn, FALSE);
-        $jQuery->where("#valior >= '{$createdOn}'");
+        // Искаме вальора да е след първия ден от периода, в който е датата на създаване на перото за което търсим
+        $fromDate = dt::mysql2verbal($itemRec->earliestUsedOn, 'Y-m-01');
+        $fromDate = dt::verbal2mysql($fromDate, FALSE);
+        $jQuery->where("#valior >= '{$fromDate}'");
         
         if($showAllRecs === FALSE) return $jQuery->fetchAll();
         
@@ -820,12 +822,12 @@ class acc_Journal extends core_Master
     	acc_JournalDetails::filterQuery($dQuery, $from, $to);
     	
     	if($debitSysId){
-    		expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка с систем ид {$debitAccId}");
+    		expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка със систем ид {$debitAccId}");
     		$dQuery->where("#debitAccId = {$debitAccId}");
     	}
     	
     	if($creditSysId){
-    		expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка с систем ид {$creditSysId}");
+    		expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка със систем ид {$creditSysId}");
     		$dQuery->where("#creditAccId = {$creditAccId}");
     	}
     	

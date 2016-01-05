@@ -246,10 +246,10 @@ class abbyyocr_Converter extends core_Manager
         $ext = strtolower(fileman_Files::getExt($name));
         
         // Ако разширението е в позволените
-        if (in_array($ext, static::$allowedExt)) {
+        if (in_array($ext, self::$allowedExt)) {
             
             // Проверяваме дали има права за екстрактване
-            if (haveRole(static::$canOCR)) {
+            if (haveRole(self::$canOCR)) {
                 
                 // Ако всичко е OK връщаме TRUE
                 return TRUE;

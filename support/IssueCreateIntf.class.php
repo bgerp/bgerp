@@ -16,40 +16,31 @@ class support_IssueCreateIntf
 {
     
     
-	/**
-	 * 
-     * Връща тялото по подразбиране за сигнала
-	 * 
-	 * @param integer $originId
-	 */
-    function getDefaultIssueBody($id)
+    /**
+     * Връща запис с подразбиращи се данни за сигнала
+     * 
+     * @param integer $id Кой е пораждащия обект
+     * 
+     * @return stdObject за support_Issues
+     * 
+     * @see support_IssueCreateIntf
+     */
+    function getDefaultIssueRec($id)
     {
-        
-        return $this->class->getDefaultIssueBody($id);
+        return $this->class->getDefaultIssueRec($id);
     }
+
+
     
     
-	/**
-	 * 
-     * Връща заглавието по подразбиране за сигнала
-	 * 
-	 * @param integer $originId
-	 */
-    function getDefaultIssueTitle($id)
+    /**
+     * След създаване на сигнал от документа
+     * 
+     * @param integer $originId
+     */
+    function afterCreateIssue($id, $iRec)
     {
         
-        return $this->class->getDefaultIssueTitle($id);
-    }
-    
-    
-	/**
-	 * След създаване на сигнал от документа
-	 * 
-	 * @param integer $originId
-	 */
-    function afterCreateIssue($id)
-    {
-        
-        return $this->class->afterCreateIssue($id);
+        return $this->class->afterCreateIssue($id, $iRec);
     }
 }

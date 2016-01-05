@@ -223,7 +223,7 @@ class core_Cron extends core_Manager
         while ($rec = $query->fetch()) {
             $rec->state = 'free';
             $this->save($rec, 'state');
-            $this->logWarning("Отключен процес", $rec->id, 7);
+            $this->logWarning("Отключен процес, започнал в " . $rec->lastStart, $rec->id, 7);
         }
         
         // Коя е текущата секинда?
@@ -554,7 +554,9 @@ class core_Cron extends core_Manager
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
                     $mustSave = TRUE;
-                    $rec->offset = $exRec->offset;
+                    if($exRec->offset < $rec->period) {
+                        $rec->offset = $exRec->offset;
+                    }
                     $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
                 } else { // ако няма промени го пропускаме
                     $mustSave = FALSE;

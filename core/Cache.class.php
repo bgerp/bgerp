@@ -22,7 +22,7 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
 
 
 /**
- * 
+ * Сол за префика на ключовете
  */
 defIfNot('CORE_CACHE_PREFIX_SALT', md5(EF_SALT . '_CORE_CACHE'));
 
@@ -248,7 +248,7 @@ class core_Cache extends core_Manager
     static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
-            $mvc->deleteData($rec->key);
+            $mvc->deleteData($rec->key, TRUE);
         }
     }
 
@@ -269,7 +269,7 @@ class core_Cache extends core_Manager
         
         $deletedRecs = 0;
         
-        while ($rec = $query->fetch()) {
+        while($rec = $query->fetch()) {
             $deletedRecs += $this->deleteData($rec->key);
         }
         
@@ -363,15 +363,13 @@ class core_Cache extends core_Manager
             return $res;
         }
  
-        if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
+        if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key), NULL, FALSE)) {
 
             if($keepMinutes) {
                 $rec->lifetime = time() + $keepMinutes * 60;
                 $this->save($rec,  'lifetime');
             }
-            
-            $this->idByKey[$key] = $rec->id;
-            
+                        
             $data = $rec->data;
             
             if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
@@ -388,13 +386,15 @@ class core_Cache extends core_Manager
     /**
      * Изтрива съдържанието на дадения ключ
      */
-    function deleteData($key)
+    function deleteData($key, $onlyInMemory = FALSE)
     {
         if (function_exists('apc_delete')) {
             apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
             xcache_unset($key);
         }
+
+        if($onlyInMemory) return;
 
         return $this->delete(array("#key LIKE '[#1#]'", $key));
     }

@@ -91,13 +91,11 @@
                     </div>
                     <!--ET_END currencyCode-->
                     <!--ET_BEGIN bankAccountId-->
-                    <hr>
                     <div class='cellRow'>
                         <span class='quiet'>|Банкова с-ка|*: </span>[#bankAccountId#]
                     </div>
                     <!--ET_END bankAccountId-->
                     <!--ET_BEGIN caseId-->
-                    <hr>
                     <div class='cellRow'>
                         <span class='quiet'>|Каса|*: </span>[#caseId#]
                     </div>

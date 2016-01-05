@@ -183,6 +183,8 @@ class email_Incomings extends core_Master
         
         $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
         
+        $this->FLD('userInboxes', 'keylist(mvc=email_Inboxes, select=email)', 'caption=Имейли на потребители');
+        
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
     }
@@ -1330,6 +1332,46 @@ class email_Incomings extends core_Master
                 $mvc->makeRouterRules($rec);
             }
         }
+        
+        $mvc->updateUserInboxes($rec);
+    }
+    
+    
+    /**
+     * Добавя id-тата на имейлите към акаунтите
+     * 
+     * @param stdObject $rec
+     * 
+     * @return integer|FALSE
+     */
+    public function updateUserInboxes($rec)
+    {
+        $oRec = $this->fetchRec($rec->id);
+        
+        if (!$oRec) return FALSE;
+        
+        static::calcAllToAndCc($oRec);
+        
+        $allEmailsArr = array_merge($oRec->allTo, $oRec->allCc);
+        
+        foreach ($allEmailsArr as $allTo) {
+            $email = $allTo['address'];
+            $email = trim($email);
+            $emailArr[$email] = $email;
+        }
+        
+        if (!$emailArr) return FALSE;
+        
+        $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
+        
+        if (!$emailIdArr) return FALSE;
+        
+        $emailIdArr = array_values($emailIdArr);
+        $emailIdArr = arr::make($emailIdArr, TRUE);
+        
+        $oRec->userInboxes = type_Keylist::fromArray($emailIdArr);
+        
+        return $this->save_($oRec, 'userInboxes');
     }
     
     
@@ -1977,6 +2019,8 @@ class email_Incomings extends core_Master
         
         $allEmailsArr = array_merge($rec->allTo, $rec->allCc);
         
+        $emailArr = array();
+
         foreach ($allEmailsArr as $allTo) {
             $email = $allTo['address'];
             $email = trim($email);

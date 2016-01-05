@@ -50,11 +50,11 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Връща автоматичния партиден номер според класа
      *
-     * @param mixed $class - класа за който ще връщаме партидата
+     * @param mixed $documentClass - класа за който ще връщаме партидата
      * @param int $id - ид на документа за който ще връщаме партидата
      * @return mixed $value - автоматичния партиден номер, ако може да се генерира
      */
-    public function getAutoValue($class, $id)
+    public function getAutoValue($documentClass, $id)
     {
     }
     

@@ -62,6 +62,9 @@ class backup_Local extends core_Master
     {
         $conf = core_Packs::getConfig('backup');
         if ($subDir) {
+            if (!is_dir($conf->BACKUP_LOCAL_PATH . '/' . $subDir)) {
+                mkdir($conf->BACKUP_LOCAL_PATH . '/' . $subDir);
+            }
             $destFileName = ($conf->BACKUP_LOCAL_PATH . '/' . $subDir . '/' . basename($fileName));
         } else {
             $destFileName = $conf->BACKUP_LOCAL_PATH . '/' . basename($fileName);

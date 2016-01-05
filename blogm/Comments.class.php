@@ -30,7 +30,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, blogm_Wrapper, plg_State, plg_Sorting, plg_LastUsedKeys, plg_RowNumbering';
+	var $loadList = 'plg_RowTools, plg_Created, blogm_Wrapper, plg_State, plg_Sorting, plg_LastUsedKeys, plg_RowNumbering, plg_Rejected';
 	
     
 	/**
@@ -42,7 +42,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'name, email, web, ip, brid, articleId, comment=@, createdOn=Създаване';
+	var $listFields = 'name, email, web, ip, brid, userDelay, spamRate, articleId, comment=@, createdOn=Създаване';
 	
 		
 	/**
@@ -98,9 +98,14 @@ class blogm_Comments extends core_Detail {
 		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
 		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
-  		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
+  		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,closed=Затворен,rejected=Оттеглен)', 'caption=Състояние,mandatory');
   		$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none, oldFieldName=browserId');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
+        $this->FLD('userDelay', 'time', 'caption=Спам->Закъснение,input=none');
+        $this->FLD('spamRate', 'int', 'caption=Спам->Рейтинг,input=none');
+
+        $this->setDbIndex('ip');
+        $this->setDbIndex('brid');
 	}
 
 
@@ -131,6 +136,9 @@ class blogm_Comments extends core_Detail {
             } elseif($data->commentsRecs[$rec->id]->state == 'rejected') {
                 $data->commentsRows[$rec->id]->status = 'Отхвърлен';
                 $data->commentsRows[$rec->id]->stateColor = '#cc6666';
+            } elseif($data->commentsRecs[$rec->id]->state == 'closed') {
+                $data->commentsRows[$rec->id]->status = 'Затворен';
+                $data->commentsRows[$rec->id]->stateColor = '#cccccc';
             }
 
             $data->commentsRows[$rec->id]->name = str::limitLen($data->commentsRows[$rec->id]->name, 32);
@@ -215,31 +223,101 @@ class blogm_Comments extends core_Detail {
             $key = Mode::getPermanentKey();
             $rec->userDelay = time() - $Crypt->decodeVar($rec->renderOn, $key);
             
-            // Начален рейтинг
-            $sr = 0;
-
-            // Ако потребителя е посочил уеб-сайт +1
-            if($rec->web) $sr += 1;
-            
-            // Ако има файлови окончания +1
-            // $sr += 1 - 1/(1 + str::countInside($rec->web, array('.pdf', '.htm', 'html')));
-
-            // if(stripos($rec->web, '.html')) $sr += 1;
-
-
-            // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
-
-            // Колко линка се съдържат в тялото
-
-            // Колко href= се съдържат или  src=
-
-            // Дали е от UA или RU
-
             // Да се записва само при нов запис и и когато няма регистриран потребител
             log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
         }
-    }
+
+        // Начален рейтинг
+        $sr = 0;
+ 
+        // Ако потребителя е посочил уеб-сайт +1
+        if($rec->web) $sr += 1;
+        
+        // Ако има файлови окончания +1
+        $sr += self::hasWord($rec->web, '.pdf,.html,.htm,.doc,.xls,.ppt,#') ? 1 : 0;
+        
+        // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+        $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
+        
+        // Ако в името на сайта има директория
+        $sr += explode('/', $rec->web) > 2 ? 0.5 : 0;
     
+        // Ако има линкове в описанието
+        $sr += self::hasWord($rec->comment, array('href=', 'src='));
+ 
+        // Ако в името на сайта има sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы 
+        $sr += self::hasWord($rec->comment, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
+
+        // Ако в коментара има http://
+        $sr += self::hasWord($rec->comment, 'http://');
+        
+        // Ако в коментара има линк 
+        $sr += self::hasWord($rec->comment, array('[link=')) ? 2 : 0;
+
+        // Ако е написано за под 50 секунди
+        if(isset($rec->userDelay) && $rec->userDelay < 20) {
+            $sr += 1;
+        }
+
+        // Ако е написано за под 10 секунди
+        if(isset($rec->userDelay) && $rec->userDelay < 10) {
+            $sr += 1;
+        }
+        
+        // Ако е написано за под 65 секунди
+        if(isset($rec->userDelay) && $rec->userDelay < 65) {
+            $sr += 0.5;
+        }
+
+        // Ако е написано за над 24 часа
+        if(isset($rec->userDelay) && $rec->userDelay > 24*3600) {
+            $sr += 1;
+        }
+
+        // Изключваме текущия запис, ако е записан
+        if($rec->id) {
+            $idCond = " AND #id != {$rec->id}";
+        } else {
+            $idCond = "";
+        }
+            
+        // Има ли от същото IP
+        $query = self::getQuery();
+        $query->limit(28);
+        $cnt = $query->count("#state != 'active' AND #state != 'closed' AND #ip = '{$rec->ip}'" . $idCond);
+        if($cnt > 1) {
+            $sr +=  pow($cnt, 1/3);
+        }
+
+        // Има ли от същия brid?
+        $query = self::getQuery();
+        $query->limit(28);
+        $cnt = $query->count("#state != 'active' AND #state != 'closed' AND #brid = '{$rec->brid}'" . $idCond);
+        if($cnt > 1) {
+            $sr +=  pow($cnt, 1/3);
+        }
+        
+        $rec->spamRate = (int) $sr;
+    }
+
+
+    /**
+     * Проверка дали стринг съдържа дума от подаден списък. 
+     * caseinsensitive
+     */
+    static function hasWord($str, $words)
+    {
+        $words = arr::make($words);
+ 
+        foreach($words as $w) {  
+            if(stripos($str, $w) !== FALSE) {
+                return TRUE;
+            }
+        }
+
+        return FALSE;
+    }
+
 
     /**
      * Махаме articleId когато показваме списък коментари към конкретна статия
@@ -329,5 +407,37 @@ class blogm_Comments extends core_Detail {
         }
         
         $data->query->orderBy("#createdOn=DESC");
+    }
+
+
+    /**
+     * Изтрива спам коментарите
+     */
+    function cron_DeleteSPAM()
+    {
+        // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 10 и са по-стари от 1 ден
+        // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 5 и са по-стари от 7 дни
+        // Изтриваме всички чакъщи коментари, които имат спам рейтинг над 3 и са по-стари от 10 дни
+
+        $before25m = dt::addSecs(-25*60);
+        $before5d = dt::addDays(-5);
+        $before14d = dt::addDays(-14);
+
+        // Оттегляме, всички, които по-голям рейтинг от 5 и са на повече от 25 минути или имат по-голям рейтинг от 3 и са от преди повече от 5 дни
+        $query = $this->getQuery();
+        $query->where("#state = 'pending' AND ((#spamRate > 5 AND #createdOn < '{$before25m}') OR (#spamRate > 3 AND #createdOn < '{$before5d}'))");
+        while($rec = $query->fetch()) {
+            $rec->state = 'rejected';
+            $this->save_($rec, 'state');
+            $rejectedCnt++;
+        }
+
+        $deleteCnt = $this->delete("#state = 'rejected' AND #createdOn < '{$before14d}'");
+        
+        if($cnt) {
+            $res = "Бяха оттеглени {$rejectedCnt} и изтрити {$deleteCnt} СПАМ коментара от блога.";
+        }
+
+        return $res;
     }
 }

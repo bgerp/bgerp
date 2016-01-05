@@ -215,16 +215,34 @@ class csv_Lib
     	if(count($recs) > $exportCnt) {
     		redirect(array($this, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
     	}
+    	
+    	if (is_array($listFields)) {
+    	    $firstRow = '';
+        	foreach ($listFields as $fld => $caption) {
+        	   
+        	    if (!$listFields[$fld]) {
+        	        $listFields[$fld] = $fld;
+        	        $caption = $fld;
+        	    }
+        	    
+        	    if (preg_match('/\\r|\\n|,|"/', $caption)) {
+        	        $caption = '"' . str_replace('"', '""', $caption) . '"';
+        	    }
+        	    
+        	    $firstRow .= ($firstRow ? $conf->CSV_DELIMITER : '') . $caption;
+        	   
+        	}
+    	}
 
         foreach($recs as $rec) {
             
             // Всеки нов ред в началото е празен
             $rCsv = '';
-         
+
             foreach ($fieldSet->fields as $name => $field) { 
-	            
+
                 // Пропускаме не-посочените в $listFields полета
-                if(is_array($listFields) && !$listFields[$name]) continue;
+                if(is_array($listFields) && !isset($listFields[$name])) continue;
 
                 // Вземаме типа
 				$type = $field->type;
@@ -239,17 +257,19 @@ class csv_Lib
 	    				
 	    			$type->params['decPoint'] = $conf->CSV_DELIMITER_DECIMAL_SING;
 	    			$type->params['thousandsSep'] = '';
-                    
+     
                     Mode::push('text', 'plain');
-                    $value = $this->mvc->getVerbal($rec, $name);
+                    //$value = $this->mvc->getVerbal($rec, $name);
+                    $value = $type->toVerbal($rec->{$name});
+
                     Mode::pop('text');
 	    				
 	    		} elseif($type instanceof type_Date) {
 	    				
 	    			if ($conf->CSV_FORMAT_DATE == 'dot') {
-	    				$value = dt::mysql2verbal($value, 'd.m.Y');
+	    				$value = dt::mysql2verbal($rec->{$name}, 'd.m.Y');
 	    			} else {
-	    				$value = dt::mysql2verbal($value, 'm/d/y');
+	    				$value = dt::mysql2verbal($rec->{$name}, 'm/d/y');
 	    			}
 	    				
 	    		} elseif($type instanceof type_Richtext && $mode['text'] == 'plain') {
@@ -277,14 +297,19 @@ class csv_Lib
 	            if (strpos($value, "&nbsp;")){
 	            	$value = str_replace('&nbsp;', '', $value);
 	            }
-	              
+	             
 	            $rCsv .= ($rCsv ? $conf->CSV_DELIMITER : '') . $value;
+	            
         	}
-             
+            
             /* END за всяка колона */
             $csv .= $rCsv . "\n";
         }
-         
+        
+        if (isset ($firstRow)) {
+            $csv = $firstRow . "\n" . $csv;
+        }
+       
         return $csv;
     }
 

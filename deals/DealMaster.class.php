@@ -38,6 +38,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Как се казва полето в което е избран склада
+	 */
+	public $storeFieldName = 'shipmentStoreId';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc

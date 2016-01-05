@@ -275,11 +275,12 @@ class doc_UnsortedFolders extends core_Master
     	// ако можем да извлечем данни, то ще определим,
     	// кой е най-подходящия тип на Гант-а и 
     	// ще сложим бутон за него
+    	$source = array();
         while ($recs = $queryTasks->fetch()) {
         	$source[] = $recs;
         }
         
-        if ($source) {
+        if (!empty($source)) {
 	    	// намираме типа на Ганта
 		    $ganttType = cal_Tasks::getGanttTimeType($source);
 	
@@ -515,7 +516,8 @@ class doc_UnsortedFolders extends core_Master
 			        	$flagUrl = FALSE;
 			        }
 
-	        		$resTask[] = array( 
+			        $resTask = array();
+	        		$resTask = array( 
 	    			    					'taskId' => $recTask->id,
 	    			    					'rowId' =>  '',
 	    		    						'timeline' => array (
@@ -530,6 +532,7 @@ class doc_UnsortedFolders extends core_Master
 	    		    		);
 	    		    	    
 
+	        		$recs = array();
 		    		$recs[$recTask->id] = $recTask;
 		    		$forTask = (object) array('recs' => $recs);
 		    		$i++;
@@ -583,6 +586,7 @@ class doc_UnsortedFolders extends core_Master
 	        			
 	        			$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
 	       
+	        			$attr = array();
 	        			$attr['ef_icon'] = $icon;
 	        			//$attr['style'] .= 'background-color: #FFA3A3;';
 	        			//$attr['style'] .= 'padding-right: 4px;';
@@ -593,6 +597,7 @@ class doc_UnsortedFolders extends core_Master
 	        					array('cal_Tasks', 'single', $task['taskId']),
 	        					NULL, $attr);
 	
+	        			$resources = array();
 	        			$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
 	        		
 	        			$i++;
@@ -661,6 +666,7 @@ class doc_UnsortedFolders extends core_Master
 	        						array('cal_Tasks', 'single', $task['taskId']),
 	        						NULL, $attr);
 	
+	        				$resources = array();
 	        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
 	        				$i++;
 	        			}

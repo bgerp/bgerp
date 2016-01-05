@@ -40,12 +40,11 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 * Проверява дали стойността е невалидна
 	 *
 	 * @param string $value - стойноста, която ще проверяваме
-	 * @param int $packagingId - опаковка
-	 * @param quantity $packQuantity - количество опаковки
+	 * @param quantity $quantity - количеството
 	 * @param string &$msg - текста на грешката ако има
 	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
 	 */
-	public function isValid($value, $packagingId, $packQuantity, &$msg)
+	public function isValid($value, $quantity, &$msg)
 	{
 		$check = strtotime($value);
 		if(!$check) {

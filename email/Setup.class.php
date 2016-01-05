@@ -280,6 +280,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',
             'migrate::repairSendOnTimeClasses',
+            'migrate::updateUserInboxes',
         );
     
 
@@ -444,5 +445,27 @@ class email_Setup extends core_ProtoSetup
             
             email_SendOnTime::save($rec, 'class');
         }
+    }
+    
+    
+    /**
+     * Обновява имейл акаунтите в userInboxes в email_Incomings
+     */
+    public static function updateUserInboxes()
+    {
+        $saved = core_Debug::$isLogging;
+
+        core_Debug::$isLogging = FALSE;
+
+        $inst = cls::get('email_Incomings');
+        
+        $query = $inst->getQuery();
+        $query->where("#userInboxes IS NULL");
+        
+        while ($rec = $query->fetch('1=1', NULL, FALSE)) {
+            $inst->updateUserInboxes($rec);
+        }
+
+        core_Debug::$isLogging = $saved;
     }
 }

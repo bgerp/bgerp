@@ -301,7 +301,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
         // Кои полета ще се показват
-        $data->listFiеlds = arr::make("article=Продукт,
+        $data->listFields = arr::make("article=Продукт,
     					     salesCnt=Продажба (бр.),
     					     shipmentCnt=Доставка (бр.),
                              createdBy=Създаден от", TRUE);
@@ -333,8 +333,8 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	 
     	$tableMvc = new core_Mvc;
     	$tableMvc->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
-    	$tableMvc->FLD('salesCnt', 'int', 'tdClass=itemClass');
-    	$tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass');
+    	$tableMvc->FLD('salesCnt', 'int', 'tdClass=itemClass,smartCenter');
+    	$tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
 

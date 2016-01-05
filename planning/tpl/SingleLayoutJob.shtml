@@ -112,7 +112,7 @@
                     </tr>
                     <!--ET_BEGIN dealer-->
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Дилър|*</td>
+                        <td class='quiet' style='text-align: right'>|Търговец|*</td>
                         <td>[#dealer#]</td>
                     </tr>
                     <!--ET_END dealer-->

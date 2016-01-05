@@ -98,6 +98,7 @@ class blogm_Setup extends core_ProtoSetup
 				'blogm_Categories',
 				'blogm_Comments',
 				'blogm_Links',
+                'migrate::commentsSpamRate',
 		);
 	
 		
@@ -154,6 +155,19 @@ class blogm_Setup extends core_ProtoSetup
         $rec->period = 5;
         $rec->offset = 3;
         $html .= core_Cron::addOnce($rec);
+        
+        
+        // Изтриване на СПАМ коментари
+        $rec = new stdClass();
+        $rec->systemId = 'Delete SPAM comments';
+        $rec->description = 'Изтриване на спам коментарите';
+        $rec->controller = 'blogm_Comments';
+        $rec->action = 'deleteSPAM';
+        $rec->period = 24;
+        $rec->offset = rand(1, 24);
+        $rec->delay = 0;
+        $rec->timeLimit = 50;
+        $html .= core_Cron::addOnce($rec);
 
 		return $html;
 	}
@@ -169,4 +183,16 @@ class blogm_Setup extends core_ProtoSetup
 
 		return $res;
 	}
+
+
+    /**
+     * Миграция за спам-рейтинг
+     */
+    function commentsSpamRate()
+    {
+        $query = blogm_Comments::getQuery();
+        while($rec = $query->fetch("#state != 'active'")) {
+            blogm_Comments::save($rec);
+        }
+    }
 }

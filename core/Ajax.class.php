@@ -31,7 +31,7 @@ class core_Ajax extends core_Mvc
             
             // Очаквае заявката да е по AJAX - да има такъв хедър
             if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
-                self::logErr("Стартиране на core_Ajax::get() извън AJAX");
+                self::logWarning("Стартиране на core_Ajax::get() извън AJAX");
                 expect(FALSE);
             }
         }
@@ -109,6 +109,8 @@ class core_Ajax extends core_Mvc
                 $resArr = Request::forward($urlArr);
                 
             } catch (core_exception_Expect $e) {
+                
+                reportException($e);
                 
                 // Записваме в лога
                 self::logErr("Грешка при вземане на данни за URL", NULL, self::$logKeepDays);

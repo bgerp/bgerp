@@ -77,12 +77,12 @@
                                 <td colspan=2>
                                     <hr>
                                     [#note#]
+                                    <hr>
                                 </td>
                                 <!--ET_END note-->
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <hr>
                                 <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput--></div>
                                 </td>
                             </tr>

@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_SaveAndNew';
                     
  
     /**

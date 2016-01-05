@@ -70,12 +70,13 @@
                                     <td class='quiet nowrap aright' style='width:1%;'>|Транспорт|*: </td>
                                     <td>[#lineId#]</td>
                                 </tr>
-                                <!--ET_END lineId-->
+                                
                                 <tr>
                                     <td colspan='2'>
                                         <hr>
                                     </td>
                                 </tr>
+                                <!--ET_END lineId-->
                                 <tr>
                                     <td class='quiet nowrap aright' style='width:1%;'>|Общо тегло|*:</td>
                                     <td>[#weight#]</td>

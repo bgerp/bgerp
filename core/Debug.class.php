@@ -273,7 +273,7 @@ class core_Debug
                 $file = self::getEditLink($frame['file']);
                 $file =  $file . ' : ' . $line;
                 if($rUrl = self::getGithubSourceUrl($frame['file'], $frame['line'])) {
-                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png'));
+                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png', '"', TRUE));
                 } 
             } else {
                 $githubLink = '';
@@ -387,7 +387,8 @@ class core_Debug
             if($i+1 == $line) {
                 $style = " style='background-color:#ff9;'";
             }
-            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". str_replace('<', '&lt;', rtrim($lines[$i])) . "</span>\n";
+            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". 
+                str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
             $code .= $l;
         }
          

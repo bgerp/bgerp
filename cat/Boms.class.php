@@ -1028,9 +1028,16 @@ class cat_Boms extends core_Master
     		
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){
-    			$rec->primeCost = ($price === FALSE) ? NULL : $price;
-    			$rec->params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
-    			cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
+    			$primeCost = ($price === FALSE) ? NULL : $price;
+    			$params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
+    			
+    			// Ъпдейтваме кешираните стойност и параметри само при промяна
+    			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params)){
+    				$rec->primeCost = $primeCost;
+    				$rec->params = $params;
+    				
+    				cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
+    			}
     		}
     	} else {
     		$price = NULL;
@@ -1064,8 +1071,12 @@ class cat_Boms extends core_Master
     		}
 			
     		if($savePriceCost === TRUE){
-    			$rec->params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
-    			cls::get('cat_BomDetails')->save_($rec, 'params');
+    			$params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
+    			
+    			if(serialize($rec->params) != serialize($params)){
+    				$rec->params = $params;
+    				cls::get('cat_BomDetails')->save_($rec, 'params');
+    			}
     		}
     	}
     	

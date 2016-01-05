@@ -660,6 +660,19 @@ if($step == 3) {
         }
     }
     
+    // Необходими програми на сървъра
+    $log[] = 'h:Проверка за необходимите програми на сървъра:';
+    
+    $requiredPrograms = array('wget');
+    
+    foreach($requiredPrograms as $program){
+        if (exec('which ' . escapeshellcmd($program))){
+            $log[] = "inf:Налична програма: <b>`$program`</b>";
+        } else {
+            $log[] = "err:Липсващ програма: <b>`$program`</b>";
+        }
+    }
+    
     // Проверка за връзка с MySQL сървъра
     $log[] = 'h:Проверка на сървъра на базата данни:';
     if (defined('EF_DB_USER') && defined('EF_DB_HOST') && defined('EF_DB_PASS') && defined('EF_DB_NAME')) {
@@ -1053,7 +1066,7 @@ function gitLastCommitDate($repoPath, &$log)
     // Първият ред съдържа резултата
     if (gitExec($command, $res)) {
 
-        return trim(substr($res[0], 0, strpos($res[0], " +")));
+        return trim(substr(trim($res[0], "'"), 0, strpos($res[0], " +")));
     }
 
     return FALSE;
