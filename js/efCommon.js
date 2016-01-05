@@ -1426,20 +1426,21 @@ function getWindowWidth() {
     if (winWidth < 320) {
         winWidth = 320;
     }
+    
+    return winWidth;
 }
 
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
+
     // разстояние около формата
 	var outsideWidth = 42;
 	if($('#all').length) {
 		outsideWidth = 30;
-	} else if ($('.modern-theme').length && $('input').length) {
-        outsideWidth = parseInt($('input').offset().left * 2  + 2);
-    }
-    // изчислена максимална ширина формата
+	}
+	
     var formElWidth = winWidth - outsideWidth;
-    
+
     return formElWidth;
 }
 
@@ -1447,8 +1448,6 @@ function getCalculatedElementWidth() {
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {
-
-
     if ($('body').hasClass('narrow')){
         // предпочитана ширина в em
         var preferredSizeInEm = 42;
@@ -1456,6 +1455,7 @@ function setFormElementsWidth() {
     	
         // изчислена максимална ширина формата
         var formElWidth = getCalculatedElementWidth();
+        
         var winWidth = getWindowWidth();
 
         // колко ЕМ е широка страницата
@@ -1463,7 +1463,7 @@ function setFormElementsWidth() {
         if (!currentEm) {
             currentEm = parseFloat($(".formTable select").first().css("font-size"));
         }
-
+        
         var sizeInEm = winWidth / currentEm;
 
         // колко РХ е 1 ЕМ
@@ -1487,7 +1487,8 @@ function setFormElementsWidth() {
         });
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
-
+        
+        $('.formTitle').css('min-width', formElWidth);
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth - 50);

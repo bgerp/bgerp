@@ -100,8 +100,8 @@ class social_Followers extends core_Master
 				
 	            $imgInst = new thumb_Img(array($socialNetwork->icon, 24, 24, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
 	            $icon = $imgInst->getUrl('forced');
-	            
-				// Ако тя липсва
+
+                // Ако тя липсва
 			} else {
 					
 				// Вземаме URL от базата
@@ -115,7 +115,7 @@ class social_Followers extends core_Master
 			}
 				
 			// Създаваме иконата за бутона
-			$img = ht::createElement('img', array('src' => $icon));
+			$img = ht::createElement('img', array('src' => $icon, 'alt' => $socialNetwork->title));
 				
 			// Генерираме URL-то на бутона
 			$url = array('social_Followers', 'Redirect', $socialNetwork->id);

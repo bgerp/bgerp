@@ -56,10 +56,13 @@
                                                     <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END MyCompanyVatNo-->
+                                                
+                                                <!--ET_BEGIN uicId-->
                                                 <tr>
                                                     <td class="aright"><small>|ЕИК|* </small>:</td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
                                                 </tr>
+                                                <!--ET_END uicId-->
                                             </tbody>
                                         </table>
                                     </td>
@@ -72,10 +75,12 @@
                                                     <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
+                                                <!--ET_BEGIN uicNo-->
                                                 <tr>
                                                     <td class="aright"><small>|ЕИК|*</small>:</td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                                                 </tr>
+                                                <!--ET_END uicNo-->
                                             </tbody>
                                         </table>
                                     </td>
@@ -102,6 +107,9 @@
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>|Курс|*:</span>  [#rate#]
                                         <!--ET_END rate-->  
+                                        
+                                        <!--ET_BEGIN payment_block-->
+                                        [#payment_block#]
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
                                         
                                         <!--ET_BEGIN DUE_BLOCK-->
@@ -120,7 +128,6 @@
                                         </div>
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN accountId-->
-                                        <hr>
                                         <div>
                                             <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
                                             <div class="smallData">
@@ -135,6 +142,8 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
+                                        <!--ET_END payment_block-->
+                                        
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
                                         <div class='custom-bg-block'><b>|Доставка|*</b></div>

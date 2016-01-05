@@ -41,15 +41,9 @@ class batch_Movements extends core_Detail {
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'batch, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    public $canList = 'batch,ceo';
+    public $canList = 'powerUser,ceo';
     
     
     /**
@@ -131,13 +125,30 @@ class batch_Movements extends core_Detail {
     	$data->listFilter->FLD('from', 'date', 'caption=От,silent');
     	$data->listFilter->FLD('to', 'date', 'caption=До,silent');
     	
+    	$showFields = arr::make('batch,productId,storeId,action,from,to', TRUE);
+    	
     	if(haveRole('batch,ceo')){
     		$data->listFilter->showFields = 'batch,productId,storeId,action,from,to';
     	} else {
     		if(Request::get('batch', 'varchar')){
     			$data->listFilter->setField('batch', 'input=hidden');
     		}
-    		$data->listFilter->showFields = 'batch,storeId,from,to';
+    		
+    		if(Request::get('productId', 'varchar')){
+    			$data->listFilter->setField('productId', 'input=hidden');
+    		} else {
+    			unset($showFields['productId']);
+    		}
+    		
+    		if(Request::get('storeId', 'varchar')){
+    			$data->listFilter->setField('storeId', 'input=hidden');
+    		} else {
+    			if(Request::get('productId', 'varchar')){
+    				unset($showFields['storeId']);
+    			}
+    		}
+    		
+    		$data->listFilter->showFields = implode(',', $showFields);
     	}
     	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -308,6 +319,25 @@ class batch_Movements extends core_Detail {
     	
     	if(count($titles)){
     		$data->title .= " " . implode(' <b>,</b> ', $titles);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'list'){
+    		
+    		// Ако потребителя няма определените роли, позволяваме достъп само през защитено урл
+    		if(!core_Users::haveRole('ceo,batch', $userId)){
+    			
+    			// Само през защитено урл имаме достъп
+    			if(!Request::get('Protected')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
 }
