@@ -20,7 +20,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	/**
 	 * Предложения за формати
 	 */
-	private $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y';
+	private $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y,Ymd';
 	
 	
 	/**
@@ -31,8 +31,29 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
+		$fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Колко дни след текущата дата');
 		
 		$fieldset->setSuggestions('format', array('' => '') + arr::make($this->formatSuggestions, TRUE));
+	}
+	
+	
+	/**
+	 * Връща автоматичния партиден номер според класа
+	 *
+	 * @param mixed $documentClass - класа за който ще връщаме партидата
+	 * @param int $id - ид на документа за който ще връщаме партидата
+	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 */
+	public function getAutoValue($documentClass, $id)
+	{
+		$date = dt::today();
+		if(isset($this->rec->time)){
+			$date = dt::addSecs($this->rec->time, $date);
+			$date = dt::verbal2mysql($date, FALSE);
+		}
+		$date = dt::mysql2verbal($date, $this->rec->format);
+		
+		return $date;
 	}
 	
 	
