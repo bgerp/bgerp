@@ -50,7 +50,7 @@ class price_Setup extends core_ProtoSetup
     			'controller'  => "price_Updates",
     			'action'      => "Updateprimecosts",
     			'period'      => 60,
-    			'timeLimit'   => 55,
+    			'timeLimit'   => 360,
     		),
     );
     

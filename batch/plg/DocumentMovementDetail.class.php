@@ -201,14 +201,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$recs = &$data->recs;
 		
 		foreach ($recs as $id => $rec){
-			$rows[$id]->{$mvc->productFieldName} = ht::createHint($rows[$id]->{$mvc->productFieldName}, 'aaaaaaaaaaaaa', 'notice');
-			
 			
 			// Ако има проблем с партидите, показваме грешката и маркираме реда
 			if($msg = self::getBatchRecInvalidMessage($mvc, $rec)){
-				$msg = tr($msg);
-				$rows[$id]->{$mvc->productFieldName} .= "<div style='font-size:0.75em;color:red;'>{$msg}</div>";
-				$rows[$id]->ROW_ATTR['style'] = 'background-color:#ffb3b3';
+				$rows[$id]->{$mvc->productFieldName} = ht::createHint($rows[$id]->{$mvc->productFieldName}, tr($msg), 'error');
 			}
 		}
 	}
