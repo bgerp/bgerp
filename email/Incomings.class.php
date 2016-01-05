@@ -1377,34 +1377,34 @@ class email_Incomings extends core_Master
      */
     public function updateUserInboxes($rec)
     {
-        if ($rec) {
-            $rec->userInboxes = '';
+        if (!$rec) return ;
+        
+        $rec->userInboxes = '';
+        
+        self::calcAllToAndCc($rec);
+        
+        $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
+        
+        foreach ($allEmailsArr as $allTo) {
+            $email = $allTo['address'];
+            $email = trim($email);
+            $emailArr[$email] = $email;
+        }
+        
+        if ($emailArr) {
+            $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
             
-            self::calcAllToAndCc($rec);
-            
-            $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
-            
-            foreach ($allEmailsArr as $allTo) {
-                $email = $allTo['address'];
-                $email = trim($email);
-                $emailArr[$email] = $email;
-            }
-            
-            if ($emailArr) {
-                $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
+            if ($emailIdArr) {
+                $emailIdArr = array_values($emailIdArr);
+                $emailIdArr = arr::make($emailIdArr, TRUE);
                 
-                if ($emailIdArr) {
-                    $emailIdArr = array_values($emailIdArr);
-                    $emailIdArr = arr::make($emailIdArr, TRUE);
-                    
-                    $rec->userInboxes = type_Keylist::fromArray($emailIdArr);
-                }
+                $rec->userInboxes = type_Keylist::fromArray($emailIdArr);
             }
+        }
+        
+        if ($rec->id) {
             
-            if ($rec->id) {
-                
-                return $this->save_($rec, 'userInboxes');
-            }
+            return $this->save_($rec, 'userInboxes');
         }
     }
     
