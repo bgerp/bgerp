@@ -41,15 +41,9 @@ class batch_Movements extends core_Detail {
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'batch, ceo';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    public $canList = 'batch,ceo';
+    public $canList = 'powerUser,ceo';
     
     
     /**
@@ -325,6 +319,25 @@ class batch_Movements extends core_Detail {
     	
     	if(count($titles)){
     		$data->title .= " " . implode(' <b>,</b> ', $titles);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'list'){
+    		
+    		// Ако потребителя няма определените роли, позволяваме достъп само през защитено урл
+    		if(!core_Users::haveRole('ceo,batch', $userId)){
+    			
+    			// Само през защитено урл имаме достъп
+    			if(!Request::get('Protected')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
 }
