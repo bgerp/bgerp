@@ -1400,9 +1400,12 @@ class email_Incomings extends core_Master
                     $rec->userInboxes = type_Keylist::fromArray($emailIdArr);
                 }
             }
+            
+            if ($rec->id) {
+                
+                return $this->save_($rec, 'userInboxes');
+            }
         }
-        
-        return $this->save_($rec, 'userInboxes');
     }
     
     
