@@ -177,9 +177,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 					
 					// Ако текущото количество е по-голямо от експедираното сетваме грешка
 					if($quantity > $batchQuantity){
-						//$msg2 = 'Няма достатъчно количество от избраната партида в склада';
-						//$msg = ($msg === FALSE) ? $msg2 : $msg . "<br>" . $msg2;
-						//break;
+						$msg2 = 'Няма достатъчно количество от избраната партида в склада';
+						$msg = ($msg === FALSE) ? $msg2 : $msg . "<br>" . $msg2;
+						break;
 					}
 				}
 			}
