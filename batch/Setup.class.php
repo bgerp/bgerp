@@ -62,7 +62,7 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate";
+    var $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document";
     
     
     /**
@@ -80,7 +80,7 @@ class batch_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
-        /*$Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Партидни движения на експедиционите нареждания', 'batch_plg_DocumentMovement', 'store_ShipmentOrders', 'private');
         $html .= $Plugins->installPlugin('Партидни движения на детайлите на експедиционите нареждания', 'batch_plg_DocumentMovementDetail', 'store_ShipmentOrderDetails', 'private');
         
@@ -92,7 +92,17 @@ class batch_Setup extends core_ProtoSetup
         
         $html .= $Plugins->installPlugin('Партидни движения на междускладовите трансфери', 'batch_plg_DocumentMovement', 'store_Transfers', 'private');
         $html .= $Plugins->installPlugin('Партидни движения на детайлите на междускладовите трансфери', 'batch_plg_DocumentMovementDetail', 'store_TransfersDetails', 'private');
-        */
+        
+        $html .= $Plugins->installPlugin('Партидни движения на производствените документи', 'batch_plg_DocumentMovement', 'deals_ManifactureMaster', 'family');
+        $html .= $Plugins->installPlugin('Партидни движения на детайлите на производствените документи', 'batch_plg_DocumentMovementDetail', 'deals_ManifactureDetail', 'family');
+        
+        $html .= $Plugins->installPlugin('Партидни движения на протокола за бързо производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
+        
+        $html .= $Plugins->installPlugin('Партиден детайл на артикулите', 'batch_plg_ProductDetail', 'cat_Products', 'private');
+        
+        $html .= $Plugins->installPlugin('Партиден детайл на детайла напротоколите за отговорно пазене', 'batch_plg_DocumentMovementDetail', 'store_InternalDocumentDetail', 'family');
+        $html .= $Plugins->installPlugin('Партидни движения на протоколите за отговорно пазене', 'batch_plg_DocumentMovement', 'store_ConsignmentProtocols', 'private');
+        
         return $html;
     }
 }

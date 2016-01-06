@@ -40,12 +40,8 @@ class batch_plg_DocumentMovement extends core_Plugin
 	 */
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = NULL)
 	{
-		//static $i = 0;
-		
 		if($rec->state == 'active'){
 			if(isset($saveFileds)) return;
-			//if($i == 2) bp();
-			//core_Statuses::newStatus(str::getRand(), 'warning');
 			batch_Movements::saveMovement($mvc, $rec->id);
 		} elseif($rec->state == 'rejected'){
 			batch_Movements::removeMovement($mvc, $rec->id);
@@ -63,16 +59,27 @@ class batch_plg_DocumentMovement extends core_Plugin
 	private static function canActivateMovementDoc(core_Master $mvc, $id)
 	{
 		$rec = $mvc->fetchRec($id);
-		$Detail = cls::get($mvc->mainDetail);
-		$qQuery = $Detail->getQuery();
-		$qQuery->where("#{$Detail->masterKey} = {$rec->id}");
-			
-		while($dRec = $qQuery->fetch()){
-			if(batch_plg_DocumentMovementDetail::getBatchRecInvalidMessage($Detail, $dRec)){
-				return FALSE;
+		
+		$details = array();
+		if($mvc instanceof store_ConsignmentProtocols){
+			$details['store_ConsignmentProtocolDetailsSend'] = 'store_ConsignmentProtocolDetailsSend';
+			$details['store_ConsignmentProtocolDetailsReceived'] = 'store_ConsignmentProtocolDetailsReceived';
+		} else {
+			$details[$mvc->mainDetail] = $mvc->mainDetail;
+		}
+		
+		foreach ($details as $det){
+			$Detail = cls::get($det);
+			$qQuery = $Detail->getQuery();
+			$qQuery->where("#{$Detail->masterKey} = {$rec->id}");
+				
+			while($dRec = $qQuery->fetch()){
+				if(batch_plg_DocumentMovementDetail::getBatchRecInvalidMessage($Detail, $dRec)){
+					return FALSE;
+				}
 			}
 		}
-			
+
 		return TRUE;
 	}
 	
