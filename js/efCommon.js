@@ -323,11 +323,11 @@ function getIEVersion()
  * Инициализира комбобокса
  *
  * @param string id
- * @param string suffix
+ * @param string selectId
  */
-function comboBoxInit(id, suffix) {
+function comboBoxInit(id, selectId) {
     var txtCombo = get$(id);
-    var selCombo = get$(id + suffix);
+    var selCombo = get$(selectId);
 
     if (txtCombo && selCombo) {
         var width = txtCombo.offsetWidth;
@@ -354,9 +354,9 @@ function comboBoxInit(id, suffix) {
  *
  * @param string id
  * @param string value
- * @param string suffix
+ * @param string selectId
  */
-function comboSelectOnChange(id, value, suffix) {
+function comboSelectOnChange(id, value, selectId) {
     var inp = get$(id);
 
     var exVal = inp.value;
@@ -373,7 +373,7 @@ function comboSelectOnChange(id, value, suffix) {
     get$(id).focus();
     $(id).trigger("change");
 
-    var selCombo = get$(id + suffix);
+    var selCombo = get$(selectId);
     selCombo.value = '?';
     $('#' + id).change();
 }
