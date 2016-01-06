@@ -433,7 +433,7 @@ class core_Array
     	$vFields = arr::make($valueFields, TRUE);
     	
     	// Нормализираме масива със същ. данни във вид лесен за обработка
-    	if(arr::count($old)){
+    	if(is_array($old)){
     		foreach ($old as $oRec){
     			$oKey = self::makeUniqueIndex($oRec, $keyFields);
     			$vKey = self::makeUniqueIndex($oRec, $vFields);
@@ -448,7 +448,7 @@ class core_Array
     	$insert = $upArr = array();
     	
     	// Обикаляме масива с нови данни
-    	if(arr::count($new)){
+    	if(is_array($new)){
     		foreach ($new as $nRec){
     			$nKey = self::makeUniqueIndex($nRec, $keyFields);
     			$nValKey = self::makeUniqueIndex($nRec, $vFields);
@@ -473,7 +473,7 @@ class core_Array
     	
     	// Обръщаме останалите елементи в масив само с ид-та
     	$delete = array();
-    	if(arr::count($modOld)){
+    	if(is_array($modOld)){
     		foreach ($modOld as $ar){
     			$delete[$ar[1]] = $ar[1];
     		}
