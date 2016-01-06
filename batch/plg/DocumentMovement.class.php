@@ -80,6 +80,15 @@ class batch_plg_DocumentMovement extends core_Plugin
 			}
 		}
 
+		if($mvc instanceof planning_DirectProductionNote){
+			$BatchClass = batch_Defs::getBatchDef($rec->productId);
+			if(is_object($BatchClass)){
+				if(empty($rec->batch)){
+					return FALSE;
+				}
+			}
+		}
+		
 		return TRUE;
 	}
 	

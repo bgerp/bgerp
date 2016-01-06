@@ -145,7 +145,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$rec = &$form->rec;
     	
 		if($rec->type == 'pop'){
-    		$form->setField('batch', 'input=none');
+    		//$form->setField('batch', 'input=none');
     	}
     	
     	if($rec->productId){
