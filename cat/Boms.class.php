@@ -987,6 +987,11 @@ class cat_Boms extends core_Master
     {
     	// Изчисляваме количеството ако можем
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $params);
+    	if($rQuantity != cat_BomDetails::CALC_ERROR){
+    		
+    		// Искаме количеството да е за еденица, не за опаковка
+    		$rQuantity *= $rec->quantityInPack;
+    	}
     	
     	// Сумираме какви количества ще вложим към материалите
     	if($rec->type != 'stage'){
