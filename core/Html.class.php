@@ -861,6 +861,7 @@ class core_Html
     static function createHint($body, $hint, $type = 'notice')
     {
     	expect(in_array($type, array('notice', 'warning', 'error')));
+    	$hint = tr($hint);
     	$iconPath = ($type == 'notice') ? 'img/Help-icon-small.png' : (($type == 'warning') ? 'img/dialog_warning-small.png' : 'img/dialog_error-small.png');
     	
     	$icon = ht::createElement("img", array('src' => sbf($iconPath, '')));
