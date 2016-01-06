@@ -1340,6 +1340,8 @@ class email_Incomings extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $mvc->calcAllToAndCc($rec, FALSE);
+        
+        $mvc->updateUserInboxes($rec, FALSE);
     }
     
     
@@ -1363,8 +1365,6 @@ class email_Incomings extends core_Master
                 $mvc->makeRouterRules($rec);
             }
         }
-        
-        $mvc->updateUserInboxes($rec);
     }
     
     
@@ -1372,16 +1372,17 @@ class email_Incomings extends core_Master
      * Добавя id-тата на имейлите към акаунтите
      * 
      * @param stdObject $rec
+     * @param boolean $forceSave
      * 
      * @return integer|FALSE
      */
-    public function updateUserInboxes($rec)
+    public function updateUserInboxes($rec, $forceSave = TRUE)
     {
         if (!$rec) return ;
         
         $rec->userInboxes = '';
         
-        self::calcAllToAndCc($rec);
+        self::calcAllToAndCc($rec, $forceSave);
         
         $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
         
@@ -1402,7 +1403,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if ($rec->id) {
+        if ($rec->id && $forceSave) {
             
             return $this->save_($rec, 'userInboxes');
         }
@@ -2049,19 +2050,13 @@ class email_Incomings extends core_Master
      */
     public function getUsersArrForNotifyInDoc($rec)
     {
-        self::calcAllToAndCc($rec);
-        
-        $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
-        
-        $emailArr = array();
-
-        foreach ($allEmailsArr as $allTo) {
-            $email = $allTo['address'];
-            $email = trim($email);
-            $emailArr[$email] = $email;
+        if (!isset($rec->userInboxes)) {
+            $this->updateUserInboxes($rec);
         }
         
-        $usersArr = email_Inboxes::getInChargeForEmails($emailArr);
+        $userInboxes = type_Keylist::toArray($rec->userInboxes);
+        
+        $usersArr = email_Inboxes::getInChargeForInboxes($userInboxes);
         
         return $usersArr;
     }

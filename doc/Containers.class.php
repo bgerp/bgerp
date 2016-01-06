@@ -747,19 +747,19 @@ class doc_Containers extends core_Manager
                     
                     if ($usersArrForNotify) {
                         
+                        // Премахваме всички потребители, които не желаят да получават нотификаци
                         $key = doc_Folders::getSettingsKey($rec->folderId);
-                        $usersArr = core_Settings::fetchUsers($key, 'personalEmailIncoming', 'yes');
+                        $usersArr = core_Settings::fetchUsers($key, 'personalEmailIncoming', 'no');
+                        
                         if ($usersArr) {
                             $usersArr = array_keys($usersArr);
                             $usersArr = arr::make($usersArr, TRUE);
                             
-                            $usersArr = array_intersect($usersArr, $usersArrForNotify);
-                            
-                            if ($usersArr) {
-                                $usersArr = array_keys($usersArr);
-                                $usersArr = arr::make($usersArr, TRUE);
-                                self::addNotifications($usersArr, $docMvc, $rec, 'добави');
-                            }
+                            $usersArrForNotify = array_diff($usersArrForNotify, $usersArr);
+                        }
+                        
+                        if ($usersArrForNotify) {
+                            self::addNotifications($usersArrForNotify, $docMvc, $rec, 'добави');
                         }
                     }
                 }
