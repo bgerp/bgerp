@@ -1155,7 +1155,7 @@ class email_Incomings extends core_Master
         $rec->description = 'Сваляне на имейли в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
-        $rec->period = 2;
+        $rec->period = round(email_Setup::get('DOWNLOAD_PERIOD') / 60);
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
