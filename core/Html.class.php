@@ -860,6 +860,8 @@ class core_Html
      */
     static function createHint($body, $hint, $type = 'notice')
     {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
+    	
     	expect(in_array($type, array('notice', 'warning', 'error')));
     	$hint = tr($hint);
     	$iconPath = ($type == 'notice') ? 'img/Help-icon-small.png' : (($type == 'warning') ? 'img/dialog_warning-small.png' : 'img/dialog_error-small.png');
