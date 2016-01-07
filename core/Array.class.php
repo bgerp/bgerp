@@ -103,7 +103,7 @@ class core_Array
             $mixed = explode($sep, $mixed);
             $p = array();
 
-            if (count($mixed > 0)) {
+            if (count($mixed) > 0) {
                 foreach ($mixed as $index => $value) {
                     $value = str_replace(static::$rand, $sep, $value);
 

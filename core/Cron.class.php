@@ -50,15 +50,25 @@ class core_Cron extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
-
-
-
+    
+    
     /**  
 	 * Кой има право да променя системните данни?  
 	 */  
-	var $canEditsysdata = 'admin';  
-
+	var $canEditsysdata = 'admin';
 	
+    
+    /**  
+	 * Кой има право да редактира?  
+	 */  
+	var $canEdit = 'admin';
+	
+    
+    /**  
+	 * Кой има право да добавя?  
+	 */  
+	var $canAdd = 'no_one';
+    
     
     /**
      * Време за опресняване информацията при лист на събитията
@@ -678,5 +688,24 @@ class core_Cron extends core_Manager
         $rec = self::fetch($id);
         
         return $rec->systemId;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && ($action == 'edit')) {
+            if ($rec->modifiedBy == '-1') {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }
