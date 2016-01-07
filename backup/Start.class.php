@@ -186,16 +186,18 @@ class backup_Start extends core_Manager
         $dbRes = $db->query("SHOW MASTER STATUS");
         $resArr = $db->fetchArray($dbRes);
         
-        // $resArr['file'] e името на текущия бинлог
+        // $resArr['File'] e името на текущия бинлог
         
         // 3. флъшваме лог-а
         $db->query("FLUSH LOGS");
         
         // 4. взимаме съдържанието на binlog-a в temp-a и го компресираме
-        exec("mysqlbinlog --read-from-remote-server -u"
+        $cmdBinLog = "mysqlbinlog --read-from-remote-server -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME
-            . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$resArr['file']} -h"
-            . self::$conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName, $output, $returnVar);
+            . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$resArr['File']} -h"
+            . self::$conf->BACKUP_MYSQL_HOST . " | gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName;
+
+        exec($cmdBinLog, $output, $returnVar);
         
         if ($returnVar !== 0) {
             self::logErr("ГРЕШКА при mysqlbinlog!");
