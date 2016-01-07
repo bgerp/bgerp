@@ -599,7 +599,8 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function getValiorDate($rec)
     {
-        $dates = array();
+    	$dates = array();
+    	$rec = $this->fetchRec($rec);
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         
         if($firstDoc->haveInterface('acc_TransactionSourceIntf')){

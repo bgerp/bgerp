@@ -2090,6 +2090,9 @@ span.sharing-history-title {
 .wide #login-form .formTable {
   margin: 0; }
 
+.narrow #login-form .button {
+  margin-top: 7px; }
+
 .drawing {
   max-width: 400px;
   float: right; }

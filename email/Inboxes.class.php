@@ -158,6 +158,7 @@ class email_Inboxes extends core_Master
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
         $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
+        $this->FLD("notifyForEmail", "enum(yes=Да,no=Не)", 'caption=Нотификация за получен имейл->Избор, notNull');
         
         $this->setDbUnique('email');
     }
@@ -731,10 +732,46 @@ class email_Inboxes extends core_Master
     /**
      * Намира всички потребители, които са `inCharge` на подадените масиви
      * 
+     * @param array $idsArr
+     * @param boolean $addShared
+     * @param boolean $onlyWithNotify
+     * 
+     * @return array
+     */
+    public static function getInChargeForInboxes($idsArr, $addShared = FALSE, $onlyWithNotify = TRUE)
+    {
+        static $resArr = array();
+        
+        $hash = md5(implode('|', $idsArr) . '||' . $addShared . '||' . $onlyWithNotify);
+        
+        if (isset($resArr[$hash])) return $resArr[$hash];
+        
+        $resArr[$hash] = array();
+        
+        $query = self::getQuery();
+        $query->orWhereArr('id', $idsArr);
+        
+        if ($onlyWithNotify) {
+            $query->where("#notifyForEmail != 'no'");
+        }
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$hash][$rec->inCharge] = $rec->inCharge;
+            
+            if ($addShared && $rec->shared) {
+                $resArr[$hash] += type_Keylist::toArray($rec->shared);
+            }
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
+     * Намира всички потребители, които са `inCharge` на подадените масиви
+     * 
      * @param array $emailsArr
      * @param boolean $removeCommonAndCorporate
-     * 
-     * @deprecated
      * 
      * @return array
      */

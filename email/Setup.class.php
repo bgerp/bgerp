@@ -1,9 +1,16 @@
 <?php
 
+
 /**
  * Максимално време за еднократно фетчване на писма
  */
 defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
+
+
+/**
+ * Период за сваляне на имейли
+ */
+defIfNot('EMAIL_DOWNLOAD_PERIOD', 120);
 
 
 /**
@@ -198,6 +205,8 @@ class email_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     
+            'EMAIL_DOWNLOAD_PERIOD' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Период за сваляне на имейлите->Време'),
+            
             // Максимално време за еднократно фетчване на писма
             'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
     

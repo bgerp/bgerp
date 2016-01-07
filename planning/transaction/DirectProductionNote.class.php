@@ -123,8 +123,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				} else {
 					$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
 				}
-				
-				$pAmount = $sign * $dRec1->quantity * $primeCost;
+			
+				$pAmount = $sign * $primeCost;
 				$costAmount += $pAmount;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;

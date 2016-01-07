@@ -1317,7 +1317,7 @@ class acc_BalanceDetails extends core_Detail
         foreach (range(1, 3) as $i){
             $var = ${"items{$i}"};
             
-            // Ако е NULL продалжаваме
+            // Ако е NULL продължаваме
             if(!$var) continue;
             $varArr = arr::make($var);
             

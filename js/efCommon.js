@@ -323,11 +323,11 @@ function getIEVersion()
  * Инициализира комбобокса
  *
  * @param string id
- * @param string suffix
+ * @param string selectId
  */
-function comboBoxInit(id, suffix) {
+function comboBoxInit(id, selectId) {
     var txtCombo = get$(id);
-    var selCombo = get$(id + suffix);
+    var selCombo = get$(selectId);
 
     if (txtCombo && selCombo) {
         var width = txtCombo.offsetWidth;
@@ -354,9 +354,9 @@ function comboBoxInit(id, suffix) {
  *
  * @param string id
  * @param string value
- * @param string suffix
+ * @param string selectId
  */
-function comboSelectOnChange(id, value, suffix) {
+function comboSelectOnChange(id, value, selectId) {
     var inp = get$(id);
 
     var exVal = inp.value;
@@ -373,7 +373,7 @@ function comboSelectOnChange(id, value, suffix) {
     get$(id).focus();
     $(id).trigger("change");
 
-    var selCombo = get$(id + suffix);
+    var selCombo = get$(selectId);
     selCombo.value = '?';
     $('#' + id).change();
 }
@@ -1430,6 +1430,7 @@ function getWindowWidth() {
     return winWidth;
 }
 
+
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
 
@@ -1437,12 +1438,18 @@ function getCalculatedElementWidth() {
 	var outsideWidth = 42;
 	if($('#all').length) {
 		outsideWidth = 30;
-	}
+		if($('#login-form input').length) {
+			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
+		}
+	}  else if ($('.modern-theme').length && $('.vertical input').length) {
+        outsideWidth = parseInt($('.vertical input').offset().left * 2 + 2);
+    }
 	
     var formElWidth = winWidth - outsideWidth;
 
     return formElWidth;
 }
+
 
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
@@ -1488,7 +1495,7 @@ function setFormElementsWidth() {
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
         
-        $('.formTitle').css('min-width', formElWidth);
+        $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth - 50);
