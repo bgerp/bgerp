@@ -1115,6 +1115,8 @@ class core_Packs extends core_Manager
             // Правим запис в лога
             $this->logWrite("Промяна на конфигурацията на пакет", $rec->id);
             
+            $msg = '';
+            
             // Ако е инсталиран, обновяваме пакета
             if (self::isInstalled($packName)) {
                 $msg = self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
