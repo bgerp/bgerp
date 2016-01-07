@@ -657,11 +657,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
     	$miscMandatory = $masterRec->currencyId . $vatRow;
     	$miscOptional = $masterRec->currencyId . $vatRow;
-    	if(count($data->discounts)){
+    	if(count($data->discounts) && $data->hasDiscounts === TRUE){
     		$miscMandatory .= ', ' . tr('без извадени отстъпки');
     	}
     	
-    	if(count($data->discountsOptional)){
+    	if(count($data->discountsOptional) && $data->hasDiscounts === TRUE){
     		$miscOptional .= ', ' . tr('без извадени отстъпки');
     	}
     	
@@ -714,12 +714,16 @@ class sales_QuotationsDetails extends doc_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$data->discountsOptional = $data->discounts = array();
+    	$data->hasDiscounts = FALSE;
     	
     	core_Lg::push($data->masterData->rec->tplLang);
     	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
+    		if($rec->discount){
+    			$data->hasDiscounts = TRUE;
+    		}
     		
     		if($rec->optional == 'no'){
     			$data->discounts[$rec->discount] = $row->discount;
@@ -727,6 +731,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
 
+    		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
