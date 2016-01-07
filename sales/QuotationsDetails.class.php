@@ -75,7 +75,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, optional, amount, discAmount';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, optional, amount, discAmount,quantity';
     
     
     /**
@@ -392,7 +392,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		if(!$form->gotErrors()){
     			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
     				if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
-    					$form->setError('productId', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
+    					//$form->setError('productId', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
     			    } elseif($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
     					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
     			    }
@@ -577,7 +577,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$oTpl = getTplFromFile($optionalTemplateFile);
     	$oTpl->removeBlock("totalPlace");
     	$oCount = $dCount = 1;
-   
+    	
     	// Променливи за определяне да се скриват ли някои колони
     	$hasQuantityColOpt = FALSE;
     	if($data->rows){
@@ -605,6 +605,8 @@ class sales_QuotationsDetails extends doc_Detail {
 	    				}
 	    				$oTpl->replace("-opt{$masterRec->id}", 'OPT');
 	    				$id = &$oCount;
+	    				
+	    				
 		    			if($hasQuantityColOpt !== TRUE && ($row->quantity)){
 		    				$hasQuantityColOpt = TRUE;
 		    			}
