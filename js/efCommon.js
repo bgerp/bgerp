@@ -1433,7 +1433,6 @@ function getWindowWidth() {
 
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
-
     // разстояние около формата
 	var outsideWidth = 42;
 	if($('#all').length) {
@@ -1441,8 +1440,8 @@ function getCalculatedElementWidth() {
 		if($('#login-form input').length) {
 			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
 		}
-	}  else if ($('.modern-theme').length && $('.vertical input').length) {
-        outsideWidth = parseInt($('.vertical input').offset().left * 2 + 2);
+	}  else if ($('.modern-theme').length && $('.vertical .formCell > input[type="text"]').length) {
+        outsideWidth = parseInt($('.vertical .formCell > input[type="text"]').first().offset().left * 2 + 2);
     }
 	
     var formElWidth = winWidth - outsideWidth;
