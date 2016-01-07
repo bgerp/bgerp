@@ -88,7 +88,7 @@ class plg_Search extends core_Plugin
                     }
                     
                 }
-            } elseif (is_numeric($rec)) {
+            } elseif (is_int($rec)) {
                 $cRec = $mvc->fetch($rec);
             }
             
@@ -135,7 +135,7 @@ class plg_Search extends core_Plugin
             static::applySearch($filterRec->{$mvc->searchInputField}, $data->query);
             
             // Ако ключовата дума е число, търсим и по ид
-            if(is_numeric($filterRec->{$mvc->searchInputField})){
+            if (is_int($filterRec->{$mvc->searchInputField})){
             	$data->query->where(array("#id = [#1#]", $filterRec->{$mvc->searchInputField}), TRUE);
             }
         }
