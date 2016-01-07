@@ -1115,7 +1115,12 @@ class core_Packs extends core_Manager
             // Правим запис в лога
             $this->logWrite("Промяна на конфигурацията на пакет", $rec->id);
             
-            return new Redirect($retUrl);
+            // Ако е инсталиран, обновяваме пакета
+            if (self::isInstalled($packName)) {
+                $msg = self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
+            }
+            
+            return new Redirect($retUrl, $msg);
         }
         
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
