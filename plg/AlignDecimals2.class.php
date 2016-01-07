@@ -35,7 +35,7 @@ class plg_AlignDecimals2 extends core_Plugin
 			}
 		}
 		 
-		if(!count($decFields)) return;
+		if(!count::count($decFields)) return;
 		 
 		// тука определяме най-дългата дробна част, без да записваме числото
 		foreach ($recs as $id => $rec){
