@@ -101,7 +101,7 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
 
-        $img =  ht::createElement('img', array('src' => sbf('img/32/table-bg2.png', ''), 'title' => tr('Редактиране на връзките'), 'width' => 20, 'height' => 20));
+        $img =  ht::createElement('img', array('src' => sbf('img/32/table-bg2.png', ''), 'title' => tr('Редактиране на връзките'), 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
         $list = ht::createLink($img , $url, NULL, array('class' => 'bookmarkLink listBookmarkLink'));
         $title = "<span class='bookmarkText'>" . tr('Отметки') . "</span>".  $list ;
         
@@ -124,7 +124,7 @@ class bgerp_Bookmark extends core_Manager
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
             $attr['class'] = 'bookmarkLink addBookmarkLink';
-            $img =  ht::createElement('img', array('src' => sbf('img/32/star-bg.png', ''), 'title' => tr('Добавяне на връзка'), 'width' => 20, 'height' => 20));
+            $img =  ht::createElement('img', array('src' => sbf('img/32/star-bg.png', ''), 'title' => tr('Добавяне на връзка'), 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
             $tpl = ht::createLink($img, $url, FALSE, $attr);
         }
         
