@@ -16,19 +16,19 @@ defIfNot('CALLCENTER_ALLOWED_IP_ADDRESS', '');
 /**
  * След колко секунди да се промени от празно състояние в без отговор
  */
-defIfNot('CALLCENTER_DRAFT_TO_NOANSWER', '3600');
+defIfNot('CALLCENTER_DRAFT_TO_NOANSWER', '7200');
 
 
 /**
  * Максимална продължителност на разговорите
  */
-defIfNot('CALLCENTER_MAX_CALL_DURATION', '3600');
+defIfNot('CALLCENTER_MAX_CALL_DURATION', '7200');
 
 
 /**
  * Допустимото отклонение в секуди при регистриране на обажданията
  */
-defIfNot('CALLCENTER_DEVIATION_BETWEEN_TIMES', '3600');
+defIfNot('CALLCENTER_DEVIATION_BETWEEN_TIMES', '7200');
 
 
 /**

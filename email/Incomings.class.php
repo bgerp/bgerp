@@ -1155,7 +1155,7 @@ class email_Incomings extends core_Master
         $rec->description = 'Сваляне на имейли в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
-        $rec->period = 2;
+        $rec->period = round(email_Setup::get('DOWNLOAD_PERIOD') / 60);
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
@@ -1340,6 +1340,8 @@ class email_Incomings extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $mvc->calcAllToAndCc($rec, FALSE);
+        
+        $mvc->updateUserInboxes($rec, FALSE);
     }
     
     
@@ -1363,8 +1365,6 @@ class email_Incomings extends core_Master
                 $mvc->makeRouterRules($rec);
             }
         }
-        
-        $mvc->updateUserInboxes($rec);
     }
     
     
@@ -1372,39 +1372,41 @@ class email_Incomings extends core_Master
      * Добавя id-тата на имейлите към акаунтите
      * 
      * @param stdObject $rec
+     * @param boolean $forceSave
      * 
      * @return integer|FALSE
      */
-    public function updateUserInboxes($rec)
+    public function updateUserInboxes($rec, $forceSave = TRUE)
     {
-        $oRec = $this->fetchRec($rec->id);
+        if (!$rec) return ;
         
-        $oRec->userInboxes = '';
+        $rec->userInboxes = '';
         
-        if ($oRec) {
-            self::calcAllToAndCc($oRec);
+        self::calcAllToAndCc($rec, $forceSave);
+        
+        $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
+        
+        foreach ($allEmailsArr as $allTo) {
+            $email = $allTo['address'];
+            $email = trim($email);
+            $emailArr[$email] = $email;
+        }
+        
+        if ($emailArr) {
+            $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
             
-            $allEmailsArr = array_merge($oRec->AllTo, $oRec->AllCc);
-            
-            foreach ($allEmailsArr as $allTo) {
-                $email = $allTo['address'];
-                $email = trim($email);
-                $emailArr[$email] = $email;
-            }
-            
-            if ($emailArr) {
-                $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
+            if ($emailIdArr) {
+                $emailIdArr = array_values($emailIdArr);
+                $emailIdArr = arr::make($emailIdArr, TRUE);
                 
-                if ($emailIdArr) {
-                    $emailIdArr = array_values($emailIdArr);
-                    $emailIdArr = arr::make($emailIdArr, TRUE);
-                    
-                    $oRec->userInboxes = type_Keylist::fromArray($emailIdArr);
-                }
+                $rec->userInboxes = type_Keylist::fromArray($emailIdArr);
             }
         }
         
-        return $this->save_($oRec, 'userInboxes');
+        if ($rec->id && $forceSave) {
+            
+            return $this->save_($rec, 'userInboxes');
+        }
     }
     
     
@@ -2048,19 +2050,13 @@ class email_Incomings extends core_Master
      */
     public function getUsersArrForNotifyInDoc($rec)
     {
-        self::calcAllToAndCc($rec);
-        
-        $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
-        
-        $emailArr = array();
-
-        foreach ($allEmailsArr as $allTo) {
-            $email = $allTo['address'];
-            $email = trim($email);
-            $emailArr[$email] = $email;
+        if (!isset($rec->userInboxes)) {
+            $this->updateUserInboxes($rec);
         }
         
-        $usersArr = email_Inboxes::getInChargeForEmails($emailArr);
+        $userInboxes = type_Keylist::toArray($rec->userInboxes);
+        
+        $usersArr = email_Inboxes::getInChargeForInboxes($userInboxes);
         
         return $usersArr;
     }

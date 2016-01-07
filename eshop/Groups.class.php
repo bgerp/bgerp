@@ -298,6 +298,7 @@ class eshop_Groups extends core_Master
         
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
+        plg_AlignDecimals2::alignDecimals(cls::get('eshop_Products'), $data->products->recs, $data->products->rows);
         
         $layout = $this->getLayout();
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
@@ -415,7 +416,7 @@ class eshop_Groups extends core_Master
      */
     function renderGroup_($data)
     {
-        $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
+        $groupTpl = getTplFromFile("eshop/tpl/SingleGroupShow.shtml");
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');

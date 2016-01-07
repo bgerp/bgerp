@@ -176,8 +176,7 @@ class eshop_Products extends core_Master
         }
  
         if($rec->coMoq) {
-            $title = tr('Минимално Количество за Поръчка');
-            $row->coMoq = "<span title=\"{$title}\">" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
+        	$row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
         }
 
         if($rec->coDriver) {
@@ -279,10 +278,9 @@ class eshop_Products extends core_Master
             $editSbf = sbf("img/16/edit.png", '');
             $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
             foreach($data->rows as $id => $row) {
-                
                 $rec = $data->recs[$id];
 
-                $pTpl = new ET(getFileContent('eshop/tpl/ProductListGroup.shtml'));
+                $pTpl = getTplFromFile('eshop/tpl/ProductListGroup.shtml');
 
                 if($rec->editUrl) {
                     $row->editLink = ht::createLink($editImg, $rec->editUrl);
@@ -330,7 +328,6 @@ class eshop_Products extends core_Master
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
         
         cms_Content::setCurrent($data->groups->rec->menuId);
-        
 
         $this->prepareProduct($data);
 
@@ -407,7 +404,7 @@ class eshop_Products extends core_Master
      */
     public function renderProduct($data)
     {
-        $tpl = new ET(getFileContent("eshop/tpl/ProductShow.shtml"));
+        $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
         
         if($data->row->editLink) { 
             $data->row->name .= '&nbsp;' . $data->row->editLink;

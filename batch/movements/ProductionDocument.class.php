@@ -73,17 +73,19 @@ class batch_movements_ProductionDocument
 		}
 		
 		if($this->class instanceof planning_DirectProductionNote){
-			$batches = batch_Defs::getBatchArray($rec->productId, $rec->batch);
-			$quantity = (count($batches) == 1) ? $rec->quantity : $rec->quantity / count($batches);
-			
-			foreach ($batches as $b1){
-				$entries[] = (object)array('productId' => $rec->productId,
-										   'batch'     => $b1,
-										   'storeId'   => $rec->storeId,
-										   'quantity'  => $quantity,
-										   'operation' => 'in',
-										   'date'	    => $rec->valior,
-				);
+			if(!empty($rec->batch)){
+				$batches = batch_Defs::getBatchArray($rec->productId, $rec->batch);
+				$quantity = (count($batches) == 1) ? $rec->quantity : $rec->quantity / count($batches);
+					
+				foreach ($batches as $b1){
+					$entries[] = (object)array('productId' => $rec->productId,
+							'batch'     => $b1,
+							'storeId'   => $rec->storeId,
+							'quantity'  => $quantity,
+							'operation' => 'in',
+							'date'	    => $rec->valior,
+					);
+				}
 			}
 		}
 		

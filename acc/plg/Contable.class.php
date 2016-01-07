@@ -549,9 +549,17 @@ class acc_plg_Contable extends core_Plugin
     }
     
     
+    /**
+     * Връща вальора на документа по подразбиране
+     * 
+     * @param core_Mvc $mvc
+     * @param date $res
+     * @param mixed $rec
+     */
     public static function on_AfterGetValiorDate($mvc, &$res, $rec)
     {
     	if(!$res){
+    		$rec = $mvc->fetchRec($rec);
     		$res = $rec->{$mvc->valiorFld};
     	}
     }

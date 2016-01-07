@@ -62,7 +62,8 @@ class unit_Tests extends core_Manager
                             try {
                                 call_user_func(array($testClass, $mName), $unitClass);
                             } catch (core_Exception_Expect $expect) {
-                                $this->errorLog .= ' exception: ' . $expect->getMessage() . " " . $expect->getDump()[0]; 
+                                $dump = $expect->getDump();
+                                $this->errorLog .= ' exception: ' . $expect->getMessage() . " " . $dump[0]; 
                 
                             }
 
