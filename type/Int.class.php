@@ -187,4 +187,33 @@ class type_Int extends core_Type {
     {
         return 0;
     }
+    
+    
+    /**
+     * Проверява дали стойността е int
+     * 
+     * @param string $val
+     * @param boolean $unsigned
+     * 
+     * @return boolean
+     */
+    public static function isInt($val, $unsigned = FALSE)
+    {
+        if (!isset($val)) return FALSE;
+        
+        $val = trim($val);
+        
+        if ($unsigned) {
+            $pattern = '/^\d+$/';
+        } else {
+            $pattern = '/^-?\d+$/';
+        }
+        
+        if (preg_match($pattern, $val)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
 }
