@@ -111,6 +111,24 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     	// Трябва сметката да е със стратегия
     	expect(isset($accRec->strategy));
     	
+    	// Ако има предишен баланс, захранваме стратегията с крайните му салда, ако са положителни
+    	if($balanceRec = cls::get('acc_Balances')->getBalanceBefore($from)){
+    		$bQuery = acc_BalanceDetails::getQuery();
+    		
+    		$bItem1 = ($item1 == '*') ? NULL : $item1;
+    		$bItem2 = ($item2 == '*') ? NULL : $item2;
+    		$bItem3 = ($item3 == '*') ? NULL : $item3;
+    		acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accSysId, NULL, $bItem1, $bItem2, $bItem3);
+    		
+    		while($bRec = $bQuery->fetch()){
+    			
+    			// "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
+    			if($bRec->blQuantity >= 0){
+    				$strategy->feed($bRec->blQuantity, $bRec->blAmount);
+    			}
+    		}
+    	}
+    	
     	// За всеки запис
     	while($rec = $jQuery->fetch()){
     		
@@ -137,7 +155,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     	
     	// Опитваме се да намерим сумата за к-то
     	$amount = $strategy->consume($quantity);
-    	
+    	//bp($strategy,$amount );
     	// Ако няма
     	if(!isset($amount)){
     		
