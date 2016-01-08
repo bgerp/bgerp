@@ -187,7 +187,7 @@ class cal_Reminders extends core_Master
         $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,mandatory,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
         
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
@@ -307,6 +307,12 @@ class cal_Reminders extends core_Master
     {  
     	if ($form->isSubmitted()) {
     	    
+            $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
+            
+            if (empty($sharedUsersArr)) {
+                $form->setError('sharedUsers', 'Трябва да има поне един споделен');
+            }
+            
     	    $now = dt::now();
     	    
         	if($form->rec->timeStart < $now){
