@@ -43,6 +43,13 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'acc_ArticleDetails';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, title= Документ, reason, valior, totalAmount, tools=Пулт";
@@ -475,20 +482,4 @@ class acc_Articles extends core_Master
         
         $mvc->updateMaster($id, TRUE);
     }
-
-    
-    /**
-     * След клониране на модела
-     */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-    	$query = acc_ArticleDetails::getQuery();
-    	$query->where("#articleId = {$rec->id}");
-    	while($dRec = $query->fetch()){
-    		$dRec->articleId = $nRec->id;
-    		unset($dRec->id);
-    		acc_ArticleDetails::save($dRec);
-    	}
-    }
-
 }
