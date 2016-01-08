@@ -355,9 +355,11 @@ class core_Master extends core_Manager
                 
                 asort($detailTabbed);
               	$tabArray = array();
-
+				
+              	setIfNot($data->tabTopParam, 'TabTop');
+              	
               	// Подготвяме горни и долни табове
-              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => 'TabTop'));
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam));
               	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
               	
                 foreach($detailTabbed as $var => $order) {
@@ -419,7 +421,7 @@ class core_Master extends core_Manager
     					} else {
     						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
     					}
-    
+    					bp($tabHtml);
     					if($tabHtml){
     						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
     						$detailsTpl->append($tabHtml);
