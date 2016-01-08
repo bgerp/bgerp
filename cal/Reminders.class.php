@@ -321,7 +321,9 @@ class cal_Reminders extends core_Master
                     $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
     	    } else {
-    	        $form->rec->timeStart = $now;
+    	        if (!$form->rec->id) {
+    	            $form->rec->timeStart = $now;
+    	        }
     	    }
         	
     		if ($form->rec->id){
@@ -350,12 +352,14 @@ class cal_Reminders extends core_Master
     {
     	$now = dt::now(); 
     	
-    	if($rec->id){
-    		$exState = self::fetchField($rec->id, 'state');
-    		$timeStart = $rec->timeStart;
-    		if(!$timeStart){
-    			$timeStart = self::fetchField($rec->id, 'timeStart');
-    		} 
+    	if ($rec->id) {
+    		if (!$rec->timeStart) {
+    			$rec->timeStart = self::fetchField($rec->id, 'timeStart');
+    		}
+    		
+    		if (!$rec->timeStart) {
+    		    $rec->timeStart = dt::now();
+    		}
     	}
     }
 
