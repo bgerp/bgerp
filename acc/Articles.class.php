@@ -37,7 +37,7 @@ class acc_Articles extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing, doc_plg_HidePrices,
+    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
     
@@ -475,4 +475,20 @@ class acc_Articles extends core_Master
         
         $mvc->updateMaster($id, TRUE);
     }
+
+    
+    /**
+     * След клониране на модела
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	$query = acc_ArticleDetails::getQuery();
+    	$query->where("#articleId = {$rec->id}");
+    	while($dRec = $query->fetch()){
+    		$dRec->articleId = $nRec->id;
+    		unset($dRec->id);
+    		acc_ArticleDetails::save($dRec);
+    	}
+    }
+
 }
