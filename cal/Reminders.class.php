@@ -315,10 +315,14 @@ class cal_Reminders extends core_Master
             
     	    $now = dt::now();
     	    
-        	if ($form->rec->timeStart < $now){
-        		// Добавяме съобщение за грешка
-                $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
-        	}
+    	    if (isset($form->rec->timeStart)) {
+        	    if ($form->rec->timeStart < $now){
+            		// Добавяме съобщение за грешка
+                    $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
+            	}
+    	    } else {
+    	        $form->rec->timeStart = $now;
+    	    }
         	
     		if ($form->rec->id){
     			
