@@ -7,15 +7,17 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class findeals_transaction_CloseDeal extends acc_DocumentTransactionSource
+class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
 {
+    
+    
     /**
      * 
      * @var findeals_ClosedDeals
