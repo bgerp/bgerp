@@ -41,7 +41,7 @@ class tasks_DriverIntf extends embed_DriverIntf
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$this->class->addFields($fieldset);
+		return $this->class->addFields($fieldset);
 	}
 	
 	
@@ -50,7 +50,7 @@ class tasks_DriverIntf extends embed_DriverIntf
 	 */
 	public function canSelectDriver($userId = NULL)
 	{
-		$this->class->canSelectDriver($userId);
+		return $this->class->canSelectDriver($userId);
 	}
 
 
@@ -61,7 +61,7 @@ class tasks_DriverIntf extends embed_DriverIntf
 	 */
 	public function getDefaultTitle()
 	{
-		$this->class->getDefaultTitle();
+		return $this->class->getDefaultTitle();
 	}
 	
 	
@@ -73,116 +73,17 @@ class tasks_DriverIntf extends embed_DriverIntf
 	 */
 	public function updateEmbedder(&$rec)
 	{
-		$this->class->updateEmbedder($rec);
+		return $this->class->updateEmbedder($rec);
 	}
 	
 	
 	/**
-	 * Добавяне на полета към формата на детайла
-	 *
-	 * @param core_FieldSet $form
-	 */
-	public function addDetailFields(core_FieldSet &$form)
-	{
-		$this->class->addDetailFields($form);
-	}
-	
-
-	/**
-	 * Възможност за промяна след събмита на формата на детайла
-	 *
-	 * @param core_Form $form
-	 * @return void
-	 */
-	public function inputEditFormDetail(core_Form $form)
-	{
-		$this->class->inputEditFormDetail($form);
-	}
-
-
-	/**
-	 * Възможност за промяна след подготовката на детайла
-	 *
-	 * @param core_ET $tpl
-	 * @param stdClass $data
-	 * @return void
-	 */
-	public function prepareDetail(&$data)
-	{
-		$this->class->prepareDetail($data);
-	}
-	
-	
-	/**
-	 * Възможност за промяна след подготовката на лист тулбара
-	 *
-	 * @param stdClass $data
-	 * @return void
-	 */
-	public function prepareListToolbarDetail(&$data)
-	{
-		$this->class->prepareListToolbarDetail($data);
-	}
-	
-	
-	/**
-	 * Възможност за промяна след подготовката на формата на детайла
-	 *
-	 * @param stdClass $data
-	 * @return void
-	 */
-	public function prepareEditFormDetail(&$data)
-	{
-		$this->class->prepareEditFormDetail($data);
-	}
-	
-	
-	/**
-	 * Възможност за промяна след обръщането на данните във вербален вид
-	 *
-	 * @param stdClass $row
-	 * @param stdClass $rec
-	 * @return void
-	 */
-	public function recToVerbalDetail(&$row, $rec)
-	{
-		$this->class->recToVerbalDetail($row, $rec);
-	}
-	
-	
-	/**
-	 * Възможност за промяна след рендирането на детайла
-	 *
-	 * @param core_ET $tpl
-	 * @param stdClass $data
-	 * @return void
-	 */
-	public function renderDetail(&$tpl, $data)
-	{
-		$this->class->renderDetail($tpl, $data);
-	}
-	
-	
-	/**
-	 * Възможност за промяна след рендирането на шаблона на детайла
-	 *
-	 * @param core_ET $tpl
-	 * @param stdClass $data
-	 * @return void
-	 */
-	public function renderDetailLayout(&$tpl, $data)
-	{
-		$this->class->renderDetailLayout($tpl, $data);
-	}
-	
-	
-	/**
-	 * Кой детайл да бъде добавен към мастъра
+	 * Кои детайли да се закачат динамично
 	 * 
-	 * @return varchar - името на детайла
+	 * @return array $details - масив с детайли за закачане
 	 */
-	public function getDetail()
+	public function getDetails()
 	{
-		$this->class->getDetail();
+		return $this->class->getDetails();
 	}
 }
