@@ -660,16 +660,18 @@ if($step == 3) {
         }
     }
     
-    // Необходими програми на сървъра
-    $log[] = 'h:Проверка за необходимите програми на сървъра:';
-    
-    $requiredPrograms = array('wget');
-    
-    foreach($requiredPrograms as $program){
-        if (exec('which ' . escapeshellcmd($program))){
-            $log[] = "inf:Налична програма: <b>`$program`</b>";
-        } else {
-            $log[] = "err:Липсващ програма: <b>`$program`</b>";
+    if (!core_Os::isWindows()) {
+        // Необходими програми на сървъра
+        $log[] = 'h:Проверка за необходимите програми на сървъра:';
+        
+        $requiredPrograms = array('wget');
+        
+        foreach($requiredPrograms as $program){
+            if (exec('which ' . escapeshellcmd($program))){
+                $log[] = "inf:Налична програма: <b>`$program`</b>";
+            } else {
+                $log[] = "err:Липсващ програма: <b>`$program`</b>";
+            }
         }
     }
     
