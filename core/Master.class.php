@@ -421,7 +421,7 @@ class core_Master extends core_Manager
     					} else {
     						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
     					}
-    					bp($tabHtml);
+    					
     					if($tabHtml){
     						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
     						$detailsTpl->append($tabHtml);
