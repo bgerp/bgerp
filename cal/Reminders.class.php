@@ -317,7 +317,7 @@ class cal_Reminders extends core_Master
     	    
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
-                $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
+                $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now, 'smartTime'));
         	}
         	
     		if($form->rec->id){
@@ -326,7 +326,7 @@ class cal_Reminders extends core_Master
     			
     			if($form->rec->timeStart < $now && ($form->rec->state != $exState && $form->rec->state != 'rejected')){
     				// Добавяме съобщение за грешка
-                	$form->setError('timeStart', tr("Не може да се направи напомняне в миналото"). dt::mysql2verbal($now, 'smartTime'));
+                	$form->setError('timeStart', "Не може да се направи напомняне в миналото|* ". dt::mysql2verbal($now, 'smartTime'));
     			}
     		}
     		
