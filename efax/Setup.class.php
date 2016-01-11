@@ -35,6 +35,14 @@ class efax_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Изпращане на факс, чрез eFax";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        'EFAX_SENDER_BOX' => array ('key(mvc=email_Inboxes,select=email)', 'caption=Имейл за изпращане на факсове->Имейл'),
+        );
 
     
     /**
