@@ -43,6 +43,12 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Заглавие
+     */
+    public $singleTitle = 'Известие';
+    
+    
+    /**
      * Права за писане
      */
     var $canWrite = 'admin';
