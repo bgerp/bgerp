@@ -125,9 +125,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * 					-> driver   - драйвър на задача
 	 * 					-> priority - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
 	 */
-	public function getDefaultJobTasks()
+	public function getDefaultTasks()
 	{
-		return $this->class->getDefaultJobTasks();
+		return $this->class->getDefaultTasks();
 	}
 	
 	
