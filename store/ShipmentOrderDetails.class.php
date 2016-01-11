@@ -246,7 +246,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     		
     		if($diff < 0){
-    			$row->packQuantity = ht::createHint($row->packQuantity, "Налично количество в склада|* $quantityInStore", 'warning');
+    			$row->packQuantity = ht::createHint($row->packQuantity, "Налично количество в склада|*: $quantityInStore", 'warning');
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
