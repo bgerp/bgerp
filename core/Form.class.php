@@ -120,8 +120,12 @@ class core_Form extends core_FieldSet
     {
         // Каква е командата на submita?
         $cmd = Request::get('Cmd');
-        
+   
         if (is_array($cmd)) {
+            // За улесняване на тесването
+            if(isset($cmd['default']) && $cmd['default'] == 'refresh') {
+                $cmd['refresh'] = 1;
+            }
             // Ако е изпратена от HTML бутон, то вземаме 
             // командата като ключ от масив
             if (count($cmd) > 1)
@@ -144,7 +148,7 @@ class core_Form extends core_FieldSet
                 }
             }
         }
-        
+ 
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
         // връщаме въведено към момента
         if((!$this->cmd) && !$silent) return $this->rec;
@@ -165,7 +169,7 @@ class core_Form extends core_FieldSet
         if (!count($fields)) return FALSE;
         
         foreach ($fields as $name => $field) {
-            
+
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
             
             $value = Request::get($name);
@@ -714,7 +718,7 @@ class core_Form extends core_FieldSet
                 }
 
                 // Рендиране на select или input полето
-                if (count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) {
+                if ((count($options) > 0 && is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
@@ -1224,7 +1228,7 @@ class core_Form extends core_FieldSet
      */
     function setReadOnly($name, $value = NULL)
     {
-        $field = $this->getField($name);
+        $field = $this->fields[$name];
         
         if (!isset($value)) {
             $value = empty($this->rec->{$name}) ? '' : $this->rec->{$name};
@@ -1240,6 +1244,6 @@ class core_Form extends core_FieldSet
                 $value => $verbal
             ));
         
-        $field->type->params['isReadOnly'] = TRUE;
+        $field->type->params['isReadOnly'] = TRUE;  
     }
 }
