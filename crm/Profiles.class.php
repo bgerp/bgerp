@@ -412,8 +412,8 @@ class crm_Profiles extends core_Master
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
-
-        if(haveRole('powerUser')) {
+        
+        if (haveRole('powerUser') && core_Packs::isInstalled('remote')) {
             $data->toolbar->addbtn('Оторизиране', array('remote_Authorizations', 'add', 'ret_url' => TRUE), 
                 'ef_icon=img/16/authorized.png,title=Оторизиране за ползване на онлайн услуги');
         }
@@ -1304,4 +1304,24 @@ class crm_Profiles extends core_Master
             }
         }
     }
+	
+	
+	/**
+	 * Изпълнява се след закачане на детайлите
+	 * 
+	 * @param crm_Profiles $mvc
+	 * @param NULL|array $res
+	 * @param NULL|array $details
+	 */
+	public static function on_BeforeAttachDetails(crm_Profiles $mvc, &$res, &$details)
+	{
+	    $details = arr::make($details, TRUE);
+	    $mvc->details = arr::make($mvc->details, TRUE);
+	    
+	    if (!core_Packs::isInstalled('remote')) {
+	        $remotePackKey = 'AuthorizationsList';
+	        unset($details[$remotePackKey]);
+	        unset($mvc->details[$remotePackKey]);
+	    }
+	}
 }
