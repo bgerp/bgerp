@@ -718,7 +718,7 @@ class core_Form extends core_FieldSet
                 }
 
                 // Рендиране на select или input полето
-                if ((count($options) > 0 && is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
+                if ((count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
