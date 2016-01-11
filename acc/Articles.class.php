@@ -448,7 +448,7 @@ class acc_Articles extends core_Master
     public static function on_AfterJournalUpdated($mvc, $id, $journalId)
     {
         // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
-        
+       
         // Всички детайли на МО
         $rec = $mvc->fetchRec($id);
         $dQuery = acc_ArticleDetails::getQuery();
@@ -458,10 +458,16 @@ class acc_Articles extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalId}");
         $jRecs = $jQuery->fetchAll();
-        
+
+        $count = 0;
         while($dRec = $dQuery->fetch()){
+        	$count++;
+        	$jCount = 0;
+        	
             foreach ($jRecs as $jRec){
-                if($dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
+            	$jCount++;
+            	
+                if($count === $jCount && $dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
                     $dRec->creditAccId == $jRec->creditAccId && $dRec->creditEnt1 == $jRec->creditItem1 && $dRec->creditEnt2 == $jRec->creditItem2 && $dRec->creditEnt3 == $jRec->creditItem3){
                     if(!is_null($jRec->debitPrice)){
                         $dRec->debitPrice = $jRec->debitPrice;
