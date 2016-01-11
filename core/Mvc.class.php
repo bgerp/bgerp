@@ -1206,6 +1206,15 @@ class core_Mvc extends core_FieldSet
         }
     }
     
+    /**
+     * Прави стандартна 'обвивка' на изгледа
+     * @todo: да се отдели като плъгин
+     */
+    function renderWrapping_($tpl, $data = NULL)
+    {
+        return $tpl;
+    }
+
     
     /**
      * Добавя emerg запис в log_Data
