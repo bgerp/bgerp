@@ -13,9 +13,6 @@
 	        [#userInfo#]
 	        <!--ET_END userInfo-->
 	        <div style="clear:both;"></div>
-	        <!--ET_BEGIN DETAILS-->
-	        [#DETAILS#]
-	        <!--ET_END DETAILS-->
 	        <div style="clear:both;"></div>
 	        
 	        <!--ET_BEGIN logTabs-->
@@ -28,6 +25,20 @@
 			        </div>
 		        </fieldset>
 	        <!--ET_END logTabs-->
+            <!--ET_BEGIN AuthorizationsList-->
+		        <fieldset class="detail-info">
+		        	<legend class="groupTitle">
+				        |Оторизации|*
+				    </legend>
+			        <div class='tab-control alphabet' style='padding-top: 5px;'>
+				        [#AuthorizationsList#]
+			        </div>
+		        </fieldset>
+	        <!--ET_END AuthorizationsList-->
+
+	        <!--ET_BEGIN DETAILS-->
+	        [#DETAILS#]
+	        <!--ET_END DETAILS-->
 	        <div style="clear:both;"></div>
 	    </div>
     </div>

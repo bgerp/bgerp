@@ -24,7 +24,7 @@ class crm_Profiles extends core_Master
     /**
      * 
      */
-	var $details = 'Personalization=crm_Personalization';
+	var $details = 'AuthorizationsList=remote_Authorizations,Personalization=crm_Personalization';
 
 	
     /**
@@ -138,9 +138,9 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
-        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
-        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
+        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
@@ -411,6 +411,11 @@ class crm_Profiles extends core_Master
         $currUser = core_Users::getCurrent();
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
+        }
+
+        if(haveRole('powerUser')) {
+            $data->toolbar->addbtn('Оторизиране', array('remote_Authorizations', 'add', 'ret_url' => TRUE), 
+                'ef_icon=img/16/authorized.png,title=Оторизиране за ползване на онлайн услуги');
         }
     }
     
