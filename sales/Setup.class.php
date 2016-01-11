@@ -171,8 +171,8 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_INVOICE_DEF_TPL_BG'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
 			'SALE_INVOICE_DEF_TPL_EN'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
 			
-			'SALES_VAT_REASON_OUTSIDE_EU'  => array('varchar', 'caption=Основание за ненаничляване на ДДС за контрагент->Извън ЕС'),
-			'SALES_VAT_REASON_IN_EU'       => array('varchar', 'caption=Основание за ненаничляване на ДДС за контрагент->От ЕС'),
+			'SALES_VAT_REASON_OUTSIDE_EU'  => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
+			'SALES_VAT_REASON_IN_EU'       => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
 	);
 	
 	

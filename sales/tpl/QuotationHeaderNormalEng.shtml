@@ -68,6 +68,9 @@
 			            <!--ET_BEGIN paymentMethodId-->
 			            <li>Payment method: <b>[#paymentMethodId#]</b></li>
 				        <!--ET_END paymentMethodId-->
+				        <!--ET_BEGIN bankAccountId-->
+			            <li>Bank account: <b>[#bankAccountId#]</b></li>
+			            <!--ET_END bankAccountId-->
 				        <!--ET_BEGIN deliveryTermId-->
 				        <li>Delivery term: <b>[#deliveryTermId#]</b></li>
 				        <!--ET_END deliveryTermId-->

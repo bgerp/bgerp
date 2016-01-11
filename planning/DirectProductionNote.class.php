@@ -145,8 +145,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		parent::setDocumentFields($this);
 		
-		$this->setField('storeId', 'caption=Складове->В');
-		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Вложено от, mandatory,after=storeId');
+		$this->setField('storeId', 'caption=Складове->Засклаждане в');
+		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от, mandatory,after=storeId');
 		
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');

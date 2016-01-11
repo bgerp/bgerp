@@ -49,6 +49,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Детайли
+	 */
+	public $details = 'tasks_TaskConditions';
+	
+	
+	/**
 	 * Подготвя задачите към заданията
 	 */
 	public function prepareTasks($data)

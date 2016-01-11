@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class sales_transaction_CloseDeal extends acc_DocumentTransactionSource
+class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
 {
     /**
      * 

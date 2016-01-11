@@ -748,6 +748,8 @@ class email_Inboxes extends core_Master
         
         $resArr[$hash] = array();
         
+        if (!$idsArr || empty($idsArr)) return $resArr[$hash]; 
+        
         $query = self::getQuery();
         $query->orWhereArr('id', $idsArr);
         

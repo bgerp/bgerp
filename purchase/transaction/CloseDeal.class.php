@@ -7,14 +7,14 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
+class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
 {
     /**
      * 

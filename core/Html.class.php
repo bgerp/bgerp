@@ -860,17 +860,23 @@ class core_Html
      */
     static function createHint($body, $hint, $type = 'notice')
     {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
+    	
     	expect(in_array($type, array('notice', 'warning', 'error')));
     	$hint = tr($hint);
     	$iconPath = ($type == 'notice') ? 'img/Help-icon-small.png' : (($type == 'warning') ? 'img/dialog_warning-small.png' : 'img/dialog_error-small.png');
     	
     	$icon = ht::createElement("img", array('src' => sbf($iconPath, '')));
     	
-    	$element = new core_ET("<span title='[#hint#]'>[#icon#]</span> [#body#]");
-    	$element->append($body, 'body');
-    	$element->append($hint, 'hint');
-    	$element->append($icon, 'icon');
-    	
+    	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
+        
+        $element->append($body, 'body');
+        $element->append($hint, 'hint');
+        $element->append($icon, 'icon');
+        
+        jquery_Jquery::run($element, 'makeTooltipFromTitle();', TRUE);
+        jquery_Jquery::runAfterAjax($element, 'makeTooltipFromTitle');
+        
     	return $element;
     }
     

@@ -118,7 +118,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             if($lastUsers = core_Cache::get('userFilter',  $cKey)) {
                 $type = $data->listFilter->getField('users')->type;
-                $type->prepareOptions('all');
+                $type->prepareOptions();
                 foreach($type->options as $key => $optObj) {
                     if($lastUsers == $optObj->keylist || $key == $lastUsers) {
                         $lastUsers = $optObj->keylist;

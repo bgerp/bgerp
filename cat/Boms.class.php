@@ -646,7 +646,7 @@ class cat_Boms extends core_Master
     	$rec->modifiedOn = dt::now();
     	$this->save($rec, 'modifiedOn');
     	
-    	return Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
+    	return new Redirect(array($this, 'single', $id), '|Себестойността е преизчислена успешно');
     }
     
     

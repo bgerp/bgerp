@@ -50,7 +50,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,operation,code,quantity,weight,employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'RowNumb=Пулт,type=Операция,serial,taskProductId,quantity,weight,employees,fixedAsset,modified=Модифицирано';
     
 
     /**
@@ -62,7 +62,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'code,weight,employees,fixedAsset';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset';
     
     
     /**
@@ -72,18 +72,27 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
+     * Опашка
+     */
+    protected $queueProducts = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD('code', 'bigint', 'caption=Код,input=none,smartCenter');
-    	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code,smartCenter');
+    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId)', 'caption=Артикул,smartCenter,silent,refreshForm');
+    	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък)', 'input=hidden,silent,smartCenter');
+    	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter');
     	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,smartCenter');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
-    	 
+    	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
+    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
+    	
     	$this->setDbUnique('code');
     }
     
@@ -103,7 +112,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	 
     	// Задаваме последно въведените данни
     	if($lastRec = $query->fetch()){
-    		$form->setDefault('operation', $lastRec->operation);
     		$form->setDefault('employees', $lastRec->employees);
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
     	}
@@ -119,6 +127,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setOptions('fixedAsset', array('' => '') + $arr);
     		$form->setField('fixedAsset', 'input');
     	}
+    	
+    	$groupTitle = $data->singleTitle = ($rec->type == 'input') ? 'За влагане' : (($rec->type == 'waste') ? 'Отпадъци' : 'За произвеждане');
+    	$productOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+    	$productOptions = array('x' => (object)array('group' => TRUE, 'title' => tr($groupTitle))) + $productOptions;
+    	
+    	$form->setOptions('taskProductId', array('' => '') + $productOptions);
     }
     
 
@@ -132,9 +146,9 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if($form->isSubmitted()){
     		
     		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
-    		if($rec->operation == 'production'){
-    			if(empty($rec->code)){
-    				$rec->code = $mvc->getDefaultCode();
+    		if($rec->type == 'product'){
+    			if(empty($rec->serial)){
+    				$rec->serial = $mvc->getDefaultSerial();
     			}
     		}
     	}
@@ -146,16 +160,16 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      *
      * @return int $code - код
      */
-    private function getDefaultCode()
+    private function getDefaultSerial()
     {
     	// Намираме последния въведен код
     	$query = self::getQuery();
-    	$query->XPR('maxCode', 'int', 'MAX(#code)');
+    	$query->XPR('maxCode', 'int', 'MAX(#serial)');
     	$code = $query->fetch()->maxCode;
     	 
     	// Инкрементираме кода, докато достигнем свободен код
     	$code++;
-    	while(self::fetch("#code = '{$code}'")){
+    	while(self::fetch("#serial = '{$code}'")){
     		$code++;
     	}
     	 
@@ -169,7 +183,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->fixedAsset)){
-    		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
     			$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
@@ -187,5 +200,119 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
+    	
+    	$productId = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId');
+    	$row->taskProductId = cat_Products::getShortHyperlink($productId);
+    	
+    	if(!empty($rec->notes)){
+    		$notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
+    		$row->taskProductId .= "<small>{$notes}</small>";
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	$mvc->queueProducts[$rec->taskProductId] = $rec->taskProductId;
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	if(is_array($mvc->queueProducts)){
+    		foreach ($mvc->queueProducts as $taskProductId) {
+    			planning_drivers_ProductionTaskProducts::updateRealQuantity($taskProductId);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    		
+    		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'product'))){
+    			$data->toolbar->addBtn('Произвеждане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'product', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
+    		}
+    		
+    		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
+    			$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
+    		}
+    		
+    		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'waste'))){
+    			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на отпаден артикул');
+    		}
+    	}
+    }
+
+
+    /**
+     * Подготвя детайла
+     */
+    public function prepareDetail_($data)
+    {
+    	$data->TabCaption = 'Прогрес';
+    	$data->Tab = 'top';
+    
+    	parent::prepareDetail_($data);
+    }
+
+
+    /**
+     * Преди извличане на записите от БД
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	// Искаме да показваме и оттеглените детайли
+    	$data->query->orWhere("#state = 'rejected'");
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
+    		$state = $mvc->Master->fetchField($rec->taskId, 'state');
+    		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
+    			$requiredRoles = 'no_one';
+    		} 
+    	}
+    	
+    	// Трябва да има поне един артикул възможен за добавяне
+    	if($action == 'add' && isset($rec->type)){
+    		if($requiredRoles != 'no_one'){
+    			$pOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
+    			if(!count($pOptions)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
+
+
+    /**
+     * Преди подготовка на заглавието на формата
+     */
+    protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
+    {
+    	$rec = &$data->form->rec;
+    	$data->singleTitle = ($rec->type == 'input') ? 'вложен артикул' : (($rec->type == 'waste') ? 'отпадък' : 'произведен артикул');
     }
 }
