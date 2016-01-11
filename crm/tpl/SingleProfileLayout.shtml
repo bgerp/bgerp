@@ -30,9 +30,7 @@
 		        	<legend class="groupTitle">
 				        |Оторизации|*
 				    </legend>
-			        <div class='tab-control alphabet' style='padding-top: 5px;'>
 				        [#AuthorizationsList#]
-			        </div>
 		        </fieldset>
 	        <!--ET_END AuthorizationsList-->
 
@@ -40,6 +38,7 @@
 	        [#DETAILS#]
 	        <!--ET_END DETAILS-->
 	        <div style="clear:both;"></div>
+	        </div>
 	    </div>
     </div>
 </div>
