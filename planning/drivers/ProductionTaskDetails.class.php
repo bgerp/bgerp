@@ -201,8 +201,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
     	
-    	$productId = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId');
-    	$row->taskProductId = cat_Products::getShortHyperlink($productId);
+    	if($rec->taskProductId){
+    		$productId = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId');
+    		$row->taskProductId = cat_Products::getShortHyperlink($productId);
+    	}
     	
     	if(!empty($rec->notes)){
     		$notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
