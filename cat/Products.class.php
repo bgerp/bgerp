@@ -2051,4 +2051,28 @@ class cat_Products extends embed_Manager {
     	
     	return $products;
     }
+    
+    
+    /**
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     *
+     * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+     * 				    -> title        - дефолт име на задачата
+     * 					-> driverClass  - драйвър на задача
+     * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
+     */
+    public static function getDefaultTasks($id)
+    {
+    	$defaultTasks = array();
+    	expect($rec = self::fetch($id));
+    	
+    	if($rec->canManifacture != 'yes') return $defaultTasks;
+    	
+    	$ProductDriver = cat_Products::getDriver($rec);
+    	if(!empty($ProductDriver)){
+    		$defaultTasks = $ProductDriver->getDefaultTasks();
+    	}
+    	
+    	return $defaultTasks;
+    }
 }
