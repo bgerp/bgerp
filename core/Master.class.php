@@ -133,6 +133,8 @@ class core_Master extends core_Manager
      */
     function prepareSingle_($data)
     {
+		setIfNot($data->tabTopParam, 'TabTop');
+		
     	if(empty($data->details) && isset($this->details)){
     		$data->details = arr::make($this->details);
     	}
@@ -355,8 +357,6 @@ class core_Master extends core_Manager
                 
                 asort($detailTabbed);
               	$tabArray = array();
-				
-              	setIfNot($data->tabTopParam, 'TabTop');
               	
               	// Подготвяме горни и долни табове
               	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam));
@@ -376,7 +376,7 @@ class core_Master extends core_Manager
                 	}
 
                     $url[$tab->getUrlParam()] = $var;
-                    $url['#'] = ($data->{$var}->Tab == 'top') ? 'detailTabsTop' : 'detailTabs';
+                    $url['#'] = ($data->{$var}->Tab == 'top') ? "detail{$data->tabTopParam}" : 'detailTabs';
                     $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
 				}
                 
@@ -395,7 +395,7 @@ class core_Master extends core_Manager
 					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
     					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
     						
-    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
+    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detail{$data->tabTopParam}'></a>[#1#]</div>", $tabHtml);
     					$detailsTpl->append($tabHtml);
 					}
 				}
