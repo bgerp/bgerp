@@ -631,13 +631,13 @@ class doc_DocumentPlg extends core_Plugin
                         // Добавяме нова котва към детайлите на таба
                         $url['#'] = 'detailTabs';
                     }
-                    
+                   
                     // Ако има подаден горен таб
-                    if ($tab1 = Request::get('TabTop')) {
+                    if ($tab1 = Request::get("TabTop{$rec->containerId}")) {
                     	
                     	// Добавяме таба
-                    	$url['TabTop'] = $tab1;
-                    	$url['#'] = 'detailTabsTop';
+                    	$url["TabTop{$rec->containerId}"] = $tab1;
+                    	$url['#'] = "detail{$rec->containerId}";
                     }
                    
                     // Ако има страница на документа
@@ -650,6 +650,7 @@ class doc_DocumentPlg extends core_Plugin
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
                     }
+                    
                     $res = new Redirect($url);
                     
                     return FALSE;
