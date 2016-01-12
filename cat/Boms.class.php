@@ -1226,4 +1226,72 @@ class cat_Boms extends core_Master
     		}
     	}
     }
+    
+
+    /**
+     * Опит за връщане на масив със задачи за производство от рецептата
+     * 
+     * @param mixed $id - ид на рецепта
+     * @return array  - масив със задачи за производство за генерирането на всеки етап
+     */
+    public static function getTasksFromBom($id)
+    {
+    	expect($rec = self::fetchRec($id));
+    	$tasks = array();
+    	$pName = cat_Products::getVerbal($rec->productId, 'name');
+    	
+    	$tasks = array(1 => (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
+    									  'title'    => $pName,
+    									  'products' => array('production' => array(array('productId' => $rec->productId, 'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'), 'packQuantity' => $rec->quantity, 'quantityInPack' => 1)),
+    										 				  'input'    => array(),
+    										 				  'waste'    => array())));
+    	 
+    	$dQuery = cat_BomDetails::getQuery();
+    	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->where("#parentId IS NULL");
+    	while($detRec = $dQuery->fetch()){
+    		$quantity = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
+    		if($quantity == cat_BomDetails::CALC_ERROR){
+    			$quantity = 0;
+    		}
+    		
+    		$place = ($detRec->type == 'pop') ? 'waste' : 'input';
+    		$tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $detRec->quantityInPack);
+    	}
+    	
+    	$query = cat_BomDetails::getQuery();
+    	$query->where("#bomId = {$rec->id}");
+    	$query->where("#type = 'stage'");
+    	
+    	while($dRec = $query->fetch()){
+    		$query2 = cat_BomDetails::getQuery();
+    		$query2->where("#parentId = {$dRec->id}");
+    
+    		$quantity = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
+    		if($quantity == cat_BomDetails::CALC_ERROR){
+    			$quantity = 0;
+    		}
+    
+    		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
+    							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
+    							 'products' => array(
+		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $dRec->quantityInPack)),
+		    						'input'      => array(),
+		    						'waste'      => array()));
+    
+    		while($cRec = $query2->fetch()){
+    			$quantity = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+    			if($quantity == cat_BomDetails::CALC_ERROR){
+    				$quantity = 0;
+    			}
+    			 
+    			$place = ($cRec->type == 'pop') ? 'waste' : 'input';
+    			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $cRec->quantityInPack);
+    		}
+    
+    		$tasks[] = $arr;
+    	}
+    	
+    	return $tasks;
+    }
 }
