@@ -118,13 +118,16 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
-	 *
-	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-	 * 				    -> title    - дефолт име на задачата
-	 * 					-> driver   - драйвър на задача
-	 * 					-> priority - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
-	 */
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     *
+     * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+     * 				    -> title        - дефолт име на задачата
+     * 					-> driverClass  - драйвър на задача
+     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input      - материали за влагане
+     * 						 - array production - артикули за произвеждане
+     * 						 - array waste      - отпадъци
+     */
 	public function getDefaultTasks()
 	{
 		return $this->class->getDefaultTasks();

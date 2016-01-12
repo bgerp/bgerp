@@ -2059,7 +2059,10 @@ class cat_Products extends embed_Manager {
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
      * 				    -> title        - дефолт име на задачата
      * 					-> driverClass  - драйвър на задача
-     * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
+     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input      - материали за влагане
+     * 						 - array production - артикули за произвеждане
+     * 						 - array waste      - отпадъци
      */
     public static function getDefaultTasks($id)
     {
@@ -2068,11 +2071,28 @@ class cat_Products extends embed_Manager {
     	
     	if($rec->canManifacture != 'yes') return $defaultTasks;
     	
+    	// Питаме драйвера какви дефолтни задачи да се генерират
     	$ProductDriver = cat_Products::getDriver($rec);
     	if(!empty($ProductDriver)){
     		$defaultTasks = $ProductDriver->getDefaultTasks();
     	}
     	
+    	// Ако няма дефолтни задачи
+    	if(!count($defaultTasks)){
+    		
+    		// Намираме последната активна рецепта
+    		$bomId = self::getLastActiveBom($rec, 'production');
+    		if(!$bomId){
+    			$bomId = self::getLastActiveBom($rec, 'sales');
+    		}
+    		
+    		// Ако има опитваме се да намерим задачите за производството по нейните етапи
+    		if($bomId){
+    			$defaultTasks = cat_Boms::getTasksFromBom($bomId);
+    		}
+    	}
+    	
+    	// Връщаме намерените задачи
     	return $defaultTasks;
     }
 }
