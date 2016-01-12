@@ -93,6 +93,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
+    	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double', 'caption=Количество->Изпълнено,input=none,notNull');
     	$this->FLD("indTime", 'time', 'mandatory,caption=Времена->Изпълнение,smartCenter');
     	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
@@ -155,6 +156,23 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$form->setOptions('packagingId', $packs);
     	} else {
     		$form->setReadOnly('packagingId');
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	}
     }
     
