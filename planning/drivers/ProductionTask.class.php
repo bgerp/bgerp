@@ -186,4 +186,41 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	unset($nRec->totalWeight);
     }
+    
+    
+    /**
+     * След успешен запис
+     */
+    public static function on_AfterCreate(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec)
+    {
+    	if(isset($rec->originId) && isset($rec->systemId)){
+    		$originDoc = doc_Containers::getDocument($rec->originId);
+    		if($originDoc->isInstanceOf('planning_Jobs')){
+    			$productId = $originDoc->fetchField('productId');
+    			$tasks = cat_Products::getDefaultTasks($productId);
+    			if(isset($tasks[$rec->systemId])){
+    				$def = $tasks[$rec->systemId];
+    				
+    				$r = array();
+    				foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type){
+    					if(is_array($def->products[$var])){
+    						foreach ($def->products[$var] as $p){
+    							$p = (object)$p;
+    							$nRec = new stdClass();
+    							$nRec->taskId = $rec->id;
+    							$nRec->packagingId    = $p->packagingId;
+    							$nRec->quantityInPack = $p->quantityInPack;
+    							$nRec->packagingId    = $p->packagingId;
+    							$nRec->planedQuantity = $p->packQuantity;
+    							$nRec->productId      = $p->productId;
+    							$nRec->type			  = $type;
+    							
+    							planning_drivers_ProductionTaskProducts::save($nRec);
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
 }
