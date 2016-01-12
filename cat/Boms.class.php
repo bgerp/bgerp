@@ -1144,7 +1144,7 @@ class cat_Boms extends core_Master
     	// За всеки от тях
     	if(is_array($details)){
     		foreach ($details as $dRec){
-    			// Параметрите са на продукта на рецепата
+    			// Параметрите са на продукта на рецептата
     			$params = static::getRowParams($rec->productId);
     			$params['$T'] = $quantity;
     			
