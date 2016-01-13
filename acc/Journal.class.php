@@ -603,6 +603,8 @@ class acc_Journal extends core_Master
             $jIds[$jRec->journalId] = $jRec->journalId;
         }
         
+        $now = dt::now();
+        
         // Извличаме всички транзакции на намерените журнали
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
