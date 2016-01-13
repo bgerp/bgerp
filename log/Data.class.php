@@ -440,7 +440,7 @@ class log_Data extends core_Manager
      */
     public static function prepareText($action, $className, $objectId = NULL)
     {
-        $clsInst = NULL;
+        $link = NULL;
         
         if ($className) {
             if (cls::load($className, TRUE)) {
@@ -448,13 +448,15 @@ class log_Data extends core_Manager
                 
                 if (method_exists($clsInst, 'getLinkForObject')) {
                     $link = $clsInst->getLinkForObject($objectId);
-                } else {
-                    $link = $className;
                 }
+            }
+            
+            if (!$link) {
+                $link = $className;
             }
         }
         
-        if ($link) {
+        if (isset($link)) {
             if (strpos($action, self::$objReplaceInAct) !== FALSE) {
                 $action = str_replace(self::$objReplaceInAct, $link, $action);
             } else {

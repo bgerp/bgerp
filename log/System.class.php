@@ -19,6 +19,19 @@ class log_System extends core_Manager
     
     
     /**
+     * Максимален брой записи, които ще се извличат
+     */
+    static $phpErrMaxLimit = 20;
+    
+    
+    /**
+     * Кои PHP грешки да се каствам logErr
+     * Останалите грешки ще са logNotice
+     */
+    static $phpErrReportTypeArr = array('error', 'warning');
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = 'Системен лог';
@@ -33,7 +46,7 @@ class log_System extends core_Manager
     /**
      * Кои полета ще бъдат показани?
      */
-    var $listFields = 'id,createdOn=Кога?,createdBy=Кой?,what=Какво?';
+    var $listFields = 'id, createdOn=Дата, createdBy=Потребител, what=Действие';
     
     
     /**
@@ -75,7 +88,7 @@ class log_System extends core_Manager
     /**
      * 
      */
-    protected static $notifyErrArr = array('emerg', 'alert', 'crit', 'err');
+    protected static $notifyErrArr = array('emerg', 'alert', 'crit', 'err', 'logErr');
     
     
     /**
@@ -87,7 +100,7 @@ class log_System extends core_Manager
         $this->FLD('objectId', 'int');
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
-        $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг)', 'caption=Тип');
+        $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
     }
     
     
@@ -255,17 +268,25 @@ class log_System extends core_Manager
             switch ($rec->type) {
                 case 'emerg':
                 case 'alert':
-                    $msg = '|Нови спешни грешки в системния лог';
+                    $msgType = 'спешни';
                 break;
                 
                 case 'crit':
-                    $msg = '|Нови критични грешки в системния лог';
+                    $msgType = 'критични';
+                break;
+                
+                case 'logErr':
+                    $msgType = 'PHP';
                 break;
                 
                 default:
-                    $msg = '|Нови грешки в системния лог';
+                    $msgType = '';
                 break;
             }
+            
+            $msgType .= $msgType ? ' ' : '';
+            
+            $msg = "|Нови {$msgType}грешки в системния лог";
             
             foreach ($adminsArr as $userId) {
                 if (!$this->haveRightFor('list', NULL, $userId)) continue;
@@ -277,11 +298,134 @@ class log_System extends core_Manager
     
     
     /**
+     * Извлича грешките от "error_log" по cron
+     */
+    function cron_getErr()
+    {
+        // Пътя до файла с грешки
+        $errLogPath = get_cfg_var("error_log");
+        
+        if (!$errLogPath) return;
+        
+        if (!is_file($errLogPath)) return;
+        
+        $content = file_get_contents($errLogPath);
+        
+        if (!$content) return;
+        
+        $contentArr = explode("\n", $content);
+        $contentArr = array_reverse($contentArr);
+        
+        $i = 0;
+        
+        $arrSave = array();
+        $hashArr = array();
+        
+        foreach ($contentArr as $errStr) {
+            $errStr = trim($errStr);
+            if (!strlen($errStr)) continue;
+            
+            // Максимумалния лимит, който може да се извлече
+            // Да не претовари сървъра, когато се пуска за първи път или след дълго време
+            if ($i >= self::$phpErrMaxLimit) break;
+            
+            // Парсираме и записваме грешката
+            $errArr = self::parsePhpErr($errStr);
+            
+            $nErrStr = $errArr['type'] . ': ' . $errArr['err'];
+            
+            $errType = 'logNotice';
+            $lifeDays = 7;
+            
+            foreach (self::$phpErrReportTypeArr as $reportType) {
+                if (stripos($errArr['type'], $reportType) !== FALSE) {
+                    $errType = 'logErr';
+                    $lifeDays = 30;
+                    break;
+                }
+            }
+            
+            $hash = md5($nErrStr);
+            
+            if (isset($hashArr[$hash])) continue;
+            
+            $hashArr[$hash] = TRUE;
+            
+            $rec = new stdClass();
+            $rec->className = get_called_class();
+            $rec->detail = $nErrStr;
+            if ($errArr['time']) {
+                $rec->createdOn = $errArr['time'];
+            }
+            $rec->type = $errType;
+            
+            // Ако сме достигнали до съществуващ запис спираме процеса
+            if (self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #createdOn = '[#3#]' AND #type = '[#4#]'", $rec->className, $rec->detail, $rec->createdOn, $rec->type))) break;
+            
+            // Да не се добавят стари записи, които ще се изтрият веднага по крон
+            $before = dt::subtractSecs($lifeDays * 86400);
+            if ($errArr['time'] && $before > $errArr['time']) continue;
+            
+            $i++;
+            
+            $arrSave[] = $rec;
+        }
+        
+        // Първо да се записват най-старите записи, както са във файла
+        $arrSave = array_reverse($arrSave);
+        foreach ($arrSave as $rSave) {
+            self::save($rSave);
+        }
+    }
+    
+    
+    /**
+     * Парсира стринга и взма времето, типа и съобщението за грешка
+     * 
+     * @param string $errStr
+     * 
+     * @return array
+     * 'time'
+     * 'type'
+     * 'err'
+     */
+    protected static function parsePhpErr($errStr)
+    {
+        $resArr = array();
+        $timeEdnPos = 0;
+        if (strpos($errStr, '[') === 0) {
+            $timeEdnPos = strpos($errStr, '] ');
+            $resArr['time'] = substr($errStr, 1, $timeEdnPos-1);
+            $resArr['time'] = dt::verbal2mysql($resArr['time']);
+        }
+        
+        $errEndPos = strpos($errStr, ': ');
+        
+        $resArr['type'] = substr($errStr, $timeEdnPos+2, $errEndPos-$timeEdnPos-2);
+        $resArr['err'] = substr($errStr, $errEndPos+2);
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Начално установяване на модела
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        // Нагласяване на Крон        
+        // Нагласяване на Крон  за извлича грешките от "error_log"  
+        $rec = new stdClass();
+        $rec->systemId = 'getErr';
+        $rec->description = 'Извлича грешките от "error_log"';
+        $rec->controller = $mvc->className;
+        $rec->action = 'getErr';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 50;
+        $res .= core_Cron::addOnce($rec);
+        
+        // Нагласяване на Крон за изтриване на старите логове в системата
         $rec = new stdClass();
         $rec->systemId = 'DeleteExpiredLogs';
         $rec->description = 'Изтриване на старите логове в системата';
