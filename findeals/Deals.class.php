@@ -282,7 +282,7 @@ class findeals_Deals extends deals_DealBase
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
-    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
     	
     	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
     	
