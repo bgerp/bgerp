@@ -380,6 +380,34 @@ class log_System extends core_Manager
     
     
     /**
+     * Отдалечено репортване на грешките
+     */
+    function cron_reportSysErr()
+    {
+        $period = core_Cron::getPeriod('reportSysErr');
+        
+        $before = dt::subtractSecs($period + 59);
+        
+        $query = self::getQuery();
+        $query->where("#createdOn >= '{$before}'");
+        
+        $query->orWhereArr('type', self::$notifyErrArr);
+        
+        $query->orderBy('createdOn', 'DESC');
+        
+        $resArr = array();
+        
+        while ($rec = $query->fetch()) {
+            $resArr[] = $rec;
+        }
+        
+        if (!empty($resArr)) {
+            wp($resArr);
+        }
+    }
+    
+    
+    /**
      * Парсира стринга и взма времето, типа и съобщението за грешка
      * 
      * @param string $errStr
@@ -432,7 +460,7 @@ class log_System extends core_Manager
         $rec->controller = $mvc->className;
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
-        $rec->offset = rand(1320, 1439); // ot 22h до 24h
+        $rec->offset = rand(1320, 1439); // от 22h до 24h
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
@@ -445,6 +473,18 @@ class log_System extends core_Manager
         $rec->action = 'notifyForSysErr';
         $rec->period = 5;
         $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 50;
+        $res .= core_Cron::addOnce($rec);
+        
+        // Нагласяване на Крон за репортване на грешки
+        $rec = new stdClass();
+        $rec->systemId = 'reportSysErr';
+        $rec->description = 'Репортване на грешки';
+        $rec->controller = $mvc->className;
+        $rec->action = 'reportSysErr';
+        $rec->period = 24 * 60;
+        $rec->offset = rand(60, 180); // от 1h до 3h
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
