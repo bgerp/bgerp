@@ -296,12 +296,12 @@ abstract class store_DocumentMaster extends core_Master
 	   	@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
 	   
-	   	if(!$rec->weight) {
-	   		$row->weight = "<span class='quiet'>0</span>";
+	   	if(!isset($rec->weight)) {
+	   		$row->weight = "<span class='quiet'>NaN</span>";
 	   	}
 	   
-	   	if(!$rec->volume) {
-	   		$row->volume = "<span class='quiet'>0</span>";
+	   	if(!isset($rec->volume)) {
+	   		$row->volume = "<span class='quiet'>NaN</span>";
 	   	}
 	   	 
 	   	if(isset($fields['-list'])){
