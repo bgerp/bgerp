@@ -719,6 +719,8 @@ class acc_BalanceDetails extends core_Detail
         $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
         $form->input("accId", TRUE);
+        $form->FNC("bId", 'int', 'input=hidden');
+        $form->setDefault('bId', Request::get('id'));
         
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
@@ -732,6 +734,23 @@ class acc_BalanceDetails extends core_Detail
                 if($form->rec->{"grouping{$i}"} && $form->rec->{"feat{$i}"}){
                     $form->setError("grouping{$i},feat{$i}", "Не може да са избрани едновременно перо и свойтво за една позиция");
                 }
+            }
+            
+            if(!$form->gotErrors()){
+            	
+            	// Ако няма грешки в формата подготвяме хубав редирект
+            	$url = array('acc_Balances', 'single', $form->rec->bId, 'accId' => $form->rec->accId);
+            	foreach (range(1, 3) as $i){
+            		if(!empty($form->rec->{"grouping{$i}"})){
+            			$url["grouping{$i}"] = $form->rec->{"grouping{$i}"};
+            		}
+            		if(!empty($form->rec->{"feat{$i}"})){
+            			$url["feat{$i}"] = $form->rec->{"feat{$i}"};
+            		}
+            	}
+            	
+            	// Понеже се подменя ид-то правим директен редирект
+            	Redirect($url);
             }
         }
         
