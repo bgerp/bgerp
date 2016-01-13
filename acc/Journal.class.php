@@ -779,7 +779,7 @@ class acc_Journal extends core_Master
     		
     		if(!$form->gotErrors()){
     			$accounts = keylist::toArray($rec->accounts);
-    			$types = arr::make($rec->types, TRUE);
+    			$types = type_Keylist::toArray($rec->types);
     			foreach ($accounts as $id => $accId){
     				$accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
     			}
