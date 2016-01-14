@@ -49,7 +49,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
+		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во,silent');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
 	}
@@ -211,7 +211,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     							$nRec->packagingId    = $p->packagingId;
     							$nRec->quantityInPack = $p->quantityInPack;
     							$nRec->packagingId    = $p->packagingId;
-    							$nRec->planedQuantity = $p->packQuantity;
+    							$nRec->planedQuantity = ($p->packQuantity / $def->quantity) * $rec->totalQuantity;
     							$nRec->productId      = $p->productId;
     							$nRec->type			  = $type;
     							

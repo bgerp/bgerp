@@ -90,7 +90,7 @@ class planning_Tasks extends tasks_Tasks
 		// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
-	
+				
 				// Ако не може да бъде доабвена задача не показваме реда
 				if(!self::haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
 				

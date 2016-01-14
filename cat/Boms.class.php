@@ -1242,6 +1242,7 @@ class cat_Boms extends core_Master
     	
     	$tasks = array(1 => (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     									  'title'    => $pName,
+    									  'quantity' => $rec->quantity,
     									  'products' => array('production' => array(array('productId' => $rec->productId, 'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'), 'packQuantity' => $rec->quantity, 'quantityInPack' => 1)),
     										 				  'input'    => array(),
     										 				  'waste'    => array())));
@@ -1267,15 +1268,26 @@ class cat_Boms extends core_Master
     		$query2 = cat_BomDetails::getQuery();
     		$query2->where("#parentId = {$dRec->id}");
     
-    		$quantity = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
-    		if($quantity == cat_BomDetails::CALC_ERROR){
-    			$quantity = 0;
+    		$quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
+    		if($quantityP == cat_BomDetails::CALC_ERROR){
+    			$quantityP = 0;
     		}
     
+    		$parent = $dRec->parentId;
+    		while($parent && ($pRec = cat_BomDetails::fetch($parent))) {
+    			$q = cat_BomDetails::calcExpr($pRec->propQuantity, $pRec->params);
+    			if($q == cat_BomDetails::CALC_ERROR){
+    				$q = 0;
+    			}
+    			$quantityP *= $q;
+    			$parent = $pRec->parentId;
+    		}
+    		
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
+    							 'quantity' => $quantityP,
     							 'products' => array(
-		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $dRec->quantityInPack)),
+		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantityP, 'quantityInPack' => $dRec->quantityInPack)),
 		    						'input'      => array(),
 		    						'waste'      => array()));
     
@@ -1286,7 +1298,7 @@ class cat_Boms extends core_Master
     			}
     			 
     			$place = ($cRec->type == 'pop') ? 'waste' : 'input';
-    			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $cRec->quantityInPack);
+    			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantity * $quantityP, 'quantityInPack' => $cRec->quantityInPack);
     		}
     
     		$tasks[] = $arr;
