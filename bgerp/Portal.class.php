@@ -145,6 +145,8 @@ class bgerp_Portal extends core_Manager
         $tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, "portalSearch();");
         
+        bgerp_LastTouch::set('portal');
+
         return $tpl;
     }
     
@@ -201,4 +203,5 @@ class bgerp_Portal extends core_Manager
         $html .= "</datalist>\n";
         $form->layout->append(new ET($html), 'DATA_LIST');
     }
+
 }

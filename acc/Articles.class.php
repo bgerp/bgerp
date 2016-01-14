@@ -37,9 +37,16 @@ class acc_Articles extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing, doc_plg_HidePrices,
+    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'acc_ArticleDetails';
     
     
     /**
@@ -441,7 +448,7 @@ class acc_Articles extends core_Master
     public static function on_AfterJournalUpdated($mvc, $id, $journalId)
     {
         // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
-        
+       
         // Всички детайли на МО
         $rec = $mvc->fetchRec($id);
         $dQuery = acc_ArticleDetails::getQuery();
@@ -451,10 +458,16 @@ class acc_Articles extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalId}");
         $jRecs = $jQuery->fetchAll();
-        
+
+        $count = 0;
         while($dRec = $dQuery->fetch()){
+        	$count++;
+        	$jCount = 0;
+        	
             foreach ($jRecs as $jRec){
-                if($dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
+            	$jCount++;
+            	
+                if($count === $jCount && $dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
                     $dRec->creditAccId == $jRec->creditAccId && $dRec->creditEnt1 == $jRec->creditItem1 && $dRec->creditEnt2 == $jRec->creditItem2 && $dRec->creditEnt3 == $jRec->creditItem3){
                     if(!is_null($jRec->debitPrice)){
                         $dRec->debitPrice = $jRec->debitPrice;

@@ -467,7 +467,7 @@ class tasks_Tasks extends embed_Manager
     			$ProductDriver = cat_Products::getDriver($productId);
     			
     			// Намираме препоръчителните задачи за драйвера
-    			$taskInfoArray = $ProductDriver->getDefaultJobTasks();
+    			$taskInfoArray = $ProductDriver->getDefaultTasks();
     			
     			// Задаваме дефолтите на задачата
     			if(isset($taskInfoArray[$rec->systemId])){
@@ -763,9 +763,9 @@ class tasks_Tasks extends embed_Manager
     {
     	$rec = $data->rec;
     	if($Driver = $this->getDriver($rec->id)){
-    		$data->details = array_merge(arr::make($Driver->getDetail(), TRUE), arr::make($this->details, TRUE));
+    		$data->details = array_merge($Driver->getDetails(), arr::make($this->details, TRUE));
     	}
-    		
+    	
     	parent::prepareSingle_($data);
     	
     	return $data;

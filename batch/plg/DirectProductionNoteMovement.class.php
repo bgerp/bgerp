@@ -54,7 +54,7 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 		if($form->isSubmitted()){
 			if(is_object($BatchClass)){
 				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-				if(!$BatchClass->isValid($rec->batch, $measureId, $rec->quantity, $msg)){
+				if(!$BatchClass->isValid($rec->batch, $rec->quantity, $msg)){
 					$form->setError('batch', $msg);
 				}
 			}

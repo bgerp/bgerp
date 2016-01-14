@@ -212,7 +212,7 @@ class cal_Tasks extends core_Master
         $this->FLD('description', 'richtext(bucket=calTasks)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,mandatory,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Отговорници,changable');
 
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
@@ -436,6 +436,13 @@ class cal_Tasks extends core_Master
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
 
         if ($form->isSubmitted()) {
+            
+            $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
+            
+            if (empty($sharedUsersArr)) {
+                $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
+            }
+            
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
                 $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
             }

@@ -284,7 +284,6 @@ class embed_Manager extends core_Master
                 case 'afterprepareeditform':
                     $driverClass = $args[0]->form->rec->{$this->driverClassField};
                     break;
-
                 case 'afterrendersinglelayout':
                 case 'afterrendersingletitle':
                 case 'afterrendersingletoolbar':
@@ -301,19 +300,21 @@ class embed_Manager extends core_Master
                 case 'afterpreparesingletoolbar':
                     $driverClass = $args[1]->rec->{$this->driverClassField};
                     break;
-
                 case 'afterinputeditform':
                     $driverClass = $args[0]->rec->{$this->driverClassField};
                     break;
-
                 case 'afterread':
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
-                    
                 case 'aftergetsearchkeywords';
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
                 case 'beforesaveclonerec':
+                	$driverClass = $args[1]->{$this->driverClassField};
+                	break;
+                case 'beforesave':
+                	$driverClass = $args[1]->{$this->driverClassField};
+                case 'aftercreate':
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
             }

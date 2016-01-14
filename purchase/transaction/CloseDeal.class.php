@@ -7,14 +7,14 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
  * @see acc_TransactionSourceIntf
  *
  */
-class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
+class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
 {
     /**
      * 
@@ -63,7 +63,7 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	// Създаване на обекта за транзакция
     	$result = (object)array(
     			'reason'      => $rec->notes,
-    			'valior'      => $this->class->getValiorDate($rec),
+    			'valior'      => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
     			'totalAmount' => 0,
     			'entries'     => array()
     	);

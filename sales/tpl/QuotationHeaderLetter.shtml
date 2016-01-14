@@ -60,6 +60,9 @@
 	                    <!--ET_BEGIN paymentMethodId-->
 	                    <li>|Начин на плащане|*: <b>[#paymentMethodId#]</b></li>
 	                    <!--ET_END paymentMethodId-->
+	                    <!--ET_BEGIN bankAccountId-->
+			            <li>|Банкова сметка|*: <b>[#bankAccountId#]</b></li>
+			            <!--ET_END bankAccountId-->
 	                    <!--ET_BEGIN deliveryTermId-->
 	                    <li>|Условие на доставка|*: <b>[#deliveryTermId#]</b></li>
 	                    <!--ET_END deliveryTermId-->
