@@ -721,6 +721,7 @@ class acc_BalanceDetails extends core_Detail
         $form->input("accId", TRUE);
         $form->FNC("bId", 'int', 'input=hidden');
         $form->setDefault('bId', Request::get('id'));
+        $form->input("bId");
         
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
