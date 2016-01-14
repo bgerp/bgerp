@@ -1968,7 +1968,8 @@ class cat_Products extends embed_Manager {
     			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
-    			$obj->quantity = $dRec->rowQuantity / $rec->quantity;
+    			
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity / $rec->quantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
