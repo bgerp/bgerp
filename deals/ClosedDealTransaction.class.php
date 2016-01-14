@@ -28,7 +28,9 @@ abstract class deals_ClosedDealTransaction extends acc_DocumentTransactionSource
     
     	// Промяна на състоянието на документа
     	$rec->state = $this->finalizedState;
-    	$rec->valior = $this->class->getValiorDate($rec);
+    	if(!$rec->valior){
+    		$rec->valior = $this->class->getValiorDate($rec);
+    	}
     	
     	// Запазване на промененото състояние
     	if($id = $this->class->save($rec)) {

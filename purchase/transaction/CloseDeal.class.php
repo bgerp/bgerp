@@ -63,7 +63,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     	// Създаване на обекта за транзакция
     	$result = (object)array(
     			'reason'      => $rec->notes,
-    			'valior'      => $this->class->getValiorDate($rec),
+    			'valior'      => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
     			'totalAmount' => 0,
     			'entries'     => array()
     	);
