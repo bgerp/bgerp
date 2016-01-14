@@ -61,7 +61,7 @@ class planning_Tasks extends tasks_Tasks
 	{
 		$data->recs = $data->rows = array();
 		 
-		$defaultTasks = cat_Products::getDefaultTasks($data->masterData->rec->productId);
+		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId);
 		
 		// Намираме всички задачи към задание
 		$query = $this->getQuery();
