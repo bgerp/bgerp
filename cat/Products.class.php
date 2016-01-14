@@ -1866,6 +1866,7 @@ class cat_Products extends embed_Manager {
     public static function renderComponents($components, $makeLinks = TRUE)
     {
     	if(!count($components)) return;
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	$compTpl = getTplFromFile('cat/tpl/Components.shtml');
     	$block = $compTpl->getBlock('COMP');
@@ -1886,7 +1887,7 @@ class cat_Products extends embed_Manager {
     					 'titleClass'           => $obj->titleClass,
     					 'componentCode'        => $obj->code,
     					 'componentStage'       => $obj->stageName,
-    					 'componentQuantity'    => $obj->quantity,
+    					 'componentQuantity'    => $Double->toVerbal($obj->quantity),
     					 'level'				=> $obj->level,
     				     'leveld'				=> $obj->leveld,
     					 'componentMeasureId'   => $obj->measureId);
@@ -1946,10 +1947,10 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$rec) return $res;
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
+    	
     	if(is_array($details)){
     		$fields = cls::get('cat_BomDetails')->selectFields();
     		$fields['-components'] = TRUE;
@@ -1967,7 +1968,7 @@ class cat_Products extends embed_Manager {
     			 
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
-    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $Double->toVerbal($dRec->rowQuantity);
+    			$obj->quantity = $dRec->rowQuantity / $rec->quantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
