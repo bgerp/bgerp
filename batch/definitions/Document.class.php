@@ -53,7 +53,7 @@ class batch_definitions_Document extends batch_definitions_Varchar
 			$date = str_replace('-', '', dt::today());
 			
 			$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
-			return;
+			return FALSE;
 		}
 		
 		return parent::isValid($value, $quantity, $msg);

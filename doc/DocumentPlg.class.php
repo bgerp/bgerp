@@ -139,7 +139,6 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
-        
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
     }
     
@@ -162,6 +161,8 @@ class doc_DocumentPlg extends core_Plugin
                 )
             );
         }
+        
+        $data->tabTopParam = "TabTop{$data->rec->containerId}";
     }
     
     
@@ -630,13 +631,13 @@ class doc_DocumentPlg extends core_Plugin
                         // Добавяме нова котва към детайлите на таба
                         $url['#'] = 'detailTabs';
                     }
-                    
+                   
                     // Ако има подаден горен таб
-                    if ($tab1 = Request::get('TabTop')) {
+                    if ($tab1 = Request::get("TabTop{$rec->containerId}")) {
                     	
                     	// Добавяме таба
-                    	$url['TabTop'] = $tab1;
-                    	$url['#'] = 'detailTabsTop';
+                    	$url["TabTop{$rec->containerId}"] = $tab1;
+                    	$url['#'] = "detail{$rec->containerId}";
                     }
                    
                     // Ако има страница на документа
@@ -649,6 +650,7 @@ class doc_DocumentPlg extends core_Plugin
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
                     }
+                    
                     $res = new Redirect($url);
                     
                     return FALSE;
@@ -1116,12 +1118,15 @@ class doc_DocumentPlg extends core_Plugin
             $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         }
         
-        // Споделените потребители по подразбиране
-        $defaultShared = $mvc->getDefaultShared($rec, $cid);
-        if ($defaultShared) {
-            unset($defaultShared[-1]);
-            unset($defaultShared[0]);
-            $data->form->setDefault('sharedUsers', $defaultShared);
+        if (!$data->form->rec->id) {
+            // Споделените потребители по подразбиране
+            $defaultShared = $mvc->getDefaultShared($rec, $cid);
+            
+            if ($defaultShared) {
+                unset($defaultShared[-1]);
+                unset($defaultShared[0]);
+                $data->form->setDefault('sharedUsers', $defaultShared);
+            }
         }
     }
 

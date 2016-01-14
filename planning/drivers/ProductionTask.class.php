@@ -19,12 +19,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
-	 * Шаблон за обвивката този драйвер
-	 */
-	//protected $singleLayoutFile = '';
-	
-	
-	/**
 	 * Кой може да избира драйвъра
 	 */
 	public $canSelectDriver = 'planning,ceo';
@@ -45,7 +39,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Кои детайли да се заредят динамично към мастъра
 	 */
-	protected $detail = 'planning_drivers_ProductionTaskDetails';
+	protected $details = 'planning_drivers_ProductionTaskDetails,planning_drivers_ProductionTaskProducts';
 	
 	
 	/**
@@ -55,7 +49,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
+		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во,silent');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
 	}
@@ -86,61 +80,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		 // Изчисляваме колко % от зададеното количество е направено
 		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
 	}
-	
-	
-	/**
-     * Възможност за промяна след обръщането на данните във вербален вид
-     *
-     * @param tasks_TaskDetails $Detail
-     * @param stdClass $row
-     * @param stdClass $rec
-     * @return void
-     */
-	public function recToVerbalDetail(tasks_TaskDetails $Detail, &$row, $rec)
-	{
-		if(isset($rec->operation)){
-			$verbal = arr::make('start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране');
-			if(isset($verbal[$rec->operation])){
-				$row->operation = $verbal[$rec->operation];
-				$row->operation = "<div class='centered'>{$row->operation}</div>";
-			}
-		}
-	}
-	
-	
-	/**
-     * Възможност за промяна след подготовката на формата на детайла
-     *
-     * @param tasks_TaskDetails $Detail
-     * @param stdClass $data
-     * @return void
-     */
-	public function prepareEditFormDetail(tasks_TaskDetails $Detail, &$data)
-	{
-		$form = &$data->form;
-		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
-		$form->setField('operation', 'input,mandatory');
-		
-		// Показваме полето за въвеждане на код само при операция "произвеждане"
-		if($form->rec->operation == 'production'){
-			$form->setField('code', 'input');
-		}
-	}
-    
-    
-    /**
-     * Възможност за промяна след подготовката на лист тулбара
-     *
-     * @param tasks_TaskDetails $Detail
-     * @param stdClass $data
-     * @return void
-     */
-    public function prepareListToolbarDetail(tasks_TaskDetails $Detail, &$data)
-    {
-    	if($data->toolbar->hasBtn('btnAdd')){
-    		$data->toolbar->renameBtn('btnAdd', $Detail->singleTitle);
-    	}
-    }
 
 
     /**
@@ -155,27 +94,31 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
     	if(empty($rec->id)) return;
     	
-    	$Detail = cls::get($Driver->getDetail());
+    	$details = $Driver->getDetails();
     	
-    	$dQuery = $Detail->getQuery();
-    	$dQuery->where("#taskId = {$rec->id}");
-    	 
-    	$detailsKeywords = '';
-    	while($dRec = $dQuery->fetch()){
-    		 
-    		// Добавяме данните от детайла към ключовите думи
-    		$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'operation'));
-    		if($dRec->code){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'code'));
-    		}
-    		 
-    		if($dRec->fixedAsset){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
+    	if(is_array($details)){
+    		foreach ($details as $Detail){
+    			$Detail = cls::get($Detail);
+    			
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->where("#taskId = {$rec->id}");
+    			
+    			$detailsKeywords = '';
+    			while($dRec = $dQuery->fetch()){
+    				
+    				if($dRec->serial){
+    					$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'serial'));
+    				}
+    					
+    				if($dRec->fixedAsset){
+    					$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
+    				}
+    			}
+    			
+    			// Добавяме новите ключови думи към старите
+    			$res = " " . $res . " " . $detailsKeywords;
     		}
     	}
-    	 
-    	// Добавяме новите ключови думи към старите
-    	$res = " " . $res . " " . $detailsKeywords;
     }
     
     
@@ -242,5 +185,42 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec, &$nRec)
     {
     	unset($nRec->totalWeight);
+    }
+    
+    
+    /**
+     * След успешен запис
+     */
+    public static function on_AfterCreate(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec)
+    {
+    	if(isset($rec->originId) && isset($rec->systemId)){
+    		$originDoc = doc_Containers::getDocument($rec->originId);
+    		if($originDoc->isInstanceOf('planning_Jobs')){
+    			$productId = $originDoc->fetchField('productId');
+    			$tasks = cat_Products::getDefaultTasks($productId);
+    			if(isset($tasks[$rec->systemId])){
+    				$def = $tasks[$rec->systemId];
+    				
+    				$r = array();
+    				foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type){
+    					if(is_array($def->products[$var])){
+    						foreach ($def->products[$var] as $p){
+    							$p = (object)$p;
+    							$nRec = new stdClass();
+    							$nRec->taskId = $rec->id;
+    							$nRec->packagingId    = $p->packagingId;
+    							$nRec->quantityInPack = $p->quantityInPack;
+    							$nRec->packagingId    = $p->packagingId;
+    							$nRec->planedQuantity = ($p->packQuantity / $def->quantity) * $rec->totalQuantity;
+    							$nRec->productId      = $p->productId;
+    							$nRec->type			  = $type;
+    							
+    							planning_drivers_ProductionTaskProducts::save($nRec);
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
     }
 }

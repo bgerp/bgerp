@@ -32,7 +32,8 @@ class crm_ProfilesPlg extends core_Plugin
 
             return;
         }
-
+        
+        expect(is_array($fields));
         $fieldsCnt = count($fields);
         
         // Показваме никовете, като линкове, само при лист и сингъл изглед

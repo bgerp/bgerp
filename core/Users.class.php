@@ -1103,7 +1103,9 @@ class core_Users extends core_Manager
         
         $nick = $inputs->nick ? $inputs->nick : $inputs->email;
         
-        vislog_IpNames::add($nick);
+        if($nick) {
+            vislog_IpNames::add($nick);
+        }
         
         // Обновяваме времето на BRID кукито
         log_Browsers::updateBridCookieLifetime();

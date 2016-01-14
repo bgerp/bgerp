@@ -374,6 +374,9 @@ class planning_ObjectResources extends core_Manager
     	
     	if($info = planning_ObjectResources::fetch("#objectId = {$productId}")){
     		$convertProductId = $info->likeProductId;
+    		if(!$convertProductId) {
+    			$convertProductId = $productId;
+    		}
     		
     		if(empty($info->conversionRate)){
     			$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;

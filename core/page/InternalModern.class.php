@@ -121,10 +121,10 @@ class core_page_InternalModern extends core_page_Active
     			$pinned = ' hidden ';
     	}
     	
-    	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
-    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}"));
-        $searchImg = ht::createElement('img', array('src' => sbf('img/search_2.png', '')));
-    	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}"));
+    	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
+    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}", 'alt' => 'pin'));
+        $searchImg = ht::createElement('img', array('src' => sbf('img/search_2.png', ''), 'alt' => 'search'));
+    	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}", 'alt' => 'unpin'));
     	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
     	
     	// Задаваме лейаута на страницата

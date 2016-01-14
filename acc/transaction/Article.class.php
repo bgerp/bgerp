@@ -42,8 +42,10 @@ class acc_transaction_Article extends acc_DocumentTransactionSource
 			// детайл-записите на мемориалните ордери имат същата структура, каквато е и на
 			// детайлите на журнала.
 			$query = acc_ArticleDetails::getQuery();
-	
-			while ($entry = $query->fetch("#articleId = {$rec->id}")) {
+			$query->where("#articleId = {$rec->id}");
+			$query->orderBy("id", 'ASC');
+			
+			while ($entry = $query->fetch()) {
 				$debitRec = acc_Accounts::fetch($entry->debitAccId);
 				$creditRec = acc_Accounts::fetch($entry->creditAccId);
 	

@@ -1530,7 +1530,7 @@ td.rowtools-column {
 }
 
 .articleCell{
-    min-width: 220px;
+    min-width: 200px;
     max-width: 270px;
 }
 
@@ -3801,10 +3801,20 @@ body.narrow {
 	    padding: 10px 0;
 	}
 
-    .wide .listBlock .listRows > table.listTable{
+    .wide not('.user-profile') .listBlock .listRows > table.listTable{
         min-width:760px;
     }
-   
+    .wide .user-profile{
+	    .listTopContainer {
+	        min-width:0;
+    	}
+    }
+    .wide .user-profile .listBlock {
+    	display: block;
+	    .listRows > table.listTable{
+	        width: 100%;
+	    }
+	}
 }
 
 @media handheld , only screen and (min-width: 1550px) {
@@ -4965,6 +4975,57 @@ body.narrow {
 	}
 }
 
+.tooltip
+{
+    text-align: center;
+    color: #fff;
+    background: rgba(30,30,30,0.9);
+    border-radius: 5px;
+    position: absolute;
+    z-index: 100;
+    padding: 10px;
+    font-size: 0.9em;
+}
+
+.narrow .tooltip {
+	padding: 5px;
+	font-size: 0.8em;
+}
+
+.tooltip:after /* triangle decoration */
+{
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid rgba(30,30,30,0.9);
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    margin-left: -10px;
+}
+
+.tooltip.top:after
+{
+    border-top-color: transparent;
+    border-bottom: 10px solid rgba(30,30,30,0.9);
+    top: -20px;
+    bottom: auto;
+}
+
+.tooltip.left:after
+{
+    left: 10px;
+    margin: 0;
+}
+
+.tooltip.right:after
+{
+    right: 10px;
+    left: auto;
+    margin: 0;
+}
 
 /* край на стилове за външната част при потребител контрактор */
 .cd-l1{

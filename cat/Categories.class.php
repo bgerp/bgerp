@@ -140,7 +140,13 @@ class cat_Categories extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    public $canDelete = 'cat,ceo';
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой има право да го оттегля?
+     */
+    public $canReject = 'cat,ceo';
     
     
     /**
