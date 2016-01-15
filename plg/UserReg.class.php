@@ -201,7 +201,7 @@ class plg_UserReg extends core_Plugin
                     $conf = core_Packs::getConfig('core');
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
-                    redirect(array('Index'), TRUE, $msg->getContent());
+                    redirect(array('Index'), FALSE, '|' . $msg->getContent());
                 }
             }
             
@@ -237,16 +237,16 @@ class plg_UserReg extends core_Plugin
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
             if (!$userId || (!$rec = $mvc->fetch($userId))) {
-                redirect(array('Index'), FALSE, 'Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
+                redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
             }
             
             // Проверка дали състоянието съответства на действието
             if ($rec->state != 'draft' && $act == 'activate') {
-                redirect(array('Index'), FALSE, 'Този акаунт е вече активиран.', 'error');
+                redirect(array('Index'), FALSE, '|Този акаунт е вече активиран.', 'error');
             }
             
             if ($rec->state == 'draft' && $act == 'changePass') {
-                redirect(array('Index'), FALSE, 'Този акаунт все още не е активиран.', 'error');
+                redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.', 'error');
             }
             
             $form = cls::get('core_Form');
@@ -335,7 +335,7 @@ class plg_UserReg extends core_Plugin
                     core_Users::addRole($userId, 9);
                     core_Users::addRole($userId, 10);
                     
-                    return redirect(array('core_Users','login'));
+                    redirect(array('core_Users','login'));
                 }
             }
             
@@ -388,7 +388,7 @@ class plg_UserReg extends core_Plugin
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
                     // Редиректване с показване на съобщение
-                    redirect(array('Index'), TRUE, $msg->getContent());
+                    redirect(array('Index'), TRUE, '|' . $msg->getContent());
                 }
             }
             

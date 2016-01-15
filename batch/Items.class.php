@@ -229,7 +229,7 @@ class batch_Items extends core_Master {
     	batch_Movements::truncate();
     	batch_Items::truncate();
     	
-    	redirect(array($this, 'list'), FALSE, 'Успех');
+    	return new Redirect(array($this, 'list'), '|Успех');
     }
     
     

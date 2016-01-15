@@ -135,7 +135,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->requireRightFor('add');
     	
     	if(!$recId = Request::get('recId', 'int')){
-    		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
+    		core_Statuses::newStatus('|Не е избран ред|*!', 'error');
     		return $this->returnError($recId);
     	}
     	
@@ -150,12 +150,12 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->getFieldType('discountPercent')->params['Max']=1;
     	$discount = $this->getFieldType('discountPercent')->fromVerbal($discount);
     	if(!isset($discount)){
-    		core_Statuses::newStatus(tr('|Не е въведено валидна процентна отстъпка|*!'), 'error');
+    		core_Statuses::newStatus('|Не е въведено валидна процентна отстъпка|*!', 'error');
     		return $this->returnError($rec->receiptId);
     	}
     	
     	if($discount > 1){
-    		core_Statuses::newStatus(tr('|Отстъпката не може да е над|* 100%!'), 'error');
+    		core_Statuses::newStatus('|Отстъпката не може да е над|* 100%!', 'error');
     		return $this->returnError($rec->receiptId);
     	}
     	
@@ -164,11 +164,11 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	if($this->save($rec)){
     		
-    		core_Statuses::newStatus(tr('|Успешно зададохте отстъпка|*!'));
+    		core_Statuses::newStatus('|Успешно зададохте отстъпка|*!');
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при задаване на отстъпка|*!'), 'error');
+    		core_Statuses::newStatus('|Проблем при задаване на отстъпка|*!', 'error');
     	}
     	
     	return $this->returnError($rec->receiptId);
@@ -237,7 +237,7 @@ class pos_ReceiptDetails extends core_Detail {
         } else {
         	
         	// Ако не сме в Ajax режим пренасочваме към терминала
-        	return Redirect(array($this->Master, 'Terminal', $receiptId));
+        	redirect(array($this->Master, 'Terminal', $receiptId));
         }
     }
     
@@ -251,7 +251,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да има избран ред
     	if(!$recId = Request::get('recId', 'int')){
-    		core_Statuses::newStatus(tr('|Не е избран ред|*!'), 'error');
+    		core_Statuses::newStatus('|Не е избран ред|*!', 'error');
     		return $this->returnError($rec->receiptId);
     	}
     	
@@ -267,14 +267,14 @@ class pos_ReceiptDetails extends core_Detail {
     	$quantityId = $this->getFieldType('quantity')->fromVerbal($quantityId);
     	
     	if($quantityId === FALSE){
-    		core_Statuses::newStatus(tr('|Не е въведено валидно количество|*!'), 'error');
+    		core_Statuses::newStatus('|Не е въведено валидно количество|*!', 'error');
     		return $this->returnError($rec->receiptId);
     	}
     	
     	// Ако е въведено '0' за количество изтриваме реда
     	if($quantityId === (double)0){
     		$this->delete($recId);
-    		core_Statuses::newStatus(tr('|Успешно изтрихте артикула|*!'));
+    		core_Statuses::newStatus('|Успешно изтрихте артикула|*!');
     		
     		return $this->returnResponse($rec->receiptId);
     	}
@@ -286,11 +286,11 @@ class pos_ReceiptDetails extends core_Detail {
     	// Запис на новото количество
     	if($this->save($rec)){
     		
-    		core_Statuses::newStatus(tr('|Успешно променихте количеството|*!'));
+    		core_Statuses::newStatus('|Успешно променихте количеството|*!');
     		
     		return $this->returnResponse($rec->receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при редакция на количество|*!'), 'error');
+    		core_Statuses::newStatus('|Проблем при редакция на количество|*!', 'error');
     	}
     	
     	return $this->returnError($rec->receiptId);
@@ -322,7 +322,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$amount = Request::get('amount');
     	$amount = $this->getFieldType('amount')->fromVerbal($amount);
     	if(!$amount || $amount <= 0){
-    		core_Statuses::newStatus(tr('|Трябва да въведете положителна сума|*!'), 'error');
+    		core_Statuses::newStatus('|Трябва да въведете положителна сума|*!', 'error');
 	    	return $this->returnError($recId);
     	}
     	
@@ -331,7 +331,7 @@ class pos_ReceiptDetails extends core_Detail {
     	if($type != -1){
     		// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
     		if(!cond_Payments::returnsChange($type) && (string)$amount > (string)$diff){
-    			core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
+    			core_Statuses::newStatus('|Не може с този платежен метод да се плати по-голяма сума от общата|*!', 'error');
     			return $this->returnError($recId);
     		}
     	}
@@ -350,11 +350,11 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Запис на плащанетo
     	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Успешно направихте плащане|*!'));
+    		core_Statuses::newStatus('|Успешно направихте плащане|*!');
     		
     		return $this->returnResponse($recId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при плащане|*!'), 'error');
+    		core_Statuses::newStatus('|Проблем при плащане|*!', 'error');
     	}
     	
     	return $this->returnError($recId);
@@ -380,14 +380,14 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptId = $rec->receiptId;
     	
     	if($this->delete($rec->id)){
-    		core_Statuses::newStatus(tr('|Успешно изтрихте реда|*!'));
+    		core_Statuses::newStatus('|Успешно изтрихте реда|*!');
     		
     		// Ъпдейт на бележката след изтриването
     		$this->Master->updateReceipt($receiptId);
     		
     		return $this->returnResponse($receiptId);
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при изтриването на ред|*!'), 'error');
+    		core_Statuses::newStatus('|Проблем при изтриването на ред|*!', 'error');
     	}
     	
     	return $this->returnError($receiptId);

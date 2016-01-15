@@ -311,7 +311,7 @@ class acc_Journal extends core_Master
         $mvc->logWrite("Контиране на документ", $docId);
         
         // Редирект към сингъла
-        return redirect(array($mvc, 'single', $docId));
+        return new Redirect(array($mvc, 'single', $docId));
     }
     
     

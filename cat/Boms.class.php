@@ -310,7 +310,7 @@ class cat_Boms extends core_Master
     		
     		if($rec->brState == 'active'){
     			if($nextId = $mvc->activateLastBefore($rec)){
-					core_Statuses::newStatus(tr("Активирана е рецепта|* #Bom{$nextId}"));
+					core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
     			}
     		} 
     	}
@@ -334,7 +334,7 @@ class cat_Boms extends core_Master
     		}
     		
     		if($idCount){
-    			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
+    			core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
     		}
     	}
     }
@@ -745,11 +745,11 @@ class cat_Boms extends core_Master
     			static::save($bomRec);
     			core_Users::cancelSystemUser();
     			
-    			core_Statuses::newStatus(tr('Успешно е създадена нова базова рецепта'));
+    			core_Statuses::newStatus('|Успешно е създадена нова базова рецепта');
     		} catch(core_exception_Expect $e){
     			
     			// Ако има проблем, репортваме
-    			core_Statuses::newStatus(tr('Проблем при създаването на нова базова рецепта'), 'error');
+    			core_Statuses::newStatus('|Проблем при създаването на нова базова рецепта', 'error');
     			reportException($e);
     		}
     	}
@@ -864,7 +864,7 @@ class cat_Boms extends core_Master
     		if(static::save($nRec)) {
     			cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
     		} else {
-    			core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+    			core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
     		}
     	}
     }

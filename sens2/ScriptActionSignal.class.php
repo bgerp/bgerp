@@ -42,7 +42,7 @@ class sens2_ScriptActionSignal
         $opt = self::getOutputOpts();
 
         if(!count($opt)) {
-            redirect(array('sens2_Controllers'), FALSE, 'Моля, въведете поне един контролер с изход');
+            redirect(array('sens2_Controllers'), FALSE, '|Моля, въведете поне един контролер с изход');
         }
         $form->setOptions('output', array('' => '') + $opt);
 

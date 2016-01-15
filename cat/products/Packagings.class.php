@@ -269,7 +269,7 @@ class cat_products_Packagings extends core_Detail
         if (empty($options)) {
         	
             // Няма повече недефинирани опаковки
-            redirect(getRetUrl(), FALSE, 'Всички налични мерки/опаковки за артикула са вече избрани');
+            redirect(getRetUrl(), FALSE, '|Всички налични мерки/опаковки за артикула са вече избрани');
         }
 		
     	if(!$form->rec->id){

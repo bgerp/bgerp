@@ -790,9 +790,9 @@ class callcenter_Numbers extends core_Manager
         if ($savedNums) {
             
             if ($savedNums == 1) {
-                $res = tr("Добавен e|* {$savedNums} |номер");
+                $res = "|Добавен e|* {$savedNums} |номер";
             } else {
-                $res = tr("Добавени са|* {$savedNums} |номера");
+                $res = "|Добавени са|* {$savedNums} |номера";
             }
         }
         
@@ -807,9 +807,9 @@ class callcenter_Numbers extends core_Manager
             }
             
             if ($delNums == 1) {
-                $res .= tr("Изтрит e|* {$delNums} |номер");
+                $res .= "|Изтрит e|* {$delNums} |номер";
             } else {
-                $res .= tr("Изтрити са|* {$delNums} |номера");
+                $res .= "|Изтрити са|* {$delNums} |номера";
             }
         }
         
@@ -825,9 +825,9 @@ class callcenter_Numbers extends core_Manager
         if (!$res) {
             
             // Добавяме текста
-            $res = tr('Няма нови номера');
+            $res = '|Няма нови номера';
         }
         
-        return Redirect($retUrl, FALSE, $res);
+        return new Redirect($retUrl, $res);
     }
 }

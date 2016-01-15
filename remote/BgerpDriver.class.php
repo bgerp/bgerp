@@ -140,7 +140,7 @@ class remote_BgerpDriver extends core_Mvc
 
         remote_Authorizations::save($rec);
 
-        redirect($url);
+        return new Redirect($url);
     }
 
 
@@ -178,7 +178,7 @@ class remote_BgerpDriver extends core_Mvc
             $nick = type_Varchar::escape($params['nick']);
             $url = type_Varchar::escape($params['url']);
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
-                "Опит за нова оторизация на отдалечения потребител |*<b>{$nick}</b> ({$url})| да следи вашите съобщения.", 'error');
+                "|Опит за нова оторизация на отдалечения потребител|* <b>{$nick}</b> ({$url}) |да следи вашите съобщения", 'error');
         }
 
         if($form->isSubmitted()) {
@@ -215,7 +215,7 @@ class remote_BgerpDriver extends core_Mvc
             }
 
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
-                "Отдалечения потребител " . type_Varchar::escape($params['nick']) . " е оторизиран да следи вашите съобщения.");
+                "|Отдалечения потребител|* " . type_Varchar::escape($params['nick']) . " |е оторизиран да следи вашите съобщения");
         }
 
         return $this->renderWrapping($form->renderHtml());

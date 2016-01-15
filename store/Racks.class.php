@@ -640,7 +640,7 @@ class store_Racks extends core_Master
     {
         store_RackDetails::delete("#rackId = {$query->deleteRecId}");
         
-        return new Redirect(array($this));
+        redirect(array($this));
     }
     
     

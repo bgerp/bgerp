@@ -1053,13 +1053,13 @@ class core_Users extends core_Manager
         // Ако потребителя е блокиран - излизаме от сесията и показваме грешка        
         if ($userRec->state == 'blocked') {
             $Users->logout();
-            redirect(array('Index'), TRUE, tr('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
-                '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.'));
+            redirect(array('Index'), FALSE, '|Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
+                '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
         }
         
         if ($userRec->state == 'draft') {
-            redirect(array('Index'), TRUE, tr('Този акаунт все още не е активиран.|*<BR>' .
-                '|На имейлът от регистрацията е изпратена информация и инструкция за активация.'));
+            redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.|*<BR>' .
+                '|На имейлът от регистрацията е изпратена информация и инструкция за активация.');
         }
         
         if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
@@ -1798,7 +1798,7 @@ class core_Users extends core_Manager
     	
         $newUrl = static::setHttpsInUrl($url);
    
-        return  Redirect($newUrl);
+        redirect($newUrl);
     }
     
     

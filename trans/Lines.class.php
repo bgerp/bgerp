@@ -245,10 +245,10 @@ class trans_Lines extends core_Master
     	}
     	
     	$this->save($rec);
-    	$msg = ($rec->state == 'active') ? tr('Линията е отворена успешно') : tr('Линията е затворена успешно');
+    	$msg = ($rec->state == 'active') ? '|Линията е отворена успешно' : '|Линията е затворена успешно';
     	
     	
-    	return Redirect(array($this, 'single', $rec->id), FALSE, $msg);
+    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     

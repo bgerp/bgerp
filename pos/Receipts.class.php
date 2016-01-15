@@ -185,7 +185,7 @@ class pos_Receipts extends core_Master {
     	// Записваме, че потребителя е разглеждал този списък
     	$this->logWrite("Отваряне на бележка в ПОС терминала", $id);
     	
-    	return Redirect(array($this, 'terminal', $id));
+    	return new Redirect(array($this, 'terminal', $id));
     }
     
     
@@ -485,7 +485,7 @@ class pos_Receipts extends core_Master {
     	// Имаме ли достъп до терминала
     	if(!$this->haveRightFor('terminal', $rec)){
     		
-    		return Redirect(array($this, 'new'));
+    		return new Redirect(array($this, 'new'));
     	}
     	
     	// Лейаут на терминала
@@ -859,7 +859,7 @@ class pos_Receipts extends core_Master {
     	$rec->transferedIn = $sId;
     	$rec->state = 'closed';
     	$this->save($rec);
-    	core_Statuses::newStatus(tr("|Бележка|* №{$rec->id} |е затворена|*"));
+    	core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
     	
     	// Споделяме потребителя към нишката на създадената продажба
     	$cu = core_Users::getCurrent();
@@ -867,7 +867,7 @@ class pos_Receipts extends core_Master {
     	doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
     	
     	// Редирект към новата бележка
-    	return new redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
+    	return new Redirect(array('sales_Sales', 'single', $sId), '|Успешно прехвърляне на бележката');
     }
     
     
@@ -995,7 +995,7 @@ class pos_Receipts extends core_Master {
     		return array($resObj);
     		 
     	} else {
-    		Redirect(array($this, 'terminal', $rec->id));
+    		return new Redirect(array($this, 'terminal', $rec->id));
     	}
     }
     
@@ -1141,7 +1141,7 @@ class pos_Receipts extends core_Master {
     	}
     	 
     	if($this->fetchField($receiptId, 'paid')){
-    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|*!'), 'error');
+    		core_Statuses::newStatus('|Не може да се добавя продукт, ако има направено плащане|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	 
@@ -1200,7 +1200,7 @@ class pos_Receipts extends core_Master {
     	
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
-    		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
+    		core_Statuses::newStatus('|Не е избран артикул|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	 
@@ -1209,13 +1209,13 @@ class pos_Receipts extends core_Master {
     	
     	// Ако не е намерен продукт
     	if(!$rec->productId) {
-    		core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|*!'), 'error');
+    		core_Statuses::newStatus('|Няма такъв продукт в системата, или той не е продаваем|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     
     	// Ако няма цена
     	if(!$rec->price) {
-    		core_Statuses::newStatus(tr('|Артикулът няма цена|*!'), 'error');
+    		core_Statuses::newStatus('|Артикулът няма цена|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	
@@ -1246,7 +1246,7 @@ class pos_Receipts extends core_Master {
     		
     		return $resArr;
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*!'), 'error');
+    		core_Statuses::newStatus('|Проблем при добавяне на артикул|*!', 'error');
     	}
     	
     	return $this->pos_ReceiptDetails->returnError($receiptId);
@@ -1263,7 +1263,7 @@ class pos_Receipts extends core_Master {
     	if($rec->state != 'draft'){
     		
     		// Създаване на нова чернова бележка
-    		return redirect(array($this, 'new'));
+    		return new Redirect(array($this, 'new'));
     	}
     	
     	$this->requireRightFor('close', $rec);
@@ -1276,7 +1276,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	// Създаване на нова чернова бележка
-    	return redirect(array($this, 'new'));
+    	return new Redirect(array($this, 'new'));
     }
     
     
@@ -1308,7 +1308,7 @@ class pos_Receipts extends core_Master {
     		return array($resObj);
     		
     	} else {
-    		Redirect(array($this, 'terminal', $rec->id));
+    		return new Redirect(array($this, 'terminal', $rec->id));
     	}
     }
     

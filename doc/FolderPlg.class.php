@@ -404,7 +404,7 @@ class doc_FolderPlg extends core_Plugin
         $rec->folderId = $mvc->forceCoverAndFolder($rec);
  
         if(doc_Folders::haveRightFor('single', $rec->folderId)){
-        	$res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'Папката е създадена успешно');
+        	$res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId), '|Папката е създадена успешно');
         } else {
         	$res = new Redirect(array($mvc, 'single', $rec->id));
         }

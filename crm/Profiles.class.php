@@ -534,7 +534,7 @@ class crm_Profiles extends core_Master
 //	                core_LoginLog::add('pass_change', $userId);
 	                
 	                // Редиректваме към предварително установения адрес
-	                return new Redirect(getRetUrl(), "Паролата е сменена успешно");
+	                return new Redirect(getRetUrl(), "|Паролата е променена успешно");
             	}
 			}
         }

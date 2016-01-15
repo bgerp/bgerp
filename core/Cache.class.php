@@ -234,7 +234,7 @@ class core_Cache extends core_Manager
     {
         requireRole('admin');
         
-        return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
+        return new Redirect(array('core_Cache'), '|' . $this->cron_DeleteExpiredData(Request::get('all')));
     }
 
 

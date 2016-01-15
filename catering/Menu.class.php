@@ -283,7 +283,7 @@ class catering_Menu extends core_Master
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->day) {
-            redirect(array('catering_Menu', 'edit'), TRUE, "Няма въведени данни в полето \"Ден\"");
+            redirect(array('catering_Menu', 'edit'), FALSE, '|Няма въведени данни в полето "Ден"');
         }
         
         switch ($rec->day) {

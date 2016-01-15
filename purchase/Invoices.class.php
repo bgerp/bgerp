@@ -369,7 +369,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$rec = $mvc->fetchRec($id);
     	
     	if(empty($rec->number)){
-    		return Redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
+    		redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
     	}
     }
     

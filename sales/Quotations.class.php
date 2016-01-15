@@ -655,7 +655,7 @@ class sales_Quotations extends core_Master
 	    			$origin->getInstance()->save($originRec);
 	    			
 	    			$msg = "|Активиран е документ|* #{$origin->abbr}{$origin->that}";
-	    			core_Statuses::newStatus(tr($msg));
+	    			core_Statuses::newStatus($msg);
 	    		}		
 	    	}
     	}
@@ -865,7 +865,7 @@ class sales_Quotations extends core_Master
     	if(!$force){
     		// Опитваме се да намерим съществуваща чернова продажба
     		if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
-    			Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
+    			return new Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE, 'quotationId' => $rec->id));
     		}
     	}
     	
@@ -885,7 +885,7 @@ class sales_Quotations extends core_Master
     	$this->logWrite("Създаване на продажба от оферта", $id);
     	
     	// Редирект към новата продажба
-    	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));
+    	return new Redirect(array('sales_Sales', 'single', $sId), '|Успешно е създадена продажба от офертата');
     }
     
     
@@ -941,7 +941,7 @@ class sales_Quotations extends core_Master
     		}
     		 
     		// Редирект към сингъла на новосъздадената продажба
-    		return Redirect(array('sales_Sales', 'single', $sId));
+    		return new Redirect(array('sales_Sales', 'single', $sId));
     	}
     
     	// Рендираме опаковката

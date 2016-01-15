@@ -157,7 +157,7 @@ class social_Followers extends core_Master
         }
     	
     	// Връщаме URL-то
-    	return new Redirect ($rec->url);
+    	return new Redirect($rec->url);
     }
     
     

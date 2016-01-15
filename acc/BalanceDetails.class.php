@@ -751,7 +751,7 @@ class acc_BalanceDetails extends core_Detail
             	}
             	
             	// Понеже се подменя ид-то правим директен редирект
-            	Redirect($url);
+            	redirect($url);
             }
         }
         

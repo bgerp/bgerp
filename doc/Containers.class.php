@@ -1312,7 +1312,7 @@ class doc_Containers extends core_Manager
         }
         
         // Редиректваме към сингъла на съответния клас, от къде се прехвърляме 		//към треда
-        redirect(array($class, 'single', $rec->id));
+        return new Redirect(array($class, 'single', $rec->id));
     }
     
     

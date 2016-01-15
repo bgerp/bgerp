@@ -241,7 +241,7 @@ class email_SendOnTime extends core_Manager
             email_Outgoings::logErr($msg, $rec->objectId);
         }
         
-        return new Redirect(array('email_Outgoings', 'single', $rec->objectId), $msg, $type);
+        return new Redirect(array('email_Outgoings', 'single', $rec->objectId), '|' . $msg, $type);
     }
     
     

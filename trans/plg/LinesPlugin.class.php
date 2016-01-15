@@ -138,7 +138,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 			
 			// Редирект след успешния запис
-			return Redirect(array($mvc, 'single', $id), NULL, 'Промените са записани успешно');
+			redirect(array($mvc, 'single', $id), FALSE, '|Промените са записани успешно');
 		}
 		
 		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
