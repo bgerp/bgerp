@@ -260,6 +260,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на отпаден артикул');
     		}
     	}
+    	
+    	$data->toolbar->removeBtn('binBtn');
     }
 
 
