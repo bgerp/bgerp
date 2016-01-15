@@ -121,15 +121,17 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     				if(isset($pInfo->meta['canConvert'])){
     					$newArr = array('61101', array('cat_Products', $dRec->productId),
     							'quantity' => $dRec->quantity);
+						$reason = 'Вложени в производството нескладируеми услуги и консумативи';
     				} else {
     					$newArr = array('61102');
+						$reason = 'Отнесени общи (нескладируеми и невложими) разходи за дейността';
     				}
     				
     				$entries[] = array(
     						'amount' => $sign * $amount * $rec->currencyRate,
     						'debit' => $newArr,
     						'credit' => $debitArr,
-    						'reason' => 'Вложени в производството нескладируеми услуги и консумативи',
+    						'reason' => $reason,
     						);
     			}
     		}
