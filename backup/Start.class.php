@@ -111,7 +111,9 @@ class backup_Start extends core_Manager
         }
         
         // Добавяме нов запис за пълния бекъп
-        $metaArr[][0] = self::$backupFileName;
+        $metaArr['backup'][][0] = self::$backupFileName;
+        // Махаме бинлоговете
+        unset($metaArr['logNames']);
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
         // Качваме бекъп-а
