@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tasks_TaskConditions extends doc_Detail
+class tasks_TaskConditions extends tasks_TaskDetails
 {
     
 	
@@ -97,17 +97,6 @@ class tasks_TaskConditions extends doc_Detail
     
     
     /**
-     * Кой е мастър класа
-     */
-    public function getMasterMvc($rec)
-    {
-    	$masterMvc = cls::get(tasks_Tasks::fetchField($rec->taskId, 'classId'));
-    
-    	return $masterMvc;
-    }
-    
-    
-    /**
      * Връща списъка от мастър-мениджъри на зададен детайл-запис.
      *
      * Обикновено детайлите имат точно един мастър. Използваме този метод в случаите на детайли
@@ -160,24 +149,11 @@ class tasks_TaskConditions extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
-    		
-    		// Може да се модифицират детайлите само ако състоянието е чакащо, активно или събудено
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		if($state != 'pending' && $state != 'draft' && $state != 'active'){
     			$requiredRoles = 'no_one';
-    		} else {
-    			 
-    			// Ако не може да бъде избран драйвера от потребителя, не може да добавя прогрес
-    			if($Driver = $mvc->Master->getDriver($rec->taskId)){
-    				if(!$Driver->canSelectDriver($userId)){
-    					$requiredRoles = 'no_one';
-    				}
-    			} else {
-    				$requiredRoles = 'no_one';
-    			}
     		}
     		
-    		// Ако няма възможни задачи от които да зависи, не може да се добавя
     		if($requiredRoles != 'no_one'){
     			$allowedTasks = $mvc->getAllowedTaskToDepend($rec->taskId);
     			if(!count($allowedTasks)){

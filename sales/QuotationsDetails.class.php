@@ -63,7 +63,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy';
     
     
     /**
@@ -75,7 +75,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, optional, amount, discAmount';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, optional, amount, discAmount,quantity';
     
     
     /**
@@ -392,7 +392,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		if(!$form->gotErrors()){
     			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
     				if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
-    					$form->setError('productId', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
+    					//$form->setError('productId', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
     			    } elseif($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
     					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
     			    }
@@ -485,7 +485,29 @@ class sales_QuotationsDetails extends doc_Detail {
     		$data->addOptionalBtn = ht::createBtn('Опционален артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
     	}
     	
+    	// Ако няма записи не правим нищо
     	if(!$data->rows) return;
+    	
+    	// Заределяме рековете и роуовете на опционални и неопционални
+    	$optionalRows = $notOptionalRows = $optionalRecs = $notOptionalRecs = array();
+    	foreach($data->recs as $ind => $r){
+    		if($r->optional == 'no'){
+    			$notOptionalRecs[$ind] = $r;
+    			$notOptionalRows[$ind] = $data->rows[$ind];
+    		} else {
+    			$optionalRecs[$ind] = $r;
+    			$optionalRows[$ind] = $data->rows[$ind];
+    		}
+    	}
+    	
+    	// Подравняваме ги спрямо едни други
+    	plg_AlignDecimals2::alignDecimals($this, $optionalRecs, $optionalRows);
+    	plg_AlignDecimals2::alignDecimals($this, $notOptionalRecs, $notOptionalRows);
+    	
+    	// Подменяме записите за показване с подравнените
+    	$data->rows = $notOptionalRows + $optionalRows;
+    	
+    	// Групираме записите за по-лесно показване
     	foreach($data->rows as $i => $row){
     		$pId = $data->recs[$i]->productId;
     		$optional = $data->recs[$i]->optional;
@@ -583,6 +605,8 @@ class sales_QuotationsDetails extends doc_Detail {
 	    				}
 	    				$oTpl->replace("-opt{$masterRec->id}", 'OPT');
 	    				$id = &$oCount;
+	    				
+	    				
 		    			if($hasQuantityColOpt !== TRUE && ($row->quantity)){
 		    				$hasQuantityColOpt = TRUE;
 		    			}
@@ -633,11 +657,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
     	$miscMandatory = $masterRec->currencyId . $vatRow;
     	$miscOptional = $masterRec->currencyId . $vatRow;
-    	if(count($data->discounts)){
+    	if(count($data->discounts) && $data->hasDiscounts === TRUE){
     		$miscMandatory .= ', ' . tr('без извадени отстъпки');
     	}
     	
-    	if(count($data->discountsOptional)){
+    	if(count($data->discountsOptional) && $data->hasDiscounts === TRUE){
     		$miscOptional .= ', ' . tr('без извадени отстъпки');
     	}
     	
@@ -690,12 +714,16 @@ class sales_QuotationsDetails extends doc_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$data->discountsOptional = $data->discounts = array();
+    	$data->hasDiscounts = FALSE;
     	
     	core_Lg::push($data->masterData->rec->tplLang);
     	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
+    		if($rec->discount){
+    			$data->hasDiscounts = TRUE;
+    		}
     		
     		if($rec->optional == 'no'){
     			$data->discounts[$rec->discount] = $row->discount;
@@ -703,6 +731,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
 
+    		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);

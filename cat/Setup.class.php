@@ -173,24 +173,6 @@ class cat_Setup extends core_ProtoSetup
     
 
     /**
-     * Начални данни
-     */
-    function loadSetupData()
-    {
-    	$res = parent::loadSetupData();
-    	
-    	// Ако няма посочени от потребителя сметки за синхронизация
-    	$defMeasureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
-    	if(strlen($defMeasureId) === 0){
-    		core_Packs::setConfig('cat', array('CAT_DEFAULT_MEASURE_ID' => cat_UoM::fetchBySysId('pcs')->id));
-    		$res .= "<li style='color:green'>Дефолт основна мярка 'брой' за универсалните артикули</li>";
-    	}
-    	
-    	return $res;
-    }
-    
-    
-    /**
      * Де-инсталиране на пакета
      */
     function deinstall()

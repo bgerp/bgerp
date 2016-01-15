@@ -120,7 +120,18 @@ class setup_Controller {
             ));
     }
 
-
+    function form7(&$res)
+    {
+        if($this->state['installationType'] != 'recovery') {
+    
+            return FALSE;
+        }
+    
+        $res->title = "Възстановяване от локален път";
+        $res->question  = "Въведете директория на архива";
+        $res->body  = $this->createInput();
+    }
+    
     function action()
     {
         session_start();
@@ -302,4 +313,16 @@ class setup_Controller {
         return $res;
     }
 
+    
+    /**
+     * Създава input елемент
+     */
+    function createInput($name, $value)
+    {
+        $res = "\n<div class='answer'>" .
+                "\n<input type='text' name='{$name}' value='{$val}' >" .
+                "<label for='{$id}'>{$caption}</label></div>";
+        
+        return $res;
+    }
 }

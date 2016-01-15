@@ -187,7 +187,7 @@ class cal_Reminders extends core_Master
         $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,mandatory,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
         
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
@@ -307,20 +307,32 @@ class cal_Reminders extends core_Master
     {  
     	if ($form->isSubmitted()) {
     	    
+            $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
+            
+            if (empty($sharedUsersArr)) {
+                $form->setError('sharedUsers', 'Трябва да има поне един споделен');
+            }
+            
     	    $now = dt::now();
     	    
-        	if($form->rec->timeStart < $now){
-        		// Добавяме съобщение за грешка
-                $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
-        	}
+    	    if (isset($form->rec->timeStart)) {
+        	    if ($form->rec->timeStart < $now){
+            		// Добавяме съобщение за грешка
+                    $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
+            	}
+    	    } else {
+    	        if (!$form->rec->id) {
+    	            $form->rec->timeStart = $now;
+    	        }
+    	    }
         	
-    		if($form->rec->id){
+    		if ($form->rec->id){
     			
     			$exState = self::fetchField($form->rec->id, 'state');
     			
     			if($form->rec->timeStart < $now && ($form->rec->state != $exState && $form->rec->state != 'rejected')){
     				// Добавяме съобщение за грешка
-                	$form->setError('timeStart', tr("Не може да се направи напомняне в миналото"). dt::mysql2verbal($now, 'smartTime'));
+                	$form->setError('timeStart', "Не може да се направи напомняне в миналото|* ". dt::mysql2verbal($now, 'smartTime'));
     			}
     		}
     		
@@ -340,12 +352,14 @@ class cal_Reminders extends core_Master
     {
     	$now = dt::now(); 
     	
-    	if($rec->id){
-    		$exState = self::fetchField($rec->id, 'state');
-    		$timeStart = $rec->timeStart;
-    		if(!$timeStart){
-    			$timeStart = self::fetchField($rec->id, 'timeStart');
-    		} 
+    	if ($rec->id) {
+    		if (!$rec->timeStart) {
+    			$rec->timeStart = self::fetchField($rec->id, 'timeStart');
+    		}
+    		
+    		if (!$rec->timeStart) {
+    		    $rec->timeStart = dt::now();
+    		}
     	}
     }
 

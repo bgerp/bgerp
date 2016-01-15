@@ -49,18 +49,20 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Детайли
+	 */
+	public $details = 'tasks_TaskConditions';
+	
+	
+	/**
 	 * Подготвя задачите към заданията
 	 */
 	public function prepareTasks($data)
 	{
 		$data->recs = $data->rows = array();
 		 
-		// Дали според продуктовия драйвер на артикула в заданието има дефолтни задачи
-		$ProductDriver = cat_Products::getDriver($data->masterData->rec->productId);
-		if(!empty($ProductDriver)){
-			$defaultTasks = $ProductDriver->getDefaultJobTasks();
-		}
-		 
+		$defaultTasks = cat_Products::getDefaultTasks($data->masterData->rec->productId);
+		
 		// Намираме всички задачи към задание
 		$query = $this->getQuery();
 		$query->where("#state != 'rejected'");
@@ -88,11 +90,11 @@ class planning_Tasks extends tasks_Tasks
 		// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
-	
+				
 				// Ако не може да бъде доабвена задача не показваме реда
 				if(!self::haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
-				 
-				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driverClass, 'systemId' => $index, 'ret_url' => TRUE);
+				
+				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driverClass, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
 				$row = new stdClass();
 				$row->title = $taskInfo->title;
 				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача за производство');

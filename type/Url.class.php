@@ -87,7 +87,7 @@ class type_Url extends type_Varchar {
         
         if(!$value) return NULL;
         
-        $value = $this->findSheme($value);
+        $value = $this->findScheme($value);
         
         $res = parent::isValid($value);
         
@@ -107,7 +107,7 @@ class type_Url extends type_Varchar {
     /**
      * Връща цялото URL
      */
-    function findSheme($value)
+    function findScheme($value)
     {
         $pattern = '/^\b[a-z]*\b:\/\//';
         preg_match($pattern, $value, $match);
@@ -115,17 +115,17 @@ class type_Url extends type_Varchar {
         if (!count($match)) {
             $pattern = '/^\b[a-z]*\b./';
             preg_match($pattern, $value, $matchSub);
-            $sheme = 'http';
+            $scheme = 'http';
             
             if (count($matchSub)) {
                 $subDom = $matchSub[0];
                 
                 if ($subDom == 'ftp.') {
-                    $sheme = 'ftp';
+                    $scheme = 'ftp';
                 }
             }
-            $sheme = $sheme . '://';
-            $value = $sheme . $value;
+            $scheme = $scheme . '://';
+            $value = $scheme . $value;
         }
         
         return $value;

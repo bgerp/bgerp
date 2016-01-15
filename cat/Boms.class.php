@@ -646,7 +646,7 @@ class cat_Boms extends core_Master
     	$rec->modifiedOn = dt::now();
     	$this->save($rec, 'modifiedOn');
     	
-    	return Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
+    	return new Redirect(array($this, 'single', $id), '|Себестойността е преизчислена успешно');
     }
     
     
@@ -987,6 +987,11 @@ class cat_Boms extends core_Master
     {
     	// Изчисляваме количеството ако можем
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $params);
+    	if($rQuantity != cat_BomDetails::CALC_ERROR){
+    		
+    		// Искаме количеството да е за еденица, не за опаковка
+    		$rQuantity *= $rec->quantityInPack;
+    	}
     	
     	// Сумираме какви количества ще вложим към материалите
     	if($rec->type != 'stage'){
@@ -1139,7 +1144,7 @@ class cat_Boms extends core_Master
     	// За всеки от тях
     	if(is_array($details)){
     		foreach ($details as $dRec){
-    			// Параметрите са на продукта на рецепата
+    			// Параметрите са на продукта на рецептата
     			$params = static::getRowParams($rec->productId);
     			$params['$T'] = $quantity;
     			
@@ -1220,5 +1225,85 @@ class cat_Boms extends core_Master
     			$data->query->where("#type = '{$filter->type}'");
     		}
     	}
+    }
+    
+
+    /**
+     * Опит за връщане на масив със задачи за производство от рецептата
+     * 
+     * @param mixed $id - ид на рецепта
+     * @return array  - масив със задачи за производство за генерирането на всеки етап
+     */
+    public static function getTasksFromBom($id)
+    {
+    	expect($rec = self::fetchRec($id));
+    	$tasks = array();
+    	$pName = cat_Products::getVerbal($rec->productId, 'name');
+    	
+    	$tasks = array(1 => (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
+    									  'title'    => $pName,
+    									  'quantity' => $rec->quantity,
+    									  'products' => array('production' => array(array('productId' => $rec->productId, 'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'), 'packQuantity' => $rec->quantity, 'quantityInPack' => 1)),
+    										 				  'input'    => array(),
+    										 				  'waste'    => array())));
+    	 
+    	$dQuery = cat_BomDetails::getQuery();
+    	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->where("#parentId IS NULL");
+    	while($detRec = $dQuery->fetch()){
+    		$quantity = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
+    		if($quantity == cat_BomDetails::CALC_ERROR){
+    			$quantity = 0;
+    		}
+    		
+    		$place = ($detRec->type == 'pop') ? 'waste' : 'input';
+    		$tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $detRec->quantityInPack);
+    	}
+    	
+    	$query = cat_BomDetails::getQuery();
+    	$query->where("#bomId = {$rec->id}");
+    	$query->where("#type = 'stage'");
+    	
+    	while($dRec = $query->fetch()){
+    		$query2 = cat_BomDetails::getQuery();
+    		$query2->where("#parentId = {$dRec->id}");
+    
+    		$quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
+    		if($quantityP == cat_BomDetails::CALC_ERROR){
+    			$quantityP = 0;
+    		}
+    
+    		$parent = $dRec->parentId;
+    		while($parent && ($pRec = cat_BomDetails::fetch($parent))) {
+    			$q = cat_BomDetails::calcExpr($pRec->propQuantity, $pRec->params);
+    			if($q == cat_BomDetails::CALC_ERROR){
+    				$q = 0;
+    			}
+    			$quantityP *= $q;
+    			$parent = $pRec->parentId;
+    		}
+    		
+    		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
+    							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
+    							 'quantity' => $quantityP,
+    							 'products' => array(
+		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantityP, 'quantityInPack' => $dRec->quantityInPack)),
+		    						'input'      => array(),
+		    						'waste'      => array()));
+    
+    		while($cRec = $query2->fetch()){
+    			$quantity = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+    			if($quantity == cat_BomDetails::CALC_ERROR){
+    				$quantity = 0;
+    			}
+    			 
+    			$place = ($cRec->type == 'pop') ? 'waste' : 'input';
+    			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantity * $quantityP, 'quantityInPack' => $cRec->quantityInPack);
+    		}
+    
+    		$tasks[] = $arr;
+    	}
+    	
+    	return $tasks;
     }
 }

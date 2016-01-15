@@ -41,18 +41,41 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 		
 		if(isset($rec->productId)){
 			$BatchClass = batch_Defs::getBatchDef($rec->productId);
+			
 			if(is_object($BatchClass)){
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}));
+				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, $rec));
+			} else {
+				$form->setField('batch', 'input=none');
+				unset($rec->batch);
 			}
 		}
 		
 		if($form->isSubmitted()){
 			if(is_object($BatchClass)){
 				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-				if(!$BatchClass->isValid($rec->batch, $measureId, $rec->quantity, $msg)){
+				if(!$BatchClass->isValid($rec->batch, $rec->quantity, $msg)){
 					$form->setError('batch', $msg);
 				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Променяме шаблона в зависимост от мода
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_ET $tpl
+	 * @param object $data
+	 */
+	public static function on_BeforeRenderSingleLayout($mvc, &$tpl, &$data)
+	{
+		$BatchClass = batch_Defs::getBatchDef($data->rec->productId);
+		if(is_object($BatchClass)){
+			// Ако не е въведена партида, сетваме грешка
+			if(empty($data->rec->batch)){
+				$data->row->productId = ht::createHint($data->row->productId, 'Не е въведен партиден номер', 'error');
 			}
 		}
 	}

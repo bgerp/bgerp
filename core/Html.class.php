@@ -83,7 +83,6 @@ class core_Html
     {
         $tpl = new ET();
 
-        $suffix = '_comboSelect';
 
         // За съвместимост с IE
         $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
@@ -96,14 +95,18 @@ class core_Html
         $attr['class'] .= ' combo';
         $attr['value'] = $value;
         $id = $attr['id'];
+        
+        $suffix = '_cs';
+        list($l, $r) = explode('[', $id);
+        $selectId = $l . $suffix . $r;
 
         if ($attr['ajaxAutoRefreshOptions']) {
-            $attr['onkeydown'] = "focusSelect(event, '{$id}{$suffix}');";
+            $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
             $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
             if($attr['onchange']) {
-                $attr['onchange'] = "if(isOptionExists('" . $id . $suffix . "', this.value)) {" . $attr['onchange'] . "} ";
+                $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . "} ";
             }
-            $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$id}{$suffix}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
+            $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
             unset($attr['ajaxAutoRefreshOptions']);
         }
 
@@ -113,12 +116,12 @@ class core_Html
         
         unset($attr['autocomplete'], $attr['type']);
 
-        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$suffix}');";
+        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
 
-        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$suffix}');})", 'JQRUN');
+        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$selectId}');})", 'JQRUN');
 
-        $attr['id'] = $attr['id'] . $suffix;
-        $name = $attr['name'] = $attr['name'] . $suffix;
+        $attr['id'] = $selectId;
+        $name = $attr['name'] = $selectId;
 
         // Долното кара да не работи селекта в firefox-mobile
         //$attr['tabindex'] = "-1";
@@ -857,16 +860,23 @@ class core_Html
      */
     static function createHint($body, $hint, $type = 'notice')
     {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
+    	
     	expect(in_array($type, array('notice', 'warning', 'error')));
+    	$hint = tr($hint);
     	$iconPath = ($type == 'notice') ? 'img/Help-icon-small.png' : (($type == 'warning') ? 'img/dialog_warning-small.png' : 'img/dialog_error-small.png');
     	
     	$icon = ht::createElement("img", array('src' => sbf($iconPath, '')));
     	
-    	$element = new core_ET("<span title='[#hint#]'>[#icon#]</span> [#body#]");
-    	$element->append($body, 'body');
-    	$element->append($hint, 'hint');
-    	$element->append($icon, 'icon');
-    	
+    	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
+        
+        $element->append($body, 'body');
+        $element->append($hint, 'hint');
+        $element->append($icon, 'icon');
+        
+        jquery_Jquery::run($element, 'makeTooltipFromTitle();', TRUE);
+        jquery_Jquery::runAfterAjax($element, 'makeTooltipFromTitle');
+        
     	return $element;
     }
     

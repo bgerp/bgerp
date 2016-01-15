@@ -177,13 +177,13 @@ class sales_SalesDetails extends deals_DealDetail
     				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     					
     				if($diff < 0){
-    					$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$row->packQuantity}</span>";
+    					$row->packQuantity = ht::createHint($row->packQuantity, "Налично количество в склада|*: $quantityInStore", 'warning');
     				}
     			}
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойността') . "'>{$row->packPrice}</span>";
+    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning');
     		}
     	}
     }

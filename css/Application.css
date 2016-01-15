@@ -1342,7 +1342,7 @@ td.rowtools-column {
   padding-left: 10px !important; }
 
 .articleCell {
-  min-width: 220px;
+  min-width: 200px;
   max-width: 270px; }
 
 .no-border > tbody > tr > td {
@@ -2089,6 +2089,9 @@ span.sharing-history-title {
 
 .wide #login-form .formTable {
   margin: 0; }
+
+.narrow #login-form .button {
+  margin-top: 7px; }
 
 .drawing {
   max-width: 400px;
@@ -3441,8 +3444,16 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  .wide .listBlock .listRows > table.listTable {
-    min-width: 760px; } }
+  .wide not('.user-profile') .listBlock .listRows > table.listTable {
+    min-width: 760px; }
+
+    .wide .user-profile .listTopContainer {
+      min-width: 0; }
+
+  .wide .user-profile .listBlock {
+    display: block; }
+    .wide .user-profile .listBlock .listRows > table.listTable {
+      width: 100%; } }
 
 @media handheld,
 only screen and (min-width: 1550px) {
@@ -4504,6 +4515,47 @@ only screen and (max-width: 320px) {
     .narrow div.tab-control div.tab-row .tab.selected .tooltip-button img {
       width: 10px;
       height: 10px; }
+
+.tooltip {
+  text-align: center;
+  color: white;
+  background: rgba(30, 30, 30, 0.9);
+  border-radius: 5px;
+  position: absolute;
+  z-index: 100;
+  padding: 10px;
+  font-size: 0.9em; }
+
+.narrow .tooltip {
+  padding: 5px;
+  font-size: 0.8em; }
+
+.tooltip:after /* triangle decoration */ {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid rgba(30, 30, 30, 0.9);
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  margin-left: -10px; }
+
+.tooltip.top:after {
+  border-top-color: transparent;
+  border-bottom: 10px solid rgba(30, 30, 30, 0.9);
+  top: -20px;
+  bottom: auto; }
+
+.tooltip.left:after {
+  left: 10px;
+  margin: 0; }
+
+.tooltip.right:after {
+  right: 10px;
+  left: auto;
+  margin: 0; }
 
 /*
  * край на стилове за външната част при потребител контрактор

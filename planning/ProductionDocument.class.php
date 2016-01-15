@@ -21,22 +21,81 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	 * 
 	 * @param stdClass $rec
 	 */
-	protected function hasNewerProductionDocument($rec)
+	protected function getNewerProductionDocumentHandle($rec)
 	{
-		// Проверяваме имали активен протокол за производство или 
-		// бързо производство създаден след текущия документ
-		foreach (array('planning_DirectProductionNote', 'planning_ProductionNotes') as $Class){
-			$dQuery = $Class::getQuery();
-			$dQuery->EXT('containerCreatedOn', 'doc_Containers', 'externalName=createdOn,externalKey=containerId');
-			$dQuery->where("#state = 'active' AND #containerCreatedOn > '{$rec->createdOn}'");
-			if($this instanceof $Class){
-				$dQuery->where("#id != {$rec->id}");
+		// Ако е протокол за производство
+		if($this instanceof planning_ProductionNotes){
+			$query = planning_ProductionNoteDetails::getQuery();
+			$query->where("#noteId = {$rec->id}");
+			while($dRec = $query->fetch()){
+				
+				// Ако за заданието на някой от детайлите му има по нов документ
+				if($handle = $this->hasNewerProductionDocument($this, $rec, $dRec->jobId)){
+					return $handle;
+				}
 			}
-			$dQuery->orderBy('id', 'DESC');
-			$dQuery->limit(1);
-			 
-			// Ако има намерен документ
-			if($dQuery->fetch()) return TRUE;
+			
+			// Ако е протокол за бързо производство
+		} elseif($this instanceof planning_DirectProductionNote){
+			$jobId = doc_Containers::getDocument($rec->originId)->that;
+			if($handle = $this->hasNewerProductionDocument($this, $rec, $jobId)){
+				return $handle;
+			}
+		}
+		
+		return FALSE;
+	}
+	
+	
+	/**
+	 * Имали по нов производсвтен документ по заданието
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param int $id
+	 * @param int $jobId
+	 * @return string|FALSE - хендлъра на по-новия документ
+	 */
+	private function hasNewerProductionDocument(core_Mvc $mvc, $id, $jobId)
+	{
+		$rec = $mvc->fetchRec($id);
+		
+		// Проверяваме в протколите за бързо производство
+		$dQuery = planning_DirectProductionNote::getQuery();
+		$dQuery->EXT('containerCreatedOn', 'doc_Containers', 'externalName=createdOn,externalKey=containerId');
+		$dQuery->where("#state = 'active' AND #containerCreatedOn > '{$rec->createdOn}'");
+		
+		// Имали такъв с по-нова дата към същото задание
+		$jobContainerId = planning_Jobs::fetchField($jobId, 'containerId');
+		$dQuery->where("#originId = {$jobContainerId}");
+		if($mvc instanceof planning_DirectProductionNote){
+			$dQuery->where("#id != {$rec->id}");
+		}
+		$dQuery->orderBy('id', 'DESC');
+		$dQuery->limit(1);
+		
+		// Ако има намерен документ
+		if($fRec = $dQuery->fetch()){
+			
+			return planning_DirectProductionNote::getHandle($fRec->id);
+		}
+		
+		// Проверяваме към протоколите за производство
+		$dQuery = planning_ProductionNoteDetails::getQuery();
+		$dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+		$dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
+		$dQuery->where("#state = 'active'");
+		$dQuery->where("#jobId = {$jobId}");
+		if($mvc instanceof planning_ProductionNotes){
+			$dQuery->where("#id != {$rec->id}");
+		}
+		
+		// Ако протокола е по-нов и има детайл към същото задание
+		$dQuery->orderBy('id', 'DESC');
+		while($dRec = $dQuery->fetch()){
+			$cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
+			if($cCreatedOn > $rec->createdOn){
+				return planning_ProductionNotes::getHandle($dRec->noteId);
+			}
 		}
 		
 		return FALSE;
@@ -54,16 +113,16 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 			
 			// Ако има по нов документ не може да се оттегля документа
 			if($data->toolbar->hasBtn("btnDelete{$rec->containerId}")){
-				if($mvc->hasNewerProductionDocument($rec)){
-					$data->toolbar->setError(array("btnDelete{$rec->containerId}"), "Не може да бъде оттеглен, докато има по-нов производствен документ");
+				if($handle = $mvc->getNewerProductionDocumentHandle($rec)){
+					$data->toolbar->setError(array("btnDelete{$rec->containerId}"), "Не може да бъде оттеглен, докато има по-нов производствен документ|* #{$handle}");
 				}
 			}
 			
 			// Ако има по нов документ не може да се възстановява документа
 		} elseif($rec->state == 'rejected' && $rec->brState == 'active'){
 			if($data->toolbar->hasBtn("btnRestore{$rec->containerId}")){
-				if($mvc->hasNewerProductionDocument($rec)){
-					$data->toolbar->setError(array("btnRestore{$rec->containerId}"), "Не може да бъде възстановен, докато има по-нов производствен документ");
+				if($handle = $mvc->getNewerProductionDocumentHandle($rec)){
+					$data->toolbar->setError(array("btnRestore{$rec->containerId}"), "Не може да бъде възстановен, докато има по-нов производствен документ|* #{$handle}");
 				}
 			}
 		}
@@ -77,7 +136,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	{
 		$rec = $mvc->fetchRec($id);
 		if($rec->state == 'active'){
-			expect(!$mvc->hasNewerProductionDocument($rec));
+			expect(!$mvc->getNewerProductionDocumentHandle($rec));
 		}
 	}
 }

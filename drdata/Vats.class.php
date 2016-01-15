@@ -69,7 +69,13 @@ class drdata_Vats extends core_Manager
     /**
      * Колко най-много vat номера да бъдат обновени след залез?
      */
-    const MAX_CNT_VATS_FOR_UPDATE = 5;
+    const MAX_CNT_VATS_FOR_UPDATE = 1;
+    
+    
+    /**
+     * Колко най-много vat номера (по cron) да бъдат обновени след залез?
+     */
+    const CRON_MAX_CNT_VATS_FOR_UPDATE = 5;
     
     
     /**
@@ -513,7 +519,7 @@ class drdata_Vats extends core_Manager
         $query->where("#lastUsed >= '{$lastUsedExp}'");
         $query->orWhere("#status = '{$statusUnknown}' AND #lastChecked <= '{$unknownExpDate}'");
         
-        $query->limit(self::MAX_CNT_VATS_FOR_UPDATE);
+        $query->limit(self::CRON_MAX_CNT_VATS_FOR_UPDATE);
         
         $query->orderBy('lastChecked', 'ASC');
         

@@ -365,8 +365,9 @@ class batch_Items extends core_Master {
     		// Линк към историята защитена
     		Request::setProtected('batch,productId,storeId');
     		$histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
-    		
     		$row->icon = ht::createLink('', $histUrl, NULL, $attr);
+    		Request::removeProtected('batch,productId,storeId');
+    		
     		$data->rows[$rec->id] = $row;
     	}
     }

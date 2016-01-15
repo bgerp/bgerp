@@ -1,7 +1,7 @@
 var currentMenuInfo = getCookie('menuInfo');
 
 function slidebars(){
-    initElements();
+	initElements();
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
@@ -14,26 +14,27 @@ function slidebars(){
  * Създава лентите и задава необходините опции спрямо ширината на страницата
  */
 function initElements() {
+	var viewportWidth = $(window).width();
+	
+	if(viewportWidth > 600){
+		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
+	} else {
+		$('.btn-sidemenu').jPushMenu();
+	}
+	
     if($('#main-container > .tab-control > .tab-row').length == 0) {
         $('#framecontentTop').css('border-bottom', '1px solid #ccc');
     }
     if($('.narrow .vertical .formTable').length) {
 		$('#main-container').addClass('unbeddedHeader');
 	}
-
-	var viewportWidth = $(window).width();
-	if(viewportWidth > 600){
-		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
-	} else {
-		$('.btn-sidemenu').jPushMenu();
-	}
+    
 	if(getCookie('menuInfo') == null && viewportWidth > 1264 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();
 		if(viewportWidth > 1604){
 			$('.btn-menu-right ').click();
 		}
 	}
-
 		
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 

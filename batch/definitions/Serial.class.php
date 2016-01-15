@@ -75,12 +75,12 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		foreach ($serials as $serial){
 			if($serial  === FALSE){
 				$msg = "Не могат да се генерират серийни номера от зададеният диапазон";
-				return;
+				return FALSE;
 			}
 			
 			if(!preg_match("/^{$pattern}\z/", $serial)){
 				$msg = $errMsg;
-				return;
+				return FALSE;
 			}
 		}
 		

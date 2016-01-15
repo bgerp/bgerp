@@ -43,6 +43,12 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Заглавие
+     */
+    public $singleTitle = 'Известие';
+    
+    
+    /**
      * Права за писане
      */
     var $canWrite = 'admin';
@@ -104,7 +110,7 @@ class bgerp_Notifications extends core_Manager
      * @param integer $userId
      * @param enum $priority
      */
-    static function add($msg, $urlArr, $userId, $priority, $customUrl = NULL)
+    static function add($msg, $urlArr, $userId, $priority = 'normal', $customUrl = NULL)
     {
         // Потребителя не може да си прави нотификации сам на себе си
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
@@ -628,10 +634,26 @@ class bgerp_Notifications extends core_Manager
             return $res;
         }
     }
-
-    function act_BP()
+    
+    
+    /**
+     * Колко нови за потребителя нотификации има, след позледното разглеждане на портала?
+     */
+    public static function getNewCntFromLastOpen($userId = NULL)
     {
-        bp(Mode::get('NotificationsCnt'), core_Users::getCurrent());
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+
+        $lastTime = bgerp_LastTouch::get('portal', $userId);
+        
+        if(!$lastTime) {
+            $lastTime = '2000-01-01';
+        }
+
+        $cnt = self::count("#state = 'active' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}'");
+
+        return $cnt;
     }
     
     

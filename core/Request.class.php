@@ -169,6 +169,22 @@ class core_Request
     
     
     /**
+     * Премахва защитени полета от урл-то
+     * 
+     * @param mixed $protArr - масив с полета за премахване
+     * @return void
+     */
+    static function removeProtected($protArr)
+    {
+    	$protArr = arr::make($protArr, TRUE);
+    	
+    	foreach ($protArr as $value){
+    		unset(self::$protected[$value]);
+    	}
+    }
+    
+    
+    /**
      * Премахва от масива всички полета, които са декларирани в setProtected на тяхно
      * място създава нов индекс 'Protected' в който са записани стойностите им
      */

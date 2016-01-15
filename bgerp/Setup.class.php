@@ -121,7 +121,8 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Portal',
             'bgerp_Notifications',
             'bgerp_Recently',
-            'bgerp_Bookmark'
+            'bgerp_Bookmark',
+            'bgerp_LastTouch',
         );
         
         $instances = array();

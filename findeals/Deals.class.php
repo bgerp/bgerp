@@ -282,7 +282,7 @@ class findeals_Deals extends deals_DealBase
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
-    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
     	
     	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
     	
@@ -869,6 +869,55 @@ class findeals_Deals extends deals_DealBase
     		if($accId != $rec->accountId){
     			unset($res[$id]);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Кои са документите в нишката
+    	$descendents = $mvc->getDescendants($rec->id);
+    	$documentsInClosedPeriod = array();
+    	
+    	// Ако има наследници
+    	if(is_array($descendents)){
+    		foreach ($descendents as $desc){
+    			
+    			// Които са контиращи документи
+    			if($desc->haveInterface('acc_TransactionSourceIntf') && $desc->fetchField('state') == 'active'){
+    				$date = $desc->getValiorDate();
+    				$pRec = acc_Periods::fetchByDate($date);
+    				
+    				// И вальора им е в приключен период
+    				if($pRec->state == 'closed'){
+    					$handle = $desc->getHandle();
+    					
+    					// Запомняме ги
+    					$documentsInClosedPeriod[$handle] = "#" . $handle;
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Ако са намерени документи в нишката контирани в приключен счетоводен период, 
+    	// спираме оттеглянето и показваме съобщение за грешка
+    	if(count($documentsInClosedPeriod)){
+    		$msg = "Финансовата сделка не може да бъде оттеглена, защото ";
+    		$msg .= (count($documentsInClosedPeriod) == 1) ? 'документа' : 'следните документи';
+    		$msg .= "|* " . implode(', ', $documentsInClosedPeriod);
+    		$are = (count($documentsInClosedPeriod) == 1) ? 'е контиран' : 'са контирани';
+    		$msg .= " |в нишката {$are} в затворен счетоводен период|*";
+    		$msg = tr($msg);
+    		
+    		core_Statuses::newStatus($msg, 'error');
+    		
+    		// Връщаме FALSE за да се стопира оттеглянето на документа
+    		return FALSE;
     	}
     }
 }

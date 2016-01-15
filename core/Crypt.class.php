@@ -273,9 +273,13 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира променливи, масиви и обекти
      */
-    static function encodeVar($var, $code = EF_CRYPT_CODE)
+    static function encodeVar($var, $code = EF_CRYPT_CODE, $flat = 'serialize')
     {
-        $var = serialize($var);
+        if($flat == 'json') {
+            $var = json_encode($var);
+        } else {
+            $var = serialize($var);
+        }
         $var = gzcompress($var);
         $var = self::encodeStr($var, $code . 'encodeVar');
         $var = base64_encode($var);
@@ -287,7 +291,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира променливи, масиви и обекти
      */
-    static function decodeVar($var, $code = EF_CRYPT_CODE)
+    static function decodeVar($var, $code = EF_CRYPT_CODE, $flat = 'serialize')
     {
         $var = base64_decode($var);
         
@@ -304,7 +308,12 @@ class core_Crypt extends core_BaseClass
         if (!$var)
         return FALSE;
         
-        $var = unserialize($var);
+        if($flat == 'json') {
+            $var = json_decode($var, TRUE);
+        } else {
+            $var = unserialize($var);
+        }
+
         
         return $var;
     }

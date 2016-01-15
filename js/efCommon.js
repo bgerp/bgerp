@@ -323,11 +323,11 @@ function getIEVersion()
  * Инициализира комбобокса
  *
  * @param string id
- * @param string suffix
+ * @param string selectId
  */
-function comboBoxInit(id, suffix) {
+function comboBoxInit(id, selectId) {
     var txtCombo = get$(id);
-    var selCombo = get$(id + suffix);
+    var selCombo = get$(selectId);
 
     if (txtCombo && selCombo) {
         var width = txtCombo.offsetWidth;
@@ -354,9 +354,9 @@ function comboBoxInit(id, suffix) {
  *
  * @param string id
  * @param string value
- * @param string suffix
+ * @param string selectId
  */
-function comboSelectOnChange(id, value, suffix) {
+function comboSelectOnChange(id, value, selectId) {
     var inp = get$(id);
 
     var exVal = inp.value;
@@ -373,7 +373,7 @@ function comboSelectOnChange(id, value, suffix) {
     get$(id).focus();
     $(id).trigger("change");
 
-    var selCombo = get$(id + suffix);
+    var selCombo = get$(selectId);
     selCombo.value = '?';
     $('#' + id).change();
 }
@@ -1430,19 +1430,25 @@ function getWindowWidth() {
     return winWidth;
 }
 
+
 function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
-
     // разстояние около формата
 	var outsideWidth = 42;
 	if($('#all').length) {
 		outsideWidth = 30;
-	}
+		if($('#login-form input').length) {
+			outsideWidth = parseInt($('#login-form input').offset().left * 2  + 2);
+		}
+	}  else if ($('.modern-theme').length && $('.vertical .formCell > input[type="text"]').length) {
+        outsideWidth = parseInt($('.vertical .formCell > input[type="text"]').first().offset().left * 2 + 2);
+    }
 	
     var formElWidth = winWidth - outsideWidth;
 
     return formElWidth;
 }
+
 
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
@@ -1488,7 +1494,7 @@ function setFormElementsWidth() {
 
         $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
         
-        $('.formTitle').css('min-width', formElWidth);
+        $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth - 50);
@@ -2285,6 +2291,81 @@ function scalePrintingDocument(pageHeight){
 	}
 }
 
+function makeTooltipFromTitle(){
+	var targets = $( '[rel~=tooltip]' ),
+    target  = false,
+    tooltip = false,
+    title   = false;
+
+	targets.bind( 'mouseenter', function()
+	{
+	    target  = $( this );
+	    tip     = target.attr( 'title' );
+	    tooltip = $( '<div class="tooltip"></div>' );
+	
+	    if( !tip || tip == '' )
+	        return false;
+	
+	    target.removeAttr( 'title' );
+	    tooltip.css( 'opacity', 0 )
+	           .html( tip )
+	           .appendTo( 'body' );
+	
+	    var init_tooltip = function()
+	    {
+	        if( $( window ).width() < tooltip.outerWidth() * 1.5 )
+	            tooltip.css( 'max-width', $( window ).width() / 2 );
+	        else
+	            tooltip.css( 'max-width', 340 );
+	
+	        var pos_left = target.offset().left + ( target.outerWidth() / 2 ) - ( tooltip.outerWidth() / 2 ),
+	            pos_top  = target.offset().top - tooltip.outerHeight() - 20;
+	
+	        if( pos_left < 0 )
+	        {
+	            pos_left = target.offset().left + target.outerWidth() / 2 - 20;
+	            tooltip.addClass( 'left' );
+	        }
+	        else
+	            tooltip.removeClass( 'left' );
+	
+	        if( pos_left + tooltip.outerWidth() > $( window ).width() )
+	        {
+	            pos_left = target.offset().left - tooltip.outerWidth() + target.outerWidth() / 2 + 20;
+	            tooltip.addClass( 'right' );
+	        }
+	        else
+	            tooltip.removeClass( 'right' );
+	
+	        if( pos_top < 0 )
+	        {
+	            var pos_top  = target.offset().top + target.outerHeight();
+	            tooltip.addClass( 'top' );
+	        }
+	        else
+	            tooltip.removeClass( 'top' );
+	
+	        tooltip.css( { left: pos_left, top: pos_top } )
+	               .animate( { top: '+=10', opacity: 1 }, 50 );
+	    };
+	
+	    init_tooltip();
+	    $( window ).resize( init_tooltip );
+	
+	    var remove_tooltip = function()
+	    {
+	        tooltip.animate( { top: '-=10', opacity: 0 }, 50, function()
+	        {
+	            $( this ).remove();
+	        });
+	
+	        target.attr( 'title', tip );
+	    };
+	
+	    target.bind( 'mouseleave', remove_tooltip );
+	    tooltip.bind( 'click', remove_tooltip );
+	});
+}
 /**
  *  Плъгин за highlight на текст
  */
@@ -3049,6 +3130,16 @@ function render_removeNarrowScroll() {
 function render_showTooltip() {
 	
 	showTooltip();
+}
+
+
+/**
+* Функция, която извиква подготвянето на показването на тоолтипове
+* Може да се комбинира с efae
+ */
+function render_makeTooltipFromTitle() {
+	
+	makeTooltipFromTitle();
 }
 
 

@@ -1209,6 +1209,14 @@ table.listTable {
 	margin-bottom: 12px;
 }
 
+.wide .singleView table.listTable > tbody > tr > td {
+    max-width: 70% !important;
+}
+
+.wide .singleView table.listTable {
+    max-width: 915px !important;
+}
+
 table.listTable:not(.noHoverTable) > tbody > tr:hover {
  	background-color: $beige;
     &.state-draft {

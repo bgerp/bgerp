@@ -70,7 +70,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		$check = strtotime($value);
 		if(!$check) {
 			$msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
-			return;
+			return FALSE;
 		}
 		
 		$check = dt::timestamp2Mysql($check);
@@ -78,7 +78,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		
 		if($check !== $value){
 			$msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
-			return;
+			return FALSE;
 		}
 		
 		return TRUE;
