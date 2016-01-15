@@ -139,7 +139,9 @@ class remote_BgerpDriver extends core_Mvc
         $url .= '/remote_BgerpDriver/AuthIn/?Fw=' . $Fw;
 
         remote_Authorizations::save($rec);
-
+        
+        remote_Authorizations::logWrite('Изходящ оторизиране', $rec->id);
+        
         return new Redirect($url);
     }
 
@@ -177,6 +179,9 @@ class remote_BgerpDriver extends core_Mvc
         if($rec->data->rKey && $rec->data->rKeyCC) {
             $nick = type_Varchar::escape($params['nick']);
             $url = type_Varchar::escape($params['url']);
+            
+            remote_Authorizations::logErr('Опит за нова оторизация на отдалечения потребител', $rec->id);
+            
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
                 "|Опит за нова оторизация на отдалечения потребител|* <b>{$nick}</b> ({$url}) |да следи вашите съобщения", 'error');
         }
@@ -213,7 +218,9 @@ class remote_BgerpDriver extends core_Mvc
                 $rec->data->rConfirmed = $confirm;
                 remote_Authorizations::save($rec);
             }
-
+            
+            remote_Authorizations::logWrite('Успешна оторизация за следене на съобщения', $rec->id);
+            
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
                 "|Отдалечения потребител|* " . type_Varchar::escape($params['nick']) . " |е оторизиран да следи вашите съобщения");
         }
@@ -245,7 +252,9 @@ class remote_BgerpDriver extends core_Mvc
         $rec->data->lKeyCC = $params['CC'];
 
         remote_Authorizations::save($rec);
-
+        
+        remote_Authorizations::logWrite('Потвърдена ауторизация', $rec->id);
+        
         echo md5($rec->data->lKey . $rec->lKeyCC);
 
         die;
@@ -289,13 +298,17 @@ class remote_BgerpDriver extends core_Mvc
     function act_Autologin()
     {
         expect($id = Request::get('id', 'int'));
-
+        
         expect($auth = remote_Authorizations::fetch($id));
 
         expect($auth->userId == core_Users::getCurrent());
         
         $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin');
-
+        
+        remote_Authorizations::logLogin('Автоматично логване', $id);
+        
+        bgerp_Notifications::clear($this, 'Autologin', $id);
+        
         return new Redirect($url);
     }
 
@@ -484,8 +497,10 @@ class remote_BgerpDriver extends core_Mvc
         $encodedRes = self::encode($auth, $res, 'answer');
 
         echo $encodedRes;
-
-        die;
+        
+        remote_Authorizations::logRead('Вземане на данни', $authId);
+        
+        shutdown();
     }
     
 
