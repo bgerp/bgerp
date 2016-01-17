@@ -684,7 +684,7 @@ class forum_Postings extends core_Detail {
 					// Ъпдейтваме дъската където отива темата
 					$this->Master->updateBoard($to);
 					
-					return new Redirect(array($this, 'Topic', $data->rec->id), tr('Темата е преместена успешно'));
+					return new Redirect(array($this, 'Topic', $data->rec->id), 'Темата е преместена успешно');
 		       } else {
 		       		$data->form->setError('boardTo', tr('Посочили сте същата дъска'));
 		         }

@@ -213,7 +213,7 @@ class csv_Lib
     	
     	$exportCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
     	if(count($recs) > $exportCnt) {
-    		redirect(array($this, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    		redirect(array($this, 'list'), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
     	}
     	
     	if (is_array($listFields)) {

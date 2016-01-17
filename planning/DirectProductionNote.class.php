@@ -455,6 +455,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		// Записваме, че потребителя е разглеждал този списък
 		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
 		
-		return Redirect(array('cat_Boms', 'single', $newId), NULL, 'Успешно е създадена нова рецепта');
+		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
 	}
 }

@@ -325,7 +325,7 @@ class sens2_Controllers extends core_Master
 
         $res = $this->updateInputs($id, $force, FALSE);
 
-        redirect(array($this, 'Single', $id), NULL, "Обновени са <b>{$res}</b> входа на контролера.");
+        return new Redirect(array($this, 'Single', $id), "|Обновени са|* <b>{$res}</b> |входа на контролера");
     }
 
 

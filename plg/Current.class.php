@@ -77,11 +77,9 @@ class plg_Current extends core_Plugin
             	
             	// Ако няма резултат, и името на класа е различно от класа на контролера (за да не стане безкрайно редиректване)
             	if(empty($res) && ($mvc->className != Request::get('Ctr'))) {
-            		$msg = tr("Моля, изберете текущ/а");
-            		$msg .= " " . tr($mvc->singleTitle);
             	
             		// Подканваме потребителя да избере обект от модела, като текущ
-            		redirect(array($mvc, 'list', 'ret_url' => TRUE), FALSE, $msg);
+            		redirect(array($mvc, 'list', 'ret_url' => TRUE), FALSE, "|Моля, изберете текущ/а|* |" . $mvc->singleTitle);
             	}
             }
         }
@@ -152,7 +150,7 @@ class plg_Current extends core_Plugin
     		$singleTitle = mb_strtolower($mvc->singleTitle);
     		
     		// Добавяме статус съобщението
-            core_Statuses::newStatus(tr("|Успешен избор на {$singleTitle}|* \"{$objectName}\""));
+            core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
 
             // Извикваме събитие за да сигнализираме, че е сменен текущия елемент
             $mvc->invoke('afterChangeCurrent', array(&$res, $rec));

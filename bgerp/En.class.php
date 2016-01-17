@@ -52,7 +52,7 @@ class bgerp_En extends core_Mvc
             case 'default' :
                 
                 // Редиректваме към началото
-                $res = new redirect(array('Index', 'Default'));
+                $res = new Redirect(array('Index', 'Default'));
                 break;
             
             case 'products' :
@@ -60,7 +60,7 @@ class bgerp_En extends core_Mvc
                 $cMenuId = cms_Content::getDefaultMenuId('eshop_Groups');
 
                 // Връщаме за резултат, породения HTML/ЕТ код от ShowAll метода на eshop_Groups
-                $res     = Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll', 'cMenuId' => $cMenuId));
+                $res = Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll', 'cMenuId' => $cMenuId));
                 break;
             
             default :

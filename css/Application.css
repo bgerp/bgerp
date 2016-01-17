@@ -452,6 +452,14 @@ div.folder-cover {
   .fieldset-holder tr.group-by-field-row {
     background-color: #f1f1f1; }
 
+  .wide .user-profile .listTopContainer {
+    min-width: 0; }
+
+.wide .user-profile .listBlock {
+  display: block; }
+  .wide .user-profile .listBlock .listRows > table.listTable {
+    width: 100%; }
+
 /*
  * потребителски профил
  */
@@ -3445,15 +3453,7 @@ only screen and (min-width: 1240px) {
     padding: 10px 0; }
 
   .wide not('.user-profile') .listBlock .listRows > table.listTable {
-    min-width: 760px; }
-
-    .wide .user-profile .listTopContainer {
-      min-width: 0; }
-
-  .wide .user-profile .listBlock {
-    display: block; }
-    .wide .user-profile .listBlock .listRows > table.listTable {
-      width: 100%; } }
+    min-width: 760px; } }
 
 @media handheld,
 only screen and (min-width: 1550px) {

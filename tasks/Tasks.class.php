@@ -467,7 +467,7 @@ class tasks_Tasks extends embed_Manager
     			$ProductDriver = cat_Products::getDriver($productId);
     			
     			// Намираме препоръчителните задачи за драйвера
-    			$taskInfoArray = $ProductDriver->getDefaultTasks();
+    			$taskInfoArray = $ProductDriver->getDefaultProductionTasks();
     			
     			// Задаваме дефолтите на задачата
     			if(isset($taskInfoArray[$rec->systemId])){

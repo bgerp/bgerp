@@ -115,7 +115,7 @@ class bgerp_plg_Import extends core_Plugin
                     $msg = $Driver->import($rows, $fields);
                     
                     // Редирект кум лист изгледа на мениджъра в който се импортира
-                    return Redirect(array($mvc, 'list'), 'FALSE', $msg);
+                    redirect(array($mvc, 'list'), FALSE, '|' . $msg);
                 }
             }
             

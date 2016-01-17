@@ -497,7 +497,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
          $conf = core_Packs::getConfig('core');
 
          if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-             redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+             redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
          }
 
          $csv = "";

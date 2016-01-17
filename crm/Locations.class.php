@@ -353,7 +353,7 @@ class crm_Locations extends core_Master {
     	// Форсираме папката на контрагента
     	$folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId);
     	
-    	redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
+    	return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
     }
     
     
@@ -646,7 +646,7 @@ class crm_Locations extends core_Master {
         				// Създаваме търговския маршрут към новосъздадената локация
         				$routeId = sales_Routes::save((object)array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeat' => $rec->repeat));
         			
-        				return redirect(array('crm_Locations', 'single', $locationId), FALSE, 'Успешно е създаден търговския обект');
+        				return new Redirect(array('crm_Locations', 'single', $locationId), '|Успешно е създаден търговския обект');
         			} else {
         				$form->setError('name', 'Има проблем при записа на локация');
         			}

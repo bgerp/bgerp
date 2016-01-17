@@ -196,7 +196,7 @@ class bgerp_Menu extends core_Manager
                 if (strtolower($currUrl['Ctr']) != 'core_packs') {
                     
                     // Редиректваме към yправление на пакети
-                    return redirect(array('core_Packs', 'list'), FALSE, tr('Няма инсталирано меню'));
+                    redirect(array('core_Packs', 'list'), FALSE, '|Няма инсталирано меню');
                 }
             }
         }
@@ -264,7 +264,7 @@ class bgerp_Menu extends core_Manager
                 if (strtolower($currUrl['Ctr']) != 'core_packs') {
                     
                     // Редиректваме към yправление на пакети
-                    return redirect(array('core_Packs', 'list'), FALSE, tr('Няма инсталирано меню'));
+                    redirect(array('core_Packs', 'list'), FALSE, '|Няма инсталирано меню');
                 }
             }
         }
@@ -315,7 +315,10 @@ class bgerp_Menu extends core_Manager
         
         Mode::set('pageMenuKey', '_none_');
         
-        if(!Mode::is('screenMode', 'narrow')) redirect(array('bgerp_Portal', 'Show'));
+        if (!Mode::is('screenMode', 'narrow')) {
+            
+            return new Redirect(array('bgerp_Portal', 'Show'));
+        }
         
         $tpl = new ET(
             "<div class='menuPage noSelect'>
@@ -476,7 +479,7 @@ class bgerp_Menu extends core_Manager
             
             $cnt = $this->delete('1=1');
             
-            return new Redirect(array($this), "Бяха изтрити {$cnt} записа");
+            return new Redirect(array($this), "|Бяха изтрити|* {$cnt} |записа");
         }
     }
     

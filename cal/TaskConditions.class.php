@@ -161,10 +161,8 @@ class cal_TaskConditions extends core_Detail
         } else { 
         	// ако няма зависими задачи, ще върнем на същото място
         	$link = array('doc_Containers', 'list', 'threadId'=>$masterRec->threadId);
-        	// Добавяме съобщение в статуса
-            status_Messages::newStatus(tr("Липсват задачи, от които да зависи задачата"));
         	
-        	return redirect($link);
+        	return new Redirect($link, "|Липсват задачи, от които да зависи задачата");
         }
     }
 

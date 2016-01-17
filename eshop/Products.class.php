@@ -316,9 +316,9 @@ class eshop_Products extends core_Master
         if(!$data->productId) {
             $opt = cms_Content::getMenuOpt('eshop_Groups');
             if(count($opt)) {
-                redirect(array('cms_Content', 'Show', key($opt)));
+                return new Redirect(array('cms_Content', 'Show', key($opt)));
             } else {
-                redirect(array('cms_Content', 'Show'));
+                return new Redirect(array('cms_Content', 'Show'));
             }
         }
 

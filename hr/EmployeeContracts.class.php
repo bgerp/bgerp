@@ -280,7 +280,7 @@ class hr_EmployeeContracts extends core_Master
             
             self::save($rec, 'sharedUsers');
             
-            return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+            redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
         }
     }
     
@@ -348,7 +348,7 @@ class hr_EmployeeContracts extends core_Master
     	if($queryWorkingCycle->fetch("#schedule") == FALSE){
     	
     		// Ако няма, изискваме от потребителя да въведе
-    		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
+    		redirect(array('hr_Departments', 'list'), FALSE,  "|Не сте въвели работни графици");
     	}
     	
         $row = $data->row;
@@ -602,7 +602,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
+            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели позиция");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него
@@ -613,7 +613,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
         
         	// Ако няма, изискваме от потребителя да въведе
-        	return  Redirect(array('hr_WorkingCycles', 'list'), NULL,  "Не сте въвели работни графици");
+        	redirect(array('hr_WorkingCycles', 'list'), FALSE, "|Не сте въвели работни графици");
         }
     }
     
@@ -638,7 +638,7 @@ class hr_EmployeeContracts extends core_Master
         if($queryWorkingCycle->fetch("#schedule") == FALSE){
 
         	// Ако няма, изискваме от потребителя да въведе
-        	return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
+        	redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели работни графици");
         }
     }
     
@@ -720,7 +720,7 @@ class hr_EmployeeContracts extends core_Master
         }
         
         if(count($options) == 0) {
-            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за управител. Моля добавете !');
+            redirect(array('crm_Persons', 'list'), FALSE, '|Няма лица в група "Управители" за управител|*. |Моля добавете!');
         }
         
         return $options;
@@ -753,7 +753,7 @@ class hr_EmployeeContracts extends core_Master
         $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
         
         if (!$duration) {
-        	return Redirect(array('hr_WorkingCycles', 'list'), NULL, 'Не сте въвели продължителност на графика!');
+        	redirect(array('hr_WorkingCycles', 'list'), FALSE, '|Не сте въвели продължителност на графика!');
         }
         
        

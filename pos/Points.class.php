@@ -206,7 +206,7 @@ class pos_Points extends core_Master {
     	$this->requireRightFor('select', $pointId);
     	$this->selectCurrent($pointId);
     	
-    	return redirect(array('pos_Receipts', 'new'));
+    	return new Redirect(array('pos_Receipts', 'new'));
     }
     
     

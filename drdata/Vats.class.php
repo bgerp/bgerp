@@ -144,27 +144,27 @@ class drdata_Vats extends core_Manager
         
         if ($form->isSubmitted()) {
             if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
-                $res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
+                $res = new Redirect (array($this, 'Check'), '|Не сте въвели VAT номер');
             } else {
                 list($status, ) = $this->check($vat);  
                 switch($status) {
                     case 'valid' :
-                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е валиден");
+                        $res = new Redirect (array($this), "|VAT номера|* <i>'{$vat}'</i> |е валиден|*");
                         break;
                     case 'bulstat' :
-                        $res = new Redirect (array($this), "Номера <i>'{$vat}'</i> е валиден БУЛСТАТ/ЕИК");
+                        $res = new Redirect (array($this), "|Номера|* <i>'{$vat}'</i> |е валиден БУЛСТАТ/ЕИК|*");
                         break;
                     case 'syntax' :
-                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е синтактично грешен");
+                        $res = new Redirect (array($this), "|VAT номера|* <i>'{$vat}'</i> |е синтактично грешен|*");
                         break;
                     case 'invalid' :
-                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е невалиден");
+                        $res = new Redirect (array($this), "|VAT номера|* <i>'{$vat}'</i> |е невалиден|*");
                         break;
                     case 'unknown' :
-                        $res = new Redirect (array($this), "Не може да се определи статуса на VAT номера <i>'{$vat}'</i>");
+                        $res = new Redirect (array($this), "|Не може да се определи статуса на VAT номера|* <i>'{$vat}'</i>");
                         break;
                     case 'not_vat' :
-                        $res = new Redirect (array($this), "Това не е VAT номер - <i>'{$vat}'</i>");
+                        $res = new Redirect (array($this), "|Това не е VAT номер|* - <i>'{$vat}'</i>");
                         break;
                     default : expect(FALSE);
                 }

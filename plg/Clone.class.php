@@ -112,7 +112,7 @@ class plg_Clone extends core_Plugin
             } else {
                 
                 // Показваме съобщение за грешка
-                core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+                core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
             }
         }
         

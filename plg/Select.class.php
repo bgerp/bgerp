@@ -98,7 +98,7 @@ class plg_Select extends core_Plugin
             $row = Request::get('R');
                         
             if(!count($row)) {
-                $res = new Redirect(getRetUrl(), 'Моля, изберете поне един ред');
+                $res = new Redirect(getRetUrl(), '|Моля, изберете поне един ред');
                 
                 return FALSE;
             }
@@ -124,7 +124,7 @@ class plg_Select extends core_Plugin
             
             if(!count($actArr)) {
                 
-                $res = new Redirect(getRetUrl(), 'За избраните редове не са достъпни никакви операции');
+                $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
                 return FALSE;
             }
@@ -162,7 +162,9 @@ class plg_Select extends core_Plugin
 
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
-
+            
+            $processed = 0;
+            
             foreach($selArr as $id) {
                 if($mvc->haveRightFor($act, $id)) {
                     Request::push(array('id' => $id, 'Selected' => FALSE, 'Cf' => core_Request::getSessHash($id)));
@@ -175,11 +177,11 @@ class plg_Select extends core_Plugin
             $caption = tr(mb_strtolower(ltrim($actArr[$act], '*')));
 
             if($processed == 1) {
-                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |запис"));
+                $res = new Redirect(getRetUrl(), "|Беше направено|* {$caption} |на|* {$processed} |запис");
             } elseif ($processed > 1) {
-                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |записа"));
+                $res = new Redirect(getRetUrl(), "|Беше направено|* {$caption} |на|* {$processed} |записа");
             } else {
-                $res = new Redirect(getRetUrl(), tr("|Не беше направено|* {$caption} |на нито един запис"));
+                $res = new Redirect(getRetUrl(), "|Не беше направено|* {$caption} |на нито един запис");
             }
 
             return FALSE;

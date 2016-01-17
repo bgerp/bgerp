@@ -94,7 +94,7 @@ class remote_Setup extends core_ProtoSetup
         $rec->controller = "remote_Tokens";
         $rec->action = "DeleteExpiredTokens";
         $rec->period = 50;
-        $rec->offset = rand(1,50);
+        $rec->offset = rand(0,49);
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
 

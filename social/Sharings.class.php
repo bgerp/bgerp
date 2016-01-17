@@ -218,7 +218,7 @@ class social_Sharings extends core_Master
         }
 
     	// Връщаме URL-то
-    	return new Redirect ($redUrl);
+    	return new Redirect($redUrl);
     }
     
     

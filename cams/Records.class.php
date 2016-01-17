@@ -556,7 +556,7 @@ class cams_Records extends core_Master
         // Ако няма никаква камера, редиректваме към камерите, 
         // със съобщение за въведат поне една камера
         if(!isset($fRec->cameraId)) {
-            redirect(array('cams_Cameras'), TRUE, "Моля въведете поне една камера");
+            redirect(array('cams_Cameras'), TRUE, "|Моля въведете поне една камера");
         }
         
         // Задаваме, така получената камера, като последно използвана

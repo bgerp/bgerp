@@ -190,7 +190,7 @@ class eshop_Groups extends core_Master
         $form->setField('menuId', 'refreshForm');
         
         if(count($opt) == 0) {
-            redirect(array('cms_Content'), FALSE, 'Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
+            redirect(array('cms_Content'), FALSE, '|Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
         }
 
         if(!$opt[$form->rec->menuId]) {

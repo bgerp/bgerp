@@ -252,7 +252,7 @@ class blast_Letters extends core_Master
                 if (!$coverRec->companiesCnt && !$coverRec->personsCnt) {
                     
                     // Редиректваме към групата
-                    return redirect(array('crm_Groups', 'single', $coverId), FALSE, tr("Нямате добавени лица или фирми в групата."));
+                    redirect(array('crm_Groups', 'single', $coverId), FALSE, "|Нямате добавени лица или фирми в групата");
                 }
             }
         }
@@ -273,7 +273,7 @@ class blast_Letters extends core_Master
             //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
             if (!$files) {
                 
-                return redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
+                redirect(array('blast_Lists', 'add'), FALSE, "|Нямате добавен списък за циркулярни писма");
             }
             
             if (!$form->rec->id) {
@@ -524,7 +524,7 @@ class blast_Letters extends core_Master
             if (!is_file($fullPath)) {
                 
                 // Редиректваме към сингъла
-                return redirect(array('blast_Letters', 'single', $data->rec->id), FALSE, tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
+                redirect(array('blast_Letters', 'single', $data->rec->id), FALSE, "|Файлът на шаблона не може да се намери. Моля изберете друг шаблон");
             }
             
             // Вземаме шаблона
@@ -775,7 +775,7 @@ class blast_Letters extends core_Master
             }
             
             // След като приключи операцията редиректваме към същата страница, където се намирахме
-            return redirect($retUrl, FALSE, tr("Успешно активирахте писмото."));
+            return new Redirect($retUrl, "|Успешно активирахте писмото");
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -934,7 +934,7 @@ class blast_Letters extends core_Master
         $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
         // След като приключи операцията редиректваме към същата страница, където се намирахме
-        return redirect($retUrl, FALSE, tr("Успешно спряхте писмото."));
+        return new Redirect($retUrl, "|Успешно спряхте писмото");
     }
     
     

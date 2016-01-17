@@ -176,7 +176,7 @@ class bank_ExchangeDocument extends core_Master
         
         if($folderId = Request::get('folderId', 'int')){
             if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
-                return Redirect(array('bank_OwnAccounts', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна сметка");
+                redirect(array('bank_OwnAccounts', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна сметка");
             }
         }
     }

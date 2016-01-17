@@ -260,7 +260,7 @@ class pos_Stocks extends core_Manager {
     	// Изчистваме записите от моделите
     	pos_Stocks::truncate();
     
-    	Redirect(array($this, 'list'));
+    	return new Redirect(array($this, 'list'));
     }
     
     

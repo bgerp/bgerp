@@ -272,7 +272,7 @@ class price_History extends core_Manager
     	requireRole('admin,debug');
     	
     	self::truncate();
-    	core_Statuses::newStatus(tr('Кешираните цени са изтрити'));
+    	core_Statuses::newStatus('Кешираните цени са изтрити');
     	
     	followRetUrl();
     }

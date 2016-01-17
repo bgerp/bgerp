@@ -471,16 +471,16 @@ class acc_Periods extends core_Manager
         
         $this->save($rec);
         
-        $res = "Затворен е период |*<span style=\"color:red;\">{$rec->title}</span>";
+        $res = "|Затворен е период|* <span style=\"color:red;\">{$rec->title}</span>";
         
         // Отваря следващия период. Създава го, ако не съществува
         $this->forcePeriod(dt::addDays(1, $rec->end));
         
         $activeRec = $this->forceActive();
         
-        $res .= "<br>Активен е период |* <span style=\"color:red;\">{$activeRec->title}</span>";
+        $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
         
-        $res = new Redirect(array('acc_Periods'), tr($res));
+        $res = new Redirect(array('acc_Periods'), $res);
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite("Затваряне на период", $id);

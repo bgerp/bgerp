@@ -2066,7 +2066,7 @@ class cat_Products extends embed_Manager {
      * 						 - array production - артикули за произвеждане
      * 						 - array waste      - отпадъци
      */
-    public static function getDefaultTasks($id)
+    public static function getDefaultProductionTasks($id)
     {
     	$defaultTasks = array();
     	expect($rec = self::fetch($id));
@@ -2076,7 +2076,7 @@ class cat_Products extends embed_Manager {
     	// Питаме драйвера какви дефолтни задачи да се генерират
     	$ProductDriver = cat_Products::getDriver($rec);
     	if(!empty($ProductDriver)){
-    		$defaultTasks = $ProductDriver->getDefaultTasks();
+    		$defaultTasks = $ProductDriver->getDefaultProductionTasks();
     	}
     	
     	// Ако няма дефолтни задачи

@@ -616,10 +616,10 @@ class cat_BomDetails extends doc_Detail
     	$this->save($rec, 'type,primeCost,coefficient');
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
-    	$msg = tr("|*{$title} |вече е етап|*");
+    	$msg = "{$title} |вече е етап|*";
     	$this->Master->logRead("Разпъване на материал", $rec->bomId);
     	
-    	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
+    	return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
     
     
@@ -639,10 +639,10 @@ class cat_BomDetails extends doc_Detail
     	$this->save($rec);
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
-    	$msg = tr("Свиване на|* {$title}");
+    	$msg = "|Свиване на|* {$title}";
     	$this->Master->logRead("Свиване на етап", $rec->bomId);
     	
-    	return redirect(array('cat_Boms', 'single', $rec->bomId), NULL, $msg);
+    	return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
     
     

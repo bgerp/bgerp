@@ -94,7 +94,7 @@ class bgerp_plg_Importer extends core_Plugin
             $mvc->prepareRetUrl($data);
             
             // Редиректваме към предварително установения адрес
-            $tpl = new Redirect($data->retUrl, $feedback);
+            $tpl = new Redirect($data->retUrl, '|' . $feedback);
             
             return FALSE;
         } else {

@@ -404,7 +404,7 @@ class frame_Reports extends core_Embedder
     	$this->activate($rec);
     	
     	// Редирект
-    	redirect(array($this, 'single', $id), 'Документа е активиран успешно');
+    	return new Redirect(array($this, 'single', $id), '|Документа е активиран успешно');
     }
     
     

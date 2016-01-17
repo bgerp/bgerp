@@ -79,7 +79,7 @@ class colab_Profiles extends core_Master
         requireRole('user');
         
         // Редиректваме
-        return Redirect(array($this, 'Single'));
+        return new Redirect(array($this, 'Single'));
     }
     
     
@@ -174,7 +174,7 @@ class colab_Profiles extends core_Master
 		               $this->Profile->logWrite('Промяна на парола', $form->rec->id);
 		               
 		               // Редиректваме към предварително установения адрес
-		               return new Redirect(getRetUrl(), "Паролата е сменена успешно");
+		               return new Redirect(getRetUrl(), "|Паролата е сменена успешно");
 	            }
 			}
         }

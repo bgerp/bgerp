@@ -284,7 +284,7 @@ class core_page_InternalModern extends core_page_Active
                 if (strtolower($currUrl['Ctr']) != 'core_packs') {
                     
                     // Редиректваме към yправление на пакети
-                    return redirect(array('core_Packs', 'list'), FALSE, tr('Няма инсталирано меню'));
+                    redirect(array('core_Packs', 'list'), FALSE, '|Няма инсталирано меню');
                 }
             }
         }
