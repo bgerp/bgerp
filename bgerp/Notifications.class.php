@@ -163,9 +163,9 @@ class bgerp_Notifications extends core_Manager
         $query = bgerp_Notifications::getQuery();
         
         if($userId == '*') {
-            $query->where(array("#url = '[#1#]' AND #state = 'active'", $url);
+            $query->where(array("#url = '[#1#]' AND #state = 'active'", $url));
         } else {
-            $query->where(array("#userId = {$userId} AND #url = '[#1#]' AND #state = 'active'"), $url));
+            $query->where(array("#userId = {$userId} AND #url = '[#1#]' AND #state = 'active'"), $url);
         }
         $query->show('id, state, userId, url');
         
