@@ -85,7 +85,8 @@ class remote_Authorizations extends embed_Manager
 		$this->FLD('userId', 'user', 'caption=Потребител,mandatory,smartCenter');
         $this->FLD('url', 'url', 'caption=URL адрес,mandatory,smartCenter');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Състояние,column=none,single=none,input=none');
-        
+        $this->FNC('auth', 'varchar', 'caption=Оторизация,smartCenter');
+  
         $this->setDbUnique('url,userId');
     }
 
