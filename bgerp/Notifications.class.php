@@ -163,9 +163,9 @@ class bgerp_Notifications extends core_Manager
         $query = bgerp_Notifications::getQuery();
         
         if($userId == '*') {
-            $query->where("#url = '{$url}' AND #state = 'active'");
+            $query->where(array("#url = '[#1#]' AND #state = 'active'", $url));
         } else {
-            $query->where("#userId = {$userId} AND #url = '{$url}' AND #state = 'active'");
+            $query->where(array("#userId = {$userId} AND #url = '[#1#]' AND #state = 'active'"), $url));
         }
         $query->show('id, state, userId, url');
         
@@ -651,7 +651,7 @@ class bgerp_Notifications extends core_Manager
             $lastTime = '2000-01-01';
         }
 
-        $cnt = self::count("#state = 'active' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}'");
+        $cnt = self::count("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}'");
 
         return $cnt;
     }

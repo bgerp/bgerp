@@ -273,6 +273,7 @@ class remote_BgerpDriver extends core_Mvc
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications');
                  
                 $nUrl = array($this, 'Autologin', $rec->id);
+                $userId = $rec->userId;
 
                 if($nCnt) {
                     if($nCnt == 1) {
@@ -282,10 +283,9 @@ class remote_BgerpDriver extends core_Mvc
                     }
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
                     $message = "Имате {$nCnt} в {$url}";
-                    $userId = $rec->userId;
                     bgerp_Notifications::add($message, $nUrl, $userId);
                 } else {
-                    bgerp_Notifications::clear($nUrl);
+                    bgerp_Notifications::clear($nUrl, $userId);
                 }
             }
         }
