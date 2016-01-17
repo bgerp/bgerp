@@ -307,8 +307,6 @@ class remote_BgerpDriver extends core_Mvc
         
         remote_Authorizations::logLogin('Автоматично логване', $id);
         
-        bgerp_Notifications::clear($this, 'Autologin', $id);
-        
         return new Redirect($url);
     }
 
