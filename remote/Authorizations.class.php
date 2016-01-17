@@ -15,11 +15,10 @@
 class remote_Authorizations extends embed_Manager
 {
     
-    
     /**
      * Заглавие
      */
-    var $title = "Оторизации";
+    public $title = "Оторизации на отдалечени системи";
     
 
     /**
@@ -31,19 +30,19 @@ class remote_Authorizations extends embed_Manager
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Оторизация";
+    public $singleTitle = "Оторизация";
 
     
     /**
      * Разглеждане на листов изглед
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'crm_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    public $loadList = 'crm_Wrapper, plg_Created, plg_State2, plg_RowTools';
     
 
     /**
@@ -53,29 +52,28 @@ class remote_Authorizations extends embed_Manager
    
 
     /**
-     * Полета за листовия изглед
-     */
-    // var $listFields = '✍';
-
-
-    /**
      * Поле за инструментите на реда
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
         
 
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'powerUser';
+    public $canWrite = 'powerUser';
 
-    public $listFields = 'id,userId,url,auth=Оторизация,state,createdOn,createdBy';
+
+    /**
+     * Колонки в листовия изглед
+     */
+    public $listFields = 'id=✍,userId,url,auth=Оторизация,state,createdOn,createdBy';
+
 
     /**
      * Описание на модела
@@ -122,25 +120,18 @@ class remote_Authorizations extends embed_Manager
     }
 
 
-
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * Връща канонично URL
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-       // $row->remoteUrl = ht::createLink($rec->remoteUrl, array($mvc, 'Redirect', $rec->id));
-    }
-
     static public function canonizeUrl($url)
     {
         return trim(strtolower(rtrim($url, '/')));
     }
 
 
+    /**
+     * Подготвя детайла с оторизациите в профила
+     */
     public static function prepareAuthorizationsList($data)
     {
         $userId = $data->masterData->rec->userId;
@@ -169,6 +160,9 @@ class remote_Authorizations extends embed_Manager
     }
 
 
+    /**
+     * Рендира детайла с оторизациите в профила
+     */
     public static function renderAuthorizationsList($data)
     {
         if(arr::count($data->recs)) {
