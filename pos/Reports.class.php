@@ -581,7 +581,7 @@ class pos_Reports extends core_Master {
     		}
     	
     		if($count){
-    			core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
+    			core_Statuses::newStatus("|{$msg} са|* '{$count}' |бележки за продажба|*");
     			}
     		}
     }

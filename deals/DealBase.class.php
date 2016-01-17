@@ -325,7 +325,7 @@ abstract class deals_DealBase extends core_Master
     		// Записваме, че потребителя е разглеждал този списък
     		$this->logWrite("Приключване на сделка с друга сделка", $id);
     		
-    		return redirect(array($this, 'single', $id));
+    		return new Redirect(array($this, 'single', $id));
     	}
     
     	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');

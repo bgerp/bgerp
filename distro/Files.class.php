@@ -1249,11 +1249,11 @@ class distro_Files extends core_Detail
         if ($this->save($rec)) {
             
             // Съобщени
-            $msg = 'Успешно премахнат от хранилището';
+            $msg = '|Успешно премахнат от хранилището';
         } else {
             
             // Ако има грешка
-            $msg = 'Грешка при изтриването';
+            $msg = '|Грешка при изтриването';
         }
         
         // URL за редирект
@@ -1267,7 +1267,7 @@ class distro_Files extends core_Detail
         }
         
         // Редиректваме
-        return new Redirect($retUrl, tr($msg));
+        return new Redirect($retUrl, $msg);
     }
     
     
@@ -1425,7 +1425,7 @@ class distro_Files extends core_Detail
         if (!$haveSuggRepos) {
             
             // Добавяме статус съобщение
-            status_Messages::newStatus(tr('Няма други файлове за добавяне'));
+            status_Messages::newStatus('|Няма други файлове за добавяне');
             
             // Редиректваме
             return new Redirect($retUrl);

@@ -753,7 +753,7 @@ class fileman_Files extends core_Master
             self::renameFile($fRec, $form->rec->name, TRUE);
 
             // Редиректваме
-            Redirect($retUrl);
+            return new Redirect($retUrl);
         }
         
         // Задаваме по подразбиране да е текущото име на файла

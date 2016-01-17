@@ -374,7 +374,7 @@ class acc_Limits extends core_Manager
     	// Записваме, че потребителя е разглеждал този списък
     	$this->logRead("Проверка на счетоводните лимити");
     	
-    	return redirect(array($this, 'list'));
+    	return new Redirect(array($this, 'list'));
     }
     
     

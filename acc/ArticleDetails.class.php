@@ -231,7 +231,7 @@ class acc_ArticleDetails extends doc_Detail
             
             foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {
-                    redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"" . acc_Lists::getVerbal($list->rec, 'name') . "\""));
+                    redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, "|Липсва избор за|* \"" . acc_Lists::getVerbal($list->rec, 'name') . "\"");
                 }
                 
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;

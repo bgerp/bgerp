@@ -96,7 +96,7 @@ class log_System extends core_Manager
      */
     function description()
     {
-        $this->FLD('className', 'varchar(16)');
+        $this->FLD('className', 'varchar(64)');
         $this->FLD('objectId', 'int');
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');

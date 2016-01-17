@@ -605,7 +605,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$this->sendNotificationEmail($rec);
     	
-    	redirect(array($this, 'single', $rec->id), 'Успешно препращане');
+    	return new Redirect(array($this, 'single', $rec->id), '|Успешно препращане');
     }
     
     
@@ -777,7 +777,7 @@ class marketing_Inquiries2 extends embed_Manager
     		    
     			$id = $this->save($rec);
     			
-    			status_Messages::newStatus(tr('Благодарим Ви за запитването'), 'success');
+    			status_Messages::newStatus('|Благодарим Ви за запитването', 'success');
     			 
     			return followRetUrl();
     		}

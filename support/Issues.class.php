@@ -339,7 +339,7 @@ class support_Issues extends core_Master
     				log_Browsers::setVars($userData);
     			}
     			
-    			status_Messages::newStatus(tr('Благодарим Ви за сигнала'), 'success');
+    			status_Messages::newStatus('|Благодарим Ви за сигнала', 'success');
     			
     			return followRetUrl();
     		}
@@ -602,7 +602,7 @@ class support_Issues extends core_Master
         if (!$components) {
             
             // Добавяме съобщение за грешка
-            status_Messages::newStatus(tr('Няма въведен компонент на системата.'));
+            status_Messages::newStatus('|Няма въведен компонент на системата');
             
             // Ако има права за добавяне на компонент
             if (support_Components::haveRightFor('add')) {
@@ -616,7 +616,7 @@ class support_Issues extends core_Master
             }
             
             // Препащаме
-            return redirect($redirectArr);
+            redirect($redirectArr);
         }
         
         // Премахваме повтарящите се

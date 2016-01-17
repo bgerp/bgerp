@@ -188,7 +188,7 @@ class currency_CurrencyRates extends core_Detail
     {   
         $this->requireRightFor('retrieve');
 
-        return new Redirect (array('currency_CurrencyRates', 'default'), $this->retrieveCurrenciesFromEcb());
+        return new Redirect(array('currency_CurrencyRates', 'default'), '|' . $this->retrieveCurrenciesFromEcb());
     }
     
     
@@ -372,6 +372,8 @@ class currency_CurrencyRates extends core_Detail
         $errMsg = 'Няма валутен курс';
         
         self::logErr($errMsg);
+        
+        $errMsg = '|' . $errMsg;
         
         if (self::haveRightFor('list')) {
             redirect(array(get_called_class(), 'list', 'ret_url' => TRUE), FALSE, $errMsg, 'error');

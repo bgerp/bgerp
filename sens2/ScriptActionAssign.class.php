@@ -50,7 +50,7 @@ class sens2_ScriptActionAssign
         }
 
         if(!count($opt)) {
-            redirect(array('sens2_Scripts', 'single', $scriptId), FALSE, 'Моля, дефинирайте поне една променлива');
+            redirect(array('sens2_Scripts', 'single', $vars), FALSE, '|Моля, дефинирайте поне една променлива');
         }
         $form->setOptions('varId', $opt); 
         asort($suggestions);

@@ -147,7 +147,7 @@ class sales_SaleRequests extends core_Master
     	 
     	// Опитваме се да намерим съществуваща чернова продажба
     	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
-    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    		return new Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
     	}
     	 
     	// Ако няма създаваме нова
@@ -175,7 +175,7 @@ class sales_SaleRequests extends core_Master
     	}
     	 
     	// Редирект към новата продажба
-    	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от заявка'));
+    	return new Redirect(array('sales_Sales', 'single', $sId), '|Успешно е създадена продажба от заявка');
     }
     
     

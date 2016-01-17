@@ -61,7 +61,7 @@ class bgerp_plg_Export extends core_Plugin
     	
     		$retUrl = toUrl(array($mvc, 'list'), 'local');
     	
-    		return redirect(array($mvc, 'export', 'ret_url' => $retUrl));
+    		redirect(array($mvc, 'export', 'ret_url' => $retUrl));
     	}
     }
     
@@ -141,7 +141,7 @@ class bgerp_plg_Export extends core_Plugin
                 $content = $Driver->export($form->rec);
                 
                 if(!$content){
-                	return redirect(array($mvc, 'list'), FALSE, 'Няма налични данни за експорт', 'warning');
+                	redirect(array($mvc, 'list'), FALSE, '|Няма налични данни за експорт', 'warning');
                 }
                 
                 $name = $Driver->getExportedFileName();
@@ -150,7 +150,7 @@ class bgerp_plg_Export extends core_Plugin
                 $fh = fileman::absorbStr($content, 'exportCsv', $name);
                 	
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
-                return redirect(array('fileman_Files', 'single', $fh), FALSE, 'Файлът е експортиран успешно');
+                redirect(array('fileman_Files', 'single', $fh), FALSE, '|Файлът е експортиран успешно');
             }
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');

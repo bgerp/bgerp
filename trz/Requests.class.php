@@ -351,7 +351,7 @@ class trz_Requests extends core_Master
             doc_ThreadUsers::removeContainer($rec->containerId);
             doc_Threads::updateThread($rec->threadId);
             
-    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+    		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
     

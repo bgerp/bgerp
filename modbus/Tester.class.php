@@ -85,6 +85,6 @@ class modbus_Tester extends core_Manager {
         
         $this->save($rec, 'data');
         
-        return new Redirect(array($this), 'Данните са прочетени');
+        return new Redirect(array($this), '|Данните са прочетени');
     }
 }

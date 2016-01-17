@@ -162,7 +162,7 @@ class cms_Articles extends core_Master
         $form->setField('menuId', 'refreshForm');
         
         if(count($opt) == 0) {
-            redirect(array('cms_Content'), FALSE, 'Моля въведете поне един елемент от менюто');
+            redirect(array('cms_Content'), FALSE, '|Моля въведете поне един елемент от менюто');
         }
 
         if(!$opt[$form->rec->menuId]) {

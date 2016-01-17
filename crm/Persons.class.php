@@ -1902,7 +1902,7 @@ class crm_Persons extends core_Master
             $retUrl = ($data->retUrl) ? $data->retUrl : array('crm_Persons', 'single', $id);
             
             // Редиректваме
-            return Redirect($retUrl);
+            return new Redirect($retUrl);
         }
         
         // Задаваме текущия потребител да е отговорник по подразбиране
@@ -2452,7 +2452,7 @@ class crm_Persons extends core_Master
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
     		if(haveRole('powerUser')){
-    			core_Statuses::newStatus(tr("|Лицето е включено в група |* '{$groupName}'"));
+    			core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
     		}
     		
     		return static::save($rec, 'groupList');

@@ -1012,7 +1012,7 @@ class blast_Emails extends core_Master
             $link = array('blast_Emails', 'single', $rec->id);
             
             // Редиректваме
-            return new Redirect($link, "Успешно активирахте бласт имейл-а");
+            return new Redirect($link, "|Успешно активирахте бласт имейл-а");
         } else {
             
             // Стойности по подразбиране
@@ -1090,9 +1090,9 @@ class blast_Emails extends core_Master
         // В зависимост от броя на обновления променяме състоянието
         if ($updateCnt) {
             if ($updateCnt == 1) {
-                $updateMsg = 'Добавен е|* ' . $updateCnt . ' |запис';
+                $updateMsg = '|Добавен е|* ' . $updateCnt . ' |запис';
             } else {
-                $updateMsg = 'Добавени са|* ' . $updateCnt . ' |записа';
+                $updateMsg = '|Добавени са|* ' . $updateCnt . ' |записа';
             }
             
             $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
@@ -1104,7 +1104,7 @@ class blast_Emails extends core_Master
             
             $this->save($rec);
         } else {
-            $updateMsg = 'Няма нови записи за добавяне';
+            $updateMsg = '|Няма нови записи за добавяне';
         }
         
         return new Redirect($retUrl, $updateMsg);
@@ -1138,11 +1138,8 @@ class blast_Emails extends core_Master
         
         blast_Emails::save($recUpd);
         
-        // Добавяме съобщение в статуса
-        status_Messages::newStatus(tr("Успешно спряхте бласт имейл-а"));
-        
         // Редиректваме
-        return redirect($link);
+        return new Redirect($link, "|Успешно спряхте бласт имейл-а");
     }
     
     

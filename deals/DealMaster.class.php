@@ -1102,7 +1102,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	expect($rec = $this->fetch($id));
     	
     	if($rec->state != 'draft'){
-    		return redirect(array($this, 'single', $id), FALSE, 'Договорът вече е активиран');
+    		return new Redirect(array($this, 'single', $id), '|Договорът вече е активиран');
     	}
     	
     	expect(cls::haveInterface('acc_TransactionSourceIntf', $this));
@@ -1173,7 +1173,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$this->logWrite("Активиране/Контиране на сделка", $id);
     		
     		// Редирект
-    		return redirect(array($this, 'single', $id));
+    		return new Redirect(array($this, 'single', $id));
     	}
     	
     	$form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
@@ -1613,7 +1613,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(!count($options)){
     		$retUrl['stop'] = TRUE;
     		
-    		return Redirect($retUrl);
+    		return new Redirect($retUrl);
     	}
     	
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
@@ -1628,7 +1628,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$retUrl['dealId'] = $form->rec->dealId;
     		
     		// Подаваме намерената форма в урл-то за връщане
-    		return Redirect($retUrl);
+    		return new Redirect($retUrl);
     	}
     	
     	$quotationId = Request::get('quotationId', 'int');

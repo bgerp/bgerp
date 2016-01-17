@@ -637,11 +637,8 @@ class cal_Reminders extends core_Master
         
        	cal_Reminders::save($recUpd);
        
-        // Добавяме съобщение в статуса
-        status_Messages::newStatus(tr("Успешно спряхте напомнянето"));
-        
         // Редиректваме
-        return redirect($link);
+        return new Redirect($link, "|Успешно спряхте напомнянето");
     }
 
 

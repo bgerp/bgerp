@@ -512,7 +512,7 @@ class store_Movements extends core_Manager
             $recPallets->position = $rec->positionNew;
             store_Pallets::save($recPallets);
             
-            return redirect(array('store_Pallets'));
+            redirect(array('store_Pallets'));
         }
     }
     
@@ -532,7 +532,7 @@ class store_Movements extends core_Manager
             $recPallets->state = 'pending';
             store_Pallets::save($recPallets);
             
-            return redirect(array('store_Pallets'));
+            redirect(array('store_Pallets'));
         }
     }
     

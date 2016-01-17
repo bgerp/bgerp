@@ -128,9 +128,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * 						 - array production - артикули за произвеждане
      * 						 - array waste      - отпадъци
      */
-	public function getDefaultTasks()
+	public function getDefaultProductionTasks()
 	{
-		return $this->class->getDefaultTasks();
+		return $this->class->getDefaultProductionTasks();
 	}
 	
 	

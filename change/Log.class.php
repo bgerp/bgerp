@@ -343,7 +343,7 @@ class change_Log extends core_Manager
 	                 'Tab' => $tab,
 	                );
 
-        return Redirect($link);
+        return new Redirect($link);
     }
     
     

@@ -536,6 +536,19 @@ div.folder-cover {
 	}
 }
 
+.wide .user-profile{
+    .listTopContainer {
+		min-width:0;
+   	}
+}
+
+.wide .user-profile .listBlock {
+   	display: block;
+    .listRows > table.listTable{
+        width: 100%;
+    }
+}
+	
 /*потребителски профил*/
 .user-profile {
 	max-width: 760px;
@@ -3800,20 +3813,8 @@ body.narrow {
 	.background-holder {
 	    padding: 10px 0;
 	}
-
-    .wide not('.user-profile') .listBlock .listRows > table.listTable{
-        min-width:760px;
-    }
-    .wide .user-profile{
-	    .listTopContainer {
-	        min-width:0;
-    	}
-    }
-    .wide .user-profile .listBlock {
-    	display: block;
-	    .listRows > table.listTable{
-	        width: 100%;
-	    }
+	.wide not('.user-profile') .listBlock .listRows > table.listTable{
+		min-width:760px;
 	}
 }
 

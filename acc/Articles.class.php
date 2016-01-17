@@ -364,7 +364,7 @@ class acc_Articles extends core_Master
         	$this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
         }
         
-        return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
+        return new Redirect(array('acc_Articles', 'single', $result[1]), "|Създаден е успешно обратен мемориален ордер");
     }
     
     

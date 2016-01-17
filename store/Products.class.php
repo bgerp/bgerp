@@ -299,6 +299,6 @@ class store_Products extends core_Manager
     	// Изчистваме записите от моделите
     	store_Products::truncate();
     	 
-    	Redirect(array($this, 'list'));
+    	return new Redirect(array($this, 'list'));
     }
 }

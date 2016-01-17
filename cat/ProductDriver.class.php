@@ -318,7 +318,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 					-> driverClass  - драйвър на задача
 	 * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
 	 */
-	public function getDefaultTasks()
+	public function getDefaultProductionTasks()
 	{
 		return array();
 	}
