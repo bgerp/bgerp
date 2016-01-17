@@ -415,7 +415,7 @@ class crm_Profiles extends core_Master
         
         if (haveRole('powerUser') && ($currUser == $data->rec->userId) && core_Packs::isInstalled('remote')) {
             $data->toolbar->addbtn('Оторизиране', array('remote_Authorizations', 'add', 'ret_url' => TRUE), 
-                'ef_icon=img/16/authorized.png,title=Оторизиране за ползване на онлайн услуги');
+                'row=2,ef_icon=img/16/checked-blue.png,title=Оторизиране за ползване на онлайн услуги');
         }
     }
     

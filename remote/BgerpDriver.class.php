@@ -72,11 +72,15 @@ class remote_BgerpDriver extends core_Mvc
     function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
         if(!$rec->data->lKeyCC) {
-            $row->auth = ht::createBtn("Оторизация", array($driver, 'AuthOut', $rec->id), NULL, 'target=_blank');
+            $row->auth = ht::createBtn("Получаване", array($driver, 'AuthOut', $rec->id), NULL, 'target=_blank');
         } else {
-            $row->auth = ht::createLink('Оторизиран', FALSE, NULL, 'ef_icon=img/16/authorized.png');
+            $row->url = ht::createLink($rec->url, array($driver, 'Autologin', $rec->id));
+            $row->auth = ht::createLink('Получена', NULL, NULL, 'ef_icon=img/16/checked-green.png');
         }
-        
+        if($rec->data->rKeyCC) {
+            $row->auth .= ' ' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
+        }
+
        // $row->auth .= "<ul><li>lKey = {$rec->data->lKey}</li><li>lKeyCC = {$rec->data->lKeyCC}</li><li>rKey = {$rec->data->rKey}</li><li>rKeyCC = {$rec->data->rKeyCC}</li><li>rId = {$rec->data->rId}</li><li>rConfirmed = {$rec->data->rConfirmed}</li></ul>";
     }
 
@@ -149,6 +153,14 @@ class remote_BgerpDriver extends core_Mvc
     function act_AuthIn()
     {
         requireRole('powerUser');
+        
+        if(!core_Packs::isInstalled('remote')) {
+            if(haveRole('admin')) {
+                return new Redirect(array('core_Packs', 'search' => 'remote'), "За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`", 'error');
+            } else {
+                return new Redirect(array('Portal', 'Show'), "За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`. Свържете се с вашия IT администратор.", 'error');
+            }
+        }
 
         expect($Fw = Request::get('Fw'));
 
