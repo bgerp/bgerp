@@ -14,7 +14,6 @@
 class remote_BgerpDriver extends core_Mvc
 {
 
-
 	/**
      * Поддържа интерфейса за драйвер
      */
@@ -22,20 +21,32 @@ class remote_BgerpDriver extends core_Mvc
 
 
     /**
-     *
+     * Заглавие на драйвера
      */
     public $title = 'bgERP система';
 
 
+    /**
+     * Плъгини и класове за зареждане
+     */
     public  $loadList = 'crm_Wrapper';
     
+
+    /**
+     * Таб във wrapper-a
+     */
     public $currentTab = 'Профили';
+
 
     /**
      * Публичен ключ за обмен на информация между 2 bgERP системи
      */
     const PUBLIC_KEY = 'REMOTE_BGERP';
 
+
+    /**
+     * Шаблон за случаен ключ
+     */
     const KEY_PATTERN = '************';
 
 
@@ -64,11 +75,9 @@ class remote_BgerpDriver extends core_Mvc
 	}
 
     
-    function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-    }
-	
-
+    /**
+     * След конвертиране към вербални стойности на записа
+     */
     function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
         if(!$rec->data->lKeyCC) {
@@ -85,6 +94,26 @@ class remote_BgerpDriver extends core_Mvc
     }
 
 
+    /**
+     * За да не могат да се редактират оторизациите с получен ключ
+     */
+    static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{
+        if($action == 'edit' && is_object($rec)) {
+            if($rec->data->lKeyCC) {
+                $res = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Връща ключа за криптираната връзка
+     *
+     * @param $rec      stdClass    Запис на оторизация
+     * @param $type     string      'remote' или 'local'
+     * 
+     */
     static function getCryptKey($rec, $type = 'local')
     {
         if($type == 'local') {
@@ -150,6 +179,9 @@ class remote_BgerpDriver extends core_Mvc
     }
 
 
+    /**
+     * Входящ екщън за оторизиране
+     */
     function act_AuthIn()
     {
         requireRole('powerUser');
@@ -240,6 +272,7 @@ class remote_BgerpDriver extends core_Mvc
         return $this->renderWrapping($form->renderHtml());
     }
 
+
     /**
      * Извиква се за потвърждаване на оторизацията
      * Трябва да има в Request:
@@ -273,6 +306,9 @@ class remote_BgerpDriver extends core_Mvc
     }
 
 
+    /**
+     * Крон процес за обновяване на известията от оторизираните системи
+     */
     function cron_UpdateRemoteNotification()
     {
         $query = remote_Authorizations::getQuery();
@@ -323,6 +359,9 @@ class remote_BgerpDriver extends core_Mvc
     }
 
 
+    /**
+     * Генерира редирект за автоматично логване в отдаличена система
+     */
     function remote_Autologin($auth)
     {
         expect($auth =  self::prepareAuth($auth));
@@ -467,7 +506,6 @@ class remote_BgerpDriver extends core_Mvc
     }
 
 
-
     /**
      * Задава въпрос и връща отговора по криптиран канал
      */
@@ -514,6 +552,9 @@ class remote_BgerpDriver extends core_Mvc
     }
     
 
+    /**
+     * Извлича записа на оторизацията с посочения номер
+     */
     private static function prepareAuth($auth)
     {
         if(!is_object($auth)) {
