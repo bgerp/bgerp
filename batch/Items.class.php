@@ -326,10 +326,10 @@ class batch_Items extends core_Master {
         
         // Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
-        $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', "caption=Склад,silent");
-        $form->addAttr("storeId{$data->masterId}", array('onchange' => "this.form.submit();"));
+        $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->view = 'horizontal';
-       
+        $form->toolbar->addSbBtn('', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
         // Инпутваме формата
         $form->input();
         $data->form = $form;
