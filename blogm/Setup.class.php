@@ -164,7 +164,7 @@ class blogm_Setup extends core_ProtoSetup
         $rec->controller = 'blogm_Comments';
         $rec->action = 'deleteSPAM';
         $rec->period = 24;
-        $rec->offset = rand(1, 24);
+        $rec->offset = rand(1, 23);
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
