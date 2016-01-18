@@ -236,6 +236,10 @@ class core_Crypt extends core_BaseClass
     static function getDivStr($key)
     {
         $crc32 = crc32($key);
+        
+        // Фикс - за да са еднакви в 32 и 64 битови ОС-та
+        $crc32 = sprintf("%u", $crc32);
+        
         $div .= chr($crc32 % 256);
         $crc32 = $crc32 / 256;
         $div .= chr($crc32 % 256);
