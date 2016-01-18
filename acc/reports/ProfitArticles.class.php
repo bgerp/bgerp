@@ -90,11 +90,13 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         $form->setDefault('side', 'all');
         $form->setHidden('side');
         
+        $form->setHidden('compare');
+        
         $form->setDefault('orderBy', 'DESC');
-        $form->setHidden('orderBy');
+       // $form->setHidden('orderBy');
         
         $form->setDefault('orderField', 'blAmount');
-        $form->setHidden('orderField');
+        //$form->setHidden('orderField');
         
         $form->setField('from','refreshForm,silent');
         $form->setField('to','refreshForm,silent');
