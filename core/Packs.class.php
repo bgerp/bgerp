@@ -229,7 +229,7 @@ class core_Packs extends core_Manager
             $retUrl = array($this);
         }
         
-        return new Redirect($retUrl, '|' . $res);
+        return new Redirect($retUrl, $res);
     }
     
     
