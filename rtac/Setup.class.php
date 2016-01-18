@@ -34,7 +34,7 @@ defIfNot('RTAC_DEFAUL_USER_ROLES_FOR_SHARE', 'powerUser');
 /**
  * Роли, от които трябва да има потребителя, за да може да ползва autocompletе-a за добавяне на текстове
  */
-defIfNot('RTAC_DEFAUL_ROLES_FOR_TEXTCOMPLETE', 'user');
+defIfNot('RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE', 'user');
 
 
 /**
@@ -80,7 +80,7 @@ class rtac_Setup extends core_ProtoSetup
        'RTAC_MAX_SHOW_COUNT' => array ('int', 'caption=Максималният брой елементи|*&comma;| които ще се показват за autocomplete->Брой'),
        'RTAC_DEFAUL_SHARE_USER_ROLES' => array ('varchar', 'caption=Роли|*&comma;| които трябва да има потребителя|*&comma;| за да се покаже в autocomplete->Роли'),
        'RTAC_DEFAUL_USER_ROLES_FOR_SHARE' => array ('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocompletе-a за споделяне->Роли'),
-       'RTAC_DEFAUL_ROLES_FOR_TEXTCOMPLETE' => array ('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocompletе-a за текстове->Роли'),
+       'RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE' => array ('varchar', 'caption=Роли|*&comma;| от които трябва да има потребителя|*&comma;| за да може да ползва autocompletе-a за текстове->Роли'),
      );
     
     
