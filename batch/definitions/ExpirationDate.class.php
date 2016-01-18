@@ -85,6 +85,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 			return FALSE;
 		}
 		
+		// Ако годината е кратка, правим я дълга
 		if(isset($matches['yearShort'])){
 			$matches['year'] = "20{$matches['yearShort']}";
 		}
