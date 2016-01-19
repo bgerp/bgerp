@@ -128,6 +128,29 @@ class tasks_TaskConditions extends tasks_TaskDetails
     
     
     /**
+     * Добавя ново условие за стартиране към задачата, ако не съществува
+     * 
+     * @param mixed $taskId      - ид или запис на задача която ще е зависима
+     * @param mixed $dependsOnId - ид или запис на задача от която ще зависи
+     * @param double $progress   - прогрес след който да се стартира
+     * @param int $offset        - секунди отместване
+     * @return void
+     */
+    public static function add($taskId, $dependsOnId, $progress = 1, $offset = NULL)
+    {
+    	expect($tRec = tasks_Tasks::fetchRec($taskId));
+    	expect($tRec->state == 'draft');
+    	expect($dRec = tasks_Tasks::fetchRec($dependsOnId));
+    	expect($dRec->state == 'draft', $dRec);
+    	
+    	if(!static::fetch("#taskId = {$tRec->id} AND #dependsOn = {$dRec->id}")){
+    		$rec = (object)array('taskId' => $tRec->id, 'dependsOn' => $dRec->id, 'progress' => $progress, 'offset' => $offset);
+    		static::save($rec);
+    	}
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
