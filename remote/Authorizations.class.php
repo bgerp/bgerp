@@ -136,10 +136,12 @@ class remote_Authorizations extends embed_Manager
     {
         $userId = $data->masterData->rec->userId;
         
+        if ($userId != core_Users::getCurrent()) {
+            if (!haveRole('admin, ceo')) return ;
+        }
         
         $data->action = 'list';
-
-
+        
         $mvc = cls::get(__CLASS__);
 
         // Създаваме заявката
@@ -158,14 +160,14 @@ class remote_Authorizations extends embed_Manager
         // Подготвяме редовете на таблицата
         $mvc->prepareListRows($data);
     }
-
-
+    
+    
     /**
      * Рендира детайла с оторизациите в профила
      */
     public static function renderAuthorizationsList($data)
     {
-        if(arr::count($data->recs)) {
+        if (arr::count($data->recs)) {
             
             $mvc = cls::get(__CLASS__);
 
@@ -174,5 +176,4 @@ class remote_Authorizations extends embed_Manager
             return $tpl;
         }
     }
-
 }

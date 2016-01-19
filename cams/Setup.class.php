@@ -74,7 +74,7 @@ class cams_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Видео наблюдение и записване";
+    var $info = "Видео наблюдение и записване на IP камери";
     
     
     /**

@@ -1349,7 +1349,11 @@ class cat_Products extends embed_Manager {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return planning_Jobs::fetch("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
+    	$query = planning_Jobs::getQuery();
+    	$query->where("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
+    	$query->orderBy('id', 'DESC');
+    	
+    	return $query->fetch();
     }
     
     

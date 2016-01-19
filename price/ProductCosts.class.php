@@ -483,7 +483,7 @@ class price_ProductCosts extends core_Manager
     			$obj = clone $bObject;
     			$obj->type = 'bom';
     			$obj->price = $res['bom'][$productId]->price;
-    			$obj->documentClassId = purchase_Purchases::getClassId();
+    			$obj->documentClassId = cat_Boms::getClassId();
     			$obj->documentId = $res['bom'][$productId]->documentId;
     			$nRes[] = $obj;
     		}

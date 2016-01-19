@@ -143,7 +143,7 @@ class core_Packs extends core_Manager
             $retUrl = array($this);
         }
         
-        return new Redirect($retUrl, '|' . $res);
+        return new Redirect($retUrl, $res);
     }
     
     
@@ -229,7 +229,7 @@ class core_Packs extends core_Manager
             $retUrl = array($this);
         }
         
-        return new Redirect($retUrl, '|' . $res);
+        return new Redirect($retUrl, $res);
     }
     
     
@@ -1122,7 +1122,7 @@ class core_Packs extends core_Manager
                 $msg = self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
             }
             
-            return new Redirect($retUrl, '|' . $msg);
+            return new Redirect($retUrl, $msg);
         }
         
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');

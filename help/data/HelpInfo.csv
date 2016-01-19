@@ -1,4 +1,3 @@
-class,action,lg,text
 crm_Companies,list,bg,"Тук се съхранява информацията за всички фирми (юридически лица), учреждения, организации и институции. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Organayzer-Vizitnik/]Указател » Визитник[/link]"
 crm_Companies,edit,bg,Това е форма за редактиране/добавяне на информация за фирма. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Organayzer-Vizitnik/]Указател » Визитник[/link]
 crm_Companies,single,bg,Това е визитката на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Organayzer-Vizitnik/]Указател » Визитник[/link]
@@ -471,3 +470,5 @@ marketing_Bulletins,list,bg,"Тук се съдържа списък на вси
 marketing_BulletinSubscribers,list,bg,Тук се съдържа списък на всички абонирани абонати за бюлетини
 trz_SalaryIndicators,list,bg,"Тук се съдържа списък на всички показатели, по който се сформира заплатата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Personal-TRZ/]Персонал » ТРЗ[/link]"
 log_Data,list,bg,Тук се съдържа списък на всички потребителски логове. За повече информация прочетете: [link=http://bgerp.com/Bg/System-Admin/]Система » Администриране[/link]
+remote_Authorizations,edit,bg,Профилът на всеки потребител може да бъде оторизиран да използва онлайн ресурси от други системи. Например може да получава броя на новите известия от други инсталации на bgERP.
+help_Info,list,bg,Това е списък с вградената помощна информация в системата.

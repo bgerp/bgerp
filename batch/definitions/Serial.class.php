@@ -85,7 +85,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		}
 		
 		if($count != $quantity){
-			$msg = ($quantity != 1) ? "|Трябва да са въведени точно|* <b>'{$quantity}'</b> |серийни номера|*" : "Трябва да е въведен само един сериен номер";
+			$mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
+			$msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : "Трябва да е въведен само един сериен номер";
 		
 			return FALSE;
 		}

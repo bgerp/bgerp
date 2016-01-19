@@ -40,7 +40,7 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Партиди и движения";
+    var $info = "Партиди и серийни номера към складовите документи";
             
         
     /**
