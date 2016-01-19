@@ -154,7 +154,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} else {
     		$form->setField('orderField', 'input=none');
     	}
-    	
+    
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
@@ -347,7 +347,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		$data->Pager->itemsCount = count($data->recs);
     		
     		// Ако има избрано поле за сортиране, сортираме по него
-    		//arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+    		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
     	
     		// За всеки запис
     		foreach ($data->recs as &$rec){

@@ -56,7 +56,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'planning,ceo';
     
     
     /**
@@ -68,7 +68,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'planning,ceo';
     
     
     /**
@@ -261,5 +261,43 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// При добавянето на артикул за влагане/отпадък ако за него има чернова задача за произвеждането му
+    	// искаме текущата задача да зависи от изпълнението на другата задача.Т.е да активираме задачата
+    	// за влагането на артикула само след завършването на задачата за произвеждането му
+    	
+    	// Ако добавяме артикул за произвеждане не правим нищо
+    	if($rec->type == 'product') return;
+    	
+    	// Коя е задачата
+    	$taskRec = planning_Tasks::fetch($rec->taskId);
+    	
+    	// Търсим дали има друга чернова задача за произвеждането на артикула, който влагаме/отпадък
+    	$tQuery = planning_drivers_ProductionTaskProducts::getQuery();
+    	$tQuery->where("#type = 'product' AND #productId = {$rec->productId}");
+    	$tQuery->EXT('state', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+    	$tQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+    	
+    	$tQuery->where("#originId = {$taskRec->originId}");
+    	$tQuery->where("#state = 'draft'");
+    	$tQuery->where("#taskId != '{$taskRec->id}'");
+    	$tQuery->show('taskId');
+    	
+    	// За всяка от намерените задачи
+    	while($tRec = $tQuery->fetch()){
+    		try{
+    			// Добавяме текущата задача да зависи от нея.
+    			tasks_TaskConditions::add($taskRec, $tRec->taskId);
+    		} catch(core_exception_Expect $e){
+    			
+    		}
+    	}
     }
 }
