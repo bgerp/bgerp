@@ -391,16 +391,9 @@ class tasks_Tasks extends embed_Manager
     	
     	if($action == 'add'){
     		if(isset($rec->originId)){
-    			
-    			// Може да се добавя само към активно задание
     			$origin = doc_Containers::getDocument($rec->originId);
-    			
-    			if(!$origin->isInstanceOf('planning_Jobs')){
+    			if($origin->fetchField('state') != 'active'){
     				$requiredRoles = 'no_one';
-    			} else {
-    				if($origin->fetchField('state') != 'active'){
-    					$requiredRoles = 'no_one';
-    				}
     			}
     		}
     		
