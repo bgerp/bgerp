@@ -9,18 +9,18 @@
                         <td>[#fromEml#]</td>
                     </tr>
                     <!--ET_END fromEml-->
-                    <!--ET_BEGIN allTo-->          
+                    <!--ET_BEGIN AllTo-->          
                     <tr>
                         <td  class='aright'>|До|*:</td>
-                        <td>[#allTo#]</td>
+                        <td>[#AllTo#]</td>
                     </tr>
-                    <!--ET_END allTo-->
-                    <!--ET_BEGIN allCc-->          
+                    <!--ET_END AllTo-->
+                    <!--ET_BEGIN AllCc-->          
                     <tr>
                         <td  class='aright'>|Кп|*:</td>
-                        <td>[#allCc#]</td>
+                        <td>[#AllCc#]</td>
                     </tr>
-                    <!--ET_END allCc-->
+                    <!--ET_END AllCc-->
                     <!--ET_BEGIN date-->          
                     <tr>
                         <td class='aright'>|На|*:</td>

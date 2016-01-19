@@ -306,7 +306,7 @@ class csv_Lib
             $csv .= $rCsv . "\n";
         }
         
-        if (isset ($firstRow)) {
+        if (isset ($firstRow) && $mode['columns'] != 'none') {
             $csv = $firstRow . "\n" . $csv;
         }
        

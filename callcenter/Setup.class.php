@@ -78,7 +78,7 @@ class callcenter_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Център за телефонни обаждания";
+    var $info = "Център за телефонни обаждания. Връзка с тел. централа Asterisk";
     
     
     /**

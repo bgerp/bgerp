@@ -49,12 +49,6 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
-                                                <!--ET_BEGIN baseCurrencyCode-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Валута|*:</td>
-                                                    <td>[#baseCurrencyCode#]</td>
-                                                </tr>
-                                                <!--ET_END baseCurrencyCode-->
                                             </table>
                                             <!--ET_BEGIN note-->
                                             <hr>

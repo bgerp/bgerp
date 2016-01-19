@@ -529,6 +529,14 @@ class core_Cron extends core_Manager
         expect($rec->period >= 1);
         
         // Офсета трябва да е по-голям от нула и да е по-малък от периода
+        if(!isset($rec->offset)) {
+            if($rec->period > 1) {
+                $rec->offset = rand(0, $rec->period-1);
+            } else {
+                $rec->offset = 0;
+            }
+        }
+
         $rec->offset = max(0, $rec->offset);
         expect($rec->period > $rec->offset);
  

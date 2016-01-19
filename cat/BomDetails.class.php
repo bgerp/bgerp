@@ -297,8 +297,8 @@ class cat_BomDetails extends doc_Detail
     	}
     	$expr = preg_replace('/\$Начално\s*=\s*/iu', "<span style='color:blue'>" . tr('Начално') . "</span>=", $expr);
     	
-    	if(isset($coefficient)){
-    		$expr .= " / <span style='color:darkgreen' title='" . tr('Количеството от оригиналната рецепта') . "'>{$coefficient}</span>";
+    	if(isset($coefficient) && $coefficient != 1){
+    		$expr = "( {$expr} ) / <span style='color:darkgreen' title='" . tr('Количеството от оригиналната рецепта') . "'>{$coefficient}</span>";
     	}
     	
     	return $expr;
@@ -574,7 +574,7 @@ class cat_BomDetails extends doc_Detail
     		$coefficient = $mvc->fetchField($rec->parentId, 'coefficient');
     		
     		if(isset($coefficient)){
-    			$rec->propQuantity .= " / $coefficient";
+    			$rec->propQuantity = "($rec->propQuantity) / $coefficient";
     		}
     	}
     	
@@ -587,7 +587,6 @@ class cat_BomDetails extends doc_Detail
     		$row->rowQuantity = "<span class='red'>???</span>";
     	} else {
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
-    		//$rec->rowQuantity /= $rec->quantityInPack;
     	}
     	
     	if(is_numeric($rec->propQuantity)){

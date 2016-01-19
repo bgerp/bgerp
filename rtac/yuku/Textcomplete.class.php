@@ -112,7 +112,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                     	}));
                     },
                     replace: function (textComplete) {
-                        return textComplete + ' ';
+                        return textComplete + rtacObj.textCompleteStrEnd.{$textId};
                     },
                     maxCount: {$maxCount},
                     cache: true,

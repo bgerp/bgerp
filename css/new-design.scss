@@ -591,8 +591,10 @@ a.bookmark-external-url {
     border-radius: 6px;
     border: 1px solid #ccc;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    a {
+    a:not(.profile) {
         color: #333 !important;
+	}
+	a{
         display: block;
         padding: 3px 20px 3px 25px;
         clear: both;

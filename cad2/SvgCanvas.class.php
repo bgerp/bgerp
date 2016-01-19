@@ -681,9 +681,11 @@ class cad2_SvgCanvas extends core_BaseClass {
                             list($val) = self::toPix($val);
                             break;
                         case 'stroke-dasharray':
-                            list($a, $b) = explode(',', trim($val));
-                            $vals = self::toPix($a, $b);
-                            $val  = implode(',', $vals);
+                    		if($val != 'none') {
+	                            list($a, $b) = explode(',', trim($val));
+	                            $vals = self::toPix($a, $b);
+	                            $val  = implode(',', $vals);
+                        	}
                             break;
                     }
 
