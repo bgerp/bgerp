@@ -2943,6 +2943,9 @@ div.location.public {
   width: 100%;
   max-width: 400px; }
 
+.wide .inline-form {
+  display: inline-block; }
+
 /*
  * шаблон за журнал
  */
