@@ -233,7 +233,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$tpl = new ET("");
     	
-    	$this->invoke('BeforeRenderListTable', array(&$tpl, &$data));
     	if(Mode::is('printing')){
     		unset($data->listFields['tools']);
     	}
@@ -243,7 +242,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
     	
-    	$detailsInput = $table->get($data->inputArr, $data->listFields);
+    	$iData = clone $data;
+    	$iData->rows = $data->inputArr;
+    	$this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+    	
+    	$detailsInput = $table->get($iData->rows, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
     	// Добавяне на бутон за нов материал
@@ -254,8 +257,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	// Рендираме таблицата с отпадъците
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
     		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
-    		$detailsPop = $table->get($data->popArr, $data->listFields);
-    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;'), $detailsPop);
+    		
+    		$pData = clone $data;
+    		$pData->rows = $data->popArr;
+    		$this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+    		$popTable = $table->get($pData->rows, $data->listFields);
+    		$detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
+    		
     		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
     	}
     	
