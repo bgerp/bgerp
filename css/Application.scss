@@ -523,17 +523,18 @@ div.folder-cover {
 	       top: -4px;
 	       display: inline-block;
 	    }
-	}
-	tr.row-added {
-        background-color: #e6ffe0;
-    }
-	tr.row-removed {
-	    background-color: #cce3fe;
-	}
-	
+	}	
 	tr.group-by-field-row {
 	    background-color: #f1f1f1;
 	}
+}
+
+tr.row-added {
+    background-color: #e6ffe0;
+}
+
+tr.row-removed {
+    background-color: #cce3fe;
 }
 
 .wide .user-profile{
