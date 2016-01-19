@@ -637,7 +637,6 @@ class doc_DocumentPlg extends core_Plugin
                     	
                     	// Добавяме таба
                     	$url["TabTop{$rec->containerId}"] = $tab1;
-                    	$url['#'] = "detail{$rec->containerId}";
                     }
                    
                     // Ако има страница на документа
