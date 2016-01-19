@@ -203,12 +203,18 @@ class csv_Lib
     static function createCsv($recs, core_FieldSet $fieldSet, $listFields = NULL, $mode = array())
     {
         $mode = arr::make($mode, TRUE);
-
+        
     	// ще вземем конфигурационните константи
     	$conf = core_Packs::getConfig('csv');
     	
         if(isset($listFields)) {
             $listFields = arr::make($listFields, TRUE);
+        } else {
+            $fieldsArr = $fieldSet->selectFields("");
+            $listFields = array();
+            foreach ($fieldsArr as $name => $fld) {
+                $listFields[$fld->name] = $fld->caption;
+            }
         }
     	
     	$exportCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
@@ -232,6 +238,12 @@ class csv_Lib
         	    $firstRow .= ($firstRow ? $conf->CSV_DELIMITER : '') . $caption;
         	   
         	}
+    	}
+    	
+    	if(!isset($listFields)) {
+    	   //$doc = doc_Threads::getFirstDocument(getCurrentUrl()['threadId']);
+    	   //$d = doc_Containers::getDocumentByHandle(getCurrentUrl()['docId']);
+    	   bp();
     	}
 
         foreach($recs as $rec) {
