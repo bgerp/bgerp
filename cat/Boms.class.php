@@ -533,6 +533,12 @@ class cat_Boms extends core_Master
     	$resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
     	$resources['resources'] = array_values($materials);
     	
+    	if(is_array($materials)){
+    		foreach ($materials as &$m){
+    			$m->propQuantity /= $m->quantityInPack;
+    		}
+    	}
+    	
     	if($rec->expenses){
     		$resources['expenses'] = $rec->expenses;
     	}
