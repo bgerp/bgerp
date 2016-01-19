@@ -397,7 +397,6 @@ class drdata_Countries extends core_Manager {
 
         // Кои колонки ще вкарваме
         $fields = array(
-            0 => "sysId", 
             1 => "commonName",
             2 => "commonNameBg",
             3 => "formalName",
