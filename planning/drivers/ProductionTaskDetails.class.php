@@ -196,7 +196,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$row->code = "<b>{$row->code}</b>";
     	}
     	 
-    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
+    	$class = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed'));
+    	$row->ROW_ATTR['class'] = $class;
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}

@@ -197,8 +197,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if(!count($data->recs)) return;
     	
     	foreach ($data->rows as $id => $row){
-    		$row->ROW_ATTR['class'] = "state-active";
-    		$row->productId = cat_Products::getShortHyperlink($data->recs[$id]->productId);
+    		$rec = $data->recs[$id];
+    		$class = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed');
+    		
+    		$row->ROW_ATTR['class'] = $class;
+    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	}
     }
     
