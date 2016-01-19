@@ -4512,7 +4512,7 @@ body.narrow {
             page-break-after: avoid;
         }
     }
-    .footer-notes, .print-block{
+    .footer-notes, .print-block, .footerDocTable, .footerDocBlock{
         page-break-inside: avoid;
     }
 	#statuses, .toast-container{

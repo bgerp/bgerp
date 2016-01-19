@@ -4130,7 +4130,9 @@ only screen and (max-width: 320px) {
       page-break-after: avoid; }
 
   .footer-notes,
-  .print-block {
+  .print-block,
+  .footerDocTable,
+  .footerDocBlock {
     page-break-inside: avoid; }
 
   #statuses,
