@@ -246,7 +246,7 @@ class tasks_TaskConditions extends tasks_TaskDetails
     	if(count($notAllowed)){
     		$notAllowedCond = "#id NOT IN (" . implode(',', $notAllowed) . ") AND";
     	}
-    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('closed', 'rejected') AND #folderId={$taskFolderId}"));
+    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('draft') AND #folderId={$taskFolderId}"));
     	
     	return $taskArray;
     }
