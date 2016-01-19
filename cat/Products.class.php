@@ -2097,7 +2097,7 @@ class cat_Products extends embed_Manager {
     		
     		// Ако има опитваме се да намерим задачите за производството по нейните етапи
     		if($bomId){
-    			$defaultTasks = cat_Boms::getTasksFromBom($bomId);
+    			$defaultTasks = cat_Boms::getTasksFromBom($bomId, $quantity);
     		}
     	}
     	
