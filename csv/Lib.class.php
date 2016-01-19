@@ -239,12 +239,6 @@ class csv_Lib
         	   
         	}
     	}
-    	
-    	if(!isset($listFields)) {
-    	   //$doc = doc_Threads::getFirstDocument(getCurrentUrl()['threadId']);
-    	   //$d = doc_Containers::getDocumentByHandle(getCurrentUrl()['docId']);
-    	   bp();
-    	}
 
         foreach($recs as $rec) {
             
