@@ -213,9 +213,17 @@ class core_Crypt extends core_BaseClass
         
         // Ако нямаме разделител - връщаме грешка
         if ($divPos === FALSE) {
-            $res = FALSE;
             
-            return;
+            // Установяваме стринга-разделител
+            // За стари криптирания в 32 битови ОС
+            $div = self::getDivStr($key, FALSE);
+            $divPos = strpos($res, $div);
+            
+            if ($divPos === FALSE) {
+                $res = FALSE;
+            
+                return;
+            }
         }
         
         // Резултата е равен на частта след разделителя
@@ -233,14 +241,16 @@ class core_Crypt extends core_BaseClass
     /**
      * Определя разделителя между хедър-а на кодираната част и данните
      */
-    static function getDivStr($key)
+    static function getDivStr($key, $sprint = TRUE)
     {
         $crc32 = crc32($key);
         
-        // Фикс - за да са еднакви в 32 и 64 битови ОС-та
-        $crc32 = sprintf("%u", $crc32);
+        if ($sprint) {
+            // Фикс - за да са еднакви в 32 и 64 битови ОС-та
+            $crc32 = sprintf("%u", $crc32);
+        }
         
-        $div .= chr($crc32 % 256);
+        $div = chr($crc32 % 256);
         $crc32 = $crc32 / 256;
         $div .= chr($crc32 % 256);
         $crc32 = $crc32 / 256;
