@@ -51,6 +51,8 @@ class abbyyocr_Converter extends core_Manager
             // Ако не може да се извлече текстовата част, връщаме
             if (!static::canExtract($rec->name)) return ;
             
+            $btnParams = array();
+            
             // Ако вече е извлечена текстовата част
             if (static::isTextIsExtracted($rec)) {
                     
@@ -68,7 +70,10 @@ class abbyyocr_Converter extends core_Manager
             	array('ef_icon' => 'img/16/scanner.png'), 
                 $btnParams
             ); 
-        } catch (core_exception_Expect $e) {}
+        } catch (core_exception_Expect $e) {
+            
+            return FALSE;
+        }
     }
     
 
@@ -195,7 +200,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * Изпълнява се след приключване на обработката
      * 
-     * @param fconv_Script $sctipt - Обект с данние
+     * @param fconv_Script $script - Обект с данние
      * 
      * @param boolean
      */
@@ -275,6 +280,7 @@ class abbyyocr_Converter extends core_Manager
 //       if (!$procText) {
             
             // Ако е извлечена текстовата част с OCR
+            $paramsOcr = array();
             $paramsOcr['type'] = 'textOcr';
             $paramsOcr['dataId'] = $rec->dataId;
             $procTextOcr = fileman_Indexes::isProcessStarted($paramsOcr);
@@ -296,6 +302,8 @@ class abbyyocr_Converter extends core_Manager
     {
         // Вземаме конфига
     	$conf = core_Packs::getConfig('fileman');
+    	
+    	$data = array();
     	
     	// Ако няма запис в модела
     	if (!$conf->_data['FILEMAN_OCR']) {
