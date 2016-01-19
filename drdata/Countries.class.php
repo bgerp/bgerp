@@ -6,10 +6,10 @@
  * Клас 'drdata_Countries' -
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @todo:     Да се документира този клас
@@ -20,19 +20,19 @@ class drdata_Countries extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'ISO информация за страните по света';
+    public $title = 'ISO информация за страните по света';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $recTitleTpl = '[#commonName#]';
+    public $recTitleTpl = '[#commonName#]';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper,plg_Sorting';
+    public $loadList = 'drdata_Wrapper,plg_Sorting';
     
 
     /**
@@ -47,11 +47,34 @@ class drdata_Countries extends core_Manager {
     static $euCountries = array('BE','BG','CY','CZ','DK','EE','GR','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR');
     
     
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit = "no_one";
+    
+    
+    /**
+     * Кой може да го изтрие?
+     *
+     * @var string|array
+     */
+    public $canDelete = "no_one";
+    
+    
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd = "no_one";
+    
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
@@ -374,6 +397,7 @@ class drdata_Countries extends core_Manager {
 
         // Кои колонки ще вкарваме
         $fields = array(
+            0 => "sysId", 
             1 => "commonName",
             2 => "commonNameBg",
             3 => "formalName",
@@ -391,10 +415,9 @@ class drdata_Countries extends core_Manager {
         
         // Импортираме данните от CSV файла. 
         // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
 
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }
-
 }
