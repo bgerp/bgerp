@@ -144,10 +144,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$rec = &$form->rec;
     	
-		if($rec->type == 'pop'){
-    		//$form->setField('batch', 'input=none');
-    	}
-    	
     	if($rec->productId){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		if(isset($pInfo->meta['canStore'])){
@@ -185,6 +181,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row)
     	{
     		$rec = $data->recs[$id];
+    		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
     		
     		if($rec->type == 'pop'){
     			$row->packQuantity .= " {$row->packagingId}";
