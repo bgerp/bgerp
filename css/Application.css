@@ -445,12 +445,14 @@ div.folder-cover {
       position: relative;
       top: -4px;
       display: inline-block; }
-  .fieldset-holder tr.row-added {
-    background-color: #e6ffe0; }
-  .fieldset-holder tr.row-removed {
-    background-color: #cce3fe; }
   .fieldset-holder tr.group-by-field-row {
     background-color: #f1f1f1; }
+
+tr.row-added {
+  background-color: #e6ffe0; }
+
+tr.row-removed {
+  background-color: #cce3fe; }
 
   .wide .user-profile .listTopContainer {
     min-width: 0; }
@@ -2941,6 +2943,9 @@ div.location.public {
   width: 100%;
   max-width: 400px; }
 
+.wide .inline-form {
+  display: inline-block; }
+
 /*
  * шаблон за журнал
  */
@@ -4125,7 +4130,9 @@ only screen and (max-width: 320px) {
       page-break-after: avoid; }
 
   .footer-notes,
-  .print-block {
+  .print-block,
+  .footerDocTable,
+  .footerDocBlock {
     page-break-inside: avoid; }
 
   #statuses,

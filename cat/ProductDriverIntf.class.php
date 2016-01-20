@@ -120,6 +120,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
+     * @param double $quantity - к-во
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
      * 				    -> title        - дефолт име на задачата
      * 					-> driverClass  - драйвър на задача
@@ -128,9 +129,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * 						 - array production - артикули за произвеждане
      * 						 - array waste      - отпадъци
      */
-	public function getDefaultProductionTasks()
+	public function getDefaultProductionTasks($quantity)
 	{
-		return $this->class->getDefaultProductionTasks();
+		return $this->class->getDefaultProductionTasks($quantity);
 	}
 	
 	

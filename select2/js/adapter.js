@@ -15,6 +15,10 @@ function formatSelect2Data(data)
 		text = getEO().escape(text);
 	}
 	
+	if (data.element && (color = data.element.getAttribute('data-color'))) {
+		text = "<div class='color-preview' style='background-color:" + color + " !important;'> </div>&nbsp;" + text;
+	}
+	
 	if (data.loading) return text;
 	
 	var res = '<span';
@@ -38,8 +42,15 @@ function formatSelect2Data(data)
  */
 function formatSelect2DataSelection(data)
 {
+	var text = data.text;
 	
-	return data.text;
+	if (data.element && (color = data.element.getAttribute('data-color'))) {
+		text = "<span><div class='color-preview' style='background-color:" + color + " !important; margin-bottom: 2px;'> </div>&nbsp;" + text + "</span>";
+		
+		text = $(text);
+	}
+	
+	return text;
 }
 
 

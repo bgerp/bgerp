@@ -21,7 +21,7 @@ class plg_Printing extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function plg_Printing()
+    function __construct()
     {
         $Plugins = &cls::get('core_Plugins');
         

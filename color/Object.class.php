@@ -37,7 +37,7 @@ class color_Object {
     /**
      * @todo Чака за документация...
      */
-    function color_Object($value, $g = NULL, $b = NULL)
+    function __construct($value, $g = NULL, $b = NULL)
     {
         $this->value = $value;
         

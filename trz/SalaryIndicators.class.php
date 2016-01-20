@@ -219,6 +219,7 @@ class trz_SalaryIndicators extends core_Manager
      * имащи интерфейс trz_SalaryIndicatorsSourceIntf
      * 
      * @param date $date
+     * @return array $indicators
      */
     public static function fetchIndicators($date)
     {
@@ -266,6 +267,7 @@ class trz_SalaryIndicators extends core_Manager
     	// За всеки един елемент от масива
     	foreach ($indicators as $indicator)
     	{
+    		$rec = new stdClass();
     		$rec->date = $date;
 	    	$rec->docId = $indicator->docId;
 	    	$rec->docClass = $indicator->docClass;
@@ -282,7 +284,7 @@ class trz_SalaryIndicators extends core_Manager
 	    	// в противен слувай го ъпдейтваме
        		if($mvc->isUnique($rec, $fields, $exRec)){
     			self::save($rec);
-    		}else { 
+    		} else { 
             	$rec->id = $exRec->id;
             	self::save($rec);
             }

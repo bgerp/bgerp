@@ -67,12 +67,11 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $form->setHidden('side');
         
         $form->setDefault('orderBy', 'DESC');
-        //$form->setHidden('orderBy');
         
         $form->setHidden('compare');
 
         $form->setDefault('orderField', 'blAmount');
-        //$form->setHidden('orderField');
+        $form->setOptions('orderField', array('blAmount' => "Сума"));
         
         $form->setField('from','refreshForm,silent');
         $form->setField('to','refreshForm,silent');
@@ -85,7 +84,8 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-
+        $form->setOptions('orderField', array('blAmount' => "Сума"));
+        
         foreach (range(1, 3) as $i) {
 
             $form->setHidden("feat{$i}");

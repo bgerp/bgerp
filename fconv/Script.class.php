@@ -49,7 +49,7 @@ class fconv_Script
     /**
      * Инициализиране на уникално id
      */
-    function fconv_Script($tempDir = NULL)
+    function __construct($tempDir = NULL)
     {
         $conf = core_Packs::getConfig('fconv');
         $this->tempPath = $conf->FCONV_TEMP_PATH . "/";

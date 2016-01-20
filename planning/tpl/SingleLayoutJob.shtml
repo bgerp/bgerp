@@ -138,9 +138,10 @@
          <!--ET_END SALE_INFO-->
     </table>
      <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-          <b>|Задачи за производство|*</b> [#ADD_BTN#]
+          <b>|Задачи към заданието|*</b>
      </div>
      <div class="clearfix21 portal planning" style='border-top: none'>
             [#Tasks#]
+            <div style='margin-top:6px'>[#btnTasks#]</div>
      </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

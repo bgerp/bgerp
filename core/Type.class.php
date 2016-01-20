@@ -57,7 +57,7 @@ class core_Type extends core_BaseClass
     /**
      * Конструктор. Дава възможност за инициализация
      */
-    function core_Type($params = array())
+    function __construct($params = array())
     {
         if(is_array($params) && count($params)) {
             $this->params = $params;

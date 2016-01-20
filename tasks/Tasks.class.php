@@ -174,6 +174,9 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=hidden,notNull');
     	
     	$this->setDbIndex('classId');
+    	
+    	// Декларираме класа че интерфейс на задачи
+    	$this->declareInterface('tasks_TaskIntf');
     }
     
     
@@ -450,32 +453,13 @@ class tasks_Tasks extends embed_Manager
     	$cu = core_Users::getCurrent();
     	$form->setDefault('inCharge', keylist::addKey('', $cu));
     	$form->setDefault('classId', $mvc->getClassId());
-    	
-    	if(isset($rec->originId)){
-    		$origin = doc_Containers::getDocument($rec->originId);
     		
-    		// Ако задачата идва от дефолт задача на продуктов драйвер
-    		if(isset($rec->systemId)){
-    			$productId = $origin->fetchField('productId');
-    			$ProductDriver = cat_Products::getDriver($productId);
+    	// Ако задачата идва от дефолт задача на продуктов драйвер
+    	if(isset($rec->systemId)){
     			
-    			// Намираме препоръчителните задачи за драйвера
-    			$taskInfoArray = $ProductDriver->getDefaultProductionTasks();
-    			
-    			// Задаваме дефолтите на задачата
-    			if(isset($taskInfoArray[$rec->systemId])){
-    				$params = (array)$taskInfoArray[$rec->systemId];
-    				if(is_array($params)){
-    					foreach ($params as $key => $value){
-    						$form->setDefault($key, $value);
-    					}
-    				}
-    			}
-    			
-    			// Щом задачата е от препоръчителните на продуктовия драйвера, 
-    			// не може да се сменя класа на драйвера на задачата
-    			$form->setReadOnly('driverClass');
-    		}
+    		// Щом задачата е от препоръчителните на продуктовия драйвера, 
+    		// не може да се сменя класа на драйвера на задачата
+    		$form->setReadOnly('driverClass');
     	}
     }
     
@@ -678,21 +662,6 @@ class tasks_Tasks extends embed_Manager
     	// Може да се добавя само в папка на 'Проект'
     	return ($Cover->isInstanceOf('doc_UnsortedFolders'));
     }
-
-
-    /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	
-    	// Може да се добавя само към нишка с начало задание
-    	return $firstDoc->isInstanceOf('planning_Jobs');
-    }
     
     
     /**
@@ -701,7 +670,7 @@ class tasks_Tasks extends embed_Manager
     static function getHandle($id)
     {
     	$rec = static::fetch($id);
-    	if($rec->classId && cls::load($rec->classId, TRUE)){
+    	if(isset($rec->classId) && cls::load($rec->classId, TRUE)){
     		$self = cls::get($rec->classId);
     		
     		return $self->abbr . $rec->id;
@@ -798,5 +767,81 @@ class tasks_Tasks extends embed_Manager
     public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	unset($nRec->progress);
+    }
+    
+    
+    /**
+     * Подготвя задачите към заданията
+     */
+    public function prepareTasks($data)
+    {
+    	$data->recs = $data->rows = array();
+    	
+    	// Намираме всички задачи към задание
+    	$query = $this->getQuery();
+    	$query->where("#state != 'rejected'");
+    
+    	$containerId = $data->masterData->rec->containerId;
+    	$query->where("#originId = {$data->masterData->rec->containerId}");
+    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'pending' THEN 5 ELSE 6 END)");
+    	$query->orderBy('#orderByState=ASC');
+    		
+    	// Подготвяме данните
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$row = $this->recToVerbal($rec);
+    		$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
+    		$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
+    		$data->rows[$rec->id] = $row;
+    	}
+    		
+    	$data->addUrlArray = array();
+    	
+    	// Намираме всички задачи, които наследяват task_Tasks
+    	$documents = core_Classes::getOptionsByInterface('tasks_TaskIntf');
+    	
+    	foreach ($documents as $doc){
+    		if(cls::load($doc, TRUE)){
+    			$Doc = cls::get($doc);
+    			
+    			// Нотифицираме ги че рендираме задачите към задание
+    			$Doc->invoke('AfterPrepareTasks', array(&$data));
+    			
+    			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
+    			if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
+    				$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Рендира задачите на заданията
+     */
+    public function renderTasks($data)
+    {
+    	$tpl = new ET("");
+    		
+    	// Ако няма намерени записи, не се рендира нищо
+    	// Рендираме таблицата с намерените задачи
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd,expectedTimeStart');
+    	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
+    
+    	// Имали бутони за добавяне
+    	if(is_array($data->addUrlArray)){
+    		foreach ($data->addUrlArray as $class => $url){
+    			
+    			// За всеки рендираме бутон за добавяне на задача от съответния тип
+    			$Doc = cls::get($class);
+    			$titleLower = mb_strtolower($Doc->singleTitle);
+    			$btn = ht::createBtn($Doc->singleTitle, $url, FALSE, FALSE, "title=Създаване на {$titleLower} към задание,ef_icon={$Doc->singleIcon}");
+    			$tpl->append($btn, 'btnTasks');
+    		}
+    	}
+    
+    	// Връщаме шаблона
+    	return $tpl;
     }
 }
