@@ -59,14 +59,10 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
         $positionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
       
         $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент", 
-                                                  "baseQuantity" => "К-во»Начално",
-                                                  "baseAmount" => "Сума»Начална",
-                                                  "debitQuantity" => "К-во»Дебит",
-                                                  "debitAmount" => "Сума»Дебит",
-                                                  "creditQuantity" => "К-во»Кредит",
-                                                  "creditAmount" => "Сума»Кредит",
-                                                  "blQuantity" => "К-во»Крайно",
-                                                  "blAmount" => "Сума»Крайна"));
+                                                  "baseAmount" => "Начално салдо",
+                                                  "debitAmount" => "Дебит",
+                                                  "creditAmount" => "Кредит",
+                                                  "blAmount" => "Крайно салдо"));
         
     }
 
