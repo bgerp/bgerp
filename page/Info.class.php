@@ -22,9 +22,9 @@ class page_Info extends core_ET {
     /**
      * Конструктор на шаблона
      */
-    function page_Info() {
+    function __construct() {
         if(Mode::is('screenMode', 'narrow')) {
-            $this->core_ET(
+            parent::__construct(
                 "\n<table style='max-width:480px;border:solid 1px black; background-color:#ffe'>" .
                 "\n    <tr bgcolor='blue'>" .
                 "\n        <td style='font-size:1.2em;padding:3px;color:white;'>" .
@@ -41,7 +41,7 @@ class page_Info extends core_ET {
                 "\n<!--ET_END TOOLBAR-->" .
                 "\n</table>");
         } else {
-            $this->core_ET(
+            parent::__construct(
                 "\n<CENTER>" .
                 "\n<table style='max-width:480px;margin-top:50px; border:solid 1px black; background-color:#ffe''>" .
                 "\n    <tr bgcolor='blue'>" .

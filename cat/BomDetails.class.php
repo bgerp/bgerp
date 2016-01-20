@@ -131,9 +131,9 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
-    	$this->FLD("description", 'richtext(rows=3)', 'caption=Описание');
-    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Формула,smartCenter,tdClass=accCell,mandatory');
+    	$this->FLD("description", 'richtext(rows=3)', 'caption=Допълнително->Описание');
+    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
     	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=К-во,input=none,tdClass=accCell');
@@ -437,6 +437,12 @@ class cat_BomDetails extends doc_Detail
     		// Ако има артикул със същата позиция, или няма позиция добавяме нова
     		if(!isset($rec->position)){
     			$rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
+    		}
+    		
+    		if($rec->type == 'stage'){
+    			if($mvc->fetchField("#type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")){
+    				$form->setError('resourceId', 'Един етап може да се среща само веднъж в рецептата');
+    			}
     		}
     		
     		if(!$form->gotErrors()){

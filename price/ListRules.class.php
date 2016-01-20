@@ -319,9 +319,9 @@ class price_ListRules extends core_Detail
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
- 	
- 	$masterTitle = type_Users::escape($masterTitle);
- 		
+        
+        $masterTitle = price_Lists::getVerbal($masterRec, 'title');
+ 	    
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,price,currency,vat,targetPrice', 'input=none');

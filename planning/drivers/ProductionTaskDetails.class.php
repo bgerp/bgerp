@@ -93,7 +93,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	
-    	$this->setDbUnique('code');
+    	$this->setDbUnique('serial');
     }
     
     
@@ -192,11 +192,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
     	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
     	 
-    	if(isset($rec->code)){
-    		$row->code = "<b>{$row->code}</b>";
+    	if(isset($rec->serial)){
+    		$row->serial = "<b>{$row->serial}</b>";
     	}
     	 
-    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
+    	$class = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed'));
+    	$row->ROW_ATTR['class'] = $class;
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}

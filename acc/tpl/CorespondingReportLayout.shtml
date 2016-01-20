@@ -1,6 +1,8 @@
 <h1>[#TITLE#]</h1>
-[#FORM#]
-<div class='summary-block'>
+<div class='inline-form'>
+	[#FORM#]
+</div>
+<div class='summary-block' style='margin-top: 5px;'>
     <table style='min-width:200px;'>
             <tr>
                 <th></th>
@@ -28,6 +30,7 @@
             </tr>
         </table>
 </div>
+<div class='clearfix21'></div>
 <div>
  [#buttonList#][#buttonPie#][#buttonBar#]
         

@@ -523,17 +523,18 @@ div.folder-cover {
 	       top: -4px;
 	       display: inline-block;
 	    }
-	}
-	tr.row-added {
-        background-color: #e6ffe0;
-    }
-	tr.row-removed {
-	    background-color: #cce3fe;
-	}
-	
+	}	
 	tr.group-by-field-row {
 	    background-color: #f1f1f1;
 	}
+}
+
+tr.row-added {
+    background-color: #e6ffe0;
+}
+
+tr.row-removed {
+    background-color: #cce3fe;
 }
 
 .wide .user-profile{
@@ -3289,6 +3290,10 @@ div.location.public {
     max-width: 400px;
 }
 
+.wide .inline-form {
+	display: inline-block;
+}
+
 /*шаблон за журнал*/
 .acc_JournalDetails {
 	margin-top: 10px;
@@ -4507,7 +4512,7 @@ body.narrow {
             page-break-after: avoid;
         }
     }
-    .footer-notes, .print-block{
+    .footer-notes, .print-block, .footerDocTable, .footerDocBlock{
         page-break-inside: avoid;
     }
 	#statuses, .toast-container{

@@ -637,7 +637,6 @@ class doc_DocumentPlg extends core_Plugin
                     	
                     	// Добавяме таба
                     	$url["TabTop{$rec->containerId}"] = $tab1;
-                    	$url['#'] = "detail{$rec->containerId}";
                     }
                    
                     // Ако има страница на документа
@@ -1281,6 +1280,8 @@ class doc_DocumentPlg extends core_Plugin
         // във формата, указан от `text` режима (plain или html)
         Mode::push('text', $mode);
         
+        Mode::push('inlineDocument', TRUE);
+        
         if (!Mode::is('text', 'html')) {
             
             // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
@@ -1312,6 +1313,8 @@ class doc_DocumentPlg extends core_Plugin
                 core_Users::exitSudo();
             }
             
+            reportException($e);
+            
             expect(FALSE, $e);
         }
         
@@ -1321,6 +1324,8 @@ class doc_DocumentPlg extends core_Plugin
             // Възстановяване на текущия потребител
             core_Users::exitSudo();
         }
+        
+        Mode::pop('inlineDocument');
         
         // Връщаме старата стойност на 'text'
         Mode::pop('text');

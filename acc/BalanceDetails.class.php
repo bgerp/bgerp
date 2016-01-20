@@ -739,19 +739,22 @@ class acc_BalanceDetails extends core_Detail
             
             if(!$form->gotErrors()){
             	
-            	// Ако няма грешки в формата подготвяме хубав редирект
-            	$url = array('acc_Balances', 'single', $form->rec->bId, 'accId' => $form->rec->accId);
-            	foreach (range(1, 3) as $i){
-            		if(!empty($form->rec->{"grouping{$i}"})){
-            			$url["grouping{$i}"] = $form->rec->{"grouping{$i}"};
+            	// Ако е избран друг период и искаме редирект
+            	if(Request::get('id', 'int') != $form->rec->bId){
+            		// Ако няма грешки в формата подготвяме хубав редирект
+            		$url = array('acc_Balances', 'single', $form->rec->bId, 'accId' => $form->rec->accId);
+            		foreach (range(1, 3) as $i){
+            			if(!empty($form->rec->{"grouping{$i}"})){
+            				$url["grouping{$i}"] = $form->rec->{"grouping{$i}"};
+            			}
+            			if(!empty($form->rec->{"feat{$i}"})){
+            				$url["feat{$i}"] = $form->rec->{"feat{$i}"};
+            			}
             		}
-            		if(!empty($form->rec->{"feat{$i}"})){
-            			$url["feat{$i}"] = $form->rec->{"feat{$i}"};
-            		}
+            		
+            		// Понеже се подменя ид-то правим директен редирект
+            		redirect($url);
             	}
-            	
-            	// Понеже се подменя ид-то правим директен редирект
-            	redirect($url);
             }
         }
         

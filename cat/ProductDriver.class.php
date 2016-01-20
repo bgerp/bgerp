@@ -313,12 +313,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
 	 * 
+	 * @param double $quantity - к-во
 	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
 	 * 				    -> title        - дефолт име на задачата
 	 * 					-> driverClass  - драйвър на задача
 	 * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
 	 */
-	public function getDefaultProductionTasks()
+	public function getDefaultProductionTasks($quantity = 1)
 	{
 		return array();
 	}

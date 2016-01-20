@@ -54,85 +54,37 @@ class planning_Tasks extends tasks_Tasks
 	public $details = 'tasks_TaskConditions';
 	
 	
+	
 	/**
-	 * Подготвя задачите към заданията
+	 * След рендиране на задачи към задание
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param stdClass $data
+	 * @return void
 	 */
-	public function prepareTasks($data)
+	public static function on_AfterPrepareTasks($mvc, &$data)
 	{
-		$data->recs = $data->rows = array();
-		 
-		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId);
-		
-		// Намираме всички задачи към задание
-		$query = $this->getQuery();
-		$query->where("#state != 'rejected'");
-		
+		// Можели на артикула да се добавят задачи за производство
+		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
 		$containerId = $data->masterData->rec->containerId;
-		$query->where("#originId = {$containerId}");
-		$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'pending' THEN 5 ELSE 6 END)");
-		$query->orderBy('#orderByState=ASC');
-		 
-		// Подготвяме данните
-		while($rec = $query->fetch()){
-			$data->recs[$rec->id] = $rec;
-			$row = $this->recToVerbal($rec);
-			$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
-			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
-			$data->rows[$rec->id] = $row;
-			
-			// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
-			$title = $data->rows[$rec->id]->title;
-			if(isset($rec->systemId) && is_array($defaultTasks)){
-				unset($defaultTasks[$rec->systemId]);
-			}
-		}
-		 
+		
 		// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
-				
+		
 				// Ако не може да бъде доабвена задача не показваме реда
-				if(!self::haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
+				if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
+		
+				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driver, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
 				
-				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driverClass, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
 				$row = new stdClass();
 				$row->title = $taskInfo->title;
 				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача за производство');
 				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
-	
+		
 				$data->rows[] = $row;
 			}
 		}
-		 
-		// Бутон за нова задача ако има права
-		$driverClass = planning_drivers_ProductionTask::getClassId();
-		if(self::haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $driverClass))){
-			$data->addUrl = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $driverClass, 'ret_url' => TRUE);
-		}
-	}
-	
-	
-	/**
-	 * Рендира задачите на заданията
-	 */
-	public function renderTasks($data)
-	{
-		$tpl = new ET("");
-		 
-		// Ако няма намерени записи, не се реднира нищо
-		// Рендираме таблицата с намерените задачи
-		$table = cls::get('core_TableView', array('mvc' => $this));
-		$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
-		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
-		
-		// Добавя бутон за създаване на нова задача
-		if(isset($data->addUrl)){
-			$addBtn = ht::createLink('', $data->addUrl, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/add.png');
-			$tpl->append($addBtn, 'ADD_BTN');
-		}
-		
-		// Връщаме шаблона
-		return $tpl;
 	}
 	
 	
@@ -152,5 +104,20 @@ class planning_Tasks extends tasks_Tasks
 				}
 			}
 		}
+	}
+	
+
+	/**
+	 * Проверка дали нов документ може да бъде добавен в посочената нишка
+	 *
+	 * @param int $threadId key(mvc=doc_Threads)
+	 * @return boolean
+	 */
+	public static function canAddToThread($threadId)
+	{
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		
+		// Може да се добавя само към нишка с начало задание
+		return $firstDoc->isInstanceOf('planning_Jobs');
 	}
 }

@@ -71,7 +71,7 @@ class drdata_IP {
     /**
      * @todo Чака за документация...
      */
-    function drdata_IP()
+    function __construct()
     {
         $this->countries["AD"] = array("Andorra", "AN", "AD", "AND", "20", "Andorra la Vella", "Europe", "Euro", "EUR", "67627");
         $this->countries["AE"] = array("United Arab Emirates", "AE", "AE", "ARE", "784", "Abu Dhabi", "Middle East", "UAE Dirham", "AED", "2407460");

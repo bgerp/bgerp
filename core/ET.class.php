@@ -81,7 +81,7 @@ class core_ET extends core_BaseClass
     /**
      * Конструктор на шаблона
      */
-    function core_ET($content = "")
+    function __construct($content = "")
     {
         if ($content instanceof core_ET) {
             $this->content = $content->content;

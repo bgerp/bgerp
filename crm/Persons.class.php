@@ -291,7 +291,7 @@ class crm_Persons extends core_Master
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
-     * @param core_Mvc $mvc
+     * @param crm_Persons $mvc
      * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
@@ -304,6 +304,8 @@ class crm_Persons extends core_Master
         
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('users', $default);
+        
+        $options = array();
         
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
@@ -904,7 +906,9 @@ class crm_Persons extends core_Master
     function updateGroupsCnt()
     {
         $query = $this->getQuery();
-
+        
+        $groupsCnt = array();
+        
         while($rec = $query->fetch()) {
             $keyArr = keylist::toArray($rec->groupList);
 
@@ -1279,7 +1283,6 @@ class crm_Persons extends core_Master
     /**
      * Връща данните на лицето
      * @param integer $id    - id' то на записа
-     * @param email   $email - Имейл
      *
      * return object
      */
@@ -1419,7 +1422,7 @@ class crm_Persons extends core_Master
                 $address = $vcard->getAddress();
 
                 // За сега използваме първия адрес от първия възможен тип:
-                $address = reset(reset($address));
+                $address = reset($address);
 
                 $rec->place    = $address['locality'];
 
@@ -1524,7 +1527,7 @@ class crm_Persons extends core_Master
                 //
                 // {{{ Снимка
                 //
-                if ($photoUrl == $vcard->getPhotoUrl()) {
+                if ($photoUrl = $vcard->getPhotoUrl()) {
                     // @TODO: Как да добавя файл в кофата 'pictures' когато знам URL-то му???
                 }
                 //
@@ -1783,7 +1786,7 @@ class crm_Persons extends core_Master
      * 
      * Връща масив, от който се създава бутона за създаване на входящ документ
      * 
-     * @param fileman_Files $fRec - Обект са данни от модела
+     * @param stdObject $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['class'] - Името на класа
@@ -1961,6 +1964,8 @@ class crm_Persons extends core_Master
 //            $form->setDefault('photo', $currVcard['photoUrl'][$photoKey]);    
 //        }
         
+        $phonesStrArr = array();
+        
         // Вземаме всички телефонни номера и ги групираме в масив в зависимост от вида им
         $phonesStrArr['work'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'work');
         $phonesStrArr['voice'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'voice');
@@ -2011,6 +2016,7 @@ class crm_Persons extends core_Master
             unset($addressLabel['work']);
             
             // Създаваме нов масив, където на първо място са домашните
+            $newAddLabel = array();
             $newAddLabel['home'] = $addressLabel['home'];
             $newAddLabel['dom'] = $addressLabel['dom'];
             $newAddLabel += (array)$addressLabel;
@@ -2106,7 +2112,7 @@ class crm_Persons extends core_Master
         
         $retUrl = getRetUrl();
         
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             $retUrl = array('core_Packs');
         }
         
@@ -2184,7 +2190,9 @@ class crm_Persons extends core_Master
             $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
 
             $query = $mvc->getQuery();
-
+            
+            $similars = array();
+            
             while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
                 $similars[$similarRec->id] = $similarRec;
                 $similarName = TRUE;
@@ -2233,7 +2241,7 @@ class crm_Persons extends core_Master
      * 
      * @param email $email - Имейл, за който търсим
      * 
-     * @return integet $fodlerId - id на папката
+     * @return integer|FALSE $fodlerId - id на папката
      */
     static function getFolderFromBuzEmail($email)
     {
@@ -2408,7 +2416,7 @@ class crm_Persons extends core_Master
      * в зависимост от дъжавата му
      * 
      * @param int $id - ид на записа
-     * @return string(3) - BGN|EUR|USD за дефолт валутата
+     * @return string - BGN|EUR|USD за дефолт валутата
      */
     public static function getDefaultCurrencyId($id)
     {
