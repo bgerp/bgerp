@@ -1877,12 +1877,14 @@ class cat_Products extends embed_Manager {
     			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
     		}
     		
+    		$obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
+    		
     		$arr = array('componentTitle'       => $obj->title, 
     				     'componentDescription' => $obj->description,
     					 'titleClass'           => $obj->titleClass,
     					 'componentCode'        => $obj->code,
     					 'componentStage'       => $obj->stageName,
-    					 'componentQuantity'    => $Double->toVerbal($obj->quantity),
+    					 'componentQuantity'    => $Double->toVerbal($obj->quantity / $obj->divideBy),
     					 'level'				=> $obj->level,
     				     'leveld'				=> $obj->leveld,
     					 'componentMeasureId'   => $obj->measureId);
@@ -1964,7 +1966,7 @@ class cat_Products extends embed_Manager {
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
     			
-    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity / $rec->quantity;
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
@@ -1979,7 +1981,7 @@ class cat_Products extends embed_Manager {
     				$obj->leveld = $obj->level;
     			}
     			$res[$obj->code] = $obj;
-    			
+    			$obj->divideBy = $rec->quantity;
     		}
     	}
     	

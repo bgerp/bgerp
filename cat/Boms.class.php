@@ -1247,30 +1247,37 @@ class cat_Boms extends core_Master
     	$tasks = array();
     	$pName = cat_Products::getVerbal($rec->productId, 'name');
     	
+    	// За основния артикул подготвяме задача
+    	// В която самия той е за произвеждане
     	$tasks = array(1 => (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     									  'title'    => $pName,
-    									  'quantity' => $rec->quantity,
-    									  'products' => array('production' => array(array('productId' => $rec->productId, 'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'), 'packQuantity' => $rec->quantity, 'quantityInPack' => 1)),
+    									  'quantity' => $quantity,
+    									  'products' => array('production' => array(array('productId' => $rec->productId, 'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'), 'packQuantity' => 1, 'quantityInPack' => 1)),
     										 				  'input'    => array(),
     										 				  'waste'    => array())));
     	 
+    	// Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
     	$dQuery->where("#parentId IS NULL");
     	while($detRec = $dQuery->fetch()){
-    		$quantity = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
-    		if($quantity == cat_BomDetails::CALC_ERROR){
-    			$quantity = 0;
+    		$quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
+    		if($quantityE == cat_BomDetails::CALC_ERROR){
+    			$quantityE = 0;
     		}
+    		$quantityE = ($quantityE / $rec->quantity) * $quantity;
     		
     		$place = ($detRec->type == 'pop') ? 'waste' : 'input';
-    		$tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantity, 'quantityInPack' => $detRec->quantityInPack);
+    		$tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
     	}
     	
+    	// Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
+    	// А неговите подетапи са за влагане/отпадък
     	$query = cat_BomDetails::getQuery();
     	$query->where("#bomId = {$rec->id}");
     	$query->where("#type = 'stage'");
     	
+    	// За всеки етап намираме подетапите му
     	while($dRec = $query->fetch()){
     		$query2 = cat_BomDetails::getQuery();
     		$query2->where("#parentId = {$dRec->id}");
@@ -1290,27 +1297,36 @@ class cat_Boms extends core_Master
     			$parent = $pRec->parentId;
     		}
     		
+    		$quantityP = ($quantityP / $rec->quantity) * $quantity;
+    		
+    		// Подготвяме задачата за етапа, с него за производим
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
     							 'quantity' => $quantityP,
     							 'products' => array(
-		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantityP, 'quantityInPack' => $dRec->quantityInPack)),
+		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantityP / $quantityP, 'quantityInPack' => $dRec->quantityInPack)),
 		    						'input'      => array(),
 		    						'waste'      => array()));
     
+    		// Добавяме директните наследници на етапа като материали за влагане/отпадък
     		while($cRec = $query2->fetch()){
-    			$quantity = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-    			if($quantity == cat_BomDetails::CALC_ERROR){
-    				$quantity = 0;
+    			$quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+    			if($quantityS == cat_BomDetails::CALC_ERROR){
+    				$quantityS = 0;
     			}
-    			 
+    			
+    			
+    			$quantityS = $quantityS;
+    			
     			$place = ($cRec->type == 'pop') ? 'waste' : 'input';
-    			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantity * $quantityP, 'quantityInPack' => $cRec->quantityInPack);
+    			$arr->products[$place][] =  array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
     		}
     
+    		// Събираме задачите
     		$tasks[] = $arr;
     	}
     	
+    	// Връщаме масива с готовите задачи
     	return $tasks;
     }
 }
