@@ -533,6 +533,12 @@ class cat_Boms extends core_Master
     	$resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
     	$resources['resources'] = array_values($materials);
     	
+    	if(is_array($materials)){
+    		foreach ($materials as &$m){
+    			$m->propQuantity /= $m->quantityInPack;
+    		}
+    	}
+    	
     	if($rec->expenses){
     		$resources['expenses'] = $rec->expenses;
     	}
@@ -1232,9 +1238,10 @@ class cat_Boms extends core_Master
      * Опит за връщане на масив със задачи за производство от рецептата
      * 
      * @param mixed $id - ид на рецепта
+     * @param double $quantity - количество
      * @return array  - масив със задачи за производство за генерирането на всеки етап
      */
-    public static function getTasksFromBom($id)
+    public static function getTasksFromBom($id, $quantity = 1)
     {
     	expect($rec = self::fetchRec($id));
     	$tasks = array();

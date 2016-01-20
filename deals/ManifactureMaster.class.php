@@ -70,8 +70,6 @@ abstract class deals_ManifactureMaster extends core_Master
 			if($storeLocation){
 				$row->storeLocation = crm_Locations::getAddress($storeLocation);
 			}
-			
-			$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		}
 		
 		if($fields['-list']){

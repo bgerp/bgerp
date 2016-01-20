@@ -61,7 +61,7 @@ class planning_Tasks extends tasks_Tasks
 	{
 		$data->recs = $data->rows = array();
 		 
-		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId);
+		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $quantity = $data->masterData->rec->quantity);
 		
 		// Намираме всички задачи към задание
 		$query = $this->getQuery();
@@ -133,5 +133,24 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Връщаме шаблона
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'add'){
+			if(isset($rec->originId)){
+				
+				// Може да се добавя само към активно задание
+				if($origin = doc_Containers::getDocument($rec->originId)){
+					if(!$origin->isInstanceOf('planning_Jobs')){
+						$requiredRoles = 'no_one';
+					}
+				}
+			}
+		}
 	}
 }

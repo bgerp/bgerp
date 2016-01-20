@@ -197,7 +197,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     		$originDoc = doc_Containers::getDocument($rec->originId);
     		if($originDoc->isInstanceOf('planning_Jobs')){
     			$productId = $originDoc->fetchField('productId');
-    			$tasks = cat_Products::getDefaultProductionTasks($productId);
+    			$tasks = cat_Products::getDefaultProductionTasks($productId, $rec->totalQuantity);
     			if(isset($tasks[$rec->systemId])){
     				$def = $tasks[$rec->systemId];
     				

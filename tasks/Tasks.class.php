@@ -391,16 +391,9 @@ class tasks_Tasks extends embed_Manager
     	
     	if($action == 'add'){
     		if(isset($rec->originId)){
-    			
-    			// Може да се добавя само към активно задание
     			$origin = doc_Containers::getDocument($rec->originId);
-    			
-    			if(!$origin->isInstanceOf('planning_Jobs')){
+    			if($origin->fetchField('state') != 'active'){
     				$requiredRoles = 'no_one';
-    			} else {
-    				if($origin->fetchField('state') != 'active'){
-    					$requiredRoles = 'no_one';
-    				}
     			}
     		}
     		
@@ -458,31 +451,14 @@ class tasks_Tasks extends embed_Manager
     	$form->setDefault('inCharge', keylist::addKey('', $cu));
     	$form->setDefault('classId', $mvc->getClassId());
     	
-    	if(isset($rec->originId)){
-    		$origin = doc_Containers::getDocument($rec->originId);
+    	$origin = doc_Containers::getDocument($rec->originId);
     		
-    		// Ако задачата идва от дефолт задача на продуктов драйвер
-    		if(isset($rec->systemId)){
-    			$productId = $origin->fetchField('productId');
-    			$ProductDriver = cat_Products::getDriver($productId);
+    	// Ако задачата идва от дефолт задача на продуктов драйвер
+    	if(isset($rec->systemId)){
     			
-    			// Намираме препоръчителните задачи за драйвера
-    			$taskInfoArray = $ProductDriver->getDefaultProductionTasks();
-    			
-    			// Задаваме дефолтите на задачата
-    			if(isset($taskInfoArray[$rec->systemId])){
-    				$params = (array)$taskInfoArray[$rec->systemId];
-    				if(is_array($params)){
-    					foreach ($params as $key => $value){
-    						$form->setDefault($key, $value);
-    					}
-    				}
-    			}
-    			
-    			// Щом задачата е от препоръчителните на продуктовия драйвера, 
-    			// не може да се сменя класа на драйвера на задачата
-    			$form->setReadOnly('driverClass');
-    		}
+    		// Щом задачата е от препоръчителните на продуктовия драйвера, 
+    		// не може да се сменя класа на драйвера на задачата
+    		$form->setReadOnly('driverClass');
     	}
     }
     

@@ -154,7 +154,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} else {
     		$form->setField('orderField', 'input=none');
     	}
-    	
+    
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
@@ -347,7 +347,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		$data->Pager->itemsCount = count($data->recs);
     		
     		// Ако има избрано поле за сортиране, сортираме по него
-    		//arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
+    		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
     	
     		// За всеки запис
     		foreach ($data->recs as &$rec){
@@ -941,11 +941,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function generateChartData ($data)
     {
     	//arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-     
+    
+        $arr = array();
     	$dArr = array();
 
-    	foreach ($data->recs as $id => $rec) {
+    	foreach ($data->recs as $id => $rec) { 
 
+    	    $value = abs($rec->{$this->innerForm->orderField});
+    	    
     		if ($rec->item1 || $rec->item2 || $rec->item3 || $rec->item4 || $rec->item5 || $rec->item6) { 
 	    		// правим масив с всички пера и стойност 
 	    		// сумирано полето което е избрали във формата
@@ -997,7 +1000,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	
     	$value1 = array();
     	$value2 = array();
-  
+
 		foreach ($dArr as $id=>$rec){
 			
 			if ($rec->valior) { 
@@ -1009,13 +1012,27 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 				$value2[] = $rec->valueNew;
 			}
 		}
-
+		
+		usort($dArr, function($a, $b) {
+		     
+		  return ($a->value > $b->value) ? -1 : 1;
+		});
+		
+		$arr = $this->preparePie($dArr, 12);
+		
+		$title = '';
+		foreach ($arr as $id => $recSort) {
+		    //$title = str::limitLen($recSort->title, 19);
+		    $title = $recSort->title;
+		    $info["{$title}"] = $recSort->value;
+		}
+	
     	$pie = array (
     				'legendTitle' => $this->getReportTitle(),
     				'suffix' => "лв.",
     				'info' => $info,
     	);
-    	
+   
     	$yFrom = date('Y', strtotime($data->rec->from));
     	$yTo = date('Y', strtotime($data->rec->to));
     	
@@ -1041,7 +1058,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$chartData = array();
     	$chartData[] = (object) array('type' => 'pie', 'data' => $pie);
     	$chartData[] = (object) array('type' => 'bar', 'data' => $bar);
-    	
+    
     	return $chartData;
     }
     
@@ -1095,7 +1112,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    			$title .= $rec->{"item{$i}"} . "|";
 	    		}
 	    	}
-
+	
 	    	$newArr[$key] =
 	    			(object) array ('title' => substr($title, 0,strlen($title)-1),
 	    							'value' => $rec->value

@@ -79,7 +79,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				if(is_object($BatchClass)){
 					$productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
 					$quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-					$quantity = $rec->packQuantity * $quantityInPack;
+					$quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
 					
 					if(!$BatchClass->isValid($rec->batch, $quantity, $msg)){
 						$form->setError('batch', $msg);
@@ -193,18 +193,18 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	/**
 	 * Преди рендиране на таблицата
 	 */
-	public static function on_BeforeRenderListTable($mvc, &$res, $data)
+	public static function on_BeforeRenderListTable($mvc, &$res, &$data)
 	{
-		if(!count($data->recs)) return;
+		if(!count($data->rows)) return;
 		
 		$rows = &$data->rows;
-		$recs = &$data->recs;
 		
-		foreach ($recs as $id => $rec){
+		foreach ($rows as $id => &$row){
+			$rec = &$data->recs[$id];
 			
 			// Ако има проблем с партидите, показваме грешката и маркираме реда
 			if($msg = self::getBatchRecInvalidMessage($mvc, $rec)){
-				$rows[$id]->{$mvc->productFieldName} = ht::createHint($rows[$id]->{$mvc->productFieldName}, tr($msg), 'error');
+				$row->{$mvc->productFieldName} = ht::createHint($row->{$mvc->productFieldName}, tr($msg), 'error');
 			}
 		}
 	}
