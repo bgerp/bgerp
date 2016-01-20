@@ -22,9 +22,9 @@ class page_Info32 extends core_ET {
     /**
      * Конструктор на шаблона
      */
-    function page_Info32() {
+    function __construct() {
         if(Mode::is('screenMode', 'narrow')) {
-            $this->core_ET(
+            parent::__construct(
                 "<style> .formSection {max-width:600px;} </style>" .
                 "\n<table   cellspacing=0 callpadding=0 class=\"formTable\">" .
                 "\n <tr>" .
@@ -46,7 +46,7 @@ class page_Info32 extends core_ET {
                 "\n<!--ET_END TOOLBAR-->" .
                 "\n</table>");
         } else {
-            $this->core_ET(
+            parent::__construct(
                 "<style> .formSection {height:360px;width:600px;} </style>" .
                 "\n<table cellspacing=0 callpadding=0 class=\"formTable\">" .
                 "\n <tr>" .

@@ -297,7 +297,7 @@ class html2text_Converter
      * @access public
      * @return void
      */
-    function html2text_Converter($source = '', $from_file = false)
+    function __construct($source = '', $from_file = false)
     {
         if (!empty($source)) {
             $this->set_html($source, $from_file);

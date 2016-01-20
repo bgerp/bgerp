@@ -17,9 +17,9 @@ class fileman_view_DialogWrapper extends page_Html
 	/**
      * Конструктор
      */
-    function fileman_view_DialogWrapper()
+    function __construct()
     {
-        $this->page_Html();
+        parent::__construct();
         $this->replace("UTF-8", 'ENCODING');
         $this->push('fileman/css/default.css', 'CSS');
         $this->push('css/common.css', 'CSS');

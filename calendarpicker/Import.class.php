@@ -62,7 +62,7 @@ class calendarpicker_Import {
     /**
      * @todo Чака за документация...
      */
-    function calendarpicker_Import (
+    function __construct(
         $lang = 'auto',
         $theme = 'skins/aqua/theme',
         $stripped = FALSE)

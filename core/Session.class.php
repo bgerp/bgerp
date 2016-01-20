@@ -61,7 +61,7 @@ class core_Session {
      *
      * @param    string    $name    име на идентификатора на сесията (PHPSESSID)
      */
-    function core_Session($name = "SID")
+    function __construct($name = "SID")
     {
         ini_set('session.gc_maxlifetime', 7200);
         

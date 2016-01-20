@@ -20,11 +20,11 @@ class page_Print extends page_Html {
     /**
      * @todo Чака за документация...
      */
-    function page_Print()
+    function __construct()
     {
     	$conf = core_Packs::getConfig('core');
     	
-        $this->page_Html();
+        parent::__construct();
         $this->replace("UTF-8", 'ENCODING');
         
         $this->push('css/common.css','CSS');
