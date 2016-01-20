@@ -813,11 +813,12 @@ class tasks_Tasks extends embed_Manager
     	}
     		
     	$data->addUrlArray = array();
-    	$documents = core_Classes::getOptionsByInterface('doc_DocumentIntf');
     	
     	// Намираме всички задачи, които наследяват task_Tasks
+    	$documents = core_Classes::getOptionsByInterface('tasks_TaskIntf');
+    	
     	foreach ($documents as $doc){
-    		if(is_subclass_of($doc, 'tasks_Tasks') && cls::load($doc, TRUE)){
+    		if(cls::load($doc, TRUE)){
     			$Doc = cls::get($doc);
     			
     			// Нотифицираме ги че рендираме задачите към задание
