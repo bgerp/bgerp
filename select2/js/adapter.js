@@ -16,7 +16,7 @@ function formatSelect2Data(data)
 	}
 	
 	if (data.element && (color = data.element.getAttribute('data-color'))) {
-		text = "<span style='vertical-align:bottom;display:inline-block;height:10px !important;border:solid 1px black;background-color:" + color + " !important;'> </span>&nbsp;" + text;
+		text = "<div class='color-preview' style='background-color:" + color + " !important;'> </div>&nbsp;" + text;
 	}
 
 	
