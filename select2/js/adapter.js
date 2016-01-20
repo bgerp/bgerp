@@ -15,6 +15,11 @@ function formatSelect2Data(data)
 		text = getEO().escape(text);
 	}
 	
+	if (data.element && (color = data.element.getAttribute('data-color'))) {
+		text = "<span style='vertical-align:bottom;display:inline-block;height:10px !important;border:solid 1px black;background-color:" + color + " !important;'> </span>&nbsp;" + text;
+	}
+
+	
 	if (data.loading) return text;
 	
 	var res = '<span';
