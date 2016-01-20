@@ -344,6 +344,8 @@ class doc_LikesPlg extends core_Plugin
      */
     function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
+        if (Mode::is('inlineDocument')) return ;
+        
         if ($fields && $fields['-single']) {
             
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
