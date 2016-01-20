@@ -481,7 +481,7 @@ class fileman_Indexes extends core_Manager
      */
     static function createErrorLog($dataId, $type)
     {
-        fileman_Data::logWarning("Възникна грешка при обработката на файла с данни към '{$type}'", $dataId);
+        fileman_Data::logWarning("Възникна грешка при обработката на файла към '{$type}'", $dataId);
     }
     
     
