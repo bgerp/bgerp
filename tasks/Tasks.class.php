@@ -453,8 +453,6 @@ class tasks_Tasks extends embed_Manager
     	$cu = core_Users::getCurrent();
     	$form->setDefault('inCharge', keylist::addKey('', $cu));
     	$form->setDefault('classId', $mvc->getClassId());
-    	
-    	$origin = doc_Containers::getDocument($rec->originId);
     		
     	// Ако задачата идва от дефолт задача на продуктов драйвер
     	if(isset($rec->systemId)){
@@ -687,7 +685,7 @@ class tasks_Tasks extends embed_Manager
     static function getHandle($id)
     {
     	$rec = static::fetch($id);
-    	if($rec->classId && cls::load($rec->classId, TRUE)){
+    	if(isset($rec->classId) && cls::load($rec->classId, TRUE)){
     		$self = cls::get($rec->classId);
     		
     		return $self->abbr . $rec->id;
