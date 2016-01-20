@@ -105,4 +105,19 @@ class planning_Tasks extends tasks_Tasks
 			}
 		}
 	}
+	
+
+	/**
+	 * Проверка дали нов документ може да бъде добавен в посочената нишка
+	 *
+	 * @param int $threadId key(mvc=doc_Threads)
+	 * @return boolean
+	 */
+	public static function canAddToThread($threadId)
+	{
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		
+		// Може да се добавя само към нишка с начало задание
+		return $firstDoc->isInstanceOf('planning_Jobs');
+	}
 }
