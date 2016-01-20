@@ -823,10 +823,10 @@ class tasks_Tasks extends embed_Manager
     {
     	$tpl = new ET("");
     		
-    	// Ако няма намерени записи, не се реднира нищо
+    	// Ако няма намерени записи, не се рендира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
+    	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd,expectedTimeStart');
     	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
     
     	// Имали бутони за добавяне
