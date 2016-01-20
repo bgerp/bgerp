@@ -159,76 +159,80 @@ class acc_ReportDetails extends core_Manager
         $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
         $attr['title'] = tr("Хронологична справка");
         
-        foreach ($data->recs as $dRec){
-            @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
-        	
-            // На коя позиция се намира, перото на мастъра
-            $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
-            
-            // Обхождане на останалите пера
-            $row = array();
-            $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
-            
-            foreach (range(1, 3) as $pos){
-                $entry = $dRec->{"ent{$pos}Id"};
+        if(is_array($data->recs)) {
+            foreach ($data->recs as $dRec){
+                @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
                 
-                // Ако има ентри и то е позволено за сметката
-                if(isset($entry) && isset($accGroups[$pos])){
+                // На коя позиция се намира, перото на мастъра
+                $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
+                
+                // Обхождане на останалите пера
+                $row = array();
+                $accGroups = acc_Accounts::getAccountInfo($dRec->accountId)->groups;
+                
+                foreach (range(1, 3) as $pos){
+                    $entry = $dRec->{"ent{$pos}Id"};
                     
-                    // Ако перото не е групиращото, ще се показва в справката
-                    $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
-                    $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+                    // Ако има ентри и то е позволено за сметката
+                    if(isset($entry) && isset($accGroups[$pos])){
+                        
+                        // Ако перото не е групиращото, ще се показва в справката
+                        $row["ent{$pos}Id"] = acc_Items::getVerbal(acc_Items::fetch($entry), 'titleLink');
+                        $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
+                    }
                 }
+                
+                // Ако има повече от едно перо, несе показва това на мениджъра
+                if(count($row) > 1) {
+                    unset($row["ent{$gPos}Id"]);
+                }
+                
+                if(acc_BalanceDetails::haveRightFor('history', $dRec)){
+                    $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $data->balanceRec->fromDate, 'toDate' => $data->balanceRec->toDate, 'accNum' => $dRec->accountNum);
+                    $histUrl['ent1Id'] = $dRec->ent1Id;
+                    $histUrl['ent2Id'] = $dRec->ent2Id;
+                    $histUrl['ent3Id'] = $dRec->ent3Id;
+                    $row['tools'] = ht::createLink('', $histUrl, NULL, $attr);
+                }
+                
+                // К-то и сумата се обръщат във вербален вид
+                foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld){
+                    $style = ($dRec->$fld < 0) ? "color:red" : "";
+                    $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
+                }
+                
+                $row['amountRec'] = $dRec->blAmount;
+                $row['id'] = $dRec->id;
+                
+                $conf = core_Packs::getConfig('acc');
+                $tolerance = $conf->ACC_MONEY_TOLERANCE;
+                
+                // Ако количеството и сумата са близки до нулата в определена граница ги пропускаме, освен ако не е указано да се показват
+                if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
+                    ($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance) && $data->masterMvc->balanceRefShowZeroRows === FALSE) {
+                    continue;
+                }
+                
+                $rows[$dRec->accountId]['rows'][] = $row;
+                $rows[$dRec->accountId]['total'] += $dRec->blAmount;
+                $data->total += $dRec->blAmount;
             }
-            
-            // Ако има повече от едно перо, несе показва това на мениджъра
-            if(count($row) > 1) {
-                unset($row["ent{$gPos}Id"]);
-            }
-            
-            if(acc_BalanceDetails::haveRightFor('history', $dRec)){
-                $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $data->balanceRec->fromDate, 'toDate' => $data->balanceRec->toDate, 'accNum' => $dRec->accountNum);
-                $histUrl['ent1Id'] = $dRec->ent1Id;
-                $histUrl['ent2Id'] = $dRec->ent2Id;
-                $histUrl['ent3Id'] = $dRec->ent3Id;
-                $row['tools'] = ht::createLink('', $histUrl, NULL, $attr);
-            }
-            
-            // К-то и сумата се обръщат във вербален вид
-            foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld){
-                $style = ($dRec->$fld < 0) ? "color:red" : "";
-                $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
-            }
-            
-            $row['amountRec'] = $dRec->blAmount;
-            $row['id'] = $dRec->id;
-            
-            $conf = core_Packs::getConfig('acc');
-            $tolerance = $conf->ACC_MONEY_TOLERANCE;
-            
-            // Ако количеството и сумата са близки до нулата в определена граница ги пропускаме, освен ако не е указано да се показват
-            if(($dRec->blQuantity > (-1 * $tolerance) &&  $dRec->blQuantity < $tolerance) &&
-                ($dRec->blAmount > (-1 * $tolerance) &&  $dRec->blAmount < $tolerance) && $data->masterMvc->balanceRefShowZeroRows === FALSE) {
-                continue;
-            }
-            
-            $rows[$dRec->accountId]['rows'][] = $row;
-            $rows[$dRec->accountId]['total'] += $dRec->blAmount;
-            $data->total += $dRec->blAmount;
         }
         
-        // За засегнатите сметки, проверяваме имали зададени сч. лимити за тях
-        foreach ($accounts as $sysId){
-        	$limitQuery = acc_Limits::getQuery();
-        	$limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
-        	 
-        	$row1['limits'] = array();
-        	while($lRec = $limitQuery->fetch()){
-        		 
-        		$lRow = acc_Limits::recToVerbal($lRec);
-        		$lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
-        		$rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
-        	}
+        if(is_array($accounts)) {
+            // За засегнатите сметки, проверяваме имали зададени сч. лимити за тях
+            foreach ($accounts as $sysId){
+                $limitQuery = acc_Limits::getQuery();
+                $limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
+                 
+                $row1['limits'] = array();
+                while($lRec = $limitQuery->fetch()){
+                     
+                    $lRow = acc_Limits::recToVerbal($lRec);
+                    $lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
+                    $rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
+                }
+            }
         }
         
         $data->totalRow = $Double->toVerbal($data->total);
