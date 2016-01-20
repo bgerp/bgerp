@@ -174,6 +174,9 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=hidden,notNull');
     	
     	$this->setDbIndex('classId');
+    	
+    	// Декларираме класа че интерфейс на задачи
+    	$this->declareInterface('tasks_TaskIntf');
     }
     
     
