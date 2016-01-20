@@ -282,6 +282,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	// Коя е задачата
     	$taskRec = planning_Tasks::fetch($rec->taskId);
     	
+    	// Ако задачата няма източник няма от къде да зареждаме
+    	if(!isset($taskRec->originId)) return;
+    	
     	// Търсим дали има друга чернова задача за произвеждането на артикула, който влагаме/отпадък
     	$tQuery = planning_drivers_ProductionTaskProducts::getQuery();
     	$tQuery->where("#type = 'product' AND #productId = {$rec->productId}");
