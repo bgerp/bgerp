@@ -191,6 +191,8 @@ class acc_Balances extends core_Master
         	$periods = array();
         	$query = $mvc->getQuery();
         	$query->where('#periodId IS NOT NULL');
+        	$query->orderBy('toDate', "DESC");
+        	
         	while($bRec = $query->fetch()){
         		$periods[$bRec->id] = acc_Periods::fetchField($bRec->periodId, 'title');
         	}
