@@ -62,9 +62,15 @@ class abbyyocr_Converter extends core_Manager
             
             $btnParams['order'] = 60;
             
-            // URL за създаване
-            $url = toUrl(array(get_called_class(), 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE)); 
-             
+            $Setup = cls::get('abbyyocr_Setup');
+            
+            if ($Setup->checkConfig() !== NULL) {
+                // URL за създаване
+                $url = toUrl(array(get_called_class(), 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
+            } else {
+                $url = array();
+            }
+            
             // Добавяме бутона
             $toolbar->addBtn('OCR', $url, 
             	array('ef_icon' => 'img/16/scanner.png'), 
