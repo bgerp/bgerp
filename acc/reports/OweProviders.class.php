@@ -83,7 +83,13 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-
+        
+        $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент",
+        "baseAmount" => "Начално салдо",
+        "debitAmount" => "Дебит",
+        "creditAmount" => "Кредит",
+        "blAmount" => "Крайно салдо"));
+        
         $form->setHidden('action');
 
 
