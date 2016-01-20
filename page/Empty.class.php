@@ -23,9 +23,9 @@ class page_Empty extends page_Html
     /**
      * Конструктор
      */
-    function page_Empty()
+    function __construct()
     {
-        $this->page_Html();
+        parent::__construct();
         $this->replace("UTF-8", 'ENCODING');
         $this->push('css/common.css', 'CSS');
         jquery_Jquery::enable($this);

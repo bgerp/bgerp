@@ -14,13 +14,13 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class tpl_PageHeader extends ET {
+class rfid_tpl_PageHeader extends core_ET {
     
     
     /**
      * @todo Чака за документация...
      */
-    function tpl_PageHeader()
+    function __construct()
     {
         $this->header = new ET("
                     <IMG style=\"float:right;padding-right:10px;\" SRC=" . sbf('img/sourcingbg.png') . " WIDTH=\"278\" HEIGHT=\"64\" ID=\"logo\" align=\"absmiddle\" ALT=\"\"> 
@@ -35,7 +35,7 @@ class tpl_PageHeader extends ET {
             $this->addMenuItem('Система', 'MENU_ROW', 'core_Users');
         }
         
-        $this->core_Et($this->header);
+        parent::__construct($this->header);
     }
     
     

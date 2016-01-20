@@ -22,9 +22,9 @@ class page_Error extends core_ET {
     /**
      * Конструктор на шаблона
      */
-    function page_Error() {
+    function __construct() {
         if(Mode::is('screenMode', 'narrow')) {
-            $this->core_ET(
+            parent::__construct(
                 "\n<CENTER>" .
                 "\n<table style='max-width:600; border:1px solid red; background-color:#FFFF66'>" .
                 "\n    <tr bgcolor='#FFCC33'>" .
@@ -43,7 +43,7 @@ class page_Error extends core_ET {
                 "\n</table>" .
                 "\n</CENTER>");
         } else {
-            $this->core_ET(
+            parent::__construct(
                 "\n<CENTER>" .
                 "\n<table style='max-width:600;margin-top:50px; border:1px solid red;background-color:#FFFF66'>" .
                 "\n    <tr bgcolor='#FFCC33'>" .

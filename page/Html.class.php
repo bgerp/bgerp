@@ -18,13 +18,13 @@ class page_Html extends core_ET {
     /**
      * Конструктор, който генерира лейаута на шаблона
      */
-    function page_Html() {
+    function __construct() {
         
         $bodyClass = Mode::is('screenMode', 'narrow') ? "narrow narrow-scroll" : "wide";
         
         $bodyId = str::getRand();
         
-        $this->core_ET(
+        parent::__construct(
             "<!doctype html>" .
             
             (Mode::is('screenMode', 'narrow') ?
