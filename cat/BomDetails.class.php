@@ -439,6 +439,12 @@ class cat_BomDetails extends doc_Detail
     			$rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
     		}
     		
+    		if($rec->type == 'stage'){
+    			if($mvc->fetchField("#type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")){
+    				$form->setError('resourceId', 'Един етап може да се среща само веднъж в рецептата');
+    			}
+    		}
+    		
     		if(!$form->gotErrors()){
     			
     			// Пътя към този артикул
