@@ -89,7 +89,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD("type", 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'caption=Вид,remember,silent,input=none');
+    	$this->FLD("type", 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
@@ -171,6 +171,12 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
+    		if($rec->type == 'product'){
+    			if($mvc->fetchField("#taskId = {$rec->taskId} AND #type = 'product'")){
+    				$form->setError('productId', 'По една задача може да има само един производим артикул');
+    			}
+    		}
+    		
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	}
