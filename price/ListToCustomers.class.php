@@ -388,6 +388,14 @@ class price_ListToCustomers extends core_Detail
         	
         	$rec = (object)array('price' => NULL);
         	
+        	// Ако драйвера може да върне цена, връщаме нея
+        	$Driver = cat_Products::getDriver($productId);
+        	$price = $Driver->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        	if(isset($price)){
+        		$rec->price = $price;
+        		return $rec;
+        	}
+        	
         	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
         	if(!isset($quantity)){
         		$quantityJob = cat_Products::getLastJob($productId)->quantity;
@@ -396,7 +404,7 @@ class price_ListToCustomers extends core_Detail
         		}
         	}
         	
-        	// търсим първо активната търговска рецепта, ако няма търсим активната работна
+        	// Търсим първо активната търговска рецепта, ако няма търсим активната работна
         	$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
         	if(empty($bomRec)){
         		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
