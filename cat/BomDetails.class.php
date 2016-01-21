@@ -389,9 +389,6 @@ class cat_BomDetails extends doc_Detail
     			$form->setField('packagingId', 'input=hidden');
     		}
     		
-    		$packname = cat_UoM::getTitleById($rec->packagingId);
-    		$form->setField('propQuantity', "unit={$packname}");
-    		
     		if($rec->type != 'pop'){
     			$description = cat_Products::getDescription($rec->resourceId)->getContent();
     			$description = html2text_Converter::toRichText($description);
