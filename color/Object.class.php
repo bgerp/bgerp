@@ -124,7 +124,7 @@ class color_Object {
     function getDistance($color)
     {
         if(is_scalar($color)) {
-            $color = color_Object($color);
+            $color = new color_Object($color);
         }
         
         return sqrt(($color->r - $this->r) * ($color->r - $this->r) +
