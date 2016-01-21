@@ -292,7 +292,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$tQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
     	
     	$tQuery->where("#originId = {$taskRec->originId}");
-    	$tQuery->where("#state = 'draft'");
+    	$tQuery->where("#state NOT IN ('closed', 'rejected')");
     	$tQuery->where("#taskId != '{$taskRec->id}'");
     	$tQuery->show('taskId');
     	

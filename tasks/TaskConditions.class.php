@@ -139,9 +139,7 @@ class tasks_TaskConditions extends tasks_TaskDetails
     public static function add($taskId, $dependsOnId, $progress = 1, $offset = NULL)
     {
     	expect($tRec = tasks_Tasks::fetchRec($taskId));
-    	expect($tRec->state == 'draft');
     	expect($dRec = tasks_Tasks::fetchRec($dependsOnId));
-    	expect($dRec->state == 'draft', $dRec);
     	
     	if(!static::fetch("#taskId = {$tRec->id} AND #dependsOn = {$dRec->id}")){
     		$rec = (object)array('taskId' => $tRec->id, 'dependsOn' => $dRec->id, 'progress' => $progress, 'offset' => $offset);
@@ -269,7 +267,7 @@ class tasks_TaskConditions extends tasks_TaskDetails
     	if(count($notAllowed)){
     		$notAllowedCond = "#id NOT IN (" . implode(',', $notAllowed) . ") AND";
     	}
-    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('draft') AND #folderId={$taskFolderId}"));
+    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('closed', 'rejected') AND #folderId={$taskFolderId}"));
     	
     	return $taskArray;
     }
