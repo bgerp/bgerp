@@ -397,13 +397,49 @@ class log_System extends core_Manager
         
         $resArr = array();
         
+        $hashArr = array();
+        
+        $i = 0;
+        
         while ($rec = $query->fetch()) {
-            $resArr[] = $rec;
+            
+            $rec->Cnt = 1;
+            
+            $hash = md5($rec->detail);
+            
+            if (isset($hashArr[$hash])) {
+                $hashId = $hashArr[$hash];
+                $resArr[$hashId]->Cnt += 1;
+                
+                continue;
+            }
+            
+            $hashArr[$hash] = $i;
+            
+            $resArr[$i++] = $rec;
         }
+        
+        uasort($resArr, array($this, 'orderReportArr'));
         
         if (!empty($resArr)) {
             wp($resArr);
         }
+    }
+    
+    
+    /**
+     * Подрежда подадените данни - използва се от uasort
+     * 
+     * @param stdObject $a
+     * @param stdObject $b
+     * 
+     * @return integer
+     */
+    function orderReportArr($a, $b)
+    {
+        if ($a->Cnt == $b->Cnt) return 0;
+        
+        return ($a->Cnt > $b->Cnt) ? -1 : 1;
     }
     
     
