@@ -16,7 +16,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
     
     
     /**
-     * Преобразува подадения файл в PDF
+     * Преобразува подадения файл в SVG
      * 
      * @param string $file
      * 

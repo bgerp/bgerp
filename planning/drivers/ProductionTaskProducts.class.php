@@ -95,7 +95,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double', 'caption=Количество->Изпълнено,input=none,notNull');
-    	$this->FLD("indTime", 'time', 'mandatory,caption=Време за изпълнение,smartCenter');
+    	$this->FLD("indTime", 'time', 'caption=Време за изпълнение,smartCenter');
     	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
@@ -140,7 +140,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     				$meta = 'canManifacture';
     				break;
     			case 'waste':
-    				$meta = 'canStore';
+    				$meta = 'canStore,canConvert';
     				break;
     		}
     		
@@ -292,15 +292,17 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$tQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
     	
     	$tQuery->where("#originId = {$taskRec->originId}");
-    	$tQuery->where("#state = 'draft'");
+    	$tQuery->where("#state NOT IN ('closed', 'rejected')");
     	$tQuery->where("#taskId != '{$taskRec->id}'");
-    	$tQuery->show('taskId');
+    	$tQuery->show('taskId,planedQuantity');
     	
     	// За всяка от намерените задачи
     	while($tRec = $tQuery->fetch()){
     		try{
-    			// Добавяме текущата задача да зависи от нея.
-    			tasks_TaskConditions::add($taskRec, $tRec->taskId);
+    			
+    			// Добавяме текущата задача да зависи от нея
+    			$progress = ($tRec->planedQuantity == 1) ? 1 : 0.1;
+    			tasks_TaskConditions::add($taskRec, $tRec->taskId, $progress);
     		} catch(core_exception_Expect $e){
     			
     		}

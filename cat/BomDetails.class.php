@@ -301,6 +301,9 @@ class cat_BomDetails extends doc_Detail
     		$expr = "( {$expr} ) / <span style='color:darkgreen' title='" . tr('Количеството от оригиналната рецепта') . "'>{$coefficient}</span>";
     	}
     	
+    	if($rQuantity === self::CALC_ERROR) {
+    		$expr = ht::createHint($expr, 'Формулата не може да бъде изчислена', 'warning');
+    	}
     	return $expr;
     }
     
@@ -385,9 +388,6 @@ class cat_BomDetails extends doc_Detail
     		if(!isset($pInfo->meta['canStore'])){
     			$form->setField('packagingId', 'input=hidden');
     		}
-    		
-    		$packname = cat_UoM::getTitleById($rec->packagingId);
-    		$form->setField('propQuantity', "unit={$packname}");
     		
     		if($rec->type != 'pop'){
     			$description = cat_Products::getDescription($rec->resourceId)->getContent();
@@ -531,10 +531,7 @@ class cat_BomDetails extends doc_Detail
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	
-    	if(!$rec->primeCost && $rec->type != 'stage'){
-    		$row->ROW_ATTR['style'] = 'background-color:#c66';
-    		$row->ROW_ATTR['title'] = tr('Няма себестойност');
-    	} elseif($rec->type == 'stage'){
+    	if($rec->type == 'stage'){
     		$row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
     		$row->ROW_ATTR['title'] = tr('Eтап');
     	} else {
@@ -597,8 +594,15 @@ class cat_BomDetails extends doc_Detail
     	
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
+    		$row->primeCost = "<span class='red'>???</span>";
+    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойноста', 'warning');
     	} else {
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
+    	}
+    	
+    	if(!$rec->primeCost && $rec->type != 'stage'){
+    		$row->primeCost = "<span class='red'>???</span>";
+    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде намерена себестойност', 'warning');
     	}
     	
     	if(is_numeric($rec->propQuantity)){

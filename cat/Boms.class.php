@@ -1177,7 +1177,6 @@ class cat_Boms extends core_Master
     		}
     		
     		self::popParams($params, $rec->resourceId);
-    		//bp($params);
     	}
     	
     	// Ако реда е отпадък то ще извадим цената му от себестойността

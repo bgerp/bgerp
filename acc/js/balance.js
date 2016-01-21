@@ -21,8 +21,7 @@ function chosenrefresh() {
 	
 	$(document.body).on('change', ".filterBalanceId", function(){
 		var bId = $(this).val();
-		$("form input[name=bId]").val(bId);
+		$('#groupForm').attr('action', bId);
 		$("#groupForm").submit();
 	});
-	
 }
