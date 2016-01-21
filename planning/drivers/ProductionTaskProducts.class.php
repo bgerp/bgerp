@@ -294,13 +294,15 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$tQuery->where("#originId = {$taskRec->originId}");
     	$tQuery->where("#state NOT IN ('closed', 'rejected')");
     	$tQuery->where("#taskId != '{$taskRec->id}'");
-    	$tQuery->show('taskId');
+    	$tQuery->show('taskId,planedQuantity');
     	
     	// За всяка от намерените задачи
     	while($tRec = $tQuery->fetch()){
     		try{
-    			// Добавяме текущата задача да зависи от нея.
-    			tasks_TaskConditions::add($taskRec, $tRec->taskId);
+    			
+    			// Добавяме текущата задача да зависи от нея
+    			$progress = ($tRec->planedQuantity == 1) ? 1 : 0.1;
+    			tasks_TaskConditions::add($taskRec, $tRec->taskId, $progress);
     		} catch(core_exception_Expect $e){
     			
     		}
