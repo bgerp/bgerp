@@ -92,8 +92,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
-    	
-    	$this->setDbUnique('serial');
     }
     
     
@@ -150,6 +148,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			if(empty($rec->serial)){
     				$rec->serial = $mvc->getDefaultSerial();
     			}
+    		}
+    		
+    		if(empty($rec->serial)){
+    			$rec->serial = NULL;
     		}
     	}
     }

@@ -857,4 +857,14 @@ class acc_Journal extends core_Master
     	
     	return $res;
     }
+    
+    
+    /**
+     * След подготовка на полетата
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	$baseCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['totalAmount'] .= "|* ({$baseCode})";
+    }
 }
