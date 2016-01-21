@@ -1869,6 +1869,8 @@ class cat_Products extends embed_Manager {
     		$bTpl = clone $block;
     		if($obj->quantity == cat_BomDetails::CALC_ERROR){
     			$obj->quantity = "<span class='red'>???</span>";
+    		} else {
+    			$obj->quantity = $Double->toVerbal($obj->quantity / $obj->divideBy);
     		}
     		
     		// Ако ще показваме компонента като линк, го правим такъв
@@ -1884,7 +1886,7 @@ class cat_Products extends embed_Manager {
     					 'titleClass'           => $obj->titleClass,
     					 'componentCode'        => $obj->code,
     					 'componentStage'       => $obj->stageName,
-    					 'componentQuantity'    => $Double->toVerbal($obj->quantity / $obj->divideBy),
+    					 'componentQuantity'    => $obj->quantity,
     					 'level'				=> $obj->level,
     				     'leveld'				=> $obj->leveld,
     					 'componentMeasureId'   => $obj->measureId);
