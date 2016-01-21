@@ -876,6 +876,89 @@ class cat_Boms extends core_Master
     }
     
     
+    /**
+     * Връща допустимите параметри за формулите
+     *
+     * @param stdClass $rec - запис
+     * @return array - допустимите параметри с техните стойностти
+     */
+    public static function getProductParams($productId)
+    {
+    	$res = array();
+    	 
+    	$params = cat_Products::getParams($productId);
+    	if(is_array($params)){
+    		foreach ($params as $paramName => $value){
+    			if(!is_numeric($value)) continue;
+    
+    			$key = mb_strtolower($paramName);
+    			$key = preg_replace("/\s+/", "_", $key);
+    			$key = "$" . $key;
+    			$res[$key] = $value;
+    		}
+    	}
+    
+    	if(count($res)){
+    		return array($productId => $res);
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Пушва параметри в началото на масива
+     * 
+     * @param array $array
+     * @param array $params
+     * @return void
+     */
+    public static function pushParams(&$array, $params)
+    {
+    	if(is_array($params) && count($params)){
+    		$array = $params + $array;
+    	}
+    }
+    
+    
+    /**
+     * Маха параметър от масива
+     * 
+     * @param array $array
+     * @param string $key
+     * @return void
+     */
+    public static function popParams(&$array, $key)
+    {
+    	unset($array[$key]);
+    }
+    
+    
+    /**
+     * Връща контекста на параметрите
+     *
+     * @param array $params
+     * @return array $scope
+     */
+    public static function getScope($params)
+    {
+    	$scope = array();
+    	
+    	if(is_array($params)){
+    		foreach ($params as $arr){
+    			if(is_array($arr)){
+    				foreach ($arr as $k => $v){
+    					if(!isset($scope[$k])){
+    						$scope[$k] = $v;
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	return $scope;
+    }
+    
     
     /**
      * Връща допустимите параметри за формулите
@@ -992,7 +1075,8 @@ class cat_Boms extends core_Master
     private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = FALSE, &$materials = array())
     {
     	// Изчисляваме количеството ако можем
-    	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $params);
+    	$scope = self::getScope($params);
+    	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
     	if($rQuantity != cat_BomDetails::CALC_ERROR){
     		
     		// Искаме количеството да е за еденица, не за опаковка
@@ -1040,12 +1124,12 @@ class cat_Boms extends core_Master
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){
     			$primeCost = ($price === FALSE) ? NULL : $price;
-    			$params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
+    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
     			
     			// Ъпдейтваме кешираните стойност и параметри само при промяна
-    			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params)){
+    			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($scope)){
     				$rec->primeCost = $primeCost;
-    				$rec->params = $params;
+    				$rec->params = $params1;
     				
     				cls::get('cat_BomDetails')->save_($rec, 'primeCost,params');
     			}
@@ -1057,8 +1141,9 @@ class cat_Boms extends core_Master
     		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
-    		$newParams = static::getRowParams($rec->resourceId);
-    		$newParams['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
+    		$newParams = static::getProductParams($rec->resourceId);
+    		$newParams[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
+    		self::pushParams($params, $newParams);
     		
     		// Намираме кои редове са му детайли
     		$query = cat_BomDetails::getQuery();
@@ -1068,7 +1153,7 @@ class cat_Boms extends core_Master
     		while($dRec = $query->fetch()){
     			
     			// Опитваме се да намерим цената му
-    			$dRec->primeCost = static::getRowCost($dRec, $newParams, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+    			$dRec->primeCost = static::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
     			
     			// Ако няма цена връщаме FALSE
     			if($dRec->primeCost === FALSE){
@@ -1082,13 +1167,17 @@ class cat_Boms extends core_Master
     		}
 			
     		if($savePriceCost === TRUE){
-    			$params = (!is_numeric($rec->propQuantity)) ? $params : NULL;
+    			$scope = static::getScope($params);
+    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
     			
-    			if(serialize($rec->params) != serialize($params)){
-    				$rec->params = $params;
+    			if(serialize($rec->params) != serialize($params1)){
+    				$rec->params = $params1;
     				cls::get('cat_BomDetails')->save_($rec, 'params');
     			}
     		}
+    		
+    		self::popParams($params, $rec->resourceId);
+    		//bp($params);
     	}
     	
     	// Ако реда е отпадък то ще извадим цената му от себестойността
@@ -1150,9 +1239,12 @@ class cat_Boms extends core_Master
     	// За всеки от тях
     	if(is_array($details)){
     		foreach ($details as $dRec){
+    			
     			// Параметрите са на продукта на рецептата
-    			$params = static::getRowParams($rec->productId);
-    			$params['$T'] = $quantity;
+    			$params = array();
+    			$pushParams = static::getProductParams($rec->productId);
+    			$pushParams[$rec->productId]['$T'] = $quantity;
+    			self::pushParams($params, $pushParams);
     			
     			// Опитваме се да намерим себестойността за основното количество
     			$rowCost1 = static::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
@@ -1304,7 +1396,7 @@ class cat_Boms extends core_Master
     							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
     							 'quantity' => $quantityP,
     							 'products' => array(
-		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => $quantityP / $quantityP, 'quantityInPack' => $dRec->quantityInPack)),
+		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => @($quantityP / $quantityP), 'quantityInPack' => $dRec->quantityInPack)),
 		    						'input'      => array(),
 		    						'waste'      => array()));
     
