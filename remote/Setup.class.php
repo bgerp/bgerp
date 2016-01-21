@@ -41,7 +41,7 @@ class remote_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Лента с новини за сайта";
+    var $info = "Оторизация от и към външни услуги";
 
     
     /**
@@ -50,7 +50,6 @@ class remote_Setup extends core_ProtoSetup
    var $managers = array(
             'remote_Authorizations',
             'remote_Tokens',
-  
         );
 
         
