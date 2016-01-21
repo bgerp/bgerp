@@ -9,13 +9,14 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cat_PriceDetails extends core_Manager
 {
     
+	
     /**
      * Кои мениджъри ще се зареждат
      */
@@ -159,17 +160,22 @@ class cat_PriceDetails extends core_Manager
     			if($newCost != $rec->primeCost){
     				$data->addPriceUrl['price'] = $newCost;
     			}
-    			 
-    			if(isset($rec->primeCost)){
+    			
+    			if(isset($primeCost)){
     				$btns .= " " . ht::createLink('', $data->addPriceUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова мениджърска себестойност');
     			} else {
     				$btns .= " " . ht::createLink('<b>R</b>', $data->addPriceUrl, FALSE, 'title=Добавяне на нова мениджърска себестойност');
     			}
-    			 
+    			
     			if(isset($uRec)){
     				if(price_Updates::haveRightFor('saveprimecost', $uRec)){
     					$btns .= " " . ht::createLink('', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => TRUE), FALSE, 'title=Обновяване на себестойноста според зададеното правило,ef_icon=img/16/arrow_refresh.png');
     				}
+    			}
+    			
+    			if(price_Lists::haveRightFor('single', $primeCostListId)){
+    				$search = cat_Products::getTitleById($data->masterId);
+    				$btns .= " " . ht::createLink('', array('price_Lists', 'single', $primeCostListId, 'search' => $search), FALSE, 'ef_icon=img/16/clock_history.png,title=Хронология на себестойноста на артикула');
     			}
     		}
     		
