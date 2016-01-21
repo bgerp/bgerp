@@ -276,7 +276,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$rQuantity = cat_BomDetails::calcExpr($expr, $params);
     	if($rQuantity === self::CALC_ERROR) {
-    		$style = 'red';
+    		$style = 'color:red; border:1px dotted red';
     	}
     	
     	// Намира контекста и го оцветява
@@ -293,7 +293,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$expr = strtr($expr, $context);
     	if(!is_numeric($expr)){
-    		$expr = "<span class='{$style}'>{$expr}</span>";
+    		$expr = "<span style='{$style}'>{$expr}</span>";
     	}
     	$expr = preg_replace('/\$Начално\s*=\s*/iu', "<span style='color:blue'>" . tr('Начално') . "</span>=", $expr);
     	
