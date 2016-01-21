@@ -488,4 +488,14 @@ class acc_Articles extends core_Master
         
         $mvc->updateMaster($id, TRUE);
     }
+    
+    
+    /**
+     * След подготовка на полетата
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	$baseCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['totalAmount'] .= "|* ({$baseCode})";
+    }
 }
