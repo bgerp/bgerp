@@ -118,8 +118,20 @@ class remote_Authorizations extends embed_Manager
     {
     	$data->form->title = "Създаване на нова оторизация за онлайн услуга";
     }
-
-
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        if (!haveRole('admin, ceo')) {
+            $cu = core_Users::getCurrent();
+            $data->query->where(array("#userId = '[#1#]'", $cu));
+        }
+    }
+    
+    
     /**
      * Връща канонично URL
      */
