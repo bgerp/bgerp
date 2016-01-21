@@ -353,20 +353,27 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
-    	
-    	// Добавя допустимите параметри във формулата
-    	$productId = ($rec->parentId) ? static::fetchField($rec->parentId, 'resourceId') : cat_Boms::fetchField($rec->bomId, 'productId'); 
-    	$params = cat_Boms::getRowParams($productId);
-    	$params['$T'] = 1;
-    	$params['$Начално='] = '$Начално=';
-    	$rec->params = $params;
-    	
-    	$context = array_keys($params);
-    	$context = array_combine($context, $context);
-    	$form->setSuggestions('propQuantity', $context);
+    	$masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
     	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
+    		$params = cat_Boms::getProductParams($masterProductId);
+    		 
+    		$path = $mvc->getProductPath($rec);
+    		foreach ($path as $pId){
+    			$newParams = cat_Boms::getProductParams($pId);
+    			cat_Boms::pushParams($params, $newParams);
+    		}
+    		 
+    		// Добавя допустимите параметри във формулата
+    		$scope = cat_Boms::getScope($params);
+    		$scope['$T'] = 1;
+    		$scope['$Начално='] = '$Начално=';
+    		$rec->params = $scope;
+    		 
+    		$context = array_keys($scope);
+    		$context = array_combine($context, $context);
+    		$form->setSuggestions('propQuantity', $context);
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
     		
@@ -406,7 +413,6 @@ class cat_BomDetails extends doc_Detail
     		if(isset($rec->resourceId)){
     			
     			// Ако е избран артикул проверяваме дали артикула от рецептата не се съдържа в него
-    			$masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
     			$productVerbal = cat_Products::getTitleById($masterProductId);
     			
     			$notAllowed = array();
@@ -440,7 +446,7 @@ class cat_BomDetails extends doc_Detail
     		}
     		
     		if($rec->type == 'stage'){
-    			if($mvc->fetchField("#type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")){
+    			if($mvc->fetchField("#bomId = {$rec->bomId} AND #type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")){
     				$form->setError('resourceId', 'Един етап може да се среща само веднъж в рецептата');
     			}
     		}

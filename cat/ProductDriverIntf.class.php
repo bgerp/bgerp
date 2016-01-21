@@ -189,4 +189,23 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getDefaultBom($rec);
 	}
+	
+	
+	/**
+	 * Връща цената за посочения продукт към посочения клиент на посочената дата
+	 *
+	 * @param mixed $customerClass - клас на контрагента
+	 * @param int $customerId - ид на контрагента
+	 * @param int $productId - ид на артикула
+	 * @param int $packagingId - ид на опаковка
+	 * @param double $quantity - количество
+	 * @param datetime $datetime - дата
+	 * @param double $rate  - валутен курс
+	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+	 * @return double|NULL $price  - цена
+	 */
+	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	{
+		return $this->class->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+	}
 }
