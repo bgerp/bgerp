@@ -95,7 +95,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double', 'caption=Количество->Изпълнено,input=none,notNull');
-    	$this->FLD("indTime", 'time', 'mandatory,caption=Време за изпълнение,smartCenter');
+    	$this->FLD("indTime", 'time', 'caption=Време за изпълнение,smartCenter');
     	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
@@ -140,7 +140,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     				$meta = 'canManifacture';
     				break;
     			case 'waste':
-    				$meta = 'canStore';
+    				$meta = 'canStore,canConvert';
     				break;
     		}
     		
