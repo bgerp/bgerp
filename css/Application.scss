@@ -682,7 +682,26 @@ div.productImage {
 	float: left;
 }
 
+.productPreview {
+	height: auto;
+	width: auto;
+	max-height: 500px;
+	max-width: 300px;
+}
 
+.productPreviewHolder {
+	float: right;
+}
+
+.narrow .productPreviewHolder {
+	clear: both;
+	float: none;
+	display: block;
+	.productPreview {
+		max-height: 300px;
+		max-width: 200px;
+	}
+}
 
 .product-component-title{
 	td {

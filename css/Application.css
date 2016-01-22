@@ -605,6 +605,23 @@ div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
 
+.productPreview {
+  height: auto;
+  width: auto;
+  max-height: 500px;
+  max-width: 300px; }
+
+.productPreviewHolder {
+  float: right; }
+
+.narrow .productPreviewHolder {
+  clear: both;
+  float: none;
+  display: block; }
+  .narrow .productPreviewHolder .productPreview {
+    max-height: 300px;
+    max-width: 200px; }
+
   .product-component-title td {
     border-top: 1px solid #dddddd;
     padding: 5px 0;

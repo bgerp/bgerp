@@ -853,26 +853,26 @@ class core_Html
     /**
      * Създава лейаут, по зададени блокове, като плейсхолдери
      * 
-     * @param mixed $body
-     * @param title $hint
-     * @param notice|warning|error $type
-     * @return core_ET $element
+     * @param mixed $body                       - тяло
+     * @param title $hint                       - текст на хинта
+     * @param notice|warning|error|string $icon - име на иконката
+     * @return core_ET $element                 - шаблон с хинта
      */
-    static function createHint($body, $hint, $type = 'notice')
+    static function createHint($body, $hint, $icon = 'notice')
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
     	
-    	expect(in_array($type, array('notice', 'warning', 'error')));
     	$hint = tr($hint);
-    	$iconPath = ($type == 'notice') ? 'img/Help-icon-small.png' : (($type == 'warning') ? 'img/dialog_warning-small.png' : 'img/dialog_error-small.png');
+    	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
+    	expect(is_string($iconPath), $iconPath);
     	
-    	$icon = ht::createElement("img", array('src' => sbf($iconPath, '')));
+    	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
     	
     	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
         
         $element->append($body, 'body');
         $element->append($hint, 'hint');
-        $element->append($icon, 'icon');
+        $element->append($iconHtml, 'icon');
         
         jquery_Jquery::run($element, 'makeTooltipFromTitle();', TRUE);
         jquery_Jquery::runAfterAjax($element, 'makeTooltipFromTitle');

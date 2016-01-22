@@ -1127,7 +1127,7 @@ class cat_Boms extends core_Master
     			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
     			
     			// Ъпдейтваме кешираните стойност и параметри само при промяна
-    			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($scope)){
+    			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params1)){
     				$rec->primeCost = $primeCost;
     				$rec->params = $params1;
     				

@@ -1870,6 +1870,7 @@ class cat_Products extends embed_Manager {
     		if($obj->quantity == cat_BomDetails::CALC_ERROR){
     			$obj->quantity = "<span class='red'>???</span>";
     		} else {
+    			$obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
     			$obj->quantity = $Double->toVerbal($obj->quantity / $obj->divideBy);
     		}
     		
