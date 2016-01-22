@@ -188,7 +188,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
 		}
-		dt::getLastDayOfMonth()
+
 		$curStore = store_Stores::getCurrent('id', FALSE);
 		$data->form->setDefault('inputStoreId', $curStore);
 	}
