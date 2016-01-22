@@ -403,13 +403,7 @@ class currency_CurrencyRates extends core_Detail
         return $rate;
     }
     
-    function act_Test()
-    {
-    	$date = dt::now();
-    	$date = '2011-08-12';
-    	
-    	self::getStoredRate($date, 2, 1);
-    }
+    
     /**
      * Връща записан в БД обменен курс на една валута спрямо друга
      * 
