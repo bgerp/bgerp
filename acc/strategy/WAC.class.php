@@ -82,8 +82,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     public static function getAmount($quantity, $date, $accSysId, $item1, $item2, $item3)
     {
     	// Изчисляваме начална и крайна дата, която ще извличаме
-    	$from = dt::mysql2verbal($date, 'Y-m-1');
-    	$from = dt::verbal2mysql($from, FALSE);
+    	$from = dt::mysql2timestamp($date);
+    	$from = date('Y-m-01', $from);
     	$to = dt::verbal2mysql($date, FALSE);
     	
     	// Ще извличаме данните от първия ден на месеца от подадената дата до нея
