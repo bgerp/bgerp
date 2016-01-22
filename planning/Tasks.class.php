@@ -120,4 +120,25 @@ class planning_Tasks extends tasks_Tasks
 		// Може да се добавя само към нишка с начало задание
 		return $firstDoc->isInstanceOf('planning_Jobs');
 	}
+	
+	
+	/**
+	 * Генерираме ключа за кеша
+	 * Интерфейсен метод
+	 *
+	 * @param core_Mvc $mvc
+	 * @param NULL|FALSE|string $res
+	 * @param NULL|integer $id
+	 * @param object $cRec
+	 *
+	 * @see doc_DocumentIntf
+	 */
+	public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+	{
+		if ($res === FALSE) return ;
+	
+		$dealHistory = Request::get("TabTop{$cRec->id}");
+		
+		$res = md5($res . '|' . $dealHistory);
+	}
 }
