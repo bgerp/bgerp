@@ -269,7 +269,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Добавяне на бутон за нов отпадък
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'pop'))){
-    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
+    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/recycle.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Връщаме шаблона

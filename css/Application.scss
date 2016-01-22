@@ -702,6 +702,12 @@ div.productImage {
 		max-width: 200px;
 	}
 }
+.products-table,  .jobTable, .general-product-description, .sales_SalesDetails {
+	.productPreview {
+		max-width: 120px;
+		max-height: 240px;
+	}
+}
 
 .product-component-title{
 	td {

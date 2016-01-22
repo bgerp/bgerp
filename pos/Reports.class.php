@@ -576,7 +576,7 @@ class pos_Reports extends core_Master {
     			if($state == $nextState) continue;
     			
     			$receiptRec->state = $nextState;
-    			pos_Receipts::save($receiptRec);
+    			pos_Receipts::save($receiptRec, 'state');
     			$count++;
     		}
     	
