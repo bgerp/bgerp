@@ -254,7 +254,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
-					<div>
+					</div>
 					[#ROW_AFTER#]
 					[#COMPONENTS#]
 				"));
