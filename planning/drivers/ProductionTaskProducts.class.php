@@ -214,7 +214,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
     		$class = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed');
-    		//deals_Helper
+    	
+    		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		$row->ROW_ATTR['class'] = $class;
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
