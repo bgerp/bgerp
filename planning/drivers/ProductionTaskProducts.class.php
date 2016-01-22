@@ -26,7 +26,13 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,type,productId,packagingId,planedQuantity=Количества->Планувано,realQuantity=Количества->Изпълнено,indTime=Изпълнение,totalTime';
+    public $listFields = 'RowNumb=Пулт,type,productId,packagingId,planedQuantity=Количества->Планувано,realQuantity=Количества->Изпълнено,storeId,indTime=Изпълнение,totalTime';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'indTime,totalTime';
     
     
     /**
@@ -92,6 +98,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("type", 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
+    	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double', 'caption=Количество->Изпълнено,input=none,notNull');
@@ -151,6 +158,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		$form->setOptions('productId', $products);
     	}
     	
+    	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
+    	
     	if(isset($rec->productId)){
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
@@ -172,7 +181,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	if($form->isSubmitted()){
     		if($rec->type == 'product'){
-    			if($mvc->fetchField("#taskId = {$rec->taskId} AND #type = 'product'")){
+    			if($mvc->fetchField("#taskId = {$rec->taskId} AND #type = 'product' AND #id != '{$rec->id}'")){
     				$form->setError('productId', 'По една задача може да има само един производим артикул');
     			}
     		}
@@ -205,7 +214,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
     		$class = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed');
-    		
+    		//deals_Helper
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		$row->ROW_ATTR['class'] = $class;
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	}
@@ -339,7 +349,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		
     		if(cat_Products::getByProperty('canStore', NULL, 1)){
     			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'waste'))){
-    				$data->toolbar->addBtn('Отпадъци', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на отпаден артикул');
+    				$data->toolbar->addBtn('Отпадъци', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
     			}
     		}
     	}

@@ -609,7 +609,7 @@ class cat_BomDetails extends doc_Detail
     	} 
     	
     	if($rec->type == 'pop'){
-    		$row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'img/16/resource.png');
+    		$row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'img/16/recycle.png');
     	}
     }
     
@@ -673,7 +673,7 @@ class cat_BomDetails extends doc_Detail
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
     		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на материал,ef_icon=img/16/package.png");
     		$data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'stage'), NULL, "title=Добавяне на етап,ef_icon=img/16/package.png");
-    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/package.png");
+    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/recycle.png");
     	}
     }
     
