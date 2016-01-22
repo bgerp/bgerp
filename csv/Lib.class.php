@@ -341,11 +341,12 @@ class csv_Lib
     		$enclosure = $conf->CSV_ENCLOSURE;
     	}
     	
+    	$csvData = i18n_Charset::convertToUtf8($csvData);
+    	
     	$textArr = explode(PHP_EOL, trim($csvData));
     
     	foreach($textArr as $line){
     		$arr = str_getcsv($line, $delimiter, $enclosure);
-    		$arr = iconv('utf-8', $conf->CSV_ENCODING, $arr);
     		
     		array_unshift($arr, "");
     		unset($arr[0]);
