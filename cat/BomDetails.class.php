@@ -276,7 +276,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$rQuantity = cat_BomDetails::calcExpr($expr, $params);
     	if($rQuantity === self::CALC_ERROR) {
-    		$style = 'red';
+    		$style = 'color:red; border:1px dotted red';
     	}
     	
     	// Намира контекста и го оцветява
@@ -293,7 +293,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$expr = strtr($expr, $context);
     	if(!is_numeric($expr)){
-    		$expr = "<span class='{$style}'>{$expr}</span>";
+    		$expr = "<span style='{$style}'>{$expr}</span>";
     	}
     	$expr = preg_replace('/\$Начално\s*=\s*/iu', "<span style='color:blue'>" . tr('Начално') . "</span>=", $expr);
     	
@@ -536,7 +536,6 @@ class cat_BomDetails extends doc_Detail
     		$row->ROW_ATTR['title'] = tr('Eтап');
     	} else {
     		$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
-    		$row->ROW_ATTR['title'] = ($rec->type != 'input' && $rec->type != 'stage') ? tr('Отпадък') : NULL;
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -608,6 +607,10 @@ class cat_BomDetails extends doc_Detail
     	if(is_numeric($rec->propQuantity)){
     		$row->propQuantity = "<span style='float:right'>{$row->propQuantity}</span>";
     	} 
+    	
+    	if($rec->type == 'pop'){
+    		$row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'img/16/recycle.png');
+    	}
     }
     
     
@@ -670,7 +673,7 @@ class cat_BomDetails extends doc_Detail
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
     		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на материал,ef_icon=img/16/package.png");
     		$data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'stage'), NULL, "title=Добавяне на етап,ef_icon=img/16/package.png");
-    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/package.png");
+    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/recycle.png");
     	}
     }
     
