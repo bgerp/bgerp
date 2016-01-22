@@ -536,7 +536,6 @@ class cat_BomDetails extends doc_Detail
     		$row->ROW_ATTR['title'] = tr('Eтап');
     	} else {
     		$row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
-    		$row->ROW_ATTR['title'] = ($rec->type != 'input' && $rec->type != 'stage') ? tr('Отпадък') : NULL;
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -608,6 +607,10 @@ class cat_BomDetails extends doc_Detail
     	if(is_numeric($rec->propQuantity)){
     		$row->propQuantity = "<span style='float:right'>{$row->propQuantity}</span>";
     	} 
+    	
+    	if($rec->type == 'pop'){
+    		$row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'img/16/resource.png');
+    	}
     }
     
     
