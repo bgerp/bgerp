@@ -622,6 +622,13 @@ div.productImage {
     max-height: 300px;
     max-width: 200px; }
 
+  .products-table .productPreview,
+  .jobTable .productPreview,
+  .general-product-description .productPreview,
+  .sales_SalesDetails .productPreview {
+    max-width: 120px;
+    max-height: 240px; }
+
   .product-component-title td {
     border-top: 1px solid #dddddd;
     padding: 5px 0;

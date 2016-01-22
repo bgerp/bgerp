@@ -1036,6 +1036,9 @@ class acc_Items extends core_Manager
     	$colName = str::phpToMysqlName('earliestUsedOn');
     	$query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', $colName, '{$dateToCompare}') WHERE id = {$rec->id}";
     	
+    	// Инвалидираме кешираните записи, за да няма обърквания по-нататък
+    	$Items->_cashedRecords = array();
+    	
     	$Items->db->query($query);
     }
 }

@@ -344,7 +344,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		
     		if(cat_Products::getByProperty('canConvert', NULL, 1)){
     			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
-    				$data->toolbar->addBtn('Вложими', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
+    				$data->toolbar->addBtn('Вложими', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
     			}
     		}
     		
