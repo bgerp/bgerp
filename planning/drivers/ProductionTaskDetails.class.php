@@ -83,7 +83,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId)', 'caption=Артикул,smartCenter,silent,refreshForm');
+    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,smartCenter,mandatory');
     	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък)', 'input=hidden,silent,smartCenter');
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter');
     	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
@@ -128,7 +128,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	$groupTitle = $data->singleTitle = ($rec->type == 'input') ? 'За влагане' : (($rec->type == 'waste') ? 'Отпадъци' : 'За произвеждане');
     	$productOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
-    	$productOptions = array('x' => (object)array('group' => TRUE, 'title' => tr($groupTitle))) + $productOptions;
+    	
+    	if(count($productOptions) != 1){
+    		$productOptions = array('x' => (object)array('group' => TRUE, 'title' => tr($groupTitle))) + $productOptions;
+    	}
     	
     	$form->setOptions('taskProductId', array('' => '') + $productOptions);
     }
