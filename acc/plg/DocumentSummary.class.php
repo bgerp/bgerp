@@ -153,9 +153,15 @@ class acc_plg_DocumentSummary extends core_Plugin
         	
             // Филтрираме по потребители
             if($filter->users && $isDocument){
-                
             	$userIds = keylist::toArray($filter->users);
-            	$data->query->where("#{$mvc->filterFieldUsers} IN (" . implode(',',  $userIds) . ")");
+                $userArr = implode(',',  $userIds);
+            	
+            	$data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+            	
+            	// Ако полето за филтриране по потребител нее създателя, добавяме и към него
+            	if($mvc->filterFieldUsers != 'createdBy'){
+            		$data->query->orWhere("#createdBy IN ({$userArr})");
+            	}
             }
             
             $dateRange = array();
