@@ -362,16 +362,11 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Извиква се след успешен запис в модела
+     * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    public static function on_AfterCreate($mvc, $rec)
     {
-    	// Нотифициращ имейл се изпраща само след първоначално активиране
-    	if($rec->state == 'active' && empty($rec->brState)){
-    		if(empty($rec->migrate)){
-    			$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
-    		}
-    	}
+    	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
     }
     
     

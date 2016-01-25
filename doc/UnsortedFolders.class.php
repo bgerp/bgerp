@@ -716,11 +716,11 @@ class doc_UnsortedFolders extends core_Master
     	// За всяко предложение, проверяваме можели да бъде добавен
     	// такъв документ като нова нишка в папката
     	foreach ($suggestions as $classId => $name){
-    		if(!cls::get($classId)->canAddToFolder($folderId)){
+    		if (!$folderId || !cls::get($classId)->canAddToFolder($folderId)){
     			unset($suggestions[$classId]);
     		}
     	}
-    	 
+    	
     	$data->form->setSuggestions('showDocumentsAsButtons', $suggestions);
     	$data->form->setDefault('showDocumentsAsButtons', keylist::addKey('', cal_Tasks::getClassId()));
     	

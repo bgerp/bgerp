@@ -138,23 +138,50 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	$form->setDefault('type', 'input');
     	
+    	// Ако има тип
     	if(isset($rec->type)){
     		switch($rec->type){
     			case 'input':
+    				
+    				// за влагане може да се изберат само вложимите артикули
     				$meta = 'canConvert';
+    				$products = cat_Products::getByProperty($meta);
     				break;
     			case 'product':
-    				$meta = 'canManifacture';
+    				// За произвеждане може да се избере само артикула от заданието
+    				$origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));
+    				$productId = $origin->fetchField('productId');
+    				$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+    				if(!$bomRec){
+    					$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+    				}
+    				
+    				$products[$productId] = cat_Products::getTitleById($productId, FALSE);
+    				
+    				// и ако има рецепта артикулите, които са етапи от нея
+    				if(isset($bomRec)){
+    					$sQuery = cat_BomDetails::getQuery();
+    					$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
+    					$sQuery->show('resourceId');
+    					while($sRec = $sQuery->fetch()){
+    						$products[$sRec->resourceId] = cat_Products::getTitleById($sRec->resourceId, FALSE);
+    					}
+    				}
     				break;
     			case 'waste':
     				$meta = 'canStore,canConvert';
+    				$products = cat_Products::getByProperty($meta);
     				break;
     		}
     		
-    		$products = cat_Products::getByProperty($meta);
-    		if($rec->productId){
-    			$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+    		// Ако има избран артикул, той винаги присъства в опциите
+    		if(isset($rec->productId)){
+    			if(!isset($products[$rec->productId])){
+    				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+    			}
     		}
+    		
+    		// Задаваме опциите с артикулите за избор
     		$form->setOptions('productId', $products);
     	}
     	

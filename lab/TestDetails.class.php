@@ -55,6 +55,12 @@ class lab_TestDetails extends core_Detail
     
     
     /**
+     * Роли, които могат да записват
+     */
+    var $canWrite = 'lab,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
