@@ -12,7 +12,9 @@ function formatSelect2Data(data)
 	var text = data.text;
 	
 	if (!data.element || !data.element.noEscape) {
-		text = getEO().escape(text);
+		if (text) {
+			text = getEO().escape(text);
+		}
 	}
 	
 	if (data.element && data.element.getAttribute && (color = data.element.getAttribute('data-color'))) {
