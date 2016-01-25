@@ -46,7 +46,7 @@ function formatSelect2DataSelection(data)
 {
 	var text = data.text;
 	
-	if (data.element && (color = data.element.getAttribute('data-color'))) {
+	if (data.element && data.element.getAttribute && (color = data.element.getAttribute('data-color'))) {
 		text = "<span><div class='color-preview' style='background-color:" + color + " !important; margin-bottom: 2px;'> </div>&nbsp;" + text + "</span>";
 		
 		text = $(text);
