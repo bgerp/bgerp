@@ -15,7 +15,7 @@ function formatSelect2Data(data)
 		text = getEO().escape(text);
 	}
 	
-	if (data.element && (color = data.element.getAttribute('data-color'))) {
+	if (data.element && data.element.getAttribute && (color = data.element.getAttribute('data-color'))) {
 		text = "<div class='color-preview' style='background-color:" + color + " !important;'> </div>&nbsp;" + text;
 	}
 	
