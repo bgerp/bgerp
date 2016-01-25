@@ -160,7 +160,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             	
             	// Ако полето за филтриране по потребител нее създателя, добавяме и към него
             	if($mvc->filterFieldUsers != 'createdBy'){
-            		$data->query->orWhere("#createdBy IN ({$userArr})");
+            		$data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
             	}
             }
             
