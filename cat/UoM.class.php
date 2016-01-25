@@ -492,7 +492,7 @@ class cat_UoM extends core_Manager
     			$curUrl = getCurrentUrl();
     			$curUrl['type'] = 'uom';
     			
-    			return Redirect($curUrl);
+    			redirect($curUrl);
     		}
     	}
     }

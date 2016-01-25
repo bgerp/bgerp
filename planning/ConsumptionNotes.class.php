@@ -156,4 +156,18 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		parent::setDocumentFields($this);
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$msg = ($rec->useResourceAccounts == 'yes') ? 'Материалите ще бъдат вкарани в производството детайлно' : 'Материалите ще бъдат вложени бездетайлно в производството';
+		$row->useResourceAccounts = ht::createHint($row->useResourceAccounts, $msg);
+	}
 }

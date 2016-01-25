@@ -14,7 +14,6 @@
 class remote_BgerpDriver extends core_Mvc
 {
 
-
 	/**
      * Поддържа интерфейса за драйвер
      */
@@ -22,20 +21,32 @@ class remote_BgerpDriver extends core_Mvc
 
 
     /**
-     *
+     * Заглавие на драйвера
      */
     public $title = 'bgERP система';
 
 
+    /**
+     * Плъгини и класове за зареждане
+     */
     public  $loadList = 'crm_Wrapper';
     
+
+    /**
+     * Таб във wrapper-a
+     */
     public $currentTab = 'Профили';
+
 
     /**
      * Публичен ключ за обмен на информация между 2 bgERP системи
      */
     const PUBLIC_KEY = 'REMOTE_BGERP';
 
+
+    /**
+     * Шаблон за случаен ключ
+     */
     const KEY_PATTERN = '************';
 
 
@@ -64,23 +75,54 @@ class remote_BgerpDriver extends core_Mvc
 	}
 
     
-    function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-    }
-	
-
+    /**
+     * След конвертиране към вербални стойности на записа
+     */
     function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
         if(!$rec->data->lKeyCC) {
-            $row->auth = ht::createBtn("Оторизация", array($driver, 'AuthOut', $rec->id), NULL, 'target=_blank');
+            
+            if ($rec->userId == core_Users::getCurrent()) {
+                $authOutArr = array($driver, 'AuthOut', $rec->id);
+            } else {
+                $authOutArr = array();
+            }
+            
+            $row->auth = ht::createBtn("Получаване", $authOutArr, NULL, 'target=_blank');
         } else {
-            $row->auth = ht::createLink('Оторизиран', FALSE, NULL, 'ef_icon=img/16/authorized.png');
+            
+            if ($rec->userId == core_Users::getCurrent()) {
+                $row->url = ht::createLink($rec->url, array($driver, 'Autologin', $rec->id));
+            }
+            
+            $row->auth = ht::createLink('Получена', NULL, NULL, 'ef_icon=img/16/checked-green.png');
         }
-        
-       // $row->auth .= "<ul><li>lKey = {$rec->data->lKey}</li><li>lKeyCC = {$rec->data->lKeyCC}</li><li>rKey = {$rec->data->rKey}</li><li>rKeyCC = {$rec->data->rKeyCC}</li><li>rId = {$rec->data->rId}</li><li>rConfirmed = {$rec->data->rConfirmed}</li></ul>";
+        if($rec->data->rKeyCC) {
+            $row->auth .= ' ' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
+        }
     }
 
 
+    /**
+     * За да не могат да се редактират оторизациите с получен ключ
+     */
+    static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{
+        if($action == 'edit' && is_object($rec)) {
+            if($rec->data->lKeyCC) {
+                $res = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Връща ключа за криптираната връзка
+     *
+     * @param $rec      stdClass    Запис на оторизация
+     * @param $type     string      'remote' или 'local'
+     * 
+     */
     static function getCryptKey($rec, $type = 'local')
     {
         if($type == 'local') {
@@ -139,14 +181,27 @@ class remote_BgerpDriver extends core_Mvc
         $url .= '/remote_BgerpDriver/AuthIn/?Fw=' . $Fw;
 
         remote_Authorizations::save($rec);
-
-        redirect($url);
+        
+        remote_Authorizations::logWrite('Изходящ оторизиране', $rec->id);
+        
+        return new Redirect($url);
     }
 
 
+    /**
+     * Входящ екщън за оторизиране
+     */
     function act_AuthIn()
     {
         requireRole('powerUser');
+        
+        if(!core_Packs::isInstalled('remote')) {
+            if(haveRole('admin')) {
+                return new Redirect(array('core_Packs', 'search' => 'remote'), "За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`", 'error');
+            } else {
+                return new Redirect(array('Portal', 'Show'), "За оторизиране на отдалечена bgERP система, трябва да бъде инсталиран пакета `remote`. Свържете се с вашия IT администратор.", 'error');
+            }
+        }
 
         expect($Fw = Request::get('Fw'));
 
@@ -177,8 +232,11 @@ class remote_BgerpDriver extends core_Mvc
         if($rec->data->rKey && $rec->data->rKeyCC) {
             $nick = type_Varchar::escape($params['nick']);
             $url = type_Varchar::escape($params['url']);
+            
+            remote_Authorizations::logErr('Опит за нова оторизация на отдалечения потребител', $rec->id);
+            
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
-                "Опит за нова оторизация на отдалечения потребител |*<b>{$nick}</b> ({$url})| да следи вашите съобщения.", 'error');
+                "|Опит за нова оторизация на отдалечения потребител|* <b>{$nick}</b> ({$url}) |да следи вашите съобщения", 'error');
         }
 
         if($form->isSubmitted()) {
@@ -213,13 +271,16 @@ class remote_BgerpDriver extends core_Mvc
                 $rec->data->rConfirmed = $confirm;
                 remote_Authorizations::save($rec);
             }
-
+            
+            remote_Authorizations::logWrite('Успешна оторизация за следене на съобщения', $rec->id);
+            
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
-                "Отдалечения потребител " . type_Varchar::escape($params['nick']) . " е оторизиран да следи вашите съобщения.");
+                "|Отдалечения потребител|* " . type_Varchar::escape($params['nick']) . " |е оторизиран да следи вашите съобщения");
         }
 
         return $this->renderWrapping($form->renderHtml());
     }
+
 
     /**
      * Извиква се за потвърждаване на оторизацията
@@ -245,13 +306,18 @@ class remote_BgerpDriver extends core_Mvc
         $rec->data->lKeyCC = $params['CC'];
 
         remote_Authorizations::save($rec);
-
+        
+        remote_Authorizations::logWrite('Потвърдена ауторизация', $rec->id);
+        
         echo md5($rec->data->lKey . $rec->lKeyCC);
 
         die;
     }
 
 
+    /**
+     * Крон процес за обновяване на известията от оторизираните системи
+     */
     function cron_UpdateRemoteNotification()
     {
         $query = remote_Authorizations::getQuery();
@@ -264,6 +330,7 @@ class remote_BgerpDriver extends core_Mvc
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications');
                  
                 $nUrl = array($this, 'Autologin', $rec->id);
+                $userId = $rec->userId;
 
                 if($nCnt) {
                     if($nCnt == 1) {
@@ -273,10 +340,9 @@ class remote_BgerpDriver extends core_Mvc
                     }
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
                     $message = "Имате {$nCnt} в {$url}";
-                    $userId = $rec->userId;
                     bgerp_Notifications::add($message, $nUrl, $userId);
                 } else {
-                    bgerp_Notifications::clear($nUrl);
+                    bgerp_Notifications::clear($nUrl, $userId);
                 }
             }
         }
@@ -289,17 +355,22 @@ class remote_BgerpDriver extends core_Mvc
     function act_Autologin()
     {
         expect($id = Request::get('id', 'int'));
-
+        
         expect($auth = remote_Authorizations::fetch($id));
 
         expect($auth->userId == core_Users::getCurrent());
         
         $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin');
-
+        
+        remote_Authorizations::logLogin('Автоматично логване', $id);
+        
         return new Redirect($url);
     }
 
 
+    /**
+     * Генерира редирект за автоматично логване в отдаличена система
+     */
     function remote_Autologin($auth)
     {
         expect($auth =  self::prepareAuth($auth));
@@ -444,7 +515,6 @@ class remote_BgerpDriver extends core_Mvc
     }
 
 
-
     /**
      * Задава въпрос и връща отговора по криптиран канал
      */
@@ -484,11 +554,16 @@ class remote_BgerpDriver extends core_Mvc
         $encodedRes = self::encode($auth, $res, 'answer');
 
         echo $encodedRes;
-
-        die;
+        
+        remote_Authorizations::logRead('Вземане на данни', $authId);
+        
+        shutdown();
     }
     
 
+    /**
+     * Извлича записа на оторизацията с посочения номер
+     */
     private static function prepareAuth($auth)
     {
         if(!is_object($auth)) {

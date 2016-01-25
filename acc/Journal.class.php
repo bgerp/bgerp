@@ -311,7 +311,7 @@ class acc_Journal extends core_Master
         $mvc->logWrite("Контиране на документ", $docId);
         
         // Редирект към сингъла
-        return redirect(array($mvc, 'single', $docId));
+        return new Redirect(array($mvc, 'single', $docId));
     }
     
     
@@ -856,5 +856,15 @@ class acc_Journal extends core_Master
     	$res->amount         = $dRec->sumAmount;
     	
     	return $res;
+    }
+    
+    
+    /**
+     * След подготовка на полетата
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	$baseCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['totalAmount'] .= "|* ({$baseCode})";
     }
 }

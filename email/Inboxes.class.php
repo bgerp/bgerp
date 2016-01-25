@@ -158,7 +158,7 @@ class email_Inboxes extends core_Master
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
         $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
-        $this->FLD("notifyForEmail", "enum(yes=Да,no=Не)", 'caption=Нотификация за получен имейл->Избор, notNull');
+        $this->FLD("notifyForEmail", "enum(yes=Винаги,no=Стандартно за системата)", 'caption=Нотификация за получен имейл->Избор, notNull');
         
         $this->setDbUnique('email');
     }
@@ -259,10 +259,10 @@ class email_Inboxes extends core_Master
         if (!$allAccounts) {
             if (email_Accounts::haveRightFor('add')) {
                 
-                return redirect(array('email_Accounts', 'add'), FALSE, 'Моля добавете активна кутия.');
+                redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активна кутия');
             } else {
                 
-                return redirect(array($mvc), FALSE, 'Няма активна кутия, която да се използва');
+                redirect(array($mvc), FALSE, '|Няма активна кутия, която да се използва');
             }
         }
         

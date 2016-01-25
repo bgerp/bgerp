@@ -189,7 +189,7 @@ class planning_plg_StateManager extends core_Plugin
     		}
     		
     		// Редирект обратно към документа
-    		return redirect(array($mvc, 'single', $rec->id));
+    		redirect(array($mvc, 'single', $rec->id));
 		}
 	}
 	

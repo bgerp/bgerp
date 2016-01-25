@@ -445,12 +445,22 @@ div.folder-cover {
       position: relative;
       top: -4px;
       display: inline-block; }
-  .fieldset-holder tr.row-added {
-    background-color: #e6ffe0; }
-  .fieldset-holder tr.row-removed {
-    background-color: #cce3fe; }
   .fieldset-holder tr.group-by-field-row {
     background-color: #f1f1f1; }
+
+tr.row-added {
+  background-color: #e6ffe0; }
+
+tr.row-removed {
+  background-color: #cce3fe; }
+
+  .wide .user-profile .listTopContainer {
+    min-width: 0; }
+
+.wide .user-profile .listBlock {
+  display: block; }
+  .wide .user-profile .listBlock .listRows > table.listTable {
+    width: 100%; }
 
 /*
  * потребителски профил
@@ -594,6 +604,30 @@ div.productImage {
 .narrow div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
+
+.productPreview {
+  height: auto;
+  width: auto;
+  max-height: 500px;
+  max-width: 300px; }
+
+.productPreviewHolder {
+  float: right; }
+
+.narrow .productPreviewHolder {
+  clear: both;
+  float: none;
+  display: block; }
+  .narrow .productPreviewHolder .productPreview {
+    max-height: 300px;
+    max-width: 200px; }
+
+  .products-table .productPreview,
+  .jobTable .productPreview,
+  .general-product-description .productPreview,
+  .sales_SalesDetails .productPreview {
+    max-width: 120px;
+    max-height: 240px; }
 
   .product-component-title td {
     border-top: 1px solid #dddddd;
@@ -2933,6 +2967,9 @@ div.location.public {
   width: 100%;
   max-width: 400px; }
 
+.wide .inline-form {
+  display: inline-block; }
+
 /*
  * шаблон за журнал
  */
@@ -3445,15 +3482,7 @@ only screen and (min-width: 1240px) {
     padding: 10px 0; }
 
   .wide not('.user-profile') .listBlock .listRows > table.listTable {
-    min-width: 760px; }
-
-    .wide .user-profile .listTopContainer {
-      min-width: 0; }
-
-  .wide .user-profile .listBlock {
-    display: block; }
-    .wide .user-profile .listBlock .listRows > table.listTable {
-      width: 100%; } }
+    min-width: 760px; } }
 
 @media handheld,
 only screen and (min-width: 1550px) {
@@ -4125,7 +4154,9 @@ only screen and (max-width: 320px) {
       page-break-after: avoid; }
 
   .footer-notes,
-  .print-block {
+  .print-block,
+  .footerDocTable,
+  .footerDocBlock {
     page-break-inside: avoid; }
 
   #statuses,

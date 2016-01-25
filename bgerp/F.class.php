@@ -116,7 +116,7 @@ class bgerp_F extends core_Manager
         doclog_Documents::downloaded($mid, $fh);
         
         // Редиректваме към линка
-        redirect($url);
+        return new Redirect($url);
     }
     
     

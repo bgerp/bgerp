@@ -126,7 +126,7 @@ class editwatch_Plugin extends core_Plugin
         // Ако не е логнат потребител
         // Понякога и every_one може да редактира запис
         if (!haveRole('user') && !$mvc->haveRightFor('edit', $recId)) {
-            $status = tr('Трябва да сте логнати, за да редактирате този запис.');
+            $status = '|Трябва да сте логнати, за да редактирате този запис';
             $status = "<span class='errorMsg'>$status</span>";
         } else {
             

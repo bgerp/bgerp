@@ -144,10 +144,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$rec = &$form->rec;
     	
-		if($rec->type == 'pop'){
-    		//$form->setField('batch', 'input=none');
-    	}
-    	
     	if($rec->productId){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		if(isset($pInfo->meta['canStore'])){
@@ -185,6 +181,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row)
     	{
     		$rec = $data->recs[$id];
+    		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
     		
     		if($rec->type == 'pop'){
     			$row->packQuantity .= " {$row->packagingId}";
@@ -236,7 +233,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$tpl = new ET("");
     	
-    	$this->invoke('BeforeRenderListTable', array(&$tpl, &$data));
     	if(Mode::is('printing')){
     		unset($data->listFields['tools']);
     	}
@@ -246,7 +242,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
     	
-    	$detailsInput = $table->get($data->inputArr, $data->listFields);
+    	$iData = clone $data;
+    	$iData->rows = $data->inputArr;
+    	$this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+    	
+    	$detailsInput = $table->get($iData->rows, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
     	// Добавяне на бутон за нов материал
@@ -257,14 +257,19 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	// Рендираме таблицата с отпадъците
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
     		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
-    		$detailsPop = $table->get($data->popArr, $data->listFields);
-    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;'), $detailsPop);
+    		
+    		$pData = clone $data;
+    		$pData->rows = $data->popArr;
+    		$this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+    		$popTable = $table->get($pData->rows, $data->listFields);
+    		$detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
+    		
     		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
     	}
     	
     	// Добавяне на бутон за нов отпадък
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'pop'))){
-    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
+    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/recycle.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Връщаме шаблона

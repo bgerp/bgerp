@@ -551,8 +551,9 @@ a.bookmark-external-url {
   border-radius: 6px;
   border: 1px solid #cccccc;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
+  .menu-holder a:not(.profile) {
+    color: #333333 !important; }
   .menu-holder a {
-    color: #333333 !important;
     display: block;
     padding: 3px 20px 3px 25px;
     clear: both;

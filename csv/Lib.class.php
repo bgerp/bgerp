@@ -203,17 +203,23 @@ class csv_Lib
     static function createCsv($recs, core_FieldSet $fieldSet, $listFields = NULL, $mode = array())
     {
         $mode = arr::make($mode, TRUE);
-
+        
     	// ще вземем конфигурационните константи
     	$conf = core_Packs::getConfig('csv');
     	
         if(isset($listFields)) {
             $listFields = arr::make($listFields, TRUE);
+        } else {
+            $fieldsArr = $fieldSet->selectFields("");
+            $listFields = array();
+            foreach ($fieldsArr as $name => $fld) {
+                $listFields[$fld->name] = $fld->caption;
+            }
         }
     	
     	$exportCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
     	if(count($recs) > $exportCnt) {
-    		redirect(array($this, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    		redirect(array($this, 'list'), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
     	}
     	
     	if (is_array($listFields)) {
@@ -306,7 +312,7 @@ class csv_Lib
             $csv .= $rCsv . "\n";
         }
         
-        if (isset ($firstRow)) {
+        if (isset ($firstRow) && $mode['columns'] != 'none') {
             $csv = $firstRow . "\n" . $csv;
         }
        
@@ -335,11 +341,12 @@ class csv_Lib
     		$enclosure = $conf->CSV_ENCLOSURE;
     	}
     	
+    	$csvData = i18n_Charset::convertToUtf8($csvData);
+    	
     	$textArr = explode(PHP_EOL, trim($csvData));
     
     	foreach($textArr as $line){
     		$arr = str_getcsv($line, $delimiter, $enclosure);
-    		$arr = iconv('utf-8', $conf->CSV_ENCODING, $arr);
     		
     		array_unshift($arr, "");
     		unset($arr[0]);

@@ -41,7 +41,7 @@ class remote_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Лента с новини за сайта";
+    var $info = "Оторизация от и към външни услуги";
 
     
     /**
@@ -50,7 +50,6 @@ class remote_Setup extends core_ProtoSetup
    var $managers = array(
             'remote_Authorizations',
             'remote_Tokens',
-  
         );
 
         
@@ -83,8 +82,7 @@ class remote_Setup extends core_ProtoSetup
         $rec->description = "Обновяване на отдалечени нотификации";
         $rec->controller = "remote_BgerpDriver";
         $rec->action = "UpdateRemoteNotification";
-        $rec->period = 5;
-        $rec->offset = rand(0,4);
+        $rec->period = 3;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
         
@@ -94,7 +92,6 @@ class remote_Setup extends core_ProtoSetup
         $rec->controller = "remote_Tokens";
         $rec->action = "DeleteExpiredTokens";
         $rec->period = 50;
-        $rec->offset = rand(1,50);
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
 

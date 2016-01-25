@@ -160,7 +160,7 @@ class cat_ProductTplCache extends core_Master
 		// Записваме, че потребителя е разглеждал този списък
 		$this->logWrite("Изтриване на кеша на изгледите на артикула");
 		
-		Redirect(array($this, 'list'), FALSE, 'Записите са изчистени успешно');
+		return new Redirect(array($this, 'list'), '|Записите са изчистени успешно');
 	}
 	
 	

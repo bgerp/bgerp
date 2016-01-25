@@ -254,7 +254,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
-					<div>
+					</div>
 					[#ROW_AFTER#]
 					[#COMPONENTS#]
 				"));
@@ -313,12 +313,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
 	 * 
+	 * @param double $quantity - к-во
 	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
 	 * 				    -> title        - дефолт име на задачата
 	 * 					-> driverClass  - драйвър на задача
 	 * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
 	 */
-	public function getDefaultTasks()
+	public function getDefaultProductionTasks($quantity = 1)
 	{
 		return array();
 	}
@@ -355,5 +356,24 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function getDefaultBom($rec)
 	{
 		return FALSE;
+	}
+	
+	
+	/**
+	 * Връща цената за посочения продукт към посочения клиент на посочената дата
+	 *
+	 * @param mixed $customerClass - клас на контрагента
+	 * @param int $customerId - ид на контрагента
+	 * @param int $productId - ид на артикула
+	 * @param int $packagingId - ид на опаковка
+	 * @param double $quantity - количество
+	 * @param datetime $datetime - дата
+	 * @param double $rate  - валутен курс
+	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+	 * @return double|NULL $price  - цена
+	 */
+	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	{
+		return NULL;
 	}
 }

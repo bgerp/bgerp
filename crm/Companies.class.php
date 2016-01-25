@@ -301,6 +301,8 @@ class crm_Companies extends core_Master
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('users', $default);
         
+        $options = array();
+        
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
             $options[$key] = $attr[0];
@@ -1546,7 +1548,7 @@ class crm_Companies extends core_Master
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
     		if(haveRole('powerUser')){
-    			core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
+    			core_Statuses::newStatus("|Фирмата е включена в група |* '{$groupName}'");
     		}
     		
     		return static::save($rec, 'groupList');

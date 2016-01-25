@@ -1479,7 +1479,7 @@ class fileman_Repositories extends core_Master
         $singleUrl = fileman::getUrlToSingle($fh);
         
         // Редиректваме към сингъла
-        return Redirect($singleUrl);
+        return new Redirect($singleUrl);
     }
     
     

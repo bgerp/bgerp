@@ -157,11 +157,11 @@ class cat_plg_Grouping extends core_Plugin
 				}
 			
 				if(!$changed) {
-					$msg = tr("Не бяха променени свойства");
+					$msg = "|Не бяха променени свойства";
 				} elseif($changed == 1) {
-					$msg = tr("Бяха променени свойствата на 1 " . mb_strtolower($mvc->singleTitle));
+					$msg = "|Бяха променени свойствата на|* 1 " . mb_strtolower($mvc->singleTitle);
 				} else {
-					$msg = tr("Бяха променени свойствата на|* {$changed} "  . mb_strtolower($mvc->title));
+					$msg = "|Бяха променени свойствата на|* {$changed} "  . mb_strtolower($mvc->title);
 				}
 			
 				$res = new Redirect($retUrl, $msg);

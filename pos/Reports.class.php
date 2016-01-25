@@ -576,12 +576,12 @@ class pos_Reports extends core_Master {
     			if($state == $nextState) continue;
     			
     			$receiptRec->state = $nextState;
-    			pos_Receipts::save($receiptRec);
+    			pos_Receipts::save($receiptRec, 'state');
     			$count++;
     		}
     	
     		if($count){
-    			core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
+    			core_Statuses::newStatus("|{$msg} са|* '{$count}' |бележки за продажба|*");
     			}
     		}
     }

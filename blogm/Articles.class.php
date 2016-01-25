@@ -43,7 +43,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Полета за листов изглед
 	 */
-	var $listFields ='id, title, categories, author, createdOn, createdBy, modifiedOn, modifiedBy';
+	var $listFields ='id, title, categories, author, createdOn=Създаване->На, createdBy=Създаване->От, modifiedOn=Модифицирано->На, modifiedBy=Модифицирано->От';
 	
         
 	
@@ -182,7 +182,7 @@ class blogm_Articles extends core_Master {
                     $rec->publishedOn = dt::verbal2mysql();
                 } elseif ($rec->publishedOn > dt::verbal2mysql()) {
                     $rec->state = 'pending';
-                    core_Statuses::newStatus(tr('Статията ще бъде публикувана след') . ' ' . dt::mysql2verbal($rec->publishedOn), 'warning');
+                    core_Statuses::newStatus('|Статията ще бъде публикувана след|*' . ' ' . dt::mysql2verbal($rec->publishedOn), 'warning');
                 }
             }
         }
@@ -268,7 +268,7 @@ class blogm_Articles extends core_Master {
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
  
         if(!count($categories)) {
-            redirect(array('blogm_categories'), FALSE, "Моля въведете категории за статиите в блога");
+            redirect(array('blogm_categories'), FALSE, "|Моля въведете категории за статиите в блога");
         }
         $data->listFilter->setOptions('category', $categories);
         
@@ -366,11 +366,11 @@ class blogm_Articles extends core_Master {
                     $Comments->logWrite('Добавяне', $id);
                     
                     // Редиректваме към предварително установения адрес
-                    return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
+                    return new Redirect(self::getUrl($data->rec), '|Благодарим за вашия коментар;)');
                 } else {
 
                     // Връщане на СПАМ съобщение
-                    return new Redirect(self::getUrl($data->rec), 'За съжаление не успяхме да запишем коментара ви :(');
+                    return new Redirect(self::getUrl($data->rec), '|За съжаление не успяхме да запишем коментара ви|* :(');
                 }
                 
             }

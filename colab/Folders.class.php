@@ -79,7 +79,7 @@ class colab_Folders extends core_Manager
 	function act_Default()
 	{
 		// Редиректваме
-		return Redirect(array($this, 'list'));
+		return new Redirect(array($this, 'list'));
 	}
 	
 	

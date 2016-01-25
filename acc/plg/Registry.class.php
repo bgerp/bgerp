@@ -44,7 +44,7 @@ class acc_plg_Registry extends core_Plugin
             
             if(haveRole('ceo,acc')){
             	$list = acc_Lists::fetchField("#systemId = '{$mvc->autoList}'", 'name');
-            	core_Statuses::newStatus(tr("|Обекта е добавен в номенклатура|*: {$list}"));
+            	core_Statuses::newStatus("|Обекта е добавен в номенклатура|*: {$list}");
             }
         }
     }
@@ -81,9 +81,9 @@ class acc_plg_Registry extends core_Plugin
     				if($itemRec->state != 'active'){
     					if(haveRole('ceo,acc')){
     						if($itemRec->lists){
-    							core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
+    							core_Statuses::newStatus("|Активирано е перо|*: {$itemRec->title}");
     						} else {
-    							core_Statuses::newStatus(tr("|Перо|*: {$itemRec->title} е без номенклатури"));
+    							core_Statuses::newStatus("|Перо|*: {$itemRec->title} е без номенклатури");
     						}
     					}
     				}
@@ -117,7 +117,7 @@ class acc_plg_Registry extends core_Plugin
 	    				acc_Lists::removeItem($mvc, $rec->id);
 	    				 
 	    				if(haveRole('ceo,acc')){
-	    					core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+	    					core_Statuses::newStatus("|Затворено е перо|*: {$itemRec->title}");
 	    				}
     				}
     			}

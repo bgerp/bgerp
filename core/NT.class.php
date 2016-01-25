@@ -38,7 +38,7 @@ class core_NT extends core_BaseClass
     /**
      * Конструктор на шаблона
      */
-    function core_NT($str)
+    function __construct($str)
     {
         $this->content = $str;
         $this->prepareContent();

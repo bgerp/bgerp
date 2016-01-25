@@ -56,9 +56,14 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
         // Задаваме, че ще филтрираме по перо
         $form->setDefault('action', 'group');
         $form->setField('to', 'input=none');
-
-        $form->setHidden('orderField');
-        $form->setHidden('orderBy');
+        $positionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
+      
+        $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент", 
+                                                  "baseAmount" => "Начално салдо",
+                                                  "debitAmount" => "Дебит",
+                                                  "creditAmount" => "Кредит",
+                                                  "blAmount" => "Крайно салдо"));
+        
     }
 
 
@@ -78,7 +83,13 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-
+        
+        $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент",
+        "baseAmount" => "Начално салдо",
+        "debitAmount" => "Дебит",
+        "creditAmount" => "Кредит",
+        "blAmount" => "Крайно салдо"));
+        
         $form->setHidden('action');
 
 

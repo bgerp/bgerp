@@ -227,7 +227,7 @@ class change_Plugin extends core_Plugin
             }
             
             // Редиректваме
-            return redirect($retUrl);
+            redirect($retUrl);
         }
         
         // Ако няма грешки

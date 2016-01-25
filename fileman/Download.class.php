@@ -316,7 +316,7 @@ class fileman_Download extends core_Manager {
 //        }
         
         // Редиректваме към линка
-        redirect($link);  
+        return new Redirect($link);  
     }
     
     
@@ -484,7 +484,7 @@ class fileman_Download extends core_Manager {
             $link = self::getDownloadUrl($fRec->fileHnd, $form->rec->activeMinutes);
             
             // Редиректваме на страницата за информация
-            Redirect(array('fileman_Files', 'single', $fh, 'currentTab' => 'info', '#' => 'fileDetail'));
+            return new Redirect(array('fileman_Files', 'single', $fh, 'currentTab' => 'info', '#' => 'fileDetail'));
         }
         
         // По подразбиране 12 часа да е активен

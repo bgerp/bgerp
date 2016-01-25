@@ -17,9 +17,9 @@ class page_Dialog extends page_Html
     /**
      * Конструктор
      */
-    function page_Dialog()
+    function __construct()
     {
-        $this->page_Html();
+        parent::__construct();
         $this->replace("UTF-8", 'ENCODING');
         $this->push('css/common.css', 'CSS');
         $this->push('css/dialog.css', 'CSS');

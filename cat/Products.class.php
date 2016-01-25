@@ -1349,7 +1349,11 @@ class cat_Products extends embed_Manager {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return planning_Jobs::fetch("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
+    	$query = planning_Jobs::getQuery();
+    	$query->where("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
+    	$query->orderBy('id', 'DESC');
+    	
+    	return $query->fetch();
     }
     
     
@@ -1498,15 +1502,6 @@ class cat_Products extends embed_Manager {
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
     	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    			$res = 'no_one';
-    		}
-    	}
-    	
-    	// Кой може да оттегля и възстановява
-    	if(($action == 'reject' || $action == 'restore') && isset($rec)){
-    		
-    		// Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
-    		if(!haveRole($mvc->getRequiredRoles('edit', $rec))){
     			$res = 'no_one';
     		}
     	}
@@ -1874,6 +1869,9 @@ class cat_Products extends embed_Manager {
     		$bTpl = clone $block;
     		if($obj->quantity == cat_BomDetails::CALC_ERROR){
     			$obj->quantity = "<span class='red'>???</span>";
+    		} else {
+    			$obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
+    			$obj->quantity = $Double->toVerbal($obj->quantity / $obj->divideBy);
     		}
     		
     		// Ако ще показваме компонента като линк, го правим такъв
@@ -1882,12 +1880,14 @@ class cat_Products extends embed_Manager {
     			$obj->title = ht::createLinkRef($obj->title, $singleUrl);
     		}
     		
+    		$obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
+    		
     		$arr = array('componentTitle'       => $obj->title, 
     				     'componentDescription' => $obj->description,
     					 'titleClass'           => $obj->titleClass,
     					 'componentCode'        => $obj->code,
     					 'componentStage'       => $obj->stageName,
-    					 'componentQuantity'    => $Double->toVerbal($obj->quantity),
+    					 'componentQuantity'    => $obj->quantity,
     					 'level'				=> $obj->level,
     				     'leveld'				=> $obj->leveld,
     					 'componentMeasureId'   => $obj->measureId);
@@ -1969,7 +1969,7 @@ class cat_Products extends embed_Manager {
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
     			
-    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity / $rec->quantity;
+    			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
     			$obj->level = substr_count($obj->code, '.');
     			$obj->titleClass = 'product-component-title';
     			 
@@ -1984,7 +1984,7 @@ class cat_Products extends embed_Manager {
     				$obj->leveld = $obj->level;
     			}
     			$res[$obj->code] = $obj;
-    			
+    			$obj->divideBy = $rec->quantity;
     		}
     	}
     	
@@ -2058,6 +2058,9 @@ class cat_Products extends embed_Manager {
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
      * 				    -> title        - дефолт име на задачата
      * 					-> driverClass  - драйвър на задача
@@ -2066,7 +2069,7 @@ class cat_Products extends embed_Manager {
      * 						 - array production - артикули за произвеждане
      * 						 - array waste      - отпадъци
      */
-    public static function getDefaultTasks($id)
+    public static function getDefaultProductionTasks($id, $quantity = 1)
     {
     	$defaultTasks = array();
     	expect($rec = self::fetch($id));
@@ -2076,7 +2079,7 @@ class cat_Products extends embed_Manager {
     	// Питаме драйвера какви дефолтни задачи да се генерират
     	$ProductDriver = cat_Products::getDriver($rec);
     	if(!empty($ProductDriver)){
-    		$defaultTasks = $ProductDriver->getDefaultTasks();
+    		$defaultTasks = $ProductDriver->getDefaultProductionTasks($quantity);
     	}
     	
     	// Ако няма дефолтни задачи
@@ -2090,7 +2093,7 @@ class cat_Products extends embed_Manager {
     		
     		// Ако има опитваме се да намерим задачите за производството по нейните етапи
     		if($bomId){
-    			$defaultTasks = cat_Boms::getTasksFromBom($bomId);
+    			$defaultTasks = cat_Boms::getTasksFromBom($bomId, $quantity);
     		}
     	}
     	

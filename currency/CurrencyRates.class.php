@@ -188,7 +188,7 @@ class currency_CurrencyRates extends core_Detail
     {   
         $this->requireRightFor('retrieve');
 
-        return new Redirect (array('currency_CurrencyRates', 'default'), $this->retrieveCurrenciesFromEcb());
+        return new Redirect(array('currency_CurrencyRates', 'default'), '|' . $this->retrieveCurrenciesFromEcb());
     }
     
     
@@ -373,6 +373,8 @@ class currency_CurrencyRates extends core_Detail
         
         self::logErr($errMsg);
         
+        $errMsg = '|' . $errMsg;
+        
         if (self::haveRightFor('list')) {
             redirect(array(get_called_class(), 'list', 'ret_url' => TRUE), FALSE, $errMsg, 'error');
         } else {
@@ -415,20 +417,36 @@ class currency_CurrencyRates extends core_Detail
     protected static function getStoredRate($date, $fromId, $toId)
     {
         if (!isset(static::$cache[$date][$fromId][$toId])) {
-            /* @var $query core_Query */
-            $query = static::getQuery();
             
+        	// Търсим най-близкия минал или текущ курс до подадената дата
+            $query = static::getQuery();
             $query->where("#date <= '{$date}'");
             $query->where("#baseCurrencyId = {$fromId}");
             $query->where("#currencyId = {$toId}");
             $query->orderBy('date', 'DESC');
             $query->limit(1);
             
-            if ($rec = $query->fetch()) {
-                static::$cache[$date][$rec->baseCurrencyId][$rec->currencyId] = $rec->rate;
+            // Ако има го кешираме
+            if ($pastRec = $query->fetch()) {
+            	static::$cache[$date][$pastRec->baseCurrencyId][$pastRec->currencyId] = $pastRec->rate;
+            } else {
+            	
+            	// Ако няма намираме най-близкия курс след зададената дата
+            	$fQuery = static::getQuery();
+            	$fQuery->where("#date > '{$date}'");
+            	$fQuery->where("#baseCurrencyId = {$fromId}");
+            	$fQuery->where("#currencyId = {$toId}");
+            	$fQuery->orderBy('date', 'ASC');
+            	$fQuery->limit(1);
+            	
+            	// Ако намери кешираме го
+            	if ($nextRec = $fQuery->fetch()) {
+            		static::$cache[$date][$nextRec->baseCurrencyId][$nextRec->currencyId] = $nextRec->rate;
+            	}
             }
         }
     
+        // Ако имаме кеширан курс връщаме го
         if (isset(static::$cache[$date][$fromId][$toId])) {
             return static::$cache[$date][$fromId][$toId];
         }

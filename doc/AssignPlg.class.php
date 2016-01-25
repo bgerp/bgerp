@@ -126,7 +126,7 @@ class doc_AssignPlg extends core_Plugin
 //            $docSingleTitle = mb_strtolower($mvc->singleTitle); 
             
             // Добавяме съобщение
-//            status_Messages::newStatus(tr("Успешно възложихте|* {$docSingleTitle} |на|*: " . $mvc->getVerbal($newRec, 'assign')));
+//            status_Messages::newStatus("|Успешно възложихте|* {$docSingleTitle} |на|*: " . $mvc->getVerbal($newRec, 'assign'));
         }
     }
     

@@ -83,7 +83,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId)', 'caption=Артикул,smartCenter,silent,refreshForm');
+    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,smartCenter,mandatory');
     	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък)', 'input=hidden,silent,smartCenter');
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter');
     	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
@@ -92,8 +92,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
-    	
-    	$this->setDbUnique('code');
     }
     
     
@@ -130,7 +128,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	$groupTitle = $data->singleTitle = ($rec->type == 'input') ? 'За влагане' : (($rec->type == 'waste') ? 'Отпадъци' : 'За произвеждане');
     	$productOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
-    	$productOptions = array('x' => (object)array('group' => TRUE, 'title' => tr($groupTitle))) + $productOptions;
+    	
+    	if(count($productOptions) != 1){
+    		$productOptions = array('x' => (object)array('group' => TRUE, 'title' => tr($groupTitle))) + $productOptions;
+    	}
     	
     	$form->setOptions('taskProductId', array('' => '') + $productOptions);
     }
@@ -150,6 +151,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			if(empty($rec->serial)){
     				$rec->serial = $mvc->getDefaultSerial();
     			}
+    		}
+    		
+    		if(empty($rec->serial)){
+    			$rec->serial = NULL;
     		}
     	}
     }
@@ -192,11 +197,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
     	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
     	 
-    	if(isset($rec->code)){
-    		$row->code = "<b>{$row->code}</b>";
+    	if(isset($rec->serial)){
+    		$row->serial = "<b>{$row->serial}</b>";
     	}
     	 
-    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
+    	$class = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed'));
+    	$row->ROW_ATTR['class'] = $class;
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
@@ -253,13 +259,15 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     		
     		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
-    			$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
+    			$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложен артикул');
     		}
     		
     		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'waste'))){
-    			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на отпаден артикул');
+    			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
     		}
     	}
+    	
+    	$data->toolbar->removeBtn('binBtn');
     }
 
 

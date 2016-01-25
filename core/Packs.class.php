@@ -600,15 +600,13 @@ class core_Packs extends core_Manager
             if ($conf->getConstCnt()) {
         
                 $cls = $rec->name . "_Setup";
-                $warn = '';
+                $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
                 if (cls::load($cls, TRUE)) {
                     $setup = cls::get($cls);
-                    if(method_exists($setup, 'checkConfig') && $setup->checkConfig()) {
-                        $warn = "<span  style='color:yellow; background-color:red; padding-left:3px; padding-right:3px; margin-right:5px;'>!</span>";
+                    if(method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+                        $row->config = ht::createHint($row->config, $errMsg, 'error');
                     }
                 } 
-    
-                $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
             }
         }
         

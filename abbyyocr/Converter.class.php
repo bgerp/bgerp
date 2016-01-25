@@ -51,6 +51,8 @@ class abbyyocr_Converter extends core_Manager
             // Ако не може да се извлече текстовата част, връщаме
             if (!static::canExtract($rec->name)) return ;
             
+            $btnParams = array();
+            
             // Ако вече е извлечена текстовата част
             if (static::isTextIsExtracted($rec)) {
                     
@@ -60,15 +62,24 @@ class abbyyocr_Converter extends core_Manager
             
             $btnParams['order'] = 60;
             
-            // URL за създаване
-            $url = toUrl(array(get_called_class(), 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE)); 
-             
+            $Setup = cls::get('abbyyocr_Setup');
+            
+            if ($Setup->checkConfig() !== NULL) {
+                // URL за създаване
+                $url = toUrl(array(get_called_class(), 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
+            } else {
+                $url = array();
+            }
+            
             // Добавяме бутона
             $toolbar->addBtn('OCR', $url, 
             	array('ef_icon' => 'img/16/scanner.png'), 
                 $btnParams
             ); 
-        } catch (core_exception_Expect $e) {}
+        } catch (core_exception_Expect $e) {
+            
+            return FALSE;
+        }
     }
     
 
@@ -108,7 +119,7 @@ class abbyyocr_Converter extends core_Manager
         if (fileman_Indexes::isProcessStarted($params)) {
             
             // Добавяме съобщение
-            status_Messages::newStatus(tr('Процеса вече е бил стартиран'));
+            status_Messages::newStatus('|Процеса вече е бил стартиран');
         } else {
             
             // Заключваме процеса за определено време
@@ -129,7 +140,7 @@ class abbyyocr_Converter extends core_Manager
             $retUrl = array('fileman_Files', 'single', $rec->fileHnd);
         }
         
-        return Redirect($retUrl);
+        return new Redirect($retUrl);
     }
     
     
@@ -188,14 +199,14 @@ class abbyyocr_Converter extends core_Manager
         $Script->run($params['asynch']);
         
         // Добавяме съобщение
-        status_Messages::newStatus(tr('Стартирано е извличането на текст с OCR'), 'success');
+        status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
     }
     
     
     /**
      * Изпълнява се след приключване на обработката
      * 
-     * @param fconv_Script $sctipt - Обект с данние
+     * @param fconv_Script $script - Обект с данние
      * 
      * @param boolean
      */
@@ -275,6 +286,7 @@ class abbyyocr_Converter extends core_Manager
 //       if (!$procText) {
             
             // Ако е извлечена текстовата част с OCR
+            $paramsOcr = array();
             $paramsOcr['type'] = 'textOcr';
             $paramsOcr['dataId'] = $rec->dataId;
             $procTextOcr = fileman_Indexes::isProcessStarted($paramsOcr);
@@ -296,6 +308,8 @@ class abbyyocr_Converter extends core_Manager
     {
         // Вземаме конфига
     	$conf = core_Packs::getConfig('fileman');
+    	
+    	$data = array();
     	
     	// Ако няма запис в модела
     	if (!$conf->_data['FILEMAN_OCR']) {

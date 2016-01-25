@@ -1312,7 +1312,7 @@ class doc_Containers extends core_Manager
         }
         
         // Редиректваме към сингъла на съответния клас, от къде се прехвърляме 		//към треда
-        redirect(array($class, 'single', $rec->id));
+        return new Redirect(array($class, 'single', $rec->id));
     }
     
     
@@ -2003,9 +2003,13 @@ class doc_Containers extends core_Manager
         // Ако е подаден масив
         if (is_array($thread)) {
             
+            if (empty($thread)) return $arr;
+            
             // За всички нишки
             $query->orWhereArr("threadId", $thread);
         } else {
+            
+            if (!$thread) return $arr;
             
             // За съответната нишка
             $query->where("#threadId = '{$thread}'");

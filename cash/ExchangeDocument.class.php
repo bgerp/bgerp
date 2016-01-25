@@ -180,7 +180,7 @@ class cash_ExchangeDocument extends core_Master
         
         if($folderId = Request::get('folderId', 'int')){
 	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
-	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
+	        	return redirect(array('cash_Cases', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна каса");
 	        }
         }
     }

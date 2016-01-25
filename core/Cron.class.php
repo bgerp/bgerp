@@ -326,7 +326,7 @@ class core_Cron extends core_Manager
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date("Y-m-d H:i:00", time());
         if ($nowMinute <= $rec->lastStart && !$forced) {
-            $this->logThenStop("Процесът е бил стартиран след $nowMinute", $id, 'err');
+            $this->logThenStop("Процесът е стартиран повторно по крон в една и съща минута", $id, 'err');
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -529,6 +529,14 @@ class core_Cron extends core_Manager
         expect($rec->period >= 1);
         
         // Офсета трябва да е по-голям от нула и да е по-малък от периода
+        if(!isset($rec->offset)) {
+            if($rec->period > 1) {
+                $rec->offset = rand(0, $rec->period-1);
+            } else {
+                $rec->offset = 0;
+            }
+        }
+
         $rec->offset = max(0, $rec->offset);
         expect($rec->period > $rec->offset);
  

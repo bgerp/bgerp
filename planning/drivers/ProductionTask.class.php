@@ -197,7 +197,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     		$originDoc = doc_Containers::getDocument($rec->originId);
     		if($originDoc->isInstanceOf('planning_Jobs')){
     			$productId = $originDoc->fetchField('productId');
-    			$tasks = cat_Products::getDefaultTasks($productId);
+    			$tasks = cat_Products::getDefaultProductionTasks($productId, $originDoc->fetchField('quantity'));
     			if(isset($tasks[$rec->systemId])){
     				$def = $tasks[$rec->systemId];
     				
@@ -211,7 +211,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     							$nRec->packagingId    = $p->packagingId;
     							$nRec->quantityInPack = $p->quantityInPack;
     							$nRec->packagingId    = $p->packagingId;
-    							$nRec->planedQuantity = ($p->packQuantity / $def->quantity) * $rec->totalQuantity;
+    							$nRec->planedQuantity = $p->packQuantity * $rec->totalQuantity;
     							$nRec->productId      = $p->productId;
     							$nRec->type			  = $type;
     							

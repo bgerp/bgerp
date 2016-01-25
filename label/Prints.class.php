@@ -154,9 +154,9 @@ class label_Prints extends core_Master
         $mediaArr = label_Templates::getMediaForTemplate($lRec->templateId);
         if (!$mediaArr) {
             if (label_Templates::haveRightFor('single', $lRec->templateId)) {
-                return new Redirect(array('label_Templates', 'single', $lRec->templateId, 'ret_url' => TRUE), 'Трябва да добавите медия за шаблона');
+                return new Redirect(array('label_Templates', 'single', $lRec->templateId, 'ret_url' => TRUE), '|Трябва да добавите медия за шаблона');
             } else {
-                return new Redirect($retUrl, 'Няма добавена медия за шаблона');
+                return new Redirect($retUrl, '|Няма добавена медия за шаблона');
             }
         }
         

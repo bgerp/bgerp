@@ -159,7 +159,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     public function getLastJob($id)
     {
-    	return $this->getLastJob($id);
+    	return $this->class->getLastJob($id);
     }
     
     
@@ -172,6 +172,26 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     public function getLastActiveBom($id, $type = NULL)
     {
-    	return $this->getLastActiveBom($id, $type);
+    	return $this->class->getLastActiveBom($id, $type);
+    }
+    
+    
+    /**
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     *
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
+     * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+     * 				    -> title        - дефолт име на задачата
+     * 					-> driverClass  - драйвър на задача
+     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input      - материали за влагане
+     * 						 - array production - артикули за произвеждане
+     * 						 - array waste      - отпадъци
+     */
+    public static function getDefaultProductionTasks($id, $quantity = 1)
+    {
+    	return $this->class->getDefaultProductionTasks($id, $quantity);
     }
 }

@@ -182,7 +182,7 @@ class label_Labels extends core_Master
             if (!$templateId) {
                 
                 // Редиректваме към екшъна за избор на шаблон
-                return Redirect(array($mvc, 'selectTemplate'));
+                redirect(array($mvc, 'selectTemplate'));
             }
         }
         

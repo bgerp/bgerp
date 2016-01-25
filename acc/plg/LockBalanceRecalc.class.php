@@ -53,7 +53,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
 	public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
 	{
 		if($msg = self::stopAction($mvc->fetchRec($id))){
-			core_Statuses::newStatus(tr($msg), 'warning');
+			core_Statuses::newStatus('|' . $msg, 'warning');
 	
 			return FALSE;
 		}
@@ -66,7 +66,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
 	public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
 	{
 		if($msg = self::stopAction($mvc->fetchRec($id))){
-			core_Statuses::newStatus(tr($msg), 'warning');
+			core_Statuses::newStatus('|' . $msg, 'warning');
 	
 			return FALSE;
 		}
@@ -79,7 +79,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
 	public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
 	{
 		if($msg = self::stopAction($mvc->fetchRec($id))){
-			core_Statuses::newStatus(tr($msg), 'warning');
+			core_Statuses::newStatus('|' . $msg, 'warning');
 	
 			return FALSE;
 		}

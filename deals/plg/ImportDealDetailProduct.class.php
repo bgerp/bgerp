@@ -105,7 +105,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 							$mvc->Master->logWrite('Импортиране на артикули', $rec->{$mvc->masterKey});
 							
 							// Редирект кум мастъра на документа към който ще импортираме
-							return Redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), 'FALSE', $msg);
+							redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), FALSE, '|' . $msg);
 						}
 					}
 				}
