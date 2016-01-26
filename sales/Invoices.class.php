@@ -388,19 +388,11 @@ class sales_Invoices extends deals_InvoiceMaster
     }
     
     
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+   /**
+    * Извиква се преди рендирането на 'опаковката'
+    */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	if(!Mode::is('printing')){
-    		$original = 'ОРИГИНАЛ';
-    		if($data->rec->tplLang != 'bg'){
-    			$original = "<i>ORIGINAL</i>/{$original}";
-    		}
-    		//$tpl->replace($original, 'INV_STATUS');
-    	}
-    	 
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
