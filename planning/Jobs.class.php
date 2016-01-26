@@ -368,6 +368,10 @@ class planning_Jobs extends core_Master
     	$row->quantityProduced .=  " {$shortUom}";
     	$row->quantityFromTasks .=  " {$shortUom}";
     	$quantityToProduce = $rec->quantity - $rec->quantityProduced;
+    	$quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
+    	
+    	$row->quantityNotStored = $mvc->getFieldType('quantity')->toVerbal($quantityNotStored);
+    	$row->quantityNotStored .=  " {$shortUom}";
     	
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
     	$row->quantityToProduce .=  " {$shortUom}";
