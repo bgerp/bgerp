@@ -19,6 +19,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Интерфейси които имплементира
+	 */
+	public $interfaces = 'planning_DriverIntf';
+	
+	
+	/**
 	 * Кой може да избира драйвъра
 	 */
 	public $canSelectDriver = 'planning,ceo';

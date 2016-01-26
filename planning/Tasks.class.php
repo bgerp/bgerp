@@ -19,6 +19,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Свойство, което указва интерфейса на вътрешните обекти
+	 */
+	public $driverInterface = 'planning_DriverIntf';
+	
+	
+	/**
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools,bgerp_plg_Blank';
