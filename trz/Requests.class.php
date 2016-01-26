@@ -210,30 +210,17 @@ class trz_Requests extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->fields['paid']->caption = 'Вид'; 
-    	
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
-        $data->listFilter->setDefault('selectedUsers', 'all_users'); 
-                 
+
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields .= ', selectedUsers, personId, paid';
+        $data->listFilter->showFields .= ', personId, paid';
         
-        $data->listFilter->input('selectedUsers, personId, paid', 'silent');
+        $data->listFilter->input('personId, paid', 'silent');
         
      	if($data->listFilter->rec->paid) {
     		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
     	}
-    	
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
-        }
 
-        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
-            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-        }
-        
     	if($data->listFilter->rec->personId) {
     		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
     	}
