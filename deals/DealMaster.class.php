@@ -44,6 +44,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Поле за търсене по потребител
+	 */
+	public $filterFieldUsers = 'dealerId';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
