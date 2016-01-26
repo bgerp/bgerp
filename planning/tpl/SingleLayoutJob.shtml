@@ -25,12 +25,16 @@
 	       <td>
 	           <table>
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Количество|*:</td>
+                        <td class='quiet' style='text-align: right'>|Планирано|*:</td>
                         <td>[#quantity#]</td>
                     </tr>
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Произведено|*:</td>
+                        <td class='quiet' style='text-align: right'>|Заскладено|*:</td>
                         <td>[#quantityProduced#]</td>
+                    </tr>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Произведено|*:</td>
+                        <td>[#quantityFromTasks#]</td>
                     </tr>
                     <tr>
                         <td class='quiet' style='text-align: right'>|Остатък|*:</td>
