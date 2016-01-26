@@ -66,16 +66,7 @@ class select2_PluginSelect extends core_Plugin
                 }
                 
                 if ($value) {
-                    
-                    $tVal = is_array($invoker->options[$value]) ? $invoker->options[$value]['title'] : $invoker->options[$value];
-                    
-                    $setVal = $invoker->getOptionTitle($tVal);
-                    
-                    if(!$setVal && is_numeric($value)) {
-                        $setVal = $invoker->toVerbal($value);
-                    }
-                    
-                    $valOptArr[$value] = $setVal;
+                    $valOptArr[$value] = is_array($invoker->options[$value]) ? $invoker->options[$value]['title'] : $invoker->options[$value];
                     unset($invoker->options[$value]);
                     $invoker->options = $valOptArr + $invoker->options;
                 }
@@ -206,6 +197,10 @@ class select2_PluginSelect extends core_Plugin
                     $r->id = NULL;
                     $group = $r;
                     $isGroup = TRUE;
+                }
+                
+                if ($title->attr) {
+                    $r->attr = $title->attr;
                 }
             } else {
                 $r->text = $title;
