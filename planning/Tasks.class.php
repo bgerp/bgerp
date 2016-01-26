@@ -25,6 +25,17 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		expect(is_subclass_of($mvc->driverInterface, 'tasks_DriverIntf'), 'Невалиден интерфейс');
+	}
+	
+	
+	/**
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools,bgerp_plg_Blank';
