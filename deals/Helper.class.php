@@ -359,7 +359,7 @@ abstract class deals_Helper
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
 		if($quantity < 0){
-			$verbalQuantity = "<span class='red'>{$quantity}</span>";
+			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
 		}
 		
 		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
