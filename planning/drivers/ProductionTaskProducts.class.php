@@ -159,7 +159,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     				$products[$productId] = cat_Products::getTitleById($productId, FALSE);
     				
     				// и ако има рецепта артикулите, които са етапи от нея
-    				if(isset($bomRec)){
+    				if(!empty($bomRec)){
     					$sQuery = cat_BomDetails::getQuery();
     					$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
     					$sQuery->show('resourceId');
