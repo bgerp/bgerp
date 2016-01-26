@@ -711,7 +711,7 @@ class core_Cron extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec && ($action == 'edit')) {
-            if ($rec->modifiedBy == '-1') {
+            if (!$rec->modifiedBy || $rec->modifiedBy == '-1') {
                 $requiredRoles = 'no_one';
             }
         }
