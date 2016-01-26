@@ -514,4 +514,18 @@ class email_Setup extends core_ProtoSetup
         
         core_Debug::$isLogging = $isLogging;
     }
+    
+    
+    /**
+     * Проверяваме дали всичко е сетнато, за да работи пакета
+     * Ако има грешки, връщаме текст
+     */
+    public function checkConfig()
+    {
+        $testStr = 'test';
+        if (@imap_8bit($testStr) !== $testStr) {
+            
+            return 'Не е инсталиран IMAP модула на PHP';
+        }
+    }
 }
