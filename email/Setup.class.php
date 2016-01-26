@@ -522,8 +522,7 @@ class email_Setup extends core_ProtoSetup
      */
     public function checkConfig()
     {
-        $testStr = 'test';
-        if (@imap_8bit($testStr) !== $testStr) {
+        if (!function_exists('imap_open')) {
             
             return 'Не е инсталиран IMAP модула на PHP';
         }
