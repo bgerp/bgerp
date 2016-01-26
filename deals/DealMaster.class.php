@@ -44,6 +44,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Поле за търсене по потребител
+	 */
+	public $filterFieldUsers = 'dealerId';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -527,7 +533,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$actions = type_Set::toArray($rec->contoActions);
     	
     	// Ако има склад, се нотифицира отговорника му
-    	if($rec->shipmentStoreId){
+    	if(isset($rec->shipmentStoreId)){
     		$storeRec = store_Stores::fetch($rec->shipmentStoreId);
     		if($storeRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
@@ -535,11 +541,19 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     		
     	// Ако има каса се нотифицира касиера
-    	if($rec->caseId){
+    	if(isset($rec->caseId)){
     		$caseRec = cash_Cases::fetch($rec->caseId);
     		if($caseRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
     		}
+    	}
+    	
+    	if($rec->initiatorId){
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->initiatorId);
+    	}
+    	
+    	if(isset($rec->dealerId)){
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->dealerId);
     	}
     	
     	// Текущия потребител се премахва от споделянето
