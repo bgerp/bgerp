@@ -53,7 +53,7 @@ class planning_plg_StateManager extends core_Plugin
 	public static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		$rec = &$data->rec;
-		 
+		
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
 			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), array('ef_icon' => "img/16/lightbulb_off.png",'title' => "Приключване на документа",'warning' => "Сигурни ли сте, че искате да приключите документа"));
@@ -71,7 +71,7 @@ class planning_plg_StateManager extends core_Plugin
 		 
 		// Добавяне на бутон за активиране от различно от чернова състояние
 		if($mvc->haveRightFor('activateAgain', $rec)){
-			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activateAgain', 'ret_url' => TRUE, ), array('ef_icon' => "img/16/control_play.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа"));
+			$data->toolbar->addBtn("Пускане", array($mvc, 'changeState', $rec->id, 'type' => 'activateAgain', 'ret_url' => TRUE, ), array('ef_icon' => "img/16/control_play.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа"));
 		}
 		
 		// Добавяне на бутон запървоначално активиране
@@ -99,7 +99,7 @@ class planning_plg_StateManager extends core_Plugin
 				case 'stop':
 	
 					// Само активните могат да бъдат спрени
-					if($rec->state != 'active'){
+					if($rec->state != 'active' && $rec->state != 'wakeup'){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -132,6 +132,12 @@ class planning_plg_StateManager extends core_Plugin
 				$requiredRoles = $mvc->getRequiredRoles('changestate', $rec);
 			}
 		}
+		
+		if($action == 'reject' && isset($rec)){
+			if($rec->state == 'stopped'){
+				$requiredRoles = 'no_one';
+			}
+		}
 	}
 	
 	
@@ -154,24 +160,30 @@ class planning_plg_StateManager extends core_Plugin
     		// Проверяваме правата за съответното действие затваряне/активиране/спиране/събуждане
     		$mvc->requireRightFor($action, $rec);
     	
-    		$rec->brState = $rec->state;
-    		switch($action){
+			switch($action){
     			case 'close':
+    				$rec->brState = $rec->state;
     				$rec->state = 'closed';
     				$logAction = 'Приключване';
     				break;
     			case 'stop':
+    				$rec->brState = $rec->state;
     				$rec->state = 'stopped';
     				$logAction = 'Спиране';
+    				
     				break;
     			case 'wakeup':
+    				$rec->brState = $rec->state;
     				$rec->state = 'wakeup';
     				$logAction = 'Събуждане';
     			break;
     			case 'activateAgain':
-    				$rec->state = 'active';
-    				$logAction = 'Активиране';
+    				$rec->state = $rec->brState;
+    				$rec->brState = 'stopped';
+    				$logAction = ($rec->state == 'wakeup') ? 'Събуждане' : 'Активиране';
+    				break;
     			case 'activate':
+    				$rec->brState = $rec->state;
     				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'pending';
     				$logAction = 'Активиране';
     			break;
