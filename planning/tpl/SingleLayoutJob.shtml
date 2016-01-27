@@ -15,6 +15,12 @@
                         <td class='quiet' style='text-align: right'>|Остатък|*:</td>
                         <td>[#quantityToProduce#]</td>
                     </tr>
+		          <!--ET_BEGIN storeId-->
+	               <tr>
+	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
+	                   <td>[#storeId#]</td>
+	               </tr>
+	               <!--ET_END storeId-->
                     <!--ET_BEGIN sBomId-->
                     <tr>
                         <td class='quiet' style='text-align: right;white-space: nowrap;'>|Търговска рецепта|*:</td>
@@ -128,12 +134,6 @@
 	       </td>
 	       <td colspan ='2'> 
 		       <table>
-		          <!--ET_BEGIN storeId-->
-	               <tr>
-	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
-	                   <td>[#storeId#]</td>
-	               </tr>
-	               <!--ET_END storeId-->
 	               <!--ET_BEGIN deliveryDate-->
 	               <tr>
 	                   <td class='quiet' style='text-align: right'>|Срок|*:</td>
