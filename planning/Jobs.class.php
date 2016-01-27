@@ -183,7 +183,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
-    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Данни от договора->Склад');
+    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
     	
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
@@ -242,8 +242,9 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryTermId', 'input=none');
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
-    		$form->setField('storeId', 'input=none');
     	}
+    	
+    	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	
     	// При ново задание, ако текущия потребител има права го добавяме като споделен
     	if(haveRole('planning,ceo') && empty($rec->id)){
@@ -423,6 +424,10 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
+    	
+    	//$row->quantityProduced = ht::createHint($row->quantityProduced, 'Заскладено|* с протоколи за производство');
+    	//$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено със задачи за производство');
+    	//$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Произведено по задачи, но все още незаскладено с протокол за производство');
     }
     
     
