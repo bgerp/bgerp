@@ -121,6 +121,8 @@ class planning_TaskActions extends core_Manager
 		expect($jobRec = planning_Jobs::fetch($jobId));
 		
 		$query = self::getQuery();
+		$query->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+		$query->where("#taskState != 'rejected'");
 		$query->where("#type = '{$type}'");
 		$query->where("#jobId = {$jobId}");
 		$query->where("#productId = {$jobRec->productId}");
