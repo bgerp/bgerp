@@ -120,6 +120,10 @@ class planning_Tasks extends tasks_Tasks
 					}
 				}
 			}
+
+			if(empty($rec->threadId) && empty($rec->originId)){
+				$requiredRoles = 'no_one';
+			}
 		}
 	}
 	
@@ -157,5 +161,20 @@ class planning_Tasks extends tasks_Tasks
 		$dealHistory = Request::get("TabTop{$cRec->id}");
 		
 		$res = md5($res . '|' . $dealHistory);
+	}
+	
+	
+	/**
+	 * Преди запис на документ, изчислява стойността на полето `isContable`
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $rec
+	 */
+	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		if(empty($rec->originId)){
+			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+			$rec->originId = $firstDoc->fetchField('containerId');
+		}
 	}
 }
