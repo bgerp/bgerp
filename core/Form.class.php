@@ -816,6 +816,9 @@ class core_Form extends core_FieldSet
                         $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
                         $space .= "&nbsp;&nbsp;&nbsp;";
                         $group = $c;
+                        if(strpos($group, '||')) {
+                            list($group, $en) = explode('||', $group);
+                        }
                     }
                 }
                 
@@ -874,7 +877,7 @@ class core_Form extends core_FieldSet
             }
             
             $usedGroups = self::getUsedGroups($this, $fields, $vars, $vars, 'input');
- 
+
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $group) { 
                 if(!$usedGroups[$group]) {
@@ -1288,7 +1291,7 @@ class core_Form extends core_FieldSet
                 $res[$bg] = TRUE;
             }
         }
-
+ 
         return $res;
     }
 }
