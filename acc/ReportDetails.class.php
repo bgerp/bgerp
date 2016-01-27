@@ -74,7 +74,7 @@ class acc_ReportDetails extends core_Manager
         } else {
         	$data->renderReports = FALSE;
         }
-        
+       
         // Име на таба
         if($data->renderReports === TRUE){
         	$data->TabCaption = 'Счетоводство';
@@ -110,6 +110,15 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
+    	// Перото с което мастъра фигурира в счетоводството
+    	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
+    	
+    	// Ако мастъра не е перо, няма какво да се показва
+    	if(empty($items)) {
+    		$data->renderReports = FALSE;
+    		return;
+    	}
+    	
     	if($data->prepareTab === FALSE) return;
     	
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
@@ -133,15 +142,6 @@ class acc_ReportDetails extends core_Manager
         $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell,smartCenter');
         $data->reportTableMvc->FLD('blPrice', 'int', 'tdclass=accCell,smartCenter');
         $data->total = 0;
-        
-        // Перото с което мастъра фигурира в счетоводството
-        $items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
-        
-        // Ако мастъра не е перо, няма какво да се показва
-        if(empty($items)) {
-        	$data->renderReports = FALSE;
-        	return;
-        }
         
         // Ако баланса е заключен не показваме нищо
         if(core_Locks::isLocked('RecalcBalances')){
