@@ -395,7 +395,8 @@ class tasks_Tasks extends embed_Manager
     	if($action == 'add'){
     		if(isset($rec->originId)){
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if($origin->fetchField('state') != 'active'){
+    			$state = $origin->fetchField('state');
+    			if($state == 'closed' || $state == 'draft' || $state == 'rejected'){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -413,7 +414,7 @@ class tasks_Tasks extends embed_Manager
     		if(isset($rec->driverClass)){
     			if(cls::load($rec->driverClass, TRUE)){
     				$Driver = cls::get($rec->driverClass);
-    				if(!cls::haveInterface('tasks_DriverIntf', $Driver)){
+    				if(!cls::haveInterface($mvc->driverInterface, $Driver)){
     					$requiredRoles = 'no_one';
     				} else {
     					if(!$Driver->canSelectDriver()){

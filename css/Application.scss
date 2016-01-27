@@ -2435,9 +2435,12 @@ fieldset.sharing-history {
 }
 
 .drawing {
-	max-width: 400px;
 	float: right;
+	img {
+		max-width: 400px;
+	}
 }
+
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;

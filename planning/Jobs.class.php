@@ -169,8 +169,9 @@ class planning_Jobs extends core_Master
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
-    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
-    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
+    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Планирано,mandatory,silent');
+    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
+    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Заскладено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
@@ -363,9 +364,17 @@ class planning_Jobs extends core_Master
     	$pInfo = cat_Products::getProductInfo($rec->productId);
     	$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
+    	$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
+    	$row->quantityFromTasks = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
+    	
     	$row->quantity .= " {$shortUom}";
     	$row->quantityProduced .=  " {$shortUom}";
+    	$row->quantityFromTasks .=  " {$shortUom}";
     	$quantityToProduce = $rec->quantity - $rec->quantityProduced;
+    	$quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
+    	
+    	$row->quantityNotStored = $mvc->getFieldType('quantity')->toVerbal($quantityNotStored);
+    	$row->quantityNotStored .=  " {$shortUom}";
     	
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
     	$row->quantityToProduce .=  " {$shortUom}";
@@ -383,6 +392,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
     			$row->sBomId = cat_Boms::getLink($sBomId, 0);
     		}

@@ -2128,8 +2128,9 @@ span.sharing-history-title {
   margin-top: 7px; }
 
 .drawing {
-  max-width: 400px;
   float: right; }
+  .drawing img {
+    max-width: 400px; }
 
 /*
  * стилове за външната част при потребител контрактор

@@ -284,7 +284,10 @@ class bank_IncomeDocuments extends core_Master
         $form->setDefault('rate', $dealInfo->get('rate'));
         
         if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
-        	$form->setDefault('amount', currency_Currencies::round($amount, $dealInfo->get('currency')));
+        	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+        	if($dAmount != 0){
+        		$form->setDefault('amount', $dAmount);
+        	}
             
             // Ако има банкова сметка по подразбиране
             if($bankId = $dealInfo->get('bankAccountId')){

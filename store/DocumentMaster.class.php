@@ -242,7 +242,7 @@ abstract class store_DocumentMaster extends core_Master
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+    	$row->MyCompany = transliterate(tr($row->MyCompany));
     	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
     	$row->MyAddress = core_Lg::transliterate($row->MyAddress);
     	

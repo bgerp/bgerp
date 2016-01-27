@@ -173,19 +173,17 @@ class cat_PriceDetails extends core_Manager
     				}
     			}
     			
-    			if(price_Lists::haveRightFor('single', $primeCostListId)){
+    			if(price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)){
     				$search = cat_Products::getTitleById($data->masterId);
     				$btns .= " " . ht::createLink('', array('price_Lists', 'single', $primeCostListId, 'search' => $search), FALSE, 'ef_icon=img/16/clock_history.png,title=Хронология на себестойноста на артикула');
     			}
     		}
     		
-    		if(isset($primeCost)){
-    			$primeCostRecs[] = (object)array('price' => $primeCost);
-    			$primeCostRows[] = (object)array('type'       => tr('Мениджърска') .$btns,
-    					'modifiedOn' => $DateTime->toVerbal($primeCostDate),
-    					'price'      => $Double->toVerbal($primeCost),
-    					'ROW_ATTR'   => array('class' => 'state-active'));
-    		}
+    		$primeCostRecs[] = (object)array('price' => $primeCost);
+    		$primeCostRows[] = (object)array('type'       => tr('Мениджърска') .$btns,
+    										 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
+					    					 'price'      => $Double->toVerbal($primeCost),
+					    					 'ROW_ATTR'   => array('class' => 'state-active'));
     	}
     	
     	if(haveRole('price,ceo')){

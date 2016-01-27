@@ -1346,7 +1346,7 @@ class cat_Products extends embed_Manager {
      */
     public static function getLastJob($id)
     {
-    	$rec = self::fetchRec($id);
+    	expect($rec = self::fetchRec($id));
     	
     	// Какво е к-то от последното активно задание
     	$query = planning_Jobs::getQuery();

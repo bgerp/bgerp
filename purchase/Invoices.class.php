@@ -244,15 +244,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    		if($fields['-single']){
-    			if($rec->type == 'dc_note'){
-    				$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
-    				$type = ($rec->dealValue <= 0) ? 'Credit note' : 'Debit note';
-    			} else {
-    				$type = $rec->type;
-    			}
-    		}
-    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_Accounts::fetch($rec->accountId);
