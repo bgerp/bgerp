@@ -123,8 +123,6 @@ class acc_BalanceHistory extends core_Manager
      */
     public function prepareRows(&$data)
     {
-    	$data->allRecs = $data->recs;
-    	
     	// Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
         
@@ -396,6 +394,8 @@ class acc_BalanceHistory extends core_Manager
             'blQuantity' => $rec->baseQuantity,
             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
        
+        $data->allRecs = $data->recs;
+        
         if($data->orderField){
         	arr::order($data->recs, $data->orderField, strtoupper($data->orderBy));
         }
@@ -471,7 +471,7 @@ class acc_BalanceHistory extends core_Manager
     private function prepareMiddleBalance(&$data)
     {
         $recs = $data->allRecs;
-        
+       
         // Ако в формата има грешки,
         if(!empty($data->listFilter)){
         	if($data->listFilter->gotErrors()) return;
