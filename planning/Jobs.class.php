@@ -364,6 +364,9 @@ class planning_Jobs extends core_Master
     	$pInfo = cat_Products::getProductInfo($rec->productId);
     	$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
+    	$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
+    	$row->quantityFromTasks = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
+    	
     	$row->quantity .= " {$shortUom}";
     	$row->quantityProduced .=  " {$shortUom}";
     	$row->quantityFromTasks .=  " {$shortUom}";
@@ -389,6 +392,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
     			$row->sBomId = cat_Boms::getLink($sBomId, 0);
     		}

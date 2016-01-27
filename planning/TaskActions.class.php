@@ -52,7 +52,7 @@ class planning_TaskActions extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,productId,taskId,jobId,quantity';
+    public $listFields = 'tools=Пулт,type,productId,taskId,jobId,quantity';
     		
     		
 	/**
@@ -60,7 +60,7 @@ class planning_TaskActions extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD('type', 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'input=none,mandatory,caption=Действие');
+		$this->FLD('type', 'enum(input=Вложено,product=Произведено,waste=Отпадък)', 'input=none,mandatory,caption=Действие');
 		$this->FLD('productId', 'key(mvc=cat_Products)', 'input=none,mandatory,caption=Артикул');
 		$this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=none,mandatory,caption=Задача');
 		$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,mandatory,caption=Задание');
@@ -105,5 +105,32 @@ class planning_TaskActions extends core_Manager
 			
 			return self::save($rec);
 		}
+	}
+	
+	
+	/**
+	 * Връща количеството произведено по задачи по дадено задание
+	 * 
+	 * @param int $jobId
+	 * @param product|input|waste $type
+	 * @return double $quantity
+	 */
+	public static function getQuantityForJob($jobId, $type)
+	{
+		expect(in_array($type, array('product', 'input', 'waste')));
+		expect($jobRec = planning_Jobs::fetch($jobId));
+		
+		$query = self::getQuery();
+		$query->where("#type = '{$type}'");
+		$query->where("#jobId = {$jobId}");
+		$query->where("#productId = {$jobRec->productId}");
+		$query->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		
+		$quantity = $query->fetch()->sumQuantity;
+		if(!isset($quantity)){
+			$quantity = 0;
+		}
+		
+		return $quantity;
 	}
 }
