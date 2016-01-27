@@ -393,6 +393,11 @@ class sales_Invoices extends deals_InvoiceMaster
     */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
+    	if(!Mode::is('printing')){
+    		$original = tr('ОРИГИНАЛ');
+    		$tpl->replace($original, 'INV_STATUS');
+    	}
+    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
@@ -587,9 +592,9 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum, $rec)
     {
     	if($rec->tplLang == 'bg'){
-    		$inv_status = ($copyNum == '1') ?  tr('ОРИГИНАЛ') : tr('КОПИЕ');
+    		$inv_status = ($copyNum == '1') ?  'ОРИГИНАЛ' : 'КОПИЕ';
     	} else {
-    		$inv_status = ($copyNum == '1') ?  "<i>ORIGINAL</i>/" . tr('ОРИГИНАЛ') : "<i>COPY</i>/" . tr('КОПИЕ');
+    		$inv_status = ($copyNum == '1') ?  'ORIGINAL' : 'COPY';
     	}
     	
     	$copyTpl->replace($inv_status, 'INV_STATUS');
