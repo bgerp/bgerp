@@ -615,6 +615,16 @@ class core_Form extends core_FieldSet
                 }
             }
             
+            // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
+            foreach ($fields as $name => $field) {
+                if((isset($field->options) && count($field->options) == 1) || (isset($field->type->options) && count($field->type->options))) {
+                    if($field->hideIfOne) { 
+                        unset($fields[$name]);
+                        $this->setField($name, 'input=hidden');
+                    }
+                }
+            }
+
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             
             
@@ -793,7 +803,7 @@ class core_Form extends core_FieldSet
                 $headerRow = $space = '';
                 
                 foreach ($captionArr as $id => $c) {
-                    $captionArr[$id] = $caption = $c = tr($c);
+                    $captionArr[$id] = $caption = $c1 = tr($c);
                     
                     // Удебеляваме имената на задължителните полета
                     if ($field->mandatory || ($id != ($captionArrCount - 1))) {
@@ -802,9 +812,10 @@ class core_Form extends core_FieldSet
                         $caption = "$caption";
                     }
                     
-                    if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
+                    if ($lastCaptionArr[$id] != $c1 && $id != ($captionArrCount - 1)) {
                         $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
                         $space .= "&nbsp;&nbsp;&nbsp;";
+                        $group = $c;
                     }
                 }
                 
@@ -812,6 +823,7 @@ class core_Form extends core_FieldSet
 
                 if($headerRow) {
                     $fsId++;
+                    $fsArr[$fsId] = $group;
                     $fsRow  = " [#FS_ROW{$fsId}#]";
                     $fsHead = " [#FS_HEAD{$fsId}#]";
                     $headerRow .= "[#FS_IMAGE{$fsId}#]</div>";
@@ -820,16 +832,7 @@ class core_Form extends core_FieldSet
                     $fsHead = '';
                 }
 
-                if($fsRow) {
-                    if($field->autohide == 'any' || ($field->autohide == 'autohide' && empty($vars[$name])) ) {
-                    	if(!$fsArr[$fsId]){
-                    		$fsArr[$fsId] = FALSE;
-                    	}
-                    } else {
-                        $fsArr[$fsId] .= $name . ' ';
-                    }
-                }
-                
+                 
                 $caption = core_ET::escape($caption);
                 $fUnit = tr($field->unit);
                 $fUnit = core_ET::escape($fUnit);
@@ -870,9 +873,11 @@ class core_Form extends core_FieldSet
                 }
             }
             
+            $usedGroups = self::getUsedGroups($this, $fields, $vars, $vars, 'input');
+ 
             // Заменяме състоянието на секциите
-            foreach($fsArr as $id => $state) { 
-                if(!$state) {
+            foreach($fsArr as $id => $group) { 
+                if(!$usedGroups[$group]) {
                     $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
                     $tpl->replace(" class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
@@ -1245,5 +1250,45 @@ class core_Form extends core_FieldSet
             ));
         
         $field->type->params['isReadOnly'] = TRUE;  
+    }
+
+
+    /**
+     * Кои групи да се показват
+     */
+    public static function getUsedGroups($fieldset, $fields, $rec, $row, $mode = 'single')
+    { 
+        $res = array();
+        $group = '';
+        foreach($fields as $name => $caption1) {
+            if(is_object($caption1)) {
+                $caption = $caption1->caption ? $caption1->caption : $name;
+            } else {
+                $caption = $caption1;
+            }
+            if(!isset($fieldset->fields[$name])) continue;
+            if($fieldset->fields[$name]->{$mode} == 'none') continue;
+            if($mode == 'single' && !isset($row->{$name})) continue;
+          
+            if($fieldset->fields[$name]->autohide == 'any') continue;
+            if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
+                if(!$rec->{$name}) continue;
+                $type = $fieldset->fields[$name]->type;
+                if(isset($type->options) && is_array($type->options) && key( $type->options) == $rec->{$name}) continue;
+            }
+
+            if(strpos($caption, '->')) {
+                list($group, $caption) = explode('->', $caption);
+            }
+
+            $res[$group] = TRUE;
+            if(strpos($group, '||')) {
+                list($bg, $en) = explode('||', $group);
+                $res[$bg] = TRUE;
+                $res[$bg] = TRUE;
+            }
+        }
+
+        return $res;
     }
 }
