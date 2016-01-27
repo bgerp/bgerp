@@ -105,7 +105,7 @@ class deals_Setup extends core_ProtoSetup
     			$Doc->setupMvc();
     			
     			$query = $Doc->getQuery();
-    			$query->where("#classId = {$Doc->getClassId()}");
+    			$query->where("#classId = '{$Doc->getClassId()}'");
     			$query->where("#valior IS NULL");
     			
     			while($rec = $query->fetch()){
