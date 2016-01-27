@@ -789,13 +789,15 @@ class tasks_Tasks extends embed_Manager
     		
     	// Подготвяме данните
     	while($rec = $query->fetch()){
+    		$Class = cls::get($rec->classId);
+    		
     		$data->recs[$rec->id] = $rec;
-    		$row = $this->recToVerbal($rec);
+    		$row = $Class->recToVerbal($rec);
     		$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
     		$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
     		$data->rows[$rec->id] = $row;
     	}
-    		
+    	
     	$data->addUrlArray = array();
     	
     	// Намираме всички задачи, които наследяват task_Tasks
