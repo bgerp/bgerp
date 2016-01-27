@@ -179,11 +179,14 @@ class cat_PriceDetails extends core_Manager
     			}
     		}
     		
-    		$primeCostRecs[] = (object)array('price' => $primeCost);
-    		$primeCostRows[] = (object)array('type'       => tr('Мениджърска') .$btns,
-    										 'modifiedOn' => $DateTime->toVerbal($primeCostDate),
-					    					 'price'      => $Double->toVerbal($primeCost),
-					    					 'ROW_ATTR'   => array('class' => 'state-active'));
+    		if($btns || isset($primeCost)){
+    			$primeCostRecs[] = (object)array('price' => $primeCost);
+    			
+    			$primeCostRows[] = (object)array('type'       => tr('Мениджърска') .$btns,
+    					'modifiedOn' => $DateTime->toVerbal($primeCostDate),
+    					'price'      => $Double->toVerbal($primeCost),
+    					'ROW_ATTR'   => array('class' => 'state-active'));
+    		}
     	}
     	
     	if(haveRole('price,ceo')){
