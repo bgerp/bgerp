@@ -350,15 +350,15 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'paid':
 						$data->query->where("#paymentState = 'paid'");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'invoiced':
 						$data->query->where("#invRound >= #deliveredRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'notInvoiced':
 						$data->query->where("#invRound < #deliveredRound OR #invRound IS NULL");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
@@ -368,7 +368,7 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'delivered':
 						$data->query->where("#deliveredRound = #dealRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'undelivered':
 						$data->query->where("#deliveredRound < #dealRound");
