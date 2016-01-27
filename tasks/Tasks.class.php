@@ -395,7 +395,8 @@ class tasks_Tasks extends embed_Manager
     	if($action == 'add'){
     		if(isset($rec->originId)){
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if($origin->fetchField('state') != 'active'){
+    			$state = $origin->fetchField('state');
+    			if($state == 'closed' || $state == 'draft' || $state == 'rejected'){
     				$requiredRoles = 'no_one';
     			}
     		}
