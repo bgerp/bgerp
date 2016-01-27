@@ -51,7 +51,13 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'dueDate,quantity,notes';
     
     
     /**
@@ -226,9 +232,9 @@ class planning_Jobs extends core_Master
     		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
     		
-    		$form->setField('deliveryTermId', "caption={$caption}->Условие");
-    		$form->setField('deliveryDate', "caption={$caption}->Срок");
-    		$form->setField('deliveryPlace', "caption={$caption}->Място");
+    		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
+    		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
+    		$form->setField('deliveryPlace', "caption={$caption}->Място,changable");
     		$form->setField('storeId', "caption={$caption}->Склад");
     	} else {
     		
@@ -517,6 +523,13 @@ class planning_Jobs extends core_Master
     	// Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
     	if(($action == 'add' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
     		if(!cat_Products::haveRightFor('single', $rec->productId)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Само спрените могат да се променят
+    	if($action == 'changerec' && isset($rec)){
+    		if($rec->state != 'stopped'){
     			$res = 'no_one';
     		}
     	}
