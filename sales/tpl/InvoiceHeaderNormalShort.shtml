@@ -17,7 +17,7 @@
                                         <div class='invInfo'>Място</div>
                                         <div class="bigData">[#place#]</div>
                                         <div class='invInfo bigData'>
-                                            <div class='original'>Оригинал</div>
+                                            <div class='original'>[#INV_STATUS#]</div>
                                             <!--ET_BEGIN originInv-->
                                             <div id='origin-title'>към Фактура <b>[#originInv#]</b> от [#originInvDate#]</div>
                                             <!--ET_END originInv-->

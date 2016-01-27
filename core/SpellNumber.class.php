@@ -377,6 +377,9 @@ class core_SpellNumber
         	$andStr = 'и';
         	$centCur = $centBgn;
         	$text = $this->num2Text((int) $num);
+        	
+        	// Заобикаляне на проблема с двойното `и`
+        	$text = str_replace(' и и ', ' и ', $text);
         } else {
         	$numCur = $numEuro;
         	$andStr = 'and';
