@@ -29,7 +29,7 @@ class planning_Tasks extends tasks_Tasks
 	 *
 	 * @param core_Mvc $mvc
 	 */
-	public static function on_AfterDescription(core_Mvc $mvc)
+	public static function on_AfterDescription(core_Master &$mvc)
 	{
 		expect(is_subclass_of($mvc->driverInterface, 'tasks_DriverIntf'), 'Невалиден интерфейс');
 	}
