@@ -46,8 +46,8 @@ class color_Type extends type_Varchar {
         
         $bgColor = $cObj->getHex();
         
-        $color = " $value<span style='background-color:{$bgColor}; border:solid 1px #333;margin:2px;'>&nbsp;&nbsp;</span>  ";
-        
+    	$color = "<span class='colorName'>".tr($value) . "</span><span class='colorBox' style=\"background-color:{$rgb};\"></span>";
+    
         return $color;
     }
     
