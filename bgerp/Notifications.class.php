@@ -110,7 +110,7 @@ class bgerp_Notifications extends core_Manager
      * @param integer $userId
      * @param enum $priority
      */
-    static function add($msg, $urlArr, $userId, $priority = NULL, $customUrl = NULL)
+    static function add($msg, $urlArr, $userId, $priority = NULL, $customUrl = NULL, $addOnce = FALSE)
     {
         // Потребителя не може да си прави нотификации сам на себе си
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
@@ -133,6 +133,12 @@ class bgerp_Notifications extends core_Manager
         $r = bgerp_Notifications::fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
         if(is_object($r)) {
+            if($addOnce && ($r->state == 'active') && ($r->hidden == 'no') && ($r->msg == $rec->msg) && ($r->priority == $rec->priority)) {
+                
+                // Вече имаме тази нотификация
+                return;
+            }
+
             $rec->id = $r->id;
             // Увеличаваме брояча
             $rec->cnt = $r->cnt + 1;

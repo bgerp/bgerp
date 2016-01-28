@@ -340,7 +340,9 @@ class remote_BgerpDriver extends core_Mvc
                     }
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
                     $message = "Имате {$nCnt} в {$url}";
-                    bgerp_Notifications::add($message, $nUrl, $userId);
+
+                    // Добавя, ако няма нофификация
+                    bgerp_Notifications::add($message, $nUrl, $userId, NULL, NULL, TRUE);
                 } else {
                     bgerp_Notifications::clear($nUrl, $userId);
                 }
