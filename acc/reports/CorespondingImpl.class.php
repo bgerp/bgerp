@@ -506,8 +506,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     	
-    	$row->delta = cls::get('type_Percent')->toVerbal($rec->delta);
-    	$row->measure = $rec->measure;
+    	if (isset($rec->delta)) {
+    	   $row->delta = cls::get('type_Percent')->toVerbal($rec->delta);
+    	}
+    	
+    	if (isset($rec->measure)) {
+    	   $row->measure = $rec->measure;
+    	}
     	
     	// Връщаме подготвеното вербално рпедставяне
     	return $row;
@@ -689,6 +694,32 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    		}
     		} 
     	}
+    	
+    	// Кои полета ще се показват
+    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял", TRUE);
+    	$newFields = array();
+    	$form = $this->innerForm;
+    	 
+    	foreach (range(1, 6) as $i){
+    	    if(!empty($form->{"feat{$i}"})){
+    	        if($form->{"feat{$i}"} == '*'){
+    	            $newFields["item{$i}"] = acc_Lists::getVerbal($form->{"list{$i}"}, 'name');
+    	        } else {
+    	            $newFields["item{$i}"] = $form->{"feat{$i}"};
+    	        }
+    	    }
+    	}
+    	 
+    	if(count($newFields)){
+    	    $fields = $newFields + $fields;
+    	}
+    	 
+    	if($this->innerForm->side){
+    	    if($this->innerForm->side == 'debit'){
+    	        unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
+    	    }elseif($this->innerForm->side == 'credit'){
+    	        unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
+    	    }
 
     	$data->listFields = $fields;
     }
