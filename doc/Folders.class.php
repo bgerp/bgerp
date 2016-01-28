@@ -657,7 +657,7 @@ class doc_Folders extends core_Master
      * @param int $userId key(mvc=core_Users)
      * @param boolean $fullAccess - Възможно най - много права за папката
      */
-    static function restrictAccess_(&$query, $userId = NULL, $fullAccess=TRUE)
+    static function restrictAccess_(&$query, $userId = NULL, $viewAccess = TRUE)
     {
         if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
