@@ -395,7 +395,7 @@ function toggleFormGroup(id)
 			$('.fs' + id).find('input.combo').each(function(){
 				var idComboBox = $(this).attr('id');
 				if(!comboBoxInited[idComboBox]){
-					comboBoxInit(idComboBox, '_comboSelect');
+					comboBoxInit(idComboBox, idComboBox + "_cs");
 					comboBoxInited[idComboBox] = true;
 				}
 			});
