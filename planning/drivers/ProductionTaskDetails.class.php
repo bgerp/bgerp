@@ -72,12 +72,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
-     * Опашка
-     */
-    protected $queueProducts = array();
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -228,20 +222,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	$mvc->queueProducts[$rec->taskProductId] = $rec->taskProductId;
-    }
-    
-    
-    /**
-     * Изчиства записите, заопашени за запис
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(is_array($mvc->queueProducts)){
-    		foreach ($mvc->queueProducts as $taskProductId) {
-    			planning_drivers_ProductionTaskProducts::updateRealQuantity($taskProductId);
-    		}
-    	}
+    	planning_drivers_ProductionTaskProducts::updateRealQuantity($rec->taskProductId);
     }
     
     

@@ -388,19 +388,16 @@ class sales_Invoices extends deals_InvoiceMaster
     }
     
     
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+   /**
+    * Извиква се преди рендирането на 'опаковката'
+    */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	if(!Mode::is('printing')){
-    		$original = 'ОРИГИНАЛ';
-    		if($data->rec->tplLang != 'bg'){
-    			$original = "<i>ORIGINAL</i>/{$original}";
-    		}
+    		$original = tr('ОРИГИНАЛ');
     		$tpl->replace($original, 'INV_STATUS');
     	}
-    	 
+    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
@@ -428,24 +425,13 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    	 
+    		
     		if(empty($rec->vatReason)){
     			if(!drdata_Countries::isEu($rec->contragentCountryId)){
     				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
     			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
     				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');  
     			}
-    		}
-    		
-    		if($rec->type == 'dc_note'){
-    			$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
-    			$type = ($rec->dealValue <= 0) ? 'Credit note' : 'Debit note';
-    		} else {
-    			$type = $rec->type;
-    		}
-    		
-    		if($rec->tplLang != 'bg'){
-    			$row->type = "<i>" . str_replace('_', " ", $type) . "</i> / {$row->type}";
     		}
     		
     		if($rec->accountId){
@@ -606,9 +592,9 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum, $rec)
     {
     	if($rec->tplLang == 'bg'){
-    		$inv_status = ($copyNum == '1') ?  tr('ОРИГИНАЛ') : tr('КОПИЕ');
+    		$inv_status = ($copyNum == '1') ?  'ОРИГИНАЛ' : 'КОПИЕ';
     	} else {
-    		$inv_status = ($copyNum == '1') ?  "<i>ORIGINAL</i>/" . tr('ОРИГИНАЛ') : "<i>COPY</i>/" . tr('КОПИЕ');
+    		$inv_status = ($copyNum == '1') ?  'ORIGINAL' : 'COPY';
     	}
     	
     	$copyTpl->replace($inv_status, 'INV_STATUS');

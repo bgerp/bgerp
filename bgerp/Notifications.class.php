@@ -110,12 +110,16 @@ class bgerp_Notifications extends core_Manager
      * @param integer $userId
      * @param enum $priority
      */
-    static function add($msg, $urlArr, $userId, $priority = 'normal', $customUrl = NULL)
+    static function add($msg, $urlArr, $userId, $priority = NULL, $customUrl = NULL)
     {
         // Потребителя не може да си прави нотификации сам на себе си
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
         if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return;
+        
+        if(!$priority) {
+            $priority = 'normal';
+        }
 
         $rec = new stdClass();
         $rec->msg = $msg;
@@ -126,13 +130,14 @@ class bgerp_Notifications extends core_Manager
         
         
         // Ако има такова съобщение - само му вдигаме флага, че е активно
-        $query = bgerp_Notifications::getQuery();
-        $r = $query->fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
+        $r = bgerp_Notifications::fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
-        // Увеличаваме брояча
-        $rec->cnt = $r->cnt + 1;
-        
-        $rec->id = $r->id;
+        if(is_object($r)) {
+            $rec->id = $r->id;
+            // Увеличаваме брояча
+            $rec->cnt = $r->cnt + 1;
+        }
+
         $rec->state = 'active';
         $rec->hidden = 'no';
         

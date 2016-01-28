@@ -19,26 +19,34 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
      * Преобразува подадения файл в SVG
      * 
      * @param string $file
+     * @param string $type
+     * @param string|NULL $name
      * 
      * @return string - манипулатор на новия файл
      */
-    public static function toSvg($file)
+    public static function toSvg($file, $type = 'auto', $name = NULL)
     {
         if (!$file) return ;
         
         cls::load('fileman_Files');
         
-        if ((strlen($file) == FILEMAN_HANDLER_LEN) && (strpos($file, '/') === FALSE)) {
-            $fRec = fileman_Files::fetchByFh($file);
-            
-            expect($fRec);
-    	}
+        $fileType = self::getFileTypeFromStr($file, $type);
+        
+        if ($fileType == 'string') {
+            $name = ($name) ? $name : 'file.pdf';
+            $file = self::addStrToFile($file, $name);
+        }
         
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
         
-        // Вземаме името на файла без разширението
-        $name = fileman_Files::getFileNameWithoutExt($file);
+        if (!$name) {
+            // Вземаме името на файла без разширението
+            $name = fileman_Files::getFileNameWithoutExt($file);
+        } else {
+            $nameAndExt = fileman_Files::getNameAndExt($name);
+            $name = $nameAndExt['name'];
+        }
         
         // Пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '_to.svg';
@@ -58,12 +66,25 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         
         fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         
-        $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+        $resFileHnd = NULL;
+        
+        if (is_file($outFilePath)) {
+            $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+        }
         
         if ($resFileHnd) {
             if ($Script->tempDir) {
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
+            }
+            
+            if ($fileType == 'string') {
+                fileman::deleteTempPath($file);
+            } 
+        } else {
+            if (is_file($errFilePath)) {
+                $err = @file_get_contents($errFilePath);
+                self::logErr('Грешка при конвертиране: ' . $errFilePath);
             }
         }
         

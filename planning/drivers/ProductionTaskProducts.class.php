@@ -96,7 +96,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD("type", 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
@@ -159,7 +159,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     				$products[$productId] = cat_Products::getTitleById($productId, FALSE);
     				
     				// и ако има рецепта артикулите, които са етапи от нея
-    				if(isset($bomRec)){
+    				if(!empty($bomRec)){
     					$sQuery = cat_BomDetails::getQuery();
     					$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
     					$sQuery->show('resourceId');
@@ -182,7 +182,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		}
     		
     		// Задаваме опциите с артикулите за избор
-    		$form->setOptions('productId', $products);
+    		$form->setOptions('productId', array('' => '') + $products);
+    		if(count($products) == 1){
+    			$form->setDefault('productId', key($products));
+    		}
     	}
     	
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
@@ -278,6 +281,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$query = planning_drivers_ProductionTaskDetails::getQuery();
     	$query->where("#taskId = {$rec->taskId}");
     	$query->where("#type = '{$rec->type}'");
+    	$query->where("#state != 'rejected'");
     	$query->show('quantity');
     	
     	while($dRec = $query->fetch()){
@@ -285,6 +289,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	}
     	
     	self::save($rec, 'realQuantity');
+    	$taskOriginId = planning_Tasks::fetchField($rec->taskId, 'originId');
+    	$taskOrigin = doc_Containers::getDocument($taskOriginId);
+    	
+    	// Записваме операцията в регистъра
+    	planning_TaskActions::add($rec->taskId, $rec->productId, $rec->type, $taskOrigin->that, $rec->realQuantity);
     }
     
     

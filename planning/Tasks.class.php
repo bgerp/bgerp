@@ -19,6 +19,23 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Свойство, което указва интерфейса на вътрешните обекти
+	 */
+	public $driverInterface = 'planning_DriverIntf';
+	
+	
+	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Master &$mvc)
+	{
+		expect(is_subclass_of($mvc->driverInterface, 'tasks_DriverIntf'), 'Невалиден интерфейс');
+	}
+	
+	
+	/**
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting, plg_Printing,plg_RowTools,bgerp_plg_Blank';
@@ -103,6 +120,10 @@ class planning_Tasks extends tasks_Tasks
 					}
 				}
 			}
+
+			if(empty($rec->threadId) && empty($rec->originId)){
+				$requiredRoles = 'no_one';
+			}
 		}
 	}
 	
@@ -140,5 +161,20 @@ class planning_Tasks extends tasks_Tasks
 		$dealHistory = Request::get("TabTop{$cRec->id}");
 		
 		$res = md5($res . '|' . $dealHistory);
+	}
+	
+	
+	/**
+	 * Преди запис на документ, изчислява стойността на полето `isContable`
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $rec
+	 */
+	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		if(empty($rec->originId)){
+			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+			$rec->originId = $firstDoc->fetchField('containerId');
+		}
 	}
 }

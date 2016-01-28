@@ -1379,4 +1379,54 @@ class fileman_webdrv_Generic extends core_Manager
         
         return $arr;
     }
+    
+    
+    /**
+     * Помощна функция за вземане на типа на подададения стринг
+     * 
+     * @param string $str
+     * @param string $type
+     * 
+     * @return string
+     */
+    protected static function getFileTypeFromStr($str, $type = 'auto')
+    {
+        if ($type == 'auto') {
+            $len = strlen($str);
+            if (($len == FILEMAN_HANDLER_LEN) && (strpos($str, '/') === FALSE)) {
+                $fileType = 'handler';
+                $fRec = fileman_Files::fetchByFh($str);
+        
+                expect($fRec);
+            } elseif ($len > 512) {
+                $fileType = 'string';
+            } else {
+                $fileType = 'path';
+            }
+        } else {
+            $fileType = $type;
+        }
+        
+        expect(in_array($fileType, array('handler', 'string', 'path')));
+        
+        return $fileType;
+    }
+    
+    
+    /**
+     * Добавя стринг във временната директория с подадения файл
+     * 
+     * @param string $fileStr
+     * @param string $name
+     * 
+     * @return string
+     */
+    protected static function addStrToFile($fileStr, $name)
+    {
+        $tempDir = fileman::getTempPath() . '/' . $name;
+        
+        expect(@file_put_contents($tempDir, $fileStr) !== FALSE);
+        
+        return $tempDir;
+    }
 }

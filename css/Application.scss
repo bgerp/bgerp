@@ -722,7 +722,20 @@ div.productImage {
 	   margin-top: -3px;
 	}
 }
+.colorName {
+	position: relative; 
+	top: -2px;
+}
 
+.colorBox {
+	border:solid 1px #333;
+	margin:0px 2px 2px 5px; 
+	height: 14px; 
+	width: 14px; 
+	display: inline-block;
+	position: relative; 
+	top: 2px;
+}
 
 .product-component-stage {
 	background-color: #eee;
@@ -2435,9 +2448,12 @@ fieldset.sharing-history {
 }
 
 .drawing {
-	max-width: 400px;
 	float: right;
+	img {
+		max-width: 400px;
+	}
 }
+
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;

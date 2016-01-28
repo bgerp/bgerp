@@ -166,14 +166,14 @@ class bgerp_plg_Import extends core_Plugin
         bgerp_plg_Import::$cache = get_class($exp->mvc);
         
         // Избиране на драйвър за импортиране
-        $exp->DEF('#driver', 'int', 'caption=Драйвър,input,mandatory');
+        $exp->DEF('#driver', 'int', 'caption=Източник,input,mandatory');
         $exp->OPTIONS("#driver", "getimportdrivers()");
-        $exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвър ще се използва') . '?');
+        $exp->question("#driver", tr("Моля, изберете източник") . ":", TRUE, 'title=' . tr('Какъв е източникът на данни?') . '?');
         
         // Избор как ще се въведат данните с copy & paste или с ъплоуд
-        $exp->DEF('#source=Източник', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
+        $exp->DEF('#source=Начин', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
         $exp->ASSUME('#source', '"csvFile"');
-        $exp->question("#source", tr("Моля, посочете източника на данните") . ":", TRUE, 'title=' . tr('От къде ще се импортират данните') . '?');
+        $exp->question("#source", tr("Моля, посочете начина за вкарването на данните") . ":", TRUE, 'title=' . tr('По какъв начин ще се въведат данните') . '?');
         
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
