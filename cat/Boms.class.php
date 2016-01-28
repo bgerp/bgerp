@@ -263,7 +263,7 @@ class cat_Boms extends core_Master
     {
     	if($rec->cloneDetails === TRUE) return;
     	
-    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL);
+    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL, $activeBom, TRUE);
     }
     
     

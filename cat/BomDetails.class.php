@@ -957,7 +957,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $componentId - на кой ред в рецептата е артикула
      * @return void
      */
-    public static function addProductComponents($productId, $toBomId, $componentId, &$activeBom = NULL)
+    public static function addProductComponents($productId, $toBomId, $componentId, &$activeBom = NULL, $onlyIfQuantitiesAreEqual = FALSE)
     {
     	$me = cls::get(get_called_class());
     	$toBomRec = cat_Boms::fetch($toBomId);
@@ -972,6 +972,11 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако етапа има рецепта
     	if($activeBom){
+    		if($onlyIfQuantitiesAreEqual === TRUE){
+    			if($activeBom->quantity != $toBomRec->quantity) {
+    				return;
+    			}
+    		}
     		
     		$outArr = static::getOrderedBomDetails($activeBom->id);
     		$cu = core_Users::getCurrent();
