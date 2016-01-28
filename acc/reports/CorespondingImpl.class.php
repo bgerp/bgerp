@@ -720,7 +720,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	    }elseif($this->innerForm->side == 'credit'){
     	        unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
     	    }
-
+    	}
     	$data->listFields = $fields;
     }
 
