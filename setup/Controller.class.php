@@ -129,7 +129,19 @@ class setup_Controller {
     
         $res->title = "Възстановяване от локален път";
         $res->question  = "Въведете директория на архива";
-        $res->body  = $this->createInput();
+        $res->body  = $this->createInput("path", "");
+    }
+    
+    function form8(&$res)
+    {
+        if($this->state['installationType'] != 'recovery') {
+    
+            return FALSE;
+        }
+    
+        $res->title = "Проверка за валиден архив";
+        $res->question  = "Наличен ли е архив:"; 
+        $res->body  = $this->state['path'];
     }
     
     function action()
@@ -320,7 +332,7 @@ class setup_Controller {
     function createInput($name, $value)
     {
         $res = "\n<div class='answer'>" .
-                "\n<input type='text' name='{$name}' value='{$val}' >" .
+                "\n<input type='text' name='{$name}' value='{$value}' >" .
                 "<label for='{$id}'>{$caption}</label></div>";
         
         return $res;
