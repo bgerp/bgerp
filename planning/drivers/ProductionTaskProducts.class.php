@@ -96,7 +96,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD("type", 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
@@ -182,7 +182,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		}
     		
     		// Задаваме опциите с артикулите за избор
-    		$form->setOptions('productId', $products);
+    		$form->setOptions('productId', array('' => '') + $products);
+    		if(count($products) == 1){
+    			$form->setDefault('productId', key($products));
+    		}
     	}
     	
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));

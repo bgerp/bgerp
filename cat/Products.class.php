@@ -1861,7 +1861,6 @@ class cat_Products extends embed_Manager {
     public static function renderComponents($components, $makeLinks = TRUE)
     {
     	if(!count($components)) return;
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	$compTpl = getTplFromFile('cat/tpl/Components.shtml');
     	$block = $compTpl->getBlock('COMP');
@@ -1871,7 +1870,10 @@ class cat_Products extends embed_Manager {
     			$obj->quantity = "<span class='red'>???</span>";
     		} else {
     			$obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
-    			$obj->quantity = $Double->toVerbal($obj->quantity / $obj->divideBy);
+    			$quantity = $obj->quantity / $obj->divideBy;
+    			
+    			$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    			$obj->quantity = $Double->toVerbal($quantity);
     		}
     		
     		// Ако ще показваме компонента като линк, го правим такъв

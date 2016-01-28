@@ -638,6 +638,19 @@ div.productImage {
   .product-component-title .anchor-arrow {
     margin-top: -3px; }
 
+.colorName {
+  position: relative;
+  top: -2px; }
+
+.colorBox {
+  border: solid 1px #333333;
+  margin: 0px 2px 2px 5px;
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  position: relative;
+  top: 2px; }
+
 .product-component-stage {
   background-color: #eeeeee;
   padding: 5px;

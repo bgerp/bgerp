@@ -546,7 +546,7 @@ class doc_FolderPlg extends core_Plugin
      * Вариант на doc_Folders::restrictAccess, който ограничава достъпа до записи, които
      * могат да са корици на папка, но не е задължително да имат създадена папка
      */
-    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $fullAccess=TRUE)
+    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $viewAccess=TRUE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -580,6 +580,11 @@ class doc_FolderPlg extends core_Plugin
         // Всеки (освен конракторите) имат достъп до публичните папки
         if (!core_Users::isContractor()) {
             $conditions[] = "#folderAccess = 'public'";
+            
+            if ($viewAccess) {
+                $conditions[] = "#folderAccess = 'team'";
+                $conditions[] = "#folderAccess = 'private'";
+            }
         }
         
         if ($teammates) {
@@ -595,7 +600,7 @@ class doc_FolderPlg extends core_Plugin
                 }
                 
                 // CEO да може да вижда private папките на друг `ceo`
-                if ($fullAccess) {
+                if ($viewAccess) {
                     $conditions[] = "#folderAccess != 'secret'";
                 }
                 

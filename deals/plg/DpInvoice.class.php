@@ -104,7 +104,7 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	$form->rec->dpAmount = $dpAmount;
         }
-       
+        
         if($form->rec->dpOperation == 'none'){
         	unset($form->rec->dpAmount);
         }
@@ -243,7 +243,10 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
 	    		$vat = 0;
 	    	}
-	    	$rec->dpAmount = round(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate, 6);
+	    	
+	    	if(!is_null($rec->dpAmount)){
+	    		$rec->dpAmount = round(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate, 6);
+	    	}
 	    	
 	    	// Обновяваме данните на мастър-записа при редакция
 	    	if(isset($rec->id)){
