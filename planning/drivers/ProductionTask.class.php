@@ -195,6 +195,28 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     
     
     /**
+     * Преди проверка за права
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$requiredRoles, $action, $rec, $userId = NULL)
+    {
+    	if($action == 'reject' && isset($rec)){
+    		
+    		// Ако има прогрес, задачата не може да се оттегля
+    		if(planning_drivers_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    }
+    
+    
+    /**
      * След успешен запис
      */
     public static function on_AfterCreate(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec)
@@ -222,7 +244,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     							$nRec->planedQuantity = $p->packQuantity * $rec->totalQuantity;
     							$nRec->productId      = $p->productId;
     							$nRec->type			  = $type;
-    									
+    							$nRec->storeId		  = $originRec->storeId;
+    							
     							planning_drivers_ProductionTaskProducts::save($nRec);
     						}
     					}
@@ -238,7 +261,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     			$nRec->planedQuantity = $rec->totalQuantity;
     			$nRec->productId      = $originRec->productId;
     			$nRec->type			  = 'product';
-    									
+    			$nRec->storeId		  = $originRec->storeId;
+    			
     			planning_drivers_ProductionTaskProducts::save($nRec);
     		}
     	}
