@@ -194,7 +194,7 @@ class webkittopdf_Converter extends core_Manager
         $exec = ($xvfb) ? "{$xvfb} {$wk}" : $wk;
         
         //Стартираме скрипта за генериране на pdf файл от html файл
-        shell_exec($exec);
+        $res = shell_exec($exec);
         
         //Качвания новосъздадения PDF файл
         $Fileman = cls::get('fileman_Files');
@@ -206,6 +206,8 @@ class webkittopdf_Converter extends core_Manager
             $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName); 
         } catch (core_exception_Expect $e) {
             $fh = NULL;
+            reportException($e);
+            self::logErr('Грешка при конвертиране: ' . $res);
         }
         
         //Изтриваме временната директория заедно с всички създадени папки
