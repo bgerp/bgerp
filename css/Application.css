@@ -4215,7 +4215,10 @@ only screen and (max-width: 320px) {
     text-decoration: underline; }
 
   .row-negative {
-    color: black; } }
+    color: black; }
+
+  .groupTitle {
+    white-space: nowrap; } }
 
   .printing .specialLink {
     font-weight: bold; }
