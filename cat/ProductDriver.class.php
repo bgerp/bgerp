@@ -265,7 +265,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 
 		if(is_array($driverFields)){
  
-            $usedGroups = core_Form::getUsedGroups($form, $data->singleFields, $data->rec, $data->row, 'single');
+            $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
     
 			foreach ($driverFields as $name => $field){
 				if($field->single != 'none' && isset($data->row->{$name})){
