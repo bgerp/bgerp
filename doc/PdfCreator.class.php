@@ -190,6 +190,8 @@ class doc_PdfCreator extends core_Manager
                 // Връщаме предишната стойност
                 Mode::pop('text');
                 
+                reportException($e);
+                
                 throw new $e($e->getMessage());
             }
             
