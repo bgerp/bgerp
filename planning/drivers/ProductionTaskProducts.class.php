@@ -183,6 +183,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		
     		// Задаваме опциите с артикулите за избор
     		$form->setOptions('productId', array('' => '') + $products);
+    		if(count($products) == 1){
+    			$form->setDefault('productId', key($products));
+    		}
     	}
     	
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
