@@ -207,7 +207,7 @@ class webkittopdf_Converter extends core_Manager
         } catch (core_exception_Expect $e) {
             $fh = NULL;
             reportException($e);
-            self::logErr('Грешка при конвертиране: ' . $res);
+            self::logErr("Грешка при изпълнени на '{$exec}': " . $res);
         }
         
         //Изтриваме временната директория заедно с всички създадени папки
