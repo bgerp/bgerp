@@ -177,4 +177,23 @@ class planning_Tasks extends tasks_Tasks
 			$rec->originId = $firstDoc->fetchField('containerId');
 		}
 	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		if(isset($rec->originId)){
+			
+			// Ако има източник предизвикваме му обновяването да се инвалидира кеша ако има
+			$origin = doc_Containers::getDocument($rec->originId);
+			$originRec = $origin->fetch();
+			$origin->getInstance()->save($originRec);
+		}
+	}
 }
