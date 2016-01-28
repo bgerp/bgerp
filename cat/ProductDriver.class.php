@@ -264,6 +264,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$driverFields = $form->fields;
 
 		if(is_array($driverFields)){
+ 
+            $usedGroups = core_Form::getUsedGroups($form, $data->singleFields, $data->rec, $data->row, 'single');
+    
 			foreach ($driverFields as $name => $field){
 				if($field->single != 'none' && isset($data->row->{$name})){
 
@@ -271,6 +274,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 
                     if(strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
+                        
+                        // Групите, които не се използват - не се показват
+                        if(!isset($usedGroups[$group])) continue;
+
                         $group = tr($group);
                         if($group != $lastGroup) {
                             
@@ -288,13 +295,13 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#{$name}#]</td></tr>");
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}</td></tr>");
                         $tpl->append($dhtml, 'INFO');
                     }
 				}
 			}
 		}
-
+ 
 		return $tpl;
 	}
 	

@@ -247,7 +247,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
         $Companies = cls::get('crm_Companies');
         $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-        $row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+        $row->MyCompany = transliterate(tr($row->MyCompany));
         
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
         $row->MyAddress = core_Lg::transliterate($row->MyAddress);
@@ -350,15 +350,15 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'paid':
 						$data->query->where("#paymentState = 'paid'");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'invoiced':
 						$data->query->where("#invRound >= #deliveredRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'notInvoiced':
 						$data->query->where("#invRound < #deliveredRound OR #invRound IS NULL");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
@@ -368,7 +368,7 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'delivered':
 						$data->query->where("#deliveredRound = #dealRound");
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'undelivered':
 						$data->query->where("#deliveredRound < #dealRound");
@@ -533,7 +533,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$actions = type_Set::toArray($rec->contoActions);
     	
     	// Ако има склад, се нотифицира отговорника му
-    	if($rec->shipmentStoreId){
+    	if(isset($rec->shipmentStoreId)){
     		$storeRec = store_Stores::fetch($rec->shipmentStoreId);
     		if($storeRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
@@ -541,11 +541,19 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     		
     	// Ако има каса се нотифицира касиера
-    	if($rec->caseId){
+    	if(isset($rec->caseId)){
     		$caseRec = cash_Cases::fetch($rec->caseId);
     		if($caseRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
     		}
+    	}
+    	
+    	if($rec->initiatorId){
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->initiatorId);
+    	}
+    	
+    	if(isset($rec->dealerId)){
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->dealerId);
     	}
     	
     	// Текущия потребител се премахва от споделянето

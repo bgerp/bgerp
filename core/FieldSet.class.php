@@ -233,8 +233,12 @@ class core_FieldSet extends core_BaseClass
             // Слага полета с еднаква група последователно, независимо от реда на постъпването им
             if(strpos($this->fields[$name]->caption, '->')) {
                 list($group, $caption) = explode('->', $this->fields[$name]->caption);
-               
-                if(isset($this->lastFroGroup[$group]) ) { //&& !count($params['before']) && !count($params['after'])
+                
+                if(strpos($group, '||')) {
+                    list($group, $en) = explode('||', $group);
+                }
+
+                if(isset($this->lastFroGroup[$group]) ) { 
                     $params['after'][] = $this->lastFroGroup[$group];  
                 }
                 $this->lastFroGroup[$group] = $name;

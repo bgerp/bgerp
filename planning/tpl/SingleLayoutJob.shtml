@@ -7,6 +7,20 @@
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
                         <td>[#dueDate#]</td>
                     </tr>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Планирано|*:</td>
+                        <td>[#quantity#]</td>
+                    </tr>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Остатък|*:</td>
+                        <td>[#quantityToProduce#]</td>
+                    </tr>
+		          <!--ET_BEGIN storeId-->
+	               <tr>
+	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
+	                   <td>[#storeId#]</td>
+	               </tr>
+	               <!--ET_END storeId-->
                     <!--ET_BEGIN sBomId-->
                     <tr>
                         <td class='quiet' style='text-align: right;white-space: nowrap;'>|Търговска рецепта|*:</td>
@@ -25,16 +39,16 @@
 	       <td>
 	           <table>
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Количество|*:</td>
-                        <td>[#quantity#]</td>
+                        <td class='quiet' style='text-align: right'>|Произведено|*:</td>
+                        <td>[#quantityFromTasks#]</td>
                     </tr>
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Произведено|*:</td>
+                        <td class='quiet' style='text-align: right'>|Заскладено|*:</td>
                         <td>[#quantityProduced#]</td>
                     </tr>
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Остатък|*:</td>
-                        <td>[#quantityToProduce#]</td>
+                        <td class='quiet' style='text-align: right'>|Незаскладено|*:</td>
+                        <td>[#quantityNotStored#]</td>
                     </tr>
                     <!--ET_BEGIN tolerance-->
                     <tr>
@@ -120,12 +134,6 @@
 	       </td>
 	       <td colspan ='2'> 
 		       <table>
-		          <!--ET_BEGIN storeId-->
-	               <tr>
-	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
-	                   <td>[#storeId#]</td>
-	               </tr>
-	               <!--ET_END storeId-->
 	               <!--ET_BEGIN deliveryDate-->
 	               <tr>
 	                   <td class='quiet' style='text-align: right'>|Срок|*:</td>

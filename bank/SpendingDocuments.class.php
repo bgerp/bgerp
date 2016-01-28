@@ -272,7 +272,10 @@ class bank_SpendingDocuments extends core_Master
         $form->setDefault('rate', $rate);
         
         if($dealInfo->get('dealType') == purchase_Purchases::AGGREGATOR_TYPE){
-        	$form->setDefault('amount', currency_Currencies::round($amount, $dealInfo->get('currency')));
+        	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+        	if($dAmount != 0){
+        		$form->setDefault('amount', $dAmount);
+        	}
             
             // Ако има банкова сметка по подразбиране
             if($bankId = $dealInfo->get('bankAccountId')){

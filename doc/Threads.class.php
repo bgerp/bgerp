@@ -848,6 +848,7 @@ class doc_Threads extends core_Manager
         $exp->functions['getcontragentdata'] = 'doc_Threads::getContragentData';
         $exp->functions['getquestionformoverest'] = 'doc_Threads::getQuestionForMoveRest';
         $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
+        $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
         
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
@@ -924,7 +925,10 @@ class doc_Threads extends core_Manager
         $exp->rule("#haveAccess", "haveaccess(#folderId)");
         $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте, че искате да преместите нишката?"), '#haveAccess === FALSE');
         
-        $result = $exp->solve('#folderId,#moveRest,#haveAccess');
+        $exp->rule("#checkMoveTime", "checkmovetime(#threadId, #moveRest)");
+        $exp->WARNING(tr("Операцията може да отнеме време!"), '#checkMoveTime === FALSE');
+        
+        $result = $exp->solve('#folderId,#moveRest,#checkMoveTime,#haveAccess');
         
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
@@ -934,6 +938,12 @@ class doc_Threads extends core_Manager
             $selected = $exp->getValue('Selected');
             $moveRest = $exp->getValue('moveRest');
             $threadRec = doc_Threads::fetch($threadId);
+            $time = doc_Threads::getExpectationMoveTime($threadId, $moveRest);
+            
+            $time = ceil($time);
+            if ($time) {
+                core_App::setTimeLimit($time);
+            }
             
             if($moveRest == 'yes') {
                 $doc = doc_Containers::getDocument($threadRec->firstContainerId);
@@ -1049,6 +1059,68 @@ class doc_Threads extends core_Manager
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Проверява времето за преместване дали ще е в границата
+     * 
+     * @param integer $threadId
+     * @param string $moveRest
+     * 
+     * @return boolean
+     */
+    public static function checkExpectationMoveTime($threadId, $moveRest = 'no')
+    {
+        $maxTimeForMove = 5;
+        
+        if (self::getExpectationMoveTime($threadId, $moveRest) >= $maxTimeForMove) return FALSE;
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Връща предполагаемото време, което ще отнеме за преместване на нишките
+     * 
+     * @param integer $threadId
+     * @param string $moveRest
+     * 
+     * @return double
+     */
+    public static function getExpectationMoveTime($threadId, $moveRest = 'no')
+    {
+        $timeFormMoveContainer = 0.0059;
+        $timeFormMoveThread = 0.019;
+        
+        $moveTime = 0;
+        
+        $threadRec = doc_Threads::fetch($threadId);
+        $doc = doc_Containers::getDocument($threadRec->firstContainerId);
+        
+        if ($moveRest == 'yes') {
+            $msgRec = $doc->fetch();
+            $msgQuery = email_Incomings::getSameFirstDocumentsQuery($threadRec->folderId, array('fromEml' => $msgRec->fromEml));
+        } else {
+            $msgQuery = $doc->getQuery();
+            $msgQuery->where(array("#threadId = '[#1#]'", $threadId));
+        }
+        
+        $msgQuery->show('threadId');
+        $msgQuery->groupBy('threadId');
+        
+        while ($mRec = $msgQuery->fetch()) {
+            if (!$mRec->threadId) continue;
+            
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where(array("#threadId = '[#1#]'", $mRec->threadId));
+            $cQuery->show('id');
+            
+            $moveTime += $timeFormMoveContainer * $cQuery->count();
+            $moveTime += $timeFormMoveThread;
+        }
+        
+        return $moveTime;
     }
     
     

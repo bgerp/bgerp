@@ -132,7 +132,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.3|Логистика";
+    public $newBtnGroup = "3.82|Търговия";
     
     
     /**

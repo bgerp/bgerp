@@ -856,7 +856,9 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	if($rec->type == 'dc_note'){
-    		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    		core_Lg::push($rec->tplLang);
+    		$row->type = ($rec->dealValue <= 0) ? tr('Кредитно известие') : tr('Дебитно известие');
+    		core_Lg::pop();
     	}
     	
     	if($fields['-list']){

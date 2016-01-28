@@ -18,9 +18,6 @@
                                         <div class="bigData">[#place#]</div>
                                         <div class='invInfo bigData'>
                                             <div class='original'>[#INV_STATUS#]</div>
-                                            <!--ET_BEGIN POS-->
-                                            <span style='font-weight:normal;'>[#POS#]</span>
-                                            <!--ET_END POS-->
                                             <!--ET_BEGIN originInv-->
                                             <div id='origin-title'>for Invoice <b>[#originInv#]</b> from [#originInvDate#]</div>
                                             <!--ET_END originInv-->

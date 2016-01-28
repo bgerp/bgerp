@@ -842,7 +842,9 @@ class core_Packs extends core_Manager
         }
         
         if (method_exists($setup, 'checkConfig')) {
-            $res .= $setup->checkConfig();
+            if ($checkRes = $setup->checkConfig()) {
+                $res .= "<li style='color: red;'>" . $checkRes . '</li>';
+            }
         }
         
         $res .= "</ul>";

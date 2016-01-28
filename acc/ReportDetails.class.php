@@ -51,6 +51,20 @@ class acc_ReportDetails extends core_Manager
         // Ако няма баланс или записи в баланса, не показваме таба
         $data->renderReports = TRUE;
         
+        $tabParam = 'Tab';
+        
+        // Ако мастъра е документ, искаме детайла да се показва в горния таб с детайл
+        if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
+        	$data->Tab = 'top';
+        	$tabParam = $data->masterData->tabTopParam;
+        }
+        
+        $prepareTab = Request::get($tabParam);
+        $data->prepareTab = FALSE;
+        if(!$prepareTab || $prepareTab == 'AccReports'){
+        	$data->prepareTab = TRUE;
+        }
+        
         // Ако потребителя има достъп до репортите
         if(haveRole($data->masterMvc->canReports)){
             
@@ -60,15 +74,10 @@ class acc_ReportDetails extends core_Manager
         } else {
         	$data->renderReports = FALSE;
         }
-        
+       
         // Име на таба
         if($data->renderReports === TRUE){
         	$data->TabCaption = 'Счетоводство';
-        }
-        
-        // Ако мастъра е документ, искаме детайла да се показва в горния таб с детайл
-        if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
-        	$data->Tab = 'top';
         }
     }
     
@@ -101,6 +110,17 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
+    	// Перото с което мастъра фигурира в счетоводството
+    	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
+    	
+    	// Ако мастъра не е перо, няма какво да се показва
+    	if(empty($items)) {
+    		$data->renderReports = FALSE;
+    		return;
+    	}
+    	
+    	if($data->prepareTab === FALSE) return;
+    	
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
     	$data->canSeePrices = haveRole('ceo,accJournal');
     	
@@ -122,15 +142,6 @@ class acc_ReportDetails extends core_Manager
         $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell,smartCenter');
         $data->reportTableMvc->FLD('blPrice', 'int', 'tdclass=accCell,smartCenter');
         $data->total = 0;
-        
-        // Перото с което мастъра фигурира в счетоводството
-        $items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
-        
-        // Ако мастъра не е перо, няма какво да се показва
-        if(empty($items)) {
-        	$data->renderReports = FALSE;
-        	return;
-        }
         
         // Ако баланса е заключен не показваме нищо
         if(core_Locks::isLocked('RecalcBalances')){

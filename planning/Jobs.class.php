@@ -51,7 +51,13 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'dueDate,quantity,notes';
     
     
     /**
@@ -169,14 +175,15 @@ class planning_Jobs extends core_Master
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
-    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
-    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
+    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Планирано,mandatory,silent');
+    	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
+    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Заскладено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
-    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Данни от договора->Склад');
+    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
     	
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
@@ -225,9 +232,9 @@ class planning_Jobs extends core_Master
     		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
     		
-    		$form->setField('deliveryTermId', "caption={$caption}->Условие");
-    		$form->setField('deliveryDate', "caption={$caption}->Срок");
-    		$form->setField('deliveryPlace', "caption={$caption}->Място");
+    		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
+    		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
+    		$form->setField('deliveryPlace', "caption={$caption}->Място,changable");
     		$form->setField('storeId', "caption={$caption}->Склад");
     	} else {
     		
@@ -235,8 +242,9 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryTermId', 'input=none');
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
-    		$form->setField('storeId', 'input=none');
     	}
+    	
+    	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	
     	// При ново задание, ако текущия потребител има права го добавяме като споделен
     	if(haveRole('planning,ceo') && empty($rec->id)){
@@ -363,9 +371,17 @@ class planning_Jobs extends core_Master
     	$pInfo = cat_Products::getProductInfo($rec->productId);
     	$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
+    	$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
+    	$row->quantityFromTasks = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
+    	
     	$row->quantity .= " {$shortUom}";
     	$row->quantityProduced .=  " {$shortUom}";
+    	$row->quantityFromTasks .=  " {$shortUom}";
     	$quantityToProduce = $rec->quantity - $rec->quantityProduced;
+    	$quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
+    	
+    	$row->quantityNotStored = $mvc->getFieldType('quantity')->toVerbal($quantityNotStored);
+    	$row->quantityNotStored .=  " {$shortUom}";
     	
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
     	$row->quantityToProduce .=  " {$shortUom}";
@@ -383,6 +399,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
     			$row->sBomId = cat_Boms::getLink($sBomId, 0);
     		}
@@ -407,6 +424,10 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
+    	
+    	//$row->quantityProduced = ht::createHint($row->quantityProduced, 'Заскладено|* с протоколи за производство');
+    	//$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено със задачи за производство');
+    	//$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Произведено по задачи, но все още незаскладено с протокол за производство');
     }
     
     
@@ -507,6 +528,13 @@ class planning_Jobs extends core_Master
     	// Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
     	if(($action == 'add' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
     		if(!cat_Products::haveRightFor('single', $rec->productId)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Само спрените могат да се променят
+    	if($action == 'changerec' && isset($rec)){
+    		if($rec->state != 'stopped'){
     			$res = 'no_one';
     		}
     	}
