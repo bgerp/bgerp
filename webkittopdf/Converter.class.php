@@ -196,6 +196,8 @@ class webkittopdf_Converter extends core_Manager
         //Стартираме скрипта за генериране на pdf файл от html файл
         $res = shell_exec($exec);
         
+        self::logDebug("Резултат от изпълнението на '{$exec}': " . $res);
+        
         //Качвания новосъздадения PDF файл
         $Fileman = cls::get('fileman_Files');
         
