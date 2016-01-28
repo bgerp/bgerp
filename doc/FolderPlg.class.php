@@ -581,7 +581,7 @@ class doc_FolderPlg extends core_Plugin
         if (!core_Users::isContractor()) {
             $conditions[] = "#folderAccess = 'public'";
             
-            $conditions[] = "#access = 'private'"; // Всеки може да вижда личните папки
+            $conditions[] = "#folderAccess = 'private'"; // Всеки може да вижда личните папки
         }
         
         if ($teammates) {
