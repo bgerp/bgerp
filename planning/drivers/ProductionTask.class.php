@@ -199,33 +199,47 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public static function on_AfterCreate(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec)
     {
-    	if(isset($rec->originId) && isset($rec->systemId)){
+    	if(isset($rec->originId)){
     		$originDoc = doc_Containers::getDocument($rec->originId);
-    		if($originDoc->isInstanceOf('planning_Jobs')){
-    			$productId = $originDoc->fetchField('productId');
-    			$tasks = cat_Products::getDefaultProductionTasks($productId, $originDoc->fetchField('quantity'));
+    		$originRec = $originDoc->fetch();
+    		
+    		// Ако е по източник
+    		if(isset($rec->systemId)){
+    			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
     			if(isset($tasks[$rec->systemId])){
     				$def = $tasks[$rec->systemId];
-    				
+    			
+    				// Намираме на коя дефолтна задача отговаря и извличаме продуктите от нея
     				$r = array();
     				foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type){
     					if(is_array($def->products[$var])){
     						foreach ($def->products[$var] as $p){
     							$p = (object)$p;
     							$nRec = new stdClass();
-    							$nRec->taskId = $rec->id;
+    							$nRec->taskId         = $rec->id;
     							$nRec->packagingId    = $p->packagingId;
     							$nRec->quantityInPack = $p->quantityInPack;
-    							$nRec->packagingId    = $p->packagingId;
     							$nRec->planedQuantity = $p->packQuantity * $rec->totalQuantity;
     							$nRec->productId      = $p->productId;
     							$nRec->type			  = $type;
-    							
+    									
     							planning_drivers_ProductionTaskProducts::save($nRec);
     						}
     					}
     				}
     			}
+    		} else {
+    			
+    			// Ако не е към дефолтна задача, винаги слагаме за произвеждане самия артикул
+    			$nRec = new stdClass();
+    		    $nRec->taskId = $rec->id;
+    			$nRec->packagingId    = cat_Products::fetchField($originRec->productId, 'measureId');
+    			$nRec->quantityInPack = 1;
+    			$nRec->planedQuantity = $rec->totalQuantity;
+    			$nRec->productId      = $originRec->productId;
+    			$nRec->type			  = 'product';
+    									
+    			planning_drivers_ProductionTaskProducts::save($nRec);
     		}
     	}
     }
