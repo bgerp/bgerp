@@ -1420,4 +1420,27 @@ class cat_Boms extends core_Master
     	// Връщаме масива с готовите задачи
     	return $tasks;
     }
+
+    
+    /**
+     * Проверка след изпращането на формата
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+    	$rec = &$form->rec;
+    	if ($form->isSubmitted()){
+    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+    		
+    		if($roundQuantity == 0){
+    			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
+    			return;
+    		}
+    
+    		if($roundQuantity != $rec->quantity){
+    			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
+    		}
+    		
+    		$rec->quantity = $roundQuantity;
+    	}
+    }
 }
