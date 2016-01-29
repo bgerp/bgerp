@@ -96,7 +96,7 @@ class help_Log extends core_Master
         $nowDate = dt::now();
         $conf = core_Packs::getConfig('help');
 
-        $rec = help_Log::fetch("#infoId = {$infoId} && #userId = {$userId}");
+        $rec = help_Log::fetch("#infoId = {$infoId} AND (#userId = {$userId} OR #userId IS NULL)");
         if(!$rec) {
             $rec = new stdClass();
             $rec->infoId = $infoId;
@@ -123,7 +123,7 @@ class help_Log extends core_Master
                 return 'open';
         }
         
-        /**
+        /*
          * Ако и времето и брояча са под определените лимити за показване в затворено състояние, то
          * връщаме 'closed'
          */
