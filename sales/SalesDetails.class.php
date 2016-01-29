@@ -174,6 +174,7 @@ class sales_SalesDetails extends deals_DealDetail
     		if($storeId = $data->masterData->rec->shipmentStoreId){
     			if(isset($pInfo->meta['canStore'])){
     				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
+    				$quantityInStore = ($quantityInStore) ? $quantityInStore : 0;
     				$quantityInStore = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($quantityInStore);
     				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     					

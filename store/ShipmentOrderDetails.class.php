@@ -242,6 +242,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
     		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
+    		$quantityInStore = ($quantityInStore) ? $quantityInStore : 0;
     		$quantityInStore = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($quantityInStore);
     		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     		
