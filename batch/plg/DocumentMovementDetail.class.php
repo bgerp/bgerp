@@ -122,7 +122,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		// Кой е избрания склад в мастъра
 		$storeName = $mvc->Master->storeFieldName;
 		
-		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "state,{$storeName}");
+		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 
 		// Ако реда има партидност
 		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
