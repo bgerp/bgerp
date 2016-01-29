@@ -126,4 +126,24 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     		}
     	}
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	$rows = &$data->rows;
+    	if(!count($data->recs)) return;
+    	
+    	$storeId = $data->masterData->rec->storeId;
+    	foreach ($data->rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId);
+    		if(strlen($warning)){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    		}
+    	}
+    }
 }

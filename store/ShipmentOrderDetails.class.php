@@ -241,13 +241,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
-    		$quantityInStore = ($quantityInStore) ? $quantityInStore : 0;
-    		$quantityInStore = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($quantityInStore);
-    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     		
-    		if($diff < 0){
-    			$row->packQuantity = ht::createHint($row->packQuantity, "Налично количество в склада|*: $quantityInStore", 'warning');
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId);
+    		if(strlen($warning)){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
