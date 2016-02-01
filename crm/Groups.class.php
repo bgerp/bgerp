@@ -90,6 +90,18 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Кой има право да оттелгя?
+     */
+    var $canReject = 'powerUser';
+    
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    var $canRestore = 'powerUser';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     var $canList = 'powerUser';
@@ -221,6 +233,25 @@ class crm_Groups extends core_Master
     {
         if(($rec->sysId || $rec->companiesCnt ||  $rec->personsCnt) && $action == 'delete') {
             $requiredRoles = 'no_one';
+        }
+        
+        if ($rec) {
+            if ($action == 'edit' || $action == 'delete' || $action == 'reject' || $action == 'restore') {
+                if ($rec->createdBy != $userId) {
+                    if (!haveRole('admin, ceo', $userId)) {
+                        if (haveRole('manager', $userId)) {
+                            
+                            $subordinates = core_Users::getSubordinates($userId);
+                            
+                            if (!$subordinates[$rec->createdBy]) {
+                                $requiredRoles = 'no_one';
+                            }
+                        } else {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
         }
     }
     
