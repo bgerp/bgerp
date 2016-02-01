@@ -35,6 +35,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
 	}
 	
 
@@ -93,8 +94,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$rec = &$form->rec;
 		
 		if($rec->productId){
-			$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-			$shortName = cat_UoM::getShortName($measureId);
+			$form->setDefault('measureId', cat_Products::getProductInfo($rec->productId)->productRec->measureId);
+			$shortName = cat_UoM::getShortName($rec->measureId);
 			$form->setField('quantity', "unit={$shortName}");
 			
 			$packs = cat_Products::getPacks($rec->productId);
@@ -106,6 +107,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		if($form->isSubmitted()){
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+			
+			if($rec->productId){
+				if($rec->productId){
+					$rec->measureId = $productInfo->productRec->measureId;
+				}
+			}
+			
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 		}
 	}
