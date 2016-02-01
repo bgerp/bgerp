@@ -241,16 +241,7 @@ class crm_Groups extends core_Master
                     if (!haveRole('admin, ceo', $userId)) {
                         if (haveRole('manager', $userId)) {
                             
-                            static $subordinates = FALSE;
-                            if ($subordinates === FALSE) {
-                                $teammates = keylist::toArray(core_Users::getTeammates($userId));
-                                $managers  = core_Users::getByRole('manager');
-                                $ceos = core_Users::getByRole('ceo');
-                                
-                                // Подчинените в екипа
-                                $subordinates = array_diff($teammates, $managers);
-                                $subordinates = array_diff($subordinates, $ceos);
-                            }
+                            $subordinates = core_Users::getSubordinates($userId);
                             
                             if (!$subordinates[$rec->createdBy]) {
                                 $requiredRoles = 'no_one';
