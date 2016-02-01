@@ -1073,6 +1073,12 @@ a.profile {
   color: #999999 !important;
   text-decoration: line-through !important; }
 
+.single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
+  opacity: 0.5; }
+  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab:hover,
+  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab.selected {
+    background-color: #cccccc !important; }
+
   .state-rejected div.tab-control.deal-history-tab .tab-row .tab a,
   .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
     color: #999999 !important;
