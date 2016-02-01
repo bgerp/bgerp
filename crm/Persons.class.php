@@ -680,9 +680,7 @@ class crm_Persons extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->groupList) {
-            $mvc->updateGroupsCnt = TRUE;
-        }
+        $mvc->updateGroupsCnt = TRUE;
 
         $mvc->updatedRecs[$id] = $rec;
 
