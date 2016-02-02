@@ -297,7 +297,7 @@ class fileman_Get extends core_Manager {
             } else {
                 $rec->url = '';
                 
-                if ($fh) {
+                if (isset($fh)) {
                     $fRec = fileman_Files::fetchByFh($fh);
                     fileman_Files::logWrite('Добавен файл от линк', $fRec->id);
                 }
