@@ -1101,6 +1101,8 @@ class core_Manager extends core_Mvc
             
             if (Request::$vars['_POST']) {
                 self::logWrite(ucfirst($act), Request::get('id'), 180);
+            } else {
+                self::logInfo(ucfirst($act), Request::get('id'));
             }
         }
         
