@@ -113,7 +113,7 @@ class core_Ajax extends core_Mvc
                 reportException($e);
                 
                 // Записваме в лога
-                self::logErr("Грешка при вземане на данни за URL", NULL, self::$logKeepDays);
+                self::logWarning("Грешка при вземане на данни за URL", NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
@@ -172,7 +172,7 @@ class core_Ajax extends core_Mvc
             // Не би трябвало да се стига до тук
             
             // Добавяме грешката
-            self::logErr("Повтарящо се име за абониране", NULL, self::$logKeepDays);
+            self::logWarning("Повтарящо се име за абониране", NULL, self::$logKeepDays);
             
             // Ако сме в дебъг режим и сме логнат
             if (isDebug() && haveRole('user')) {
