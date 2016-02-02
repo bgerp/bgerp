@@ -188,6 +188,8 @@ class fileman_Get extends core_Manager {
             
             $fh = NULL;
             
+            $fRec = new stdClass();
+            
             if($data === FALSE) {
                 $err[] = "Грешка при свалането на файла.";
             } else {
@@ -276,8 +278,10 @@ class fileman_Get extends core_Manager {
                         $add = $Buckets->getInfoAfterAddingFile($fh);
                             
                         if($rec->callback) {
-                            $name = fileman_Files::fetchByFh($fh, 'name');
-                            $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$name}') != true) self.close(); else   self.focus();  </script>");
+                            if (isset($fh)) {
+                                $fRec = fileman_Files::fetchByFh($fh);
+                            }
+                            $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$fRec->name}') != true) self.close(); else   self.focus();  </script>");
                         }
                     }
                 }
@@ -298,7 +302,6 @@ class fileman_Get extends core_Manager {
                 $rec->url = '';
                 
                 if (isset($fh)) {
-                    $fRec = fileman_Files::fetchByFh($fh);
                     fileman_Files::logWrite('Добавен файл от линк', $fRec->id);
                 }
             }
