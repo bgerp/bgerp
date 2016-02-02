@@ -112,13 +112,15 @@ class core_Ajax extends core_Mvc
                 
                 reportException($e);
                 
-                $errMsg = "|Грешка при вземане на данни от|* {$url} - {$e->getMessage()}";
+                $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
                 
                 // Записваме в лога
                 self::logWarning($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
+                    
+                    $errMsg = "|Грешка при вземане на данни от|* {$url} - {$e->getMessage()}";
                     
                     // Показваме статус съобщение
                     core_Statuses::newStatus($errMsg, 'warning');
@@ -133,12 +135,14 @@ class core_Ajax extends core_Mvc
                 // Записваме в лога резултата
                 $resStr = core_Type::mixedToString($resArr);
                 
-                $errMsg = "|Некоректен резултат от|* {$url} - {$resStr}";
+                $errMsg = "Некоректен резултат от {$url} - {$resStr}";
                 
                 self::logWarning($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
+                    
+                    $errMsg = "|Некоректен резултат от|* {$url} - {$resStr}";
                     
                     // Показваме статус съобщение
                     core_Statuses::newStatus($errMsg, 'warning');
@@ -176,13 +180,15 @@ class core_Ajax extends core_Mvc
             
             // Не би трябвало да се стига до тук
             
-            $msg = "|Повтарящо се име за абониране|* - {$name}";
+            $msg = "Повтарящо се име за абониране - {$name}";
             
             // Добавяме грешката
             self::logWarning($msg, NULL, self::$logKeepDays);
             
             // Ако сме в дебъг режим и сме логнат
             if (isDebug() && haveRole('user')) {
+                
+                $msg = "|Повтарящо се име за абониране|* - {$name}";
                 
                 // Показваме статус съобщение
                 core_Statuses::newStatus($msg, 'warning');
