@@ -186,6 +186,8 @@ class fileman_Get extends core_Manager {
                 $data = @file_get_contents($rec->url);
             }
             
+            $fh = NULL;
+            
             if($data === FALSE) {
                 $err[] = "Грешка при свалането на файла.";
             } else {
@@ -290,11 +292,16 @@ class fileman_Get extends core_Manager {
                 
                 foreach($err as $e) {
                     $add->append("<li>" . tr($e), 'ERR');
+                    fileman_Files::logWarning('Грешка при добавяне на файла от URL: ' . $е);
                 }
             } else {
                 $rec->url = '';
+                
+                if ($fh) {
+                    $fRec = fileman_Files::fetchByFh($fh);
+                    fileman_Files::logWrite('Добавен файл от линк', $fRec->id);
+                }
             }
-
         }
         
         $form->addAttr('url', array('style' => 'width:100%;'));
