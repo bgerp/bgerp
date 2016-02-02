@@ -64,10 +64,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=action|grouping1|grouping2|grouping3');
     	$form->FLD('from', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=От,mandatory');
     	$form->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,mandatory');
-    	
-    
-    	$form->FLD('orderField', "enum(debitAmount=Дебит,creditAmount=Кредит,blAmount=Крайнo салдо)", 'caption=Подредба->Сума,formOrder=110000');
-    	//$form->FLD('filterField', "enum()", 'caption=Подредба->Перо,formOrder=110000');
+
+    	$form->FLD('orderField', "enum(baseQuantity=Начално количество,baseAmount=Начална сума,debitQuantity=Количество дебит,debitAmount=Сума дебит,creditQuantity=Количество кредит,creditAmount=Сума кредит,blQuantity=Крайно количество,blAmount=Крайно салдо)", 'caption=Подредба->Сума,formOrder=110000');
     	
     	$form->FLD('compare', "enum(,yes=Да)", 'caption=Предходна година->Сравни,formOrder=110001,maxRadio=1');
     
@@ -95,15 +93,6 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	$form->setOptions('from', array('' => '') + $periods);
     	$form->setOptions('to', array('' => '') + $periods);
     	
-    	// по подразбиране ще сложим последния период
-    	// и един месец назад
-    	$balanceCls = cls::get('acc_Balances');
-    	$lastBalance = $balanceCls->getLastBalance();
-    	$previousBalance = $balanceCls->getBalanceBefore($lastBalance->fromDate);
-    	
-    	$form->setDefault('from', $lastBalance->periodId);
-    	$form->setDefault('to', $previousBalance->periodId);
-    	
     	$form->sethidden('compare');
     }
     
@@ -115,43 +104,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-    	if($form->rec->accountId){ 
-    		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
-    	
-    	
-    		if($form->rec->id){
-		    	// Показваме номенкалтурите на сметката като предложения за селектиране
-		    	$options = array();
-		    	
-		    	if(count($accInfo->groups)){
-		    		foreach ($accInfo->groups as $i => $gr){ 
-		    			$options["ent{$i}Id"] .= $gr->rec->name;
-		    		}
-		    	}
-		    		 
-		    	$Items = cls::get('acc_Items');
-		    		 
-		    	// За всяка позиция показваме поле за избор на перо и свойство
-		    	foreach (range(1, 3) as $i){
-		    		if(isset($accInfo->groups[$i])){
-		    			$form->FLD("grouping{$i}", "key(mvc=acc_Items, allowEmpty)", "caption={$accInfo->groups[$i]->rec->name}->Перо");
-		    	
-		    			$items = $Items->makeArray4Select('title', "#lists LIKE '%|{$accInfo->groups[$i]->rec->id}|%'", 'id');
-		    			$form->setOptions("grouping{$i}", $items);
-		    	
-		    			if(count($items)){
-		    				$form->setOptions("grouping{$i}", $items);
-		    			} else {
-		    				$form->setReadOnly("grouping{$i}");
-		    			}
-		    		}
-		    			$form->setHidden("feat{$i}");
-		    			$form->setHidden("grouping{$i}");
-		    	}
-	    	}
-    	} 
-    	
-    	$this->invoke('AfterPrepareEmbeddedForm', array($form));
+
     }
 
     
@@ -180,82 +133,68 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     {
     	
     	$data = new stdClass();
-    	$data->recs = array();
-    	$data->bData = array();
-    	$bRecs = array();
-    	$bRecsLast = array();
-    	$map = array();
-    	
+
     	$data->rec = $this->innerForm;
     	$this->prepareListFields($data);
-    	
-    	// сметката
-    	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
-        
-    	$bDetails = cls::get('acc_BalanceDetails');
-	    $bQuery = acc_BalanceDetails::getQuery();
 
 	    // от избрания начален период до крайния 
 	    for ($p = $data->rec->from; $p <= $data->rec->to; $p++) {
-	    		
+	    	
 		    $pRec = acc_Periods::fetch($p);
+		    
+			$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
+			$Balance = new acc_ActiveShortBalance(array('from' => $pRec->start, 'to' => $pRec->end, 'accs' => $accSysId, 'cacheBalance' => FALSE));
 	
-		    // търсим балансите, които отговарят на това id
-			$balanceId = acc_Balances::fetchField("#periodId = '{$p}'", 'id');
-			    	
-			$cloneQuery = clone $bQuery;
+			$data->bData[$p] =  $Balance->getBalance($accSysId);;
+	    }
+	   
+	    foreach($data->bData as $period => $date) { 
 	        
-	        $item1Id = !empty($data->rec->grouping1) ? $data->rec->grouping1 : NULL;
-            $item2Id = !empty($data->rec->grouping2) ? $data->rec->grouping2 : NULL;
-            $item3Id = !empty($data->rec->grouping3) ? $data->rec->grouping3 : NULL;
-			
-			$bDetails->filterQuery($cloneQuery, $balanceId, $accSysId, NULL, $item1Id, $item2Id,$item3Id);
-			//$cloneQuery->where("#ent1Id IS NULL AND #ent2Id IS NULL AND #ent3Id IS NULL");
-			if ($data->rec->orderField) {
-				$cloneQuery->XPR('sumAmount', 'double', "SUM(#{$data->rec->orderField})");
-			}
-			
-			$date = dt::mysql2timestamp($pRec->end);
-			$year = date('Y', $date);
-			$month = date ('m', $date);
-			    	
-			$dateFrom = mktime(0, 0, 0, $month-12, 01, $year);
-			$dateFrom = dt::timestamp2Mysql($dateFrom); 
-			$dateFrom = dt::verbal2mysql(dt::getLastDayOfMonth($dateFrom), FALSE);
-			    	
-			$lastYearAmount = NULL;
-			if($lastPeriod = acc_Periods::fetch("#end = '{$dateFrom}'")){
-			    		
-				if($lastBalanceId = acc_Balances::fetchField("#periodId = '{$lastPeriod->id}'", 'id')){
-	
-			    	$lastCloneQuery = clone $bQuery;
-			    	$bDetails->filterQuery($lastCloneQuery, $lastBalanceId, $accSysId,  NULL, $item1Id, $item2Id,$item3Id);
-			    	//$lastCloneQuery->where("#ent1Id IS NULL AND #ent2Id IS NULL AND #ent3Id IS NULL");
-			    	if ($data->rec->orderField) {
-			    	    $lastCloneQuery->XPR('lastAmount', 'double', "SUM(#{$data->rec->orderField})");
-			    	}
-			    			
-			    	$lastYearAmount = $lastCloneQuery->fetch()->lastAmount;
-			    	
-			  
-			    }
-			}
-			    	
-			$data->recs[$p] = (object)array('amount' => $cloneQuery->fetch()->sumAmount, 
-			    									'periodId' => $p,
-													'previousPeriodId' => $lastPeriod->id,
-													'currentDate' => $pRec->end,
-													'previousDate' => $dateFrom,
-			    									'amountPrevious' => $lastYearAmount,
-			    	);	
+	        $data->summary = new stdClass();
+	        
+	        foreach ($date as $id => $rec) {
+	            foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+	                if(!is_null($rec->$fld)){
+	                    $data->summary->$fld += $rec->$fld;
+	                }
+	            }
+	        }
+	        
+	        switch ($data->rec->orderField) {
+	            case 'debitAmount':
+	                $data->recs[] = (object) array('period' => $period, 'debitAmount' => $data->summary->debitAmount);
+	                break;
+	        
+	            case 'creditAmount':
+	                 $data->recs[] = (object) array('period' => $period, 'creditAmount' => $data->summary->creditAmount);
+	                break;
+	        
+	            case 'blAmount':
+	                $data->recs[] = (object) array('period' => $period, 'blAmount' => $data->summary->blAmount);
+	                break;
+	        
+	            case 'baseQuantity':
+	                $data->recs[] = (object) array('period' => $period, 'baseQuantity' => $data->summary->baseQuantity);
+	                break;
+	        
+	            case 'baseAmount':
+	                $data->recs[] = (object) array('period' => $period, 'baseAmount' => $data->summary->baseAmount);
+	                break;
+	        
+	            case 'debitQuantity':
+	                $data->recs[] = (object) array('period' => $period, 'debitQuantity' => $data->summary->debitQuantity);
+	                break;
+	        
+	            case 'creditQuantity':
+	                $data->recs[] = (object) array('period' => $period, 'creditQuantity' => $data->summary->creditQuantity);
+	                break;
+	        
+	            case 'blQuantity':
+	                $data->recs[] = (object) array('period' => $period, 'blQuantity' => $data->summary->blQuantity);
+	                break;
+	        }     
 	    }
-	    
-	    foreach($data->recs as $id => $rec) {
-	    	if ($rec->amount == NULL && $rec->amountPrevious == NULL) {
-	    		unset ($data->recs);
-	    	}
-	    }
-	    
+
         return $data;
     }
     
@@ -267,7 +206,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     {
     	// Подготвяме страницирането
     	$data = $res;
-        
+        $data->summary = new stdClass();
     	// подготвяме страницирането
     	$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
@@ -277,14 +216,15 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         $data->pager = $pager;
         
         if(count($data->recs)){
-          
+      
             foreach ($data->recs as $id => $rec){ 
+
 				if(!$pager->isOnPage()) continue;
 			
 				$row = new stdClass();
-				$row = $mvc->getVerbal($rec);
-	
-				$data->rows[$id] = $row;
+			    $row = $mvc->getVerbal($rec);
+
+                $data->rows[$id] = $row;
             }
         }
 
@@ -314,8 +254,8 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     {
     	if(empty($data)) return;
     	
-    	$chart = Request::get('Chart');
-    	$id = Request::get('id', 'int');
+    	//$chart = Request::get('Chart');
+    	//$id = Request::get('id', 'int');
     	
     	$tpl = $this->getReportLayout();
     
@@ -333,11 +273,11 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     	$this->prependStaticForm($tpl, 'FORM');
     	
     	$tpl->placeObject($data->rec);
-    	
+
     	// ако имаме записи има и смисъл да
     	// слагаме табове
     	// @todo да не се ползва threadId  за константа
-    	if($data->recs) {
+    	//if($data->recs) {
     		// слагаме бутони на къстам тулбара
     		/*$btnList = ht::createBtn('Таблица', array(
     				'doc_Containers',
@@ -359,11 +299,11 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     				'ef_icon = img/16/chart_bar.png');
     	
     		$tpl->replace($btnChart, 'buttonChart');*/
-    	}
+    	//}
     	
     	// подготвяме данните за графиката
    
-    	$labels = array();
+    	/*$labels = array();
     	
     	if (is_array($data->recs)) {
 	        foreach ($data->recs as $id => $rec) {
@@ -402,97 +342,176 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 	    	$chart =  $chartHtml::prepare($bar,'bar');
 	    	$tpl->append($chart, 'CONTENT');
     	} else {
-	
-	    	$f = cls::get('core_FieldSet');
-	    	
-	    	$f->FLD('periodId', 'richtext');
-	    	$f->FLD('amount', 'double');
-	    	$f->FLD('amountPrevious', 'double');
-	    	
+
+    	    $f = $this->getFields();
 	    	
 	    	$table = cls::get('core_TableView', array('mvc' => $f));
-	   
+
 	    	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-	    	 
+	    	
 	    	if($data->pager){
 	    		$tpl->append($data->pager->getHtml(), 'PAGER');
 	    	}
+    	}*/
+    	
+    	$f = $this->getFields();
+    	
+    	$table = cls::get('core_TableView', array('mvc' => $f));
+    	
+    	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
+    	
+    	if($data->pager){
+    	    $tpl->append($data->pager->getHtml(), 'PAGER');
     	}
     	
     	$embedderTpl->append($tpl, 'data');
     }
-
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getFields_()
+    {
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
+        $f->FLD('periodId', 'varchar');
+        
+        switch ($this->innerForm->orderField) {
+            case 'debitAmount':
+                $f->FLD('debitAmount', 'double');
+                break;
+        
+            case 'creditAmount':
+                 $f->FLD('creditAmount', 'double');
+                break;
+        
+            case 'blAmount':
+                $f->FLD('blAmount', 'double');
+                break;
+        
+            case 'baseQuantity':
+                $f->FLD('baseQuantity', 'double');
+                break;
+        
+            case 'baseAmount':
+                $f->FLD('baseAmount', 'double');
+                break;
+        
+            case 'debitQuantity':
+                $f->FLD('debitQuantity', 'double');
+                break;
+        
+            case 'creditQuantity':
+                $f->FLD('creditQuantity', 'double');
+                break;
+        
+            case 'blQuantity':
+                $f->FLD('blQuantity', 'double');
+                break;
+        }
+        
+        return $f;
+    }
     
     /**
      * Подготвя хедърите на заглавията на таблицата
      */
     protected function prepareListFields_(&$data)
     {
-    	switch ($data->rec->orderField) {
-			case 'debitAmount':
-		        $data->listFields = array(
+        switch ($data->rec->orderField) {
+            case 'debitAmount':
+                $data->listFields = array(
 	    			'periodId' => 'Период',
-	    			'amount' => 'Дебит',
+	    			'debitAmount' => 'Сума дебит',
+                );
+		        break;
+		        
+            case 'creditAmount':
+                $data->listFields = array(
+	    			'periodId' => 'Период',
+	    			'creditAmount' => 'Сума кредит',
 	    		);
 		        break;
 		        
-		    case 'creditAmount':
-		        $data->listFields = array(
+            case 'blAmount':
+                $data->listFields = array(
 	    			'periodId' => 'Период',
-	    			'amount' => 'Кредит',
+	    			'blAmount' => 'Крайно салдо',
 	    		);
 		        break;
 		        
-		    case 'blAmount':
-		        $data->listFields = array(
-	    			'periodId' => 'Период',
-	    			'amount' => 'Крайно салдо',
-	    		);
-		        break;
-		}
-
-		if ($data->rec->compare != '') {
-			 $data->listFields['amountPrevious'] = 'Предходен период';
+            case 'baseQuantity':
+                $data->listFields = array(
+		            'periodId' => 'Период',
+		            'baseQuantity' => 'Начално количество',
+                );
+                break;
+		            
+            case 'baseAmount':
+                $data->listFields = array(
+		                'periodId' => 'Период',
+		                'baseAmount' => 'Начална сума',
+                );
+                break;
+		      
+            case 'debitQuantity':
+                $data->listFields = array(
+		          'periodId' => 'Период',
+		          'debitQuantity' => 'Количество дебит',
+                );
+                break;
+		      
+            case 'creditQuantity':
+                $data->listFields = array(
+		          'periodId' => 'Период',
+		          'creditQuantity' => 'Количество кредит',
+                );
+                break;
+		      
+            case 'blQuantity':
+                $data->listFields = array(
+		          'periodId' => 'Период',
+		          'blQuantity' => 'Крайно количество',
+                );
+                break;
 		}
     }
-    
+
 
    /**
     * Вербалното представяне на записа
     */
 	private function getVerbal($rec)
    	{
-   		$RichtextType = cls::get('type_Richtext');
-        
-		$Double = cls::get('type_Double');
-		$Double->params['decimals'] = 2;
-
-        $row = new stdClass();
-
-        $row->periodId = acc_Periods::getTitleById($rec->periodId); 
-        $bId = acc_Balances::fetchField("#periodId={$rec->periodId}", 'id');
-        
-        if (acc_Balances::haveRightFor('single', $bId)){
-        	$row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $bId), FALSE, "ef_icon=img/16/table_sum.png, title = Към баланса за {$row->periodId}");
-        }
-        
-        if ($rec->amount < 0) {
-	    	$row->amount = "<span class='red'>{$Double->toVerbal($rec->amount)}</span>";
-        } else {
-        	$row->amount = $Double->toVerbal($rec->amount);
-        }
-        
-        if ($rec->amountPrevious < 0) {
-        	$row->amountPrevious = "<span class='red'>{$Double->toVerbal($rec->amountPrevious)}</span>";
-        } else {
-        	$row->amountPrevious = $Double->toVerbal($rec->amountPrevious);
-        }
+   	    $Double = cls::get('type_Double');
+   	    $Double->params['decimals'] = 2;
+   	    $RichtextType = cls::get('type_Richtext');
+   	    
+   	    $row = new stdClass();
+   	    
+   	    $row->periodId = acc_Periods::getTitleById($rec->period);
+   	    $bId = acc_Balances::fetchField("#periodId={$rec->period}", 'id');
+   	    
+   	    if (acc_Balances::haveRightFor('single', $bId)){
+   	        $row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $bId), FALSE, "ef_icon=img/16/table_sum.png, title = Към баланса за {$row->periodId}");
+   	    }
+   	    
+   	    foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+   	        if(!is_null($rec->$fld)){
+   	            $row->$fld = $Double->toVerbal($rec->$fld); 
+   	        }
+   	    }
         
     	return $row;
 	}
 
       
-	/**
+    /**
      * Скрива полетата, които потребител с ниски права не може да вижда
      *
      * @param stdClass $data
@@ -510,164 +529,44 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
      */
 	public function getEarlyActivation()
     {
-    	
     	$activateOn = "{$this->innerForm->createdOn} 23:59:59";
       	  	
       	return $activateOn;
 	}
 
 
-     /**
-      * Ако имаме в url-то export създаваме csv файл с данните
-      *
-      * @param core_Mvc $mvc
-      * @param stdClass $rec
-      */
-     /*public function exportCsv()
-     {
-
-         $exportFields = $this->getExportFields();
-
-         $conf = core_Packs::getConfig('core');
-
-         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-             redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-         }
-
-         $csv = "";
-
-         foreach ($exportFields as $caption) {
-             $header .= "," . $caption;
-         }
-
-         
-         if(count($this->innerState->recs)) {
-			foreach ($this->innerState->recs as $id => $rec) {
-
-				if($this->innerState->bShowQuantities || $this->innerState->rec->groupBy){
-					
-					
-					$baseQuantity += $rec->baseQuantity;
-					$baseAmount += $rec->baseAmount;
-					$debitQuantity += $rec->debitQuantity;
-					$debitAmount += $rec->debitAmount;
-					$creditQuantity += $rec->creditQuantity;
-					$creditAmount += $rec->creditAmount;
-					$blQuantity += $rec->blQuantity;
-					$blAmount += $rec->blAmount;
-
-				} 
-				
-				$rCsv = $this->generateCsvRows($rec);
-
-				
-				$csv .= $rCsv;
-				$csv .=  "\n";
-		
-			}
-
-			$row = new stdClass();
-			
-			$row->flag = TRUE;
-			$row->baseQuantity = $baseQuantity;
-			$row->baseAmount = $baseAmount;
-			$row->debitQuantity = $debitQuantity;
-			$row->debitAmount = $debitAmount;
-			$row->creditQuantity = $creditQuantity;
-			$row->creditAmount = $creditAmount;
-			$row->blQuantity = $blQuantity;
-			$row->blAmount = $blAmount;
-			
-			foreach ($row as $fld => $value) {
-				$value = frame_CsvLib::toCsvFormatDouble($value);
-				$row->{$fld} = $value;
-			}
-		
-		
-			$beforeRow = $this->generateCsvRows($row);
-
-			$csv = $header . "\n" . $beforeRow. "\n" . $csv;
-	    } 
-
-        return $csv;
-    }*/
-
-
     /**
-     * Ще се експортирват полетата, които се
-     * показват в табличния изглед
+     * Ако имаме в url-то export създаваме csv файл с данните
      *
-     * @return array
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
      */
-    /*protected function getExportFields_()
+    public function exportCsv()
     {
+        $conf = core_Packs::getConfig('core');
 
-        $exportFields = $this->innerState->listFields;
+	    if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+	       redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+	    }
         
-        foreach ($exportFields as $field => $caption) {
-        	$caption = str_replace('|*', '', $caption);
-        	$caption = str_replace('->', ' - ', $caption);
-        	
-        	$exportFields[$field] = $caption;
+        $exportFields = $this->innerState->listFields;
+
+        foreach($this->innerState->recs as $id => $rec) {
+            $dataRecs[] = $this->getVerbal($rec);
+            //$Double = cls::get('type_Double');
+            //$Double->params['decimals'] = 2;
+            
+            foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+                if(!is_null($rec->$fld)){
+                    $dataRecs[$id]->$fld = $rec->$fld;
+                }
+            }
         }
         
-        return $exportFields;
-    }*/
-    
-    
-    /**
-	 * Ще направим row-овете в CSV формат
-	 *
-	 * @return string $rCsv
-	 */
-	/*protected function generateCsvRows_($rec)
-	{
-	
-		$exportFields = $this->getExportFields();
+    	$fields = $this->getFields();
 
-		$rec = frame_CsvLib::prepareCsvRows($rec);
-	
-		$rCsv = '';
-		
-		$res = count($exportFields); 
-		
-		foreach ($rec as $field => $value) {
-			$rCsv = '';
-			
-			if ($res == 11) {
-				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
-			} elseif ($res == 10 || $res == 9 || $res == 8 || $res == 7) {
-				$zeroRow = "," . 'ОБЩО' . "," .'';
-			} elseif ($res <= 6) {
-				$zeroRow = "," . 'ОБЩО';
-			}
-			
-			foreach ($exportFields as $field => $caption) {
-					
-				if ($rec->{$field}) {
-	
-					$value = $rec->{$field};
-					$value = html2text_Converter::toRichText($value);
-					// escape
-					if (preg_match('/\\r|\\n|,|"/', $value)) {
-						$value = '"' . str_replace('"', '""', $value) . '"';
-					}
-					$rCsv .= "," . $value;
-					
-					if($rec->flag == TRUE) {
-						
-						$zeroRow .= "," . $value;
-						$rCsv = $zeroRow;
-					}
-	
-				} else {
-					
-					$rCsv .= "," . '';
-				}
-			}
-		}
-		
-		return $rCsv;
-	}*/
+    	$csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields, array('text'=>'xhtml'));
 
+        return $csv;
+    }
 }
