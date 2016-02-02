@@ -49,7 +49,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	public function addEmbeddedFields(core_FieldSet &$form)
 	{
 		
-		$form->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент,silent,input');
+		$form->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Контрагент,silent,input,mandatory');
 		$form->FNC('from', 'date', 'caption=Към дата,silent,input');
 		
 		$this->invoke('AfterAddEmbeddedFields', array($form));
@@ -92,6 +92,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		$data = new stdClass();
 		$data->recs = array();
 		$data->sum = array();
+		$data->contragent = new stdClass();
 		
 		$data->rec = $this->innerForm;
 		$this->prepareListFields($data);
@@ -100,14 +101,15 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		if ($data->rec->contragentFolderId) {
 			$contragentCls = doc_Folders::fetchField("#id = {$data->rec->contragentFolderId}", 'coverClass');
 			$contragentId = doc_Folders::fetchField("#id = {$data->rec->contragentFolderId}", 'coverId');
-			
+			$data->contragent->titleLink = cls::get($contragentCls)->getShortHyperLink($contragentId);
+		
 			// всичко за контрагента
 			$contragentRec = cls::get($contragentCls)->fetch($contragentId);
 		}
 
 		// записваме го в датата
 		$data->contragent = $contragentRec;
-		$data->contragent->titleLink = cls::get($contragentCls)->getShortHyperLink($contragentId);
+		
 		
 		// търсим всички продажби, които са на този книент и са активни
 		$querySales = sales_Sales::getQuery();
