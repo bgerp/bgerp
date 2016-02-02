@@ -89,14 +89,20 @@ class help_Log extends core_Master
      */
     static function getDisplayMode($infoId, $userId = NULL, $increasSeeCnt=TRUE)
     {
+
         // Ако нямаме потребител, вземаме текущия
-        if(!$userId) {
+        if(!isset($userId)) { 
             $userId = core_Users::getCurrent();
         }
+
+        if(!$userId) {
+            return 'none';
+        }
+
         $nowDate = dt::now();
         $conf = core_Packs::getConfig('help');
 
-        $rec = help_Log::fetch("#infoId = {$infoId} AND (#userId = {$userId} OR #userId IS NULL)");
+        $rec = help_Log::fetch("#infoId = {$infoId} AND (#userId = {$userId})");
         if(!$rec) {
             $rec = new stdClass();
             $rec->infoId = $infoId;
