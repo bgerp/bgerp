@@ -309,8 +309,10 @@ class planning_Jobs extends core_Master
     		 $data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
     	}
     	
-    	if($mvc->haveRightFor('add', (object)array('productId' => $rec->productId))){
-    		$data->toolbar->addBtn("Нов", array($mvc, 'add', 'productId' => $rec->productId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство за артикула');
+    	if($rec->state != 'rejected'){
+    		if($mvc->haveRightFor('add', (object)array('productId' => $rec->productId))){
+    			$data->toolbar->addBtn("Нов", array($mvc, 'add', 'productId' => $rec->productId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство за артикула');
+    		}
     	}
     }
     
@@ -363,6 +365,22 @@ class planning_Jobs extends core_Master
     	// Записваме в историята на действията, че кога и от кого е създаден документа
     	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	$mvc->save($rec, 'history');
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Ако има сделка към която е заданието, инвалидираме и кеша
+    	if(isset($rec->saleId) && $rec->state != 'draft'){
+    		sales_Sales::touchRec($rec->saleId);
+    	}
     }
     
     
