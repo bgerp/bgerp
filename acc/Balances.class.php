@@ -199,7 +199,7 @@ class acc_Balances extends core_Master
         	}
         	
         	$value = toUrl(array($mvc, 'single', $data->rec->id));
-        	$periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));//$searchForm->renderHtml();
+        	$periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
         } else {
         	$periodRow = $data->row->periodId;
         }
