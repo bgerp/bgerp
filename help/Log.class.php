@@ -94,7 +94,11 @@ class help_Log extends core_Master
         if(!isset($userId)) { 
             $userId = core_Users::getCurrent();
         }
-       
+
+        if(!$userId) {
+            return 'none';
+        }
+
         $nowDate = dt::now();
         $conf = core_Packs::getConfig('help');
 
