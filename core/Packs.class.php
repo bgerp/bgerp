@@ -879,6 +879,9 @@ class core_Packs extends core_Manager
     function act_systemUpdate()
     {
 		requireRole('admin');
+		
+		self::logRead('Обновяване на системата');
+		
 		self::systemUpdate();
     }
 
