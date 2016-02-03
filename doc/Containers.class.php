@@ -1735,6 +1735,7 @@ class doc_Containers extends core_Manager
                                     // Ако не може да се намери съответен документ, изтриваме го
                                     if (self::delete($rec->id)) {
                                         $resArr['del_cnt']++;
+                                        $mustUpdate = FALSE;
                                     }
                                 }
                             }

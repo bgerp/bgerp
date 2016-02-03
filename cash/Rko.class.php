@@ -265,6 +265,7 @@ class cash_Rko extends core_Master
     	$form->setDefault('rate', $dealInfo->get('rate'));
     	
     	if($dealInfo->get('dealType') == purchase_Purchases::AGGREGATOR_TYPE){
+    		$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
     		if($dAmount != 0){
     		 	$form->setDefault('amount',  $dAmount);
     		 }

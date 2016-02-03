@@ -138,11 +138,10 @@ class cat_products_Packagings extends core_Detail
     		
     		if($roundQuantity != $rec->quantity){
     			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
-    			$rec->quantity = $roundQuantity;
     		}
     		
     		// Закръгляме к-то, така че да е в границите на допустимото от мярката
-    		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
+    		$rec->quantity = $roundQuantity;
     	}
     }
     

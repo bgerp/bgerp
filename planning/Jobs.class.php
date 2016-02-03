@@ -308,6 +308,12 @@ class planning_Jobs extends core_Master
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		 $data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
     	}
+    	
+    	if($rec->state != 'rejected'){
+    		if($mvc->haveRightFor('add', (object)array('productId' => $rec->productId))){
+    			$data->toolbar->addBtn("Нов", array($mvc, 'add', 'productId' => $rec->productId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство за артикула');
+    		}
+    	}
     }
     
     
@@ -368,11 +374,13 @@ class planning_Jobs extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	$pInfo = cat_Products::getProductInfo($rec->productId);
-    	$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
-    	$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
-    	$row->quantityFromTasks = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
+    	if($rec->productId){
+    		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+    		$shortUom = cat_UoM::getShortName($measureId);
+    		$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
+    		$row->quantityFromTasks = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
+    	}
     	
     	$row->quantity .= " {$shortUom}";
     	$row->quantityProduced .=  " {$shortUom}";
@@ -399,7 +407,6 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
-    		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
     			$row->sBomId = cat_Boms::getLink($sBomId, 0);
     		}
@@ -424,10 +431,6 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
-    	
-    	//$row->quantityProduced = ht::createHint($row->quantityProduced, 'Заскладено|* с протоколи за производство');
-    	//$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено със задачи за производство');
-    	//$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Произведено по задачи, но все още незаскладено с протокол за производство');
     }
     
     

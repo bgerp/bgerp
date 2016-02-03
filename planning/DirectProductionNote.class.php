@@ -263,25 +263,84 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
+	 * Намира количествата за влагане от задачите
+	 * 
+	 * @param stdClass $rec
+	 * @return array $res
 	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
+	protected function getDefaultDetails($rec)
 	{
-		$rec = &$form->rec;
-		if($form->isSubmitted()){
+		$res = array();
+		
+		// Намираме детайлите от задачите и рецеоптите
+		$bomDetails = $this->getDefaultDetailsFromBom($rec);
+		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
+		
+		// За всеки артикул от рецептата добавяме го
+		foreach ($bomDetails as $index => $bRec){
+			$obj = clone $bRec;
+			$obj->quantityFromTasks = $taskDetails[$index]->quantityFromTasks;
 			
-			// Ако могат да се генерират детайли от артикула да се
-			if(empty($rec->id)){
-				$details = $mvc->getDefaultDetails($rec);
-			}
-			
-			if($details === FALSE){
-				$form->setWarning('productId', 'Няма да може да се генерират материали от рецептата');
-			}
+			$res[$index] = $obj;
 		}
+		
+		// За всеки артикул от задачата добавяме го
+		foreach ($taskDetails as $index => $tRec){
+			$obj = clone $tRec;
+			if(!isset($res[$index])){
+				$res[$index] = $obj;
+			}
+			$res[$index]->quantityFromBom = $bomDetails[$index]->quantityFromBom;
+		}
+		
+		// За всеки детайл намираме дефолтното к-во ако има такова от рецепта, взимаме него иначе от задачите
+		foreach ($res as &$detail){
+			$detail->quantity = (isset($detail->quantityFromBom)) ? $detail->quantityFromBom : $detail->quantityFromTasks;
+		}
+		
+		// Връщаме намерените дефолтни детайли
+		return $res;
+	}
+	
+	
+	/**
+	 * Намира количествата за влагане от задачите
+	 * 
+	 * @param stdClass $rec
+	 * @return array $details
+	 */
+	protected function getDefaultDetailsFromTasks($rec)
+	{
+		$details = array();
+		$originRec = doc_Containers::getDocument($rec->originId)->rec();
+		
+		// Намираме всички непроизводствени действия от задачи
+		$aQuery = planning_TaskActions::getQuery();
+		$aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+		$aQuery->where("#taskState != 'rejected'");
+		$aQuery->where("#type != 'product'");
+		$aQuery->where("#jobId = {$originRec->id}");
+		
+		// Сумираме ги по тип и ид на продукт
+		$aQuery->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$aQuery->groupBy("productId,type");
+		
+		// Събираме ги в масив
+		while($aRec = $aQuery->fetch()){
+			$obj = new stdClass();
+			$obj->productId = $aRec->productId;
+			$obj->type = ($aRec->type == 'input') ? 'input' : 'pop';
+			$obj->quantityInPack = 1;
+			$obj->quantityFromTasks = $aRec->sumQuantity;
+			$obj->packagingId = cat_Products::fetchField($obj->productId, 'measureId');
+			$obj->measureId = $obj->packagingId;
+			
+			$index = $obj->productId . "|" . $obj->type;
+			$details[$index] = $obj;
+		}
+		
+		// Връщаме намерените детайли
+		return $details;
 	}
 	
 	
@@ -292,7 +351,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param stdClass $rec   - запис
 	 * @return array $details - масив с дефолтните детайли
 	 */
-	protected function getDefaultDetails($rec)
+	protected function getDefaultDetailsFromBom($rec)
 	{
 		$details = array();
 		$originRec = doc_Containers::getDocument($rec->originId)->rec();
@@ -315,7 +374,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
 		
 		// За всеки ресурс
-		foreach($bomInfo2['resources'] as $index =>$resource){
+		foreach($bomInfo2['resources'] as $index => $resource){
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
@@ -325,7 +384,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$dRec->quantityInPack = $resource->quantityInPack;
 			
 			// Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
-			$dRec->quantity       = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+			$dRec->quantityFromBom       = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
 			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
@@ -335,7 +394,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			foreach ($convertableProducts as $prodId => $prodName){
 				$quantities[$prodId] = store_Products::fetchField("#storeId = {$rec->inputStoreId} AND #productId = {$prodId}", 'quantity');
 			}
-				
+		
 			// Ако има такива
 			if(count($quantities)){
 			
@@ -349,15 +408,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 				$dRec->quantityInPack = 1;
 				$dRec->measureId = $dRec->packagingId;
 				
-				$quantity = $dRec->quantity;
-				if($convAmount = cat_UoM::convertValue($dRec->quantity, $pInfo->productRec->measureId, $dRec->measureId)){
+				$quantity = $dRec->quantityFromBom;
+				if($convAmount = cat_UoM::convertValue($dRec->quantityFromBom, $pInfo->productRec->measureId, $dRec->measureId)){
 					$quantity = $convAmount;
 				}
 					
-				$dRec->quantity = $quantity;
+				$dRec->quantityFromBom = $quantity;
 			}
 			
-			$details[] = $dRec;
+			$index = $dRec->productId . "|" . $dRec->type;
+			$details[$index] = $dRec;
 		}
 		
 		// Връщаме генерираните детайли

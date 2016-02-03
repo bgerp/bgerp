@@ -418,8 +418,6 @@ class acc_AllocatedExpenses extends core_Master
     	$products = array();
     	if(count($shipped)){
     		foreach ($shipped as $p){
-    			if($p->amount == 0) continue;
-    			
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
     												     'name'      => cat_Products::getTitleById($p->productId), 
     													 'quantity'  => $p->quantity,

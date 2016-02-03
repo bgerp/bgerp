@@ -67,6 +67,20 @@ class fileman_Get extends core_Manager {
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        
+        return ht::createLink(get_called_class(), array());
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     static function on_ValidateFormDownloadFromUrl(&$form)
@@ -186,6 +200,10 @@ class fileman_Get extends core_Manager {
                 $data = @file_get_contents($rec->url);
             }
             
+            $fh = NULL;
+            
+            $fRec = new stdClass();
+            
             if($data === FALSE) {
                 $err[] = "Грешка при свалането на файла.";
             } else {
@@ -274,8 +292,10 @@ class fileman_Get extends core_Manager {
                         $add = $Buckets->getInfoAfterAddingFile($fh);
                             
                         if($rec->callback) {
-                            $name = fileman_Files::fetchByFh($fh, 'name');
-                            $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$name}') != true) self.close(); else   self.focus();  </script>");
+                            if (isset($fh)) {
+                                $fRec = fileman_Files::fetchByFh($fh);
+                            }
+                            $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$fRec->name}') != true) self.close(); else   self.focus();  </script>");
                         }
                     }
                 }
@@ -290,11 +310,15 @@ class fileman_Get extends core_Manager {
                 
                 foreach($err as $e) {
                     $add->append("<li>" . tr($e), 'ERR');
+                    fileman_Files::logWarning('Грешка при добавяне на файла от URL: ' . $е);
                 }
             } else {
                 $rec->url = '';
+                
+                if (isset($fh)) {
+                    fileman_Files::logWrite('Добавен файл от линк', $fRec->id);
+                }
             }
-
         }
         
         $form->addAttr('url', array('style' => 'width:100%;'));
