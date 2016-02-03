@@ -189,6 +189,8 @@ class cat_ProductTplCache extends core_Master
 		// намираме това което е най-близо до датата за която проверяваме, връщаме намерения кеш, ако
 		// върнатата дата е последната модификация на артикула за която няма кеш връща се NULL, което ще
 		// доведе до кеширане на изгледа
+		krsort($res);
+		
 		foreach ($res as $cTime => $cache){
 			if($cTime <= $time) return $cache;
 		}

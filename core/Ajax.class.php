@@ -112,14 +112,18 @@ class core_Ajax extends core_Mvc
                 
                 reportException($e);
                 
+                $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
+                
                 // Записваме в лога
-                self::logErr("Грешка при вземане на данни за URL", NULL, self::$logKeepDays);
+                self::logWarning($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
                     
+                    $errMsg = "|Грешка при вземане на данни от|* {$url} - {$e->getMessage()}";
+                    
                     // Показваме статус съобщение
-                    core_Statuses::newStatus("|Грешка при вземане на данни за|* {$url} - {$e->getMessage()}", 'warning');
+                    core_Statuses::newStatus($errMsg, 'warning');
                 }
                 
                 continue;
@@ -130,13 +134,18 @@ class core_Ajax extends core_Mvc
                 
                 // Записваме в лога резултата
                 $resStr = core_Type::mixedToString($resArr);
-                self::logWarning("Некоректен резултат за URL", NULL, self::$logKeepDays);
+                
+                $errMsg = "Некоректен резултат от {$url} - {$resStr}";
+                
+                self::logWarning($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
                     
+                    $errMsg = "|Некоректен резултат от|* {$url} - {$resStr}";
+                    
                     // Показваме статус съобщение
-                    core_Statuses::newStatus("|Некоректен резултат за|* {$url}", 'warning');
+                    core_Statuses::newStatus($errMsg, 'warning');
                 }
                  
                 continue;
@@ -171,14 +180,18 @@ class core_Ajax extends core_Mvc
             
             // Не би трябвало да се стига до тук
             
+            $msg = "Повтарящо се име за абониране - {$name}";
+            
             // Добавяме грешката
-            self::logErr("Повтарящо се име за абониране", NULL, self::$logKeepDays);
+            self::logWarning($msg, NULL, self::$logKeepDays);
             
             // Ако сме в дебъг режим и сме логнат
             if (isDebug() && haveRole('user')) {
                 
+                $msg = "|Повтарящо се име за абониране|* - {$name}";
+                
                 // Показваме статус съобщение
-                core_Statuses::newStatus("|Повтарящо се име за абониране|* - {$name}", 'warning');
+                core_Statuses::newStatus($msg, 'warning');
             }
             
 //            // Докато генерираме уникално име

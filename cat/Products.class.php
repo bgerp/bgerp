@@ -486,6 +486,11 @@ class cat_Products extends embed_Manager {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
 			    }
     		}
+    		
+    		// При добавянето на код на частен артикул слагаме предупреждение
+    		if(isset($rec->id) && $rec->isPublic == 'no' AND !empty($rec->code)){
+    			$form->setWarning('code', 'При добавянето на код на частен артикул, той ще стане публичен');
+    		}
         }
     }
     

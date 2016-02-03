@@ -89,14 +89,20 @@ class help_Log extends core_Master
      */
     static function getDisplayMode($infoId, $userId = NULL, $increasSeeCnt=TRUE)
     {
+
         // Ако нямаме потребител, вземаме текущия
-        if(!$userId) {
+        if(!isset($userId)) { 
             $userId = core_Users::getCurrent();
         }
+
+        if(!$userId) {
+            return 'none';
+        }
+
         $nowDate = dt::now();
         $conf = core_Packs::getConfig('help');
 
-        $rec = help_Log::fetch("#infoId = {$infoId} && #userId = {$userId}");
+        $rec = help_Log::fetch("#infoId = {$infoId} AND (#userId = {$userId})");
         if(!$rec) {
             $rec = new stdClass();
             $rec->infoId = $infoId;
@@ -123,7 +129,7 @@ class help_Log extends core_Master
                 return 'open';
         }
         
-        /**
+        /*
          * Ако и времето и брояча са под определените лимити за показване в затворено състояние, то
          * връщаме 'closed'
          */

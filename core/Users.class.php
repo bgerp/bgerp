@@ -1421,6 +1421,39 @@ class core_Users extends core_Manager
     
     
     /**
+     * Връща подчинените на потребителя
+     * 
+     * @param integer $userId
+     * 
+     * @return array
+     */
+    public static function getSubordinates($userId)
+    {
+        static $subordinatesArr = array();
+        
+        if (self::isContractor($userId)) return array();
+        
+        if (!isset($subordinatesArr[$userId])) {
+            $subordinatesArr[$userId] = keylist::toArray(self::getTeammates($userId));
+            
+            if (!haveRole('ceo', $userId)) {
+                $managers  = core_Users::getByRole('manager');
+                $subordinatesArr[$userId] = array_diff($subordinatesArr[$userId], $managers);
+            }
+            if (!haveRole('manager', $userId)) {
+                $powerUsers  = core_Users::getByRole('powerUser');
+                $subordinatesArr[$userId] = array_diff($subordinatesArr[$userId], $powerUsers);
+            }
+            
+            $ceos = core_Users::getByRole('ceo');
+            $subordinatesArr[$userId] = array_diff($subordinatesArr[$userId], $ceos);
+        }
+        
+        return $subordinatesArr[$userId];
+    }
+    
+    
+    /**
      * Проверява дали 2 потребителя са от един и същи екип
      * 
      * @param integer $user1 - id на първия потребител

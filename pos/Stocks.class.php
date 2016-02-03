@@ -103,7 +103,7 @@ class pos_Stocks extends core_Manager {
     	$productsClsId = cat_Products::getClassId();
     	
     	// Махаме записите за складовете, които не участват в ПОС-а
-    	if(count($all)){
+    	if(is_array($all)){
     		foreach ($all as $index => $bRec){
     			if(!in_array($bRec->storeId, $usedStores) || $bRec->classId != $productsClsId){
     				unset($all[$index]);

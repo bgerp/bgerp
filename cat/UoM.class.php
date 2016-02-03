@@ -145,7 +145,7 @@ class cat_UoM extends core_Manager
     public static function round($quantity, $productId)
     {
     	// Коя е основната мярка на артикула
-    	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    	$uomId = cat_Products::fetchField($productId, 'measureId');
     	
     	// Имали зададено закръгляне
     	$round = static::fetchField($uomId, 'round');

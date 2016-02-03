@@ -66,8 +66,12 @@ class fileman_Upload extends core_Manager {
             // Обхождаме качените файлове
             foreach ((array)$_FILES as $inputName => $inputArr) {
                 
+                $fh = NULL;
+                
                 // Масив с грешките
                 $err = array();
+                
+                $fRec = new stdClass();
                 
                 foreach ((array)$inputArr['name'] as $id => $inpName) {
                     
@@ -92,8 +96,10 @@ class fileman_Upload extends core_Manager {
                                 $add->append($Buckets->getInfoAfterAddingFile($fh), 'ADD');
                                 
                                 if($callback && !$_FILES[$inputName]['error'][$id]) {
-                                    $name = $this->Files->fetchByFh($fh, 'name');
-                                    $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>", 'ADD');
+                                    if (isset($fh)) {
+                                        $fRec = fileman_Files::fetchByFh($fh);
+                                    }
+                                    $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$fRec->name}') != true) self.close(); else self.focus();</script>", 'ADD');
                                 }
                             }
                         } else {
@@ -120,8 +126,13 @@ class fileman_Upload extends core_Manager {
                         
                         foreach($err as $e) {
                             $error->append("<li>" . tr($e) . "</li>", 'ERR');
+                            fileman_Files::logWarning('Грешка при добавяне на файл');
                         }
                         $add->append($error, 'ERR');
+                    } else {
+                        if (isset($fh)) {
+                            fileman_Files::logWrite('Качен файл', $fRec->id);
+                        }
                     }
                 }
             }
@@ -139,6 +150,20 @@ class fileman_Upload extends core_Manager {
         $tpl->prepend($add);
         
         return $this->renderDialog($tpl);
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        
+        return ht::createLink(get_called_class(), array());
     }
     
     

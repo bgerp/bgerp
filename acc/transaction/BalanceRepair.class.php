@@ -89,6 +89,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 		$bQuery = acc_BalanceDetails::getQuery();
 		acc_BalanceDetails::filterQuery($bQuery, $this->balanceRec->id, $sysId);
 		$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+		//$bQuery->where("#ent1Id = 10405 AND #ent2Id = 10509");
 		
 		$Items = cls::get('acc_Items');
 		$itemsArr = $Items->getCachedItems();
@@ -103,9 +104,10 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 			foreach (array('Quantity', 'Amount') as $fld){
 				if(!empty($dRec->{"bl{$fld}"})){
 					$var = &${"bl{$fld}"};
-					$var = round($bRec->{"debit{$fld}"} - $bRec->{"credit{$fld}"}, 8);
+					$diff = $bRec->{"bl{$fld}"};
 						
-					if($var != 0 && $var >= -1 * $dRec->{"bl{$fld}"} && $var <= $dRec->{"bl{$fld}"}){
+					if($diff != 0 && $diff >= -1 * $dRec->{"bl{$fld}"} && $diff <= $dRec->{"bl{$fld}"}){
+						$var = $diff;
 						$continue = FALSE;
 					}
 				}

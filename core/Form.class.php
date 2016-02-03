@@ -617,8 +617,8 @@ class core_Form extends core_FieldSet
             
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
-                if((isset($field->options) && count($field->options) == 1) || (isset($field->type->options) && count($field->type->options))) {
-                    if($field->hideIfOne) { 
+                if((isset($field->options) && count($field->options) == 1) || (isset($field->type->options) && count($field->type->options) == 1)) {
+                    if($field->hideIfOne) {
                         unset($fields[$name]);
                         $this->setField($name, 'input=hidden');
                     }
@@ -1263,33 +1263,36 @@ class core_Form extends core_FieldSet
     { 
         $res = array();
         $group = '';
-        foreach($fields as $name => $caption1) {
-            if(is_object($caption1)) {
-                $caption = $caption1->caption ? $caption1->caption : $name;
-            } else {
-                $caption = $caption1;
-            }
-            if(!isset($fieldset->fields[$name])) continue;
-            if($fieldset->fields[$name]->{$mode} == 'none') continue;
-            if($mode == 'single' && !isset($row->{$name})) continue;
-          
-            if($fieldset->fields[$name]->autohide == 'any') continue;
-            if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
-                if(!$rec->{$name}) continue;
-                $type = $fieldset->fields[$name]->type;
-                if(isset($type->options) && is_array($type->options) && key( $type->options) == $rec->{$name}) continue;
-            }
-
-            if(strpos($caption, '->')) {
-                list($group, $caption) = explode('->', $caption);
-            }
-
-            $res[$group] = TRUE;
-            if(strpos($group, '||')) {
-                list($bg, $en) = explode('||', $group);
-                $res[$bg] = TRUE;
-                $res[$bg] = TRUE;
-            }
+        
+        if(is_array($fields)){
+			foreach($fields as $name => $caption1) {
+        		if(is_object($caption1)) {
+        			$caption = $caption1->caption ? $caption1->caption : $name;
+        		} else {
+        			$caption = $caption1;
+        		}
+        		if(!isset($fieldset->fields[$name])) continue;
+        		if($fieldset->fields[$name]->{$mode} == 'none') continue;
+        		if($mode == 'single' && !isset($row->{$name})) continue;
+        	
+        		if($fieldset->fields[$name]->autohide == 'any') continue;
+        		if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
+        			if(!$rec->{$name}) continue;
+        			$type = $fieldset->fields[$name]->type;
+        			if(isset($type->options) && is_array($type->options) && key( $type->options) == $rec->{$name}) continue;
+        		}
+        	
+        		if(strpos($caption, '->')) {
+        			list($group, $caption) = explode('->', $caption);
+        		}
+        	
+        		$res[$group] = TRUE;
+        		if(strpos($group, '||')) {
+        			list($bg, $en) = explode('||', $group);
+        			$res[$bg] = TRUE;
+        			$res[$bg] = TRUE;
+        		}
+        	}
         }
  
         return $res;

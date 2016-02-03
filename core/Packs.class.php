@@ -879,7 +879,10 @@ class core_Packs extends core_Manager
     function act_systemUpdate()
     {
 		requireRole('admin');
-		self::systemUpdate();
+		
+		self::logRead('Обновяване на системата');
+		
+		return self::systemUpdate();
     }
 
     
@@ -891,7 +894,7 @@ class core_Packs extends core_Manager
 		$SetupKey = setupKey();
 		//$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
 		
-		redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
+		return new Redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
 	}    
 
 

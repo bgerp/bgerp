@@ -281,6 +281,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$query = planning_drivers_ProductionTaskDetails::getQuery();
     	$query->where("#taskId = {$rec->taskId}");
     	$query->where("#type = '{$rec->type}'");
+    	$query->where("#taskProductId = {$taskProductId}");
     	$query->where("#state != 'rejected'");
     	$query->show('quantity');
     	
