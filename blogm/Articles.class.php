@@ -797,7 +797,8 @@ class blogm_Articles extends core_Master {
  		$layout->append(blogm_Categories::renderCategories($data), 'CATEGORIES');
 		
   		
-        if($data->workshop) { 
+        if($data->workshop) {
+            $data->workshop['ret_url'] = TRUE;
             $layout->append(ht::createBtn('Работилница', $data->workshop, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'WORKSHOP');
         }
         
