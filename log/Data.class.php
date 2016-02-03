@@ -450,7 +450,7 @@ class log_Data extends core_Manager
                     try {
                         $link = $clsInst->getLinkForObject($objectId);
                     } catch (Exception $e) {
-//                         reportException($e);
+                        reportException($e);
                     }
                 }
             }
