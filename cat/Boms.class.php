@@ -154,7 +154,7 @@ class cat_Boms extends core_Master
      */
     const PRICE_COEFFICIENT = 0.5;
     
-    public $preventCache = TRUE;
+    
     /**
      * Описание на модела
      */
