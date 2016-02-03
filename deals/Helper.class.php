@@ -548,4 +548,27 @@ abstract class deals_Helper
 		
 		return $combined;
 	}
+	
+	
+	/**
+	 * Връща хинт с количеството в склада
+	 * 
+	 * @param int $productId
+	 * @param int $storeId
+	 * @return string $hint
+	 */
+	public static function getQuantityHint($productId, $storeId)
+	{
+		$hint = '';
+		$quantityInStore = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
+		
+		if(is_null($quantityInStore)){
+			$hint = 'Налично количество в склада: н.д.';
+		} elseif($quantityInStore <= 0) {
+			$quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
+			$hint = "Налично количество в склада|*: $quantityInStore";
+		}
+		
+		return $hint;
+	}
 }

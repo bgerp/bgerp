@@ -209,25 +209,33 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
     	parent::prepareInvoiceForm($mvc, $data);
     	
     	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
-    		$data->form->setField($fld, 'input=hidden');
+    		$form->setField($fld, 'input=hidden');
     	}
     	
     	if(!haveRole('ceo,acc')){
-    		$data->form->setField('number', 'input=none');
+    		$form->setField('number', 'input=none');
     	}
     	 
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$data->form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
     		}
     	}
     	
     	if(empty($data->flag)){
     		if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
-    			$data->form->setDefault('accountId', $ownAcc);
+    			$form->setDefault('accountId', $ownAcc);
+    		}
+    	}
+    	
+    	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
+    		
+    		if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    			$form->setField('vatReason', 'input,mandatory');
     		}
     	}
     }
@@ -290,7 +298,14 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
 
     	if($fields['-single']){
-    
+    		if(empty($rec->vatReason)){
+    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
+    				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
+    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');
+    			}
+    		}
+    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);

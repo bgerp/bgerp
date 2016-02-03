@@ -198,7 +198,8 @@ class acc_Balances extends core_Master
         		$periods[$key] = acc_Periods::fetchField($bRec->periodId, 'title');
         	}
         	
-        	$periodRow = ht::createSmartSelect($periods, 'periodId', Request::get('id', 'int'), array('class' => 'filterBalanceId'));//$searchForm->renderHtml();
+        	$value = toUrl(array($mvc, 'single', $data->rec->id));
+        	$periodRow = ht::createSmartSelect($periods, 'periodId', $value, array('class' => 'filterBalanceId'));
         } else {
         	$periodRow = $data->row->periodId;
         }

@@ -702,7 +702,7 @@ class email_Incomings extends core_Master
             
             self::calcAllToAndCc($rec);
             
-            $errEmailInNameStr = tr('Имейлът в името не съвпада с оригиналния|*.');
+            $errEmailInNameStr = 'Имейлът в името не съвпада с оригиналния|*.';
             
             // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
             $row->AllTo = self::getVerbalEmail($rec->AllTo);
@@ -739,7 +739,7 @@ class email_Incomings extends core_Master
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
                 if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'Имейлът не съвпада с този в|* Return-Path.', 'warning');
                 }
             }
             
@@ -748,7 +748,7 @@ class email_Incomings extends core_Master
                 
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на фирмата|*.', 'error');
                 }
             }
         }
@@ -834,22 +834,9 @@ class email_Incomings extends core_Master
      */
     protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
-        if ($type == 'error') {
-            $img = 'img/16/error-red.png';
-        } elseif ($type == 'warning') {
-            $img = 'img/16/error.png';
-        } else {
-            $img = 'img/16/info-16.png';
-        }
+        $hint = 'Възможен проблем|*' . '! ' . $errStr;
         
-        $img = sbf($img, '');
-        
-        $errTitle = tr('Възможен проблем' . '! ') . $errStr;
-        $err = ht::createElement('span', array('style' => 'background:url("' . $img . '"); 
-        													width: 16px; height: 16px; display: inline-block;float: left; margin-right: 2px; top: 1px; position: relative;', 
-												'title' => $errTitle), '', TRUE);
-        
-        return $err . $emailStr;
+        return ht::createHint($emailStr, $hint, $type);
     }
     
     

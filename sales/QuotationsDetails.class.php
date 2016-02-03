@@ -574,6 +574,8 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Шаблон за опционалните продукти
     	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
+    	
+    	
     	$oTpl = getTplFromFile($optionalTemplateFile);
     	$oTpl->removeBlock("totalPlace");
     	$oCount = $dCount = 1;
@@ -689,6 +691,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		if(isset($data->addOptionalBtn)){
     			$oTpl->append($data->addOptionalBtn, 'ADD_BTN');
     		}
+    		$oTpl->removePlaces();
+    		$oTpl->removeBlocks();
     		$tpl->append($oTpl, 'OPTIONAL');
     	}
     	
@@ -832,7 +836,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		} else {
     			
     			// Ако няма извлича се цената от спецификацията
-    			$price = cat_Products::getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, cat_Products::getClassId(), NULL, $dRec->quantity, $rec->date)->price;
+    			$Policy = cls::get('price_ListToCustomers');
+    			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, cat_Products::getClassId(), NULL, $dRec->quantity, $rec->date)->price;
     			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
     		}
     		

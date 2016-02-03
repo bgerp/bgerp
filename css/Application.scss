@@ -3075,6 +3075,18 @@ fieldset.sharing-history {
 	}
 }
 
+.planning_drivers_ProductionTaskDetails .listRowsDetail {
+	width: 100% !important;
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	_overflow: auto !important;
+	margin-bottom: 0;
+	display: block;
+	td {
+		max-width: 500px !important;
+	}
+}
+
 .document .scrolling-holder {
     margin-bottom: 0;
 }

@@ -447,7 +447,11 @@ class log_Data extends core_Manager
                 $clsInst = cls::get($className);
                 
                 if (method_exists($clsInst, 'getLinkForObject')) {
-                    $link = $clsInst->getLinkForObject($objectId);
+                    try {
+                        $link = $clsInst->getLinkForObject($objectId);
+                    } catch (Exception $e) {
+                        reportException($e);
+                    }
                 }
             }
             

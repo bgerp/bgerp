@@ -622,6 +622,8 @@ class support_Issues extends core_Master
         // Премахваме повтарящите се
         $components = array_unique($components);
         
+        asort($components);
+        
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
         

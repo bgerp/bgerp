@@ -182,11 +182,10 @@ class store_TransfersDetails extends doc_Detail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$quantityInStore = store_Products::fetchField("#productId = {$rec->newProductId} AND #storeId = {$data->masterData->rec->fromStore}", 'quantity');
-    
-    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
-    		if($diff < 0){
-    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$row->packQuantity}</span>";
+    		
+    		$warning = deals_Helper::getQuantityHint($rec->newProductId, $data->masterData->rec->fromStore);
+    		if(strlen($warning)){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     	}
     }
