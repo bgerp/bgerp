@@ -369,22 +369,6 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Ако има сделка към която е заданието, инвалидираме и кеша
-    	if(isset($rec->saleId) && $rec->state != 'draft'){
-    		sales_Sales::touchRec($rec->saleId);
-    	}
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
