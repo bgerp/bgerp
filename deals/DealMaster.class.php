@@ -50,6 +50,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Не искаме документа да се кеширва в нишката
+	 */
+	public $preventCache = TRUE;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc

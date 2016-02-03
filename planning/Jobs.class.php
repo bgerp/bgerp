@@ -168,12 +168,6 @@ class planning_Jobs extends core_Master
     								    'wakeup'   => 'Събуждане');
     
     
-    /**
-     * Не искаме документа да се кеширва в нишката
-     */
-    public $preventCache = TRUE;
-    
-    
 	/**
      * Описание на модела (таблицата)
      */
