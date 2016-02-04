@@ -685,31 +685,6 @@ class tasks_Tasks extends embed_Manager
     	}
     }
     
-    
-    /**
-     * Връща позволените за избор драйвери според класа и потребителя
-     *
-     * @param mixed $userId - ид на потребител
-     * @return array $interfaces - възможните за избор опции на класове
-     */
-    public static function getAvailableDriverOptions($userId = NULL)
-    {
-    	$me = get_called_class();
-    	$options = parent::getAvailableDriverOptions($userId);
-    	foreach ($options as $id => $title){
-    		if(!cls::load($id, TRUE)) continue;
-    		
-    		// Ако драйвера не може да бъде добавен към ибзрания клас, махаме го
-    		$Driver = cls::get($id);
-    		$availableClasses = arr::make($Driver->availableClasses, TRUE);
-    		if(!isset($availableClasses[$me])){
-    			unset($options[$id]);
-    		}
-    	}
-    	
-    	return $options;
-    }
-    
 
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед

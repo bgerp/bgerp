@@ -31,12 +31,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
-	 * От кои класове може да се избира драйвера
-	 */
-	public $availableClasses = 'planning_Tasks';
-	
-	
-	/**
 	 * Какво да е дефолтното име на задача от драйвера
 	 */
 	protected $defaultTitle = 'Задача за производство';
