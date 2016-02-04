@@ -2093,14 +2093,14 @@ class cat_Products extends embed_Manager {
     	if(!count($defaultTasks)){
     		
     		// Намираме последната активна рецепта
-    		$bomId = self::getLastActiveBom($rec, 'production');
-    		if(!$bomId){
-    			$bomId = self::getLastActiveBom($rec, 'sales');
+    		$bomRec = self::getLastActiveBom($rec, 'production');
+    		if(!$bomRec){
+    			$bomRec = self::getLastActiveBom($rec, 'sales');
     		}
     		
     		// Ако има опитваме се да намерим задачите за производството по нейните етапи
-    		if($bomId){
-    			$defaultTasks = cat_Boms::getTasksFromBom($bomId, $quantity);
+    		if($bomRec){
+    			$defaultTasks = cat_Boms::getTasksFromBom($bomRec, $quantity);
     		}
     	}
     	
