@@ -1644,7 +1644,7 @@ class cat_Products extends embed_Manager {
     public function getDefaultCost($id)
     {
     	// За артикула, това е цената по себестойност
-    	return $this->getSelfValue($id);
+    	return self::getSelfValue($id);
     }
     
     
