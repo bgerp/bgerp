@@ -931,7 +931,7 @@ class pos_Receipts extends core_Master {
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, FALSE, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
