@@ -137,7 +137,7 @@ class core_Ajax extends core_Mvc
                 
                 $errMsg = "Некоректен резултат от {$url} - {$resStr}";
                 
-                self::logWarning($errMsg, NULL, self::$logKeepDays);
+                self::logErr($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
