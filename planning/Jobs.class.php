@@ -413,6 +413,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		if(isset($rec->deliveryPlace)){
+    			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
+    		}
+    		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
     			$row->sBomId = cat_Boms::getLink($sBomId, 0);
     		}

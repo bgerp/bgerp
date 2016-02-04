@@ -113,40 +113,48 @@
 	  	   </th>
 	 </tr>
 	 <tr>
-	       <td>
-	            <table>
-	                <!--ET_BEGIN saleId-->
-                    <tr>
-                        <td class='quiet' style='text-align: right'>№:</td>
-                        <td>[#saleId#]</td>
-                    </tr>
-                     <!--ET_END saleId-->
-                    <tr>
-                        <td colspan="2"><b>[#deliveryTermId#]</b> [#deliveryPlace#]</td>
-                    </tr>
-                    <!--ET_BEGIN dealer-->
-                    <tr>
-                        <td class='quiet' style='text-align: right'>|Търговец|*</td>
-                        <td>[#dealer#]</td>
-                    </tr>
-                    <!--ET_END dealer-->
-                </table>	          
-	       </td>
-	       <td colspan ='2'> 
-		       <table>
-	               <!--ET_BEGIN deliveryDate-->
-	               <tr>
-	                   <td class='quiet' style='text-align: right'>|Срок|*:</td>
-	                   <td>[#deliveryDate#]</td>
-	               </tr>
-	               <!--ET_END deliveryDate-->
-	           </table>
+	    <td colspan="3">
+		     <table>
+			    <!--ET_BEGIN saleId-->
+			    <tr>
+				   <td class='quiet'>|Продажба|*</td>
+				   <td>[#saleId#]</td>
+				</tr>
+			    <!--ET_END saleId-->
+			       	
+			    <!--ET_BEGIN dealer-->
+			    <tr>
+				    <td class='quiet'>|Търговец|*</td>
+				    <td>[#dealer#]</td>
+				</tr>
+			    <!--ET_END dealer-->
+			       	
+			    <!--ET_BEGIN deliveryTermId-->
+			    <tr>
+				   <td class='quiet'>|Условие на доставка|*</td>
+				   <td>[#deliveryTermId#]</td>
+				</tr>
+			    <!--ET_END deliveryTermId-->
+			       	
+			    <!--ET_BEGIN deliveryPlace-->
+			    <tr>
+				    <td class='quiet'>|Място на доставка|*</td>
+				    <td>[#deliveryPlace#]</td>
+				</tr>
+			    <!--ET_END deliveryPlace-->
+			    <!--ET_BEGIN deliveryDate-->
+			    <tr>
+				    <td class='quiet'>|Срок|*</td>
+				    <td>[#deliveryDate#]</td>
+				</tr>
+			    <!--ET_END deliveryDate-->
+		     </table>         
 	       </td>
         </tr>
          <!--ET_END SALE_INFO-->
     </table>
      <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-          <b>|Задачи към заданието|*</b>
+          <b>|Задачи|*</b>
      </div>
      <div class="clearfix21 portal planning" style='border-top: none'>
             [#Tasks#]
