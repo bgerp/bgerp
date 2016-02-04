@@ -260,12 +260,13 @@ class csv_Lib
 	    			Mode::pop('text');
 	    				
 	    		} elseif($type instanceof type_Double) {
-	    				
+
+	    		    Mode::push('text', 'plain');
 	    			$type->params['decPoint'] = $conf->CSV_DELIMITER_DECIMAL_SING;
-	    			$type->params['thousandsSep'] = '';
-     
-                    Mode::push('text', 'plain');
-                    //$value = $this->mvc->getVerbal($rec, $name);
+	    			$type->params['thousandsSep'] = " ";
+	    			$type->params['decimals'] = 2;
+
+                    //$value = $rec->{$name};
                     $value = $type->toVerbal($rec->{$name});
 
                     Mode::pop('text');

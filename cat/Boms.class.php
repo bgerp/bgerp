@@ -337,6 +337,13 @@ class cat_Boms extends core_Master
     			core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
     		}
     	}
+    	
+    	//  При активацията на рецептата променяме датата на модифициране на артикула
+    	$type = (isset($rec->type)) ? $rec->type : $mvc->fetchField($rec->id, 'type');
+    	if($type == 'sales' && $rec->state != 'draft'){
+    		$productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
+    		cat_Products::touchRec($productId);
+    	}
     }
     
     
@@ -1330,13 +1337,13 @@ class cat_Boms extends core_Master
      * 
      * @param mixed $id - ид на рецепта
      * @param double $quantity - количество
-     * @return array  - масив със задачи за производство за генерирането на всеки етап
+     * @return array  $tasks - масив със задачи за производство за генерирането на всеки етап
      */
     public static function getTasksFromBom($id, $quantity = 1)
     {
     	expect($rec = self::fetchRec($id));
     	$tasks = array();
-    	$pName = cat_Products::getVerbal($rec->productId, 'name');
+    	$pName = cat_Products::getTitleById($rec->productId, FALSE);
     	
     	// За основния артикул подготвяме задача
     	// В която самия той е за произвеждане
@@ -1392,7 +1399,7 @@ class cat_Boms extends core_Master
     		
     		// Подготвяме задачата за етапа, с него за производим
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
-    							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
+    							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
     							 'quantity' => $quantityP,
     							 'products' => array(
 		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => @($quantityP / $quantityP), 'quantityInPack' => $dRec->quantityInPack)),

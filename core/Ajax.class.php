@@ -132,12 +132,20 @@ class core_Ajax extends core_Mvc
             // Ако няма масив или масива не е масива
             if (!is_array($resArr)) {
                 
+                if (is_object($resArr) && ($resArr instanceof core_Redirect)) {
+                    // Пушваме ajax_mode, за да може функцията да върне резултат по AJAX, вместо директно да редиректне
+                    Request::push(array('ajax_mode' => $ajaxMode));
+                    $resArr = $resArr->getContent();
+                }
+            }
+            
+            if (!is_array($resArr)) {
                 // Записваме в лога резултата
                 $resStr = core_Type::mixedToString($resArr);
                 
                 $errMsg = "Некоректен резултат от {$url} - {$resStr}";
                 
-                self::logWarning($errMsg, NULL, self::$logKeepDays);
+                self::logErr($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {

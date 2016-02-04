@@ -15,7 +15,7 @@ defIfNot('CSV_ENCLOSURE', '"');
 /**
  * Десетичен знак
  */
-defIfNot('CSV_DELIMITER_DECIMAL_SING', '.');
+defIfNot('CSV_DELIMITER_DECIMAL_SING', ',');
 
 
 /**
