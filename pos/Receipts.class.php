@@ -1042,7 +1042,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$value = $rec->total - $rec->paid;
-    	$value = ($value >= 0) ? $value : NULL;
+    	$value = ($value > 0) ? $value : NULL;
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => tr('Въведи платена сума'))) . "<br />", 'INPUT_PAYMENT');
     	
     	// Показваме всички активни методи за плащания
