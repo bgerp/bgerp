@@ -133,17 +133,9 @@ class core_Ajax extends core_Mvc
             if (!is_array($resArr)) {
                 
                 if (is_object($resArr) && ($resArr instanceof core_Redirect)) {
-                    
-                    $redirectArr = $resArr->getArray('_REDIRECT_');
-                    
-                    if ($redirectArr[0]) {
-                    
-                        $msgArr = Mode::get('redirectMsg');
-                        
-                        // Пушваме ajax_mode, за да може функцията да върне резултат по AJAX, вместо директно да редиректне
-                        Request::push(array('ajax_mode' => $ajaxMode));
-                        $resArr = redirect($redirectArr[0], FALSE, $msgArr['msg'], $msgArr['type']);
-                    }
+                    // Пушваме ajax_mode, за да може функцията да върне резултат по AJAX, вместо директно да редиректне
+                    Request::push(array('ajax_mode' => $ajaxMode));
+                    $resArr = $resArr->getContent();
                 }
             }
             
