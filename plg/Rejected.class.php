@@ -31,11 +31,11 @@ class plg_Rejected extends core_Plugin
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
 
-        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull,forceField");
+        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,single=none,notNull,forceField");
         
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
 
-        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Последно модифициране,input=none,column=none,forceField');
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,column=none,forceField');
 
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
     }
