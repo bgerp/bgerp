@@ -553,9 +553,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 
         foreach($this->innerState->recs as $id => $rec) {
             $dataRecs[] = $this->getVerbal($rec);
-            //$Double = cls::get('type_Double');
-            //$Double->params['decimals'] = 2;
-            
+
             foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
                 if(!is_null($rec->$fld)){
                     $dataRecs[$id]->$fld = $rec->$fld;

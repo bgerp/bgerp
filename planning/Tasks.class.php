@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задачи за производство
@@ -66,10 +66,9 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
-	 * Детайли
+	 * Клас обграждащ горния таб
 	 */
-	public $details = 'tasks_TaskConditions';
-	
+	public $tabTopClass = 'portal planning';
 	
 	
 	/**
@@ -89,7 +88,7 @@ class planning_Tasks extends tasks_Tasks
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
 		
-				// Ако не може да бъде доабвена задача не показваме реда
+				// Ако не може да бъде добавена задача не показваме реда
 				if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
 		
 				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driver, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);

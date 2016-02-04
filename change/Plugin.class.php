@@ -59,7 +59,7 @@ class change_Plugin extends core_Plugin
     /**
      * Добавя бутони за контиране или сторниране към единичния изглед на документа
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Ако има права за промяна
         if ($mvc->haveRightFor('changerec', $data->rec)) {
@@ -591,7 +591,7 @@ class change_Plugin extends core_Plugin
      * @param integer $id
      * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
-    function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
+    public static function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
         // URL' то за промяна
         $changeUrl = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
@@ -642,7 +642,7 @@ class change_Plugin extends core_Plugin
      * @param boolean $res
      * @param string $state
      */
-    function on_AfterCanChangeRec($mvc, &$res, $rec)
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
         $res = TRUE;
         
