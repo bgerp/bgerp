@@ -223,9 +223,11 @@ class email_Incomings extends core_Master
         $currentMinute = floor($timeStamp / 60);
         
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
-            if ($accRec->period === 0 || $accRec->period === '0') continue ;
-            
-            if ($accRec->period && (($currentMinute % $accRec->period) != 0)) continue;
+            if (Request::get('forced') != 'yes') {
+                if ($accRec->period === 0 || $accRec->period === '0') continue ;
+                
+                if ($accRec->period && (($currentMinute % $accRec->period) != 0)) continue;
+            }
             
             self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
