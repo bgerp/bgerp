@@ -337,6 +337,13 @@ class cat_Boms extends core_Master
     			core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
     		}
     	}
+    	
+    	//  При активацията на рецептата променяме датата на модифициране на артикула
+    	$type = (isset($rec->type)) ? $rec->type : $mvc->fetchField($rec->id, 'type');
+    	if($type == 'sales' && $rec->state != 'draft'){
+    		$productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
+    		cat_Products::touchRec($productId);
+    	}
     }
     
     

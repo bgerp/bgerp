@@ -185,7 +185,7 @@ class pos_Receipts extends core_Master {
     	// Записваме, че потребителя е разглеждал този списък
     	$this->logWrite("Отваряне на бележка в ПОС терминала", $id);
     	
-    	return new Redirect(array($this, 'terminal', $id));
+    	return Redirect(array($this, 'terminal', $id));
     }
     
     
@@ -931,7 +931,7 @@ class pos_Receipts extends core_Master {
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, FALSE, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
@@ -1042,7 +1042,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$value = $rec->total - $rec->paid;
-    	$value = ($value >= 0) ? $value : NULL;
+    	$value = ($value > 0) ? $value : NULL;
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => tr('Въведи платена сума'))) . "<br />", 'INPUT_PAYMENT');
     	
     	// Показваме всички активни методи за плащания
