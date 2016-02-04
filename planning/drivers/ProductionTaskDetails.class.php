@@ -77,7 +77,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,mandatory');
+    	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,mandatory,silent,refreshForm');
     	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък)', 'input=hidden,silent,smartCenter');
     	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter');
     	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
@@ -120,14 +120,17 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('fixedAsset', 'input');
     	}
     	
-    	$groupTitle = $data->singleTitle = ($rec->type == 'input') ? 'За влагане' : (($rec->type == 'waste') ? 'Отпадъци' : 'За произвеждане');
     	$productOptions = planning_drivers_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
-    	
-    	if(count($productOptions) != 1){
-    		$productOptions = array('x' => (object)array('group' => TRUE, 'title' => tr($groupTitle))) + $productOptions;
+    	$form->setOptions('taskProductId', $productOptions);
+    	if(count($productOptions) == 1 && $form->cmd != 'refresh'){
+    		$form->setDefault('taskProductId', key($productOptions));
     	}
     	
-    	$form->setOptions('taskProductId', array('' => '') + $productOptions);
+    	if(isset($rec->taskProductId)){
+    		$unit = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId');
+    		$unit = cat_UoM::getShortName($unit);
+    		$form->setField('quantity', "unit={$unit}");
+    	}
     }
     
 
