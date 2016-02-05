@@ -256,6 +256,10 @@ class cat_products_Params extends doc_Detail
             $block->append2Master();
         }
         
+        if(!$data->params){
+        	$tpl->append("<i>" . tr('Няма') . "</i>", 'NO_ROWS');
+        }
+        
         return $tpl;
     }
     

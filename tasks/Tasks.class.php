@@ -9,10 +9,10 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Задачи за производство
+ * @title     Клас баща на документите за задачи
  */
 class tasks_Tasks extends embed_Manager
 {
@@ -151,12 +151,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Клас обграждащ горния таб
-     */
-    public $tabTopClass = 'portal planning';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -196,7 +190,6 @@ class tasks_Tasks extends embed_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	
     	$red = new color_Object("#FF0000");
     	$blue = new color_Object("green");
     	$grey = new color_Object("#bbb");
@@ -244,7 +237,6 @@ class tasks_Tasks extends embed_Manager
     			$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     		}
     	}
-    	
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
@@ -472,7 +464,7 @@ class tasks_Tasks extends embed_Manager
      * @param stdClass $rec - записа който ще попълним
      * @return void
      */
-	private static function fillGapsInRec(&$rec)
+	protected static function fillGapsInRec(&$rec)
 	{
 		if(isset($rec->timeStart) && isset($rec->timeDuration) && empty($rec->timeEnd)){
 			
@@ -668,7 +660,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
+    public static function getHandle($id)
     {
     	$rec = static::fetch($id);
     	if(isset($rec->classId) && cls::load($rec->classId, TRUE)){
@@ -693,38 +685,15 @@ class tasks_Tasks extends embed_Manager
     	}
     }
     
-    
-    /**
-     * Връща позволените за избор драйвери според класа и потребителя
-     *
-     * @param mixed $userId - ид на потребител
-     * @return array $interfaces - възможните за избор опции на класове
-     */
-    public static function getAvailableDriverOptions($userId = NULL)
-    {
-    	$me = get_called_class();
-    	$options = parent::getAvailableDriverOptions($userId);
-    	foreach ($options as $id => $title){
-    		if(!cls::load($id, TRUE)) continue;
-    		
-    		// Ако драйвера не може да бъде добавен към ибзрания клас, махаме го
-    		$Driver = cls::get($id);
-    		$availableClasses = arr::make($Driver->availableClasses, TRUE);
-    		if(!isset($availableClasses[$me])){
-    			unset($options[$id]);
-    		}
-    	}
-    	
-    	return $options;
-    }
-    
 
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    function prepareSingle_($data)
+    public function prepareSingle_($data)
     {
     	$rec = $data->rec;
+    	
+    	// Ако има избран драйвер добавяме към детайлите на документа и тези от драйвера
     	if($Driver = $this->getDriver($rec->id)){
     		$data->details = array_merge($Driver->getDetails(), arr::make($this->details, TRUE));
     	}
