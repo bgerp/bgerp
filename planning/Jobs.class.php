@@ -123,7 +123,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, quantityProduced, folderId, state, createdOn, createdBy, modifiedOn,modifiedBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, quantity, quantityProduced, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -154,12 +154,6 @@ class planning_Jobs extends core_Master
      * Детайла, на модела
      */
     var $details = 'Tasks=tasks_Tasks';
-    
-
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'saleId';
     
     
     /**
