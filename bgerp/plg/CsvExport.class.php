@@ -201,9 +201,10 @@ class bgerp_plg_CsvExport extends core_Manager {
     				
     				if (preg_match('/\\r|\\n|\,|"/', $value)) {
     					$value = $enclosure . str_replace($enclosure, "{$enclosure}{$enclosure}", $value) . $enclosure;
+    				} else {
+    				    $value = ($value) ? $enclosure . $value . $enclosure : '';
     				}
     				
-    				$value = ($value) ? $enclosure . $value . $enclosure : '';
     				$rCsv .= ($rCsv ?  $delimiter : " ") . $value;
     			}
     			

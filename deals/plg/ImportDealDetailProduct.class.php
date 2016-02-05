@@ -195,12 +195,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			}
 		}
 	
-		$msg = "Импортирани са |{$added}|* артикула";
+		$msg = "|Импортирани са|* {$added} |артикула|*";
 		if($failed != 0){
-			$msg .= ". Не са импортирани |{$failed}|* артикула";
+			$msg .= ". |Не са импортирани|* {$failed} |артикула";
 		}
 	
-		return tr($msg);
+		return $msg;
 	}
 	
 	
