@@ -51,7 +51,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone';
     
     
     /**
@@ -112,6 +112,12 @@ class planning_Jobs extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * Кой може да клонира
+     */
+    public $canClonerec = 'ceo,planning';
     
     
     /**
@@ -313,12 +319,6 @@ class planning_Jobs extends core_Master
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		 $data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
-    	}
-    	
-    	if($rec->state != 'rejected'){
-    		if($mvc->haveRightFor('add', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Нов", array($mvc, 'add', 'productId' => $rec->productId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство за артикула');
-    		}
     	}
     }
     
