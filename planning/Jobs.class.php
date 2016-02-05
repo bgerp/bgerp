@@ -51,7 +51,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone';
     
     
     /**
@@ -115,9 +115,15 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Кой може да клонира
+     */
+    public $canClonerec = 'ceo,planning';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, quantityProduced, folderId, state, createdOn, createdBy, modifiedOn,modifiedBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, quantity, quantityProduced, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -148,12 +154,6 @@ class planning_Jobs extends core_Master
      * Детайла, на модела
      */
     var $details = 'Tasks=tasks_Tasks';
-    
-
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'saleId';
     
     
     /**
@@ -314,12 +314,6 @@ class planning_Jobs extends core_Master
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		 $data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
     	}
-    	
-    	if($rec->state != 'rejected'){
-    		if($mvc->haveRightFor('add', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Нов", array($mvc, 'add', 'productId' => $rec->productId), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство за артикула');
-    		}
-    	}
     }
     
     
@@ -413,6 +407,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		if(isset($rec->deliveryPlace)){
+    			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
+    		}
+    		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
     			$row->sBomId = cat_Boms::getLink($sBomId, 0);
     		}

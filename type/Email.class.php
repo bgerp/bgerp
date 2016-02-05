@@ -130,19 +130,7 @@ class type_Email extends type_Varchar {
     {
         if(empty($email)) return NULL;
         
-        list($emailUser, $domain) = explode('@', $email);
-        
-        // Премахваме всичко след + или = в името на имейла
-        if(($plusPos = mb_strpos($emailUser, '+')) !== FALSE) {
-            
-            $emailUser = mb_substr($emailUser, 0, $plusPos);
-        }
-        if(($eqPos = mb_strpos($emailUser, '=')) !== FALSE) {
-            
-            $emailUser = mb_substr($emailUser, 0, $eqPos);
-        }
-        
-        $email = implode('@', array($emailUser, $domain));
+        $email = self::removeBadPart($email);
         
         if(!haveRole('user')) {
             $verbal = str_replace('@', " [аt] ", $email);
@@ -159,6 +147,37 @@ class type_Email extends type_Varchar {
         }
 
         return $verbal;
+    }
+    
+    
+    /**
+     * Премахва "лошата" част от имейла
+     * 
+     * @param string $email
+     * @param array $email
+     * 
+     * @return string
+     */
+    public static function removeBadPart($email, $removeArr = array('+', '='))
+    {
+        if (!$email) return $email;
+        
+        static $emailsArr = array();
+        
+        if (isset($emailsArr[$email])) return $emailsArr[$email];
+        
+        list($emailUser, $domain) = explode('@', $email);
+        
+        foreach ($removeArr as $r) {
+            if(($rPos = mb_strpos($emailUser, $r)) !== FALSE) {
+                
+                $emailUser = mb_substr($emailUser, 0, $rPos);
+            }
+        }
+        
+        $emailsArr[$email] = implode('@', array($emailUser, $domain));
+        
+        return $emailsArr[$email];
     }
     
     
