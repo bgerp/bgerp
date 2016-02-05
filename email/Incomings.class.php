@@ -947,6 +947,7 @@ class email_Incomings extends core_Master
         }
         
         $email = strtolower($email);
+        $email = type_Email::removeBadPart($email);
         $domain = type_Email::domain($email);
         
         $isPublic = FALSE;
@@ -958,6 +959,7 @@ class email_Incomings extends core_Master
         foreach ($emailsArr as $emailCheck) {
             if ($isPublic) {
                 $emailCheck = strtolower($emailCheck);
+                $emailCheck = type_Email::removeBadPart($emailCheck);
                 if ($emailCheck == $email) {
                     
                     return TRUE;
