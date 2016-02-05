@@ -24,12 +24,6 @@ abstract class tasks_BaseDriver extends core_BaseClass
 	
 	
 	/**
-	 * От кои класове може да се избира драйвера
-	 */
-	public $availableClasses;
-	
-	
-	/**
 	 * Какво да е дефолтното име на задача от драйвера
 	 */
 	protected $defaultTitle;
