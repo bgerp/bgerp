@@ -127,7 +127,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			$form->setDefault('taskProductId', key($productOptions));
     		}
     	} else {
-    		$form->info = cat_Products::getShortHyperlink($data->masterRec->productId);
+    		$form->FNC('productId', 'int', 'caption=Артикул,input,before=serial');
+    		$form->setOptions('productId', array($data->masterRec->productId = cat_Products::getTitleById($data->masterRec->productId, FALSE)));
     		$form->setField('taskProductId', 'input=none');
     		$unit = cat_UoM::getShortName($data->masterRec->packagingId);
     		$form->setField('quantity', "unit={$unit}");
