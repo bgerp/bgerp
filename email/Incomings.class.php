@@ -748,7 +748,15 @@ class email_Incomings extends core_Master
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
                 if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'Имейлът не съвпада с този в|* Return-Path.', 'warning');
+                    $returnPathEmailsUniq = array_unique($returnPathEmails);
+                    $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
+                    $rEmailsStr = type_Varchar::escape($rEmailsStr);
+                    $w = 'тези';
+                    if (count($returnPathEmailsUniq) == 1) {
+                        $w = 'този';
+                    }
+                    
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: " . $rEmailsStr, 'warning');
                 }
             }
             
@@ -757,7 +765,7 @@ class email_Incomings extends core_Master
                 
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на фирмата|*.', 'error');
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
                 }
             }
         }
