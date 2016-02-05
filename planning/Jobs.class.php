@@ -123,7 +123,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dueDate, title=Документ, quantity, quantityProduced, folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -382,31 +382,36 @@ class planning_Jobs extends core_Master
     		$row->quantityFromTasks = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
     	}
     	
-    	$row->quantity .= " {$shortUom}";
-    	$row->quantityProduced .=  " {$shortUom}";
-    	$row->quantityFromTasks .=  " {$shortUom}";
-    	$quantityToProduce = $rec->quantity - $rec->quantityProduced;
-    	$quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
+    	$rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
+    	$row->quantityNotStored = $mvc->getFieldType('quantity')->toVerbal($rec->quantityNotStored);
     	
-    	$row->quantityNotStored = $mvc->getFieldType('quantity')->toVerbal($quantityNotStored);
-    	$row->quantityNotStored .=  " {$shortUom}";
-    	
-    	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
-    	$row->quantityToProduce .=  " {$shortUom}";
+    	$rec->quantityToProduce = $rec->quantity - $rec->quantityProduced;
+    	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($rec->quantityToProduce);
     	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    		
+    		$row->quantityToProduce = "<span style='float:right'>{$row->quantityToProduce}</span>";
+    		$row->quantityNotStored = "<span style='float:right'>{$row->quantityNotStored}</span>";
     	}
     	 
     	if($rec->saleId){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
     	
-    	if(empty($rec->quantityProduced)){
-    		$row->quantityProduced = "<b class='quiet'>{$row->quantityProduced}</b>";
+    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
+    		if(empty($rec->{$fld})){
+    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
+    		}
     	}
     	
     	if($fields['-single']){
+    		$row->quantity .= " {$shortUom}";
+    		$row->quantityProduced .=  " {$shortUom}";
+    		$row->quantityFromTasks .=  " {$shortUom}";
+    		$row->quantityNotStored .=  " {$shortUom}";
+    		$row->quantityToProduce .=  " {$shortUom}";
+    		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
     		}
