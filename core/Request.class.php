@@ -275,12 +275,16 @@ class core_Request
      * 
      * @return array
      */
-    static function getParams()
+    static function getParams($push = '')
     {
         $paramsArr = array();
         
-        foreach ((array)self::$vars as $dummy=> $arr) {
+        foreach ((array)self::$vars as $dummy => $arr) {
             
+            if($push && ("{$push}" != "{$dummy}")) { 
+                continue;
+            }
+ 
             foreach ((array)$arr as $name=>$val) {
                 
                 // Ако преди не е сетната стойността и не е игнорирана, тогава я добавяме в масива

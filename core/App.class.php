@@ -522,7 +522,7 @@ class core_App
             $params = $parentUrlArr;
         } else {
             // Всички параметри в рекуеста
-            $params = Request::getParams();
+            $params = Request::getParams('_GET');
         }
         
         // Ако има параметри
@@ -743,12 +743,12 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if($params['ret_url'] === TRUE) {
-            $params['ret_url'] = static::getCurrentUrl();
+            $params['ret_url'] = self::getCurrentUrl();
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
-        if(is_array($params['ret_url'])) {
-            $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
+        if(is_array($params['ret_url'])) {  
+            $params['ret_url'] = self::toUrl($params['ret_url'], 'local');
         }
         
         if($protect) {
