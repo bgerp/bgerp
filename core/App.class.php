@@ -523,6 +523,11 @@ class core_App
         } else {
             // Всички параметри в рекуеста
             $params = Request::getParams('_GET');
+            $allParams = Request::getParams();
+            
+            foreach ($params as $key => $p) {
+                $params[$key] = $allParams[$key];
+            }
         }
         
         // Ако има параметри
