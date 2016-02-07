@@ -84,7 +84,7 @@ class expert_Dataset extends core_BaseClass {
         $line = trim($files[$stack[0]['file']][$stack[0]['line']-1]);
 
         if(strpos($line, ', "')) {
-            $this->log[] = "Warning: Възможен проблем с двойни кавички в правилото <b>$line</b>";
+            $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>$line</b>";
         }
 
         $this->addRule($name, $expr, $cond);

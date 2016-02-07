@@ -617,12 +617,17 @@ class core_Form extends core_FieldSet
             
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
-                if((isset($field->options) && count($field->options) == 1) || (isset($field->type->options) && count($field->type->options) == 1)) {
-                    if($field->hideIfOne) {
-                        unset($fields[$name]);
+            	if($field->hideIfOne) {
+	                if((isset($field->options) && count($field->options) == 1)) {
+	                	unset($fields[$name]);
                         $this->setField($name, 'input=hidden');
-                    }
-                }
+                        $this->setDefault($name, key($field->options));
+	                } elseif(isset($field->type->options) && count($field->type->options) == 1) {
+	                	unset($fields[$name]);
+	                	$this->setField($name, 'input=hidden');
+	                	$this->setDefault($name, key($field->type->options));
+	                }
+            	}
             }
 
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);

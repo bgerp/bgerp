@@ -385,8 +385,13 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	if($action == 'add'){
-    		if(isset($rec->originId)){
-    			$origin = doc_Containers::getDocument($rec->originId);
+    		$originId = $rec->originId;
+    		if(empty($originId) && isset($rec->threadId)){
+    			$originId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+    		}
+    		
+    		if(isset($originId)){
+    			$origin = doc_Containers::getDocument($originId);
     			$state = $origin->fetchField('state');
     			if($state == 'closed' || $state == 'draft' || $state == 'rejected'){
     				$requiredRoles = 'no_one';
