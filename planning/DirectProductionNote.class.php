@@ -168,17 +168,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
+		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
 		$form->setDefault('productId', $originRec->productId);
 		$form->setReadOnly('productId');
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($originRec->productId, 'measureId'));
 		$form->setField('quantity', "unit={$shortUom}");
-		
-		$quantity = $originRec->quantity - $originRec->quantityProduced;
 		$form->setDefault('jobQuantity', $originRec->quantity);
 		
-		if($quantity > 0){
-			$form->setDefault('quantity', $quantity);
+		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
+		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
+		if($quantityToStore > 0){
+			$form->setDefault('quantity', $quantityToStore);
 		}
 		
 		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
@@ -188,9 +189,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
 		}
-
-		$curStore = store_Stores::getCurrent('id', FALSE);
-		$data->form->setDefault('inputStoreId', $curStore);
+		
+		$data->form->setDefault('inputStoreId', store_Stores::getCurrent('id', FALSE));
 	}
 	
 	

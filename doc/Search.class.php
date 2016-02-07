@@ -172,24 +172,62 @@ class doc_Search extends core_Manager
             $mvc->invoke('BeforePrepareSearhQuery', array($data, $filterRec));
             
             // Търсене на определен тип документи
+            $SearchDocument = NULL;
             if (!empty($filterRec->docClass)) {
                 $data->query->where(array('#docClass = [#1#]', $filterRec->docClass));
+                
+                if(cls::load($filterRec->docClass)){
+                	
+                	// Ако търсения документ е счетоводен
+                	$Doc = cls::get($filterRec->docClass);
+                	if(cls::haveInterface('acc_TransactionSourceIntf', $Doc)){
+                		
+                		// И има поле за вальор
+                		if($Doc->getField($Doc->valiorFld, FALSE)){
+                			
+                			// Искаме да показваме и вальора
+                			$SearchDocument = $Doc;
+                			$data->query->EXT($SearchDocument->valiorFld, $Doc->className, "externalName={$SearchDocument->valiorFld},externalKey=docId");
+                			arr::placeInAssocArray($data->listFields, array($SearchDocument->valiorFld => 'Вальор'), 'createdOn');
+                			$mvc->FNC($SearchDocument->valiorFld, 'date');
+                		}
+                	}
+                }
             }
             
-
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate) && !empty($filterRec->toDate)) {
-                $data->query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#] 23:59:59'", $filterRec->fromDate, $filterRec->toDate));
-                $data->query->orWhere(array("#modifiedOn >= '[#1#]' AND #modifiedOn <= '[#2#] 23:59:59'", $filterRec->fromDate, $filterRec->toDate));
+            	$where =  "(#createdOn >= '[#1#]' AND #createdOn <= '[#2#] 23:59:59') OR (#modifiedOn >= '[#1#]' AND #modifiedOn <= '[#2#] 23:59:59')";
+            	
+            	// Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
+            	if($SearchDocument instanceof core_Mvc){
+            		$where .= " OR (#{$SearchDocument->valiorFld} >= '[#1#]' AND #{$SearchDocument->valiorFld} <= '[#2#] 23:59:59')";
+            	}
+            	
+                $data->query->where(array($where, $filterRec->fromDate, $filterRec->toDate));
             }
             
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
-                $data->query->where(array("NOT (#createdOn < '[#1#]') AND NOT(#modifiedOn < '[#1#]')", $filterRec->fromDate));
+            	$where = "NOT (#createdOn < '[#1#]') AND NOT(#modifiedOn < '[#1#]')";
+            	
+            	// Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
+            	if($SearchDocument instanceof core_Mvc){
+            		$where = "({$where}) OR NOT(#{$SearchDocument->valiorFld} < '[#1#]')";
+            	}
+            	
+               $data->query->where(array($where, $filterRec->fromDate));
             }
             
             if (!empty($filterRec->toDate)) {
-                $data->query->where(array("NOT (#createdOn > '[#1#] 23:59:59') AND NOT (#modifiedOn > '[#1#] 23:59:59')", $filterRec->toDate));
+            	$where = "NOT (#createdOn > '[#1#] 23:59:59') AND NOT (#modifiedOn > '[#1#] 23:59:59')";
+            	
+            	// Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
+            	if($SearchDocument instanceof core_Mvc){
+            		$where = "({$where}) OR NOT (#{$SearchDocument->valiorFld} > '[#1#] 23:59:59')";
+            	}
+            	
+                $data->query->where(array($where, $filterRec->toDate));
             }
             
             // Ограничаване на търсенето до избрана папка

@@ -70,7 +70,7 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public $tabTopClass = 'portal planning';
 	
-	
+	public $preventCache = TRUE;
 	/**
 	 * След рендиране на задачи към задание
 	 * 
