@@ -94,6 +94,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		if(is_array($dRecs)){
 			foreach ($dRecs as $dRec){
+				if(empty($rec->inputStoreId)) continue;
 				
 				// Влагаме артикула, само ако е складируем, ако не е  
 				// се предполага ,че вече е вложен в незавършеното производство

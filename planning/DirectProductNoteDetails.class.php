@@ -158,8 +158,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		if(isset($pInfo->meta['canStore'])){
     			$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
-    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
-    			$form->info = $storeInfo->formInfo;
+    			if(!empty($storeId)){
+    				$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    				$form->info = $storeInfo->formInfo;
+    			}
     		}
     	
     		if($form->isSubmitted()){
@@ -257,7 +259,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Рендираме таблицата с вложените материали
-    	$data->listFields['productId'] = '|Суровини и материали|* ' . "<small style='font-weight:normal'>( |вложени от склад|*: {$data->masterData->row->inputStoreId} )</small>";
+    	$misc = ($data->masterData->rec->inputStoreId) ? "|вложени от склад|*: {$data->masterData->row->inputStoreId}" : "за изписване от незавършеното производство";
+    	$data->listFields['productId'] = '|Суровини и материали|* ' . "<small style='font-weight:normal'>( {$misc} )</small>";
+    	
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
     	
