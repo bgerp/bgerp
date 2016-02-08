@@ -81,6 +81,11 @@ class type_Key extends type_Int
                 
                 $v = $mvc->getVerbal($rec, $part);
                 
+                // Ако е указано - правим превод
+                if($this->params['translate']) {
+                    $v = tr($v);
+                }
+
                 return $v;
             } else {
                 if($this->params['title']) {
@@ -96,6 +101,11 @@ class type_Key extends type_Int
             }
         }
         
+        // Ако е указано - правим превод  
+        if($this->params['translate']) {
+            $value = tr($value);
+        }
+
         return $value;
     }
     
@@ -320,6 +330,10 @@ class type_Key extends type_Int
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
         
         Mode::pop('text');
+
+        if($this->params['translate']) {
+            $options = self::translateOptions($options);
+        }
         
         $this->options = $options;
         
