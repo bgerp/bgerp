@@ -126,7 +126,7 @@ abstract class cash_Document extends core_Master
      * @param core_Mvc $mvc
      * @return void
      */
-    public function getFields(core_Mvc &$mvc)
+    protected function getFields(core_Mvc &$mvc)
     {
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
     	 
