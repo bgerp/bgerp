@@ -541,7 +541,7 @@ abstract class deals_DealBase extends core_Master
     	$exportFields = $this->getExportFields();
     	$fields = $this->getFields();
     	
-    	$csv = csv_Lib::createCsv($data, $fields, $exportFields, array('text'=>'xhtml'));
+    	$csv = csv_Lib::createCsv($data, $fields, $exportFields);
     	
     	return $csv;
     }
