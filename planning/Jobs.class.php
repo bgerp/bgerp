@@ -388,6 +388,8 @@ class planning_Jobs extends core_Master
     	$rec->quantityToProduce = $rec->quantity - $rec->quantityProduced;
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($rec->quantityToProduce);
     	
+    	$row->quantityNotStored = "<span style='float:right'>{$row->quantityNotStored}</span>";
+    	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     		if($rec->quantityNotStored > 0){
