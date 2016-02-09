@@ -393,6 +393,13 @@ class planning_Jobs extends core_Master
     		
     		$row->quantityToProduce = "<span style='float:right'>{$row->quantityToProduce}</span>";
     		$row->quantityNotStored = "<span style='float:right'>{$row->quantityNotStored}</span>";
+    		
+    		if($rec->quantityNotStored > 0){
+    			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    				$btn = ht::createBtn('ПП', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на протокол за производство,ef_icon=img/16/page_paste.png');
+    				$row->quantityNotStored = "{$btn} {$row->quantityNotStored}";
+    			}
+    		}
     	}
     	 
     	if($rec->saleId){
