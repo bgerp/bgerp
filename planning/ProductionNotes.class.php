@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_ProductionNotes' - Документ за Протокол за производство
+ * Клас 'planning_ProductionNotes' - Документ за Протокол за групово производство
  *
  * 
  *
@@ -13,6 +13,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class planning_ProductionNotes extends planning_ProductionDocument
 {
@@ -27,7 +28,7 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за производство';
+	public $title = 'Протоколи за групово производство';
 	
 	
 	/**
@@ -39,7 +40,7 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Mpn';
+	public $abbr = 'Mpd';
 	
 	
 	/**
@@ -70,7 +71,7 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'no_one';
 	
 	
 	/**
@@ -94,25 +95,19 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning';
+	public $canAdd = 'no_one';
 	
 	
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за производство';
+	public $singleTitle = 'Протокол за групово производство';
 	
 	
 	/**
 	 * Файл за единичния изглед
 	 */
 	public $singleLayoutFile = 'planning/tpl/SingleLayoutProductionNote.shtml';
-	
-	 
-	/**
-	 * Групиране на документите
-	 */
-	public $newBtnGroup = "3.6|Производство";
 	
 	
 	/**

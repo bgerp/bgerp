@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_DirectProductionNote' - Документ за бързо производство
+ * Клас 'planning_DirectProductionNote' - Документ за производство
  *
  * 
  *
@@ -21,13 +21,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за бързо производство';
+	public $title = 'Протоколи за производство';
 	
 	
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Mpd';
+	public $abbr = 'Mpn';
 	
 	
 	/**
@@ -90,7 +90,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за бързо производство';
+	public $singleTitle = 'Протокол за производство';
 	
 	
 	/**
@@ -202,7 +202,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$row->quantity .= " {$shortUom}";
 		
 		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
-		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+		if(isset($rec->inputStoreId)){
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+		}
 		
 		if(!empty($rec->batch)){
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
