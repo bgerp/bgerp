@@ -194,20 +194,42 @@ class csv_Lib
 
         return $res;
     }
-
-
-
+    
+    
     /**
      * Създава csv
+     * 
+     * @param array $recs
+     * @param core_FieldSet $fieldSet
+     * @param string $listFields
+     * @param array $params
+     * 
+     * @return string
      */
-    static function createCsv($recs, core_FieldSet $fieldSet, $listFields = NULL, $mode = array())
+    static function createCsv($recs, core_FieldSet $fieldSet, $listFields = NULL, $params = array())
     {
-        $mode = arr::make($mode, TRUE);
+        $params = arr::make($params, TRUE);
         
-    	// ще вземем конфигурационните константи
-    	$conf = core_Packs::getConfig('csv');
-    	
-        if(isset($listFields)) {
+        // Редиректваме, ако сме надвишили бройката
+        setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', TRUE));
+        if(count($recs) > $exportCnt) {
+            $retUrl = getRetUrl();
+            if (!$retUrl) {
+                if ($fieldSet instanceof core_Manager) {
+                    if ($fieldSet->haveRightFor('list')) {
+                        $retUrl = array($fieldSet, 'list');
+                    }
+                }
+            }
+            	
+            if (!$retUrl) {
+                $retUrl = array('Index');
+            }
+            	
+            redirect($retUrl, FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $exportCnt, 'error');
+        }
+        
+        if (isset($listFields)) {
             $listFields = arr::make($listFields, TRUE);
         } else {
             $fieldsArr = $fieldSet->selectFields("");
@@ -216,110 +238,116 @@ class csv_Lib
                 $listFields[$fld->name] = $fld->caption;
             }
         }
-    	
-    	$exportCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
-    	if(count($recs) > $exportCnt) {
-    		redirect(array($this, 'list'), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-    	}
-    	
-    	if (is_array($listFields)) {
-    	    $firstRow = '';
-        	foreach ($listFields as $fld => $caption) {
-        	   
-        	    if (!$listFields[$fld]) {
-        	        $listFields[$fld] = $fld;
-        	        $caption = $fld;
-        	    }
-        	    
-        	    if (preg_match('/\\r|\\n|,|"/', $caption)) {
-        	        $caption = '"' . str_replace('"', '""', $caption) . '"';
-        	    }
-        	    
-        	    $firstRow .= ($firstRow ? $conf->CSV_DELIMITER : '') . $caption;
-        	   
-        	}
-    	}
-
-        foreach($recs as $rec) {
-            
-            // Всеки нов ред в началото е празен
-            $rCsv = '';
-
-            foreach ($fieldSet->fields as $name => $field) { 
-
-                // Пропускаме не-посочените в $listFields полета
-                if(is_array($listFields) && !isset($listFields[$name])) continue;
-
-                // Вземаме типа
-				$type = $field->type;
-	                 
-	            if ($type instanceof type_Key) {
-	                	
-	    			Mode::push('text', 'plain');
-	    			$value = $fieldSet->getVerbal($rec, $name);
-	    			Mode::pop('text');
-	    				
-	    		} elseif($type instanceof type_Double) {
-
-	    		    Mode::push('text', 'plain');
-	    			$type->params['decPoint'] = $conf->CSV_DELIMITER_DECIMAL_SING;
-	    			$type->params['thousandsSep'] = " ";
-	    			$type->params['decimals'] = 2;
-
-                    //$value = $rec->{$name};
-                    $value = $type->toVerbal($rec->{$name});
-
-                    Mode::pop('text');
-	    				
-	    		} elseif($type instanceof type_Date) {
-	    				
-	    			if ($conf->CSV_FORMAT_DATE == 'dot') {
-	    				$value = dt::mysql2verbal($rec->{$name}, 'd.m.Y');
-	    			} else {
-	    				$value = dt::mysql2verbal($rec->{$name}, 'm/d/y');
-	    			}
-	    				
-	    		} elseif($type instanceof type_Richtext && $mode['text'] == 'plain') {
-	    				
-                    Mode::push('text', 'plain');
-	    			
-                    $value = $this->mvc->getVerbal($rec, $name);
-	    			
-                    Mode::pop('text');
-	    
-	    		} else {
-	    			$value = $rec->{$name};
-	    		}
-	            
-                // Ако не генерираме html премахваме таговете
-                if($mode['text'] == 'xhtml' && !($type instanceof type_Richtext)) {
-	    		    $value = strip_tags($value);
+        
+        setIfNot($csvDelimiter, $params['delimiter'], csv_Setup::get('DELIMITER'));
+        setIfNot($decPoint, $params['decPoint'], html_entity_decode(csv_Setup::get('EF_NUMBER_DEC_POINT', TRUE)));
+        setIfNot($dateFormat, $params['dateFormat'], csv_Setup::get('EF_DATE_FORMAT', TRUE));
+        setIfNot($thousandsSep, $params['thousandsSep'], html_entity_decode(csv_Setup::get('EF_NUMBER_THOUSANDS_SEP', TRUE)));
+        setIfNot($enclosure, $params['enclosure'], '"');
+        setIfNot($decimals, $params['decimals'], 2);
+        
+        // Вземаме колоните, ако са зададени
+        if ($params['columns'] != 'none') {
+            foreach ($listFields as $fld => $caption) {
+                if (!$caption) {
+                    $listFields[$fld] = $fld;
                 }
-	    			
-	            // Ескейпваме - твърдо с "
-	            if (preg_match('/\\r|\\n|,|"/', $value)) {
-	            	$value = '"' . str_replace('"', '""', $value) . '"';
-	            }
-	                
-	            if (strpos($value, "&nbsp;")){
-	            	$value = str_replace('&nbsp;', '', $value);
-	            }
-	             
-	            $rCsv .= ($rCsv ? $conf->CSV_DELIMITER : '') . $value;
-	            
-        	}
+            }
             
-            /* END за всяка колона */
-            $csv .= $rCsv . "\n";
+            $csv = self::getCsvLine($listFields, $csvDelimiter, $enclosure);
         }
         
-        if (isset ($firstRow) && $mode['columns'] != 'none') {
-            $csv = $firstRow . "\n" . $csv;
+        // Подготвяме редовете
+        foreach($recs as $rec) {
+            
+            $rCsvArr = array();
+            foreach ($listFields as $name => $caption) {
+                
+                if ($fieldSet->fields[$name]) {
+                    $type = $fieldSet->fields[$name]->type;
+                } else {
+                    $type = new stdClass();
+                }
+                Mode::push('text', 'plain');
+                if ($type instanceof type_Key) {
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof type_Keylist) {
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof type_Set) {
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof type_Double) {
+                    $type->params['decPoint'] = $decPoint;
+                    $type->params['thousandsSep'] = $thousandsSep;
+                    $type->params['decimals'] = $decimals;
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof type_Date) {
+                    $value = dt::mysql2verbal($rec->{$name}, $dateFormat);
+                    $value = strip_tags($value);
+                } elseif ($type instanceof type_Richtext && !empty($params['text'])) {
+                    Mode::push('text', $params['text']);
+                    $value = $type->toVerbal($rec->{$name});
+                    Mode::pop('text');
+                } elseif ($type instanceof fileman_FileType) {
+                    $value = $type->toVerbal($rec->{$name});
+                } else {
+                    $value = $rec->{$name};
+                }
+                Mode::pop('text');
+                
+                $rCsvArr[] = $value;
+            }
+            
+            $csv .= ($csv) ? "\n" : '';
+            
+            $csv .= self::getCsvLine($rCsvArr, $csvDelimiter, $enclosure);
         }
-       
+        
         return $csv;
     }
-
+    
+    
+    /**
+     * Масива го преобразува в ред за CSV
+     * 
+     * @param array $valsArr
+     * @param string $delimiter
+     * @param string $enclosure
+     * 
+     * @return string
+     */
+    protected static function getCsvLine($valsArr, $delimiter, $enclosure)
+    {
+        $csvLine = '';
+        foreach ($valsArr as $v) {
+            $v = self::prepareCsvVal($v, $delimiter, $enclosure);
+            $csvLine .= ($csvLine) ? $delimiter : '';
+            $csvLine .= $v;
+        }
+        
+        return $csvLine;
+    }
+    
+    
+    /**
+     * Подоготвя стойност за CSV
+     * 
+     * @param array $valsArr
+     * @param string $delimiter
+     * @param string $enclosure
+     * 
+     * @return string
+     */
+    protected static function prepareCsvVal($val, $delimiter, $enclosure)
+    {
+        $enclosure = preg_quote($enclosure, '/');
+        $delimiter = preg_quote($delimiter, '/');
+        
+        if (preg_match("/\r|\n|{$delimiter}|{$enclosure}/", $val)) {
+            $val = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $val) . $enclosure;
+        }
+        
+        return $val;
+    }
     
     /**
      * Връща масив с данните от csv-то

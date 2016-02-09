@@ -563,7 +563,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         
     	$fields = $this->getFields();
 
-    	$csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields, array('text'=>'xhtml'));
+    	$csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
 
         return $csv;
     }
