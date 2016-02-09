@@ -71,7 +71,7 @@ class planning_ProductionNotes extends planning_ProductionDocument
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'no_one';
+	public $canList = 'ceo,planning';
 	
 	
 	/**
