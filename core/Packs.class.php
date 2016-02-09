@@ -132,6 +132,10 @@ class core_Packs extends core_Manager
         
         $res = $this->setupPack($pack, 0, TRUE, TRUE, $haveRoleDebug);
         
+        $pack = strtolower($pack);
+        $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
+        $this->logWrite('Инсталиране на пакета', $rec->id);
+        
         if ($haveRoleDebug) {
             
             return $this->renderWrapping($res);
@@ -228,6 +232,10 @@ class core_Packs extends core_Manager
         if (!$retUrl) {
             $retUrl = array($this);
         }
+        
+        $pack = strtolower($pack);
+        $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
+        $this->logWrite('Деинсталиране на пакета', $rec->id);
         
         return new Redirect($retUrl, $res);
     }
@@ -656,6 +664,8 @@ class core_Packs extends core_Manager
      */
     function act_Setup()
     {
+        $this->logWrite('Сетъп на системата');
+        
         if (isDebug()) {
             return $this->firstSetup(array('Index'));
         }

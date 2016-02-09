@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_DirectProductionNote' - Документ за бързо производство
+ * Клас 'planning_DirectProductionNote' - Документ за производство
  *
  * 
  *
@@ -21,13 +21,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за бързо производство';
+	public $title = 'Протоколи за производство';
 	
 	
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Mpd';
+	public $abbr = 'Mpn';
 	
 	
 	/**
@@ -90,7 +90,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за бързо производство';
+	public $singleTitle = 'Протокол за производство';
 	
 	
 	/**
@@ -144,16 +144,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	function description()
 	{
 		parent::setDocumentFields($this);
-		
-		$this->setField('storeId', 'caption=Складове->Засклаждане в');
-		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от, mandatory,after=storeId');
-		
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
 		$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
+		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
+		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId');
 		
 		$this->setDbIndex('productId');
 	}
@@ -204,7 +202,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$row->quantity .= " {$shortUom}";
 		
 		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
-		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+		if(isset($rec->inputStoreId)){
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+		}
 		
 		if(!empty($rec->batch)){
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
