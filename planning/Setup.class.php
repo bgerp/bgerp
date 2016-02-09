@@ -53,8 +53,6 @@ class planning_Setup extends core_ProtoSetup
     		'planning_Jobs',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
-    		'planning_ProductionNotes',
-    		'planning_ProductionNoteDetails',
     		'planning_DirectProductionNote',
     		'planning_DirectProductNoteDetails',
     		'planning_ReturnNotes',

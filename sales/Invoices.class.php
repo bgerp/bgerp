@@ -604,11 +604,15 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Преди експортиране като CSV
      */
-   	public static function on_BeforeExportCsv($mvc, &$rec)
+   	public static function on_BeforeExportCsv($mvc, &$recs)
    	{
-   		$rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-   		$rec->dealValue = round($rec->dealValue + $rec->vatAmount - $rec->discountAmount, 2);
-   		$rec->state = $mvc->getVerbal($rec, 'state');
+   	    if (!$recs) continue;
+   	    
+   	    foreach ($recs as &$rec) {
+   	        $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+   	        $rec->dealValue = round($rec->dealValue + $rec->vatAmount - $rec->discountAmount, 2);
+   	        $rec->state = $mvc->getVerbal($rec, 'state');
+   	    }
    	}
    	
    	

@@ -166,7 +166,7 @@ class expert_Dataset extends core_BaseClass {
         $div      += count($vars);
 
         foreach($vars as $n) {
-            $trust += $this->trusts[$n];
+            $trust += (1+$this->trusts[$n])/2;
             if(!$this->trusts[$n]) {
                 $trust = 0;
                 break;

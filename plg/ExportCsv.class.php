@@ -101,8 +101,8 @@ class plg_ExportCsv extends core_Plugin
             
             /* за всеки ред */
             if(count($data->recs)){
+                $mvc->invoke('BeforeExportCsv', array($data->recs));
             	foreach($data->recs as $rec) {
-            		$mvc->invoke('BeforeExportCsv', array($rec));
             		 
             		// Всеки нов ред ва началото е празен
             		$rCsv = '';
