@@ -90,8 +90,7 @@ class type_Enum extends core_Type {
             }
         }
         
-
-        parent::setFieldWidth($attr);
+        parent::setFieldWidth($attr, NULL, $arr);
   
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
             $this->params['maxRadio'],
