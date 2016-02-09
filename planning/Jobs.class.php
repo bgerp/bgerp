@@ -393,8 +393,10 @@ class planning_Jobs extends core_Master
     		if($rec->quantityNotStored > 0){
     			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     				$btn = ht::createBtn('ПП', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на протокол за производство,ef_icon=img/16/page_paste.png');
-    				$row->quantityNotStored = "<div class='fleft'> {$btn} </div><div class='fright' style='display: inline-block;margin-top: 5px;'>{$row->quantityNotStored}</div>";
+    				$row->quantityNotStored = "<div class='fleft'> {$btn} </div><div class='fright' style='display: inline-block;margin-top: 5px;margin-left:2px'>{$row->quantityNotStored}</div>";
     			}
+    		} else {
+    			$row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
     		}
     	}
     	 
