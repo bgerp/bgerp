@@ -193,6 +193,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 */
+	public static function on_AfterInputEditForm($mvc, &$form)
+	{
+		if($form->isSubmitted()){
+			if(isset($form->rec->inputStoreId)){
+				$form->setWarning('inputStoreId', 'Избраните суровини и материали, ще се вложат директно от склада');
+			}
+		}
+	}
+	
+	
+	/**
 	 * След преобразуване на записа в четим за хора вид
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())

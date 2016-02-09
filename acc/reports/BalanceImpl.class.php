@@ -177,8 +177,16 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
         $data->recs = $Balance->getBalance($accSysId);
         
+        $productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
+        
+        foreach ($data->recs as $id => $rec) {
+            if ($productPosition) {
+                $data->recs[$id]->code = acc_Items::fetchField($data->recs[$id]->{"ent{$productPosition}Id"}, 'num');
+            }
+        }
+        
         $this->filterRecsByItems($data);
-    
+
         return $data;
     }
     
@@ -202,6 +210,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $start = $data->pager->rangeStart;
         $end = $data->pager->rangeEnd - 1;
         
+        $data->summaryRec = new stdClass();
         $data->summary = new stdClass();
         
         if(count($data->recs)){
@@ -219,7 +228,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                 // Сумираме всички суми и к-ва
                 foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
                     if(!is_null($rec->$fld)){
-                        $data->summary->$fld += $rec->$fld;
+                        $data->summaryRec->$fld += $rec->$fld;
                     }
                 }
                 
@@ -230,7 +239,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
-        foreach ((array)$data->summary as $name => $num){
+        foreach ((array)$data->summaryRec as $name => $num){
             $data->summary->$name  = $Double->toVerbal($num);
             if($num < 0){
             	$data->summary->$name  = "<span class='red'>{$data->summary->$name}</span>";
@@ -325,9 +334,19 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
          $data->listFields = array();
     		
          foreach ($data->accInfo->groups as $i => $list) {
-         	$data->listFields["ent{$i}Id"] = "|*" . acc_Lists::getVerbal($list->rec, 'name');
+            $caption = acc_Lists::getVerbal($list->rec, 'name');
+         	$data->listFields["ent{$i}Id"] = tr("|{$caption}|*");
          }
-    
+
+         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
+         $productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
+         
+         if ($productPosition) {
+             $data->listFields += array(
+                 'code'=> 'Код',
+                 );   
+         }
+         
     	 if($data->bShowQuantities) {
             $data->listFields += array(
                 'baseQuantity' => 'Начално салдо->ДК->К-во',
@@ -510,6 +529,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
      public function exportCsv()
      {
         $conf = core_Packs::getConfig('core');
+        $summary = new stdClass();
         
         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
             redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
@@ -517,6 +537,35 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         $exportFields = $this->innerState->listFields;
         
+        $summary->colspan = count($exportFields);
+      
+        if(!$this->innerState->bShowQuantities || $this->innerState->rec->action === 'group'){
+            $summary->colspan -= 4;
+        } else{
+            $summary->colspan -= 8;
+        }
+        
+        if(count($this->innerState->recs)) {
+            $afterRow = 'ОБЩО';
+
+            $rec = $this->prepareEmbeddedData($this->innerState->recs)->summaryRec;
+             
+            foreach ($rec as $f => $value) {
+                $rCsv = '';
+                
+                foreach ($exportFields as $field => $caption) {
+                        	
+                    if ($rec->{$field}) {
+                    
+                        $value = $rec->{$field};
+                        $rCsv .= $value. ",";
+                    }else {
+					    $rCsv .= '' . ",";
+				    }
+                }
+            }
+        }
+
         foreach($this->innerState->recs as $id => $rec) {
             $dataRecs[$id] = $this->getVerbalDetail($rec);
             foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent){
@@ -531,9 +580,9 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         }
         
         $fields = $this->getFields();
-        
+       
         $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
-        
+        $csv .= "\n".$afterRow.$rCsv;
         return $csv;
     }
 
@@ -553,6 +602,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $f->FLD('ent1Id', 'varchar', 'tdClass=itemClass');
     	$f->FLD('ent2Id', 'varchar', 'tdClass=itemClass');
     	$f->FLD('ent3Id', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('code', 'varchar', 'tdClass=itemClass');
     	$f->FLD('baseQuantity', 'int', 'tdClass=accCell');
     	$f->FLD('baseAmount', 'int', 'tdClass=accCell');
     	$f->FLD('debitQuantity', 'int', 'tdClass=accCell');
@@ -564,61 +614,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         
         return $f;
     }
-    
-    
-    /**
-	 * Ще направим row-овете в CSV формат
-	 *
-	 * @return string $rCsv
-	 */
-	protected function generateCsvRows_($rec)
-	{
-	
-		$exportFields = $this->getExportFields();
-
-		$rec = frame_CsvLib::prepareCsvRows($rec);
-	
-		$rCsv = '';
-		
-		$res = count($exportFields); 
-		
-		foreach ($rec as $field => $value) {
-			$rCsv = '';
-			
-			if ($res == 11) {
-				$zeroRow = 'ОБЩО' . "," .'' . "," .''. ",";
-			} elseif ($res == 10 || $res == 9 || $res == 8 || $res == 7) {
-				$zeroRow = 'ОБЩО' . "," .'' . ",";
-			} elseif ($res <= 6) {
-				$zeroRow =  'ОБЩО' . ",";
-			}
-			
-			foreach ($exportFields as $field => $caption) {
-					
-				if ($rec->{$field}) {
-	
-					$value = $rec->{$field};
-					$value = html2text_Converter::toRichText($value);
-					
-					if (preg_match('/\\r|\\n|,|"/', $value)) {
-						$value = '"' . str_replace('"', '""', $value) . '"';
-					}
-					$rCsv .= $value . ",";
-					
-					if($rec->flag == TRUE) {
-						
-						$zeroRow .= $value . ",";
-						$rCsv = $zeroRow;
-					}
-	
-				} else {
-					$rCsv .= '' . ",";
-				}
-			}
-		}
-		
-		return $rCsv;
-	}
 
 	
 	public static function setFilterAndGroupFields(&$form, $listId, $i)

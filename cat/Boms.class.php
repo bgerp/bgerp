@@ -1116,6 +1116,7 @@ class cat_Boms extends core_Master
     	if($rec->type != 'stage'){
     		
     		if($rec->type == 'pop'){
+    			
     			// Ако е отпадък търсим твърдо мениджърската себестойност
     			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
     			if(!isset($price)) {
@@ -1173,6 +1174,10 @@ class cat_Boms extends core_Master
     			}
     		}
 			
+    		// Попваме данните, за да кешираме оригиналните
+    		self::popParams($params, $rec->resourceId);
+    		
+    		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
     			$scope = static::getScope($params);
     			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
@@ -1182,8 +1187,6 @@ class cat_Boms extends core_Master
     				cls::get('cat_BomDetails')->save_($rec, 'params');
     			}
     		}
-    		
-    		self::popParams($params, $rec->resourceId);
     	}
     	
     	// Ако реда е отпадък то ще извадим цената му от себестойността

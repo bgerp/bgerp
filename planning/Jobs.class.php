@@ -57,7 +57,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dueDate,quantity,notes';
+    public $changableFields = 'dueDate,quantity,notes,tolerance';
     
     
     /**
@@ -388,15 +388,15 @@ class planning_Jobs extends core_Master
     	$rec->quantityToProduce = $rec->quantity - $rec->quantityProduced;
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($rec->quantityToProduce);
     	
-    	$row->quantityNotStored = "<span style='float:right'>{$row->quantityNotStored}</span>";
-    	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     		if($rec->quantityNotStored > 0){
     			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     				$btn = ht::createBtn('ПП', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на протокол за производство,ef_icon=img/16/page_paste.png');
-    				$row->quantityNotStored = "<div class='fleft'> {$btn} </div><div class='fright' style='display: inline-block;margin-top: 5px;'>{$row->quantityNotStored}</div>";
+    				$row->quantityNotStored = "<div class='fleft'> {$btn} </div><div class='fright' style='display: inline-block;margin-top: 5px;margin-left:2px'>{$row->quantityNotStored}</div>";
     			}
+    		} else {
+    			$row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
     		}
     	}
     	 
@@ -439,6 +439,23 @@ class planning_Jobs extends core_Master
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+    		}
+    		
+    		$tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
+    		$diff = $rec->quantity * $tolerance;
+    		if($rec->quantityFromTasks < ($rec->quantity - $diff)){
+    			$color = 'blue';
+    		} elseif($rec->quantityFromTasks >= ($rec->quantity - $diff) && $rec->quantityFromTasks <= ($rec->quantity + $diff)){
+    			$color = 'green';
+    		} else {
+    			$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено е повече от колкото е планувано', 'warning');
+    			$color = 'red';
+    		}
+    		
+    		if($rec->quantityFromTasks != 0){
+    			$quantityRow = new core_ET("<span style='color:[#color#]'>[#quantity#]</span>");
+    			$quantityRow->placeArray(array('color' => $color, 'quantity' => $row->quantityFromTasks));
+    			$row->quantityFromTasks = $quantityRow;
     		}
     	}
     	
