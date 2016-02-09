@@ -178,7 +178,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $data->recs = $Balance->getBalance($accSysId);
         
         $this->filterRecsByItems($data);
-        
+    
         return $data;
     }
     
@@ -277,21 +277,10 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     	
     	$tpl->placeObject($data->row);
     	
-    	$tableMvc = new core_Mvc;
-    	$tableMvc->FLD('ent1Id', 'varchar', 'tdClass=itemClass');
-    	$tableMvc->FLD('ent2Id', 'varchar', 'tdClass=itemClass');
-    	$tableMvc->FLD('ent3Id', 'varchar', 'tdClass=itemClass');
-    	$tableMvc->FLD('baseQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('baseAmount', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('debitQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('debitAmount', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('creditQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+    	$f = $this->getFields();
     	
-    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    	
+    	$table = cls::get('core_TableView', array('mvc' => $f));
+    	//bp($data->rows, $data->listFields, $this);
     	$tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
     	
     	$data->summary->colspan = count($data->listFields);
@@ -520,75 +509,31 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
       */
      public function exportCsv()
      {
-    
-         $exportFields = $this->getExportFields();
+        $conf = core_Packs::getConfig('core');
+        
+        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+            redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+        }
+        
+        $exportFields = $this->innerState->listFields;
+        
+        foreach($this->innerState->recs as $id => $rec) {
+            $dataRecs[$id] = $this->getVerbalDetail($rec);
+            foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent){
+                $dataRecs[$id]->$ent = acc_Items::getVerbal($rec->$ent, 'title');
+            }
 
-         $conf = core_Packs::getConfig('core');
-
-         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-             redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-         }
-
-         $csv = "";
-
-         foreach ($exportFields as $caption) {
-             $header .=  $caption . ",";
-         }
-
-         foreach ($this->innerState->recs as $innerId => $innerRec) {
-         	if (!isset($innerRec->creditQuantity) || !isset($innerRec->creditAmount)){
-         		unset($this->innerState->recs[$innerId]);
-         	}
-         }
-         
-         if(count($this->innerState->recs)) {
-			foreach ($this->innerState->recs as $id => $rec) {
-
-				if($this->innerState->bShowQuantities || $this->innerState->rec->groupBy){
-					
-					
-					$baseQuantity += $rec->baseQuantity;
-					$baseAmount += $rec->baseAmount;
-					$debitQuantity += $rec->debitQuantity;
-					$debitAmount += $rec->debitAmount;
-					$creditQuantity += $rec->creditQuantity;
-					$creditAmount += $rec->creditAmount;
-					$blQuantity += $rec->blQuantity;
-					$blAmount += $rec->blAmount;
-
-				} 
-				
-				$rCsv = $this->generateCsvRows($rec);
-
-				
-				$csv .= $rCsv;
-				$csv .=  "\n";
-		
-			}
-
-			$row = new stdClass();
-			
-			$row->flag = TRUE;
-			$row->baseQuantity = $baseQuantity;
-			$row->baseAmount = $baseAmount;
-			$row->debitQuantity = $debitQuantity;
-			$row->debitAmount = $debitAmount;
-			$row->creditQuantity = $creditQuantity;
-			$row->creditAmount = $creditAmount;
-			$row->blQuantity = $blQuantity;
-			$row->blAmount = $blAmount;
-			
-			foreach ($row as $fld => $value) {
-				$value = frame_CsvLib::toCsvFormatDouble($value);
-				$row->{$fld} = $value;
-			}
-		
-		
-			$beforeRow = $this->generateCsvRows($row);
-
-			$csv = $header . "\n" . $beforeRow. "\n" . $csv;
-	    } 
-
+            foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+                if(!is_null($rec->$fld)){
+                    $dataRecs[$id]->$fld = $rec->$fld;
+                }
+            }
+        }
+        
+        $fields = $this->getFields();
+        
+        $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
+        
         return $csv;
     }
 
@@ -598,20 +543,26 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     * @todo да се замести в кода по-горе
      */
-    protected function getExportFields_()
+    protected function getFields_()
     {
-
-        $exportFields = $this->innerState->listFields;
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
         
-        foreach ($exportFields as $field => $caption) {
-        	$caption = str_replace('|*', '', $caption);
-        	$caption = str_replace('->', ' - ', $caption);
-        	
-        	$exportFields[$field] = $caption;
-        }
+        $f->FLD('ent1Id', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('ent2Id', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('ent3Id', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('baseQuantity', 'int', 'tdClass=accCell');
+    	$f->FLD('baseAmount', 'int', 'tdClass=accCell');
+    	$f->FLD('debitQuantity', 'int', 'tdClass=accCell');
+    	$f->FLD('debitAmount', 'int', 'tdClass=accCell');
+    	$f->FLD('creditQuantity', 'int', 'tdClass=accCell');
+    	$f->FLD('creditAmount', 'int', 'tdClass=accCell');
+    	$f->FLD('blQuantity', 'int', 'tdClass=accCell');
+    	$f->FLD('blAmount', 'int', 'tdClass=accCell');
         
-        return $exportFields;
+        return $f;
     }
     
     
