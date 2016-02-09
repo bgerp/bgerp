@@ -291,11 +291,11 @@ abstract class cat_ProductDriver extends core_BaseClass
                     $caption = tr($caption);
                     $unit = tr($field->unit);
 					
-                    if($field->inlineTo) {
-                        $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
+                    if($field->inlineTo) { 
+                        $dhtml = new ET(" {$caption} " . $data->row->{$name} . " {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}</td></tr>");
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
                         $tpl->append($dhtml, 'INFO');
                     }
 				}
