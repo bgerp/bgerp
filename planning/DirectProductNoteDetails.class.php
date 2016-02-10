@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -211,6 +211,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		
     		if($rec->type == 'pop'){
     			$row->packQuantity .= " {$row->packagingId}";
+    		} else {
+    			
+    			// Ако ще влагаме от склада, и артикула се влага като друг, показваме хинт с името му
+    			if(isset($data->masterData->rec->inputStoreId)){
+    				$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
+    				if($convInfo->productId != $rec->productId){
+    					$convertTitle = cat_Products::getTitleById($convInfo->productId);
+    					$row->productId = ht::createHint($row->productId, "Артикулът се влага като: {$convertTitle}");
+    				}
+    			}
     		}
     	}
     }
