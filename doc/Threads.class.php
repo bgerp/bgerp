@@ -942,7 +942,7 @@ class doc_Threads extends core_Manager
             
             $time = ceil($time);
             if ($time > ini_get('max_execution_time')) {
-                core_App::setTimeLimit($time);bp();
+                core_App::setTimeLimit($time);
             }
             
             if($moveRest == 'yes') {
