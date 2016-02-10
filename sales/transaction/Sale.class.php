@@ -420,18 +420,18 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 		
 		// Сумираме количеството на платената валута
 		if(is_array($quantities)){
-			foreach ($quantities as $index => $quantity){
+			foreach ($quantities as $index => $obj){
 				
 				// Ако к-то е в основната валута на сделката, няма промяна
 				if($currencyItemId == $index){
-					$amount += $quantity;
+					$amount += $obj->quantity;
 				} else {
 					
 					// Ако количеството е във валута различна от тази на сделката превалутираме
 					$itemRec = acc_Items::fetch($index);
 					if(keylist::isIn(acc_Lists::fetchBySystemId('currencies')->id, $itemRec->lists)){
 						$from = currency_Currencies::getCodeById($itemRec->objectId);
-						$converted = currency_CurrencyRates::convertAmount($quantity, NULL, $from, $rec->currencyId);
+						$converted = currency_CurrencyRates::convertAmount($obj->quantity, NULL, $from, $rec->currencyId);
 						$amount += $converted;
 					}
 				}

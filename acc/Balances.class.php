@@ -587,23 +587,33 @@ class acc_Balances extends core_Master
     						break;
     					}
     				}
+    				if(!array_key_exists($index, $res)){
+    					$res[$index] = (object)array('quantity' => 0, 'amount' => 0);
+    				}
     				
-    				$res[$index] += $rec->debitQuantity;
+    				$res[$index]->quantity += $rec->debitQuantity;
+    				$res[$index]->amount += $rec->amount;
     			}
     		}
     	
     		if(in_array($rec->creditAccId, $newAccArr)) {
     			$sign = ($type === NULL) ? -1 : 1;
-    			$index = NULL;
-    			foreach (range(3, 1) as $i){
-    				if(isset($rec->{"creditItem{$i}"})){
-    					$index = $rec->{"creditItem{$i}"};
-    					break;
-    				}
-    			}
     			
     			if($type === NULL || $type == 'credit'){
-    				$res[$index] += $sign * $rec->creditQuantity;
+    				$index = NULL;
+    				foreach (range(3, 1) as $i){
+    					if(isset($rec->{"creditItem{$i}"})){
+    						$index = $rec->{"creditItem{$i}"};
+    						break;
+    					}
+    				}
+    				
+    				if(!array_key_exists($index, $res)){
+    					$res[$index] = (object)array('quantity' => 0, 'amount' => 0);
+    				}
+    				
+    				$res[$index]->quantity += $sign * $rec->creditQuantity;
+    				$res[$index]->amount += $sign * $rec->amount;
     			}
     		}
     	}
