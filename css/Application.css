@@ -2861,6 +2861,19 @@ span.sharing-history-title {
   margin-bottom: 10px;
   line-height: 120%; }
 
+  .rowtoolsGroup.modal-toolbar.iw-contextMenu {
+    padding: 4px 5px 13px 5px;
+    max-width: 160px; }
+  .rowtoolsGroup a {
+    text-align: left;
+    display: block;
+    font-size: 0.95em;
+    padding: 3px 0;
+    color: #333333 !important; }
+    .rowtoolsGroup a:hover {
+      color: black !important;
+      background-color: #e1e1e1; }
+
 table.styled-table tr:hover td {
   background-color: #ffffcc !important; }
 
