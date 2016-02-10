@@ -247,7 +247,9 @@ class core_Html
                 }
 
                 if ($attr['value'] == $selected) {
-                    $attr['selected'] = 'selected';
+                    if($selected != NULL || $attr['value'] === '' || $attr['value'] === NULL) {
+                        $attr['selected'] = 'selected';
+                    }
                 }
 
                 // Хак за добавяне на плейс-холдер

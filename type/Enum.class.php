@@ -58,6 +58,11 @@ class type_Enum extends core_Type {
             return FALSE;
         }
         
+        if($value === '') {
+
+            return NULL;
+        }
+        
         return $value;
     }
     
@@ -73,6 +78,9 @@ class type_Enum extends core_Type {
             if($div = $this->params['groupByDiv']) {
                 $options = ht::groupOptions($this->options, $div);
             }
+
+            $arr = array();
+
             foreach($options as $id => $title) {
                 if(is_object($title)) {
                     $arr[$id] = $title;
@@ -91,7 +99,7 @@ class type_Enum extends core_Type {
         }
         
         parent::setFieldWidth($attr, NULL, $arr);
-  
+ 
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],

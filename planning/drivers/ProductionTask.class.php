@@ -304,9 +304,16 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      * @param stdClass $rec
      * @param stdClass $nRec
      */
-    public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec, &$nRec)
+    public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$rec, &$nRec)
     {
     	unset($nRec->totalWeight);
+    	unset($nRec->systemId);
+    	
+    	// Добавяме артикулите към детайлите за клониране
+    	$cloneDetails = $Embedder->cloneDetailes;
+    	$cloneDetails = arr::make($cloneDetails, TRUE);
+    	$cloneDetails['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
+    	$Embedder->cloneDetailes = implode(',', $cloneDetails);
     }
     
     
