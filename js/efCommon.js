@@ -409,6 +409,15 @@ function toggleFormGroup(id)
 }
 
 
+function toggleFormType(el) {
+	if($(el).hasClass('toggleRight')){
+		$("input[name='Advanced']").val(1);
+	} else {
+		$("input[name='Advanced']").val(0);
+	}
+	$(el).closest('form').submit();
+}
+
 
 /**
  * Присвоява стойност за блока с опции на SELECT елемент, като отчита проблемите на IE
