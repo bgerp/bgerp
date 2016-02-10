@@ -87,7 +87,15 @@ class planning_Tasks extends tasks_Tasks
 		// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
 		if(count($defaultTasks)){
 			foreach ($defaultTasks as $index => $taskInfo){
-		
+				
+				// Имали от създадените задачи, такива с този индекс
+				$foundObject = array_filter($data->recs, function ($a) use ($index) {
+					return $a->systemId == $index;
+				});
+				
+				// Ако има не показваме дефолтната задача
+				if(is_array($foundObject) && count($foundObject)) continue;
+				
 				// Ако не може да бъде добавена задача не показваме реда
 				if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
 		
