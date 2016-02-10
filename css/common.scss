@@ -757,6 +757,40 @@ a.button.fright, input[type="button"].fright, input[type="submit"].fright, butto
 	margin: 1px 0 0 0.5em;
 }
 
+form[method=post] .toogleHolder {
+	float: right;
+	display: inline-block;
+	.toogleBtn {
+		&.toggleLeft {
+			margin-right: 0 !important;
+			border-radius: 5px 0 0 5px  !important;
+			&.toggleOn {
+			    color: lightgreen;
+			}
+		}
+		&.toggleRight {
+			margin-left: 0 !important;
+			border-radius: 0 5px 5px 0 !important; 
+			border-left: none !important;
+			&.toggleOn {
+				color: #f4f;
+			}
+		}
+		&.toggleOn {
+			box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
+			background: #777 !important;
+			text-shadow: 1px 1px 0 #333;
+		}
+		&.toggleOff {
+			box-shadow: inset 0 0 20px rgba(255,255,255, 0.3);
+			color: #eee !important;
+			&:hover {
+				background-color: #aaaaaa;
+			}
+		}
+	}
+}
+
 h1:target, h2:target, h3:target, h4:target, h5:target, h6:target {
    color: blue;
 }
