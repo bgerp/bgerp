@@ -34,7 +34,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         if ($fileType == 'string') {
             $name = ($name) ? $name : 'file.pdf';
-            $file = self::addStrToFile($file, $name);
+            $file = fileman::addStrToFile($file, $name);
         }
 		
         if (!$name) {

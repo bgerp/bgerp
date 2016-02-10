@@ -802,4 +802,18 @@ class doc_FolderPlg extends core_Plugin
     		}
     	}
     }
+    
+    
+    /**
+     * Филтрираме заявката преди експорт
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Query $query
+     */
+    static function on_AfterPrepareExportQuery($mvc, $query)
+    {
+        if (!Request::get('Rejected')) {
+            $query->where("#state != 'rejected'");
+        }
+    }
 }

@@ -51,10 +51,12 @@ class bgerp_BaseImporter extends core_Manager {
         foreach($Dfields as $name => $fld){
             if($fld->input != 'none' && $fld->input != 'hidden' &&
                 $fld->kind != 'FNC' && !($fld->type instanceof type_Enum) &&
-                !($fld->type instanceof type_Key) && !($fld->type instanceof type_KeyList)){
+                !($fld->type instanceof type_Key) && !($fld->type instanceof type_KeyList) && !($fld->type instanceof fileman_FileType)){
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
         }
+        
+        $this->mvc->invoke('AfterPrepareInportFields', array(&$fields));
         
         return $fields;
     }
@@ -70,8 +72,10 @@ class bgerp_BaseImporter extends core_Manager {
     public function import($rows, $fields)
     {
         $html = '';
-        $created = $updated = 0;
+        $created = $updated = $skipped = $duplicated = 0;
         core_Debug::startTimer('import');
+        
+        $onExist = Mode::get('onExist');
         
         foreach ($rows as $row){
             $rec = new stdClass();
@@ -91,7 +95,18 @@ class bgerp_BaseImporter extends core_Manager {
             
             if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
                 $rec->id = $exRec->id;
-                $updated++;
+            }
+            
+            if ($rec->id) {
+                if ($onExist == 'skip') {
+                    $skipped++;
+                    continue;
+                } elseif ($onExist == 'duplicate') {
+                    unset($rec->id);
+                    $duplicated++;
+                } else {
+                    $updated++;
+                }
             } else {
                 $created++;
             }
@@ -101,8 +116,20 @@ class bgerp_BaseImporter extends core_Manager {
         
         core_Debug::stopTimer('import');
         
-        $html .= "|Импортирани|* {$created} |нови записа, обновени|* {$updated} |съществуващи записа|*<br />";
-        $html .= "|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
+        if ($created) {
+            $html .= "|Импортирани|* {$created} |нови записа|*.";
+        }
+        
+        foreach (array('Обновени' => $updated, 'Пропуснати' => $skipped, 'Дублирани' => $duplicated) as $verbName => $cnt) {
+            if ($cnt) {
+                $html .= ($html) ? '<br />' : '';
+                $html .= "|{$verbName}|* {$cnt} |съществуващи записа|*.";
+            }
+        }
+        
+        if (isDebug()) {
+            $html .= "<br />|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
+        }
         
         return $html;
     }

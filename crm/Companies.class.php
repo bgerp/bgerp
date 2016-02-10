@@ -1634,4 +1634,95 @@ class crm_Companies extends core_Master
     {
     	return array();
     }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $fields
+     */
+    public function on_AfterPrepareInportFields($mvc, &$fields)
+    {
+        $mandatoryArr = array();
+        $mandatoryArr['country']['caption'] = 'Държава';
+        $mandatoryArr['country']['mandatory'] = 'mandatory';
+        
+        $newArr = array();
+        $added = FALSE;
+        
+        if ($fields) {
+            foreach ($fields as $name => $field) {
+                
+                if (!$added && !$field['mandatory']) {
+                    $newArr += $mandatoryArr;
+                    $added = TRUE;
+                }
+                $newArr[$name] = $field;
+            }
+            $fields = $newArr;
+        } else {
+            $fields = $mandatoryArr;
+        }
+        
+        $otheerArr = array();
+        $otheerArr['groupList']['caption'] = 'Групи';
+        $otheerArr['groupList']['mandatory'] = NULL;
+        
+        $fields += $otheerArr;
+    }
+    
+    
+    /**
+     * Преди записване на в модела
+     * 
+     * @param crm_Companies $mvc
+     * @param stdObjec $rec
+     */
+    public function on_BeforeImportRec($mvc, &$rec)
+    {
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // id на групите
+        if (isset($rec->groupList)) {
+            
+            $groupArr = type_Set::toArray($rec->groupList);
+            
+            $groupIdArr = array();
+            
+            foreach ($groupArr as $groupName) {
+                $groupName = trim($groupName);
+                $groupId = crm_Groups::fetchField(array("#name = '[#1#]'", $groupName), 'id');
+                
+                if (!$groupId) continue;
+                
+                $groupIdArr[$groupId] = $groupId;
+            }
+            
+            $rec->groupList = type_Keylist::fromArray($groupIdArr);
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($name = trim($rec->name)) {
+            $query->where(array("#name = '[#1#]'", $name));
+        }
+        
+        if ($vatId = trim($rec->vatId)) {
+            $query->orWhere(array("#name = '[#1#]'", $vatId));
+        }
+        
+        $query->orderBy('#vatId', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
+    }
 }

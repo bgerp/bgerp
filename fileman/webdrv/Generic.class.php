@@ -1411,22 +1411,4 @@ class fileman_webdrv_Generic extends core_Manager
         
         return $fileType;
     }
-    
-    
-    /**
-     * Добавя стринг във временната директория с подадения файл
-     * 
-     * @param string $fileStr
-     * @param string $name
-     * 
-     * @return string
-     */
-    protected static function addStrToFile($fileStr, $name)
-    {
-        $tempDir = fileman::getTempPath() . '/' . $name;
-        
-        expect(@file_put_contents($tempDir, $fileStr) !== FALSE);
-        
-        return $tempDir;
-    }
 }
