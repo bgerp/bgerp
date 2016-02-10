@@ -302,6 +302,7 @@ class plg_Clone extends core_Plugin
     					// Клонираме записа и го свързваме към новия запис
     					$query = $Detail->getQuery();
     					$query->where("#{$Detail->masterKey} = {$rec->id}");
+    					$query->orderBy('id', "ASC");
     					$details = $query->fetchAll();
     					
     					if(is_array($details)){
@@ -326,7 +327,7 @@ class plg_Clone extends core_Plugin
     			
     			// Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
     			if($notClones) {
-    				core_Statuses::newStatus('Някой от детайлите не бяха клонирани, защото са уникални', 'warning');
+    				core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
     			}
     		}
     	}
