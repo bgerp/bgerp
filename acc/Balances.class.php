@@ -535,18 +535,97 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Връща масив с количествата групирани по размерната номенклатура на сметките
+     *
+     * @param array $jRecs - масив с данни от журнала
+     * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
+     * @param enum(debit,credit,NULL) $type - кредното, дебитното или крайното салдо
+     * @param string $accFrom - сметки с които може да кореспондира
+     *
+     * @return stdClass $res - К-та групирани по размерната номенклатура
+     */
+    public static function getBlQuantities($jRecs, $accs, $type = NULL, $accFrom = NULL)
+    {
+    	$res = array();
+    	
+    	// Ако няма записи, връщаме празен масив
+    	if(!count($jRecs)) return $res;
+    	
+    	if($type){
+    		expect(in_array($type, array('debit', 'credit')));
+    	}
+    	
+    	$newAccArr = $corespondingAccArr = array();
+    	$accArr = arr::make($accs);
+    	$fromArr = arr::make($accFrom);
+    	expect(count($accArr));
+    	
+    	// Намираме ид-та на сметките
+    	foreach ($accArr as $accSysId){
+    		expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
+    		$newAccArr[] = $accId;
+    	}
+    	
+    	foreach ($fromArr as $accSysId1){
+    		expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
+    		$corespondingAccArr[] = $accId;
+    	}
+    	
+    	// За всеки запис
+    	foreach ($jRecs as $rec){
+    		
+    		// Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
+    		if(count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) continue;
+    	
+    		// Изчисляваме крайното салдо
+    		if(in_array($rec->debitAccId, $newAccArr)) {
+    			if($type === NULL || $type == 'debit'){
+    				$index = NULL;
+    				foreach (range(3, 1) as $i){
+    					if(isset($rec->{"debitItem{$i}"})){
+    						$index = $rec->{"debitItem{$i}"};
+    						break;
+    					}
+    				}
+    				
+    				$res[$index] += $rec->debitQuantity;
+    			}
+    		}
+    	
+    		if(in_array($rec->creditAccId, $newAccArr)) {
+    			$sign = ($type === NULL) ? -1 : 1;
+    			$index = NULL;
+    			foreach (range(3, 1) as $i){
+    				if(isset($rec->{"creditItem{$i}"})){
+    					$index = $rec->{"creditItem{$i}"};
+    					break;
+    				}
+    			}
+    			
+    			if($type === NULL || $type == 'credit'){
+    				$res[$index] += $sign * $rec->creditQuantity;
+    			}
+    		}
+    	}
+    	
+    	// Връщане на резултата
+    	return $res;
+    }
+    
+    
+    /**
      * Връща крайното салдо на дадена сметка, според подадени записи
      *
      * @param array $jRecs - масив с данни от журнала
      * @param string $accsd - Масив от сметки на които ще се изчислява крайното салдо
      * @param enum(debit,credit,NULL) $type - кредното, дебитното или крайното салдо
-     * @param string $accSysIdFrom - сметка с която кореспондира първата
+     * @param string $accFrom - сметки с които може да кореспондира
      *
      * @return stdClass $res - обект със следната структура:
      * ->amount - крайното салдо на сметката, ако няма записи е 0
      * ->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accs, $type = NULL, $accSysIdFrom = NULL)
+    public static function getBlAmounts($jRecs, $accs, $type = NULL, $accFrom = NULL)
     {
         $res = new stdClass();
         $res->amount = 0;
@@ -558,8 +637,9 @@ class acc_Balances extends core_Master
             expect(in_array($type, array('debit', 'credit')));
         }
         
-        $newAccArr = array();
+        $newAccArr = $corespondingAccArr = array();
         $accArr = arr::make($accs);
+        $fromArr = arr::make($accFrom);
         expect(count($accArr));
         
         // Намираме ид-та на сметките
@@ -568,16 +648,17 @@ class acc_Balances extends core_Master
             $newAccArr[] = $accId;
         }
         
-        if(isset($accSysIdFrom)){
-            expect($accIdFrom = acc_Accounts::getRecBySystemId($accSysIdFrom)->id);
-        }
+    	foreach ($fromArr as $accSysId1){
+    		expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
+    		$corespondingAccArr[] = $accId;
+    	}
         
         // За всеки запис
         foreach ($jRecs as $rec){
             $add = FALSE;
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
-            if(isset($accIdFrom) && ($rec->debitAccId != $accIdFrom && $rec->creditAccId != $accIdFrom)) continue;
+            if(count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) continue;
             
             // Изчисляваме крайното салдо
             if(in_array($rec->debitAccId, $newAccArr)) {
