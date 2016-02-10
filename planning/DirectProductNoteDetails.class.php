@@ -165,6 +165,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     	
     		if($form->isSubmitted()){
+    			if(!isset($storeId)){
+    				if(planning_ObjectResources::fetch("#objectId IS NOT NULL AND #objectId = '{$rec->productId}'")){
+    					$form->setError('productId', 'Могат да се избират само крайни или генерични артикули, защото в документа не е избрано директно влагане от склад');
+    				}
+    			}
     			
     			if(isset($storeInfo->warning)){
     				$form->setWarning('packQuantity', $storeInfo->warning);

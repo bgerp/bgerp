@@ -91,6 +91,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		$dQuery->where("#noteId = {$rec->id}");
 		$dQuery->orderBy('id,type', 'ASC');
 		$dRecs = $dQuery->fetchAll();
+		$errorArr = array();
 		
 		if(is_array($dRecs)){
 			foreach ($dRecs as $dRec){
@@ -117,6 +118,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			
 			$costAmount = $index = 0;
 			foreach ($dRecs as $dRec1){
+				if(empty($rec->inputStoreId)){
+					if(planning_ObjectResources::fetch("#objectId IS NOT NULL AND #objectId = '{$dRec1->productId}'")){
+						$errorArr[] = cat_Products::getTitleById($dRec1->productId);
+					}
+				}
+				
 				$sign = ($dRec1->type == 'input') ? 1 : -1;
 				$productInfo = cat_Products::getProductInfo($dRec1->productId);
 				
@@ -179,6 +186,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$total += $costAmount;
 					$entries[] = $costArray;
 				}
+			}
+		}
+		
+		// Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
+		if(Mode::get('saveTransaction')){
+			if(count($errorArr)){
+				$errorArr = implode(', ', $errorArr);
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* трябва да са генерични или крайни, когато не влагаме директно от склада");
 			}
 		}
 		
