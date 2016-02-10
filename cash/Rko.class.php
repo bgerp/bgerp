@@ -20,7 +20,7 @@ class cash_Rko extends cash_Document
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Rko, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Rko, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -67,6 +67,7 @@ class cash_Rko extends cash_Document
     	// Зареждаме полетата от бащата
     	parent::getFields($this);
     	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
+    	$this->setField('amount', 'caption=Валута->Предадени');
     }
 	
 	
@@ -108,14 +109,14 @@ class cash_Rko extends cash_Document
     		 cash_Cases::selectCurrent($caseId);
     	}
     		 	
-    	$cId = $dealInfo->get('currency');
-    	$form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
-    	$form->setDefault('rate', $dealInfo->get('rate'));
+    	$cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+	    $form->setDefault('dealCurrencyId', $cId);
+	    $form->setDefault('currencyId', $cId);
     	
     	if($dealInfo->get('dealType') == purchase_Purchases::AGGREGATOR_TYPE){
     		$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
     		if($dAmount != 0){
-    		 	$form->setDefault('amount',  $dAmount);
+    		 	$form->setDefault('amountDeal',  $dAmount);
     		 }
     	}
     	
@@ -134,6 +135,12 @@ class cash_Rko extends cash_Document
         $form->setDefault('peroCase', cash_Cases::getCurrent());
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+    	
+		$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')}, |платени (погасени) по сделката|*"));
+    	
+    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
+    		$form->setField('amount', 'input');
+    	}
     }
     
     

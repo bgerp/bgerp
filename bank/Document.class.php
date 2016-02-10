@@ -114,14 +114,18 @@ abstract class bank_Document extends core_Master
 	protected function getFields(core_Mvc &$mvc)
 	{
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
+		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
+		
 		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
-		$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
-		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
-		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс');
+		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
+		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
 		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание,mandatory');
 		$mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
 		$mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
-		$mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title)', 'caption=В->Сметка,mandatory');
+		$mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title)', 'caption=В->Сметка,mandatory,silent,removeAndRefreshForm=currencyId|amount');
+		$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+		
 		$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
 		$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
 		$mvc->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
@@ -139,10 +143,14 @@ abstract class bank_Document extends core_Master
 	 */
 	protected static function on_AfterInputEditForm($mvc, $form)
 	{
+		$rec = &$form->rec;
 		if ($form->isSubmitted()){
-	
-			$rec = &$form->rec;
-	
+			if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
+				$form->setField('amount', 'input');
+				$form->setError("amount", 'Когато избраната валута е различна от тази на сделката, трябва да е сумата да е попълнена');
+				return;
+			}
+			
 			$origin = $mvc->getOrigin($form->rec);
 			$dealInfo = $origin->getAggregateDealInfo();
 	
@@ -155,24 +163,11 @@ abstract class bank_Document extends core_Master
 			$rec->creditAccId = $creditAcc;
 			$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
 	
-			// Проверяваме дали банковата сметка е в същата валута
-			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
-	
-			if($ownAcc->currencyId != $rec->currencyId) {
-				$form->setError('currencyId', 'Банковата сметка е в друга валута');
-			}
 			$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-	
-			// Ако няма валутен курс, взимаме този от системата
-			if(!$rec->rate) {
-				$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
-				if(!$rec->rate){
-					$form->setError('rate', "Не може да се изчисли курс");
-				}
-			} else {
-				if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
-					$form->setWarning('rate', $msg);
-				}
+			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+			
+			if($rec->currencyId == $rec->dealCurrencyId){
+				$rec->amount = $rec->amountDeal;
 			}
 		}
 	}
@@ -252,7 +247,7 @@ abstract class bank_Document extends core_Master
 		$firstDoc = doc_Threads::getFirstDocument($threadId);
 		$docState = $firstDoc->fetchField('state');
 	
-		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
+		if(!empty($firstDoc) && ($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active')){
 	
 			// Ако няма позволени операции за документа не може да се създава
 			$operations = $firstDoc->getPaymentOperations();
@@ -335,24 +330,25 @@ abstract class bank_Document extends core_Master
 		$row->title = $mvc->getLink($rec->id, 0);
 	
 		if($fields['-single']) {
-	
-			$row->currencyId = currency_Currencies::getCodeById($rec->currencyId);
-	
-			if($rec->rate != '1') {
-	
-				$period = acc_Periods::fetchByDate($rec->valior);
-				$row->baseCurrency = currency_Currencies::getCodeById($period->baseCurrencyId);
-				$row->equals = $mvc->getFieldType('amount')->toVerbal($rec->amount * $rec->rate);
+			if($rec->dealCurrencyId != $rec->currencyId){
+				$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+			
+				if($rec->dealCurrencyId == $baseCurrencyId){
+					$rate = $rec->amountDeal / $rec->amount;
+					$rateFromCurrencyId = $rec->dealCurrencyId;
+					$rateToCurrencyId = $rec->currencyId;
+				} else {
+					$rate = $rec->amount / $rec->amountDeal;
+					$rateFromCurrencyId = $rec->currencyId;
+					$rateToCurrencyId = $rec->dealCurrencyId;
+				}
+				$row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
+				$row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
+				$row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
 			} else {
-	
+				unset($row->dealCurrencyId);
+				unset($row->amountDeal);
 				unset($row->rate);
-			}
-	
-			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
-			$row->accCurrency = currency_Currencies::getCodeById($ownAcc->currencyId);
-	
-			if($rec->contragentIban){
-				$row->accCurrencyIban = $row->accCurrency;
 			}
 	
 			$ownCompany = crm_Companies::fetchOwnCompany();

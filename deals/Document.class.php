@@ -252,7 +252,6 @@ abstract class deals_Document extends core_Master
 	 * @see bgerp_DealIntf::getDealInfo()
 	 */
 	public function pushDealInfo($id, &$aggregator)
-	{
-		 
+	{ 
 	}
 }

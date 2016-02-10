@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -62,7 +62,8 @@ class bank_Setup extends core_ProtoSetup
         'bank_PaymentOrders',
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
-    	'migrate::updateDocumentStates'
+    	'migrate::updateDocumentStates',
+    	'migrate::updateDocuments'
     );
     
     
@@ -78,11 +79,6 @@ class bank_Setup extends core_ProtoSetup
     var $menuItems = array(
         array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "bank, ceo"),
     );
-    
-    /**
-     * Път до css файла
-     */
-    //    var $commonCSS = 'bank/tpl/css/belejka.css, bank/tpl/css/styles.css';
     
     
     /**
@@ -144,6 +140,43 @@ class bank_Setup extends core_ProtoSetup
     			}
     		} catch(core_exception_Expect $e){
     			 
+    		}
+    	}
+    }
+    
+    
+	/**
+	 * Ъпдейт на документите
+	 */
+    public function updateDocuments()
+    {
+    	core_App::setTimeLimit(300);
+    	 
+    	$array = array('bank_IncomeDocuments', 'bank_SpendingDocuments');
+    	 
+    	foreach ($array as $doc){
+    		$Doc = cls::get($doc);
+    		$Doc->setupMvc();
+    
+    		$query = $Doc->getQuery();
+    		$query->where('#amountDeal IS NULL');
+    		while($rec = $query->fetch()){
+    			 
+    			try{
+    				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    				$firstDocRec = $firstDoc->fetch();
+    				$dealCurrencyId = currency_Currencies::getIdByCode($firstDocRec->currencyId);
+    				$dealRate = $firstDocRec->currencyRate;
+    					
+    				$dealAmount = ($rec->amount * $rec->rate) / $dealRate;
+    					
+    				$rec->amountDeal = $dealAmount;
+    				$rec->dealCurrencyId = $dealCurrencyId;
+    					
+    				$Doc->save_($rec, 'amountDeal,dealCurrencyId');
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
     		}
     	}
     }
