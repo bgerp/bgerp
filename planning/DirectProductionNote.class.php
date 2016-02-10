@@ -397,7 +397,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$dRec->quantityInPack = $resource->quantityInPack;
 			
 			// Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
-			$dRec->quantityFromBom       = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+			$dRec->quantityFromBom  = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
 			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
@@ -405,7 +405,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			
 			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
 			foreach ($convertableProducts as $prodId => $prodName){
-				$quantities[$prodId] = store_Products::fetchField("#storeId = {$rec->inputStoreId} AND #productId = {$prodId}", 'quantity');
+				$quantities[$prodId] = store_Products::fetchField("#storeId = '{$rec->inputStoreId}' AND #productId = {$prodId}", 'quantity');
 			}
 		
 			// Ако има такива
