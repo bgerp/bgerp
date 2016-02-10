@@ -315,12 +315,15 @@ class csv_Lib
      * 
      * @return string
      */
-    protected static function getCsvLine($valsArr, $delimiter, $enclosure)
+    protected static function getCsvLine($valsArr, $delimiter, $enclosure, $trim = TRUE)
     {
-        $csvLine = '';
+        $csvLine = NULL;
         foreach ($valsArr as $v) {
+            if ($trim) {
+                $v = trim($v);
+            }
             $v = self::prepareCsvVal($v, $delimiter, $enclosure);
-            $csvLine .= ($csvLine) ? $delimiter : '';
+            $csvLine = (isset($csvLine)) ? $csvLine . $delimiter : '';
             $csvLine .= $v;
         }
         
@@ -350,42 +353,122 @@ class csv_Lib
     }
     
     /**
-     * Връща масив с данните от csv-то
+     * Връща масив с данните от CSV стринга
+     * 
      * @param string $csvData - csv данни
      * @param char $delimiter - разделител
      * @param char $enclosure - ограждане
      * @param string $firstRow - първи ред данни или имена на колони
+     * 
      * @return array $rows - масив с парсирани редовете на csv-то
      */
-    public static function getCsvRows($csvData, $delimiter = FALSE, $enclosure = FALSE, $firstRow)
+    public static function getCsvRows($csvData, $delimiter = NULL, $enclosure = NULL, $firstRow = 'columnNames')
     {
-    	// ще вземем конфигурационните константи
-    	$conf = core_Packs::getConfig('csv');
-    	
-    	if (!isset($delimiter)) {
-    		$delimiter = $conf->CSV_DELIMITER;
-    	}
-    	
-    	if (!isset($enclosure)) {
-    		$enclosure = $conf->CSV_ENCLOSURE;
-    	}
-    	
-    	$csvData = i18n_Charset::convertToUtf8($csvData);
-    	
-    	$textArr = explode(PHP_EOL, trim($csvData));
+        $strPath = fileman::addStrToFile($csvData, 'file.csv');
+        
+        $csvData = i18n_Charset::convertToUtf8($csvData);
+        
+        $rowsArr = self::getCsvRowsFromFile($strPath, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => $firstRow));
+        
+        fileman::deleteTempPath($strPath);
+        
+        return $rowsArr['data'];
+    }
     
-    	foreach($textArr as $line){
-    		$arr = str_getcsv($line, $delimiter, $enclosure);
-    		
-    		array_unshift($arr, "");
-    		unset($arr[0]);
-    		$rows[] = $arr;
-    	}
     
-    	if($firstRow == 'columnNames'){
-    		unset($rows[0]);
-    	}
+    /**
+     * Връща имената на колоните от CSV файла
+     * 
+     * @param unknown $csvData
+     * @param string $delimiter
+     * @param string $enclosure
+     * @param boolean $firstEmpty
+     * @param boolean $checkErr
+     * 
+     * @return array
+     */
+    public static function getCsvColNames($csvData, $delimiter = NULL, $enclosure = NULL, $firstEmpty = FALSE, $checkErr = FALSE)
+    {
+        $strPath = fileman::addStrToFile($csvData, 'file.csv');
+        
+        $csvData = i18n_Charset::convertToUtf8($csvData);
+        
+        $rowsArr = self::getCsvRowsFromFile($strPath, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
+        
+        fileman::deleteTempPath($strPath);
+        
+        if ($checkErr && $rowsArr['error']) {
+            
+            return array();
+        }
+        
+        $resArr = (array) $rowsArr['firstRow'];
+        
+        if ($firstEmpty) {
+            $resArr = arr::combine(array(NULL => ''), $resArr);
+        }
+        
+        return $resArr;
+    }
     
-    	return $rows;
+    
+    /**
+     * Връща редовете от CSV файла
+     * 
+     * @param string $path
+     * @param array $params
+     * 
+     * @return array
+     */
+    public static function getCsvRowsFromFile($path, $params = array())
+    {
+        expect(($handle = fopen($path, "r")) !== FALSE);
+        setIfNot($params['length'], 0);
+        setIfNot($params['delimiter'], ',');
+        setIfNot($params['enclosure'], '"');
+        setIfNot($params['escape'], '\\');
+        setIfNot($params['firstRow'], 'columnNames');
+        setIfNot($params['check'], TRUE);
+        setIfNot($params['skip'], '#');
+        
+        $resArr = array();
+        $resArr['firstRow'] = array();
+        $resArr['error'] = FALSE;
+        $resArr['data'] = array();
+        
+        $isFirst = TRUE;
+        $oldCnt = NULL;
+        
+        while (($data = fgetcsv($handle, $params['length'], $params['delimiter'], $params['enclosure'], $params['escape'])) !== FALSE) {
+            
+            // Пропускаме празните линии
+            if(!count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
+
+            // Пропускаме редовете със знака указан в $skip
+            if($data[0]{0} == $params['skip']) continue;
+            
+            if ($params['check']) {
+                
+                $cnt = count($data);
+                
+                if (!$resArr['error'] && isset($oldCnt) && ($cnt != $oldCnt)) {
+                    $resArr['error'] = TRUE;
+                }
+                
+                $oldCnt = $cnt;
+            }
+            
+            array_unshift($data, "");
+            unset($data[0]);
+            
+            if (($params['firstRow'] == 'columnNames') && $isFirst) {
+                $isFirst = FALSE;
+                $resArr['firstRow'] = $data;
+            } else {
+                $resArr['data'][] = $data;
+            }
+        }
+        
+        return $resArr;
     }
 }

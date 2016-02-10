@@ -2917,4 +2917,18 @@ class doc_DocumentPlg extends core_Plugin
         // Обновява modified полетата
         $mvc->touchRec($id);
     }
+    
+    
+    /**
+     * Филтрираме заявката преди експорт
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Query $query
+     */
+    static function on_AfterPrepareExportQuery($mvc, $query)
+    {
+        if (!Request::get('Rejected')) {
+            $query->where("#state != 'rejected'");
+        }
+    }
 }
