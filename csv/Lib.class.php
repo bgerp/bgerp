@@ -268,6 +268,7 @@ class csv_Lib
                 } else {
                     $type = new stdClass();
                 }
+                
                 Mode::push('text', 'plain');
                 if ($type instanceof type_Key) {
                     $value = $type->toVerbal($rec->{$name});
@@ -288,6 +289,8 @@ class csv_Lib
                     $value = $type->toVerbal($rec->{$name});
                     Mode::pop('text');
                 } elseif ($type instanceof fileman_FileType) {
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof type_Enum) {
                     $value = $type->toVerbal($rec->{$name});
                 } else {
                     $value = $rec->{$name};
