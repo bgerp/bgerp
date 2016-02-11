@@ -129,7 +129,7 @@ abstract class cash_Document extends core_Master
     protected function getFields(core_Mvc &$mvc)
     {
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-    	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+    	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Погасени,mandatory,summary=amount');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
@@ -144,14 +144,11 @@ abstract class cash_Document extends core_Master
     	$mvc->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
     	$mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,silent,removeAndRefreshForm=rate|amount');
-    	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Заверени,summary=amount,input=hidden');
-    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
+    	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
+    	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
     	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)',
-    			'caption=Статус, input=none'
-    	);
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
     	// Поставяне на уникален индекс
