@@ -160,10 +160,4 @@ class cash_Pko extends cash_Document
     	
     	return $options;
     }
-    
-    function act_test()
-    {
-    	$r = cls::get('cash_Setup');
-    	$r->updateDocuments();
-    }
 }
