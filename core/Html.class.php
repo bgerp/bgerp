@@ -595,6 +595,7 @@ class core_Html
         
         // Ако имаме грешка - показваме я и не продължаваме
         if ($attr['error']) {
+        	$attr['error'] = tr($attr['error']);
         	$attr['onclick'] = " alert('{$attr['error']}'); return false; ";
             unset($attr['error']);
         }
