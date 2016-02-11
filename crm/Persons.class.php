@@ -2545,4 +2545,95 @@ class crm_Persons extends core_Master
     {
     	return array();
     }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Persons $mvc
+     * @param array $fields
+     */
+    public function on_AfterPrepareInportFields($mvc, &$fields)
+    {
+        crm_Companies::on_AfterPrepareInportFields($mvc, $fields);
+    }
+    
+    
+    /**
+     * Преди записване на в модела
+     * 
+     * @param crm_Persons $mvc
+     * @param stdObjec $rec
+     */
+    public function on_BeforeImportRec($mvc, &$rec)
+    {
+    
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // id на групите
+        if (isset($rec->buzCompanyId)) {
+            $companyName = trim($rec->buzCompanyId);
+            $rec->buzCompanyId = crm_Companies::fetchField(array("#name = '[#1#]'", $companyName), 'id');
+        }
+        
+        // id на групите
+        if (isset($rec->buzLocationId)) {
+            $locationTitle = trim($rec->buzLocationId);
+            $locationTitle = mb_strtolower($locationTitle);
+            $rec->buzLocationId = crm_Locations::fetchField(array("LOWER(#title) = '[#1#]'", $locationTitle), 'id');
+        }
+        
+        // id на групите
+        if (isset($rec->groupList)) {
+            
+            $gArr = type_Set::toArray($rec->groupList);
+            
+            $gIdArr = array();
+            
+            foreach ($gArr as $gName) {
+                $gName = trim($gName);
+                $groupId = crm_Groups::fetchField(array("#name = '[#1#]'", $gName), 'id');
+                
+                if ($groupId) {
+                    $gIdArr[$groupId] = $groupId;
+                }
+            }
+            
+            $rec->groupList = type_Keylist::fromArray($gIdArr);
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($egn = trim($rec->egn)) {
+            $query->where(array("#egn = '[#1#]'", $egn));
+        }
+        
+        if ($name = $rec->name) {
+            
+            $query->where(array("#name = '[#1#]'", $name));
+            
+            if ($tel = trim($rec->tel)) {
+                $query->orWhere(array("#tel = '[#1#]'", $tel));
+            }
+            
+            if ($mobile = trim($rec->mobile)) {
+                $query->orWhere(array("#mobile = '[#1#]'", $mobile));
+            }
+        }
+        
+        $query->orderBy('#egn', 'DESC');
+        $query->orderBy('#tel', 'DESC');
+        $query->orderBy('#mobile', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
+    }
 }

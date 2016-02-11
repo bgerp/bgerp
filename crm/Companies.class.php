@@ -1644,32 +1644,22 @@ class crm_Companies extends core_Master
      */
     public function on_AfterPrepareInportFields($mvc, &$fields)
     {
-        $mandatoryArr = array();
-        $mandatoryArr['country']['caption'] = 'Държава';
-        $mandatoryArr['country']['mandatory'] = 'mandatory';
         
-        $newArr = array();
-        $added = FALSE;
+        $Dfields = $mvc->selectFields();
         
-        if ($fields) {
-            foreach ($fields as $name => $field) {
-                
-                if (!$added && !$field['mandatory']) {
-                    $newArr += $mandatoryArr;
-                    $added = TRUE;
-                }
-                $newArr[$name] = $field;
+        $fields = array();
+        
+        foreach($Dfields as $name => $fld){
+            if($fld->input != 'none' && $fld->input != 'hidden' &&
+                            $fld->kind != 'FNC' && !($fld->type instanceof fileman_FileType)) {
+                                
+                $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
-            $fields = $newArr;
-        } else {
-            $fields = $mandatoryArr;
         }
         
-        $otheerArr = array();
-        $otheerArr['groupList']['caption'] = 'Групи';
-        $otheerArr['groupList']['mandatory'] = NULL;
-        
-        $fields += $otheerArr;
+        unset($fields['shared']);
+        unset($fields['access']);
+        unset($fields['inCharge']);
     }
     
     
