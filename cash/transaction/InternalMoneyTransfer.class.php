@@ -52,26 +52,15 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
     	expect($rec = $this->class->fetchRec($id));
     
     	($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
-    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-    	$amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
-    
-    	$creditArr = array($rec->creditAccId,
-    			array('cash_Cases', $rec->creditCase),
-    			array('currency_Currencies', $rec->currencyId),
-    			'quantity' => $rec->amount);
-    
-    	$toArr = array($rec->debitAccId,$debitArr,
-    			array('currency_Currencies', $rec->currencyId),
-    			'quantity' => $rec->amount);
-    
-    	if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-    		$entry = array('amount' => $amount, 'debit' => $toArr, 'credit' => $creditArr);
-    		$entry = array($entry);
-    	} else {
-    		$entry = array();
-    		$entry[] = array('amount' => $amount, 'debit' => $toArr, 'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
-    		$entry[] = array('amount' => $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'credit'  => $creditArr);
-    	}
+    	
+    	$entry = array('debit' => array($rec->debitAccId,$debitArr,
+					    			array('currency_Currencies', $rec->currencyId),
+					    			'quantity' => $rec->amount), 
+    				   'credit' => array($rec->creditAccId,
+					    			array('cash_Cases', $rec->creditCase),
+					    			array('currency_Currencies', $rec->currencyId),
+					    			'quantity' => $rec->amount));
+    	$entry = array($entry);
     	 
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
