@@ -193,6 +193,11 @@ abstract class cash_Document extends core_Master
     		if($rec->currencyId == $rec->dealCurrencyId){
     			$rec->amount = $rec->amountDeal;
     		}
+    		
+    		$dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+    		if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
+    			$form->setWarning('amount', $msg);
+    		}
     	}
     	
     	acc_Periods::checkDocumentDate($form, 'valior');
