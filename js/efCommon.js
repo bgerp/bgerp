@@ -3158,6 +3158,7 @@ function render_makeTooltipFromTitle() {
  */
 function render_runHljs() {
 	if (typeof hljs != 'undefined') {
+		hljs.initHighlighting.called = false;
   		hljs.initHighlighting();
 	}
 }
