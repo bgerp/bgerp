@@ -30,7 +30,7 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
      *  Създава транзакция която се записва в Журнала, при контирането
      *
      *	Dt: 501. Каси 					(Каса, Валута)
-     *  Ct: 501. Каси					(Каса, Валута)аса, Валута)
+     *  Ct: 501. Каси					(Каса, Валута)
      */
     public function getTransaction($id)
     {
