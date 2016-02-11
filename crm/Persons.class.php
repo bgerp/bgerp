@@ -2615,10 +2615,10 @@ class crm_Persons extends core_Master
             
             $query->orWhere(array("#name = '[#1#]'", $name));
             
-            $or = TRUE;
+            $or = FALSE;
             if ($tel = trim($rec->tel)) {
                 $query->where(array("#tel = '[#1#]'", $tel), $or);
-                $or = FALSE;
+                $or = TRUE;
             }
             
             if ($mobile = trim($rec->mobile)) {
