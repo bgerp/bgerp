@@ -2613,14 +2613,16 @@ class crm_Persons extends core_Master
         
         if ($name = $rec->name) {
             
-            $query->where(array("#name = '[#1#]'", $name));
+            $query->orWhere(array("#name = '[#1#]'", $name));
             
+            $or = TRUE;
             if ($tel = trim($rec->tel)) {
-                $query->orWhere(array("#tel = '[#1#]'", $tel));
+                $query->where(array("#tel = '[#1#]'", $tel), $or);
+                $or = FALSE;
             }
             
             if ($mobile = trim($rec->mobile)) {
-                $query->orWhere(array("#mobile = '[#1#]'", $mobile));
+                $query->where(array("#mobile = '[#1#]'", $mobile), $or);
             }
         }
         
