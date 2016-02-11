@@ -419,7 +419,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	$amount = $res->quantity;
     	$amount *= $rec->currencyRate;
     	
-    	//core_Statuses::newStatus($amount, 'warning');
     	return $amount;
     }
     

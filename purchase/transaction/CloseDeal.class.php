@@ -147,7 +147,6 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$rate = $dealInfo->get('rate');
     	
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
     	$downpaymentArrs = acc_Balances::getBlQuantities($jRecs, '402');
