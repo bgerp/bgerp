@@ -189,6 +189,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
+    		if($rec->type == 'waste'){
+    			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
+    			
+    			if(!isset($selfValue)){
+    				$form->setWarning('productId', 'Отпадакът няма себестойност');
+    			}
+    		}
+    		
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	}
