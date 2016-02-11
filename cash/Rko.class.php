@@ -67,8 +67,7 @@ class cash_Rko extends cash_Document
     	// Зареждаме полетата от бащата
     	parent::getFields($this);
     	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
-    	$this->setField('amount', 'caption=Валута->Предадени');
-    }
+     }
 	
 	
     /**
