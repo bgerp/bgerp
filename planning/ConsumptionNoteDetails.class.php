@@ -146,7 +146,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     			$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
     			if($convInfo->productId != $rec->productId){
     				$convertTitle = cat_Products::getTitleById($convInfo->productId);
-    				$row->productId = ht::createHint($row->productId, "Артикулът се влага като: {$convertTitle}");
+    				$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
     			}
     		}
     	}
