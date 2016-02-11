@@ -263,7 +263,7 @@ abstract class cash_Document extends core_Master
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    protected function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
@@ -390,56 +390,5 @@ abstract class cash_Document extends core_Master
     
     		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
     	}
-    }
-    
-    
-    protected function setDefaults(bgerp_iface_DealAggregator $dealInfo, &$form)
-    {
-    	$pOperations = $dealInfo->get('allowedPaymentOperations');
-        
-        $options = static::getOperations($pOperations);
-        expect(count($options));
-        
-        if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
-        		
-        	$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
-        	if($amount <= 0) {
-        		$amount = 0;
-        	}
-        
-        	$defaultOperation = $dealInfo->get('defaultCaseOperation');
-        	if($defaultOperation == 'customer2caseAdvance'){
-        		$amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
-        	}
-        }
-        
-        if($caseId = $dealInfo->get('caseId')){
-        	 
-        	// Ако потребителя има права, логва се тихо
-        	cash_Cases::selectCurrent($caseId);
-        }
-        
-        $cId = $dealInfo->get('currency');
-        $form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
-        $form->setDefault('rate', $dealInfo->get('rate'));
-        	
-        if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
-        	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
-        	if($dAmount != 0){
-        		$form->setDefault('amount',  $dAmount);
-        	}
-        }
-        
-        $form->setOptions('operationSysId', $options);
-        if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
-        	$form->setDefault('operationSysId', $defaultOperation);
-        }
-        
-        $form->setDefault('peroCase', cash_Cases::getCurrent());
-        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
-        
-        // Поставяме стойности по подразбиране
-        $form->setDefault('valior', dt::today());
     }
 }
