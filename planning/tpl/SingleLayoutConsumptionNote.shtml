@@ -53,8 +53,7 @@
                                                 <!--ET_END deadline-->
                                                 <!--ET_BEGIN useResourceAccounts-->
                                                 <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Детайлно влагане|*:</td>
-                                                    <td>[#useResourceAccounts#]</td>
+                                                    <td colspan='2'>[#useResourceAccounts#]</td>
                                                 </tr>
                                                 <!--ET_END useResourceAccounts-->
                                             </table>

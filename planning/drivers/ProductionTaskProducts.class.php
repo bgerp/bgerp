@@ -99,9 +99,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
-    	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
+    	$this->FLD("planedQuantity", 'double(smartRound)', 'mandatory,caption=Планувано к-во');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
-    	$this->FLD("realQuantity", 'double', 'caption=Количество->Изпълнено,input=none,notNull');
+    	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
     	$this->FLD("indTime", 'time', 'caption=Времена->Изпълнение,smartCenter');
     	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
     	
@@ -189,6 +189,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
+    		if($rec->type == 'waste'){
+    			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
+    			
+    			if(!isset($selfValue)){
+    				$form->setWarning('productId', 'Отпадакът няма себестойност');
+    			}
+    		}
+    		
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	}

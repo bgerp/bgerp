@@ -84,7 +84,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	$selectedFields = cls::get('type_Set')->fromVerbal($selected);
     	
     	$sets = implode(',', $sets);
-    	$form->FNC('showColumnNames', 'enum(no=Не,yes=Да)', 'input,caption=Имена на колони,mandatory');
+    	$form->FNC('showColumnNames', 'enum(yes=Да,no=Не)', 'input,caption=Имена на колони,mandatory');
     	$form->FNC('fields', "set($sets)", 'input,caption=Полета,mandatory');
     	$form->setDefault('fields', $selectedFields);
     	

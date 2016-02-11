@@ -527,7 +527,7 @@ class sales_Sales extends deals_DealMaster
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
-        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($entries));
+        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($entries, $rec));
         $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($entries));
         $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
         

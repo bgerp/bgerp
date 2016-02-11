@@ -18,20 +18,20 @@
 		          <!--ET_BEGIN storeId-->
 	               <tr>
 	                   <td class='quiet' style='text-align: left'>|Склад|*:</td>
-	                   <td>[#storeId#]</td>
+	                   <td style='text-align: right'>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
                     <!--ET_BEGIN sBomId-->
                     <tr>
                         <td class='quiet' style='text-align: right;white-space: nowrap;'>|Търговска рецепта|*:</td>
-                        <td>[#sBomId#]</td>
+                        <td style='text-align: right'>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
                     
                     <!--ET_BEGIN pBomId-->
                     <tr>
                         <td class='quiet' style='text-align: right;white-space: nowrap;'>|Работна рецепта|*:</td>
-                        <td>[#pBomId#]</td>
+                        <td style='text-align: right'>[#pBomId#]</td>
                     </tr>
                     <!--ET_END pBomId-->
                 </table>

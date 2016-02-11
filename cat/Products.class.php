@@ -1188,7 +1188,9 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			$row->proto = $mvc->getHyperlink($rec->proto);
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    				$row->proto = $mvc->getHyperlink($rec->proto);
+    			}
     		}
     	}
         

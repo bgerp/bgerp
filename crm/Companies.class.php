@@ -1634,4 +1634,115 @@ class crm_Companies extends core_Master
     {
     	return array();
     }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $fields
+     */
+    public function on_AfterPrepareInportFields($mvc, &$fields)
+    {
+        
+        $Dfields = $mvc->selectFields();
+        
+        $fields = array();
+        
+        foreach($Dfields as $name => $fld){
+            if($fld->input != 'none' && $fld->input != 'hidden' &&
+                            $fld->kind != 'FNC' && !($fld->type instanceof fileman_FileType)) {
+                                
+                $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
+            }
+        }
+        
+        unset($fields['shared']);
+        unset($fields['access']);
+        unset($fields['inCharge']);
+    }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $fields
+     */
+    public function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от фирмите, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public function on_BeforeImportRec($mvc, &$rec)
+    {
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // id на групите
+        if (isset($rec->groupList)) {
+            
+            $groupArr = type_Set::toArray($rec->groupList);
+            
+            $groupIdArr = array();
+            
+            foreach ($groupArr as $groupName) {
+                $groupName = trim($groupName);
+                $groupId = crm_Groups::fetchField(array("#name = '[#1#]'", $groupName), 'id');
+                
+                if (!$groupId) continue;
+                
+                $groupIdArr[$groupId] = $groupId;
+            }
+            
+            $rec->groupList = type_Keylist::fromArray($groupIdArr);
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($name = trim($rec->name)) {
+            $query->where(array("#name = '[#1#]'", $name));
+        }
+        
+        if ($vatId = trim($rec->vatId)) {
+            $query->orWhere(array("#name = '[#1#]'", $vatId));
+        }
+        
+        $query->orderBy('#vatId', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
+    }
 }

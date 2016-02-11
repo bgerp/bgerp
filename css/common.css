@@ -749,6 +749,30 @@ input[type="submit"].fright,
 button.fright {
   margin: 1px 0 0 0.5em; }
 
+form[method=post] .toogleHolder {
+  float: right;
+  display: inline-block; }
+    form[method=post] .toogleHolder .toogleBtn.toggleLeft {
+      margin-right: 0 !important;
+      border-radius: 5px 0 0 5px !important; }
+      form[method=post] .toogleHolder .toogleBtn.toggleLeft.toggleOn {
+        color: lightgreen; }
+    form[method=post] .toogleHolder .toogleBtn.toggleRight {
+      margin-left: 0 !important;
+      border-radius: 0 5px 5px 0 !important;
+      border-left: none !important; }
+      form[method=post] .toogleHolder .toogleBtn.toggleRight.toggleOn {
+        color: #ff44ff; }
+    form[method=post] .toogleHolder .toogleBtn.toggleOn {
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+      background: #777777 !important;
+      text-shadow: 1px 1px 0 #333333; }
+    form[method=post] .toogleHolder .toogleBtn.toggleOff {
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+      color: #eeeeee !important; }
+      form[method=post] .toogleHolder .toogleBtn.toggleOff:hover {
+        background-color: #aaaaaa; }
+
 h1:target,
 h2:target,
 h3:target,
@@ -885,6 +909,10 @@ input.more-btn {
   padding-right: 0.3em !important;
   width: 1.9em;
   height: 2em \9; }
+
+.more-btn {
+  background-repeat: no-repeat !important;
+  background-image: url(../img/16/toggle-expand.png) !important; }
 
 a.more-btn {
   padding-left: 17px !important;

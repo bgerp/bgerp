@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -125,6 +125,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setOptions('taskProductId', $productOptions);
     		if(count($productOptions) == 1 && $form->cmd != 'refresh'){
     			$form->setDefault('taskProductId', key($productOptions));
+    			$form->setReadOnly('taskProductId');
     		}
     	} else {
     		$form->FNC('productId', 'int', 'caption=Артикул,input,before=serial');
@@ -136,8 +137,16 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	// Добавяме мярката
     	if(isset($rec->taskProductId)){
-    		$unit = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId');
+    		$pRec = planning_drivers_ProductionTaskProducts::fetch($rec->taskProductId);
+    		$unit = $pRec->packagingId;
     		$unit = cat_UoM::getShortName($unit);
+    		
+    		
+    		$planned = tr("Планувано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'planedQuantity') . "</b>";
+    		$real = tr("Изпълнено|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'realQuantity') . "</b>";
+    		$form->info = "{$planned}<br>$real";
+    		
+    		
     		$form->setField('quantity', "unit={$unit}");
     	}
     }

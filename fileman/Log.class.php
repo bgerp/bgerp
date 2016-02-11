@@ -344,6 +344,13 @@ class fileman_Log extends core_Manager
             // Инпутваме стойностите
             $form->input('fileName, Protected', 'silent');
             
+            // Последно избраното търсене, да е по-подразбиране
+            if (is_null($form->rec->fileName)) {
+                $form->rec->fileName = Mode::get('filemanLogFileNameSearch');
+            } else {
+                Mode::setPermanent('filemanLogFileNameSearch', $form->rec->fileName);
+            }
+            
             // Ако има текст за търсене
             if(trim($form->rec->fileName)) {
                 
@@ -368,6 +375,35 @@ class fileman_Log extends core_Manager
             
             // Задаваме броя на елементите в страница
             $mvc->listItemsPerPage = static::DIALOG_LIST_ITEMS_PER_PAGE;
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се преди подготвяне на страниците
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $data
+     */
+    function on_AfterPrepareListPager($mvc, &$res, $data)
+    {
+        // Ако е отворен в диалоговия прозорец
+        if (Mode::get('dialogOpened')) {
+            
+            // Последно избраната страница да е отворена по-подразбиране
+            
+            $pageVar = $data->pager->getPageVar(get_called_class());
+            
+            if ($pageVar) {
+                $page = Request::get($pageVar);
+                
+                if (is_null($page)) {
+                    Request::push(array($pageVar => Mode::get('filemanLogLastOpenedPage')));
+                } else {
+                    Mode::setPermanent('filemanLogLastOpenedPage', $page);
+                }
+            }
         }
     }
     

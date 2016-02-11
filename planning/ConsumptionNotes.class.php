@@ -167,7 +167,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$msg = ($rec->useResourceAccounts == 'yes') ? 'Материалите ще бъдат вкарани в производството детайлно' : 'Материалите ще бъдат вложени бездетайлно в производството';
-		$row->useResourceAccounts = ht::createHint($row->useResourceAccounts, $msg);
+		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Материалите ще бъдат вкарани в производството по артикули' : 'Материалите ще бъдат вложени в производството сумарно';
+		$row->useResourceAccounts = tr($row->useResourceAccounts);
 	}
 }

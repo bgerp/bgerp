@@ -49,7 +49,7 @@ abstract class cash_Document extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
     
     
     /**
@@ -129,10 +129,8 @@ abstract class cash_Document extends core_Master
     protected function getFields(core_Mvc &$mvc)
     {
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-    	 
-    	// Платена сума във валута, определена от полето `currencyId`
-    	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
-    	 
+    	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Погасени,mandatory,summary=amount');
+    	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('number', 'int', 'caption=Номер');
@@ -146,13 +144,11 @@ abstract class cash_Document extends core_Master
     	$mvc->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
     	$mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,silent,removeAndRefreshForm=rate');
-    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс');
+    	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
+    	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
     	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)',
-    			'caption=Статус, input=none'
-    	);
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Контиран)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
     	// Поставяне на уникален индекс
@@ -168,6 +164,11 @@ abstract class cash_Document extends core_Master
     	$rec = &$form->rec;
     	
     	if ($form->isSubmitted()){
+    		if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
+    			$form->setField('amount', 'input');
+    			$form->setError("amount", 'Когато избраната валута е различна от тази на сделката, трябва да е сумата да е попълнена');
+    			return;
+    		}
     		
     		$origin = $mvc->getOrigin($form->rec);
     		$dealInfo = $origin->getAggregateDealInfo();
@@ -185,18 +186,17 @@ abstract class cash_Document extends core_Master
     		$rec->contragentPcode = $contragentData->pCode;
     		$rec->contragentPlace = $contragentData->place;
     		$rec->contragentAdress = $contragentData->address;
-    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
     		
-    		if(!$rec->rate){
-    			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
-    			if(!$rec->rate){
-    				$form->setError('rate', "Не може да се изчисли курс");
-    			}
-    		} else {
-    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
-    				$form->setWarning('rate', $msg);
-    			}
+    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+    		$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+    		
+    		if($rec->currencyId == $rec->dealCurrencyId){
+    			$rec->amount = $rec->amountDeal;
+    		}
+    		
+    		$dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+    		if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
+    			$form->setWarning('amount', $msg);
     		}
     	}
     	
@@ -265,7 +265,7 @@ abstract class cash_Document extends core_Master
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    protected function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
@@ -298,7 +298,7 @@ abstract class cash_Document extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active'){
+    	if(!empty($firstDoc) && $firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'active'){
     		
     		// Ако няма позволени операции за документа не може да се създава
     		$operations = $firstDoc->getPaymentOperations();
@@ -323,6 +323,7 @@ abstract class cash_Document extends core_Master
     	$title = mb_strtolower($self->singleTitle);
     	$tpl = new ET(tr("Моля запознайте се с нашия {$title}") . ': #[#handle#]');
     	$tpl->append($handle, 'handle');
+    	
     	return $tpl->getContent();
     }
     
@@ -347,23 +348,31 @@ abstract class cash_Document extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	 
+    	
     	if($fields['-single']){
     
     		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
     		$row->contragentAddress = $contragent->getFullAdress();
-    
-    		if($rec->rate != 1) {
-    			$rec->equals = round($rec->amount * $rec->rate, 2);
-    			$row->equals = $mvc->getFieldType('amount')->toVerbal($rec->equals);
-    			$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
-    		}
-    
-    		if(!$rec->equals) {
-    	   
-    			// Ако валутата на документа съвпада с тази на периода не се показва курса
+    		
+    		if($rec->dealCurrencyId != $rec->currencyId){
+    			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    			 
+    			if($rec->dealCurrencyId == $baseCurrencyId){
+    				$rate = $rec->amountDeal / $rec->amount;
+    				$rateFromCurrencyId = $rec->dealCurrencyId;
+    				$rateToCurrencyId = $rec->currencyId;
+    			} else {
+    				$rate = $rec->amount / $rec->amountDeal;
+    				$rateFromCurrencyId = $rec->currencyId;
+    				$rateToCurrencyId = $rec->dealCurrencyId;
+    			}
+    			$row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
+    			$row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
+    			$row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
+    		} else {
+    			unset($row->dealCurrencyId);
+    			unset($row->amountDeal);
     			unset($row->rate);
-    			unset($row->baseCurrency);
     		}
     		 
     		$spellNumber = cls::get('core_SpellNumber');
@@ -383,56 +392,5 @@ abstract class cash_Document extends core_Master
     
     		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
     	}
-    }
-    
-    
-    protected function setDefaults(bgerp_iface_DealAggregator $dealInfo, &$form)
-    {
-    	$pOperations = $dealInfo->get('allowedPaymentOperations');
-        
-        $options = static::getOperations($pOperations);
-        expect(count($options));
-        
-        if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
-        		
-        	$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
-        	if($amount <= 0) {
-        		$amount = 0;
-        	}
-        
-        	$defaultOperation = $dealInfo->get('defaultCaseOperation');
-        	if($defaultOperation == 'customer2caseAdvance'){
-        		$amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
-        	}
-        }
-        
-        if($caseId = $dealInfo->get('caseId')){
-        	 
-        	// Ако потребителя има права, логва се тихо
-        	cash_Cases::selectCurrent($caseId);
-        }
-        
-        $cId = $dealInfo->get('currency');
-        $form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
-        $form->setDefault('rate', $dealInfo->get('rate'));
-        	
-        if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
-        	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
-        	if($dAmount != 0){
-        		$form->setDefault('amount',  $dAmount);
-        	}
-        }
-        
-        $form->setOptions('operationSysId', $options);
-        if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
-        	$form->setDefault('operationSysId', $defaultOperation);
-        }
-        
-        $form->setDefault('peroCase', cash_Cases::getCurrent());
-        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
-        
-        // Поставяме стойности по подразбиране
-        $form->setDefault('valior', dt::today());
     }
 }

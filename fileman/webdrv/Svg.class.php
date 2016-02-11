@@ -34,7 +34,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         
         if ($fileType == 'string') {
             $name = ($name) ? $name : 'file.pdf';
-            $file = self::addStrToFile($file, $name);
+            $file = fileman::addStrToFile($file, $name);
         }
         
         // Инстанция на класа

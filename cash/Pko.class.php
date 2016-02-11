@@ -20,7 +20,7 @@ class cash_Pko extends cash_Document
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Pko, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=cash_transaction_Pko, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
@@ -109,14 +109,14 @@ class cash_Pko extends cash_Document
 	    	cash_Cases::selectCurrent($caseId);
 	    }
     		 	
-	    $cId = $dealInfo->get('currency');
-	    $form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
-	    $form->setDefault('rate', $dealInfo->get('rate'));
+	    $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+	    $form->setDefault('dealCurrencyId', $cId);
+	    $form->setDefault('currencyId', $cId);
     		 		
     	if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
     		$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
     		if($dAmount != 0){
-    		 	$form->setDefault('amount',  $dAmount);
+    		 	$form->setDefault('amountDeal',  $dAmount);
     		 }
     	}
     	
@@ -135,7 +135,13 @@ class cash_Pko extends cash_Document
     	$form->setDefault('peroCase', cash_Cases::getCurrent());
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
-	}
+    	
+    	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
+	
+    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
+    		$form->setField('amount', 'input');
+    	}
+    }
 
     
     /**
@@ -145,7 +151,7 @@ class cash_Pko extends cash_Document
     {
     	$options = array();
     	
-    	// Оставяме само тези операции в които се дебитира основната сметка на документа
+    	// Оставяме само тези операции, в които се дебитира основната сметка на документа
     	foreach ($operations as $sysId => $op){
     		if($op['debit'] == static::$baseAccountSysId){
     			$options[$sysId] = $op['title'];

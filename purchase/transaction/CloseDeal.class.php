@@ -85,12 +85,11 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     		$this->date = acc_Periods::forceYearItem($date);
     		
     		// Създаване на запис за прехвърляне на всеки аванс
-    		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc);
-    		$result->totalAmount += $downpaymentAmounts;
+    		$entry2 = $this->trasnferDownpayments($dealInfo, $docRec, $downpaymentAmounts, $firstDoc, $result);
     		 
     		// Ако тотала не е нула добавяме ентритата
     		if(count($entry2)){
-    			$result->entries[] = $entry2;
+    			$result->entries = array_merge($result->entries, $entry2);
     		}
     		
     		$entry3 = $this->transferVatNotCharged($dealInfo, $docRec, $result->totalAmount, $firstDoc);
@@ -99,17 +98,31 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     		if(count($entry3)){
     			$result->entries[] = $entry3;
     		}
-    		
-    		// Ако има сума различна от нула значи има приход/разход
-    		$amount = $this->blAmount + $downpaymentAmounts;
     		 
-    		$entry = $this->getCloseEntry($amount, $result->totalAmount, $docRec, $firstDoc);
+    		$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    		$quantities = acc_Balances::getBlQuantities($jRecs, '401');
     		
-    		if(count($entry)){
-    			$result->entries[] = $entry;
+    		if(is_array($downpaymentAmounts)){
+    			foreach ($downpaymentAmounts as $index => $obj){
+    				if(!array_key_exists($index, $quantities)){
+    					$quantities[$index] = new stdClass();
+    				}
+    				
+    				$quantities[$index]->quantity += $obj->quantity;
+    				$quantities[$index]->amount += $obj->amount;
+    			}
     		}
     	}
-    	 
+    	
+    	if(is_array($quantities)){
+    		foreach ($quantities as $index => $obj1){
+    			$entry = $this->getCloseEntry($obj1->amount, $obj1->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
+    			if(count($entry)){
+    				$result->entries = array_merge($result->entries, $entry);
+    			}
+    		}
+    	}
+    	
     	// Връщане на резултата
     	return $result;
     }
@@ -126,40 +139,51 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
      * 			Dt: 401 Задължения към доставчици
      * 			Ct: 402 Вземания от доставчици по аванси
      */
-    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$downpaymentAmounts, $firstDoc)
+    private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$downpaymentAmounts, $firstDoc, &$result)
     {
     	$entryArr = array();
     
     	$docRec = $firstDoc->rec();
     
-    	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-    	
-    	// Колко е направеното авансовото плащане
-    	$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
-    	if($downpaymentAmount == 0) return $entryArr;
-    	
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$amount = $downpaymentAmount / $dealInfo->get('rate');
     	
-    	$entry = array();
-    	$entry['amount'] = $downpaymentAmount;
-    	$entry['debit'] = array('401',
-    			array($docRec->contragentClassId, $docRec->contragentId),
-    			array($firstDoc->className, $firstDoc->that),
-    			array('currency_Currencies', $currencyId),
-    			'quantity' => $amount);
-    	 
-    	$entry['credit'] = array('402',
-    			array($docRec->contragentClassId, $docRec->contragentId),
-    			array($firstDoc->className, $firstDoc->that),
-    			array('currency_Currencies', $currencyId),
-    			'quantity' => $amount);
-    	$entry['reason'] = 'Приспадане на авансово плащане';
-    	 
-    	$downpaymentAmounts += $entry['amount'];
-    	 
-    	return $entry;
+    	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+    	$downpaymentArrs = acc_Balances::getBlQuantities($jRecs, '402');
+    	
+    	if(is_array($downpaymentArrs)){
+    		foreach ($downpaymentArrs as $index => $obj){
+    			$res = deals_Helper::convertJournalCurrencies(array($index => $obj), $docRec->currencyId, $result->valior);
+    			$cItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId))->id;
+    			
+    			$entry = array();
+    			$entry['amount'] = $res->amount;
+    			$entry['debit'] = array('401',
+    					array($docRec->contragentClassId, $docRec->contragentId),
+    					array($firstDoc->className, $firstDoc->that),
+    					$cItemId,
+    					'quantity' => $res->quantity);
+    			
+    			$entry['credit'] = array('402',
+    					array($docRec->contragentClassId, $docRec->contragentId),
+    					array($firstDoc->className, $firstDoc->that),
+    					$index,
+    					'quantity' => $obj->quantity);
+    			$entry['reason'] = 'Приспадане на авансово плащане';
+    			
+    			$entryArr[] = $entry;
+    			$result->totalAmount += $entry['amount'];
+    			
+    			if(!array_key_exists($cItemId, $downpaymentAmounts)){
+    				$downpaymentAmounts = array($cItemId => (object)array('quantity' => 0, 'amount' => 0));
+    			}
+    			
+    			$downpaymentAmounts[$cItemId]->quantity += $res->quantity;
+    			$downpaymentAmounts[$cItemId]->amount += $res->amount;
+    		}
+    	}
+	
+    	return $entryArr;
     }
 
 
@@ -247,7 +271,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
      * 			Ct: 401 - Задължения към доставчици
      *
      */
-    private function getCloseEntry($amount, &$totalAmount, $docRec, $firstDoc)
+    private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
     {
     	$entry = array();
     	
@@ -260,8 +284,8 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     				'credit' => array('401',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
-    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => $amount / $docRec->currencyRate),
+    						$index,
+    						'quantity' => $quantity),
     				'debit'  => array('6912',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that)),
@@ -280,14 +304,14 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     				'debit' => array('401',
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
-    						array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-    						'quantity' => -1 * $amount / $docRec->currencyRate),
+    						$index,
+    						'quantity' => -1 * $quantity),
     				'reason' => 'Извънредни приходи - недоплатени');
     		
     		$totalAmount += -1 * $amount;
     	}
     	 
     	// Връщане на записа
-    	return $entry1;
+    	return array($entry1);
     }
 }

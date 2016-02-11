@@ -60,7 +60,40 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-        $amount = round($rec->rate * $rec->amount, 2);
+    	// Ако е обратна транзакцията, сумите и к-та са с минус
+    	$sign = ($reverse) ? -1 : 1;
+    	 
+    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    	if($rec->currencyId == $baseCurrencyId){
+    		$amount = $rec->amount;
+    	} elseif($rec->dealCurrencyId == $baseCurrencyId){
+    		$amount = $rec->amountDeal;
+    	} else {
+    		$amount = $rec->amount * $rec->rate;
+    	}
+    	 
+    	$entry = array('amount' => $sign * $amount,
+					  'debit' => array($rec->debitAccId,
+	    					array($rec->contragentClassId, $rec->contragentId),
+	    					array($origin->className, $origin->that),
+	    					array('currency_Currencies', $rec->dealCurrencyId),
+	    					'quantity' => $sign * $rec->amountDeal),
+    				 'credit' => array($rec->creditAccId,
+	    					array('bank_OwnAccounts', $rec->ownAccount),
+	    					array('currency_Currencies', $rec->currencyId),
+	    					'quantity' => $sign * $rec->amount));
+    	 
+    	$entry = array($entry);
+    	 
+    	return $entry;
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	$amount = round($rec->rate * $rec->amount, 2);
         
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;

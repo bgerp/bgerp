@@ -102,8 +102,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$productInfo = cat_Products::getProductInfo($dRec->productId);
 					if(!isset($productInfo->meta['canStore'])) continue;
 					
-					$entry = array('debit' => array('61101', array('cat_Products', $dRec->productId),
-													'quantity' => $dRec->quantity),
+					$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
+					
+					$entry = array('debit' => array('61101', array('cat_Products', $convInfo->productId),
+													'quantity' => $convInfo->quantity),
 								   'credit' => array('321', array('store_Stores', $rec->inputStoreId),
 															array('cat_Products', $dRec->productId),
 															'quantity' => $dRec->quantity),
@@ -115,6 +117,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			
 			$costAmount = $index = 0;
 			foreach ($dRecs as $dRec1){
+				
 				$sign = ($dRec1->type == 'input') ? 1 : -1;
 				$productInfo = cat_Products::getProductInfo($dRec1->productId);
 				
@@ -129,6 +132,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$costAmount += $pAmount;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
+				$convInfo = planning_ObjectResources::getConvertedInfo($dRec1->productId, $dRec1->quantity);
 				
 				// Ако е материал го изписваме към произведения продукт
 				if($dRec1->type == 'input'){
@@ -138,13 +142,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 							array('cat_Products', $rec->productId),
 							'quantity' => $quantity);
 						
-					$entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
-							'quantity' => $dRec1->quantity);
+					$entry['credit'] = array('61101', array('cat_Products', $convInfo->productId),
+							'quantity' => $convInfo->quantity);
 					$entry['reason'] = $reason;
 				} else {
 					$amount = $selfValue;
-					$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId),
-							'quantity' => $dRec1->quantity);
+					$entry['debit'] = array('61101', array('cat_Products', $convInfo->productId),
+							'quantity' => $convInfo->quantity);
 						
 					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
 							array('cat_Products', $rec->productId),
