@@ -1664,10 +1664,40 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Преди записване на в модела
+     * След подготовка на полетата за импортиране
      * 
      * @param crm_Companies $mvc
-     * @param stdObjec $rec
+     * @param array $fields
+     */
+    public function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от фирмите, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
      */
     public function on_BeforeImportRec($mvc, &$rec)
     {

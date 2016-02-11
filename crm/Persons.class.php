@@ -2560,6 +2560,34 @@ class crm_Persons extends core_Master
     
     
     /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от лицата, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->buzCompanyId = $rec->buzCompanyId;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
      * Преди записване на в модела
      * 
      * @param crm_Persons $mvc
