@@ -49,7 +49,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
 
         if ($fileType == 'string') {
             $name = ($name) ? $name : 'file.pdf';
-            $file = self::addStrToFile($file, $name);
+            $file = fileman::addStrToFile($file, $name);
         }
 
         if (!$name) {

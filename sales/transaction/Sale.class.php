@@ -410,11 +410,17 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 	/**
 	 * Колко е платеното по сделка
 	 */
-	public static function getPaidAmount($jRecs)
+	public static function getPaidAmount($jRecs, $rec)
 	{
-		$paid = acc_Balances::getBlAmounts($jRecs, '501,503', 'debit')->amount;
+		// Взимаме количествата по валути 
+		$quantities = acc_Balances::getBlQuantities($jRecs, '411,412', 'credit', '501,503');
+		$res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
+		 
+		// К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
+		$amount = $res->quantity;
+		$amount *= $rec->currencyRate;
 		
-		return $paid;
+		return $amount;
 	}
 	
 	

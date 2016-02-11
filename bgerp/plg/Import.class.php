@@ -97,6 +97,7 @@ class bgerp_plg_Import extends core_Plugin
                 $delimiter = $exp->getValue("#delimiter");
                 $enclosure = $exp->getValue("#enclosure");
                 $firstRow = $exp->getValue("#firstRow");
+                $onExist = $exp->getValue("#onExist");
                 
                 // Намиране на коя колона от csv-то на кое поле съответства
                 $Driver = cls::get($driverId, array('mvc' => $mvc));
@@ -111,11 +112,13 @@ class bgerp_plg_Import extends core_Plugin
                 
                 if($mvc->haveRightFor('import')){
                     
+                    Mode::push('onExist', $onExist);
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
+                    Mode::pop('onExist');
                     
                     // Редирект кум лист изгледа на мениджъра в който се импортира
-                    redirect(array($mvc, 'list'), FALSE, '|' . $msg);
+                    redirect(array($mvc, 'list'), FALSE, $msg);
                 }
             }
             
@@ -160,7 +163,7 @@ class bgerp_plg_Import extends core_Plugin
     public static function solveExpert(expert_Expert &$exp)
     {
         $exp->functions['getfilecontentcsv'] = 'bgerp_plg_Import::getFileContent';
-        $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
+        $exp->functions['getcsvcolnames'] = 'csv_Lib::getCsvColNames';
         $exp->functions['getimportdrivers'] = 'bgerp_plg_Import::getImportDrivers';
         $exp->functions['verifydata'] = 'bgerp_plg_Import::verifyInputData';
         bgerp_plg_Import::$cache = get_class($exp->mvc);
@@ -177,11 +180,11 @@ class bgerp_plg_Import extends core_Plugin
         
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
-        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvData,#delimiter,#enclosure,#firstRow,#onExist", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
         
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
-        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow", tr("Въведете файл с във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow,#onExist", tr("Въведете файл с във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         // Полета за избиране на Разделител, ограждане и вида на първия ред
@@ -190,11 +193,12 @@ class bgerp_plg_Import extends core_Plugin
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
+        $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
         
         // Проверка дали броя на колоните отговаря навсякъде
-        $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
-        $exp->WARNING(tr("Възможен е проблем с формата на CSV данните, защото е открита само една колона"), '#csvColumnsCnt == 2');
-        $exp->ERROR(tr("Има проблем с формата на CSV данните") . ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 2');
+        $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure, 0, 1))");
+        $exp->WARNING(tr("Възможен е проблем с формата на CSV данните, защото е открита само една колона"), '#csvColumnsCnt == 1');
+        $exp->ERROR(tr("Има проблем с формата на CSV данните") . ". <br>" . tr("Моля проверете дали правилно сте въвели данните и разделителя"), '#csvColumnsCnt < 1');
         
         $driverId = $exp->getValue('#driver');
         
@@ -208,7 +212,7 @@ class bgerp_plg_Import extends core_Plugin
             	$type = ($fld['type']) ? $fld['type'] : 'int';
                 $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
                 if(!isset($fld['notColumn'])){
-                	$exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
+                	$exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,1)");
                 	$exp->ASSUME("#col{$name}", "-1");
                 }
                 
@@ -218,9 +222,9 @@ class bgerp_plg_Import extends core_Plugin
             
             $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->className}\"") . ":", TRUE, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
             
-            $res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,#lastQ");
+            $res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ");
         } else {
-            $res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow");
+            $res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,#onExist");
         }
         
         // Връщане на резултата

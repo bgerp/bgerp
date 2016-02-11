@@ -376,7 +376,7 @@ class core_SpellNumber
         	$numCur = $numBgn;
         	$andStr = 'и';
         	$centCur = $centBgn;
-        	$text = $this->num2Text((int) $num);
+        	$text = $this->num2Text((int) $num, 'm');
         	
         	// Заобикаляне на проблема с двойното `и`
         	$text = str_replace(' и и ', ' и ', $text);

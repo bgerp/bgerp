@@ -409,6 +409,15 @@ function toggleFormGroup(id)
 }
 
 
+function toggleFormType(el) {
+	if($(el).hasClass('toggleRight')){
+		$("input[name='Advanced']").val(1);
+	} else {
+		$("input[name='Advanced']").val(0);
+	}
+	$(el).closest('form').submit();
+}
+
 
 /**
  * Присвоява стойност за блока с опции на SELECT елемент, като отчита проблемите на IE
@@ -3149,6 +3158,7 @@ function render_makeTooltipFromTitle() {
  */
 function render_runHljs() {
 	if (typeof hljs != 'undefined') {
+		hljs.initHighlighting.called = false;
   		hljs.initHighlighting();
 	}
 }

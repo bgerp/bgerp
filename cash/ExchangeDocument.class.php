@@ -232,8 +232,12 @@ class cash_ExchangeDocument extends core_Master
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		   
-		    if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
-		    	$form->setWarning('rate', $msg);
+		    $fromCode = currency_Currencies::getCodeById($rec->creditCurrency);
+		    $toCode = currency_Currencies::getCodeById($rec->debitCurrency);
+		    
+		    // Проверка на сумите
+		    if($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $fromCode, $toCode)){
+		    	$form->setWarning('debitQuantity', $msg);
 		    }
 		    
 		    // Каква е равностойноста на обменената сума в основната валута за периода

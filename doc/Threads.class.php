@@ -941,7 +941,9 @@ class doc_Threads extends core_Manager
             $time = doc_Threads::getExpectationMoveTime($threadId, $moveRest);
             
             $time = ceil($time);
-            if ($time) {
+            $time += 10;
+            
+            if ($time > ini_get('max_execution_time')) {
                 core_App::setTimeLimit($time);
             }
             
@@ -1090,8 +1092,8 @@ class doc_Threads extends core_Manager
      */
     public static function getExpectationMoveTime($threadId, $moveRest = 'no')
     {
-        $timeFormMoveContainer = 0.0059;
-        $timeFormMoveThread = 0.019;
+        $timeFormMoveContainer = 0.006;
+        $timeFormMoveThread = 0.02;
         
         $moveTime = 0;
         

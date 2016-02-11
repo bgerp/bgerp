@@ -179,7 +179,7 @@ class core_Toolbar extends core_BaseClass
     	$buttons = (isset($ids['*'])) ? $this->buttons : $ids;
     	foreach($buttons as $id => $btn){
     		expect($this->buttons[$id]);
-    	 	$this->buttons[$id]->error = tr($error);
+    	 	$this->buttons[$id]->error = $error;
     	}
     }
     

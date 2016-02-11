@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,7 +19,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
 
     
     /**
@@ -87,13 +87,14 @@ class bank_IncomeDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec));
+        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
+        
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
         
-        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
+        
         $form->setOptions('operationSysId', $options);
         
         if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
@@ -102,7 +103,6 @@ class bank_IncomeDocuments extends bank_Document
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
         $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
-        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
     
     
@@ -112,16 +112,15 @@ class bank_IncomeDocuments extends bank_Document
      * @param core_ObjectReference $origin - ориджин на документа
      * @param core_Form $form - формата
      * @param array $options - масив с сч. операции
+     * @return void
      */
-    private function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
+    protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
     {
         $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-        expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-        
         $dealInfo = $origin->getAggregateDealInfo();
         
         $pOperations = $dealInfo->get('allowedPaymentOperations');
-        $options = self::getOperations($pOperations);
+        $options = static::getOperations($pOperations);
         expect(count($options));
         
         if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
@@ -135,25 +134,36 @@ class bank_IncomeDocuments extends bank_Document
             }
         }
         
-        $cId = $dealInfo->get('currency');
-        $form->setDefault('currencyId', currency_Currencies::getIdByCode($cId));
+        $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+        $form->setDefault('dealCurrencyId', $cId);
+        
         $form->setDefault('rate', $dealInfo->get('rate'));
         
         if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
         	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
         	if($dAmount != 0){
-        		$form->setDefault('amount', $dAmount);
+        		$form->setDefault('amountDeal', $dAmount);
         	}
             
             // Ако има банкова сметка по подразбиране
             if($bankId = $dealInfo->get('bankAccountId')){
-                $bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
                 
+                // Ако потребителя има права, логва се тихо
+            	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
                 if($bankId){
-                    // Ако потребителя има права, логва се тихо
                     bank_OwnAccounts::selectCurrent($bankId);
                 }
             }
+        }
+        
+        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
+        $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+        $form->setDefault('currencyId', $ownAcc->currencyId);
+        
+        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |погасени по сделката|*"));
+    
+        if($form->rec->currencyId != $form->rec->dealCurrencyId){
+        	$form->setField('amount', 'input,caption=В->Заверени');
         }
     }
     
@@ -165,7 +175,7 @@ class bank_IncomeDocuments extends bank_Document
     {
         $options = array();
         
-        // Оставяме само тези операции в коитос е дебитира основната сметка на документа
+        // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op){
             if($op['debit'] == static::$baseAccountSysId){
                 $options[$sysId] = $op['title'];

@@ -54,6 +54,7 @@ class bgerp_plg_Export extends core_Plugin
     		$nQuery = clone $data->query;
     		$mvc->invoke('AfterPrepareExportQuery', array($nQuery));
     		$recs = $nQuery->fetchAll();
+    		$mvc->invoke('AfterPrepareExportRecs', array(&$recs));
     	    
     		$userId = core_Users::getCurrent();
     		core_Cache::remove($mvc->className, "exportRecs{$userId}");

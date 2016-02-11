@@ -92,6 +92,8 @@ class planning_TaskActions extends core_Manager
 	 */
 	public static function add($taskId, $productId, $type, $jobId, $quantity)
 	{
+		if(!$productId) return;
+		
 		if($rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'")){
 			$rec->quantity = $quantity;
 			

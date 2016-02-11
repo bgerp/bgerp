@@ -436,7 +436,7 @@ class purchase_Purchases extends deals_DealMaster
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($entries));
-        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($entries));
+        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($entries, $rec));
         $result->set('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($entries));
         $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries));
         

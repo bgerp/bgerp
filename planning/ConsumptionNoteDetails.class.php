@@ -128,4 +128,27 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     		}
     	}
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	if(!count($data->rows)) return;
+    	
+    	foreach ($data->rows as $id => &$row){
+    		$rec = $data->recs[$id];
+    		
+    		// Ако артикула може да се влага като друг показваме хинт
+    		if($data->masterData->rec->useResourceAccounts == 'yes'){
+    			
+    			$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
+    			if($convInfo->productId != $rec->productId){
+    				$convertTitle = cat_Products::getTitleById($convInfo->productId);
+    				$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
+    			}
+    		}
+    	}
+    }
 }

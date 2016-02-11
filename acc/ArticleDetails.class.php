@@ -417,7 +417,7 @@ class acc_ArticleDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-        if(($action == 'edit' || $action == 'delete') && isset($rec)){
+        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
             $articleState = acc_Articles::fetchField($rec->articleId, 'state');
             
             if($articleState != 'draft'){

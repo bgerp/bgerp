@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -286,8 +286,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$res = array();
 		
 		// Намираме детайлите от задачите и рецеоптите
-		$bomDetails = $this->getDefaultDetailsFromBom($rec);
+		$bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
 		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
+		
+		// Ако има рецепта
+		if($bomId){
+			
+			// И тя има етапи
+			$bomQuery = cat_BomDetails::getQuery();
+			$bomQuery->where("#bomId = {$bomId}");
+			$bomQuery->where("#type = 'stage'");
+			$stages = array();
+			while($bRec = $bomQuery->fetch()){
+				$stages[$bRec->resourceId] = $bRec->resourceId;
+			}
+			
+			// Махаме от артикулите от задачите, тези които са етапи в рецептата, защото
+			// реално те няма да се влагат от склада а се произвеждат на място
+			if(count($stages)){
+				foreach ($taskDetails as $i => $det){
+					if(in_array($det->productId, $stages)){
+						unset($taskDetails[$i]);
+					}
+				}
+			}
+		}
 		
 		// За всеки артикул от рецептата добавяме го
 		foreach ($bomDetails as $index => $bRec){
@@ -364,7 +387,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param stdClass $rec   - запис
 	 * @return array $details - масив с дефолтните детайли
 	 */
-	protected function getDefaultDetailsFromBom($rec)
+	protected function getDefaultDetailsFromBom($rec, &$bomId)
 	{
 		$details = array();
 		$originRec = doc_Containers::getDocument($rec->originId)->rec();
@@ -397,15 +420,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$dRec->quantityInPack = $resource->quantityInPack;
 			
 			// Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
-			$dRec->quantityFromBom       = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+			$dRec->quantityFromBom  = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
 			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
 			$quantities = array();
 			
-			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
-			foreach ($convertableProducts as $prodId => $prodName){
-				$quantities[$prodId] = store_Products::fetchField("#storeId = {$rec->inputStoreId} AND #productId = {$prodId}", 'quantity');
+			if(isset($rec->inputStoreId)){
+				$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
+				foreach ($convertableProducts as $prodId => $prodName){
+					$quantities[$prodId] = store_Products::fetchField("#storeId = '{$rec->inputStoreId}' AND #productId = {$prodId}", 'quantity');
+				}
 			}
 		
 			// Ако има такива

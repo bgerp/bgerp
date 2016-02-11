@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -57,7 +57,9 @@ class cash_Setup extends core_ProtoSetup
         	'cash_Rko',
         	'cash_InternalMoneyTransfer',
         	'cash_ExchangeDocument',
-    		'migrate::updateDocumentStates'
+    		'migrate::updateDocumentStates',
+    		'migrate::updateDocuments'
+    		
         );
 
         
@@ -140,6 +142,43 @@ class cash_Setup extends core_ProtoSetup
     			}
     		} catch(core_exception_Expect $e){
     			
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на документите
+     */
+    public function updateDocuments()
+    {
+    	core_App::setTimeLimit(300);
+    	
+    	$array = array('cash_Pko', 'cash_Rko');
+    	
+    	foreach ($array as $doc){
+    		$Doc = cls::get($doc);
+    		$Doc->setupMvc();
+    		
+    		$query = $Doc->getQuery();
+    		$query->where('#amountDeal IS NULL');
+    		while($rec = $query->fetch()){
+    			
+    			try{
+    				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    				$firstDocRec = $firstDoc->fetch();
+    				$dealCurrencyId = currency_Currencies::getIdByCode($firstDocRec->currencyId);
+    				$dealRate = $firstDocRec->currencyRate;
+    				 
+    				$dealAmount = ($rec->amount * $rec->rate) / $dealRate;
+    				 
+    				$rec->amountDeal = $dealAmount;
+    				$rec->dealCurrencyId = $dealCurrencyId;
+    				 
+    				$Doc->save_($rec, 'amountDeal,dealCurrencyId');
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
     		}
     	}
     }
