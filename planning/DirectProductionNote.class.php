@@ -403,9 +403,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$dRec->measureId = $pInfo->productRec->measureId;
 			$quantities = array();
 			
-			$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
-			foreach ($convertableProducts as $prodId => $prodName){
-				$quantities[$prodId] = store_Products::fetchField("#storeId = '{$rec->inputStoreId}' AND #productId = {$prodId}", 'quantity');
+			if(isset($rec->inputStoreId)){
+				$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
+				foreach ($convertableProducts as $prodId => $prodName){
+					$quantities[$prodId] = store_Products::fetchField("#storeId = '{$rec->inputStoreId}' AND #productId = {$prodId}", 'quantity');
+				}
 			}
 		
 			// Ако има такива
