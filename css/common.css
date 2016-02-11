@@ -910,6 +910,10 @@ input.more-btn {
   width: 1.9em;
   height: 2em \9; }
 
+.more-btn {
+  background-repeat: no-repeat !important;
+  background-image: url(../img/16/toggle-expand.png) !important; }
+
 a.more-btn {
   padding-left: 17px !important;
   height: 16px; }
