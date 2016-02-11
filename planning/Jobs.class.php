@@ -823,4 +823,13 @@ class planning_Jobs extends core_Master
     	$rec->quantityProduced = $producedQuantity;
     	self::save($rec, 'quantityProduced');
     }
+    
+    
+    /**
+     * Изпълянява се преди клониране
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	unset($nRec->quantityProduced);
+    }
 }
