@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -142,18 +142,6 @@ class findeals_DebitDocuments extends deals_Document
     		$rec->creditAccount = $creditAccount;
     		$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
     		acc_Periods::checkDocumentDate($form, 'valior');
-    		
-    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-    		if(!$rec->rate){
-    			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
-    			if(!$rec->rate){
-    				$form->setError('rate', "Не може да се изчисли курс");
-    			}
-    		} else {
-    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
-    				$form->setWarning('rate', $msg);
-    			}
-    		}
     	}
     }
 }
