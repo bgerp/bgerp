@@ -311,11 +311,13 @@ class bank_OwnAccounts extends core_Master {
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
         if($form->rec->id) {
-        	$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
-        	$form->setDefault('iban', $ibanRec->iban);
-        	$form->setDefault('bank', $ibanRec->bank);
-        	$form->setDefault('bic', $ibanRec->bic);
-        	$form->setDefault('currencyId', $ibanRec->currencyId);
+        	if(isset($form->rec->bankAccountId)){
+        		$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
+        		$form->setDefault('iban', $ibanRec->iban);
+        		$form->setDefault('bank', $ibanRec->bank);
+        		$form->setDefault('bic', $ibanRec->bic);
+        		$form->setDefault('currencyId', $ibanRec->currencyId);
+        	}
         }
     }
     
