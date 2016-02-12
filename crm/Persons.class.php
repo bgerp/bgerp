@@ -2553,7 +2553,7 @@ class crm_Persons extends core_Master
      * @param crm_Persons $mvc
      * @param array $fields
      */
-    public function on_AfterPrepareInportFields($mvc, &$fields)
+    public static function on_AfterPrepareInportFields($mvc, &$fields)
     {
         crm_Companies::on_AfterPrepareInportFields($mvc, $fields);
     }
@@ -2565,7 +2565,7 @@ class crm_Persons extends core_Master
      * @param crm_Companies $mvc
      * @param array $recs
      */
-    public function on_AfterPrepareExportRecs($mvc, &$recs)
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
     {
         // Ограничаваме данните, които ще се експортират от лицата, до които нямаме достъп
         $query = $mvc->getQuery();
@@ -2593,7 +2593,7 @@ class crm_Persons extends core_Master
      * @param crm_Persons $mvc
      * @param stdObjec $rec
      */
-    public function on_BeforeImportRec($mvc, &$rec)
+    public static function on_BeforeImportRec($mvc, &$rec)
     {
     
         // id на държавата
