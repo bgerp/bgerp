@@ -552,7 +552,7 @@ class bank_OwnAccounts extends core_Master {
      */
     public static function getOwnAccounts($selectIban = TRUE)
     {
-        $Iban = cls::get('iban_Type');
+        $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
        
@@ -561,7 +561,7 @@ class bank_OwnAccounts extends core_Master {
         		$account = bank_Accounts::fetch($rec->bankAccountId);
         		$cCode = currency_Currencies::getCodeById($account->currencyId);
         		if($selectIban === TRUE){
-        			$verbal = $Iban->toVerbal($account->iban);
+        			$verbal = $Varchar->toVerbal($account->iban);
         		} else {
         			$verbal = $rec->title;
         		}
