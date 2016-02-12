@@ -60,6 +60,7 @@ class findeals_Setup extends core_ProtoSetup
     		'findeals_AdvanceReports',
     		'findeals_AdvanceReportDetails',
     		'migrate::removeOldRoles',
+    		'migrate::updateDocuments',
         );
 
         
@@ -119,6 +120,36 @@ class findeals_Setup extends core_ProtoSetup
     		 
     		core_Roles::delete("role = 'findealsMaster'");
     		core_Roles::save($rec);
+    	}
+    }
+    
+
+    /**
+     * Миграция на документите
+     */
+    public function updateDocuments()
+    {
+    	core_App::setTimeLimit(300);
+    	 
+    	$array = array('findeals_DebitDocuments', 'findeals_CreditDocuments');
+    	 
+    	foreach ($array as $doc){
+    		$Doc = cls::get($doc);
+    		$Doc->setupMvc();
+    
+    		$query = $Doc->getQuery();
+    		$query->where('#amountDeal IS NULL');
+    		while($rec = $query->fetch()){
+    			try{
+    				$dealRec = findeals_Deals::fetch($rec->dealId);
+    				$rec->amountDeal = ($rec->amount * $rec->rate) / $dealRec->currencyRate;
+    				$rec->currencyId = currency_Currencies::getIdByCode($dealRec->currencyId);
+    				
+    				$Doc->save_($rec, 'amountDeal,currencyId');
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    		}
     	}
     }
 }

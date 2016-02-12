@@ -13,19 +13,13 @@
             <td>[#dealId#]</td>
         </tr>
         <tr>
-            <td>|Сума|*</td>
-            <td><span class='cCode'>[#currencyId#]</span> [#amount#]</td>
-        </tr>
-        <!--ET_BEGIN amountBase-->
-        <tr>
-            <td>|Курс|*</td>
-            <td>[#rate#]</td>
+            <td>|Погасено по|* [#dealHandle#]</td>
+            <td><span class='cCode'>[#dealCurrencyId#]</span> [#amount#]</td>
         </tr>
         <tr>
-            <td>|Равностойност|*</td>
-            <td><span class='cCode'>[#baseCurrency#]</span> [#amountBase#]</td>
+            <td>|Заверено по |* [#nextHandle#]</td>
+            <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
-        <!--ET_END amountBase-->
     </table>
     <div>
         [#description#]
