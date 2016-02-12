@@ -870,12 +870,13 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement'>[#{$field->name}#]{$unit}</td></tr>");
+                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
                 }
 
                 if($field->inlineTo) {
                     $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
-                    $tpl->prepend($fld, $field->inlineTo);  
+                    $tpl->prepend($fld, $field->inlineTo);
+                    $tpl->prepend(' inlineTo', $field->inlineTo . '_INLINETO_CLASS');  
                 } else {
                     $tpl->append($fld, 'FIELDS');
                 }

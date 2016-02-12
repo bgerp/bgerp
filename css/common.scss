@@ -1555,6 +1555,12 @@ td.formElement {
 	  .w25 {
        width: 8em;
     }
+
+    .inlineTo {
+        .w25 {
+            width: 7.5em;
+        }
+    }
 }
 
 .narrow .vertical .formFields  {
