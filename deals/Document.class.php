@@ -24,7 +24,7 @@ abstract class deals_Document extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "id, valior, name, folderId, currencyId=Валута, amount, amountDeal, state, createdOn, createdBy";
+	public $listFields = "id, valior, name, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
 	
 	
 	/**
