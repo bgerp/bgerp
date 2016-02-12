@@ -140,6 +140,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 
 		if(isset($rec->productId)){
 			$form->setOptions('packagingId', cat_Products::getPacks($rec->productId));
+			$jobRec = $origin->fetch();
+			if($rec->productId == $jobRec->productId){
+				$toProduce = $jobRec->quantity - $jobRec->quantityProduced;
+				$form->setDefault('plannedQuantity', $toProduce);
+			}
 		} else {
 			$form->setReadOnly('packagingId');
 		}
