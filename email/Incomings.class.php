@@ -722,7 +722,11 @@ class email_Incomings extends core_Master
                 }
             
                 if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
-                    $row->AllTo .= $clostStr;
+                    if ($row->AllTo instanceof core_ET) {
+                        $row->AllTo->append($clostStr);
+                    } else {
+                        $row->AllTo .= $clostStr;
+                    }
                 }
             }
             
@@ -733,7 +737,11 @@ class email_Incomings extends core_Master
                 }
                 
                 if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
-                    $row->AllCc .= $clostStr;
+                    if ($row->AllCc instanceof core_ET) {
+                        $row->AllCc->append($clostStr);
+                    } else {
+                        $row->AllCc .= $clostStr;
+                    }
                 }
             }
             
@@ -781,7 +789,11 @@ class email_Incomings extends core_Master
         $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
-            $row->fromEml .= ' (' . trim($row->fromName) . ')';
+            if ($row->fromEml instanceof core_ET) {
+                $row->fromEml->append(' (' . trim($row->fromName) . ')');
+            } else {
+                $row->fromEml .= ' (' . trim($row->fromName) . ')';
+            }
         }
     }
     

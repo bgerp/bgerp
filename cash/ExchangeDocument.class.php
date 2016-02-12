@@ -237,7 +237,7 @@ class cash_ExchangeDocument extends core_Master
 		    
 		    // Проверка на сумите
 		    if($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $fromCode, $toCode)){
-		    	$form->setWarning('debitQuantity', $msg);
+		    	$form->setError('debitQuantity', $msg);
 		    }
 		    
 		    // Каква е равностойноста на обменената сума в основната валута за периода
