@@ -163,7 +163,8 @@ class bank_IncomeDocuments extends bank_Document
         $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |погасени по сделката|*"));
     
         if($form->rec->currencyId != $form->rec->dealCurrencyId){
-        	$form->setField('amount', 'input,caption=В->Заверени');
+        	$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+        	$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
         }
     }
     
