@@ -136,7 +136,7 @@ class cash_Pko extends cash_Document
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
     	
-    	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')}, |платени (погасени) по сделката|*"));
+    	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
 	
     	if($form->rec->currencyId != $form->rec->dealCurrencyId){
     		$form->setField('amount', 'input');
@@ -151,7 +151,7 @@ class cash_Pko extends cash_Document
     {
     	$options = array();
     	
-    	// Оставяме само тези операции в които се дебитира основната сметка на документа
+    	// Оставяме само тези операции, в които се дебитира основната сметка на документа
     	foreach ($operations as $sysId => $op){
     		if($op['debit'] == static::$baseAccountSysId){
     			$options[$sysId] = $op['title'];
@@ -159,11 +159,5 @@ class cash_Pko extends cash_Document
     	}
     	
     	return $options;
-    }
-    
-    function act_test()
-    {
-    	$r = cls::get('cash_Setup');
-    	$r->updateDocuments();
     }
 }

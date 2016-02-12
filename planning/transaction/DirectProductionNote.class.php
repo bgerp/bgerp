@@ -117,6 +117,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			
 			$costAmount = $index = 0;
 			foreach ($dRecs as $dRec1){
+				
 				$sign = ($dRec1->type == 'input') ? 1 : -1;
 				$productInfo = cat_Products::getProductInfo($dRec1->productId);
 				

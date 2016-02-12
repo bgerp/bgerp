@@ -2545,4 +2545,125 @@ class crm_Persons extends core_Master
     {
     	return array();
     }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Persons $mvc
+     * @param array $fields
+     */
+    public static function on_AfterPrepareInportFields($mvc, &$fields)
+    {
+        crm_Companies::on_AfterPrepareInportFields($mvc, $fields);
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от лицата, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->buzCompanyId = $rec->buzCompanyId;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * Преди записване на в модела
+     * 
+     * @param crm_Persons $mvc
+     * @param stdObjec $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // id на групите
+        if (isset($rec->buzCompanyId)) {
+            $companyName = trim($rec->buzCompanyId);
+            $rec->buzCompanyId = crm_Companies::fetchField(array("#name = '[#1#]'", $companyName), 'id');
+        }
+        
+        // id на групите
+        if (isset($rec->buzLocationId)) {
+            $locationTitle = trim($rec->buzLocationId);
+            $locationTitle = mb_strtolower($locationTitle);
+            $rec->buzLocationId = crm_Locations::fetchField(array("LOWER(#title) = '[#1#]'", $locationTitle), 'id');
+        }
+        
+        // id на групите
+        if (isset($rec->groupList)) {
+            
+            $gArr = type_Set::toArray($rec->groupList);
+            
+            $gIdArr = array();
+            
+            foreach ($gArr as $gName) {
+                $gName = trim($gName);
+                $groupId = crm_Groups::fetchField(array("#name = '[#1#]'", $gName), 'id');
+                
+                if ($groupId) {
+                    $gIdArr[$groupId] = $groupId;
+                }
+            }
+            
+            $rec->groupList = type_Keylist::fromArray($gIdArr);
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($egn = trim($rec->egn)) {
+            $query->where(array("#egn = '[#1#]'", $egn));
+        }
+        
+        if ($name = $rec->name) {
+            
+            $query->orWhere(array("#name = '[#1#]'", $name));
+            
+            $or = FALSE;
+            if ($tel = trim($rec->tel)) {
+                $query->where(array("#tel = '[#1#]'", $tel), $or);
+                $or = TRUE;
+            }
+            
+            if ($mobile = trim($rec->mobile)) {
+                $query->where(array("#mobile = '[#1#]'", $mobile), $or);
+            }
+        }
+        
+        $query->orderBy('#egn', 'DESC');
+        $query->orderBy('#tel', 'DESC');
+        $query->orderBy('#mobile', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
+    }
 }

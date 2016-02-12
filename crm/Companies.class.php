@@ -1642,44 +1642,64 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $fields
      */
-    public function on_AfterPrepareInportFields($mvc, &$fields)
+    public static function on_AfterPrepareInportFields($mvc, &$fields)
     {
-        $mandatoryArr = array();
-        $mandatoryArr['country']['caption'] = 'Държава';
-        $mandatoryArr['country']['mandatory'] = 'mandatory';
         
-        $newArr = array();
-        $added = FALSE;
+        $Dfields = $mvc->selectFields();
         
-        if ($fields) {
-            foreach ($fields as $name => $field) {
-                
-                if (!$added && !$field['mandatory']) {
-                    $newArr += $mandatoryArr;
-                    $added = TRUE;
-                }
-                $newArr[$name] = $field;
+        $fields = array();
+        
+        foreach($Dfields as $name => $fld){
+            if($fld->input != 'none' && $fld->input != 'hidden' &&
+                            $fld->kind != 'FNC' && !($fld->type instanceof fileman_FileType)) {
+                                
+                $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
-            $fields = $newArr;
-        } else {
-            $fields = $mandatoryArr;
         }
         
-        $otheerArr = array();
-        $otheerArr['groupList']['caption'] = 'Групи';
-        $otheerArr['groupList']['mandatory'] = NULL;
-        
-        $fields += $otheerArr;
+        unset($fields['shared']);
+        unset($fields['access']);
+        unset($fields['inCharge']);
     }
     
     
     /**
-     * Преди записване на в модела
+     * След подготовка на полетата за импортиране
      * 
      * @param crm_Companies $mvc
-     * @param stdObjec $rec
+     * @param array $fields
      */
-    public function on_BeforeImportRec($mvc, &$rec)
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от фирмите, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
     {
         // id на държавата
         if (isset($rec->country)) {

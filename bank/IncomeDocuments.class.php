@@ -160,7 +160,7 @@ class bank_IncomeDocuments extends bank_Document
         $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
         $form->setDefault('currencyId', $ownAcc->currencyId);
         
-        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')}, |платени (погасени) по сделката|*"));
+        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |погасени по сделката|*"));
     
         if($form->rec->currencyId != $form->rec->dealCurrencyId){
         	$form->setField('amount', 'input,caption=В->Заверени');
@@ -175,7 +175,7 @@ class bank_IncomeDocuments extends bank_Document
     {
         $options = array();
         
-        // Оставяме само тези операции в коитос е дебитира основната сметка на документа
+        // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op){
             if($op['debit'] == static::$baseAccountSysId){
                 $options[$sysId] = $op['title'];

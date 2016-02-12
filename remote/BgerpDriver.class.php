@@ -334,12 +334,12 @@ class remote_BgerpDriver extends core_Mvc
 
                 if($nCnt) {
                     if($nCnt == 1) {
-                        $nCnt = 'едно ново известие';
+                        $nCnt = '|едно ново известие|*';
                     } else {
-                        $nCnt .= ' нови известия';
+                        $nCnt .= ' |нови известия|*';
                     }
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
-                    $message = "Имате {$nCnt} в {$url}";
+                    $message = "|Имате|* {$nCnt} |в|* {$url}";
 
                     // Добавя, ако няма нофификация
                     bgerp_Notifications::add($message, $nUrl, $userId, NULL, NULL, TRUE);
@@ -358,9 +358,12 @@ class remote_BgerpDriver extends core_Mvc
     {
         expect($id = Request::get('id', 'int'));
         
+        $userId = core_Users::getCurrent();
+        bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
+        
         expect($auth = remote_Authorizations::fetch($id));
 
-        expect($auth->userId == core_Users::getCurrent());
+        expect($auth->userId == $userId);
         
         $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin');
         

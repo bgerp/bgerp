@@ -388,6 +388,12 @@ class planning_Jobs extends core_Master
     	$rec->quantityToProduce = $rec->quantity - $rec->quantityProduced;
     	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($rec->quantityToProduce);
     	
+    	foreach (array('quantityNotStored', 'quantityToProduce') as $fld){
+    		if($rec->{$fld} < 0){
+    			$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
+    		}
+    	}
+    	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     		if($rec->quantityNotStored > 0){
@@ -816,5 +822,14 @@ class planning_Jobs extends core_Master
     	// Обновяваме произведеното к-то по заданието
     	$rec->quantityProduced = $producedQuantity;
     	self::save($rec, 'quantityProduced');
+    }
+    
+    
+    /**
+     * Изпълянява се преди клониране
+     */
+    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    {
+    	unset($nRec->quantityProduced);
     }
 }

@@ -414,31 +414,10 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 	{
 		// Взимаме количествата по валути 
 		$quantities = acc_Balances::getBlQuantities($jRecs, '411,412', 'credit', '501,503');
-		$currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
+		$res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
 		 
-		$amount = 0;
-		
-		// Сумираме количеството на платената валута
-		if(is_array($quantities)){
-			foreach ($quantities as $index => $obj){
-				
-				// Ако к-то е в основната валута на сделката, няма промяна
-				if($currencyItemId == $index){
-					$amount += $obj->quantity;
-				} else {
-					
-					// Ако количеството е във валута различна от тази на сделката превалутираме
-					$itemRec = acc_Items::fetch($index);
-					if(keylist::isIn(acc_Lists::fetchBySystemId('currencies')->id, $itemRec->lists)){
-						$from = currency_Currencies::getCodeById($itemRec->objectId);
-						$converted = currency_CurrencyRates::convertAmount($obj->quantity, NULL, $from, $rec->currencyId);
-						$amount += $converted;
-					}
-				}
-			}
-		}
-		
 		// К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
+		$amount = $res->quantity;
 		$amount *= $rec->currencyRate;
 		
 		return $amount;
