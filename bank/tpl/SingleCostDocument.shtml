@@ -58,11 +58,11 @@
                     	<table class='no-border' style='width:98%'>
                             <tr>
                                <td>|Сума|*: </td>
-                               <td  style='text-align:right'><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b >[#amount#]</b></span></td>
+                               <td  style='text-align:right'><span><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b style='font-size:1.2em'>[#amount#]</b></span></td>
                             </tr>
                             <!--ET_BEGIN amountDeal-->
                             <tr>
-                                <td>|Погасени по сделката|*: </td>
+                                <td class='nowrap'>|Погасени по сделката|*: </td>
                                 <td style='text-align:right'><span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b></td>
                             </tr>
                             <tr>
