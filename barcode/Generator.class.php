@@ -670,12 +670,12 @@ class barcode_Generator extends core_Manager
         switch ($type) {
             case 'datamatrix' :
             case 'qr' :
-                expect($size['width'] == $size['height'], "За типа '{$type}' височината и широчината трябва да са равни.");
+                expect($size['width'] == $size['height'], "За типа '{$type}' височината и широчината трябва да са равни");
                 break;
             
             default :
-            expect($size['width'], 'Не сте въвели широчина.');
-            expect($size['height'], 'Не сте въвели височина.');
+            expect($size['width'], 'Не сте въвели широчина на баркода');
+            expect($size['height'], 'Не сте въвели височина на баркода');
             break;
         }
         
