@@ -1108,6 +1108,38 @@ class email_Outgoings extends core_Master
                     $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресат|*->|Имейл|*</b>.");
                 }
             }
+            
+            if (trim($form->rec->body) && (preg_match_all(type_Richtext::QUOTE_PATTERN, $form->rec->body, $matches))) {
+                
+                $quotOtherArr = array();
+                
+                foreach ((array)$matches[2] as $hnd) {
+                    $hnd = trim($hnd);
+                    if (!$hnd) continue;
+                    
+                    if ($fileInfo = doc_RichTextPlg::getFileInfo($hnd)) {
+                        
+                        if (!$fileInfo['id']) continue;
+                        
+                        if (!cls::load($fileInfo['className'], TRUE)) continue;
+                        
+                        $cls = cls::get($fileInfo['className']);
+                        
+                        $hRec = $cls->fetch($fileInfo['id']);
+                        
+                        if (($form->rec->theadId && (($form->rec->theadId != $hRec->threadId))) || 
+                            ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
+                                
+                            $quotOtherArr[$hnd] = $hnd;
+                        }
+                    }
+                }
+                
+                if ($quotOtherArr) {
+                    $docStr = count($quotOtherArr) == 1 ? 'документ' : 'документи';
+                    $form->setWarning('body', "Цитирате {$docStr} от друга нишка|*: " . implode(', ', $quotOtherArr));
+                }
+            }
         }
     }
     

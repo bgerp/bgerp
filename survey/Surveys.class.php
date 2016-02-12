@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   survey
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,104 +19,104 @@ class survey_Surveys extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, cms_ObjectSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, cms_ObjectSourceIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Анкети';
+    public $title = 'Анкети';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
+    public $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,
      	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Анкета";
+    public $singleTitle = "Анкета";
     
     
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/text_list_bullets.png';
+    public $singleIcon = 'img/16/text_list_bullets.png';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
 
     
     /**
 	 *  Брой елементи на страница 
 	 */
-    var $listItemsPerPage = "15";
+    public $listItemsPerPage = "15";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'survey, ceo';
+    public $canRead = 'survey, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'survey,ceo';
+	public $canList = 'survey,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'survey,ceo';
+	public $canSingle = 'survey,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canSummarise = 'user';
+    public $canSummarise = 'user';
     
     
     /**
 	 * Детайли на анкетата
 	 */
-	var $details = 'survey_Alternatives';
+	public $details = 'survey_Alternatives';
 	
 	
 	/**
      * Абревиатура
      */
-    var $abbr = "Ank";
+    public $abbr = "Ank";
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'survey, ceo';
+    public $canWrite = 'survey, ceo';
     
     
     /**
 	 * Файл за единичен изглед
 	 */
-	var $singleLayoutFile = 'survey/tpl/SingleSurvey.shtml';
+	public $singleLayoutFile = 'survey/tpl/SingleSurvey.shtml';
 	
 	
 	/**
      * Групиране на документите
      */
-    var $newBtnGroup = "18.2|Други";
+    public $newBtnGroup = "18.2|Други";
     
     
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
@@ -146,7 +146,7 @@ class survey_Surveys extends core_Master {
     /**
      * Обработки след като изпратим формата
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
     		$today = dt::now();
@@ -162,7 +162,7 @@ class survey_Surveys extends core_Master {
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
 
@@ -191,7 +191,7 @@ class survey_Surveys extends core_Master {
      * @param int id - id на анкетата
      * @return boolean $res - затворена ли е анкетата или не
      */
-    static function isClosed($id)
+    public static function isClosed($id)
     {
     	expect($rec = static::fetch($id), 'Няма такъв запис');
     	($rec->enddate <= dt::now() ) ? $res = TRUE : $res = FALSE;
@@ -203,7 +203,7 @@ class survey_Surveys extends core_Master {
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'summarise' && isset($rec->id) ) {
@@ -240,7 +240,7 @@ class survey_Surveys extends core_Master {
    	/**
    	 * Обработка на SingleToolbar-a
    	 */
-   	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+   	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$summary = Request::get('summary');
     	$url = getCurrentUrl();
@@ -269,7 +269,7 @@ class survey_Surveys extends core_Master {
      * @param int $id
      * @return int - Броя въпроси които има анкетата
      */
-    static function alternativeCount($id)
+    public static function alternativeCount($id)
     {
     	expect(static::fetch($id), 'Няма такава анкета');
     	$altQuery = survey_Alternatives::getQuery();
@@ -282,7 +282,7 @@ class survey_Surveys extends core_Master {
     /**
      * Пушваме css и js файла
      */
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
     	$tpl->push(('survey/js/scripts.js'), 'JS');
@@ -311,7 +311,7 @@ class survey_Surveys extends core_Master {
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
+    public static function getHandle($id)
     {
     	$rec = static::fetch($id);
     	$self = cls::get(get_called_class());
@@ -323,7 +323,7 @@ class survey_Surveys extends core_Master {
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');

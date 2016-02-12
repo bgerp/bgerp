@@ -1460,6 +1460,8 @@ input:focus[type=button] {
     width: 16em; }
   .wide .vertical .formFields .w25 {
     width: 8em; }
+    .wide .vertical .formFields .inlineTo .w25 {
+      width: 7.5em; }
 
   .narrow .vertical .formFields .w100 {
     width: 100%; }

@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,12 +47,13 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
-    	$mvc->FNC('dealHandler', 'varchar', 'caption=Сделка,mandatory,input');
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
-    	$mvc->FLD('amount', 'double(smartRound)', 'caption=Сума,mandatory,summary=amount');
-    	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
-    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс');
-    	$mvc->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
+    	$mvc->FLD('amount', 'double(smartRound)', 'caption=Погасени,mandatory,summary=amount');
+    	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal');
+    	$mvc->FLD('amountDeal', 'double(smartRound)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
+    	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
+    	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
+    	$mvc->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -81,6 +82,8 @@ abstract class deals_Document extends core_Master
 		 
 		expect($origin = $mvc->getOrigin($form->rec));
 		expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+		$form->rec->originId = $origin->fetchField('containerId');
+		
 		$dealInfo = $origin->getAggregateDealInfo();
 		expect(count($dealInfo->get('allowedPaymentOperations')));
 		 
@@ -93,19 +96,56 @@ abstract class deals_Document extends core_Master
 		 
 		$form->dealInfo = $dealInfo;
 		$form->setDefault('operationSysId', $mvc::$operationSysId);
-		 
+		$form->setField('amount', "unit=|*{$dealInfo->get('currency')} |по сделката");
+		
 		// Използваме помощната функция за намиране името на контрагента
 		if(empty($form->rec->id)) {
 			$form->setDefault('description', "Към документ #{$origin->getHandle()}");
-			$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-			$form->rec->rate = $dealInfo->get('rate');
 		} else {
 			$form->rec->dealHandler = findeals_Deals::getHandle($form->rec->dealId);
 		}
 		 
-		$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+		if(isset($form->rec->dealHandler)){
+			$doc = self::checkHandle($form->rec->dealHandler);
+			if(!$doc){
+				$form->setError('dealHandler', 'Няма документ с такъв хендлър');
+			} else {
+				
+				$form->rec->currencyId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
+				$form->setField('amountDeal', "unit=|*{$doc->fetchField('currencyId')}");
+				
+				if($form->rec->currencyId != currency_Currencies::getIdByCode($origin->fetchField('currencyId'))){
+					$form->setField('amountDeal', 'input');
+				}
+				
+				// Трябва намерената сделка да е активна
+				if($doc->fetchField('state') != 'active'){
+					$form->setError('dealHandler', 'Сделката трябва да е активна');
+				} else {
+					$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
+				}
+			}
+		}
 	}
 
+	
+	/**
+	 * Имали такава сделка по хендлър
+	 * 
+	 * @param стринг $handler
+	 * @return core_ObjectReference|FALSE $doc - референция към намерената сделка
+	 */
+	private static function checkHandle($handler)
+	{
+		$doc = doc_Containers::getDocumentByHandle($handler);
+		
+		if(($doc instanceof core_ObjectReference) && !$doc->haveRightFor('single')){
+			$doc = FALSE;
+		}
+		
+		return $doc;
+	}
+	
 	
 	/**
 	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -118,23 +158,16 @@ abstract class deals_Document extends core_Master
 		if($form->isSubmitted()){
 			$rec = &$form->rec;
 			
-			if($rec->dealHandler){
-				$doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
-				
-				if(($doc instanceof core_ObjectReference) && !$doc->haveRightFor('single')){
-					unset($doc);
-				}
-				
-				if(!$doc){
-					$form->setError('dealHandler', 'Няма документ с такъв хендлър');
-				} else {
-					// Трябва намерената сделка да е активна
-					if($doc->fetchField('state') != 'active'){
-						$form->setError('dealHandler', 'Сделката трябва да е активна');
-					} else {
-						$rec->dealId = findeals_Deals::fetchField($doc->that, 'id');
-					}
-				}
+			$origin = $mvc->getOrigin($form->rec);
+			$currencyId = $origin->fetchField('currencyId');
+			$code = currency_Currencies::getCodeById($rec->currencyId);
+			
+			if($code == $currencyId){
+				$rec->amountDeal = $rec->amount;
+			}
+			
+			if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyId, $code)){
+				$form->setError('amount', $msg);
 			}
 		}
 
@@ -216,21 +249,16 @@ abstract class deals_Document extends core_Master
 		$row->number = $mvc->getHandle($rec->id);
 		 
 		if($fields['-single']){
-			if(findeals_Deals::haveRightFor('single', $rec->dealId)){
-				$row->dealId = ht::createLink($row->dealId, array('findeals_Deals', 'single', $rec->dealId));
-			}
+			$row->dealId = findeals_Deals::getHyperlink($rec->dealId, TRUE);
 	
 			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-	
-			if($baseCurrencyId != $rec->currencyId) {
-				$Double = cls::get('type_Double');
-				$Double->params['decimals'] = 2;
-				$rec->amountBase = round($rec->amount * $rec->rate, 2);
-				$row->amountBase = $Double->toVerbal($rec->amountBase);
-				$row->baseCurrency = currency_Currencies::getCodeById($baseCurrencyId);
-			} else {
-				unset($row->rate);
-			}
+			$nextHandle = findeals_Deals::getHandle($rec->dealId);
+			$row->nextHandle = ht::createLink("#" . $nextHandle, findeals_Deals::getSingleUrlArray($rec->dealId));
+		
+			$origin = $mvc->getOrigin($rec->id);
+			$fromHandle = $origin->getHandle();
+			$row->dealHandle = ht::createLink("#" . $fromHandle, $origin->getSingleUrlArray());
+			$row->dealCurrencyId = $origin->fetchField('currencyId');
 		}
 	}
     
