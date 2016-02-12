@@ -166,7 +166,7 @@ abstract class cash_Document extends core_Master
     	if ($form->isSubmitted()){
     		if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
     			$form->setField('amount', 'input');
-    			$form->setError("amount", 'Когато избраната валута е различна от тази на сделката, трябва да е сумата да е попълнена');
+    			$form->setError("amount", 'Когато плащането е във валута - различна от тази на сделката, сумата трябва да е попълнена');
     			return;
     		}
     		
