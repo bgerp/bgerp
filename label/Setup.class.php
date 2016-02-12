@@ -44,7 +44,7 @@ class label_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label, admin, ceo"),
+            array(3.66, 'Производство', 'Етикетиране', 'label_Labels', 'default', "label, admin, ceo"),
         );
     
         
