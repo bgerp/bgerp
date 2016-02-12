@@ -196,7 +196,7 @@ abstract class cash_Document extends core_Master
     		
     		$dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
     		if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
-    			$form->setError('amount', $msg);
+    			$form->setError('amountDeal', $msg);
     		}
     	}
     	
