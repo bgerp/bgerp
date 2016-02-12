@@ -1642,7 +1642,7 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $fields
      */
-    public function on_AfterPrepareInportFields($mvc, &$fields)
+    public static function on_AfterPrepareInportFields($mvc, &$fields)
     {
         
         $Dfields = $mvc->selectFields();
@@ -1669,7 +1669,7 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $fields
      */
-    public function on_AfterPrepareExportRecs($mvc, &$recs)
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
     {
         // Ограничаваме данните, които ще се експортират от фирмите, до които нямаме достъп
         $query = $mvc->getQuery();
@@ -1699,7 +1699,7 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $recs
      */
-    public function on_BeforeImportRec($mvc, &$rec)
+    public static function on_BeforeImportRec($mvc, &$rec)
     {
         // id на държавата
         if (isset($rec->country)) {
