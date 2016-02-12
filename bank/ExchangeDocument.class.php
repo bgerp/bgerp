@@ -230,7 +230,7 @@ class bank_ExchangeDocument extends core_Master
             $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
             
             if($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $cCode, $dCode)){
-            	$form->setWarning('debitQuantity', $msg);
+            	$form->setError('debitQuantity', $msg);
             }
             
             // Каква е равностойноста на обменената сума в основната валута за периода
