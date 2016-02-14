@@ -1157,6 +1157,10 @@ class core_Form extends core_FieldSet
      */
     function setError($field, $msg, $ignorable = FALSE)
     {
+        if(haveRole('no_one')) {
+            $ignorable = TRUE;
+        }
+
         // Премахваме дублиращи се съобщения
         if(is_array($this->errors)) {
             foreach($this->errors as $errRec) {

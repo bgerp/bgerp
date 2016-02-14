@@ -96,6 +96,11 @@ class bank_SpendingDocuments extends bank_Document
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
         $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        
+        $form->setField('ownAccount', 'caption=От->Сметка,after=reason');
+        $form->setField('amount', 'caption=От->Заверени,after=reason');
+        $form->setField('contragentName', 'caption=Към->Контрагент,after=reason');
+        $form->setField('contragentIban', 'caption=Към->Сметка,after=reason');
     }
     
     
@@ -152,10 +157,11 @@ class bank_SpendingDocuments extends bank_Document
         $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
         $form->setDefault('currencyId', $ownAcc->currencyId);
         
-        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |погасени по сделката|*"));
+        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
     
         if($form->rec->currencyId != $form->rec->dealCurrencyId){
-        	$form->setField('amount', 'input,caption=В->Заверени');
+        	$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+        	$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
         }
     }
     
