@@ -2580,6 +2580,9 @@ class crm_Persons extends core_Master
             $nRec = new stdClass();
             $nRec->id = $rec->id;
             $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
             $nRec->buzCompanyId = $rec->buzCompanyId;
             
             $recs[$key] = $nRec;

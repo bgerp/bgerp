@@ -555,4 +555,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
 	}
+	
+	
+	/**
+	 * Документа винаги може да се активира, дори и да няма детайли
+	 */
+	public static function canActivate($rec)
+	{
+		$rec = static::fetchRec($rec);
+		if(empty($rec->inputStoreId)){
+			
+			return TRUE;
+		}
+	}
 }

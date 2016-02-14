@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -16,6 +16,8 @@
  */
 class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
 {
+    
+    
     /**
      * 
      * @var findeals_CreditDocuments
@@ -58,28 +60,43 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$amount = $rec->rate * $rec->amount;
-    	$dealRec = findeals_Deals::fetch($rec->dealId);
-    	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
-    	
-    	// Дебитираме разчетната сметка на сделката, начало на нишка
-    	$debitArr = array($rec->debitAccount,
-    						array($rec->contragentClassId, $rec->contragentId),
-    						array($origin->className, $origin->that),
-    						array('currency_Currencies', currency_Currencies::getIdByCode($origin->fetchField('currencyId'))),
-    						'quantity' => $sign * $amount / $origin->fetchField('currencyRate'));
-    	
+    	 
+    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    	 
+    	$origin = findeals_CreditDocuments::getOrigin($rec);
+    	$originCodeId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
+    	$dealCodeId = currency_Currencies::getIdByCode(findeals_Deals::fetchField($rec->dealId, 'currencyId'));
+    	 
+    	if($rec->currencyId == $baseCurrencyId){
+    		$amount = $rec->amountDeal;
+    	} elseif($originCodeId == $baseCurrencyId){
+    		$amount = $rec->amount;
+    	} else {
+    		$amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $origin->fetchField('currencyId'));
+    	}
+    	 
+    	$dealRec = findeals_Deals::fetch($rec->dealId);
+    	 
     	// Кредитираме разчетната сметка на избраната финансова сделка
-    	$creditArr = array($rec->creditAccount,
-    							array($dealRec->contragentClassId, $dealRec->contragentId),
-    							array($dealRec->dealManId, $rec->dealId),
-    							array('currency_Currencies', currency_Currencies::getIdByCode($dealRec->currencyId)),
-    							'quantity' => $sign * $amount / $dealRec->currencyRate);
+    	$creditArr = array($rec->debitAccount,
+    			array($dealRec->contragentClassId, $dealRec->contragentId),
+    			array($dealRec->dealManId, $rec->dealId),
+    			array('currency_Currencies', $dealCodeId),
+    			'quantity' => $sign * $rec->amountDeal);
+    	 
+    	// Дебитираме разчетната сметка на сделката, начало на нишка
+    	$debitArr = array($rec->creditAccount,
+    			array($rec->contragentClassId, $rec->contragentId),
+    			array($origin->className, $origin->that),
+    			array('currency_Currencies', currency_Currencies::getIdByCode($origin->fetchField('currencyId'))),
+    			'quantity' => $sign * $rec->amount);
+    	 
+    	$entry = array('amount' => $sign * $amount,
+    			'debit' => $debitArr,
+    			'credit' => $creditArr,);
     	
-    	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
-    
     	return $entry;
     }
     

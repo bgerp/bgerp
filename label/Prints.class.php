@@ -221,7 +221,7 @@ class label_Prints extends core_Master
         $form->title = 'Отпечатване';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Печат', 'save', 'ef_icon = img/16/printer.png, title=Започни да печаташ');
+        $form->toolbar->addSbBtn('В опашката', 'save', 'ef_icon = img/16/printer.png, title=Започни да печаташ');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());
