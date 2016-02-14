@@ -38,7 +38,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
-		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
 		
 		$mvc->setDbUnique("{$mvc->masterKey},productId,packagingId,price,quantity,discount");
 	}

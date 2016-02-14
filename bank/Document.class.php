@@ -114,7 +114,7 @@ abstract class bank_Document extends core_Master
 	protected function getFields(core_Mvc &$mvc)
 	{
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
+		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Погасени,mandatory,summary=amount');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
 		
 		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
@@ -147,7 +147,7 @@ abstract class bank_Document extends core_Master
 		if ($form->isSubmitted()){
 			if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
 				$form->setField('amount', 'input');
-				$form->setError("amount", 'Когато избраната валута е различна от тази на сделката, трябва да е сумата да е попълнена');
+				$form->setError("amount", 'Когато сметката е във валута - различна от тази на сделката, сумата трябва да е попълнена');
 				return;
 			}
 			
@@ -172,7 +172,7 @@ abstract class bank_Document extends core_Master
 			
 			$dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
 			if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
-				$form->setError('amount', $msg);
+				$form->setError('amountDeal', $msg);
 			}
 		}
 	}

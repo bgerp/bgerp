@@ -297,11 +297,11 @@ abstract class store_DocumentMaster extends core_Master
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
 	   
 	   	if(!isset($rec->weight)) {
-	   		$row->weight = "<span class='quiet'>NaN</span>";
+	   		$row->weight = "<span class='quiet'>N/A</span>";
 	   	}
 	   
 	   	if(!isset($rec->volume)) {
-	   		$row->volume = "<span class='quiet'>NaN</span>";
+	   		$row->volume = "<span class='quiet'>N/A</span>";
 	   	}
 	   	 
 	   	if(isset($fields['-list'])){

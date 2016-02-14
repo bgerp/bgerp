@@ -543,7 +543,7 @@ class currency_CurrencyRates extends core_Detail
     	@$difference = round(abs($amountTo - $expectedAmount) / min($amountTo, $expectedAmount) * 100);
     	if($difference > $percent) {
     		
-    		return "|Погасената сума е с разминаване от|* <b>{$difference}</b> %|* спрямо централния курс";
+    		return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
     	}
     	
     	return FALSE;
