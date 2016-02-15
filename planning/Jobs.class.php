@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
@@ -18,13 +18,7 @@ class planning_Jobs extends core_Master
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_Jobs';
-	
-	
-	/**
+    /**
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'doc_DocumentIntf';
@@ -76,6 +70,12 @@ class planning_Jobs extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, planning';
+    
+    
+    /**
+     * Койможе да създава задание от продажба
+     */
+    public $canCreatejobfromsale = 'ceo, planning';
     
     
     /**
@@ -578,6 +578,14 @@ class planning_Jobs extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	// Ако създаваме задание от продажба искаме наистина да можем да създадем
+    	if($action == 'createjobfromsale' && isset($rec)){
+    		$count = $mvc->getManifacturableProducts($rec->saleId);
+    		if(!$count){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -831,5 +839,58 @@ class planning_Jobs extends core_Master
     public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	unset($nRec->quantityProduced);
+    }
+    
+    
+    /**
+     * Екшън за избор на артикул за създаване на задание
+     */
+    public function act_CreateJobFromSale()
+    {
+    	$this->requireRightFor('createjobfromsale');
+    	expect($saleId = Request::get('saleId', 'int'));
+    	$this->requireRightFor('createjobfromsale', (object)array('saleId' => $saleId));
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = 'Създаване на задание към продажба|* <b>' . sales_Sales::getHyperlink($saleId, TRUE) . "</b>";
+    	$form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
+    	$form->setOptions('productId', array('' => '') + $this->getManifacturableProducts($saleId));
+    	$form->input();
+    	if($form->isSubmitted()){
+    		if(isset($form->rec->productId)){
+    			redirect(array($this, 'add', 'productId' => $form->rec->productId, 'saleId' => $saleId, 'ret_url' => TRUE));
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Ново задание', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Създаване на ново задание');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	$form = $form->renderHtml();
+    	$tpl = $this->renderWrapping($form);
+    	
+    	return $tpl;
+    }
+    
+
+    /**
+     * Намира всички производими артикули по една продажба, които нямат задания
+     * 
+     * @param int $saleId
+     * @return array $res
+     */
+    private function getManifacturableProducts($saleId)
+    {
+    	$res = array();
+    	$saleQuery = sales_SalesDetails::getQuery();
+    	$saleQuery->where("#saleId = {$saleId}");
+    	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+    	$saleQuery->where("#meta = 'yes'");
+    	while($pRec = $saleQuery->fetch()){
+    		if($this->haveRightFor('add', (object)array('productId' => $pRec->productId, 'saleId' => $saleId))){
+    			$res[$pRec->productId] = cat_Products::getTitleById($pRec->productId, FALSE);
+    		}
+    	}
+    	
+    	return $res;
     }
 }

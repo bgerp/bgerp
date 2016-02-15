@@ -25,7 +25,7 @@
 
     <!--ET_BEGIN JOB_INFO-->
     <div class='sale-job-info snapshot'>
-	    <div>|Информация за наличните задания към частните артикули|*</div>
+	    <div>|Задания за производство|* [#JOB_ADD_BTN#]</div>
 	    [#JOB_INFO#]
     </div>
     <!--ET_END JOB_INFO-->
