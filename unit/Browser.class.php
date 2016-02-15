@@ -1,7 +1,10 @@
 <?php
 
-include "../vendor/autoload.php";
 
+/**
+ * 
+ */
+require_once(EF_APP_PATH . "/vendor/autoload.php");
 
 
 /**
