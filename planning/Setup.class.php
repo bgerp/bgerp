@@ -1,5 +1,10 @@
 <?php
 
+/**
+ *  Tемата по-подразбиране за пос терминала
+ */
+defIfNot('PLANNING_TASK_SERIAL_COUNTER', 1000);
+
 
 /**
  * Производствено планиране - инсталиране / деинсталиране
@@ -47,6 +52,13 @@ class planning_Setup extends core_ProtoSetup
     
     
     /**
+     * Описание на конфигурационните константи за този модул
+     */
+    var $configDescription = array(
+    		'PLANNING_TASK_SERIAL_COUNTER'   => array ('int', 'caption=Задачи->Стартов сериен номер'),
+    		);
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
@@ -64,6 +76,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_drivers_ProductionTaskDetails',
     		'planning_drivers_ProductionTaskProducts',
     		'planning_TaskActions',
+    		'planning_TaskSerials',
     		'migrate::updateTasks',
     		'migrate::updateNotes',
         );

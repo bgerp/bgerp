@@ -206,10 +206,11 @@ class planning_Tasks extends tasks_Tasks
 	
 
 	/**
+	 * Връща данни за етикети
 	 * 
-	 * @param unknown $id
-	 * @param number $labelNo
-	 * @return multitype:string NULL unknown Ambigous <string, unknown> number
+	 * @param int $id - ид на задача
+	 * @param number $labelNo - номер на етикета
+	 * @return array $res - данни за етикетите
 	 */
 	public function getLabelData($id, $labelNo = 0)
 	{
@@ -266,5 +267,4 @@ class planning_Tasks extends tasks_Tasks
 		// Връщаме данните за етикета от задачата
 		return $res;
 	}
-	
 }
