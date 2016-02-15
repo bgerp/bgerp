@@ -183,8 +183,8 @@ class store_TransfersDetails extends doc_Detail
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
     		
-    		$warning = deals_Helper::getQuantityHint($rec->newProductId, $data->masterData->rec->fromStore);
-    		if(strlen($warning)){
+    		$warning = deals_Helper::getQuantityHint($rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity);
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
     			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     	}
@@ -218,7 +218,6 @@ class store_TransfersDetails extends doc_Detail
     	
     	if($rec->newProductId){
     		$fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
     		$form->info = $storeInfo->formInfo;
     		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		
@@ -230,10 +229,6 @@ class store_TransfersDetails extends doc_Detail
     	
     	if ($form->isSubmitted()){
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-    		if(isset($storeInfo->warning)){
-    			$form->setWarning('packQuantity', $storeInfo->warning);
-    		}
             
             $rec->weight = cat_Products::getWeight($rec->newProductId);
             $rec->volume = cat_Products::getVolume($rec->newProductId);

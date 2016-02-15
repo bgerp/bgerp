@@ -555,18 +555,20 @@ abstract class deals_Helper
 	 * 
 	 * @param int $productId
 	 * @param int $storeId
+	 * @param double $quantity
 	 * @return string $hint
 	 */
-	public static function getQuantityHint($productId, $storeId)
+	public static function getQuantityHint($productId, $storeId, $quantity)
 	{
 		$hint = '';
 		$quantityInStore = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		
 		if(is_null($quantityInStore)){
 			$hint = 'Налично количество в склада: н.д.';
-		} elseif($quantityInStore <= 0) {
+		} elseif($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
 			$quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
-			$hint = "Налично количество в склада|*: $quantityInStore";
+			$measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
+			$hint = "Налично количество в склада|*: {$quantityInStore} {$measureName}";
 		}
 		
 		return $hint;

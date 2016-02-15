@@ -210,7 +210,7 @@ class deals_OpenDeals extends core_Manager {
 	    	$row->client = $inCharge. " » " . doc_Folders::recToVerbal($folderRec)->title;
 	    	$row->docId = $DocClass->getHandle($rec->docId);
 	    	
-    		// Обръщане на сумите в валутата на документа
+    		// Обръщане на сумите във валутата на документа
 	    	foreach (array('Deal', 'Paid', 'Delivered') as $name){
 	    		$field = "amount{$name}";
 		    	

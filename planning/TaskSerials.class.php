@@ -24,7 +24,6 @@ class planning_TaskSerials extends core_Manager
 	public $title = 'Серийни номера по задачи за производство';
 	
 	
-	
 	/**
 	 * Кой може да го разглежда?
 	 */
@@ -52,11 +51,7 @@ class planning_TaskSerials extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,serial,taskId,labelNo,createdOn,createdBy';
-    		
-    
-    
-    const TASK_SERIAL_COUNTER = 1000;
+    public $listFields = 'tools=Пулт,serial,taskId,labelNo,domain,createdOn,createdBy';
 
     
 	/**
@@ -67,33 +62,61 @@ class planning_TaskSerials extends core_Manager
 		$this->FLD('serial', 'bigint', 'caption=Брояч,mandatory');
 		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Задача,mandatory');
 		$this->FLD('labelNo', 'int', 'caption=Номер на етикета,mandatory');
+		$this->FLD('domain', 'enum(auto,labels)', 'caption=Домейн,mandatory,notNull,value=auto');
 		
 		$this->setDbUnique('serial');
-		$this->setDbUnique('taskId,labelNo');
+		$this->setDbUnique('taskId,labelNo,domain');
 	}
 	
 	
 	/**
 	 * Връща следващия сериен номер
-	 * @return string
+	 * 
+	 * @return string $serial
 	 */
 	public static function getNextSerial()
 	{
 		// Намираме последния въведен код
 		$query = static::getQuery();
 		$query->XPR('maxSerial', 'int', 'MAX(#serial)');
-		$code = $query->fetch()->maxCode;
-		if(!$code){
-			$code = self::TASK_SERIAL_COUNTER;
+		$startCounter = $query->fetch()->maxSerial;
+		if(!$startCounter){
+			$startCounter = core_packs::getConfigValue('planning', 'PLANNING_TASK_SERIAL_COUNTER');
 		};
+		$serial = $startCounter;
 		
 		// Инкрементираме кода, докато достигнем свободен код
-		$code++;
-		while(self::fetch("#serial = '{$code}'")){
-			$code++;
+		$serial++;
+		while(self::fetch("#serial = '{$serial}'")){
+			$serial++;
 		}
 		
-		return $code;
+		return $serial;
+	}
+	
+	
+	/**
+	 * Връща следващия сериен номер, автоинкрементиран
+	 *
+	 * @param int $taskId - ид на задача за прозиводство
+	 * @return string $serial - сериен номер
+	 */
+	public static function forceAutoNumber($taskId)
+	{
+		$query = self::getQuery();
+		$query->where("#domain = 'auto'");
+		$query->XPR('maxLabelNo', 'int', 'MAX(#labelNo)');
+		$labelNo = $query->fetch()->maxLabelNo;
+		$labelNo++;
+		
+		$rec = (object)array('taskId'  => $taskId, 
+							 'labelNo' => $labelNo,
+							 'domein'  => 'auto', 
+							 'serial'  => self::getNextSerial());
+		
+		self::save($rec);
+		
+		return $rec->serial;
 	}
 	
 	
@@ -106,13 +129,14 @@ class planning_TaskSerials extends core_Manager
 	 */
 	public static function force($taskId, $labelNo = 0)
 	{
-		if($rec = static::fetch(array("#taskId = [#1#] AND #labelNo = '[#2#]'", $taskId, $labelNo))){
+		if($rec = static::fetch(array("#taskId = [#1#] AND #labelNo = '[#2#]' AND #domain = 'labels'", $taskId, $labelNo))){
 			
 			return $rec->serial;
 		}
 		
 		$rec = (object)array('taskId'  => $taskId, 
 						     'labelNo' => $labelNo, 
+							 'domain'  => 'labels',
 							 'serial'  => static::getNextSerial());
 		
 		static::save($rec);

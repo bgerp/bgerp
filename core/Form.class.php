@@ -857,7 +857,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr{$fsRow}><td class='formCell' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr{$fsRow}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
 
                     if ($emptyRow > 0) {
@@ -888,7 +888,7 @@ class core_Form extends core_FieldSet
             foreach($fsArr as $id => $group) { 
                 if(!$usedGroups[$group]) {
                     $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
-                    $tpl->replace(" class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
+                    $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
                 } 
             }
