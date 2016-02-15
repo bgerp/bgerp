@@ -1,0 +1,5 @@
+{
+    "require": {
+        "behat/mink": "^1.7"
+    }
+}
