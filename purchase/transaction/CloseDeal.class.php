@@ -142,7 +142,10 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function trasnferDownpayments(bgerp_iface_DealAggregator $dealInfo, $docRec, &$downpaymentAmounts, $firstDoc, &$result)
     {
     	$entryArr = array();
-    
+	    if(!$downpaymentAmounts){
+	    	$downpaymentAmounts = array();
+	    }
+    	
     	$docRec = $firstDoc->rec();
     
     	// Валутата на плащането е тази на сделката
