@@ -164,7 +164,7 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$rows = &$data->rows;
-    	 
+    	
     	if(!count($data->recs)) return;
     	 
     	foreach ($rows as $id => $row){
@@ -172,7 +172,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
-    			if(isset($pInfo->meta['canStore'])){
+    			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
     				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId);
     				if(strlen($warning)){
     					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');

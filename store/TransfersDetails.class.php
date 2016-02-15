@@ -184,7 +184,7 @@ class store_TransfersDetails extends doc_Detail
     		$rec = $data->recs[$id];
     		
     		$warning = deals_Helper::getQuantityHint($rec->newProductId, $data->masterData->rec->fromStore);
-    		if(strlen($warning)){
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
     			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     	}
