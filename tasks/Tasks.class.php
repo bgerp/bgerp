@@ -430,7 +430,7 @@ class tasks_Tasks extends embed_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'active' || $data->rec->state == 'pending'){
     		if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
