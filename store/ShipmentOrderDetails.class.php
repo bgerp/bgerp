@@ -89,7 +89,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info=Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
     
         
     /**
@@ -108,6 +108,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * Полета за скриване/показване от шаблоните
      */
     public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'info,discount';
     
     
     /**
@@ -210,8 +216,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){
             		$form->setError('info', "Полето може да приема само числа,запетаи и тирета");
             	}
-            	
             	$rec->info = preg_replace("/\s+/", "", $rec->info);
+            } else {
+            	$rec->info = NULL;
             }
         }
     }
