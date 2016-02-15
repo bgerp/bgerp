@@ -116,9 +116,9 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    var $searchFields = 'name,egn,country,place,email,info,id';
-
-
+    var $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id';
+    
+    
     /**
      * Кой  може да пише?
      */
@@ -267,7 +267,7 @@ class crm_Persons extends core_Master
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
         $this->FLD('buzFax', 'drdata_PhoneType(type=fax)', 'caption=Служебни комуникации->Факс,class=contactData,export=Csv');
         $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData,export=Csv');
-
+        
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
