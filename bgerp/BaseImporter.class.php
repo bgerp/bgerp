@@ -77,6 +77,13 @@ class bgerp_BaseImporter extends core_Manager {
         
         $onExist = Mode::get('onExist');
         
+        // Увеличаваме времето, ако е необходимо
+        $rCnt = count($rows);
+        $time = ceil($rCnt / 10);
+        if ($time > ini_get('max_execution_time')) {
+            core_App::setTimeLimit($time);
+        }
+        
         foreach ($rows as $row){
             $rec = new stdClass();
             
@@ -128,7 +135,8 @@ class bgerp_BaseImporter extends core_Manager {
         }
         
         if (isDebug()) {
-            $html .= "<br />|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
+            $html .= ($html) ? '<br />' : '';
+            $html .= "|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
         }
         
         return $html;
