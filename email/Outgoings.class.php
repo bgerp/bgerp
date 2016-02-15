@@ -2430,7 +2430,7 @@ class email_Outgoings extends core_Master
         }
         
         if ($mvc->haveRightFor('close', $data->rec)) {
-            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), array('ef_icon'=>'img/16/gray-close.png', 'row'=>'2', 'title'=>'Спиране на изпращането'));
+            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), array('ef_icon'=>'img/16/gray-close.png', 'title'=>'Спиране на изпращането'));
         }
     }
     

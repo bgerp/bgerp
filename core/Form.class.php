@@ -1269,10 +1269,16 @@ class core_Form extends core_FieldSet
     /**
      * Кои групи да се показват
      */
-    public static function getUsedGroups($fieldset, $fields, $rec, $row, $mode = 'single')
+    public static function getUsedGroups($fieldset, $fields, $rec1, $row, $mode = 'single')
     { 
         $res = array();
         $group = '';
+
+        if(is_array($rec1)) {
+            $rec = (object) $rec1;
+        } else {
+            $rec = $rec1;
+        }
         
         if(is_array($fields)){
 			foreach($fields as $name => $caption1) {
@@ -1287,9 +1293,13 @@ class core_Form extends core_FieldSet
         	
         		if($fieldset->fields[$name]->autohide == 'any') continue;
         		if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
-        			if(!$rec->{$name}) continue;
+        			if(!$rec->{$name}) { 
+                        continue;
+                    }
         			$type = $fieldset->fields[$name]->type;
-        			if(isset($type->options) && is_array($type->options) && key( $type->options) == $rec->{$name}) continue;
+        			if(isset($type->options) && is_array($type->options) && key( $type->options) == $rec->{$name}) {
+                        continue;
+                    }
         		}
         	
         		if(strpos($caption, '->')) {
