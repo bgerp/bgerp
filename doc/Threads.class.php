@@ -1118,7 +1118,10 @@ class doc_Threads extends core_Manager
             $cQuery->where(array("#threadId = '[#1#]'", $mRec->threadId));
             $cQuery->show('id');
             
-            $moveTime += $timeFormMoveContainer * $cQuery->count();
+            if ($cCnt = $cQuery->count()) {
+                $moveTime += $timeFormMoveContainer * $cCnt;
+            }
+            
             $moveTime += $timeFormMoveThread;
         }
         

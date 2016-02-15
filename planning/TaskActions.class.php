@@ -21,7 +21,7 @@ class planning_TaskActions extends core_Manager
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за връщане от производство';
+	public $title = 'Регистър на операциите на задачите';
 	
 	
 	

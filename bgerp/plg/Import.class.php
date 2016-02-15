@@ -184,7 +184,7 @@ class bgerp_plg_Import extends core_Plugin
         
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
-        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow,#onExist", tr("Въведете файл с във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow,#onExist", tr("Въведете файл в CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         // Полета за избиране на Разделител, ограждане и вида на първия ред

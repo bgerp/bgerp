@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -136,24 +136,6 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-    	$rec = &$form->rec;
-    	
-    	if(isset($rec->productId)){
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
-    		
-    		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
-    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    			
-    			if ($form->isSubmitted()){
-    				if(isset($storeInfo->warning)){
-    					$form->setWarning('packQuantity', $storeInfo->warning);
-    				}
-    			}
-    		}
-    	}
-    	
     	parent::inputDocForm($mvc, $form);
     }
     
@@ -164,7 +146,7 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$rows = &$data->rows;
-    	 
+    	
     	if(!count($data->recs)) return;
     	 
     	foreach ($rows as $id => $row){
@@ -172,8 +154,8 @@ class sales_SalesDetails extends deals_DealDetail
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
-    			if(isset($pInfo->meta['canStore'])){
-    				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId);
+    			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
+    				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     				if(strlen($warning)){
     					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     				}
@@ -220,40 +202,44 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function prepareJobInfo($rec, $masterRec)
     {
-    	$pRec = cat_Products::fetch($rec->productId, 'isPublic,containerId');
-    	if($pRec->isPublic === 'yes') return;
-    	$pInfo = cat_Products::getProductInfo($rec->productId);
-    	if(!isset($pInfo->meta['canManifacture'])) return;
-    	
     	$row = new stdClass();
+    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->quantity = $row->quantityFromTasks = $row->quantityProduced = 0;
+    	$jobRec = NULL;
     	
-    	// Кой е артикула
-    	$row->productId = cat_Products::getShortHyperLink($rec->productId);
+    	$pRec = cat_Products::fetch($rec->productId);
     	
-    	if($masterRec->state == 'active') {
-    		
-    		// Проверяваме имали задание
-    		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state != 'draft' && #state != 'rejected')", 'id,state,dueDate')){
-    		
-    			// Ако има такова, добавяме линк към сингъла му
-    			$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
-    			if(planning_Jobs::haveRightFor('single', $jobRec)){
-    				$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
-    			}
-    			$row->jobId .= " ( " . planning_Jobs::getVerbal($jobRec, 'dueDate') . " )";
-    		
-    		} else {
-    			// Ако няма задание, добавяме бутон за създаване на ново задание
-    			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
-    				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'ret_url' => TRUE);
-    				if(!empty($rec->tolerance)){
-    					$jobUrl['tolerance'] = $rec->tolerance * 100; 				
-    				}
-    				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
-    			}
-    		}
+    	// Имаме ли активно задание по тази продажба
+    	$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+    	
+    	// Ако няма търсим, имаме ли активно задание
+    	if(!$jobRec){
+    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
     	}
     	
-    	return $row;
+    	// Ако и такова няма намираме последното задание-чернова към тази продажба
+    	if(!$jobRec){
+    		$jQuery = planning_Jobs::getQuery();
+    		$jQuery->where("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND #state = 'draft'");
+    		$jQuery->orderBy("id", 'DESC');
+    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #state = 'draft'");
+    	}
+    	
+    	if(!empty($jobRec)){
+    		$row->quantity = $jobRec->quantity;
+    		$row->quantityFromTasks = planning_TaskActions::getQuantityForJob($jobRec->id, 'product');
+    		$row->quantityProduced = $jobRec->quantityProduced;
+    		
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$row->dueDate = cls::get('type_Date')->toVerbal($jobRec->dueDate);
+    			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
+    		
+    		$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
+    		$row->jobId = ht::createLink($row->jobId, planning_Jobs::getSingleUrlArray($jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
+    		$row->ROW_ATTR['class'] = "state-{$jobRec->state}";
+    	
+    		return $row;
+    	}
     }
 }

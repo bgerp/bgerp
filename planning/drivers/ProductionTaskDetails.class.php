@@ -164,7 +164,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
     		if($rec->type == 'product'){
     			if(empty($rec->serial)){
-    				$rec->serial = $mvc->getDefaultSerial();
+    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId);
     			}
     		}
     		
@@ -172,28 +172,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			$rec->serial = NULL;
     		}
     	}
-    }
-
-
-    /**
-     * Връща следващия най-голям свободен код
-     *
-     * @return int $code - код
-     */
-    private function getDefaultSerial()
-    {
-    	// Намираме последния въведен код
-    	$query = self::getQuery();
-    	$query->XPR('maxCode', 'int', 'MAX(#serial)');
-    	$code = $query->fetch()->maxCode;
-    	 
-    	// Инкрементираме кода, докато достигнем свободен код
-    	$code++;
-    	while(self::fetch("#serial = '{$code}'")){
-    		$code++;
-    	}
-    	 
-    	return $code;
     }
 
 

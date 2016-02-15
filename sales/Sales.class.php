@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -87,14 +87,14 @@ class sales_Sales extends deals_DealMaster
      * Кой може да принтира фискална бележка
      */
     public $canPrintfiscreceipt = 'ceo,sales';
-    
-    
-    /**
+
+
+	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,sales';
-
-
+	
+	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
@@ -714,20 +714,25 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$data->jobInfo = array();
-    	if($data->rec->state != 'rejected'){
+    	$rec = $data->rec;
+    	if($rec->state != 'rejected' && $rec->state != 'draft'){
     		
     		// Да не се показва блока взависимост в какъв режим сме
     		if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
     		
     		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
     		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$data->rec->id}");
+    		$dQuery->where("#saleId = {$rec->id}");
     		$dQuery->show('productId,packagingId,quantity,tolerance');
     		
     		while($dRec = $dQuery->fetch()){
-    			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $data->rec)){
+    			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
     				$data->jobInfo[] = $dRow;
     			}
+    		}
+    		
+    		if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
+    			$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
     		}
     	}
     }
@@ -758,9 +763,26 @@ class sales_Sales extends deals_DealMaster
     {
     	// Ако има подготвена информация за наличните задания, рендираме я
     	if(count($data->jobInfo)){
-    		$table = cls::get('core_TableView');
-    		$jobsInfo = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание');
-    		$tpl->replace($jobsInfo, 'JOB_INFO');
+    		$Jobs = cls::get('planning_Jobs');
+    		$table = cls::get('core_TableView', array('mvc' => $Jobs));
+    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
+    		foreach ($data->jobInfo as &$row){
+    			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
+    				if($row->{$var} == 0){
+    					$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
+    				}
+    			}
+    		}
+    		
+    		$jobsTable = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    		$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+    		$jobTpl->replace($jobsTable, 'table');
+    		$tpl->replace($jobTpl, 'JOB_INFO');
+    	}
+    	
+    	if(isset($data->addJobUrl)){
+    		$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
+    		$tpl->replace($addLink, 'JOB_ADD_BTN');
     	}
     	
     	// Слагаме iframe заради касовата бележка, ако не принтираме

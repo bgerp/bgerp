@@ -316,12 +316,15 @@ class deals_plg_DpInvoice extends core_Plugin
     		$tpl->removeBlock('NO_ROWS');
     	}
     	
+    	$firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
+    	$valior = $firstDoc->getVerbal('valior');
+    	
     	if($data->dpInfo->dpOperation == 'accrued'){
     		$colspan = count($data->listFields) - 2;
-    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
     		$colspan = count($data->listFields) - 3;
-    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	}
     	
     	$lastRow->placeObject($data->dpInfo);

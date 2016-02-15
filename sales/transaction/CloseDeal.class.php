@@ -250,7 +250,10 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function transferDownpayments(bgerp_iface_DealAggregator $dealInfo, &$downpaymentAmounts, $firstDoc, &$result)
     {
     	$entryArr = array();
-    	 
+    	if(!$downpaymentAmounts){
+    		$downpaymentAmounts = array();
+    	}
+    	
     	$docRec = $firstDoc->rec();
     	 
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
