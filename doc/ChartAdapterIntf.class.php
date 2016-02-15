@@ -5,7 +5,7 @@
  *
  *
  * @category  bgerp
- * @package   docschartadapter
+ * @package   doc
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -21,7 +21,7 @@ class doc_ChartAdapterIntf
      */
     public function  prepare($data, $chartType)
     {
-        $this->class->prepare($data, $chartType);
+        
+        return $this->class->prepare($data, $chartType);
     }
-	
 }
