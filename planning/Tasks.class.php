@@ -90,6 +90,7 @@ class planning_Tasks extends tasks_Tasks
 				
 				// Имали от създадените задачи, такива с този индекс
 				$foundObject = array_filter($data->recs, function ($a) use ($index) {
+					
 					return $a->systemId == $index;
 				});
 				
@@ -205,6 +206,23 @@ class planning_Tasks extends tasks_Tasks
 	}
 	
 
+	/**
+	 * След подготовка на тулбара на единичен изглед.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $data
+	 */
+	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		if(core_Packs::isInstalled('label')){
+			if(label_Labels::haveRightFor('add')){
+				core_Request::setProtected('class,objectId');
+				$data->toolbar->addBtn('Етикиране', array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE), NULL, 'target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети');
+			}
+		}
+	}
+	
+	
 	/**
 	 * Връща данни за етикети
 	 * 
