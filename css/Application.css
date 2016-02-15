@@ -2141,7 +2141,8 @@ span.sharing-history-title {
   margin-top: 7px; }
 
 .drawing {
-  float: right; }
+  float: right;
+  max-width: 400px; }
   .drawing img {
     max-width: 400px; }
 
