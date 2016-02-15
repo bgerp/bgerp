@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -136,24 +136,6 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-    	$rec = &$form->rec;
-    	
-    	if(isset($rec->productId)){
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
-    		
-    		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
-    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    			
-    			if ($form->isSubmitted()){
-    				if(isset($storeInfo->warning)){
-    					$form->setWarning('packQuantity', $storeInfo->warning);
-    				}
-    			}
-    		}
-    	}
-    	
     	parent::inputDocForm($mvc, $form);
     }
     
@@ -173,7 +155,7 @@ class sales_SalesDetails extends deals_DealDetail
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
     			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
-    				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId);
+    				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     				if(strlen($warning)){
     					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     				}

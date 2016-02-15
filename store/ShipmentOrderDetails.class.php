@@ -202,18 +202,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     { 
     	$rec = &$form->rec;
     	
-    	if(isset($rec->productId)){
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    		$form->info = $storeInfo->formInfo;
-    		
-    		if ($form->isSubmitted()){
-    			if(isset($storeInfo->warning)){
-    				$form->setWarning('packQuantity', $storeInfo->warning);
-    			}
-    		}
-    	}
-    	
     	parent::inputDocForm($mvc, $form);
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
@@ -241,8 +229,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     		
-    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId);
     		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
     			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
