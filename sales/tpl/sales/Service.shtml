@@ -118,11 +118,6 @@
                     <div>
                         <b>|Условия|*:</b>
                         <ol style = 'margin-top:1px'>
-                            <!--ET_BEGIN pricesAtDate-->
-                            <li>
-                                |Цени към|*: <b>[#pricesAtDate#]</b><br>
-                            </li>
-                            <!--ET_END pricesAtDate-->
                             <!--ET_BEGIN withVat-->
                             <li>|Цените са с включен ДДС|*[#withVat#]</li>
                             <!--ET_END withVat-->
