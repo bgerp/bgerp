@@ -26,6 +26,8 @@
         <!--ET_BEGIN material-->
          <li> The manufactures are made of [#material#] </li>
         <!--ET_END material-->
+        </ul>
+        <ul>
         <!--ET_BEGIN statements-->
         <li> The manufactures meet the requirements [#statements#]</li>
         <!--ET_END statements-->

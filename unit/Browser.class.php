@@ -107,7 +107,7 @@ class unit_Browser
         if($link = $this->node->findButton($button)) {
 
             if($link->getTagName() == 'input' && $link->getAttribute('type') == 'button') {
-                $loc = $this->baseUrl . trim(str_replace("document.location='", "", $link->getAttribute('onclick')), "' ");
+                $loc = $this->baseUrl . trim(str::cut($link->getAttribute('onclick'), "document.location='", "'"));
                 $this->open($loc);  
             } else {
                 $link->click();

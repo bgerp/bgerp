@@ -91,7 +91,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('price', 'double', 'caption=Цена,input=none,smartCenter');
     	
     	// Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input,smartCenter');
+    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter');
     	$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
     	
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на задачи за производство
  *
@@ -16,8 +15,14 @@
  */
 class planning_Tasks extends tasks_Tasks
 {
-	
-	
+    
+    
+	/**
+	 * Интерфейси
+	 */
+    public $interfaces = 'label_SequenceIntf';
+    
+    
 	/**
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
@@ -215,7 +220,7 @@ class planning_Tasks extends tasks_Tasks
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		if(core_Packs::isInstalled('label')){
-			if(label_Labels::haveRightFor('add')){
+			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft') && label_Labels::haveRightFor('add')){
 				core_Request::setProtected('class,objectId');
 				$data->toolbar->addBtn('Етикетиране', array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE), NULL, 'target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети');
 			}
@@ -228,7 +233,10 @@ class planning_Tasks extends tasks_Tasks
 	 * 
 	 * @param int $id - ид на задача
 	 * @param number $labelNo - номер на етикета
+	 * 
 	 * @return array $res - данни за етикетите
+     * 
+     * @see label_SequenceIntf
 	 */
 	public function getLabelData($id, $labelNo = 0)
 	{
@@ -236,7 +244,7 @@ class planning_Tasks extends tasks_Tasks
 		expect($rec = planning_Tasks::fetchRec($id));
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
-	
+	    
 		// Форсираме сериен номер
 		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo);
 	
@@ -285,4 +293,22 @@ class planning_Tasks extends tasks_Tasks
 		// Връщаме данните за етикета от задачата
 		return $res;
 	}
+    
+    
+    /**
+     * Броя на етикетите, които могат да се отпечатат
+     * 
+     * @param integer $id
+     * @param string $allowSkip
+     * 
+     * @return integer
+     * 
+     * @see label_SequenceIntf
+     */
+    public function getEstimateCnt($id, &$allowSkip)
+    {
+        $allowSkip = TRUE;
+        
+        return 100 + $id;
+    }
 }

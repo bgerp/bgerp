@@ -116,7 +116,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->К-во,primeCost,coefficient';
+    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -136,7 +136,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
-    	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=К-во,input=none,tdClass=accCell');
+    	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
     	$this->FLD("coefficient", 'double', 'input=none');
     }
 
@@ -150,7 +150,7 @@ class cat_BomDetails extends doc_Detail
     	$masterProductUomId = cat_Products::fetchField($data->masterData->rec->productId, 'measureId');
     	
     	$data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
-    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|К-во|*";
+    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
     	$data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
     	if(!haveRole('ceo, acc, cat, price')){
     		unset($data->listFields['primeCost']);
