@@ -336,40 +336,34 @@ class dec_Declarations extends core_Master
        		$invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($recOrigin->date, "d.m.Y");
        		$row->invoiceNo = $invoiceNo;
          }
-         
-    
+
         // вземаме материалите
     	if ($recDec->materials) {
-    		
     		$materials = type_Keylist::toArray($recDec->materials);
-    		
-            $cTpl = $decContent->getBlock("material");    
+
+            $row->material= "<ol>";
     		foreach ($materials as $material) {  
-    			
     			$m = dec_Materials::fetch($material);
-    			$text = "изделията са произведени от";
-    			$text2 .= " ". $m->text . ",";
-    		}
-    			$text2 = rtrim($text2, ',');
-    			$cTpl->replace($text2, 'material');
-    			$cTpl->append2master();
+    			
+    			$text = $m->text;
+    			$row->material .= "<li>".$text."</li>";
+    		}  			
+    		$row->statements .= "</ol>";
     	}
-    	
+
     	// вземаме твърденията
     	if ($recDec->statements) {
     		
     		$statements = type_Keylist::toArray($recDec->statements);
     		
-            $cTpl = $decContent->getBlock("statements");    
-    		foreach ($statements as $statement) {  
-    			
-    			$s = dec_Statements::fetch($statement);
-    			$text = $s->text;
-    			$cTpl->replace($text, 'statements');
-    			$cTpl->append2master();
+            $row->statements = "<ol>";
+    		foreach($statements as $statement){
+    		    $s = dec_Statements::fetch($statement);
+    		    $text = $s->text;
+    		   $row->statements .= "<li>".$text."</li>";
     		}
+    		$row->statements .= "</ol>";
     	}
-    	
     	
     	// ако има допълнителни бележки
     	if($recDec->note) {
