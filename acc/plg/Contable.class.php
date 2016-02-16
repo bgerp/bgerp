@@ -373,17 +373,11 @@ class acc_plg_Contable extends core_Plugin
         	redirect(array($mvc, 'single', $rec->id), FALSE, '|' . $e->getMessage(), 'error');
         }
         
-        $handle = $mvc->getHandle($rec->id);
-        
-        if(!empty($cRes)){
-            $action = ($rec->isContable == 'activate') ? "активиран" : "контиран";
-            $cRes = "е {$action} успешно";
-        } else {
-            $cRes = 'НЕ Е контиран';
+        if(empty($cRes)){
+        	$handle = $mvc->getHandle($rec->id);
+        	$cRes = 'НЕ Е контиран';
+        	status_Messages::newStatus("#{$handle} |" . $cRes);
         }
-        
-        // Слагане на статус за потребителя
-        status_Messages::newStatus("#{$handle} |" . $cRes);
     }
     
     
