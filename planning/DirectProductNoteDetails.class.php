@@ -155,19 +155,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$rec = &$form->rec;
     	
     	if($rec->productId){
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		if(isset($pInfo->meta['canStore'])){
-    			$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
-    			if(!empty($storeId)){
-    				$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
-    				$form->info = $storeInfo->formInfo;
-    			}
-    		}
     	
     		if($form->isSubmitted()){
-    			if(isset($storeInfo->warning)){
-    				$form->setWarning('packQuantity', $storeInfo->warning);
-    			}
     			
     			// Ако добавяме отпадък, искаме да има себестойност
     			if($rec->type == 'pop'){
@@ -306,5 +295,27 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Връщаме шаблона
     	return $tpl;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	if(!count($data->recs)) return;
+    	$storeId = $data->masterData->rec->inputStoreId;
+    	if(!isset($storeId)) return;
+    	
+    	foreach ($data->rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		if($rec->type != 'input') continue;
+    		
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
+   
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    		}
+    	}
     }
 }
