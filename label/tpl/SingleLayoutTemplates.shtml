@@ -6,7 +6,7 @@
         </div>
     </h3>
     <div class='scrolling-holder'>
-        <div class="preview-label" style='padding-top: 10px;'>
+        <div class="preview-label" style='padding-top: 15px;'>
             <span class='legend'>|Преглед|*</span>
             [#template#]
         </div>
