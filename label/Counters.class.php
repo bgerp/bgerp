@@ -262,7 +262,7 @@ class label_Counters extends core_Master
             }
             
             // Очакваме да няма грешка
-            expect($updated);
+            expect(isset($updated));
             
             // Заместваме в стринга
             $str = str_replace(self::$counterPlace, $counter, $str);
