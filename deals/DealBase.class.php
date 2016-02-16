@@ -471,6 +471,8 @@ abstract class deals_DealBase extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return;
+    	
     	$mvc->prepareDealTabs($data);
     	
     	$data->selectedTab = $data->tabs->getSelected();

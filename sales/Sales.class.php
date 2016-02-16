@@ -867,11 +867,15 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterPrepareDealTabs($mvc, &$res, &$data)
     {
+    	if(!isset($data->tabs)) return;
     	$url = getCurrentUrl();
     	
     	if(haveRole('ceo,planning,sales,store')){
-    		$url['dealTab'] = 'JobsInfo';
-    		$data->tabs->TAB('JobsInfo', 'Задания' , $url);
+    		$manifacturable = static::getManifacurableProducts($data->rec);
+    		if(count($manifacturable)){
+    			$url['dealTab'] = 'JobsInfo';
+    			$data->tabs->TAB('JobsInfo', 'Задания' , $url);
+    		}
     	}
     }
     
@@ -938,5 +942,28 @@ class sales_Sales extends deals_DealMaster
     			$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
     			$tpl->replace($addLink, 'JOB_ADD_BTN');
     		}
+    }
+    
+    
+    /**
+     * Връща всички производими артикули от продажбата
+     * 
+     * @param mixed $id - ид или запис
+     * @return array $res - масив с производимите артикули
+     */
+    public static function getManifacurableProducts($id)
+    {
+    	$rec = static::fetchRec($id);
+    	$res = array();
+    	
+    	$saleQuery = sales_SalesDetails::getQuery();
+    	$saleQuery->where("#saleId = {$rec->id}");
+    	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+    	$saleQuery->where("#meta = 'yes'");
+    	while($dRec = $saleQuery->fetch()){
+    		$res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
+    	}
+    	
+    	return $res;
     }
 }
