@@ -156,8 +156,10 @@ class label_Counters extends core_Master
         // Флага, указващ дали има други стойности за брояча
         $haveCounter = FALSE;
         
+        $maxVal = label_CounterItems::getMax($counterId);
+        
         // Ако няма запис
-        if ($maxVal = label_CounterItems::getMax($counterId)) {
+        if (isset($maxVal)) {
             
             // Добавяме стъпката
             $maxVal += $cRec->step;
