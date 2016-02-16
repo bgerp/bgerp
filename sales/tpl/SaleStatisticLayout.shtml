@@ -34,8 +34,11 @@
                   <span style='font-weight:normal'>|Търговец|*</span>: [#dealerId#]<br>
                   <!--ET_END dealerId-->
                   <!--ET_BEGIN originId-->
-                  <span style='font-weight:normal'>|Към|*</span>: [#originId#]
+                  <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->
+                  <!--ET_BEGIN pricesAtDate-->
+                  <span style='font-weight:normal'>|Цени към|*</span>: [#pricesAtDate#]
+                  <!--ET_END pricesAtDate-->
               </td>
            </tr>
            <tr>

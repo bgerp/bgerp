@@ -48,7 +48,7 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
-    	$mvc->FLD('amount', 'double(smartRound)', 'caption=Погасени,mandatory,summary=amount');
+    	$mvc->FLD('amount', 'double(smartRound)', 'caption=Платени,mandatory,summary=amount');
     	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal');
     	$mvc->FLD('amountDeal', 'double(smartRound)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');

@@ -382,6 +382,10 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
+    	}
     }
     
     
@@ -391,5 +395,23 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	return tr("|Проформа фактура|* №") . $rec->id;
+    }
+    
+    
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+    	parent::prepareSingle_($data);
+    	 
+    	$rec = &$data->rec;
+    	if(empty($rec->dpAmount)) {
+    		$total = $this->_total->amount- $this->_total->discount;
+    		$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
+    		$origin = $this->getOrigin($rec);
+    		
+    		cond_PaymentMethods::preparePaymentPlan($data, $origin->fetchField('paymentMethodId'), $total, $rec->date, $rec->currencyId);
+    	}
     }
 }

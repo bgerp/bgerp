@@ -114,7 +114,7 @@ abstract class bank_Document extends core_Master
 	protected function getFields(core_Mvc &$mvc)
 	{
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Погасени,mandatory,summary=amount');
+		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,summary=amount');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
 		
 		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');

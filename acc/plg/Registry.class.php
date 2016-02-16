@@ -13,7 +13,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -42,9 +42,10 @@ class acc_plg_Registry extends core_Plugin
             $lists = keylist::addKey('', $autoListId);
             acc_Lists::updateItem($mvc, $rec->id, $lists);
             
-            if(haveRole('ceo,acc')){
+            if(haveRole('debug')){
             	$list = acc_Lists::fetchField("#systemId = '{$mvc->autoList}'", 'name');
-            	core_Statuses::newStatus("|Обекта е добавен в номенклатура|*: {$list}");
+            	$title = $mvc->getTitleById($rec->id);
+            	core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$list}'");
             }
         }
     }
@@ -79,7 +80,7 @@ class acc_plg_Registry extends core_Plugin
     			// Активираме перото
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     				if($itemRec->state != 'active'){
-    					if(haveRole('ceo,acc')){
+    					if(haveRole('debug')){
     						if($itemRec->lists){
     							core_Statuses::newStatus("|Активирано е перо|*: {$itemRec->title}");
     						} else {
@@ -116,7 +117,7 @@ class acc_plg_Registry extends core_Plugin
     				if($itemRec->state == 'active'){
 	    				acc_Lists::removeItem($mvc, $rec->id);
 	    				 
-	    				if(haveRole('ceo,acc')){
+	    				if(haveRole('debug')){
 	    					core_Statuses::newStatus("|Затворено е перо|*: {$itemRec->title}");
 	    				}
     				}
@@ -157,7 +158,7 @@ class acc_plg_Registry extends core_Plugin
     		
     		// Ъпдейтваме информацията за перото
     		if($msg){
-    			if(haveRole('ceo,acc')){
+    			if(haveRole('debug')){
     				$title = $mvc->getTitleById($rec->id);
     				core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listRec->name}'");
     			}

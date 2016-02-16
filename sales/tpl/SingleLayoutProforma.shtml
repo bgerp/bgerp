@@ -100,6 +100,21 @@
                                         [#paymentBlock#]
                                         
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
+                                        <!--ET_BEGIN paymentMethodId-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
+					                    </div>
+					                    <!--ET_END paymentMethodId-->
+					                    <!--ET_BEGIN downpayment-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>|Авансово|*:</span> [#downpayment#]
+					                    </div>
+					                    <!--ET_END downpayment-->
+					                    <!--ET_BEGIN paymentBeforeShipping-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>|Преди експедиция|*:</span> [#paymentBeforeShipping#]
+					                    </div>
+					                    <!--ET_END paymentBeforeShipping-->
                                        	<!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>Срок за плащане:</span> [#dueTime#] (до [#dueDate#])</div>
