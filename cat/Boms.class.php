@@ -831,7 +831,7 @@ class cat_Boms extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=За к-во,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт,createdOn=На');
     	 if($data->hideToolsCol){
     	 	unset($listFields['tools']);
     	 }

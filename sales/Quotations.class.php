@@ -206,9 +206,9 @@ class sales_Quotations extends core_Master
     	$this->FLD('date', 'date', 'caption=Дата'); 
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
         
-        $this->FNC('row1', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
-    	$this->FNC('row2', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
-    	$this->FNC('row3', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
+        $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
+    	$this->FNC('row2', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
+    	$this->FNC('row3', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
     	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');

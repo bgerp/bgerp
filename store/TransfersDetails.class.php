@@ -99,9 +99,9 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter');
-        $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+        $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input,mandatory');
+        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
     }

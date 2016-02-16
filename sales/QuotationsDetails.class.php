@@ -105,11 +105,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input');
+        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
         
-        $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+        $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
         $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
