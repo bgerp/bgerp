@@ -161,11 +161,7 @@ class cat_PriceDetails extends core_Manager
     				$data->addPriceUrl['price'] = $newCost;
     			}
     			
-    			if(isset($primeCost)){
-    				$btns .= " " . ht::createLink('', $data->addPriceUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова мениджърска себестойност');
-    			} else {
-    				$btns .= " " . ht::createLink('<b>R</b>', $data->addPriceUrl, FALSE, 'title=Добавяне на нова мениджърска себестойност');
-    			}
+    			$btns .= " " . ht::createLink('', $data->addPriceUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова мениджърска себестойност');
     			
     			if(isset($uRec)){
     				if(price_Updates::haveRightFor('saveprimecost', $uRec)){
