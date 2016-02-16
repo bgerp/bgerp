@@ -284,6 +284,14 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Ако продажбата има референтен номер, попълваме го в забележката
     	if($firstRec->reff){
+    		
+    		// Ако рефа е по офертата на сделката към която е фактурата
+    		if(isset($firstRec->originId)){
+    			$origin = doc_Containers::getDocument($firstRec->originId);
+    			if($firstRec->reff == $origin->getHandle()){
+    				$firstRec->reff = "#" . $firstRec->reff;
+    			}
+    		}
     		$defInfo .= tr("|Ваш реф.|* {$firstRec->reff}") . PHP_EOL;
     	}
     	
@@ -299,7 +307,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		$closedDocuments = trim($closedDocuments, ", ");
     		$defInfo .= tr('|Съгласно договори|*: ') . $closedDocuments . PHP_EOL;
     	} else {
-    		$defInfo .= tr("Съгласно договор") . " №{$firstRec->id}/{$firstDoc->getVerbal('valior')}";
+    		$defInfo .= tr("Съгласно договор") . ": №{$firstRec->id}/{$firstDoc->getVerbal('valior')}";
     	}
     	core_Lg::pop();
     	
