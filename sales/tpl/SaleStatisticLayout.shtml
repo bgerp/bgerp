@@ -36,9 +36,9 @@
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->
-                   <!--ET_BEGIN  pricesAtDate-->
+                  <!--ET_BEGIN pricesAtDate-->
                   <span style='font-weight:normal'>|Цени към|*</span>: [#pricesAtDate#]
-                  <!--ET_END  pricesAtDate-->
+                  <!--ET_END pricesAtDate-->
               </td>
            </tr>
            <tr>

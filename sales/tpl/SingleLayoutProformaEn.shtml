@@ -99,6 +99,21 @@
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
                                         <div class='custom-bg-block'><b>Payment</b></div>
+                                        <!--ET_BEGIN paymentMethodId-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>Payment method: </span>[#paymentMethodId#]
+					                    </div>
+					                    <!--ET_END paymentMethodId-->
+					                    <!--ET_BEGIN downpayment-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
+					                    </div>
+					                    <!--ET_END downpayment-->
+					                    <!--ET_BEGIN paymentBeforeShipping-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>Before shipment:</span> [#paymentBeforeShipping#]
+					                    </div>
+					                    <!--ET_END paymentBeforeShipping-->
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
