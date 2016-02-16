@@ -292,10 +292,14 @@ class sales_Invoices extends deals_InvoiceMaster
     		$docs = keylist::toArray($firstRec->closedDocuments);
     		$closedDocuments = '';
     		foreach ($docs as $docId){
-    			$closedDocuments .= "#" . $firstDoc->getInstance()->getHandle($docId) . ", ";
+    			$dRec = sales_Sales::fetch($docId);
+    			$date = sales_Sales::getVerbal($dRec, 'valior');
+    			$closedDocuments .= " №{$dRec->id}/{$date},";
     		}
     		$closedDocuments = trim($closedDocuments, ", ");
-    		$defInfo .= tr('|Фактура към продажби|*: ') . $closedDocuments . PHP_EOL;
+    		$defInfo .= tr('|Съгласно договори|*: ') . $closedDocuments . PHP_EOL;
+    	} else {
+    		$defInfo .= tr("Съгласно договор") . " №{$firstRec->id}/{$firstDoc->getVerbal('valior')}";
     	}
     	core_Lg::pop();
     	
