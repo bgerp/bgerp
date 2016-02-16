@@ -1015,7 +1015,7 @@ class sales_Quotations extends core_Master
     		if(!array_key_exists($index, $products)){
     			$title = cat_Products::getTitleById($rec->productId);
     			if($rec->packagingId){
-    				$title .= " / " . cat_UoM::getTitleById($rec->packagingId);
+    				$title .= " / " . cat_UoM::getShortName($rec->packagingId);
     			}
     			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
     		}
