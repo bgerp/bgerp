@@ -709,36 +709,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * След подготовка на сингъла
-     */
-    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
-    {
-    	$data->jobInfo = array();
-    	$rec = $data->rec;
-    	if($rec->state != 'rejected' && $rec->state != 'draft'){
-    		
-    		// Да не се показва блока взависимост в какъв режим сме
-    		if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
-    		
-    		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
-    		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$rec->id}");
-    		$dQuery->show('productId,packagingId,quantity,tolerance');
-    		
-    		while($dRec = $dQuery->fetch()){
-    			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
-    				$data->jobInfo[] = $dRow;
-    			}
-    		}
-    		
-    		if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
-    			$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
-    		}
-    	}
-    }
-    
-    
-    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
@@ -761,30 +731,6 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	// Ако има подготвена информация за наличните задания, рендираме я
-    	if(count($data->jobInfo)){
-    		$Jobs = cls::get('planning_Jobs');
-    		$table = cls::get('core_TableView', array('mvc' => $Jobs));
-    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
-    		foreach ($data->jobInfo as &$row){
-    			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
-    				if($row->{$var} == 0){
-    					$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
-    				}
-    			}
-    		}
-    		
-    		$jobsTable = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
-    		$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
-    		$jobTpl->replace($jobsTable, 'table');
-    		$tpl->replace($jobTpl, 'JOB_INFO');
-    	}
-    	
-    	if(isset($data->addJobUrl)){
-    		$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
-    		$tpl->replace($addLink, 'JOB_ADD_BTN');
-    	}
-    	
     	// Слагаме iframe заради касовата бележка, ако не принтираме
     	if(!Mode::is('printing')){
     		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
@@ -913,5 +859,84 @@ class sales_Sales extends deals_DealMaster
     	$def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_SALE_DEF_TPL_BG : $conf->SALE_SALE_DEF_TPL_EN;
     	
     	return $def;
+    }
+    
+    
+    /**
+     * След подготовка на информацията за наличните табове
+     */
+    public static function on_AfterPrepareDealTabs($mvc, &$res, &$data)
+    {
+    	$url = getCurrentUrl();
+    	
+    	if(haveRole('ceo,planning,sales,store')){
+    		$url['dealTab'] = 'JobsInfo';
+    		$data->tabs->TAB('JobsInfo', 'Задания' , $url);
+    	}
+    }
+    
+    
+    /**
+     * Подготвяме информацията за наличните задания към артикули от сделката
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    protected function prepareJobsInfo($data)
+    {
+    	$rec = $data->rec;
+    	$data->JobsInfo = array();
+    	
+    	// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
+    	$dQuery = sales_SalesDetails::getQuery();
+    	$dQuery->where("#saleId = {$rec->id}");
+    	$dQuery->show('productId,packagingId,quantity,tolerance');
+    	
+    	while($dRec = $dQuery->fetch()){
+    		if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
+    			$data->JobsInfo[] = $dRow;
+    		}
+    	}
+    	
+    	if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
+    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на информацията на заданията
+     *
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected function renderJobsInfo(&$tpl, $data)
+    {
+    	// Ако има подготвена информация за наличните задания, рендираме я
+    	if(count($data->JobsInfo) && haveRole('ceo,planning,sales,store')){
+    		
+    		$Jobs = cls::get('planning_Jobs');
+    		$table = cls::get('core_TableView', array('mvc' => $Jobs));
+    		
+    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
+    		
+    		foreach ($data->JobsInfo as &$row){
+    			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
+    				if($row->{$var} == 0){
+    						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
+    					}
+    				}
+    			}
+    	
+    			$jobsTable = $table->get($data->JobsInfo, 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+    			$jobTpl->replace($jobsTable, 'table');
+    			$tpl->replace($jobTpl, 'JOB_INFO');
+    		}
+    		
+    		if(isset($data->addJobUrl)){
+    			$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
+    			$tpl->replace($addLink, 'JOB_ADD_BTN');
+    		}
     }
 }

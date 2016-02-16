@@ -16,17 +16,17 @@
             </div>
             <!--ET_END DEAL_REPORT-->
         	
+        	<!--ET_BEGIN JOB_INFO-->
+            <div class="scrolling-holder" style='padding-bottom:10px'>
+            <div>|Задания за производство|* [#JOB_ADD_BTN#]</div>
+            [#JOB_INFO#]
+            </div>
+            <!--ET_END JOB_INFO-->
+            
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
             <!--ET_END STATISTIC_BAR-->
             [#SINGLE_CONTENT#]
         </div>
         <div style = 'margin-top:10px'></div>
-
-    <!--ET_BEGIN JOB_INFO-->
-    <div class='sale-job-info snapshot'>
-	    <div>|Задания за производство|* [#JOB_ADD_BTN#]</div>
-	    [#JOB_INFO#]
-    </div>
-    <!--ET_END JOB_INFO-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
