@@ -26,6 +26,8 @@
         <!--ET_BEGIN material-->
          <li> Изделията са произведени от [#material#] </li>
         <!--ET_END material-->
+  		</ul>
+        <ul>
 		<!--ET_BEGIN statements-->
 		 <li> Изделията отговарят на изискванията [#statements#] </li>
 		<!--ET_END statements-->
