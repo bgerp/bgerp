@@ -397,7 +397,8 @@ class doc_Containers extends core_Manager
         $tpl->appendOnce("\n runOnLoad(function(){flashHashDoc(flashDocInterpolation);});", 'JQRUN');
         
         if(Mode::is('screenMode', 'narrow')) {
-        	$tpl->appendOnce("\n runOnLoad(function(){setThreadElemWidth()});", 'JQRUN');
+        	jquery_Jquery::run($tpl, "setThreadElemWidth();");
+        	jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
         }
     }
     

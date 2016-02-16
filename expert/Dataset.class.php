@@ -61,7 +61,7 @@ class expert_Dataset extends core_BaseClass {
 
         
         if(isset($this->rules[$name][$id])) { 
-            $this->log[] = "Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
+            $this->log[] = "<br>Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
         }
 
         $this->rules[$name][$id] = $rule;
