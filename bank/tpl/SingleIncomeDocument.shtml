@@ -65,7 +65,7 @@
                                </tr>
                                <!--ET_BEGIN amountDeal-->
                                <tr  style='font-size: 0.9em'>
-                                   <td class='nowrap'>|Погасени по сделката|*: </td>
+                                   <td class='nowrap'>|Платени по сделката|*: </td>
                                    <td style='text-align:right'><span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b></td>
                                </tr>
                                <tr  style='font-size: 0.9em'>
