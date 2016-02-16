@@ -562,9 +562,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	public static function canActivate($rec)
 	{
 		$rec = static::fetchRec($rec);
+		
 		if(empty($rec->inputStoreId)){
 			
 			return TRUE;
+		} elseif(isset($rec->id)) {
+			if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'")){
+				
+				return TRUE;
+			}
 		}
+		
+		return FALSE;
 	}
 }

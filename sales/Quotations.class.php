@@ -206,9 +206,9 @@ class sales_Quotations extends core_Master
     	$this->FLD('date', 'date', 'caption=Дата'); 
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
         
-        $this->FNC('row1', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
-    	$this->FNC('row2', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
-    	$this->FNC('row3', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
+        $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
+    	$this->FNC('row2', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
+    	$this->FNC('row3', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
     	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
@@ -1015,7 +1015,7 @@ class sales_Quotations extends core_Master
     		if(!array_key_exists($index, $products)){
     			$title = cat_Products::getTitleById($rec->productId);
     			if($rec->packagingId){
-    				$title .= " / " . cat_UoM::getTitleById($rec->packagingId);
+    				$title .= " / " . cat_UoM::getShortName($rec->packagingId);
     			}
     			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
     		}

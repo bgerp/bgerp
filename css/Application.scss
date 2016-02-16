@@ -702,10 +702,21 @@ div.productImage {
 		max-width: 200px;
 	}
 }
+
 .products-table,  .jobTable, .general-product-description, .sales_SalesDetails {
 	.productPreview {
 		max-width: 120px;
 		max-height: 240px;
+	}
+	.groupList .small-padding .productGroupInfo {
+        padding-top:2px !important; 
+	}
+	.colorBox {
+	   width: 12px;
+	   height: 12px;
+	   margin-bottom: 0;
+	   position: relative;
+	   top: -1px;
 	}
 }
 
@@ -722,6 +733,14 @@ div.productImage {
 	   margin-top: -3px;
 	}
 }
+
+.groupList .small-padding .productGroupInfo {
+	padding-top:10px !important; 
+	text-decoration:underline; 
+	padding-left:0;
+}
+
+
 .colorName {
 	position: relative; 
 	top: -2px;

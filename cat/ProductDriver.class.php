@@ -281,7 +281,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $group = tr($group);
                         if($group != $lastGroup) {
                             
-                            $dhtml = "<tr><td colspan='3' style='padding-top:10px !important; text-decoration:underline; padding-left:0'>{$group}</td></tr>";
+                            $dhtml = "<tr><td colspan='3' class='productGroupInfo'>{$group}</td></tr>";
                             $tpl->append($dhtml, 'INFO');
                         }
 

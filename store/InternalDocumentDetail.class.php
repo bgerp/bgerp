@@ -25,7 +25,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory');
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-    	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+    	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory');
 		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		

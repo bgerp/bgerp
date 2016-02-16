@@ -581,7 +581,7 @@ class planning_Jobs extends core_Master
     	
     	// Ако създаваме задание от продажба искаме наистина да можем да създадем
     	if($action == 'createjobfromsale' && isset($rec)){
-    		$count = $mvc->getManifacturableProducts($rec->saleId);
+    		$count = $mvc->getSelectableProducts($rec->saleId);
     		if(!$count){
     			$res = 'no_one';
     		}
@@ -854,7 +854,7 @@ class planning_Jobs extends core_Master
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на задание към продажба|* <b>' . sales_Sales::getHyperlink($saleId, TRUE) . "</b>";
     	$form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
-    	$form->setOptions('productId', array('' => '') + $this->getManifacturableProducts($saleId));
+    	$form->setOptions('productId', array('' => '') + $this->getSelectableProducts($saleId));
     	$form->input();
     	if($form->isSubmitted()){
     		if(isset($form->rec->productId)){
@@ -873,21 +873,17 @@ class planning_Jobs extends core_Master
     
 
     /**
-     * Намира всички производими артикули по една продажба, които нямат задания
+     * Намира всички производими артикули по една продажба, към които може да се създават задания
      * 
      * @param int $saleId
      * @return array $res
      */
-    private function getManifacturableProducts($saleId)
+    private function getSelectableProducts($saleId)
     {
-    	$res = array();
-    	$saleQuery = sales_SalesDetails::getQuery();
-    	$saleQuery->where("#saleId = {$saleId}");
-    	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
-    	$saleQuery->where("#meta = 'yes'");
-    	while($pRec = $saleQuery->fetch()){
-    		if($this->haveRightFor('add', (object)array('productId' => $pRec->productId, 'saleId' => $saleId))){
-    			$res[$pRec->productId] = cat_Products::getTitleById($pRec->productId, FALSE);
+    	$res = sales_Sales::getManifacurableProducts($saleId);
+    	foreach ($res as $productId => $name){
+    		if(!$this->haveRightFor('add', (object)array('productId' => $productId, 'saleId' => $saleId))){
+    			unset($res[$productId]);
     		}
     	}
     	

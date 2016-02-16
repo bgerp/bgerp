@@ -1548,12 +1548,6 @@ function setThreadElemWidth() {
 }
 
 function checkForElementWidthChange() {
-    // Observe a specific DOM element:
-    observeDOM( document.getElementById('main-container') ,function(){
-        setFormElementsWidth();
-        setThreadElemWidth();
-    });
-
     $(window).resize(function(){
         setFormElementsWidth();
         setThreadElemWidth();
@@ -1593,28 +1587,6 @@ function dropMenu(data) {
 
     prepareContextMenu();
 }
-
-
-var observeDOM = (function(){
-    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
-        eventListenerSupported = window.addEventListener;
-
-    return function(obj, callback){
-        if( MutationObserver ){
-            // define a new observer
-            var obs = new MutationObserver(function(mutations, observer){
-                if( mutations[0].addedNodes.length || mutations[0].removedNodes.length )
-                    callback();
-            });
-            // have the observer observe foo for changes in children
-            obs.observe( obj, { childList:true, subtree:true });
-        }
-        else if( eventListenerSupported ){
-            obj.addEventListener('DOMNodeInserted', callback, false);
-            obj.addEventListener('DOMNodeRemoved', callback, false);
-        }
-    }
-})();
 
 /**
  * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
@@ -3112,6 +3084,25 @@ function render_smartCenter() {
 function render_sumOfChildrenWidth() {
 	sumOfChildrenWidth();
 }
+
+
+/**
+* Функция, която извиква подготвянето на setFormElementsWidth
+* Може да се комбинира с efae
+*/
+function render_setFormElementsWidth() {
+        setFormElementsWidth();
+}
+
+
+/**
+* Функция, която извиква подготвянето на  setThreadElemWidth
+* Може да се комбинира с efae
+*/
+function render_setThreadElemWidth() {
+        setThreadElemWidth();
+}
+
 
 
 /**
