@@ -165,6 +165,10 @@ class deals_plg_DpInvoice extends core_Plugin
     			}
     			break;
     		case 'none';
+    		if(isset($aggreedDp)){
+    			$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
+    		}
+    		break;
     	}
     	
     	if($dpOperation){
