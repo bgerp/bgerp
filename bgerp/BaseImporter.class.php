@@ -84,12 +84,18 @@ class bgerp_BaseImporter extends core_Manager {
             core_App::setTimeLimit($time);
         }
         
+        $oFields = $this->getFields();
+        
         foreach ($rows as $row){
             $rec = new stdClass();
             
-            foreach($fields as $name => $position){
-                if($position != -1){
+            foreach ($fields as $name => $position){
+                if ($position != -1){
                     $value = $row[$position];
+                    if (isset($oFields[$name]['notColumn'])) {
+                        $value = $position;
+                    }
+                    
                     $rec->{$name} = $value;
                 }
             }
