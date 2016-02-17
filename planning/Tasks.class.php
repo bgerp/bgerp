@@ -246,7 +246,7 @@ class planning_Tasks extends tasks_Tasks
 		$jobRec = $origin->fetch();
 	    
 		// Форсираме сериен номер
-		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo);
+		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo, $rec->productId);
 	
 		// Хендлъра на заданието
 		$res['JOB'] = "#" . $origin->getHandle();
