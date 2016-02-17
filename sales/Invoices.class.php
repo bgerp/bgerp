@@ -52,7 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, crm_plg_UpdateContragentData, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
+                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search, change_Plugin';
     
     
     /**
@@ -190,6 +190,19 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,dealValue,accountId,number,state';
     
+
+    /**
+     * Кой може да променя активирани записи
+     * @see change_Plugin
+     */
+    public $canChangerec = 'accMaster, ceo';
+    
+    
+    /**
+     * Кои полета да могат да се променят след активация
+     */
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo';
+    
     
     /**
      * Описание на модела
@@ -198,7 +211,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
@@ -589,6 +602,13 @@ class sales_Invoices extends deals_InvoiceMaster
     		if(!haveRole('ceo,salesMaster,acc', $userId)){
     			$res = 'no_one';
     		}
+    	}
+    	
+    	if ($action == 'changerec' && $rec) {
+    	    $period = acc_Periods::fetchByDate($rec->date);
+    	    if (!$period || $period->state == 'closed') {
+    	        $res = 'no_one';
+    	    }
     	}
     }
     

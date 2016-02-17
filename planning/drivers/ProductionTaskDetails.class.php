@@ -86,6 +86,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,smartCenter');
     	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
+    	$this->FNC('packagingId', 'int', 'smartCenter');
     }
     
     
@@ -160,16 +161,24 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
+    		$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::fetch($rec->taskId)->productId;
     		
     		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
     		if($rec->type == 'product'){
     			if(empty($rec->serial)){
-    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId);
+    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId, $productId);
     			}
     		}
     		
     		if(empty($rec->serial)){
     			$rec->serial = NULL;
+    		} else {
+    			
+    			// Ако има въведен сериен номер, проверяваме дали е валиден
+    			$type = ($rec->type == 'product') ? 'product' : 'input';
+    			if($error = planning_TaskSerials::isSerialinValid($rec->serial, $productId, $rec->taskId, $type)){
+    				$form->setError('serial', $error);
+    			}
     		}
     	}
     }
@@ -212,6 +221,16 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(!empty($rec->notes)){
     		$notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
     		$row->taskProductId .= "<small>{$notes}</small>";
+    	}
+    	
+    	if(!empty($rec->serial)){
+    		$taskId = planning_TaskSerials::fetchField("#serial = '{$rec->serial}'", 'taskId');
+    		if($taskId != $rec->taskId){
+    			$url = planning_Tasks::getSingleUrlArray($taskId);
+    			$url['Q'] = $rec->serial;
+    			
+    			$row->serial = ht::createLink($row->serial, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
+    		}
     	}
     }
     

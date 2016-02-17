@@ -917,7 +917,7 @@ class sales_Sales extends deals_DealMaster
     protected function renderJobsInfo(&$tpl, $data)
     {
     	// Ако има подготвена информация за наличните задания, рендираме я
-    	if(count($data->JobsInfo) && haveRole('ceo,planning,sales,store')){
+    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store')){
     		
     		$Jobs = cls::get('planning_Jobs');
     		$table = cls::get('core_TableView', array('mvc' => $Jobs));

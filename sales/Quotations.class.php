@@ -252,6 +252,7 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+       $form = $data->form;
        $rec = &$data->form->rec;
        
        // При клониране
@@ -267,22 +268,22 @@ class sales_Quotations extends core_Master
        }
        
        if(empty($rec->id)){
-       	  $mvc->populateDefaultData($data->form);
+       	  $mvc->populateDefaultData($form);
        } else {
-       		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$data->form->rec->id}")){
+       		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
 	       		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
-	        		$data->form->setReadOnly($fld);
+	        		$form->setReadOnly($fld);
 	        	}
 	       	}
        }
       
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
-       $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
+       $form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
        if(isset($rec->originId)){
        	
        		// Ако офертата има ориджин
-       		$data->form->setField('row1,row2,row3', 'input');
+       		$form->setField('row1,row2,row3', 'input');
        		$origin = doc_Containers::getDocument($rec->originId);
        		
        		if($origin->haveInterface('cat_ProductAccRegIntf')){
@@ -291,12 +292,10 @@ class sales_Quotations extends core_Master
        			if($productOrigin = $origin->fetchField('originId')){
        				$productOrigin = doc_Containers::getDocument($productOrigin);
        				if($productOrigin->haveInterface('marketing_InquiryEmbedderIntf')){
-       					$quantities = $productOrigin->fetchField('quantities');
-       					if(count($quantities)){
-       						foreach (range(1, 3) as $i){
-       							$data->form->setDefault("row{$i}", $quantities[$i-1]);
-       						}
-       					}
+       					$productOriginRec = $productOrigin->fetch();
+       					$form->setDefault('row1', $productOriginRec->quantity1);
+       					$form->setDefault('row2', $productOriginRec->quantity2);
+       					$form->setDefault('row3', $productOriginRec->quantity3);
        				}
        			}
        			
@@ -305,19 +304,19 @@ class sales_Quotations extends core_Master
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
-	       			$data->form->setFieldTypeParams('row1', 'require=both');
-	       			$data->form->setFieldTypeParams('row2', 'require=both');
-	       			$data->form->setFieldTypeParams('row3', 'require=both');
+	       			$form->setFieldTypeParams('row1', 'require=both');
+	       			$form->setFieldTypeParams('row2', 'require=both');
+	       			$form->setFieldTypeParams('row3', 'require=both');
 	       		}
        		}
        }
        
        if(!$rec->person){
-       	  $data->form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
+       	  $form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
-       $data->form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('id', FALSE));
+       $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('id', FALSE));
        
-       $data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+       $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
     
     

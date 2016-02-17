@@ -2556,6 +2556,10 @@ class crm_Persons extends core_Master
     public static function on_AfterPrepareInportFields($mvc, &$fields)
     {
         crm_Companies::on_AfterPrepareInportFields($mvc, $fields);
+        
+        if ($fields['groupList']) {
+            $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
+        }
     }
     
     
@@ -2598,7 +2602,6 @@ class crm_Persons extends core_Master
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
-    
         // id на държавата
         if (isset($rec->country)) {
             $rec->country = drdata_Countries::getIdByName($rec->country);
@@ -2615,25 +2618,6 @@ class crm_Persons extends core_Master
             $locationTitle = trim($rec->buzLocationId);
             $locationTitle = mb_strtolower($locationTitle);
             $rec->buzLocationId = crm_Locations::fetchField(array("LOWER(#title) = '[#1#]'", $locationTitle), 'id');
-        }
-        
-        // id на групите
-        if (isset($rec->groupList)) {
-            
-            $gArr = type_Set::toArray($rec->groupList);
-            
-            $gIdArr = array();
-            
-            foreach ($gArr as $gName) {
-                $gName = trim($gName);
-                $groupId = crm_Groups::fetchField(array("#name = '[#1#]'", $gName), 'id');
-                
-                if ($groupId) {
-                    $gIdArr[$groupId] = $groupId;
-                }
-            }
-            
-            $rec->groupList = type_Keylist::fromArray($gIdArr);
         }
         
         // Проверка дали има дублиращи се записи

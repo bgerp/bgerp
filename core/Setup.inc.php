@@ -727,7 +727,7 @@ if($step == 3) {
         'config' => EF_ROOT_PATH . '/conf/' . EF_APP_NAME . '.cfg.php',
         );
         
-    if(file_exists($paths['config'])) {
+    if (file_exists($paths['config'])) {
         $src = file_get_contents($paths['config']);
         // В конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
@@ -743,11 +743,25 @@ if($step == 3) {
                 $log[] = "inf: Записани константи <b>{$constsLog}</b>";
             }
         }
+        if (defined('EF_DB_USER') && defined('EF_DB_PASS') && is_writable($paths['config'])) {
+            if (EF_DB_USER == 'root' && EF_DB_PASS == 'USER_PASSWORD_FOR_DB') {
+                $passwordDB = getRandomString();
+                // Опитваме да сменим паролата на mysql-a
+                exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
+                if ($returnVar == 0) {
+                    $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
+                    @file_put_contents($paths['config'], $src);
+                    $log[] = "inf: Паролата на root на mysql-a е сменена";
+                } else {
+                    $log[] = "wrn: Паролата на root на mysql-a не е сменена - използвате шаблонна парола, която се разпространява с имиджите на bgERP";
+                }
+            }
+        }
     }
     $log[] = 'h:Изчисляване на контролни суми (MD5):';
             
-    foreach($paths as $key => $path) {
-        if(file_exists($path)) {
+    foreach ($paths as $key => $path) {
+        if (file_exists($path)) {
             $src = file_get_contents($path);
             $hashs[$key] =  md5($src);
             $log[] = "inf:{$path} => <small>`" . $hashs[$key] . "`</small>";

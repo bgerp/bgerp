@@ -205,7 +205,7 @@ class doc_DocumentPlg extends core_Plugin
                 			'originId' => $data->rec->containerId,
                 			'ret_url'=>$retUrl
                 	),
-                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
+                			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
                 }
             }
         } else {
@@ -2802,7 +2802,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
+            $val = new ET("<td class='antetkaCell' [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
@@ -2930,5 +2930,24 @@ class doc_DocumentPlg extends core_Plugin
         if (!Request::get('Rejected')) {
             $query->where("#state != 'rejected'");
         }
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     * 
+     * @see change_Plugin
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Чернова и затворени документи не могат да се променят
+        if (!$mvc->haveRightFor('single', $rec->id)) {
+            
+            $res = FALSE;
+        } 
     }
 }

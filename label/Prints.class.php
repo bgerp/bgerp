@@ -202,7 +202,7 @@ class label_Prints extends core_Master
                 $c = $form->rec->end - $form->rec->begin;
                 $c++;
                 if ($c != $form->rec->labelsCnt) {
-                    $form->setError('end, begin, labelsCnt', "|Няма да се отпечатат всички номера|*. |Броя на етикетите трябва да е |* {$c}.");
+                    $form->setWarning('end, begin, labelsCnt', "|Няма да се отпечатат всички номера|*. |Броя на етикетите трябва да е |* {$c}.");
                 }
             }
         }

@@ -21,7 +21,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     protected function setFields($mvc)
     {
-    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
+    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=productCell leftCol wrap');
     	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory');
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');

@@ -420,7 +420,8 @@ class acc_plg_Contable extends core_Plugin
             $id = $id->id;
         }
         
-        $res = acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+        // Оттегляме транзакцията при нужда
+        acc_Journal::rejectTransaction($mvc->getClassId(), $id);
     }
     
     

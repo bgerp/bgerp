@@ -221,8 +221,15 @@ class planning_Tasks extends tasks_Tasks
 	{
 		if(core_Packs::isInstalled('label')){
 			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft') && label_Labels::haveRightFor('add')){
+				
+				$tQuery = label_Templates::getQuery();
+				$tQuery->where("#classId = '{$mvc->getClassId()}'");
+				$tQuery->where("#state != 'rejected'");
+				
+				$error = ($tQuery->fetch()) ? '' : ",error=Няма наличен шаблон за етикети от задачи за производство";
+				
 				core_Request::setProtected('class,objectId');
-				$data->toolbar->addBtn('Етикетиране', array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE), NULL, 'target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети');
+				$data->toolbar->addBtn('Етикетиране', array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE), NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от задачата за производство{$error}");
 			}
 		}
 	}
@@ -246,7 +253,7 @@ class planning_Tasks extends tasks_Tasks
 		$jobRec = $origin->fetch();
 	    
 		// Форсираме сериен номер
-		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo);
+		$res['SERIAL'] = planning_TaskSerials::force($id, $labelNo, $rec->productId);
 	
 		// Хендлъра на заданието
 		$res['JOB'] = "#" . $origin->getHandle();
