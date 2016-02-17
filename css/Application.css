@@ -634,7 +634,7 @@ div.productImage {
   .general-product-description .groupList .small-padding .productGroupInfo,
   .sales_SalesDetails .groupList .small-padding .productGroupInfo,
   .store_ShipmentOrderDetails .groupList .small-padding .productGroupInfo {
-    padding-top: 2px !important; }
+    padding-top: 5px !important; }
   .products-table .colorBox,
   .jobTable .colorBox,
   .general-product-description .colorBox,
