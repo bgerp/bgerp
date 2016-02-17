@@ -2802,7 +2802,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
+            $val = new ET("<td class='antetkaCell' [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
