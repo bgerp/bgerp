@@ -1299,7 +1299,7 @@ class cat_Products extends embed_Manager {
     		$title .= " ({$handle}";
     		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
     		if($count > 1){
-    			$title .= "<small>v{$count}</small>";
+    			$title .= "<small class='versionNumber'>v{$count}</small>";
     		}
     		$title .= ")";
     	}

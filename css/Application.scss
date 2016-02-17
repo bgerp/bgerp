@@ -1646,6 +1646,10 @@ pre.document {
 	background: rgba(200, 200, 200, 0.3);
 }
 
+.antetkaCell {
+	max-width: 400px;
+}
+
 .threadSubTitle {
 	font-size: 0.75em;
 	padding: 2px;
@@ -3103,7 +3107,7 @@ fieldset.sharing-history {
 	margin-bottom: 0;
 	display: block;
 	td {
-		max-width: 500px !important;
+		max-width: none !important;
 	}
 }
 
