@@ -2931,4 +2931,23 @@ class doc_DocumentPlg extends core_Plugin
             $query->where("#state != 'rejected'");
         }
     }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     * 
+     * @see change_Plugin
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Чернова и затворени документи не могат да се променят
+        if (!$mvc->haveRightFor('single', $rec->id)) {
+            
+            $res = FALSE;
+        } 
+    }
 }
