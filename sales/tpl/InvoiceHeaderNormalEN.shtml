@@ -118,7 +118,7 @@
                                         
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
-                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
+                                        <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
                                         <!--ET_END DUE_BLOCK--> 
                                         
                                         <!--ET_BEGIN deadline-->

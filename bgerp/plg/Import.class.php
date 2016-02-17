@@ -219,7 +219,6 @@ class bgerp_plg_Import extends core_Plugin
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }
             
-            
             $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->className}\"") . ":", TRUE, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
             
             $res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ");

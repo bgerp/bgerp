@@ -32,3 +32,6 @@ samp {
 thead {
   display: table-header-group; }
 
+.versionNumber {
+  margin-left: 5px; }
+

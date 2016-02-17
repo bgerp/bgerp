@@ -425,6 +425,8 @@ abstract class deals_DealBase extends core_Master
     {
     	// Ако има табове
     	if(isset($data->tabs)){
+    		
+    		core_Lg::pop();
     		$tabHtml = $data->tabs->renderHtml("", $data->selectedTab);
     		$tpl->replace($tabHtml, 'TABS');
     		
@@ -433,6 +435,7 @@ abstract class deals_DealBase extends core_Master
     			$method = "render{$data->selectedTab}";
     			$mvc->$method($tpl, $data);
     		}
+    		core_Lg::push($data->rec->tplLang);
     	}
     	
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){

@@ -78,16 +78,6 @@
                         <span class='quiet'>Downpayment:</span> [#downpayment#]
                     </div>
                     <!--ET_END downpayment-->
-                    <!--ET_BEGIN paymentBeforeShipping-->
-                    <div class='cellRow'>
-                        <span class='quiet'>Before shipping:</span> [#paymentBeforeShipping#]
-                    </div>
-                    <!--ET_END paymentBeforeShipping-->
-                    <!--ET_BEGIN paymentOnDelivery-->
-                    <div class='cellRow'>
-                        <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
-                    </div>
-                    <!--ET_END paymentOnDelivery-->
                     <!--ET_BEGIN currencyId-->
                     <div class='cellRow'>
                         <span class='quiet'>Currency: </span>

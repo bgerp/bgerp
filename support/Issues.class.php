@@ -990,7 +990,7 @@ class support_Issues extends core_Master
                     'threadId' => $data->rec->threadId,
                     'originId' => $data->rec->containerId,
                     'ret_url'=> TRUE
-                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession();');
+                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
     }
     

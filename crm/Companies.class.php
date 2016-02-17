@@ -1664,6 +1664,10 @@ class crm_Companies extends core_Master
                             $fld->kind != 'FNC' && !($fld->type instanceof fileman_FileType)) {
                                 
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
+                if ($name == 'groupList') {
+                    $fields[$name]['notColumn'] = TRUE;
+                    $fields[$name]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')';
+                }
             }
         }
         
@@ -1714,25 +1718,6 @@ class crm_Companies extends core_Master
         // id на държавата
         if (isset($rec->country)) {
             $rec->country = drdata_Countries::getIdByName($rec->country);
-        }
-        
-        // id на групите
-        if (isset($rec->groupList)) {
-            
-            $groupArr = type_Set::toArray($rec->groupList);
-            
-            $groupIdArr = array();
-            
-            foreach ($groupArr as $groupName) {
-                $groupName = trim($groupName);
-                $groupId = crm_Groups::fetchField(array("#name = '[#1#]'", $groupName), 'id');
-                
-                if (!$groupId) continue;
-                
-                $groupIdArr[$groupId] = $groupId;
-            }
-            
-            $rec->groupList = type_Keylist::fromArray($groupIdArr);
         }
         
         // Проверка дали има дублиращи се записи
