@@ -374,12 +374,17 @@ class sales_QuotationsDetails extends doc_Detail {
     				 
     			$price = $policyInfo->price;
     		} else {
-    			$price = $rec->packPrice / $rec->quantityInPack;
-    			$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			
+    			if(!$form->gotErrors()){
+    				$price = $rec->packPrice / $rec->quantityInPack;
+    				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			}
     		}
     	
-    		$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    		$rec->price  = $price;
+    		if(!$form->gotErrors()){
+    			$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$rec->price  = $price;
+    		}
     	
     		// При редакция, ако е променена опаковката слагаме преудпреждение
     		if($rec->id){
