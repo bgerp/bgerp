@@ -199,12 +199,9 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * 
+     * Кои полета да могат да се променят след активация
      */
-    public $changableFields = 'date, place, contragentName, responsible,
-                    contragentCountryId, contragentVatNo, uicNo, contragentPCode, contragentPlace, 
-                    contragentAddress, dueTime, dueDate,  
-                    displayRate, deliveryPlaceId, vatDate, vatReason, additionalInfo';
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo';
     
     
     /**
@@ -216,7 +213,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
     	
-    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1, changable');
+    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
@@ -224,7 +221,7 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $conf = core_Packs::getConfig('sales');
         if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
-        	$this->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин,before=accountId, changable');
+        	$this->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин,before=accountId');
         }
         
         $this->setDbUnique('number');
