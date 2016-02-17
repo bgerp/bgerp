@@ -488,40 +488,47 @@ abstract class deals_InvoiceMaster extends core_Master
    
    
    /**
-    * Генерира фактура от пораждащ документ: може да се породи от:
-    * 
-    * 1. Продажба / Покупка
-    * 2. Фактура тоест се прави ДИ или КИ
+    * Извиква се след успешен запис в модела
     */
-   public static function on_AfterCreate($mvc, $rec)
+   public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
    {
 	   	expect($origin = $mvc::getOrigin($rec));
-	   	 
+		
+	   	// Само ако записа е след редакция
+	   	if($rec->_edited !== TRUE) return;
+	   	
+	   	// И не се начислява аванс
+	   	if($rec->dpAmount && $rec->dpOperation == 'accrued') return;
+		
+	   	// И няма детайли
+	   	$Detail = cls::get($mvc->mainDetail);
+	   	if($Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) return;
+	   	
 	   	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
 	   		$info = $origin->getAggregateDealInfo();
 	   		$agreed = $info->get('products');
 	   		$products = $info->get('shippedProducts');
 	   		$invoiced = $info->get('invoicedProducts');
 	   		$packs = $info->get('shippedPacks');
-	   		
+	   	
 	   		$mvc::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
 	   	} elseif($origin->isInstanceOf($mvc)){
 	   		$dpOperation = $origin->fetchField('dpOperation');
-	   		
+	   	
 	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
 	   		if($dpOperation == 'accrued' || isset($rec->changeAmount)) return;
-	   		
+	   	
 	   		$Detail = $mvc->mainDetail;
 	   		$query = $mvc->$Detail->getQuery();
 	   		$query->where("#{$mvc->$Detail->masterKey} = '{$origin->that}'");
-	   		
+	   	
 	   		while($dRec = $query->fetch()){
 	   			$dRec->{$mvc->$Detail->masterKey} = $rec->id;
 	   			unset($dRec->id);
-	   			
+	   			 
 	   			$Detail::save($dRec);
 	   		}
-	   	}
+   		}
    }
    
 
@@ -809,7 +816,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     
     	acc_Periods::checkDocumentDate($form);
-    
+    	$form->rec->_edited = TRUE;
+    	
     	// Метод който да бъде прихванат от deals_plg_DpInvoice
     	$mvc->inputDpInvoice($form);
     }
