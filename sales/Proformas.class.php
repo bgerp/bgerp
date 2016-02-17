@@ -410,8 +410,10 @@ class sales_Proformas extends deals_InvoiceMaster
     		$total = $this->_total->amount- $this->_total->discount;
     		$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
     		$origin = $this->getOrigin($rec);
+    		$methodId = $origin->fetchField('paymentMethodId');
+    		$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
     		
-    		cond_PaymentMethods::preparePaymentPlan($data, $origin->fetchField('paymentMethodId'), $total, $rec->date, $rec->currencyId);
+    		cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
     	}
     }
 }
