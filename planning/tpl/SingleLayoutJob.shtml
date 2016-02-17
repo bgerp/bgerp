@@ -5,33 +5,33 @@
                 <table>
                 	<tr>
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
-                        <td style='text-align: right'>[#dueDate#]</td>
+                        <td style='text-align: left'>[#dueDate#]</td>
                     </tr>
                     <tr>
                         <td class='quiet' style='text-align: left'>|Планирано|*:</td>
-                        <td style='text-align: right'>[#quantity#]</td>
+                        <td style='text-align: left'>[#quantity#]</td>
                     </tr>
                     <tr>
                         <td class='quiet' style='text-align: left'>|Остатък|*:</td>
-                        <td style='text-align: right'>[#quantityToProduce#]</td>
+                        <td style='text-align: left'>[#quantityToProduce#]</td>
                     </tr>
 		          <!--ET_BEGIN storeId-->
 	               <tr>
 	                   <td class='quiet' style='text-align: left'>|Склад|*:</td>
-	                   <td style='text-align: right'>[#storeId#]</td>
+	                   <td style='text-align: left'>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
                     <!--ET_BEGIN sBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: right;white-space: nowrap;'>|Търговска рецепта|*:</td>
-                        <td style='text-align: right'>[#sBomId#]</td>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска рецепта|*:</td>
+                        <td style='text-align: left'>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
                     
                     <!--ET_BEGIN pBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: right;white-space: nowrap;'>|Работна рецепта|*:</td>
-                        <td style='text-align: right'>[#pBomId#]</td>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
+                        <td style='text-align: left'>[#pBomId#]</td>
                     </tr>
                     <!--ET_END pBomId-->
                 </table>
