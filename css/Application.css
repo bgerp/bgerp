@@ -625,18 +625,21 @@ div.productImage {
   .products-table .productPreview,
   .jobTable .productPreview,
   .general-product-description .productPreview,
-  .sales_SalesDetails .productPreview {
+  .sales_SalesDetails .productPreview,
+  .store_ShipmentOrderDetails .productPreview {
     max-width: 120px;
     max-height: 240px; }
   .products-table .groupList .small-padding .productGroupInfo,
   .jobTable .groupList .small-padding .productGroupInfo,
   .general-product-description .groupList .small-padding .productGroupInfo,
-  .sales_SalesDetails .groupList .small-padding .productGroupInfo {
-    padding-top: 2px !important; }
+  .sales_SalesDetails .groupList .small-padding .productGroupInfo,
+  .store_ShipmentOrderDetails .groupList .small-padding .productGroupInfo {
+    padding-top: 5px !important; }
   .products-table .colorBox,
   .jobTable .colorBox,
   .general-product-description .colorBox,
-  .sales_SalesDetails .colorBox {
+  .sales_SalesDetails .colorBox,
+  .store_ShipmentOrderDetails .colorBox {
     width: 12px;
     height: 12px;
     margin-bottom: 0;
@@ -3023,6 +3026,10 @@ div.location.public {
 .balance-custom-form select {
   width: 100%;
   max-width: 400px; }
+
+.productCell {
+  max-width: none !important;
+  min-width: 50%; }
 
 .wide .inline-form {
   display: inline-block; }
