@@ -759,6 +759,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if($rec->currencyId == 'EUR'){
+    		$row->currencyRate = NULL;
+    		$rec->currencyRate = NULL;
+    	}
+    	
 		$amountType = $mvc->getField('amountDeal')->type;
 		if($rec->state == 'active'){
 			$rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
@@ -863,7 +868,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			$mvc->prepareHeaderInfo($row, $rec);
 			
-			if ($rec->currencyRate != 1) {
+			if (isset($rec->currencyRate) && $rec->currencyRate != 1) {
 				$row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 			}
 			
