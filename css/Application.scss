@@ -703,7 +703,7 @@ div.productImage {
 	}
 }
 
-.products-table,  .jobTable, .general-product-description, .sales_SalesDetails {
+.products-table,  .jobTable, .general-product-description, .sales_SalesDetails, .store_ShipmentOrderDetails {
 	.productPreview {
 		max-width: 120px;
 		max-height: 240px;
@@ -3379,6 +3379,11 @@ div.location.public {
 .balance-custom-form select{
     width: 100%;
     max-width: 400px;
+}
+
+.productCell {
+	max-width: none !important;
+	min-width: 50%;
 }
 
 .wide .inline-form {
