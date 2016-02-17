@@ -2785,7 +2785,7 @@ span.sharing-history-title {
   margin-bottom: 0;
   display: block; }
   .planning_drivers_ProductionTaskDetails .listRowsDetail td {
-    max-width: 500px !important; }
+    max-width: none !important; }
 
 .document .scrolling-holder {
   margin-bottom: 0; }
