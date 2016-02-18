@@ -239,7 +239,6 @@ class sales_Proformas extends deals_InvoiceMaster
     	}
     	
     	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
-    		
     		if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
     			$form->setField('vatReason', 'input,mandatory');
     		}
@@ -421,8 +420,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * @TODO описание
-     *
      * След подготовка на тулбара на единичен изглед.
      *
      * @param core_Mvc $mvc
@@ -430,8 +427,8 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(sales_Invoices::haveRightFor('add')){
-    		$data->toolbar->addBtn('', array(), 'title=Създаване на фактура от проформата,img=img/16/invoice.png');
+    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->originId, 'fromProformaId' => $data->rec->id))){
+    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $data->rec->originId, 'fromProformaId' => $data->rec->id, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
     	}
     }
 }
