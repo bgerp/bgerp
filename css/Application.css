@@ -629,6 +629,12 @@ div.productImage {
   .store_ShipmentOrderDetails .productPreview {
     max-width: 120px;
     max-height: 240px; }
+  .products-table .groupList .small-padding .productGroupInfo,
+  .jobTable .groupList .small-padding .productGroupInfo,
+  .general-product-description .groupList .small-padding .productGroupInfo,
+  .sales_SalesDetails .groupList .small-padding .productGroupInfo,
+  .store_ShipmentOrderDetails .groupList .small-padding .productGroupInfo {
+    padding-top: 5px !important; }
   .products-table .colorBox,
   .jobTable .colorBox,
   .general-product-description .colorBox,
