@@ -492,19 +492,34 @@ abstract class deals_InvoiceMaster extends core_Master
     */
    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
    {
-	   	expect($origin = $mvc::getOrigin($rec));
+	   	$origin = $mvc::getOrigin($rec);
+	   	if(!$origin) return;
 		
+	   	if($rec->_isClone === TRUE) return;
+	   	
 	   	// Само ако записа е след редакция
 	   	if($rec->_edited !== TRUE) return;
 	   	
 	   	// И не се начислява аванс
 	   	if($rec->dpAmount && $rec->dpOperation == 'accrued') return;
 		
+	   	$Detail = $mvc->mainDetail;
+	   	
 	   	// И няма детайли
 	   	$Detail = cls::get($mvc->mainDetail);
 	   	if($Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) return;
 	   	
-	   	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+	   	if($mvc instanceof sales_Invoices && isset($rec->fromProformaId)){
+	   		$proformaRec = sales_Proformas::fetch($rec->fromProformaId);
+	   	
+	   		$query = sales_ProformaDetails::getQuery();
+	   		$query->where("#proformaId = '{$rec->fromProformaId}'");
+	   		while($dRec = $query->fetch()){
+	   			$dRec->invoiceId = $rec->id;
+	   			unset($dRec->id);
+	   			$Detail::save($dRec);
+	   		}
+	   	} elseif($origin->haveInterface('bgerp_DealAggregatorIntf')) {
 	   		$info = $origin->getAggregateDealInfo();
 	   		$agreed = $info->get('products');
 	   		$products = $info->get('shippedProducts');
@@ -517,15 +532,13 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	
 	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
 	   		if($dpOperation == 'accrued' || isset($rec->changeAmount)) return;
-	   	
-	   		$Detail = $mvc->mainDetail;
+	   		
 	   		$query = $mvc->$Detail->getQuery();
 	   		$query->where("#{$mvc->$Detail->masterKey} = '{$origin->that}'");
 	   	
 	   		while($dRec = $query->fetch()){
 	   			$dRec->{$mvc->$Detail->masterKey} = $rec->id;
 	   			unset($dRec->id);
-	   			 
 	   			$Detail::save($dRec);
 	   		}
    		}
@@ -1077,10 +1090,30 @@ abstract class deals_InvoiceMaster extends core_Master
     		if($state != 'active'){
     			$res = 'no_one';
     		} else {
-    			if(!($origin->getInstance() instanceof deals_DealMaster || $origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports)){
+    			if(!($origin->getInstance() instanceof deals_DealMaster || $origin->getInstance() instanceof deals_InvoiceMaster || $origin->getInstance() instanceof findeals_AdvanceReports || $origin->getInstance() instanceof sales_Proformas)){
     				$res = 'no_one';
     			}
     		}
     	}
+    }
+    
+
+    /**
+     * Намира ориджина на фактурата (ако има)
+     */
+    public static function getOrigin($rec)
+    {
+    	$origin = NULL;
+    	$rec = static::fetchRec($rec);
+    	 
+    	if($rec->originId) {
+    		return doc_Containers::getDocument($rec->originId);
+    	}
+    	 
+    	if($rec->threadId){
+    		return doc_Threads::getFirstDocument($rec->threadId);
+    	}
+    	
+    	return $origin;
     }
 }

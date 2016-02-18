@@ -75,6 +75,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Сума->Доставено, summary = amount');
+    	$this->FLD('expectedDownpayment', 'double(decimals=2)', 'caption=Сума->Очакван аванс');
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
@@ -160,14 +161,15 @@ class deals_OpenDeals extends core_Manager {
     	
     	$classId = $docClass::getClassId();
     	$new = array(
-    		'valior' => $info->get('agreedValior'),
-    		'amountDeal' => $info->get('amount'),
-    		'amountPaid' => $info->get('amountPaid'), 
-    		'amountDelivered' => $info->get('deliveryAmount'),
-    		'state' => $rec->state,
-    		'docClass' => $classId,
-    		'docId' => $rec->id,
-    		'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
+    		'valior'              => $info->get('agreedValior'),
+    		'amountDeal'          => $info->get('amount'),
+    		'amountPaid'          => $info->get('amountPaid'), 
+    		'amountDelivered'     => $info->get('deliveryAmount'),
+    		'expectedDownpayment' => $info->get('agreedDownpayment'),
+    		'state'               => $rec->state,
+    		'docClass'            => $classId,
+    		'docId'               => $rec->id,
+    		'id'                  => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
     	);
     	
 	    static::save((object)$new);
@@ -245,6 +247,10 @@ class deals_OpenDeals extends core_Manager {
 	    	if($rec->state == 'closed' && empty($rec->amountDelivered)){
 	    		$rec->amountDelivered = $rec->amountDeal;
 	    		$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($rec->amountDelivered);
+	    	}
+	    	
+	    	if(empty($rec->amountDelivered) && !empty($rec->expectedDownpayment)){
+	    		$rec->amountDelivered = $rec->expectedDownpayment;
 	    	}
 	    	
 	    	$toPay = ($rec->amountDelivered - $rec->amountPaid) / $docRec->currencyRate;

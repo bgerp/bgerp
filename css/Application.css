@@ -1516,7 +1516,7 @@ pre.document {
   border-bottom: 3px solid #dddddd; }
 
 .signature-table {
-  margin-top: 5px; }
+  margin-top: 20px; }
   .signature-table td {
     border: none !important; }
 
@@ -3031,8 +3031,7 @@ div.location.public {
   max-width: 400px; }
 
 .productCell {
-  max-width: none !important;
-  min-width: 50%; }
+  max-width: none !important; }
 
 .wide .inline-form {
   display: inline-block; }

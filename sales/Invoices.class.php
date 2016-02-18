@@ -218,6 +218,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
+        $this->FLD('fromProformaId', 'key(mvc=sales_Proformas,allowEmpty)', 'silent, input=hidden');
         
         $conf = core_Packs::getConfig('sales');
         if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
@@ -249,13 +250,43 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Попълва дефолт данните от проформата
+     */
+    private function prepareFromProforma($proformaRec, &$form)
+    {
+    	if(isset($form->rec->id)) return;
+    	
+    	$handle = sales_Proformas::getHandle($proformaRec->id);
+    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount');
+    	foreach ($unsetFields as $fld){
+    		unset($proformaRec->{$fld});
+    	}
+    	
+    	foreach (($proformaRec) as $k => $v){
+    		$form->rec->{$k} = $v;
+    	}
+    	if($form->rec->dpAmount){
+    		$form->rec->dpAmount = abs($form->rec->dpAmount);
+    	}
+    	$form->rec->additionalInfo .= (($form->rec->additionalInfo) ? ' ' : '') . tr("по проформа|* #") . $handle;
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+    	
+    	if($form->rec->fromProformaId){
+    		if($proformaRec = sales_Proformas::fetch($form->rec->fromProformaId)){
+    			$mvc->prepareFromProforma($proformaRec, $form);
+    		}
+    	}
+    	
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	$form = &$data->form;
     	$form->setField('contragentPlace', 'mandatory');
     	$form->setField('contragentAddress', 'mandatory');
     	
@@ -341,26 +372,6 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::inputInvoiceForm($mvc, $form);
 	}
-    
-    
-    /**
-     * Намира ориджина на фактурата (ако има)
-     */
-    public static function getOrigin($rec)
-    {
-    	$origin = NULL;
-    	$rec = static::fetchRec($rec);
-    	
-    	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->threadId){
-    		return doc_Threads::getFirstDocument($rec->threadId);
-	    }
-    	
-    	return $origin;
-    }
     
     
     /**
@@ -609,6 +620,13 @@ class sales_Invoices extends deals_InvoiceMaster
     	    if (!$period || $period->state == 'closed') {
     	        $res = 'no_one';
     	    }
+    	}
+    	
+    	if($action == 'add' && isset($rec->fromProformaId)){
+    		$proformaRec = sales_Proformas::fetch($rec->fromProformaId, 'originId,state');
+    		if($proformaRec->state != 'active'){
+    			$res = 'no_one';
+    		}
     	}
     }
     

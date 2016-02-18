@@ -64,7 +64,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Детайли за клониране
      */
-    public $cloneDetails = 'sales_ProformaDetails' ;
+    public $cloneDetailes = 'sales_ProformaDetails' ;
     
     
     /**
@@ -239,7 +239,6 @@ class sales_Proformas extends deals_InvoiceMaster
     	}
     	
     	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
-    		
     		if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
     			$form->setField('vatReason', 'input,mandatory');
     		}
@@ -276,7 +275,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	if(empty($rec->number)){
     		$rec->number = $rec->id;
-    		$mvc->save($rec, 'number');
+    		$mvc->save_($rec, 'number');
     	}
     }
     
@@ -302,7 +301,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-
+		
     	if($fields['-single']){
     		if(empty($rec->vatReason)){
     			if(!drdata_Countries::isEu($rec->contragentCountryId)){
@@ -411,9 +410,25 @@ class sales_Proformas extends deals_InvoiceMaster
     		$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
     		$origin = $this->getOrigin($rec);
     		$methodId = $origin->fetchField('paymentMethodId');
-    		$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
     		
-    		cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    		if($methodId){
+    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
+    			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->originId, 'fromProformaId' => $data->rec->id))){
+    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $data->rec->originId, 'fromProformaId' => $data->rec->id, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
     	}
     }
 }
