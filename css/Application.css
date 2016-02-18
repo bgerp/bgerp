@@ -3031,8 +3031,7 @@ div.location.public {
   max-width: 400px; }
 
 .productCell {
-  max-width: none !important;
-  min-width: 50%; }
+  max-width: none !important; }
 
 .wide .inline-form {
   display: inline-block; }
