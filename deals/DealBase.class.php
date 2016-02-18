@@ -515,7 +515,11 @@ abstract class deals_DealBase extends core_Master
     	$this->requireRightFor('export', $rec);
 
     	$title = $this->title . " Поръчано/Доставено";
-    
+  
+    	foreach ($data->dealReportCSV as $rec) {
+    	    $rec->productId = html_entity_decode(strip_tags($rec->productId));
+    	}
+    	
     	$csv = $this->prepareCsvExport($data->dealReportCSV);
     
     	$fileName = str_replace(' ', '_', str::utf2ascii($title));
@@ -538,9 +542,9 @@ abstract class deals_DealBase extends core_Master
     { 	
     	$exportFields = $this->getExportFields();
     	$fields = $this->getFields();
-    	
+
     	$csv = csv_Lib::createCsv($data, $fields, $exportFields);
-    	
+  
     	return $csv;
     }
     
@@ -557,11 +561,11 @@ abstract class deals_DealBase extends core_Master
     	// Кои полета ще се показват
 		$f = new core_FieldSet;
     	$f->FLD('code', 'varchar');
-    	$f->FLD('productId', 'varchar');
+    	$f->FLD('productId', 'richtext');
     	$f->FLD('measure', 'varchar');
-    	$f->FLD('quantity', 'int');
-    	$f->FLD('shipQuantity', 'int');
-    	$f->FLD('bQuantity', 'int');
+    	$f->FLD('quantity', 'double');
+    	$f->FLD('shipQuantity', 'double');
+    	$f->FLD('bQuantity', 'double');
     
     	return $f;
     }
@@ -599,7 +603,7 @@ abstract class deals_DealBase extends core_Master
     	$dealInfo = self::getAggregateDealInfo($rec->id);
    
     	$report = array();
-    	$Int = cls::get('type_Int');
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
 
     	// Ако има записи където участва артикула подготвяме ги за показване
     	if(count($dealInfo->products)){
@@ -611,13 +615,13 @@ abstract class deals_DealBase extends core_Master
 				// кода на продукта	
 			    $obj->code = $productInfo->productRec->code;
 			    // името на продукта с линк
-				$obj->productId = cat_Products::getShortHyperLink($product->productId);
+				$obj->productId = $product->productId;
 				// мярката му
 				$measureId = $productInfo->productRec->measureId;
-				$obj->measure = cat_UoM::fetchField($measureId,'shortName');
+				$obj->measure = $measureId;
 				    
 				// поръчаното количество
-				$obj->quantity = $Int->toVerbal($product->quantity);
+				$obj->quantity = $product->quantity;
 				
 				if (!$dealInfo->shippedProducts[$id]) {
 					$obj->bQuantity = $obj->quantity;
@@ -634,14 +638,15 @@ abstract class deals_DealBase extends core_Master
 
 			    	// извличаме информацията за продукта
 			    	$shipProductInfo = cat_Products::getProductInfo($shipProduct->productId);
+			    	
 			    	// намираме му мярката
 			    	$shipMeasureId = $shipProductInfo->productRec->measureId;
 			    	// и правим обект с новия продукт		
 			    	$report[$idShip] = (object) array ( "code" => $shipProductInfo->productRec->code,
-			    					"productId" => cat_Products::getShortHyperLink($shipProduct->productId),
-			    					"measure" => cat_UoM::fetchField($shipMeasureId,'shortName'),
+			    					"productId" => $shipProduct->productId,
+			    					"measure" => $shipMeasureId,
 			    					"quantity" => 0,
-			    					"shipQuantity" => $Int->toVerbal($shipProduct->quantity),
+			    					"shipQuantity" => $shipProduct->quantity,
 			    					"bQuantity" => NULL
 			    					
 			    	);
@@ -654,30 +659,48 @@ abstract class deals_DealBase extends core_Master
 			    		$shipQuantityInStore = (double) store_Products::fetchField("#productId = {$shipProduct->productId} AND #storeId = {$shipStoreId}", 'quantity');
 			    			
 			    		// като добавим доставеното количесто
-			    		$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    		$shipObj->shipQuantity = $shipProduct->quantity;
 			    		// и намерим остатъка за доставяне
-			    		$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
-			    			
-						$shipDiff = ($rec->state == 'active') ? $shipQuantityInStore : ($shipQuantityInStore - abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
-			    			
-			    		if($shipDiff < 0){
-			    			$shipObj->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($shipObj->quantity)}</span>";
-			    		}
+			    		$shipObj->bQuantity = $shipObj->quantity - $shipObj->shipQuantity;
 			    	} else { 
 			    		// като добавим доставеното количесто
-			    		$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    		$shipObj->shipQuantity = $shipProduct->quantity;
 			    		// и намерим остатъка за доставяне
-			    		$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
+			    		$shipObj->bQuantity = $shipObj->quantity - $shipObj->shipQuantity;
 			    	}
 			    }
 		    }
     	}
     	
-    	$data->dealReportCSV = $report;
-    	
+    	$data->dealReportCSV = &$report;
+
+    	foreach ($report as $id =>  $rec) { 
+        	foreach (array('shipQuantity', 'bQuantity') as $fld){
+        	    $rec->$fld =  $Double->toVerbal($rec->$fld);
+        	}
+
+        	if($rec->bQuantity > 0){
+        	    $rec->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Double->toVerbal($rec->quantity)}</span>";
+        	} else {
+        	    $rec->quantity = $Double->toVerbal($rec->quantity);
+        	}
+        	
+        	if (isset($rec->bQuantity)) {
+        	    $rec->bQuantity = ($rec->bQuantity < 0) ? "<span style='color:red'>{$rec->bQuantity}</span>" : $rec->bQuantity;
+        	}
+        	
+        	if (isset($rec->productId)) {
+        	   $rec->productId = cat_Products::getShortHyperLink($rec->productId);
+        	}
+        	
+        	if (isset($rec->measure)) {
+        	   $rec->measure = cat_UoM::getShortName($rec->measure);
+        	}
+    	}
+
     	// правим странициране
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage)); 
-    	
+
     	$cnt = count($report);
     	$pager->itemsCount = $cnt;
     	$data->reportPager = $pager;
@@ -686,7 +709,7 @@ abstract class deals_DealBase extends core_Master
     	
     	$start = $data->reportPager->rangeStart;
     	$end = $data->reportPager->rangeEnd - 1;
-    	
+    
     	// проверяваме дали може да се сложи на страницата
     	$data->DealReport = array_slice ($report, $start, $end - $start + 1);
     }
