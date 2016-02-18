@@ -79,7 +79,6 @@
                 <!--ET_END rkoRow-->
                 <tr>
                     <td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-                        <br>
                         <table class='signature-table' >
                             <tr>
                                 <td style='width:1%'>|Касиер|*:  </td>
@@ -92,7 +91,6 @@
                         </table>
                     </td>
                     <td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-                        <br>
                         <table class='signature-table fright' style='width:1%'>
                             <tr>
                                 <td style='width:1%'>|Получил|*:  </td>

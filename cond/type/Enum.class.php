@@ -51,17 +51,21 @@ class cond_type_Enum extends cond_type_Proto
 	 */
 	public function getType($rec)
 	{
-		expect($rec->options);
+		if($rec->options) {
 		
-		$options = explode(PHP_EOL, $rec->options);
-		
-		foreach ($options as &$opt){
-			$opt = trim($opt);
-		}
-		
-		$options = array_combine($options, $options);
-		$Type = cls::get('type_Enum');
-		$Type->options = $options;
+            $options = explode(PHP_EOL, $rec->options);
+            
+            foreach ($options as &$opt){
+                $opt = trim($opt);
+            }
+            
+            $options = array_combine($options, $options);
+        } else {
+             $options = array();
+        }
+        
+        $Type = cls::get('type_Enum');
+        $Type->options = $options;
 		
 		return $Type;
 	}
