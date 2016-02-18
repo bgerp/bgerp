@@ -492,8 +492,11 @@ abstract class deals_InvoiceMaster extends core_Master
     */
    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
    {
-	   	expect($origin = $mvc::getOrigin($rec));
+	   	$origin = $mvc::getOrigin($rec);
+	   	if(!$origin) return;
 		
+	   	if($rec->_isClone === TRUE) return;
+	   	
 	   	// Само ако записа е след редакция
 	   	if($rec->_edited !== TRUE) return;
 	   	
@@ -1082,5 +1085,25 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
+    }
+    
+
+    /**
+     * Намира ориджина на фактурата (ако има)
+     */
+    public static function getOrigin($rec)
+    {
+    	$origin = NULL;
+    	$rec = static::fetchRec($rec);
+    	 
+    	if($rec->originId) {
+    		return doc_Containers::getDocument($rec->originId);
+    	}
+    	 
+    	if($rec->threadId){
+    		return doc_Threads::getFirstDocument($rec->threadId);
+    	}
+    	
+    	return $origin;
     }
 }

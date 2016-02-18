@@ -344,26 +344,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Намира ориджина на фактурата (ако има)
-     */
-    public static function getOrigin($rec)
-    {
-    	$origin = NULL;
-    	$rec = static::fetchRec($rec);
-    	
-    	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->threadId){
-    		return doc_Threads::getFirstDocument($rec->threadId);
-	    }
-    	
-    	return $origin;
-    }
-    
-    
-    /**
      * Валидиране на полето 'number' - номер на фактурата
      * 
      * Предупреждение при липса на ф-ра с номер едно по-малко от въведения.
