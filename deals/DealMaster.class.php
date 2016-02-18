@@ -761,7 +761,6 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	if($rec->currencyId == 'EUR'){
     		$row->currencyRate = NULL;
-    		$rec->currencyRate = NULL;
     	}
     	
 		$amountType = $mvc->getField('amountDeal')->type;
@@ -868,7 +867,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			$mvc->prepareHeaderInfo($row, $rec);
 			
-			if (isset($rec->currencyRate) && $rec->currencyRate != 1) {
+			if (isset($row->currencyRate) && $rec->currencyRate != 1) {
 				$row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 			}
 			
