@@ -49,7 +49,7 @@ class deals_plg_DpInvoice extends core_Plugin
         if($rec->type != 'invoice') return;
        
         // Намиране на пораждащия се документ
-        $origin         = $mvc->getOrigin($rec);
+        $origin         = doc_Threads::getFirstDocument($rec->threadId);
         if(!core_Cls::existsMethod($origin->getInstance(), 'getAggregateDealInfo')) return;
         $dealInfo       = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
@@ -75,22 +75,22 @@ class deals_plg_DpInvoice extends core_Plugin
         	if($rec->dpOperation == 'deducted'){
         		$rec->dpAmount *= -1;
         	}
-        	
-        	if(isset($rec->dpAmount)){
-        		$dpAmount = $rec->dpAmount / $rec->rate;
-        		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-        		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
-        			$vat = 0;
-        		}
-        		
-        		$dpAmount += $dpAmount * $vat;
-        		$dpAmount = round($dpAmount, 2);
-        		
-        		if($rec->dpOperation == 'accrued'){
-        			$form->setDefault('amountAccrued', $dpAmount);
-        		} elseif($rec->dpOperation == 'deducted'){
-        			$form->setDefault('amountDeducted', $dpAmount);
-        		}
+        }
+
+        if(isset($rec->dpAmount)){
+        	$dpAmount = $rec->dpAmount / $rec->rate;
+        	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+        	if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+        		$vat = 0;
+        	}
+        
+        	$dpAmount += $dpAmount * $vat;
+        	$dpAmount = round($dpAmount, 2);
+        
+        	if($rec->dpOperation == 'accrued'){
+        		$form->setDefault('amountAccrued', $dpAmount);
+        	} elseif($rec->dpOperation == 'deducted'){
+        		$form->setDefault('amountDeducted', $dpAmount);
         	}
         }
         
