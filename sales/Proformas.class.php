@@ -413,7 +413,9 @@ class sales_Proformas extends deals_InvoiceMaster
     		$methodId = $origin->fetchField('paymentMethodId');
     		$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
     		
-    		cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    		if($methodId){
+    			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    		}
     	}
     }
 }
