@@ -1320,15 +1320,17 @@ class cat_Products extends embed_Manager {
     	
     	// Ако ще показваме описание подготвяме го
     	if($showDescription === TRUE){
-    	    $title = "<b>{$title}</b>";
-    	    
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType);
     	    if(!$data){
     	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
     	    }
-    	    
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
+    	    
+    	    // Удебеляваме името само ако има допълнително описание
+    	    if(strlen($descriptionTpl->getContent())){
+    	    	$title = "<b>{$title}</b>";
+    	    }
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){

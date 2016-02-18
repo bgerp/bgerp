@@ -44,7 +44,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created';
+    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created,planning_Wrapper';
     
     
     /**
