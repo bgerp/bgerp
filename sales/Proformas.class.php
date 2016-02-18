@@ -418,4 +418,20 @@ class sales_Proformas extends deals_InvoiceMaster
     		}
     	}
     }
+    
+    
+    /**
+     * @TODO описание
+     *
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if(sales_Invoices::haveRightFor('add')){
+    		$data->toolbar->addBtn('', array(), 'title=Създаване на фактура от проформата,img=img/16/invoice.png');
+    	}
+    }
 }

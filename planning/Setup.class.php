@@ -85,14 +85,17 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'planning';
+    var $roles = array(
+    		array('planning'),
+    		array('job'),
+    );
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Jobs', 'default', "planning, ceo"),
+            array(3.21, 'Производство', 'Планиране', 'planning_Jobs', 'default', "planning, ceo, job"),
         );
     
     
