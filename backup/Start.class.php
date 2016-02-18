@@ -371,13 +371,13 @@ class backup_Start extends core_Manager
      */
     private static function saveFileMan()
     {
-        $unArchived = fileman_Data::getUnArchived();
+        $unArchived = fileman_Data::getUnArchived(100);
 
         foreach ($unArchived as $fileObj) {
             if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
                 fileman_Data::setArchived($fileObj->id);
             } else {
-                self::logErr("backup не записва файл в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+                self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
             }
         }
     }
