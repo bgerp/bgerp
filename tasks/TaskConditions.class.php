@@ -154,6 +154,11 @@ class tasks_TaskConditions extends tasks_TaskDetails
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$taskName = $mvc->getMasterMvc($form->rec)->className;
+    	$taskName = explode('_', $taskName);
+    	$pack = $taskName[0];
+    	$mvc->load("{$pack}_Wrapper");
+    	
     	$rec = &$form->rec;
     	
     	// Задаваме предложения за прогрес
