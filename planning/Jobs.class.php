@@ -55,45 +55,39 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, planning';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, planning';
+    public $canEdit = 'ceo, job';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, planning';
+    public $canAdd = 'ceo, job';
     
     
     /**
      * Койможе да създава задание от продажба
      */
-    public $canCreatejobfromsale = 'ceo, planning';
+    public $canCreatejobfromsale = 'ceo, job';
     
     
     /**
      * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, planning';
+    public $canChangestate = 'ceo, job';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, planning';
+	public $canList = 'ceo, planning, job';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, planning';
+	public $canSingle = 'ceo, planning, job';
     
     
 	/**
@@ -117,7 +111,7 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да клонира
      */
-    public $canClonerec = 'ceo,planning';
+    public $canClonerec = 'ceo, job';
     
     
     /**
@@ -153,7 +147,7 @@ class planning_Jobs extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'Tasks=tasks_Tasks';
+    public $details = 'Tasks=tasks_Tasks';
     
     
     /**
