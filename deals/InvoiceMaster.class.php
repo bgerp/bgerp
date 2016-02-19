@@ -533,11 +533,11 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
 	   		if($dpOperation == 'accrued' || isset($rec->changeAmount)) return;
 	   		
-	   		$query = $mvc->$Detail->getQuery();
-	   		$query->where("#{$mvc->$Detail->masterKey} = '{$origin->that}'");
+	   		$query = $Detail->getQuery();
+	   		$query->where("#{$Detail->masterKey} = '{$origin->that}'");
 	   	
 	   		while($dRec = $query->fetch()){
-	   			$dRec->{$mvc->$Detail->masterKey} = $rec->id;
+	   			$dRec->{$Detail->masterKey} = $rec->id;
 	   			unset($dRec->id);
 	   			$Detail::save($dRec);
 	   		}
