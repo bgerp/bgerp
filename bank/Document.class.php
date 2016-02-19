@@ -114,7 +114,7 @@ abstract class bank_Document extends core_Master
 	protected function getFields(core_Mvc &$mvc)
 	{
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,summary=amount');
+		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,summary=amount,silent');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
 		
 		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
@@ -365,6 +365,24 @@ abstract class bank_Document extends core_Master
 			$row->contragentAddress = $contragent->getFullAdress();
 	
 			$row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
+		}
+	}
+	
+	
+	/**
+	 *  Обработка на формата за редакция и добавяне
+	 */
+	protected static function on_AfterPrepareEditForm($mvc, $res, $data)
+	{
+		$form = &$data->form;
+		 
+		if($fromDocument = Request::get('fromContainerId', 'int')){
+			if(empty($form->rec->id)){
+				$secondOrigin = doc_Containers::getDocument($fromDocument);
+				if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
+					$form->rec->reason = tr("Към|* ") . $secondOrigin->singleTitle . " №{$secondOrigin->that}";
+				}
+			}
 		}
 	}
 }
