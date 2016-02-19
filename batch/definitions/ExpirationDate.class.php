@@ -2,7 +2,7 @@
 
 
 /**
- * Базов драйвер за партиден клас 'дата на годност'
+ * Базов драйвер за партиден клас 'срок на годност'
  *
  *
  * @category  bgerp
@@ -11,7 +11,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title Дата на годност
+ * @title Срок на годност
  */
 class batch_definitions_ExpirationDate extends batch_definitions_Proto
 {
@@ -31,7 +31,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
-		$fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Колко дни след текущата дата');
+		$fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок до,unit=след текущата дата');
 		
 		$fieldset->setOptions('format', array('' => '') + arr::make($this->formatSuggestions, TRUE));
 	}

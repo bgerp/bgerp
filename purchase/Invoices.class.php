@@ -387,4 +387,27 @@ class purchase_Invoices extends deals_InvoiceMaster
     		}
     	}
     }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	
+    	if($rec->state == 'active'){
+    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+    		$amount = round($amount, 2);
+    
+    		if(cash_Pko::haveRightFor('add')){
+    			$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов разходен касов ордер');
+    		}
+    		
+    		if(bank_IncomeDocuments::haveRightFor('add')){
+    			$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
+    		}
+    	}
+    }
 }

@@ -63,6 +63,12 @@ class remote_BgerpDriver extends core_Mvc
 
 
     /**
+     * Дали да се прави обновяване по крон на shutdown
+     */
+    private $cronUpdate = FALSE;
+
+
+    /**
 	 * Добавя полетата на драйвера към Fieldset
 	 * 
 	 * @param core_Fieldset $fieldset
@@ -368,8 +374,24 @@ class remote_BgerpDriver extends core_Mvc
         $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin');
         
         remote_Authorizations::logLogin('Автоматично логване', $id);
+
+        $this->cronUpdate = TRUE;
         
         return new Redirect($url);
+    }
+
+
+    /**
+     * Извиква се на on_Shutdown и обновява състоянието на нотификлациите
+     */
+    function on_Shutdown()
+    {
+        $me = cls::get('remote_BgerpDriver');
+        if($me->cronUpdate) {
+            core_App::flushAndClose();
+            sleep(5);
+            $me->cron_UpdateRemoteNotification();
+        }
     }
 
 

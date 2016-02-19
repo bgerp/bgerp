@@ -450,6 +450,20 @@ class sales_Invoices extends deals_InvoiceMaster
     			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
     		}
     	}
+    	
+    	if($rec->state == 'active'){
+    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+    		$amount = round($amount, 2);
+    		
+    		if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
+		    }
+		    
+    		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
+		    }
+    	}
     }
     
     
