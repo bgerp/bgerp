@@ -427,8 +427,23 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->originId, 'fromProformaId' => $data->rec->id))){
-    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $data->rec->originId, 'fromProformaId' => $data->rec->id, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
+    	$rec = $data->rec;
+    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'fromProformaId' => $rec->id))){
+    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'fromProformaId' => $rec->id, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
+    	}
+    	
+    	if($rec->state == 'active'){
+    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount /= $rec->rate;
+    		$amount = round($amount, 2);
+    		
+    		if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
+		    }
+		    
+    		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
+		    }
     	}
     }
 }
