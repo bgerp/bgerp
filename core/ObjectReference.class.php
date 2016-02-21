@@ -147,9 +147,16 @@ class core_ObjectReference
     public function isInstanceOf($className)
     {
     	if(!cls::load($className, TRUE)) return FALSE;
-    	$class = cls::get($className);
+    	$ReflectionClass = new ReflectionClass($className);
     	
-    	return ($this->getInstance() instanceof $class->className);
+    	if($ReflectionClass->isAbstract()){
+    		
+    		return is_subclass_of($this->getInstance(), $className);
+    	} else {
+    		$class = cls::get($className);
+    		 
+    		return ($this->getInstance() instanceof $class->className);
+    	}
     }
     
     
