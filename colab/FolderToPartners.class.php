@@ -483,6 +483,7 @@ class colab_FolderToPartners extends core_Manager
     	// Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
     	$fromEmail = Request::get('fromEmail');
     	if(!$fromEmail){
+            requireRole('powerUser');
     		expect(doc_Folders::haveRightToObject($companyRec));
     	}
     	
@@ -493,6 +494,24 @@ class colab_FolderToPartners extends core_Manager
     	
     	$form->setDefault('country', $companyRec->country);
     	$form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
+
+        // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,
+        // добавяме поле, преди nick, за избор на такъв човек. Ако той се подаде, данните за потребителя се вземат частично
+        // от визитката, а новосъздадения профил се свързва със визитката
+        if(haveRole('officer,manager,ceo')) {
+            $pOpt = array();
+            $pQuery = crm_Persons::getQuery();
+            while($pRec = $pQuery->fetch(array("#state = 'active' AND #buzCompanyId = [#1#]", $companyId))) { 
+                if(!crm_Profiles::fetch("#personId = {$pRec->id}")) {
+                    $pOpt[$pRec->id] = $pRec->name;
+                }
+            } 
+            if(count($pOpt)) {
+                $form->FNC("personId", "key(mvc=crm_Persons,allowEmpty)", "caption=Лице,before=nick,input,silent,removeAndRefreshForm=names|email");
+                $form->setOptions('personId', $pOpt);
+            }
+        }
+
     	
     	// Задаваме дефолтните роли
     	$defRoles = array();
