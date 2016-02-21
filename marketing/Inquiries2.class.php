@@ -221,7 +221,7 @@ class marketing_Inquiries2 extends embed_Manager
     { 
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
-    	bp(Request::getParams(), $data);
+ 
     	// Ако има избран прототип, зареждаме му данните в река
     	if(isset($form->rec->proto)){
     		if($pRec = cat_Products::fetch($form->rec->proto)) {
