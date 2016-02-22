@@ -277,7 +277,7 @@ class planning_plg_StateManager extends core_Plugin
 	 */
 	private static function getReasonForm($mvc, $action, $rec)
 	{
-		$actionArr = array('close' => 'Приключване', 'stop' => 'Спиране', 'activateAgain' => 'Пускане', 'activate' => 'Активиране', 'wakeup' => 'Съзбуждане');
+		$actionArr = array('close' => 'Приключване', 'stop' => 'Спиране', 'activateAgain' => 'Пускане', 'activate' => 'Активиране', 'wakeup' => 'Събуждане');
 		
 		$form = cls::get('core_Form');
 		$form->FLD('reason', 'text(rows=2)', 'caption=Основание,mandatory');
