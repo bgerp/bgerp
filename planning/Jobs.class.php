@@ -310,7 +310,7 @@ class planning_Jobs extends core_Master
     	// Бутон за добавяне на документ за бързо производство
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    		 $data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		 $data->toolbar->addBtn("Протокол", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
     	}
     }
     
