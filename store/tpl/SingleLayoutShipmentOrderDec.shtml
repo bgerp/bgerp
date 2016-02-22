@@ -93,8 +93,9 @@
                                 </table>
                         </td>
                         <td>
-                            <div>
-                                <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b><!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput--></div>
+                            <div class='clearfix21' style='margin-bottom: 5px;'>
+                                <div><span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                                <!--ET_BEGIN colletsCount--><span class='half-col'>|Изчислен брой палети|*:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>|Брой палети|*: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
                             </div>
                             <hr>
                             <table class='centered special-borders' style='width:100%;'>

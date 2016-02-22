@@ -1765,7 +1765,11 @@ pre.document {
 .shipment-table tr td{
 	padding:1px  3px !important;
 }
-
+.half-col {
+	display: inline-block;
+	width: 49%;
+	float: left;
+}
 .narrow .document .half_block {
 	width: 100% !important;
 	clear: both;
