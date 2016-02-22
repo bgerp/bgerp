@@ -124,7 +124,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
     	$deductedDp = $form->dealInfo->get('downpaymentDeducted');
     	
-    	$downpayment = (empty($actualDp)) ? $aggreedDp : $actualDp;
+    	$downpayment = (empty($actualDp)) ? NULL : $actualDp;
     	
     	if(!isset($downpayment)) {
     		$dpOperation = 'none';
