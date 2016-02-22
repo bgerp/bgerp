@@ -1586,6 +1586,10 @@ pre.document {
   .full-width-holder table {
     width: 100%; }
 
+.history-reason {
+  font-size: 0.9em;
+  color: #666666; }
+
 /*
  * край на стилове за документи
  */
