@@ -254,4 +254,16 @@ class doc_DocumentIntf
         
         return $this->class->getLetterHead($rec, $row);
     }
+    
+    
+    /**
+     * Връща масив с възможните формати
+     * 
+     * @return array
+     */
+    function getExportFormats()
+    {
+        
+        return $this->class->getExportFormats();
+    }
 }
