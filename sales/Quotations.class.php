@@ -512,6 +512,10 @@ class sales_Quotations extends core_Master
     					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     				}
     			}
+    			
+    			if(isset($rec->bankAccountId)){
+    				$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    			}
     		}
     		 
     		$createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
