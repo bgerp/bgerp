@@ -21,8 +21,6 @@
 	                   <td style='text-align: left'>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
-	               
-	               
 	               <!--ET_BEGIN RECEIPTS-->
 	               [#RECEIPTS#]
 	               <tr>
