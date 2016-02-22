@@ -407,7 +407,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	$rec = &$data->rec;
     	if(empty($rec->dpAmount)) {
     		$total = $this->_total->amount- $this->_total->discount;
-    		$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
+    		$total = $total + $this->_total->vat;
     		$origin = $this->getOrigin($rec);
     		$methodId = $origin->fetchField('paymentMethodId');
     		
