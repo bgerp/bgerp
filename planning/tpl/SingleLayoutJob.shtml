@@ -21,19 +21,26 @@
 	                   <td style='text-align: left'>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
+	               
+	               
+	               <!--ET_BEGIN RECEIPTS-->
+	               [#RECEIPTS#]
+	               <tr>
+                    	<td class='quiet' colspan='2'>|Рецепти|*:</td>
+                   </tr>
                     <!--ET_BEGIN sBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска рецепта|*:</td>
+                    	<td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска|*:</td>
                         <td style='text-align: left'>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
-                    
                     <!--ET_BEGIN pBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна|*:</td>
                         <td style='text-align: left'>[#pBomId#]</td>
                     </tr>
                     <!--ET_END pBomId-->
+                    <!--ET_END RECEIPTS-->
                 </table>
 	       </td>
 	       <td>
