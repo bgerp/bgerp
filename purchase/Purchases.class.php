@@ -448,13 +448,19 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries));
         
+        // Опитваме се да намерим очакваното плащане
         $expectedPayment = NULL;
         if($deliveredAmount > $paidAmount){
+        	
+        	// Ако доставеното > платено това е разликата
         	$expectedPayment = $deliveredAmount - $paidAmount;
         } else {
+        	
+        	// В краен случай това е очаквания аванс от метода на плащане
         	$expectedPayment = $downPayment;
         }
         
+        // Ако има очаквано плащане, записваме го
         if($expectedPayment){
         	$result->set('expectedPayment', $expectedPayment);
         }

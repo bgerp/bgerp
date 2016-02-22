@@ -539,15 +539,23 @@ class sales_Sales extends deals_DealMaster
         $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
         
+        // Опитваме се да намерим очакваното плащане
         $expectedPayment = NULL;
+        
+        // Ако доставеното > платено това е разликата
         if($deliveredAmount > $paidAmount){
         	$expectedPayment = $deliveredAmount - $paidAmount;
         } elseif($amountFromProforma = sales_Proformas::getExpectedDownpayment($rec)){
+        	
+        	// Ако има авансова фактура след последния платежен документ, това е сумата от аванса и
         	$expectedPayment = $amountFromProforma;
         } else {
+        	
+        	// В краен случай това е очаквания аванс от метода на плащане
         	$expectedPayment = $downPayment;
         }
         
+        // Ако има очаквано плащане, записваме го
         if($expectedPayment){
         	$result->set('expectedPayment', $expectedPayment);
         }
