@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
     /**
@@ -63,6 +63,12 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да чете?
      */
     public $canRead = 'ceo,sales';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,sales';
     
     
     /**
@@ -524,12 +530,35 @@ class sales_Sales extends deals_DealMaster
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
+        $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries);
+        $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
-        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($entries, $rec));
-        $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($entries));
+        $result->set('amountPaid', $paidAmount);
+        $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
+        
+        // Опитваме се да намерим очакваното плащане
+        $expectedPayment = NULL;
+        
+        // Ако доставеното > платено това е разликата
+        if($deliveredAmount > $paidAmount){
+        	$expectedPayment = $deliveredAmount - $paidAmount;
+        } elseif($amountFromProforma = sales_Proformas::getExpectedDownpayment($rec)){
+        	
+        	// Ако има авансова фактура след последния платежен документ, това е сумата от аванса и
+        	$expectedPayment = $amountFromProforma;
+        } else {
+        	
+        	// В краен случай това е очаквания аванс от метода на плащане
+        	$expectedPayment = $downPayment;
+        }
+        
+        // Ако има очаквано плащане, записваме го
+        if($expectedPayment){
+        	$result->set('expectedPayment', $expectedPayment);
+        }
         
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
@@ -965,5 +994,18 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * След вербализиране на записа
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->bankAccountId)){
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    		}
+    	}
     }
 }

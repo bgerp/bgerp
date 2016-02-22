@@ -126,7 +126,6 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	$downpayment = (empty($actualDp)) ? NULL : $actualDp;
     	
-    	// Ако няма авансово плащане на задаваме дефолти
     	if(!isset($downpayment)) {
     		$dpOperation = 'none';
     		
@@ -138,41 +137,48 @@ class deals_plg_DpInvoice extends core_Plugin
     		
     		// Ако няма фактуриран аванс
     		if(empty($invoicedDp)){
-    			 
+    			
     			// Начисляване на аванса
     			$dpAmount = $downpayment;
     			$dpOperation = 'accrued';
     		} else {
-    		
+    			
     			// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
     			$dpAmount = $invoicedDp - $deductedDp;
     			$dpOperation = 'deducted';
     		}
     	}
     	
-    	$dpAmount /= ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
+    	$rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
+    	
+    	$dpAmount /= $rate;
     	$dpAmount = round($dpAmount);
     	
-    	switch($dpOperation){
-    		case 'accrued':
-    			if(isset($dpAmount)){
-    				$form->setDefault('amountAccrued', $dpAmount);
+    	// Ако държавата не е България не предлагаме начисляване на ДДС
+    	if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
+			
+    		switch($dpOperation){
+    			case 'accrued':
+    				if(isset($dpAmount)){
+    					$form->setDefault('amountAccrued', $dpAmount);
+    				}
+    				break;
+    			case 'deducted':
+    				if($dpAmount){
+    					$form->setDefault('amountDeducted', $dpAmount);
+    				}
+    				break;
+    			case 'none';
+    			if(isset($aggreedDp)){
+    				$aggreedDp = round($aggreedDp / $rate);
+    				$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
     			}
     			break;
-    		case 'deducted':
-    			if($dpAmount){
-    				$form->setDefault('amountDeducted', $dpAmount);
-    			}
-    			break;
-    		case 'none';
-    		if(isset($aggreedDp)){
-    			$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
     		}
-    		break;
-    	}
-    	
-    	if($dpOperation){
-    		$form->setDefault('dpOperation', $dpOperation);
+    		 
+    		if($dpOperation){
+    			$form->setDefault('dpOperation', $dpOperation);
+    		}
     	}
     }
     

@@ -861,9 +861,10 @@ class core_Html
      * @param notice|warning|error|string $icon - име на иконката
      * @return core_ET $element                 - шаблон с хинта
      */
-    static function createHint($body, $hint, $icon = 'notice')
+    public static function createHint($body, $hint, $icon = 'notice')
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
+    	if(empty($hint)) return $body;
     	
     	$hint = tr($hint);
     	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
@@ -879,7 +880,7 @@ class core_Html
         
         jquery_Jquery::run($element, 'makeTooltipFromTitle();', TRUE);
         jquery_Jquery::runAfterAjax($element, 'makeTooltipFromTitle');
-        
+       
     	return $element;
     }
     

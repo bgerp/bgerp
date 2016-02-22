@@ -212,7 +212,7 @@ class fileman_Buckets extends core_Manager {
         $rolesForDownload = NULL, $rolesForAdding = NULL, $lifetime = NULL)
     {
         $rec = new stdClass();
-        $rec->id = static::fetchField(array("#name = '[#1#]'", $name), 'id');
+        $rec->id = self::fetchField(array("#name = '[#1#]'", $name), 'id');
 
         if($rec->id) {
             $res = "<li> Съществуваща кофа за файлове \"{$name}\"</li>";
@@ -224,12 +224,12 @@ class fileman_Buckets extends core_Manager {
         $rec->name = $name;
         $rec->info = $info;
         $rec->maxSize = $FileSize->fromVerbal($maxSize);
-        $rec->rolesForDownload = $rolesForDownload;
-        $rec->rolesForAdding = $rolesForAdding;
+        $rec->rolesForDownload = core_Roles::getRolesAsKeylist($rolesForDownload);
+        $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rolesForAdding);
         $rec->lifetime = $lifetime;
         $rec->extensions = $extensions;
 
-        static::save($rec);
+        self::save($rec);
 
         return $res;
     }

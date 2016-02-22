@@ -156,6 +156,8 @@ abstract class deals_DealBase extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
     	if($action == 'closewith' && isset($rec)){
     		$options = $mvc->getDealsToCloseWith($rec);
     		if(!count($options) || $rec->state != 'draft'){
@@ -167,7 +169,15 @@ abstract class deals_DealBase extends core_Master
     	if($action == 'export' && isset($rec)){ 
     		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
     		if($state != 'active'){
-    			$requiredRoles = 'no_one';
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Ако има документи в нишката на договора, не може да се затваря
+    	if($action == 'close' && isset($rec)){
+    		$docCountInThread = doc_Threads::fetch($rec->threadId)->allDocCnt;
+    		if($docCountInThread != 1){
+    			$res = 'no_one';
     		}
     	}
     }

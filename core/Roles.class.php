@@ -503,31 +503,10 @@ class core_Roles extends core_Manager
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        
-        if (!$this->fetch("#role = 'admin'")) {
-            $rec = new stdClass();
-            $rec->role = 'admin';
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля 'admin'";
-        }
-        
-        if (!$this->fetch("#role = 'debug'")) {
-            $rec = new stdClass();
-            $rec->role = 'debug';
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля 'debug'";
-        }
-        
-        if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
-            $rec = new stdClass();
-            $rec->role = EF_ROLES_DEFAULT;
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля '" . EF_ROLES_DEFAULT . "'";
-        }
-        
+        self::addOnce('admin', NULL, 'system');
+        self::addOnce('debug', NULL, 'system');
+        self::addOnce(EF_ROLES_DEFAULT, NULL, 'system');
+        self::addOnce('every_one', NULL, 'system');
     }
     
     

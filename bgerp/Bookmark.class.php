@@ -151,8 +151,7 @@ class bgerp_Bookmark extends core_Manager
 	    self::orderQuery($query);
 	    
 	    if (is_null($limit)) {
-	        $conf = core_Packs::getConfig('bgerp');
-	        $limit = $conf->BGERP_BOOKMARK_SHOW_LIMIT;
+	        $limit = 60;
 	    }
 	    
 	    if ($limit) {

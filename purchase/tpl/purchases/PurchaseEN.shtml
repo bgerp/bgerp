@@ -79,7 +79,7 @@
                     <!--ET_BEGIN currencyCode-->
                     <div class='cellRow'>
                         <span class='quiet'>Currency: </span>
-                        [#currencyCode#] [#currencyRateText#]
+                        [#currencyCode#]
                     </div>
                     <!--ET_END currencyCode-->
                     <!--ET_BEGIN bankAccountId-->

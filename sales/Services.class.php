@@ -186,6 +186,12 @@ class sales_Services extends deals_ServiceMaster
     	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
     					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	$tplArr[] = array('name' => 'Delivery protocol',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Delivery protocol with prices',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }

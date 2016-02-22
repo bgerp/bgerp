@@ -315,8 +315,14 @@ class fileman_Download extends core_Manager {
 //            }
 //        }
         
-        // Редиректваме към линка
-        return new Redirect($link);  
+        if (Request::get('forceDownload')) {
+            
+            redirect($link);
+        } else {
+            
+            // Редиректваме към линка
+            return new Redirect($link);
+        }
     }
     
     

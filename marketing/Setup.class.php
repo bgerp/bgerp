@@ -103,7 +103,7 @@ class marketing_Setup extends core_ProtoSetup
     	
     	// Добавяне на кофа за файлове свързани със задаията
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('InquiryBucket', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('InquiryBucket', 'Запитвания', '', '10MB', 'every_one', 'powerUser');
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');

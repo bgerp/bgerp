@@ -174,7 +174,13 @@ class purchase_Services extends deals_ServiceMaster
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги с цени', 
     					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	
+    	$tplArr[] = array('name' => 'Acceptance protocol',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Acceptance protocol with prices',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	 
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
