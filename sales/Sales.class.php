@@ -995,4 +995,17 @@ class sales_Sales extends deals_DealMaster
     	
     	return $res;
     }
+    
+    
+    /**
+     * След вербализиране на записа
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->bankAccountId)){
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    		}
+    	}
+    }
 }
