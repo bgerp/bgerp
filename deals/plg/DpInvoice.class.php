@@ -149,7 +149,9 @@ class deals_plg_DpInvoice extends core_Plugin
     		}
     	}
     	
-    	$dpAmount /= ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
+    	$rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
+    	
+    	$dpAmount /= $rate;
     	$dpAmount = round($dpAmount);
     	
     	// Ако държавата не е България не предлагаме начисляване на ДДС
@@ -168,6 +170,7 @@ class deals_plg_DpInvoice extends core_Plugin
     				break;
     			case 'none';
     			if(isset($aggreedDp)){
+    				$aggreedDp = round($aggreedDp / $rate);
     				$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
     			}
     			break;
