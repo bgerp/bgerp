@@ -407,7 +407,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	$rec = &$data->rec;
     	if(empty($rec->dpAmount)) {
     		$total = $this->_total->amount- $this->_total->discount;
-    		$total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
+    		$total = $total + $this->_total->vat;
     		$origin = $this->getOrigin($rec);
     		$methodId = $origin->fetchField('paymentMethodId');
     		
@@ -445,5 +445,45 @@ class sales_Proformas extends deals_InvoiceMaster
 		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
 		    }
     	}
+    }
+    
+    
+    /**
+     * Намира очаквания аванс по проформа, ако има
+     * Връща начисления аванс от последната проформа за начисляване на аванс,
+     * ако има платежни документи след нея не връщаме сумата (не очакваме аванс)
+     * 
+     * @param mixed $saleId - ид или запис на продажба
+     * @return NULL|double - очаквано авансово плащане
+     */
+    public static function getExpectedDownpayment($saleId)
+    {
+    	$saleRec = sales_Sales::fetchRec($saleId);
+    	
+    	$expectedDownpayment = NULL;
+    	
+    	// Намираме последната проформа към продажбата (ако има)
+    	$pQuery = self::getQuery();
+    	$pQuery->where("#originId = {$saleRec->containerId}");
+    	$pQuery->where("#state = 'active'");
+    	$pQuery->where("#dpAmount IS NOT NULL AND #dpOperation = 'accrued'");
+    	$pQuery->orderBy('id', 'DESC');
+    	
+    	// Ако има намерена проформа
+    	if($profRec = $pQuery->fetch()){
+    		
+    		// Ако има приходен касов ордер с вальор по-голям не намираме очакван аванс
+    		if(cash_Pko::fetchField("#threadId = {$saleRec->threadId} AND #state = 'active' AND #valior > '{$profRec->date}'")) return $expectedDownpayment;
+    		
+    		// Ако има приходен банков ордер с вальор по-голям не намираме очакван аванс
+    		if(bank_IncomeDocuments::fetchField("#threadId = {$saleRec->threadId} AND #state = 'active' AND #valior > '{$profRec->date}'")) return $expectedDownpayment;
+    		
+    		// Ако няма платежен документ след проформата намираме очаквания и аванс
+    		$expectedDownpayment += $profRec->dealValue + $profRec->vatAmount;
+    		$expectedDownpayment = round($expectedDownpayment, 2);
+    	}
+    	
+    	// Връщаме очаквания аванс
+    	return $expectedDownpayment;
     }
 }

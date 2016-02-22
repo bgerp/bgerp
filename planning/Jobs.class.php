@@ -43,6 +43,14 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * За кои действия да се изисква основание
+     * 
+     * @see planning_plg_StateManager
+     */
+    public $demandReasonChangeState = 'stop,wakeup,activateAgain';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone';
@@ -452,7 +460,7 @@ class planning_Jobs extends core_Master
     		} elseif($rec->quantityFromTasks >= ($rec->quantity - $diff) && $rec->quantityFromTasks <= ($rec->quantity + $diff)){
     			$color = 'green';
     		} else {
-    			$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено е повече от колкото е планувано', 'warning');
+    			//$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено е повече от колкото е планувано', 'warning');
     			$color = 'red';
     		}
     		
@@ -614,13 +622,18 @@ class planning_Jobs extends core_Master
      * @param int $userId - кой
      * @return void
      */
-    private static function addToHistory(&$history, $action, $date, $userId)
+    private static function addToHistory(&$history, $action, $date, $userId, $reason = NULL)
     {
     	if(!$history){
     		$history = array();
     	}
     	
-    	$history[] = array('action' => self::$actionNames[$action], 'date' => $date, 'user' => $userId, 'engaction' => $action);
+    	$arr = array('action' => self::$actionNames[$action], 'date' => $date, 'user' => $userId, 'engaction' => $action);
+    	if(isset($reason)){
+    		$arr['reason'] = $reason;
+    	}
+    	
+    	$history[] = $arr;
     }
     
     
@@ -644,11 +657,17 @@ class planning_Jobs extends core_Master
     	if(count($data->rec->history)){
     		foreach($data->rec->history as $historyRec){
     			$historyRec['action'] = tr($historyRec['action']);
-    			$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
-								    				  'user'       => crm_Profiles::createLink($historyRec['user']),
-								    				  'action'     => "<span>{$historyRec['action']}</span>",
-								    				  'stateclass' => "state-{$historyRec['engaction']}"
-    			);
+    			
+    			$historyRow = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
+								    	    'user'       => crm_Profiles::createLink($historyRec['user']),
+								    		'action'     => "<span>{$historyRec['action']}</span>",
+								    		'stateclass' => "state-{$historyRec['engaction']}");
+    			
+    			if(isset($historyRec['reason'])){
+    				$historyRow->reason = cls::get('type_Text')->toVerbal($historyRec['reason']);
+    			}
+    			
+    			$data->row->history[] = $historyRow;
     		}
     	}
     	
@@ -686,7 +705,7 @@ class planning_Jobs extends core_Master
     public static function on_AfterChangeState($mvc, &$rec)
     {
     	// Записваме в историята действието
-    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent());
+    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent(), $rec->_reason);
     	$mvc->save($rec, 'history');
     }
     

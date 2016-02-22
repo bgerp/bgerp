@@ -76,7 +76,10 @@
 	            <div class='vertical-scroll'>
 		       		<!--ET_BEGIN HISTORY_ROW-->
 		       		[#HISTORY_ROW#]
-		       		<div class='smaller [#stateclass#]'>[#date#] : [#user#] -> [#action#]</div>
+		       		<div class='smaller [#stateclass#]'>
+		       		<div>[#date#] : [#user#] -> [#action#]</div>
+		       		<!--ET_BEGIN hint--><div class='history-reason'>[#reason#]</div><!--ET_END hint-->
+		       		</div>
 		       		<!--ET_END HISTORY_ROW-->
 	       		</div>
 	       </td>
