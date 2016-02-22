@@ -2472,6 +2472,13 @@ div.richtextHide {
   border-left: dotted 1px #cccccc;
   padding: 10px; }
 
+.strike-text {
+  color: #666666;
+  text-decoration: line-through; }
+  .strike-text .oneLineCode {
+    color: #666666;
+    text-decoration: line-through; }
+
 /*
  * richtext elements
  */

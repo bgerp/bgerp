@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
     
     
     /**
@@ -64,6 +64,12 @@ class findeals_Deals extends deals_DealBase
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,findeals';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,findeals';
     
     
     /**

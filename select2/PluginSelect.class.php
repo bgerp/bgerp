@@ -58,17 +58,18 @@ class select2_PluginSelect extends core_Plugin
             
             // Избраната стойност да е на първо мяасто
             if ($value) {
-                $valOptArr = array();
-                
                 if (!isset($invoker->options[$value])) {
                     $allowedListArr = $invoker->getAllowedKeyVal($value);
                     $value = reset($allowedListArr);
                 }
                 
                 if ($value) {
+                    $valOptArr = array();
                     $valOptArr[$value] = is_array($invoker->options[$value]) ? $invoker->options[$value]['title'] : $invoker->options[$value];
-                    unset($invoker->options[$value]);
-                    $invoker->options = $valOptArr + $invoker->options;
+                    if (isset($valOptArr[$value])) {
+                        unset($invoker->options[$value]);
+                        $invoker->options = $valOptArr + $invoker->options;
+                    }
                 }
             }
             

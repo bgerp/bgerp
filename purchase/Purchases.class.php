@@ -38,7 +38,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search, doc_plg_Close';
     
     
     /**
@@ -63,6 +63,12 @@ class purchase_Purchases extends deals_DealMaster
      * Кой може да го активира?
      */
     public $canConto = 'ceo,purchase,acc';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,purchase';
     
     
     /**
@@ -404,12 +410,11 @@ class purchase_Purchases extends deals_DealMaster
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
-        if($rec->paymentMethodId){
-        	if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		// Колко е очакваното авансово плащане
-        		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
-        		$downPayment = round($paymentRec->downpayment * $rec->amountDeal, 4);
-        	}
+        $downPayment = NULL;
+        if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+        	
+        	// Колко е очакваното авансово плащане
+        	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
         }
         
         // Кои са позволените операции за последващите платежни документи
@@ -434,11 +439,31 @@ class purchase_Purchases extends deals_DealMaster
         purchase_transaction_Purchase::clearCache();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         
+        $deliveredAmount = purchase_transaction_Purchase::getDeliveryAmount($entries);
+        $paidAmount = purchase_transaction_Purchase::getPaidAmount($entries, $rec);
+        
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($entries));
-        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($entries, $rec));
-        $result->set('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($entries));
+        $result->set('amountPaid', $paidAmount);
+        $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries));
+        
+        // Опитваме се да намерим очакваното плащане
+        $expectedPayment = NULL;
+        if($deliveredAmount > $paidAmount){
+        	
+        	// Ако доставеното > платено това е разликата
+        	$expectedPayment = $deliveredAmount - $paidAmount;
+        } else {
+        	
+        	// В краен случай това е очаквания аванс от метода на плащане
+        	$expectedPayment = $downPayment;
+        }
+        
+        // Ако има очаквано плащане, записваме го
+        if($expectedPayment){
+        	$result->set('expectedPayment', $expectedPayment);
+        }
         
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');

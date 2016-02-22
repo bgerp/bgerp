@@ -20,12 +20,6 @@ defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
 
 
 /**
- * 
- */
-defIfNot(BGERP_BOOKMARK_SHOW_LIMIT, 30);
-
-
-/**
  * Звуков сигнал при нотификация
  */
 defIfNot(BGERP_SOUND_ON_NOTIFICATION, 'scanner');
@@ -78,9 +72,7 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
-        
-        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Максимално количество отметки->Брой, customizeBy=powerUser'),
-        
+                
         'BGERP_SOUND_ON_NOTIFICATION' => array ('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
      );
     

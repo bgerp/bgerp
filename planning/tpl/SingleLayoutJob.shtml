@@ -21,19 +21,24 @@
 	                   <td style='text-align: left'>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
+	               <!--ET_BEGIN RECEIPTS-->
+	               [#RECEIPTS#]
+	               <tr>
+                    	<td class='quiet' colspan='2'>|Рецепти|*:</td>
+                   </tr>
                     <!--ET_BEGIN sBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска рецепта|*:</td>
+                    	<td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска|*:</td>
                         <td style='text-align: left'>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
-                    
                     <!--ET_BEGIN pBomId-->
                     <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна|*:</td>
                         <td style='text-align: left'>[#pBomId#]</td>
                     </tr>
                     <!--ET_END pBomId-->
+                    <!--ET_END RECEIPTS-->
                 </table>
 	       </td>
 	       <td>
@@ -76,7 +81,10 @@
 	            <div class='vertical-scroll'>
 		       		<!--ET_BEGIN HISTORY_ROW-->
 		       		[#HISTORY_ROW#]
-		       		<div class='smaller [#stateclass#]'>[#date#] : [#user#] -> [#action#]</div>
+		       		<div class='smaller [#stateclass#]'>
+		       		<div>[#date#] : [#user#] -> [#action#]</div>
+		       		<!--ET_BEGIN hint--><div class='history-reason'>[#reason#]</div><!--ET_END hint-->
+		       		</div>
 		       		<!--ET_END HISTORY_ROW-->
 	       		</div>
 	       </td>

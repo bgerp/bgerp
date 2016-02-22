@@ -107,6 +107,8 @@ class doc_DocumentPlg extends core_Plugin
         // Дали можое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        setIfNot($mvc->canExportdoc, 'powerUser');
+        
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
@@ -261,13 +263,18 @@ class doc_DocumentPlg extends core_Plugin
 
         }
         
-        if($mvc->haveRightFor('single') && !core_Users::isContractor()){
+        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::isContractor()) {
             $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
             
             if ($historyCnt) {
                 $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
                 "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
             }
+        }
+        
+        if ($mvc->haveRightFor('exportdoc', $data->rec)) {
+            $data->toolbar->addBtn("Експорт", array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id),
+                            "id=btnExport{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Експорт на документа'),  'ef_icon = img/16/export.png');
         }
     }
     
@@ -1571,6 +1578,13 @@ class doc_DocumentPlg extends core_Plugin
             if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Проверка, дали има права за експорт на документа
+        if ($action == 'exportdoc') {
+            if ($rec->state == 'rejected' || $rec->state == 'draft' || !$mvc->haveRightFor('single', $rec) || !$mvc->getExportFormats()) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2949,5 +2963,21 @@ class doc_DocumentPlg extends core_Plugin
             
             $res = FALSE;
         } 
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * 
+     * @param array $res
+     */
+    public static function on_AfterGetExportFormats($mvc, &$res)
+    {
+        $res = arr::make($res);
+
+        $res['pdf'] = 'PDF формат';
+        $res['html'] = 'HTML формат';
     }
 }

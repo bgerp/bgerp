@@ -1542,6 +1542,11 @@ pre.document {
 .shipment-table tr td {
   padding: 1px 3px !important; }
 
+.half-col {
+  display: inline-block;
+  width: 49%;
+  float: left; }
+
 .narrow .document .half_block {
   width: 100% !important;
   clear: both;
@@ -1580,6 +1585,10 @@ pre.document {
   width: 100%; }
   .full-width-holder table {
     width: 100%; }
+
+.history-reason {
+  font-size: 0.9em;
+  color: #666666; }
 
 /*
  * край на стилове за документи

@@ -151,7 +151,8 @@ class eshop_Products extends core_Master
         $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto,silent');
         $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
-        $this->FLD('quantityCount', 'int(min=0,max=3)', 'caption=Запитване->Брой количества');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
+        $this->FLD('quantityCount', 'enum(0=Без количество,1=1 количество,2=2 количества,3=3 количества)', 'caption=Запитване->Брой количества');
         
 		$this->setDbUnique('code');
     }

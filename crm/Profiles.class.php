@@ -907,7 +907,9 @@ class crm_Profiles extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        $key = "{$userId}|{$title}|{$warning}|" . implode('|', $attr); 
+        $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
+        
+        $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr); 
         
         if (!$cacheArr[$key]) {
             
@@ -916,14 +918,14 @@ class crm_Profiles extends core_Master
             if(!$title) {
                 $title = self::getUserTitle($userRec->nick);
             }
-    
+            
             $link = $title;
             
             $url  = array();
     		$profileId = self::getProfileId($userId);
-    		if($profileId){
+    		if ($profileId) {
     			
-    			if(crm_Profiles::haveRightFor('single', $profileId)){
+    			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
     				$url  = static::getUrl($userId);
     			} 
     			

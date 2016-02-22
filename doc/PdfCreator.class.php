@@ -91,78 +91,32 @@ class doc_PdfCreator extends core_Manager
         // Шаблона
         $htmlET = $html;
         
-        // Класа в зависимост от режима
-        $class = Mode::is('screenMode', 'narrow') ? $class='narrow' : 'wide';
-        
         // Добавяме класа
-        $html = "<div class='{$class}'>" . $html . "</div>";
+        $html = "<div class='wide'>" . $html . "</div>";
         
+        // Проверяваме дали файла със същото име съществува в кофата
         $md5 = md5($html);
-        
-        //Проверяваме дали файла със същото име съществува в кофата
-        $fileHnd = doc_PdfCreator::fetchField("#md5='{$md5}'", 'fileHnd');
-
+        $fileHnd = self::fetchField("#md5='{$md5}'", 'fileHnd');
         if($fileHnd && isDebug()) {
             doc_PdfCreator::delete("#fileHnd = '{$fileHnd}'");
-            // TODO:: да се махне и от fileman
             unset($fileHnd);
         }
         
         //Ако не съществува
         if (!$fileHnd) {
             
-            //Вземаме всичките css стилове
-            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
-                "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . 
-                "\n" . file_get_contents(sbf('css/email.css', "", TRUE)) . 
-                "\n" . file_get_contents(sbf('css/pdf.css', "", TRUE));
-            
-            // Ако е инстанция на core_ET
-            if ($htmlET instanceof core_ET) {
-                
-                // Вземаме масива с всички чакащи CSS файлове
-                $cssArr = $htmlET->getArray('CSS', FALSE);
-                
-                // Обхождаме масива
-                foreach ((array)$cssArr as $cssPath) {
-                    try {
-                        
-                        // Опитваме се да вземаме съдържанието на CSS
-                        $css .= file_get_contents(sbf($cssPath, "", TRUE));
-                    } catch (core_exception_Expect $e) {
-                        
-                        // Ако възникне грешка, добавяме в лога
-                        self::logErr("Не може да се взема CSS файла: {$cssPath}");
-                    }
-                }
-                
-                // Вземаме всички стилове
-                $styleArr = $htmlET->getArray('STYLES', FALSE);
-                
-                // Обхождаме масива със стиловете
-                foreach ((array)$styleArr as $styles) {
-                    
-                    // Добавяме към CSS-а
-                    $css .= "\n" . $styles;
-                }
-            }
+            $css = self::getCssStr($htmlET);
             
             $html = self::removeFormAttr($html);
             
             //Добавяме всички стилове inline
             $html = '<div id="begin">' . $html . '<div id="end">';
             
-            // Вземаме конфигурацията на пакета csstoinline
-            $conf = core_Packs::getConfig('csstoinline');
-            
-            // Класа
-            $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
-            
             // Инстанция на класа
-            $CssToInlineInst = cls::get($CssToInline);
+            $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
             
             // Стартираме процеса
-            $html = $CssToInlineInst->convert($html, $css); 
+            $html = $CssToInlineInst->convert($html, $css);
             
             $html = str::cut($html, '<div id="begin">', '<div id="end">');
             
@@ -171,16 +125,20 @@ class doc_PdfCreator extends core_Manager
             // Вземаме конфигурацията на пакета doc
             $confDoc = core_Packs::getConfig('doc');
 
-            $PdfCreatorInst = cls::get($confDoc->BGERP_PDF_GENERATOR);
+            $PdfCreatorInst = cls::get(doc_Setup::get('BGERP_PDF_GENERATOR', TRUE));
             
             // Емулираме xhtml режим
             Mode::push('text', 'xhtml');
             
-            // Вземаме всички javascript файлове, които ще се добавят
-            $jsArr['JS'] = $htmlET->getArray('JS', FALSE);
+            $jsArr = array();
             
-            // Вземаме всеки JQUERY код, който ще се добави
-            $jsArr['JQUERY_CODE'] = $htmlET->getArray('JQUERY_CODE', FALSE);
+            if ($htmlET instanceof core_ET) {
+                // Вземаме всички javascript файлове, които ще се добавят
+                $jsArr['JS'] = $htmlET->getArray('JS', FALSE);
+                
+                // Вземаме всеки JQUERY код, който ще се добави
+                $jsArr['JQUERY_CODE'] = $htmlET->getArray('JQUERY_CODE', FALSE);
+            }
             
             try {
                 // Стартираме конвертирането
@@ -208,6 +166,66 @@ class doc_PdfCreator extends core_Manager
         }
         
         return $fileHnd;
+    }
+    
+    
+    /**
+     * Връща всичкия css
+     * 
+     * @param string|core_ET $html
+     * 
+     * @return string
+     */
+    public static function getCssStr($html)
+    {
+        //Вземаме всичките css стилове
+        $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+            "\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
+        
+        // Ако е инстанция на core_ET
+        if ($html instanceof core_ET) {
+        
+            // Вземаме масива с всички чакащи CSS файлове
+            $cssArr = $html->getArray('CSS', FALSE);
+            foreach ((array)$cssArr as $cssPath) {
+                try {
+        
+                    // Опитваме се да вземаме съдържанието на CSS
+                    $css .= "\n" . file_get_contents(sbf($cssPath, "", TRUE));
+                } catch (core_exception_Expect $e) {
+        
+                    // Ако възникне грешка, добавяме в лога
+                    self::logErr("Не може да се взема CSS файла: {$cssPath}");
+                }
+            }
+        
+            // Вземаме всички стилове
+            $styleArr = $html->getArray('STYLES', FALSE);
+            foreach ((array)$styleArr as $styles) {
+        
+                $css .= "\n" . $styles;
+            }
+        }
+        
+        $css .= "\n" . file_get_contents(sbf('css/email.css', "", TRUE)) .
+            "\n" . file_get_contents(sbf('css/pdf.css', "", TRUE));
+        
+        return $css;
+    }
+    
+    
+	/**
+     * Изчиства всикo което е между <form> ... </form>
+     */
+    public static function removeFormAttr($html)
+    {
+        //Шаблон за намиране на <form ... </form>
+        $pattern = '/\<form.*\<\/form\>/is';
+        
+        //Премахваме всикo което е между <form> ... </form>
+        $html = preg_replace($pattern, '', $html);
+
+        return $html;
     }
     
     
@@ -245,20 +263,5 @@ class doc_PdfCreator extends core_Manager
         //Създаваме, кофа, където ще държим всички генерирани PDF файлове
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
-    }
-    
-    
-	/**
-     * Изчиства всикo което е между <form> ... </form>
-     */
-    static function removeFormAttr($html)
-    {
-        //Шаблон за намиране на <form ... </form>
-        $pattern = '/\<form.*\<\/form\>/is';
-        
-        //Премахваме всикo което е между <form> ... </form>
-        $html = preg_replace($pattern, '', $html);
-
-        return $html;
     }
 }
