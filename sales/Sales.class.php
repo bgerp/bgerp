@@ -530,12 +530,27 @@ class sales_Sales extends deals_DealMaster
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
+        $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries);
+        $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
-        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($entries, $rec));
-        $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($entries));
+        $result->set('amountPaid', $paidAmount);
+        $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
+        
+        $expectedPayment = NULL;
+        if($deliveredAmount > $paidAmount){
+        	$expectedPayment = $deliveredAmount - $paidAmount;
+        } elseif($amountFromProforma = sales_Proformas::getExpectedDownpayment($rec)){
+        	$expectedPayment = $amountFromProforma;
+        } else {
+        	$expectedPayment = $downPayment;
+        }
+        
+        if($expectedPayment){
+        	$result->set('expectedPayment', $expectedPayment);
+        }
         
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
