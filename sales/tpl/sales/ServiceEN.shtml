@@ -81,7 +81,7 @@
                     <!--ET_BEGIN currencyId-->
                     <div class='cellRow'>
                         <span class='quiet'>Currency: </span>
-                        [#currencyId#] [#currencyRateText#]
+                        [#currencyId#]
                     </div>
                     <!--ET_END currencyId-->
                     <!--ET_BEGIN bankAccountId-->

@@ -31,7 +31,7 @@
                 <!--ET_END downpayment-->
                 <!--ET_BEGIN currencyCode-->
                 <div class='cellRow'>
-                    <span class='quiet'>|Валута|*: </span>[#currencyCode#] [#currencyRateText#]
+                    <span class='quiet'>|Валута|*: </span>[#currencyCode#]
                 </div>
                 <!--ET_END currencyCode-->
                 <!--ET_BEGIN bankAccountId-->
