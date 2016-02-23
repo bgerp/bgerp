@@ -940,7 +940,7 @@ input.more-btn {
 	height: 2em \9;
 }
 
-.more-btn {
+.more-btn:not(.toolbar-btn) {
 	background-repeat: no-repeat !important;
 	background-image: url(../img/16/toggle-expand.png) !important;
 }
