@@ -177,10 +177,15 @@ class plg_RowTools2 extends core_Plugin
         foreach($data->rows as &$row) {  
             if(isset($row->_rowTools)) {
                 $row->_rowTools = $row->_rowTools->renderHtml();
+                if($row->_rowTools) {
+                    $mustShow = TRUE;
+                }
             }
         }
-
-        $data->listFields =  arr::combine(array('_rowTools' => '▼'), arr::make($data->listFields, TRUE));
+        
+        if($mustShow) {
+            $data->listFields =  arr::combine(array('_rowTools' => '▼'), arr::make($data->listFields, TRUE));
+        }
     }
 
 }
