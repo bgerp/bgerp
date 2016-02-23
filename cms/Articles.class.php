@@ -473,43 +473,6 @@ class cms_Articles extends core_Master
     
     
     /**
-     * Създава линк, който води до промяната на записа
-     * 
-     * @param object $mvc
-     * @param string $res
-     * @param integer $id
-     * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
-     * 
-     * @return core_Et - Линк за редирект
-     */
-    static function getChangeLink($id, $title=FALSE)
-    {
-        // URL' то за промяна
-        $changeUrl = array('cms_Articles', 'changefields', $id, 'ret_url' => TRUE);
-        
-        // Иконата за промяна
-        $editSbf = sbf("img/16/edit.png");
-        
-        // Ако е подаде заглавието
-        if ($title) {
-            
-            // Създаваме линк с загллавието
-            $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . $editSbf . ');';
-            
-            $link = ht::createLink($title, $changeUrl, NULL, $attr); 
-        } else {
-            
-            // Ако не е подадено заглавиет, създаваме линк с иконата
-            $link = ht::createLink('<img src=' . $editSbf . ' width="12" alt="edit" height="12">', $changeUrl);
-        }
-        
-        return $link;
-    }
-    
-    
-    /**
      * Подготвя Информацията за генериране на Ографа
      * @param stdClass $rec 
      * @return stdClass $ogp

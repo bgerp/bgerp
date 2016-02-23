@@ -106,7 +106,8 @@ class plg_RowTools2 extends core_Plugin
         
         if($mvc->hasPlugin('change_Plugin')){
         	if ($mvc->haveRightFor('changerec', $rec)) {
-        		$changeLink = $mvc->getChangeLink($rec->id);
+        		$changeUrl = $mvc->getChangeUrl($rec->id);
+        		$ddTools->addLink('Промяна', $changeUrl, 'ef_icon=img/16/edit.png');
         	}
         }
     }

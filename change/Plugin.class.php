@@ -590,15 +590,15 @@ class change_Plugin extends core_Plugin
      * Прихваща извикването на GetChangeLink.
      * Създава линк, който води до промяната на записа
      * 
-     * @param object $mvc
-     * @param string $res
+     * @param core_Mvc $mvc
+     * @param core_Et $res
      * @param integer $id
      * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
     public static function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
         // URL' то за промяна
-        $changeUrl = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
+        $changeUrl = $mvc->getChangeUrl($id);
         
         // Иконата за промяна
         $editSbf = sbf("img/16/edit.png");
@@ -617,6 +617,19 @@ class change_Plugin extends core_Plugin
             // Ако не е подадено заглавиет, създаваме линк с иконата
             $res = ht::createLink('<img src=' . $editSbf . ' width="16" height="16">', $changeUrl);
         }
+    }
+    
+    
+    /**
+     * Връща URL за промяна на полетата
+     * 
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param integer $id
+     */
+    public static function on_AfterGetChangeUrl(&$mvc, &$res, $id)
+    {
+        $res = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
     }
     
     
