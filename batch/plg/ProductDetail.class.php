@@ -27,12 +27,7 @@ class batch_plg_ProductDetail extends core_Plugin
 		$details = arr::fromArray($details);
 	}
 	
-	public static function on_BeforeSave1111(core_Manager $mvc, $res, $rec)
-	{
-		if($rec->canStore == 'yes'){
-			batch_Defs::force($rec);
-		}
-	}
+	
 	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
