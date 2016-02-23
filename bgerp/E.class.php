@@ -187,7 +187,7 @@ class bgerp_E extends core_Manager
             self::save($rec);
             
             $downloadUrl = self::getUrlForDownload($rec->key);
-            $form->info = "<b>" . tr('URL за сваляне|*: ') . "</b>" . $downloadUrl;
+            $form->info = "<b>" . tr('URL за сваляне|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
             
             $form->setField('format, validity', 'input=none');
 			
