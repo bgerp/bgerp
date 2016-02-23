@@ -108,7 +108,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     public function prepareDefinitions(&$data)
     {
     	// Име на таба
-    	$data->TabCaption = 'Дефиниции';
+    	$data->TabCaption = 'Партидност';
     	$data->Order = 20;
     	
     	$query = $this->getQuery();
@@ -133,7 +133,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     public function renderDefinitions($data)
     {
     	$tpl = getTplFromFile('batch/tpl/CategoryDefinitionDetail.shtml');
-        $title = tr('Дефиниция на партида');
+        $title = tr('Партидност на артикулите');
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$tpl->placeObject($data->row);
     	
