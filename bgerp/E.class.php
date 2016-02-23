@@ -231,6 +231,8 @@ class bgerp_E extends core_Manager
             doclog_Documents::opened($logRec->containerId, $rec->mid);
         }
         
+        self::logRead('Сваляне на документа', $rec->id);
+        
         $res = Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => TRUE));
     }
     
