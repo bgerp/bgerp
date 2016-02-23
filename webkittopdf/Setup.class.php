@@ -144,18 +144,6 @@ class webkittopdf_Setup extends core_ProtoSetup
     var $managers = array(
             'webkittopdf_Converter'
         );
-        
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-    	// Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
     
     
     /**
@@ -197,7 +185,7 @@ class webkittopdf_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('webkittopdf');
         
-        $wkhtmltopdf = escapeshellcmd($conf->WEBKIT_TO_PDF_BIN);
+        $wkhtmltopdf = escapeshellcmd(self::get('WEBKIT_TO_PDF_BIN', TRUE));
         
         // Опитваме се да стартираме програмата
         $res = exec($wkhtmltopdf . ' --help', $output, $code);

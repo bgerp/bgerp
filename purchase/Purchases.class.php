@@ -462,7 +462,13 @@ class purchase_Purchases extends deals_DealMaster
         
         // Ако има очаквано плащане, записваме го
         if($expectedPayment){
-        	$result->set('expectedPayment', $expectedPayment);
+        	if(empty($deliveredAmount)){
+        		$expectedPayment = $expectedPayment - $paidAmount;
+        	}
+        	 
+        	if($expectedPayment > 0){
+        		$result->set('expectedPayment', $expectedPayment);
+        	}
         }
         
         $agreedDp = $result->get('agreedDownpayment');
