@@ -107,6 +107,14 @@ class bgerp_E extends core_Manager
         
         // Възможните формати за експортване
         $exportFormats = $inst->getExportFormats();
+        
+        // Ако не може да се конвертира към PDF, да няма такъв избор
+        if ($exportFormats['pdf']) {
+            if (!doc_PdfCreator::canConvert()) {
+                unset($exportFormats['pdf']);
+            }
+        }
+        
         $form->setOptions('format', $exportFormats);
         
         $form->input();
