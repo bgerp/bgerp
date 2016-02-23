@@ -81,6 +81,8 @@ class bgerp_E extends core_Manager
      */
     function act_Export()
     {
+        Request::setProtected(array('classId', 'docId'));
+        
         $classId = Request::get('classId', 'class(interface=doc_DocumentIntf)');
         $docId = Request::get('docId', 'int');
         
