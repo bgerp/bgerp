@@ -188,7 +188,7 @@ class core_RowToolbar extends core_BaseClass
         $dropDownIcon = sbf("img/16/arrow_down3.png", '');
         $layout = new ET("\n" . 
                         "<div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
-                        "<img class='more-btn button' src='{$dropDownIcon}'>");
+                        "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}'>");
         
         if (!count($this->links) > 0) return;
         
@@ -203,6 +203,11 @@ class core_RowToolbar extends core_BaseClass
             $link = ht::createLink($linkObj->title, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr); 
             $layout->append($link, 'ROW_LINKS');
         }
+        
+        $layout->push('context/lib/contextMenu.css', "CSS");
+        $layout->push('context/lib/contextMenu.js', "JS");
+        jquery_Jquery::run($layout,'prepareContextMenu();', TRUE);
+        jquery_Jquery::runAfterAjax($layout, 'prepareContextMenu');
         
         return $layout;
     }
