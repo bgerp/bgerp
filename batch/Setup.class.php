@@ -50,6 +50,7 @@ class batch_Setup extends core_ProtoSetup
             'batch_Defs',
     		'batch_Items',
     		'batch_Movements',
+    		'batch_CategoryDefinitions',
         );
     
 
@@ -99,6 +100,7 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на протокола за бързо производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
         
         $html .= $Plugins->installPlugin('Партиден детайл на артикулите', 'batch_plg_ProductDetail', 'cat_Products', 'private');
+        $html .= $Plugins->installPlugin('Детайл за дефиниции на партиди', 'batch_plg_CategoryDetail', 'cat_Categories', 'private');
         
         $html .= $Plugins->installPlugin('Партиден детайл на детайла напротоколите за отговорно пазене', 'batch_plg_DocumentMovementDetail', 'store_InternalDocumentDetail', 'family');
         $html .= $Plugins->installPlugin('Партидни движения на протоколите за отговорно пазене', 'batch_plg_DocumentMovement', 'store_ConsignmentProtocols', 'private');

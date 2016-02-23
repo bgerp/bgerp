@@ -26,5 +26,16 @@ class batch_plg_ProductDetail extends core_Plugin
 		$details['Batches'] = 'batch_Items';
 		$details = arr::fromArray($details);
 	}
+	
+	
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		if($rec->canStore == 'yes'){
+			batch_Defs::force($rec);
+		}
+	}
 }
 
