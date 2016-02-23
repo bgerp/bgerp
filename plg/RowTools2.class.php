@@ -63,7 +63,7 @@ class plg_RowTools2 extends core_Plugin
         $singleTitle = mb_strtolower($singleTitle);
         
 
-        if(isset($singleUrl)) {
+        if (!empty($singleUrl)) {
             $ddTools->addLink('Отваряне', $singleUrl, 'ef_icon=' . $singleIcon);
         }
 
