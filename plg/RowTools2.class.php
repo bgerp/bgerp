@@ -37,12 +37,12 @@ class plg_RowTools2 extends core_Plugin
             
             $singleUrl = $mvc->getSingleUrlArray($rec->id);
 
-            $icon = $mvc->getIcon($rec->id);
+            $singleIcon = $mvc->getIcon($rec->id);
             
             if($singleField = $mvc->rowToolsSingleField) {
                 
                 $attr1['class'] = 'linkWithIcon';
-                $attr1['style'] = 'background-image:url(' . sbf($icon) . ');';
+                $attr1['style'] = 'background-image:url(' . sbf($singleIcon) . ');';
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
             } else {
@@ -62,6 +62,11 @@ class plg_RowTools2 extends core_Plugin
         $singleTitle = tr($singleTitle);
         $singleTitle = mb_strtolower($singleTitle);
         
+
+        if(isset($singleUrl)) {
+            $ddTools->addLink('Отваряне', $singleUrl, 'ef_icon=' . $singleIcon);
+        }
+
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
             $ddTools->addLink('Редактиране', $editUrl, 'ef_icon=img/16/edit-icon.png');
@@ -184,7 +189,7 @@ class plg_RowTools2 extends core_Plugin
         }
         
         if($mustShow) {
-            $data->listFields =  arr::combine(array('_rowTools' => '▼'), arr::make($data->listFields, TRUE));
+            $data->listFields =  arr::combine(array('_rowTools' => '✍'), arr::make($data->listFields, TRUE));
         }
     }
 
