@@ -25,7 +25,7 @@ class plg_RowTools2 extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
         //if(!isset($mvc->rowTools2Field)) return;
         

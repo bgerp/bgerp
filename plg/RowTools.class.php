@@ -30,7 +30,7 @@ class plg_RowTools extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
         if(!arr::haveSection($fields, '-list')) return;
         
