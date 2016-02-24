@@ -121,6 +121,12 @@ abstract class cash_Document extends core_Master
     
     
     /**
+     * Кое поле отговаря на броилия парите
+     */
+    protected $personDocumentField;
+    
+    
+    /**
      * Добавяне на дефолтни полета
      * 
      * @param core_Mvc $mvc
@@ -153,6 +159,83 @@ abstract class cash_Document extends core_Master
     	 
     	// Поставяне на уникален индекс
     	$mvc->setDbUnique('number');
+    }
+    
+    
+    /**
+     *  Обработка на формата за редакция и добавяне
+     */
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+    	$folderId = $data->form->rec->folderId;
+    	$form = &$data->form;
+    	 
+    	$contragentId = doc_Folders::fetchCoverId($folderId);
+    	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
+    	$form->setDefault('contragentId', $contragentId);
+    	$form->setDefault('contragentClassId', $contragentClassId);
+    	
+    	expect($origin = $mvc->getOrigin($form->rec));
+    	$dealInfo = $origin->getAggregateDealInfo();
+    	$pOperations = $dealInfo->get('allowedPaymentOperations');
+    	
+    	$options = $mvc->getOperations($pOperations);
+    	expect(count($options));
+    	
+    	// Използваме помощната функция за намиране името на контрагента
+    	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
+    	 
+    	if($expectedPayment = $dealInfo->get('expectedPayment')){
+    		$amount = $expectedPayment / $dealInfo->get('rate');
+    		$form->setDefault('amount', $amount);
+    	}
+    	
+    	// Ако потребителя има права, логва се тихо
+    	if($caseId = $dealInfo->get('caseId')){
+    		cash_Cases::selectCurrent($caseId);
+    	}
+    	
+    	$cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    	$form->setDefault('dealCurrencyId', $cId);
+    	$form->setDefault('currencyId', $cId);
+    	
+    	$form->setOptions('operationSysId', $options);
+    	$defaultOperation = $dealInfo->get('defaultCaseOperation');
+    	
+    	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
+    		$form->setDefault('operationSysId', $defaultOperation);
+    	
+    		$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+    		if($dAmount != 0){
+    			$form->setDefault('amountDeal',  $dAmount);
+    		}
+    	}
+    	
+    	// Поставяме стойности по подразбиране
+    	$form->setDefault('valior', dt::today());
+    	
+    	$form->setDefault('peroCase', cash_Cases::getCurrent());
+    	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
+    	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+    	 
+    	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
+    	
+    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
+    		$form->setField('amount', 'input');
+    	}
+    	
+    	if($contragentClassId == crm_Companies::getClassId()){
+    		$form->setSuggestions($mvc->personDocumentField, crm_Companies::getPersonOptions($contragentId, FALSE));
+    	}
+    	
+    	if($fromDocument = Request::get('fromContainerId', 'int')){
+    		if(empty($form->rec->id)){
+    			$secondOrigin = doc_Containers::getDocument($fromDocument);
+    			if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
+    				$form->rec->notes = tr("Kъм|* ") . $secondOrigin->singleTitle . " №{$secondOrigin->that}";
+    			}
+    		}
+    	}
     }
     
     
@@ -391,24 +474,6 @@ abstract class cash_Document extends core_Master
     		$row->cashier = $cashierRow->names;
     
     		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
-    	}
-    }
-    
-    
-    /**
-     *  Обработка на формата за редакция и добавяне
-     */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-    	$form = &$data->form;
-    	
-    	if($fromDocument = Request::get('fromContainerId', 'int')){
-    		if(empty($form->rec->id)){
-    			$secondOrigin = doc_Containers::getDocument($fromDocument);
-    			if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
-    				$form->rec->notes = tr("Kъм|* ") . $secondOrigin->singleTitle . " №{$secondOrigin->that}";
-    			}
-    		}
     	}
     }
 }

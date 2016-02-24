@@ -183,9 +183,11 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$rec = &$form->rec;
 		
 		// Само артикули с основна мярка в брой, могат да имат серийни номера
-		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-		if(cat_UoM::fetchBySysId('pcs')->id != $measureId){
-			$form->setError("driverClass", "Само артикули с основна мярка 'брой' могат да имат серийни номера");
+		if(isset($rec->productId)){
+			$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+			if(cat_UoM::fetchBySysId('pcs')->id != $measureId){
+				$form->setError("driverClass", "Само артикули с основна мярка 'брой' могат да имат серийни номера");
+			}
 		}
 	}
 	

@@ -557,7 +557,13 @@ class sales_Sales extends deals_DealMaster
         
         // Ако има очаквано плащане, записваме го
         if($expectedPayment){
-        	$result->set('expectedPayment', $expectedPayment);
+        	if(empty($deliveredAmount)){
+        		$expectedPayment = $expectedPayment - $paidAmount;
+        	}
+        	
+        	if($expectedPayment > 0){
+        		$result->set('expectedPayment', $expectedPayment);
+        	}
         }
         
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции

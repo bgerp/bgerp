@@ -81,6 +81,8 @@ class bgerp_E extends core_Manager
      */
     function act_Export()
     {
+        Request::setProtected(array('classId', 'docId'));
+        
         $classId = Request::get('classId', 'class(interface=doc_DocumentIntf)');
         $docId = Request::get('docId', 'int');
         
@@ -95,7 +97,7 @@ class bgerp_E extends core_Manager
         
         $form = $this->getForm();
         
-        $form->title = "Експортиране на документ";
+        $form->title = "Генериране на линк за сваляне";
         
         $retUrl = getRetUrl();
         
@@ -105,6 +107,14 @@ class bgerp_E extends core_Manager
         
         // Възможните формати за експортване
         $exportFormats = $inst->getExportFormats();
+        
+        // Ако не може да се конвертира към PDF, да няма такъв избор
+        if ($exportFormats['pdf']) {
+            if (!doc_PdfCreator::canConvert()) {
+                unset($exportFormats['pdf']);
+            }
+        }
+        
         $form->setOptions('format', $exportFormats);
         
         $form->input();
@@ -143,7 +153,7 @@ class bgerp_E extends core_Manager
             // Стойността на mid се предава в $opt->rec->__mid
             doclog_Documents::flushActions();
             
-            $inst->logWrite('Експортиране', $dRec->id);
+            $inst->logWrite('Генериране на линк за сваляне', $dRec->id);
             
             if ($format == 'pdf') {
                 Mode::push('pdf', TRUE);
@@ -177,13 +187,16 @@ class bgerp_E extends core_Manager
             self::save($rec);
             
             $downloadUrl = self::getUrlForDownload($rec->key);
-            $form->info = "<b>" . tr('URL за сваляне|*: ') . "</b>" . $downloadUrl;
+            $form->info = "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
             
             $form->setField('format, validity', 'input=none');
 			
-            $form->toolbar->addBtn('Към документа', $retUrl, 'ef_icon = img/16/back16.png, title=Връщане към документа');
+            $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/{$format}.png, title=" . tr('Сваляне на документа'));
+            $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close16.png, title=' . tr('Връщане към документа') . ', class=fright');
+            
+            $form->title = "Линк за сваляне";
         } else {
-            $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор');
+            $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = Избор');
             $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         }
         
@@ -210,9 +223,15 @@ class bgerp_E extends core_Manager
             redirect(array('Index'), FALSE, '|Изтекла или липсваща връзка', 'error');
         }
         
-        // Маркираме в документа, като виждане
-        $logRec = doclog_Documents::fetchByMid($rec->mid);
-        doclog_Documents::opened($logRec->containerId, $rec->mid);
+        // Ако се сваля от потребител различен от създателя
+        $cu = core_Users::getCurrent();
+        if ($cu <= 0 || ($rec->createdBy != core_Users::getCurrent())) {
+            // Маркираме в документа, като виждане
+            $logRec = doclog_Documents::fetchByMid($rec->mid);
+            doclog_Documents::opened($logRec->containerId, $rec->mid);
+        }
+        
+        self::logRead('Сваляне на документа', $rec->id);
         
         $res = Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => TRUE));
     }
@@ -226,7 +245,7 @@ class bgerp_E extends core_Manager
      * 
      * @return string
      */
-    public static function getUrlForDownload($key)
+    protected static function getUrlForDownload($key)
     {
         $url = toUrl(array('E', 'D', $key), 'absolute');
         

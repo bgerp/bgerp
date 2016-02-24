@@ -121,17 +121,6 @@ class batch_Items extends core_Master {
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn('Изтрий', array($mvc, 'Truncate', 'ret_url' => TRUE), 'title=Дебъг');
-    	}
-    }
-    
-    
-    /**
      * Форсира запис за партида
      * 
      * @param int $productId - ид на артикул
@@ -215,21 +204,6 @@ class batch_Items extends core_Master {
     	// Опресняваме количеството
     	$rec->quantity = $quantity;
     	$this->save_($rec, 'quantity');
-    }
-    
-    
-    /**
-     * Изчиства записите
-     * @TODO да се махне, когато минат тестовете
-     */
-    function act_Truncate()
-    {
-    	requireRole('debug');
-    	
-    	batch_Movements::truncate();
-    	batch_Items::truncate();
-    	
-    	return new Redirect(array($this, 'list'), '|Успех');
     }
     
     

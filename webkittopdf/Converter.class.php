@@ -223,6 +223,18 @@ class webkittopdf_Converter extends core_Manager
     
     
     /**
+     * Проверява дали има функция за конвертиране
+     * 
+     * @return boolean
+     */
+    public static function isEnabled()
+    {
+        
+        return (boolean)webkittopdf_Setup::isEnabled();
+    }
+    
+    
+    /**
      * След началното установяване на този мениджър, ако е зададено -
      * той сетъпва външния пакет, чрез който ще се генерират pdf-те
      * 
