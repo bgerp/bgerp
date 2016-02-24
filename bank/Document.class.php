@@ -164,7 +164,7 @@ abstract class bank_Document extends core_Master
 			$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
 	
 			$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
 			
 			if($rec->currencyId == $rec->dealCurrencyId){
 				$rec->amount = $rec->amountDeal;

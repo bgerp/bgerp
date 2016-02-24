@@ -186,6 +186,7 @@ abstract class cash_Document extends core_Master
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     	 
     	if($expectedPayment = $dealInfo->get('expectedPayment')){
+    		bp($dealInfo->get('rate'), $expectedPayment);
     		$amount = $expectedPayment / $dealInfo->get('rate');
     		$form->setDefault('amount', $amount);
     	}
@@ -271,7 +272,7 @@ abstract class cash_Document extends core_Master
     		$rec->contragentAdress = $contragentData->address;
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-    		$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
     		
     		if($rec->currencyId == $rec->dealCurrencyId){
     			$rec->amount = $rec->amountDeal;
