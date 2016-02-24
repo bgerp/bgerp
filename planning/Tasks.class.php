@@ -85,7 +85,7 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public static function on_AfterPrepareTasks($mvc, &$data)
 	{
-		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') return;
+		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) return;
 		
 		// Може ли на артикула да се добавят задачи за производство
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
