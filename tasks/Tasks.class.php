@@ -786,7 +786,9 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
     			if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
-    				$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
+    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    					$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
+    				}
     			}
     		}
     	}
