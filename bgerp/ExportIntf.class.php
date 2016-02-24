@@ -62,7 +62,7 @@ class bgerp_ExportIntf
      * Мениджърите към които може да се прикачва се дефинират в $applyOnlyTo
      *
      * @param core_Mvc $mvc - мениджър за който се проверява
-     * @return boolean TRUE/FALSE - можели да се прикепи или не
+     * @return boolean TRUE/FALSE - може ли да се прикепи или не
      */
     function isApplicable(core_Mvc $mvc)
     {

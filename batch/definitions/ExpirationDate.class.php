@@ -99,4 +99,49 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		// Връщаме истина, ако не са се получили грешки
 		return TRUE;
 	}
+	
+	
+	/**
+	 * Кой може да избере драйвера
+	 */
+	public function toVerbal($value)
+	{
+		$mysqlValue = dt::verbal2mysql($value, FALSE);
+		$today = dt::today();
+		
+		// Ако партидата е изтекла оцветяваме я в червено
+		if($mysqlValue < $today){
+			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
+			$value = new core_ET("<span class='red'>[#value#]</span>");
+			$value->replace($valueHint, 'value');
+		} else {
+			
+			// Ако има срок на годност
+			if(isset($this->rec->time)){
+				$startDate = dt::addSecs(-1 * $this->rec->time, $mysqlValue);
+				$startDate = dt::verbal2mysql($startDate, FALSE);
+				$startTime = strtotime($startDate);
+				$endTime = strtotime($mysqlValue);
+				$currentTime = strtotime($today);
+				
+				// Намираме колко сме близо до изтичането на партидата
+				$percent = ($currentTime - $startTime) / ($endTime - $startTime);
+				$percent = round($percent, 2);
+				
+				// Оцветяваме я в оранжево ако сме наближили края и
+				if($percent > 0){
+					$confPercent = core_Packs::getConfigValue('batch', 'BATCH_EXPIRYDATE_PERCENT');
+					$percentToCompare = 1 - $confPercent;
+					
+					if($percent >= $percentToCompare){
+						$valueHint = ht::createHint($value, 'Партидата ще изтече скоро', 'warning');
+						$value = new core_ET("<span style='color:orange'>[#value#]</span>");
+						$value->replace($valueHint, 'value');
+					}
+				}
+			}
+		}
+		
+		return cls::get('type_Html')->toVerbal($value);
+	}
 }

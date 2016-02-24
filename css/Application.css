@@ -1502,7 +1502,8 @@ pre.document {
   padding: 1px !important; }
 
 .footer-notes > tbody > tr > td {
-  border: 1px solid #bbbbbb; }
+  border: 1px solid #bbbbbb;
+  vertical-align: top !important; }
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }

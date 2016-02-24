@@ -171,8 +171,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			if($masterRec->state == 'draft' && isset($masterRec->{$storeName}) && !empty($rec->batch) && $mvc->Master->batchMovementDocument == 'out'){
 				$batchArr = $BatchClass->makeArray($rec->batch);
 				
-				foreach ($batchArr as $b){
-					$batchQuantity = batch_Items::getQuantity($rec->{$mvc->productFieldName}, $b, $masterRec->{$storeName});
+				foreach ($batchArr as $key => $b){
+					$batchQuantity = batch_Items::getQuantity($rec->{$mvc->productFieldName}, $key, $masterRec->{$storeName});
 					$quantity = $rec->quantity / count($batchQuantity);
 					
 					// Ако текущото количество е по-голямо от експедираното сетваме грешка

@@ -25,13 +25,13 @@ class batch_Movements extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_AlignDecimals2,batch_Wrapper, plg_RowNumbering, plg_Sorting';
+    public $loadList = 'plg_AlignDecimals2,batch_Wrapper, plg_RowNumbering, plg_Sorting, plg_Created';
     
     
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'quantity, operation, date, document=Документ';
+    public $listFields = 'quantity, operation, date, document=Документ,createdOn=Създаване';
     
     
     /**
@@ -85,12 +85,13 @@ class batch_Movements extends core_Detail {
     	
     	if(isset($rec->productId)){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	
+    		$Definition = batch_Defs::getBatchDef($rec->productId);
+    		$row->batch = $Definition->toVerbal($rec->batch);
     	}
+    	
     	if(isset($rec->storeId)){
     		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-    	}
-    	if(isset($rec->batch)){
-    		$row->batch = cls::get('type_Varchar')->toVerbal($rec->batch);
     	}
     	
     	$row->operation = "<span style='float:center'>{$row->operation}</span>";

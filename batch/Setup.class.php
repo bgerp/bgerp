@@ -2,6 +2,18 @@
 
 
 /**
+ * При какъв процент при достигането на края на срока на годност партидите да се оцветяват
+ */
+defIfNot('BATCH_EXPIRYDATE_PERCENT', 0.15);
+
+
+/**
+ * Партиди без движения колко месеца назаде да се затварят
+ */
+defIfNot('BATCH_CLOSE_OLD_BATCHES', type_Time::SECONDS_IN_MONTH);
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -74,6 +86,15 @@ class batch_Setup extends core_ProtoSetup
         );
     
         
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
+    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на стари партиди->Без движения')
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */

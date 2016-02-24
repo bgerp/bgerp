@@ -34,7 +34,7 @@ class embed_DriverIntf
 	
 	
 	/**
-	 * Можели вградения обект да се избере
+	 * Може ли вградения обект да се избере
 	 */
 	public function canSelectDriver($userId = NULL)
 	{

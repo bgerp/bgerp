@@ -477,12 +477,12 @@ class acc_Items extends core_Manager
         $listId = $this->getCurrentListId();
         
         if($listId){
-            // Проверка можели да добавяме записи пък това перо
+            // Проверка може ли да добавяме записи пък това перо
             if ($this->haveRightFor('add', (object)array('lists' => arr::make($listId, TRUE)))) {
                 $data->toolbar->addBtn('Нов запис', array($this, 'add', 'listId' => $listId), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
             }
             
-            // Можели да импортираме от модел, ако да махаме бутона за нормално добавяне
+            // Може ли да импортираме от модел, ако да махаме бутона за нормално добавяне
             if($this->haveRightFor('insert', (object)array('listId' => $listId))){
                 $data->toolbar->removeBtn('btnAdd');
                 $data->toolbar->addBtn("Избор", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');

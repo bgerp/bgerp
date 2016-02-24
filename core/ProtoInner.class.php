@@ -33,7 +33,7 @@ class core_ProtoInner extends core_BaseClass {
 
     
     /**
-	 * Можели вградения обект да се избере
+	 * Може ли вградения обект да се избере
 	 */
     public function canSelectInnerObject($userId = NULL)
 	{
