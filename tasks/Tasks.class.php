@@ -492,7 +492,7 @@ class tasks_Tasks extends embed_Manager
 	 * Ако задачата има прогрес или очакваното и начало е <= текущото време, тя е готова за активация
 	 * 
 	 * @param stdClass $rec - запис на задачата
-	 * @return boolean - можели да се активира или не
+	 * @return boolean - може ли да се активира или не
 	 */
 	public function activateNow_($rec)
 	{

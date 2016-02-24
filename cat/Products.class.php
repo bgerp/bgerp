@@ -145,7 +145,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Можели да се редактират активирани документи
+     * Може ли да се редактират активирани документи
      */
     public $canEditActivated = TRUE;
     

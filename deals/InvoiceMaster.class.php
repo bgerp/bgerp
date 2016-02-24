@@ -42,7 +42,7 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Можели да се принтират оттеглените документи?
+     * Може ли да се принтират оттеглените документи?
      */
     public $printRejected = TRUE;
     
