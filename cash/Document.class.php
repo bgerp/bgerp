@@ -186,7 +186,6 @@ abstract class cash_Document extends core_Master
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     	 
     	if($expectedPayment = $dealInfo->get('expectedPayment')){
-    		bp($dealInfo->get('rate'), $expectedPayment);
     		$amount = $expectedPayment / $dealInfo->get('rate');
     		$form->setDefault('amount', $amount);
     	}
