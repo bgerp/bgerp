@@ -383,4 +383,17 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
+	
+	
+	/**
+	 * Връща дефолтната дефиниция за партида на артикула
+	 * Клас имплементиращ интерфейса 'batch_BatchTypeIntf'
+	 * 
+	 * @param mixed $id - ид или запис на артикул
+	 * @return NULL|core_BaseClass - клас за дефиниция на партида
+	 */
+	public function getDefaultBatchDef($id)
+	{
+		return NULL;
+	}
 }

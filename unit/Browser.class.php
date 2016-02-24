@@ -62,7 +62,9 @@ class unit_Browser
         // start the session
         $this->session->start();
         $this->session->visit($baseUrl);
-        $this->baseUrl = core_Url::getDomain($baseUrl);
+        $url = str_replace('//', '@#$@#', $baseUrl); 
+        list($this->baseUrl,) = explode('/', $url);
+        $this->baseUrl = str_replace('@#$@#', '//', $this->baseUrl);
 
         $this->page = $this->session->getPage();
     }
@@ -207,6 +209,20 @@ class unit_Browser
     }
 
 
+    public function getHtml($path = NULL, $pathType = 'css')
+    {
+        if($path) {
+            $this->node = $this->page->find($type, $selector);
+        } else {
+            $this->prepareNode();
+        }
+    
+        expect($this->node);
+    
+        return $this->node->getHtml();
+    }
+    
+    
     /**
      * Подготвя разглеждания блок, ако не е зададен
      */

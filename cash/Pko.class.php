@@ -60,6 +60,12 @@ class cash_Pko extends cash_Document
     
     
     /**
+     * Кое поле отговаря на броилия парите
+     */
+    protected $personDocumentField = "depositor";
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -67,80 +73,6 @@ class cash_Pko extends cash_Document
     	// Зареждаме полетата от бащата
     	parent::getFields($this);
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
-    }
-	
-	
-    /**
-     *  Обработка на формата за редакция и добавяне
-     */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-    	$folderId = $data->form->rec->folderId;
-    	$form = &$data->form;
-    	
-    	$contragentId = doc_Folders::fetchCoverId($folderId);
-        $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
-    	$form->setDefault('contragentId', $contragentId);
-        $form->setDefault('contragentClassId', $contragentClassId);
-    	
-        expect($origin = $mvc->getOrigin($form->rec));
-        $dealInfo = $origin->getAggregateDealInfo();
-        $pOperations = $dealInfo->get('allowedPaymentOperations');
-        
-        $options = self::getOperations($pOperations);
-        expect(count($options));
-        
-        // Използваме помощната функция за намиране името на контрагента
-    	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-    	if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
-    		$amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
-    		if($amount <= 0) {
-    		 	$amount = 0;
-    		}
-    		 		 
-    		$defaultOperation = $dealInfo->get('defaultCaseOperation');
-    		if($defaultOperation == 'customer2caseAdvance'){
-    		 	$amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
-    		 }
-    	}
-    		 	
-    	// Ако потребителя има права, логва се тихо
-	    if($caseId = $dealInfo->get('caseId')){
-	    	cash_Cases::selectCurrent($caseId);
-	    }
-    		 	
-	    $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-	    $form->setDefault('dealCurrencyId', $cId);
-	    $form->setDefault('currencyId', $cId);
-    		 		
-    	if($dealInfo->get('dealType') == sales_Sales::AGGREGATOR_TYPE){
-    		$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
-    		if($dAmount != 0){
-    		 	$form->setDefault('amountDeal',  $dAmount);
-    		 }
-    	}
-    	
-    	// Поставяме стойности по подразбиране
-    	$form->setDefault('valior', dt::today());
-        
-        if($contragentClassId == crm_Companies::getClassId()){
-    		$form->setSuggestions('depositor', crm_Companies::getPersonOptions($contragentId, FALSE));
-    	}
-        
-    	$form->setOptions('operationSysId', $options);
-    	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
-    		$form->setDefault('operationSysId', $defaultOperation);	
-        }
-        
-    	$form->setDefault('peroCase', cash_Cases::getCurrent());
-    	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
-    	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
-    	
-    	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
-	
-    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
-    		$form->setField('amount', 'input');
-    	}
     }
 
     

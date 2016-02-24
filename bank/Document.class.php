@@ -385,4 +385,65 @@ abstract class bank_Document extends core_Master
 			}
 		}
 	}
+	
+	
+	/**
+	 * Задава стойности по подразбиране от продажба/покупка
+	 *
+	 * @param core_ObjectReference $origin - ориджин на документа
+	 * @param core_Form $form - формата
+	 * @param array $options - масив с сч. операции
+	 * @return void
+	 */
+	protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
+	{
+		$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
+        $dealInfo = $origin->getAggregateDealInfo();
+        
+        $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+        $form->setDefault('dealCurrencyId', $cId);
+        $form->setDefault('rate', $dealInfo->get('rate'));
+        
+        // Ако има банкова сметка по подразбиране
+        if($bankId = $dealInfo->get('bankAccountId')){
+        
+        	// Ако потребителя има права, логва се тихо
+        	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
+        	if($bankId){
+        		bank_OwnAccounts::selectCurrent($bankId);
+        	}
+        }
+        
+        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
+        $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+        $form->setDefault('currencyId', $ownAcc->currencyId);
+        
+        $pOperations = $dealInfo->get('allowedPaymentOperations');
+        $defaultOperation = $dealInfo->get('defaultBankOperation');
+        $options = static::getOperations($pOperations);
+        expect(count($options));
+       
+        if($expectedPayment = $dealInfo->get('expectedPayment')){
+        	$amount = $expectedPayment / $dealInfo->get('rate');
+        	if($form->rec->currencyId == $form->rec->dealCurrencyId){
+        		$form->setDefault('amount', $amount);
+        	}
+        }
+       
+        if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
+        	$form->setDefault('operationSysId', $defaultOperation);
+        	 
+        	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+        	if($dAmount != 0){
+        		$form->setDefault('amountDeal',  $dAmount);
+        	}
+        }
+        
+        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
+    
+        if($form->rec->currencyId != $form->rec->dealCurrencyId){
+        	$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+        	$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
+        }
+	}
 }

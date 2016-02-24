@@ -105,68 +105,6 @@ class bank_SpendingDocuments extends bank_Document
     
     
     /**
-     * Задава стойности по подразбиране от продажба/покупка
-     * 
-     * @param core_ObjectReference $origin - ориджин на документа
-     * @param core_Form $form - формата
-     * @param array $options - масив с сч. операции
-     * @return void
-     */
-    protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
-    {
-        $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-        $dealInfo = $origin->getAggregateDealInfo();
-        $operations = $dealInfo->get('allowedPaymentOperations');
-        
-        $options = static::getOperations($operations);
-        expect(count($options));
-        
-        if($dealInfo->get('dealType') != findeals_Deals::AGGREGATOR_TYPE){
-            $amount = ($dealInfo->get('amount') - $dealInfo->get('amountPaid')) / $dealInfo->get('rate');
-            $amount = ($amount <= 0) ? 0 : $amount;
-            
-            $form->defaultOperation = $dealInfo->get('defaultBankOperation');
-            
-            if($form->defaultOperation == 'bank2supplierAdvance'){
-                $amount = $dealInfo->get('agreedDownpayment') / $dealInfo->get('rate');
-            }
-        }
-        
-        $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-        $form->setDefault('dealCurrencyId', $cId);
-        $form->setDefault('rate', $dealInfo->get('rate'));
-        
-        if($dealInfo->get('dealType') == purchase_Purchases::AGGREGATOR_TYPE){
-        	$dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
-        	if($dAmount != 0){
-        		$form->setDefault('amountDeal', $dAmount);
-        	}
-            
-            // Ако има банкова сметка по подразбиране
-            if($bankId = $dealInfo->get('bankAccountId')){
-                
-            	// Ако потребителя има права, логва се тихо
-            	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
-                if($bankId){
-                    bank_OwnAccounts::selectCurrent($bankId);
-                }
-            }
-        }
-        
-        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
-        $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
-        $form->setDefault('currencyId', $ownAcc->currencyId);
-        
-        $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
-    
-        if($form->rec->currencyId != $form->rec->dealCurrencyId){
-        	$code = currency_Currencies::getCodeById($ownAcc->currencyId);
-        	$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
-        }
-    }
-    
-    
-    /**
      * Връща платежните операции
      */
     protected static function getOperations($operations)

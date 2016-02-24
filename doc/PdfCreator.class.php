@@ -122,10 +122,7 @@ class doc_PdfCreator extends core_Manager
             
             $name = self::createPdfName($name);
             
-            // Вземаме конфигурацията на пакета doc
-            $confDoc = core_Packs::getConfig('doc');
-
-            $PdfCreatorInst = cls::get(doc_Setup::get('BGERP_PDF_GENERATOR', TRUE));
+            $PdfCreatorInst = cls::getInterface('doc_ConvertToPdfIntf', doc_Setup::get('BGERP_PDF_GENERATOR', TRUE));
             
             // Емулираме xhtml режим
             Mode::push('text', 'xhtml');
@@ -166,6 +163,26 @@ class doc_PdfCreator extends core_Manager
         }
         
         return $fileHnd;
+    }
+    
+    
+    /**
+     * Проверява дали може да се направи конвертирането
+     * 
+     * @return boolean
+     */
+    public static function canConvert()
+    {
+        try {
+            $PdfCreatorInst = cls::getInterface('doc_ConvertToPdfIntf', doc_Setup::get('BGERP_PDF_GENERATOR', TRUE));
+            
+            $res = $PdfCreatorInst->isEnabled();
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+            $res = FALSE;
+        }
+        
+        return $res;
     }
     
     

@@ -364,4 +364,20 @@ class core_BaseClass
     	
     	return $res;
     }
+
+
+    /**
+     * Създава инстанция на себе си в посочената променлива
+     */
+    public static function createIfNotExists(&$var)
+    {
+        $me = get_called_class();
+
+        if(isset($var)) {
+            expect($var instanceOf $me);
+            return;
+        }
+
+        $var = cls::get($me);
+    }
 }

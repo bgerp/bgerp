@@ -36,7 +36,7 @@ class core_Request
      * Масив с имена на променливи, които ще се предават/получават от клиента
      * чрез защита, непозволяваща тяхното манипулиране
      */
-    static $protected;
+    static $protected = array();
     
     
     /**
@@ -164,7 +164,7 @@ class core_Request
      */
     static function setProtected($protArr)
     {
-        self::$protected = arr::make($protArr, TRUE);
+        self::$protected += arr::make($protArr, TRUE);
     }
     
     

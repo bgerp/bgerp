@@ -28,6 +28,18 @@ class doc_ConvertToPdfIntf
     function convert($html, $fileName, $bucketName, $jsArr=array())
     {
         
-        return $this->class->convert($html, $fileName, $bucketName, $jsArr=array());
+        return $this->class->convert($html, $fileName, $bucketName, $jsArr);
+    }
+    
+    
+    /**
+     * Проверява дали програмата е инсталирана и работи
+     * 
+     * @return boolean
+     */
+    function isEnabled()
+    {
+        
+        return $this->class->isEnabled();
     }
 }
