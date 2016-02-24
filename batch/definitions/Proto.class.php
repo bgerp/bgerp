@@ -134,4 +134,13 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
     	return $value;
     }
+    
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function toVerbal($value)
+    {
+    	return cls::get('type_Varchar')->toVerbal($value);
+    }
 }

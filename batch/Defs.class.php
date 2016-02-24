@@ -161,19 +161,19 @@ class batch_Defs extends embed_Manager {
     	if(!empty($batch)){
     		$batch = self::getBatchArray($productId, $batch);
     		
-    		foreach ($batch as &$b){
-    			$b = cls::get('type_Varchar')->toVerbal($b);
+    		foreach ($batch as $key => &$b){
     			if(batch_Movements::haveRightFor('list')){
     				
     				if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     					Request::setProtected('batch');
-    					$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $b))->getContent();
+    					$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
     				}
     			}
     		}
     		
     		$count = count($batch);
     		$batch = implode(', ', $batch);
+    		
     		$batch = "[html]{$batch}[/html]";
     		$string .= ($string) ? "\n" : '';
     		
@@ -254,12 +254,13 @@ class batch_Defs extends embed_Manager {
     	
     	// Ако артикула е базиран на прототип, който има партида копираме му я
     	if(isset($productRec->proto)){
-    		$exRec = static::fetch("#productId = {$productRec->proto}");
-    		unset($exRec->id,$exRec->modifiedOn,$exRec->modifiedBy);
-    		$exRec->productId = $productRec->id;
-    		
-    		// Записваме точно копие на дефиницията от прототипа
-    		return self::save($exRec);
+    		if($exRec = static::fetch("#productId = {$productRec->proto}")){
+    			unset($exRec->id,$exRec->modifiedOn,$exRec->modifiedBy);
+    			$exRec->productId = $productRec->id;
+    			
+    			// Записваме точно копие на дефиницията от прототипа
+    			return self::save($exRec);
+    		}
     	}
     	
     	// Ако артикула е в папка на категория, с избрана партида връщаме нея
