@@ -4475,6 +4475,10 @@ body.narrow {
     .row-negative {
     	color: #000;
     }
+    .portal.planning {
+        border: none;
+        padding: 0;
+    }
 }
 
 .narrow .external{
@@ -4668,6 +4672,10 @@ body.narrow {
     }
     .groupTitle {
     	white-space: nowrap;
+    }
+    .portal.planning {
+        border: none;
+        padding: 0;
     }
 }
 
