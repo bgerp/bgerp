@@ -8,6 +8,7 @@
                     </td>
                     <td  rowspan='2' class='title-order'>
                         <div class='document-title'>|РАЗХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</div>
+                        <small>( [#operationSysId#] )</small><br>
                         |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
                         <!--ET_BEGIN state-->
                         <br>

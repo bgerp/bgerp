@@ -6,6 +6,7 @@
                     <td class='custom-header-bg' style="width: 35%"><b>|Платец|*</b></td>
                     <td  rowspan='2' class='centered'>
                         <div class="document-title">|разходен|*<br> |касов ордер|*</div>
+                        <small>( [#operationSysId#] )</small>
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>

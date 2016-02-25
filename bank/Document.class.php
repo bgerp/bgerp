@@ -365,6 +365,11 @@ abstract class bank_Document extends core_Master
 			$row->contragentAddress = $contragent->getFullAdress();
 	
 			$row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
+			
+			if($origin = $mvc->getOrigin($rec)){
+				$options = $origin->allowedPaymentOperations;
+				$row->operationSysId = $options[$rec->operationSysId]['title'];
+			}
 		}
 	}
 	
