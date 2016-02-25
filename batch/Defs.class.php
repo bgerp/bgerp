@@ -162,12 +162,9 @@ class batch_Defs extends embed_Manager {
     		$batch = self::getBatchArray($productId, $batch);
     		
     		foreach ($batch as $key => &$b){
-    			if(batch_Movements::haveRightFor('list')){
-    				
-    				if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    					Request::setProtected('batch');
-    					$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
-    				}
+    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    				Request::setProtected('batch');
+    				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
     			}
     		}
     		
