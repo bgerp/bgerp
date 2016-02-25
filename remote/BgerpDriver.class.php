@@ -142,7 +142,7 @@ class remote_BgerpDriver extends core_Mvc
 
 	
 	/**
-	 * Можели вградения обект да се избере
+	 * Може ли вградения обект да се избере
 	 */
 	public function canSelectDriver($userId = NULL)
 	{

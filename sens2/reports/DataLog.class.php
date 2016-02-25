@@ -166,7 +166,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
 
 
     /**
-     * Можели вградения обект да се избере
+     * Може ли вградения обект да се избере
      */
     public function canSelectInnerObject($userId = NULL)
     {

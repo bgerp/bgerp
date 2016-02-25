@@ -709,7 +709,7 @@ class doc_UnsortedFolders extends core_Master
     		$folderId = $query->fetch()->folderId;
     	}
     	
-    	// За всяко предложение, проверяваме можели да бъде добавен
+    	// За всяко предложение, проверяваме може ли да бъде добавен
     	// такъв документ като нова нишка в папката
     	foreach ($suggestions as $classId => $name){
     		if (!$folderId || !cls::get($classId)->canAddToFolder($folderId)){

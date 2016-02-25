@@ -48,7 +48,7 @@ class acc_BalanceTransfers extends core_Master
 	
 	
 	/**
-	 * Можели да се контира въпреки, че има приключени пера в транзакцията
+	 * Може ли да се контира въпреки, че има приключени пера в транзакцията
 	 */
 	public $canUseClosedItems = TRUE;
 	

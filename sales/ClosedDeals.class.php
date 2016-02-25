@@ -231,7 +231,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function canAddToThread($threadId)
     {
-    	// Можели да се добави към нишката
+    	// Може ли да се добави към нишката
     	$res = parent::canAddToThread($threadId);
     	if(!$res) return FALSE;
     	
