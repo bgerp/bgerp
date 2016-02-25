@@ -469,11 +469,17 @@ class doc_DocumentPlg extends core_Plugin
             
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach((array)$usedDocuments as $usedCid){
+                $uDoc = doc_Containers::getDocument($usedCid);
+                
                 if($rec->state == 'rejected'){
                     doclog_Used::remove($containerId, $usedCid);
+                    $msg = 'Премахнато използване';
                 } else {
                     doclog_Used::add($containerId, $usedCid);
+                    $msg = 'Използване на документа';
                 }
+                
+                $uDoc->instance->logRead($msg, $uDoc->that);
             }
         }
     }
