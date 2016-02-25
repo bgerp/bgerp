@@ -1013,5 +1013,23 @@ class sales_Sales extends deals_DealMaster
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
     	}
+    	
+    	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
+    		
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    			if($rec->contragentClassId == crm_Companies::getClassId()){
+    				$companyRec = crm_Companies::fetch($rec->contragentId);
+    				$bulgariaCountryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+    				if($companyRec->country != $bulgariaCountryId && drdata_Countries::isEu($companyRec->country)){
+    					if(empty($companyRec->vatId)){
+    						$row->vatId = tr('Трябва да бъде предоставен');
+    						$row->vatId = "<span class='red'>{$row->vatId}!</span>";
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	
     }
 }
