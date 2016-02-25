@@ -190,7 +190,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->fixedAsset)){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     			$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
     			$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
     		}
@@ -226,10 +226,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if(!empty($rec->serial)){
     		$taskId = planning_TaskSerials::fetchField("#serial = '{$rec->serial}'", 'taskId');
     		if($taskId != $rec->taskId){
-    			$url = planning_Tasks::getSingleUrlArray($taskId);
-    			$url['Q'] = $rec->serial;
     			
-    			$row->serial = ht::createLink($row->serial, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$url = planning_Tasks::getSingleUrlArray($taskId);
+    				$url['Q'] = $rec->serial;
+    				 
+    				$row->serial = ht::createLink($row->serial, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
+    			}
     		}
     	}
     }
