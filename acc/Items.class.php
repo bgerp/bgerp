@@ -169,7 +169,7 @@ class acc_Items extends core_Manager
      *
      * @internal: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
      */
-    static function on_CalcTitleNum($mvc, $rec)
+    protected static function on_CalcTitleNum($mvc, $rec)
     {
     	$rec->titleNum = $rec->title . " ({$rec->num})";
     }
@@ -180,7 +180,7 @@ class acc_Items extends core_Manager
      *
      * @internal: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
      */
-    static function on_CalcTitleLink($mvc, $rec)
+    protected static function on_CalcTitleLink($mvc, $rec)
     {
         $title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
@@ -191,20 +191,23 @@ class acc_Items extends core_Manager
     /**
      * След като е готово вербалното представяне
      */
-    static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    protected static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if($part == 'titleLink'){
-            
-            // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
-            $mvc->unique ++;
-            $unique = $mvc->unique . rand();
-            
-            $id = (is_object($rec)) ? $rec->id : $rec;
-            $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
-            
-            $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
-            $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
-            $num .= "&nbsp;{$arrow}";
+        	
+        	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+        		
+        		// Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
+        		$mvc->unique ++;
+        		$unique = $mvc->unique . rand();
+        		
+        		$id = (is_object($rec)) ? $rec->id : $rec;
+        		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
+        		
+        		$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
+        		$arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
+        		$num .= "&nbsp;{$arrow}";
+        	}
         }
     }
     
@@ -233,7 +236,7 @@ class acc_Items extends core_Manager
      * Изпълнява се след запис на перо
      * Предизвиква обновяване на обобщената информация за перата
      */
-    static function on_AfterSave($mvc, $id, $rec)
+    public static function on_AfterSave($mvc, $id, $rec)
     {
         // Информацията на кои номенклатури трябва да се обнови
         $lists = keylist::toArray($rec->lists) + keylist::toArray($rec->oldLists);
@@ -264,7 +267,7 @@ class acc_Items extends core_Manager
      * Изпълнява се преди изтриване на пера
      * Събира информация, на кои номенклатури трябва да си обновят информацията
      */
-    static function on_BeforeDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_BeforeDelete($mvc, &$numRows, $query, $cond)
     {
         $tmpQuery = clone($query);
         $query->_listsForUpdate = array();
@@ -279,7 +282,7 @@ class acc_Items extends core_Manager
      * Изпълнява се след изтриване на пера
      * Предизвиква обновяване на информацията на подбрани преди изтриване номенклатури
      */
-    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         if(count($query->_listsForUpdate)) {
             foreach($query->_listsForUpdate as $listId) {
@@ -292,7 +295,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се преди подготовката на титлата в списъчния изглед
      */
-    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
@@ -306,7 +309,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    static function on_AfterPrepareListFields($mvc, $data)
+    protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
@@ -327,7 +330,7 @@ class acc_Items extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,refreshForm,placeholder=Номенклатура');
@@ -365,7 +368,7 @@ class acc_Items extends core_Manager
     /**
      * След подготовка на ролите
      */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
             if(cls::load($rec->classId, TRUE)){
@@ -437,7 +440,7 @@ class acc_Items extends core_Manager
      * 2. От Сесията (Mode)
      * 3. Първата активна номенклатура от таблицата
      */
-    function getCurrentListId()
+    protected function getCurrentListId()
     {
         $listId = Request::get('listId', 'int');
         if($listId == -1) return $listId;
@@ -470,7 +473,7 @@ class acc_Items extends core_Manager
     /**
      * Предефиниране на подготовката на лентата с инструменти за табличния изглед
      */
-    function prepareListToolbar_(&$data)
+    public function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
         
@@ -496,7 +499,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    static function on_AfterPrepareEditToolbar($mvc, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
             if($data->form->rec->classId && $data->form->rec->objectId){
@@ -708,7 +711,7 @@ class acc_Items extends core_Manager
     /**
      * Екшън за бързо вкарване на пера в номенкатура
      */
-    function act_Insert()
+    public function act_Insert()
     {
         expect($listId = Request::get('listId', 'int'));
         $this->requireRightFor('insert', (object)array('listId' => $listId));
@@ -842,7 +845,7 @@ class acc_Items extends core_Manager
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = NULL;
