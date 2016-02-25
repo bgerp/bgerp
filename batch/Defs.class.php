@@ -163,7 +163,9 @@ class batch_Defs extends embed_Manager {
     		
     		foreach ($batch as $key => &$b){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    				Request::setProtected('batch');
+    				if(!haveRole('batch,ceo')){
+    					Request::setProtected('batch');
+    				}
     				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
     			}
     		}

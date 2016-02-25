@@ -143,9 +143,9 @@ class batch_Movements extends core_Detail {
     		}
     		
     		$data->listFilter->showFields = implode(',', $showFields);
+    		Request::setProtected('batch');
     	}
     	
-    	Request::setProtected('batch');
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->input(NULL, 'silent');
     	$data->listFilter->input();
