@@ -877,10 +877,7 @@ class core_Html
         $element->append($body, 'body');
         $element->append($hint, 'hint');
         $element->append($iconHtml, 'icon');
-        
-        jquery_Jquery::run($element, 'makeTooltipFromTitle();', TRUE);
-        jquery_Jquery::runAfterAjax($element, 'makeTooltipFromTitle');
-       
+               
     	return $element;
     }
     
