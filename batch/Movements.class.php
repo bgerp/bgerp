@@ -119,6 +119,7 @@ class batch_Movements extends core_Detail {
     	
     	$data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
     	$data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+    	//$data->listFilter->FLD('Protected', 'varchar(128)', 'input=hidden,silent');
     	
     	$data->listFilter->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
     	$data->listFilter->setOptions('productId', array('' => '') + batch_Items::getProductsWithDefs());
@@ -141,17 +142,10 @@ class batch_Movements extends core_Detail {
     			unset($showFields['productId']);
     		}
     		
-    		if(Request::get('storeId', 'varchar')){
-    			$data->listFilter->setField('storeId', 'input=hidden');
-    		} else {
-    			if(Request::get('productId', 'varchar')){
-    				unset($showFields['storeId']);
-    			}
-    		}
-    		
     		$data->listFilter->showFields = implode(',', $showFields);
     	}
     	
+    	Request::setProtected('batch');
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->input(NULL, 'silent');
     	$data->listFilter->input();
