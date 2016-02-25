@@ -107,7 +107,7 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$attr = array('ef_icon' => "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа, 'order' => 30");
+			$attr = array('ef_icon' => "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа", 'order' => 30);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['activate'])){
 				unset($attr['warning']);
 			}
