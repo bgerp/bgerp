@@ -903,7 +903,7 @@ class crm_Profiles extends core_Master
     {   
         static $cacheArr = array();
         
-        if(!$userId) {
+        if(!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
         
