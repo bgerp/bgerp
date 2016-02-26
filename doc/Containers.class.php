@@ -360,6 +360,11 @@ class doc_Containers extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
+        
+        if ($folderRec->state == 'closed') {
+            $folderRow->title = ht::createHint($folderRow->title, 'Документа се намира в затворена папка', 'warning');
+        }
+        
         $title->replace($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         // Потребител
