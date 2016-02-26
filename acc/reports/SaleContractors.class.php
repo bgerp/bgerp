@@ -121,6 +121,7 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         unset($data->listFields['debitAmount']);
         unset($data->listFields['blQuantity']);
         unset($data->listFields['blAmount']);
+        unset($data->listFields['code']);
 
         $data->listFields['creditQuantity'] = "Количество";
         $data->listFields['creditAmount'] = "Сума";
@@ -195,7 +196,7 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
     private function recToVerbal($data)
     {
     	$data->row = new stdClass();
-    
+
     	foreach (range(1, 3) as $i){
     		if(!empty($data->rec->{"ent{$i}Id"})){
     			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
