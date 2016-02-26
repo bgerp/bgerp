@@ -76,7 +76,6 @@ class backup_Start extends core_Manager
             shutdown();
         }
         
-        
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME
             . " | gzip -9 >" . EF_TEMP_PATH . "/" . self::$backupFileName
@@ -256,11 +255,12 @@ class backup_Start extends core_Manager
         
         // Взимаме мета данните
         $metaArr = self::getMETA();
-        
-        if (count($metaArr) > self::$conf->BACKUP_CLEAN_KEEP) {
+
+        if (count($metaArr['backup']) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
-            $garbage = array_slice($metaArr, 0, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP);
-            $keeped  = array_slice($metaArr, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr));
+            $garbage = array_slice($metaArr['backup'], 0, count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
+            $keeped['backup']  = array_slice($metaArr['backup'], count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr['backup']));
+            $keeped['logNames'] = $metaArr['logNames'];
             file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($keeped));
             
             // Качваме МЕТАТ-а в сториджа
