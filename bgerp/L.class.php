@@ -278,7 +278,7 @@ class bgerp_L extends core_Manager
      */
     static function getDocLink($cid, $mid)
     {
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf');
         $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, TRUE, array('m'));
         
         return $url;

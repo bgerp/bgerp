@@ -267,6 +267,20 @@ class crm_Profiles extends core_Master
             }
         }
         
+        // Ако потребителя е контрактор и текущия е супер потребите
+        // Показваме папките, в които е споделен
+        if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
+            $data->ColabFolders = new stdClass();
+            $data->ColabFolders->rowsArr = array();
+            $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+            
+            $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+            foreach ($sharedFolders as $folderId) {
+                $params['folderId'] = $folderId;
+                $data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
+            }
+        }
+        
         // Ако има userId
         if ($data->rec->userId) {
             
@@ -453,6 +467,20 @@ class crm_Profiles extends core_Master
         
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
+        
+        // Показваме достъпните папки на колабораторите
+        if ($data->ColabFolders && $data->ColabFolders->rowsArr) {
+            $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
+            
+            $folderBlockTpl = $colabTpl->getBlock('folders');
+            foreach ((array)$data->ColabFolders->rowsArr as $rows) {
+                
+                $folderBlockTpl->placeObject($rows);
+                $folderBlockTpl->append2Master();
+            }
+            
+            $tpl->prepend($colabTpl, 'colabFolders');
+        }
         
         if ($data->LoginLog) {
             if ($data->LoginLog->rowsArr) {
