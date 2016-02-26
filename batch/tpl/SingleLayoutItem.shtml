@@ -19,6 +19,10 @@
                 <td class="title-style">|Количество|*</td>
                 <td>[#quantity#]</td>
             </tr>
+            <tr>
+                <td class="title-style">|Състояние|*</td>
+                <td>[#state#]</td>
+            </tr>
         </table>
         
         [#batch_Movements#]

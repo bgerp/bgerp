@@ -53,7 +53,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing,bgerp_plg_Blank';
     
     
     /**
@@ -442,7 +442,9 @@ class planning_Jobs extends core_Master
     		}
     		
     		if($rec->storeId){
-    			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
+    			}
     		}
     		
     		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
@@ -460,7 +462,6 @@ class planning_Jobs extends core_Master
     		} elseif($rec->quantityFromTasks >= ($rec->quantity - $diff) && $rec->quantityFromTasks <= ($rec->quantity + $diff)){
     			$color = 'green';
     		} else {
-    			//$row->quantityFromTasks = ht::createHint($row->quantityFromTasks, 'Произведено е повече от колкото е планувано', 'warning');
     			$color = 'red';
     		}
     		
@@ -471,7 +472,7 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     }
@@ -741,7 +742,7 @@ class planning_Jobs extends core_Master
     		$data->notManifacturable = TRUE;
     	}
     	
-    	if(!haveRole('ceo,planning') || ($data->notManifacturable === TRUE && !count($data->rows))){
+    	if(!haveRole('ceo,planning,job') || ($data->notManifacturable === TRUE && !count($data->rows))){
     		$data->hide = TRUE;
     		return;
     	}
@@ -856,6 +857,8 @@ class planning_Jobs extends core_Master
     public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	unset($nRec->quantityProduced);
+    	unset($nRec->history);
+    	unset($nRec->dueDate);
     }
     
     

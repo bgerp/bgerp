@@ -145,7 +145,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Можели да се редактират активирани документи
+     * Може ли да се редактират активирани документи
      */
     public $canEditActivated = TRUE;
     
@@ -1511,7 +1511,9 @@ class cat_Products extends embed_Manager {
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
     	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    			$res = 'no_one';
+    		    if (!core_Users::isContractor($userId)) {
+    		        $res = 'no_one';
+    		    }
     		}
     	}
     }

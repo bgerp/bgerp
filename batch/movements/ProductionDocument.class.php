@@ -64,9 +64,9 @@ class batch_movements_ProductionDocument
 			// Ако няма склад продължаваме
 			if(!$storeId) continue;
 			
-			foreach ($batches as $b){
+			foreach ($batches as $key => $b){
 				$entries[] = (object)array('productId' => $dRec->productId,
-										   'batch'     => $b,
+										   'batch'     => $key,
 										   'storeId'   => $storeId,
 										   'quantity'  => $quantity,
 										   'operation' => $operation,

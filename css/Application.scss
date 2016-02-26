@@ -1715,6 +1715,7 @@ pre.document {
 
 .footer-notes > tbody > tr > td{
 	border: 1px solid $gray4;
+	vertical-align: top !important;
 }
 
 .document .paddingCells > tbody > tr > td{
@@ -4474,6 +4475,10 @@ body.narrow {
     .row-negative {
     	color: #000;
     }
+    .portal.planning {
+        border: none;
+        padding: 0;
+    }
 }
 
 .narrow .external{
@@ -4667,6 +4672,10 @@ body.narrow {
     }
     .groupTitle {
     	white-space: nowrap;
+    }
+    .portal.planning {
+        border: none;
+        padding: 0;
     }
 }
 

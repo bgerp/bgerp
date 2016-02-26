@@ -58,13 +58,13 @@ class batch_movements_ConsignmentProtocol
     			$quantity = $dRec->quantityInPack * $dRec->packQuantity;
     			$quantity = (count($batches) == 1) ? $quantity : $quantity / count($batches);
     			
-    			foreach ($batches as $b){
+    			foreach ($batches as $key => $b){
     				$entries[] = (object)array('productId' => $dRec->productId,
-				    						  'batch'      => $b,
-				    						  'storeId'    => $rec->storeId,
-				    						  'quantity'   => $quantity,
-				    						  'operation'  => $operation,
-				    						  'date'	   => $rec->valior,
+				    						   'batch'     => $key,
+				    						   'storeId'   => $rec->storeId,
+				    						   'quantity'  => $quantity,
+				    						   'operation' => $operation,
+				    						   'date'	   => $rec->valior,
     				);
     			}
     		}

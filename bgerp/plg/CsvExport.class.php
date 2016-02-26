@@ -31,7 +31,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     
     
     /**
-     * Можели да се добавя към този мениджър
+     * Може ли да се добавя към този мениджър
      */
     function isApplicable($mvc)
     {

@@ -82,6 +82,8 @@ class core_TableView extends core_BaseClass
         
         $i = 0;
         
+        $fieldList = array();
+        
         if (count($fields)) {
             foreach ($fields as $name => $dummy) {
                 if(!$dummy) {

@@ -56,9 +56,9 @@ class batch_movements_Shipments
 			$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
 			$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
 			
-			foreach ($batches as $b){
+			foreach ($batches as $key => $b){
 				$entries[] = (object)array('productId' => $dRec->productId,
-										   'batch'     => $b,
+										   'batch'     => $key,
 										   'storeId'   => $storeId,
 										   'quantity'  => $quantity,
 										   'operation' => $operation,

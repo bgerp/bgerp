@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-        <table class='no-border' style='width:100%;' id='inv-holder'>
+        <table style='width:100%;' id='inv-holder'>
             <tbody>
                 <tr>
                     <td>

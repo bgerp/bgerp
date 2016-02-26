@@ -42,6 +42,11 @@
                         Location: [#deliveryLocationId#]
                     </div>
                     <!--ET_END deliveryLocationId-->
+                    
+                    <!--ET_BEGIN vatId-->
+                     <div>Vat Id:<br>
+                      [#vatId#]</div>
+                     <!--ET_END vatId-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->

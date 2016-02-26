@@ -271,7 +271,7 @@ abstract class cash_Document extends core_Master
     		$rec->contragentAdress = $contragentData->address;
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-    		$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
     		
     		if($rec->currencyId == $rec->dealCurrencyId){
     			$rec->amount = $rec->amountDeal;
@@ -474,6 +474,11 @@ abstract class cash_Document extends core_Master
     		$row->cashier = $cashierRow->names;
     
     		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
+    		
+    		if($origin = $mvc->getOrigin($rec)){
+    			$options = $origin->allowedPaymentOperations;
+    			$row->operationSysId = $options[$rec->operationSysId]['title'];
+    		}
     	}
     }
 }

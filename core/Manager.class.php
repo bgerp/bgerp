@@ -542,6 +542,10 @@ class core_Manager extends core_Mvc
             $data->pager->setLimit($data->query);
         }
         
+        if (!isset($data->recs)) {
+            $data->recs = array();
+        }
+        
         // Извличаме редовете
         while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
@@ -556,7 +560,11 @@ class core_Manager extends core_Mvc
      */
     function prepareListRows_(&$data)
     {
-        if(count($data->recs)) {
+        if (!isset($data->rows)) {
+            $data->rows = array();
+        }
+        
+        if(isset($data->recs) && !empty($data->recs)) {
             foreach($data->recs as $id => $rec) {
                 $data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
             }

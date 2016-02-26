@@ -52,7 +52,7 @@ abstract class frame_BaseDriver extends core_ProtoInner
 	
 	
 	/**
-	 * Можели вградения обект да се избере
+	 * Може ли вградения обект да се избере
 	 */
 	public function canSelectInnerObject($userId = NULL)
 	{
