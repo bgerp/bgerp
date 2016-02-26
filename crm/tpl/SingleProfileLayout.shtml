@@ -13,6 +13,18 @@
 	        [#userInfo#]
 	        <!--ET_END userInfo-->
 	        <div style="clear:both;"></div>
+	        
+	        <div style="clear:both;"></div>
+            <!--ET_BEGIN colabFolders-->
+            <fieldset class="detail-info">
+	             <legend class="groupTitle">
+	                 |Достъпни папки|*
+	             </legend>
+                [#colabFolders#]
+            </fieldset>    
+            <!--ET_END colabFolders-->
+            <div style="clear:both;"></div>
+	        
 	        <div style="clear:both;"></div>
 	        
 	        <!--ET_BEGIN logTabs-->
