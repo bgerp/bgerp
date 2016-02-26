@@ -1,5 +1,11 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div class='scrolling-holder'>
     <table class='jobTable' style='width: 100%'>
+        <tr>
+            <td colspan = "3" class="cell custom-header-bg"> 
+                <b>|Задание за производство|*</b>
+            </td>
+        </tr>
         <tr>
             <td> 
                 <table>
@@ -161,11 +167,14 @@
         </tr>
          <!--ET_END SALE_INFO-->
     </table>
-     <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-          <b>|Задачи|*</b>
-     </div>
-     <div class="clearfix21 portal planning" style='border-top: none'>
-            [#Tasks#]
-            <div style='margin-top:6px'>[#btnTasks#]</div>
-     </div>
+    </div>
+    <div class='scrolling-holder'>
+		<div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
+		     <b>|Задачи|*</b>
+		</div>
+		<div class="clearfix21 portal planning" style='border-top: none'>
+		       [#Tasks#]
+		       <div style='margin-top:6px'>[#btnTasks#]</div>
+		</div>
+    </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

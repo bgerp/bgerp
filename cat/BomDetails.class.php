@@ -698,7 +698,7 @@ class cat_BomDetails extends doc_Detail
     		}
     	}
     	
-    	// Можели записа да бъде разширен
+    	// Може ли записа да бъде разширен
     	if(($action == 'expand' || $action == 'shrink') && isset($rec)){
     		
     		// Артикула трябва да е производим и да има активна рецепта

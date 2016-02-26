@@ -359,7 +359,7 @@ class core_Master extends core_Manager
               	$tabArray = array();
               	
               	// Подготвяме горни и долни табове
-              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam));
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam, 'hideSelectedTabOnPrinting' => TRUE));
               	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
               	
                 foreach($detailTabbed as $var => $order) {
@@ -394,7 +394,7 @@ class core_Master extends core_Manager
 					if ($this->{$selectedTop} && is_callable(array($this->{$selectedTop}, $method))) {
 					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
     					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
-    						
+    					
     					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detail{$data->tabTopParam}'></a>[#1#]</div>", $tabHtml);
     					$detailsTpl->append($tabHtml);
 					}

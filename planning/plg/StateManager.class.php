@@ -87,7 +87,7 @@ class planning_plg_StateManager extends core_Plugin
 		 
 		// Добавяне на бутон за събуждане
 		if($mvc->haveRightFor('wakeup', $rec)){
-			$attr = array('ef_icon' => "img/16/lightbulb.png",'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа, 'order' => 30");
+			$attr = array('ef_icon' => "img/16/lightbulb.png",'title' => "Събуждане на документа",'warning' => "Сигурни ли сте, че искате да събудите документа", 'order' => 30);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['wakeup'])){
 				unset($attr['warning']);
 			}
@@ -107,7 +107,7 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$attr = array('ef_icon' => "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа, 'order' => 30");
+			$attr = array('ef_icon' => "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурни ли сте, че искате да активирате документа", 'order' => 30);
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['activate'])){
 				unset($attr['warning']);
 			}

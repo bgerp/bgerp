@@ -4274,6 +4274,7 @@ function test(){
 	alert();
 }
 
+runOnLoad(makeTooltipFromTitle);
 runOnLoad(maxSelectWidth);
 runOnLoad(smartCenter);
 runOnLoad(sumOfChildrenWidth);

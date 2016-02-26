@@ -85,7 +85,9 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public static function on_AfterPrepareTasks($mvc, &$data)
 	{
-		// Можели на артикула да се добавят задачи за производство
+		if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) return;
+		
+		// Може ли на артикула да се добавят задачи за производство
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
 		$containerId = $data->masterData->rec->containerId;
 		
@@ -104,12 +106,11 @@ class planning_Tasks extends tasks_Tasks
 				
 				// Ако не може да бъде добавена задача не показваме реда
 				if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'innerClass' => $taskInfo->driver))) continue;
-		
-				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driver, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
-				
 				$row = new stdClass();
 				$row->title = $taskInfo->title;
+				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driver, 'totalQuantity' => $taskInfo->quantity, 'systemId' => $index, 'title' => $taskInfo->title, 'ret_url' => TRUE);
 				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача за производство');
+				
 				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
 		
 				$data->rows[] = $row;

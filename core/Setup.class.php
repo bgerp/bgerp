@@ -145,7 +145,7 @@ defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
 /**
  * Дали да може да се ресетват пароли от логин формата
  */
-defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'no');
+defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'yes');
 
 
 

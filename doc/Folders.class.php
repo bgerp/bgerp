@@ -797,6 +797,12 @@ class doc_Folders extends core_Master
             
         $haveRight = static::haveRightFor('single', $rec);
         
+        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+                $haveRight = colab_Folders::haveRightFor('single', $rec);
+            }
+        }
+        
         // Проверяваме дали има права
         if (!$rec || (!($haveRight) && $rec->access != 'private')) return FALSE;
 
