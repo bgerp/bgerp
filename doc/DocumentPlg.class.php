@@ -913,16 +913,21 @@ class doc_DocumentPlg extends core_Plugin
             $row->title = "#{$handle}";
         }
 
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
-            $url =  array();
-        }
-        
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
         $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
         
         if ($rec->state == 'rejected') {
-            $attr['class'] .= ' state-rejected';
+        	$attr['class'] .= ' state-rejected';
+        }
+        
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
+            $url =  array();
+        } else {
+        	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+        		$url =  array();
+        		unset($attr['class'], $attr['style']);
+        	}
         }
 
         $link = ht::createLink("{$row->title}", $url, NULL, $attr);
