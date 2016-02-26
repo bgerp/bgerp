@@ -205,6 +205,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
      	if($this->class->_total->vat){
+     		$vat = $this->class->_total->vat;
         	$vatAmount = $this->class->_total->vat * $rec->currencyRate;
         	$entries[] = array(
                 'amount' => $vatAmount, // В основна валута
@@ -213,8 +214,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     '411',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+                        array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                    'quantity' => $vat, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
