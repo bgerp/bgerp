@@ -125,6 +125,8 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
         unset($data->listFields['debitAmount']);
         unset($data->listFields['blQuantity']);
         unset($data->listFields['blAmount']);
+        unset($data->listFields['code']);
+        
 
         $data->listFields['creditQuantity'] = "Количество";
         $data->listFields['creditAmount'] = "Сума";
