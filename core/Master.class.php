@@ -679,6 +679,10 @@ class core_Master extends core_Manager
     	// Правим линк към единичния изглед на обекта, ако няма права за него
     	// Ако няма права не се показва като линк
     	$url = $me->getSingleUrlArray($id);
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    		$url = array();
+    	}
+    	
     	if($short === TRUE){
     		
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
@@ -721,9 +725,7 @@ class core_Master extends core_Manager
     	
     	// Ако потребителя има права за единичния изглед, подготвяме линка
     	if ($me->haveRightFor('single', $id)) {
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    			$url = array($me, 'single', $id, 'ret_url' => TRUE);
-    		}
+    		$url = array($me, 'single', $id, 'ret_url' => TRUE);
     	} 
     	
     	return $url;
