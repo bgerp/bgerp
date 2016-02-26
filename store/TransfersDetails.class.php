@@ -218,6 +218,7 @@ class store_TransfersDetails extends doc_Detail
     	
     	if($rec->newProductId){
     		$fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
     		$form->info = $storeInfo->formInfo;
     		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		

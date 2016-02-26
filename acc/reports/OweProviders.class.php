@@ -58,7 +58,7 @@ class acc_reports_OweProviders extends acc_reports_BalanceImpl
         $form->setField('to', 'input=none');
         $positionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
       
-        $form->setOptions('orderField', array("", "ent1{$positionId}" => "Контрагент", 
+        $form->setOptions('orderField', array("", "ent{$positionId}" => "Контрагент", 
                                                   "baseAmount" => "Начално салдо",
                                                   "debitAmount" => "Дебит",
                                                   "creditAmount" => "Кредит",
