@@ -362,7 +362,7 @@ class doc_Containers extends core_Manager
         $folderRow = doc_Folders::recToVerbal($folderRec);
         
         if ($folderRec->state == 'closed') {
-            $folderRow->title = ht::createHint($folderRow->title, 'Документа се намира в затворена папка', 'warning');
+            $folderRow->title = ht::createHint($folderRow->title, 'Документът се намира в затворена папка', 'warning');
         }
         
         $title->replace($folderRow->title, 'folder');
