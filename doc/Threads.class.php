@@ -2026,10 +2026,18 @@ class doc_Threads extends core_Manager
         
         // Записите за нишката
         $rec = static::fetch($params['threadId']);
-
-        // Проверяваме дали има права
-        if (!$rec || !static::haveRightFor('single', $rec)) return FALSE;
         
+        $haveRight = static::haveRightFor('single', $rec);
+
+        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+                $haveRight = colab_Threads::haveRightFor('single', $rec);
+            }
+        }
+        
+        // Проверяваме дали има права
+        if (!$rec || !$haveRight) return FALSE;
+            
         // Инстанция на първия документ
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
         

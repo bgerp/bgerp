@@ -208,6 +208,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     { 
     	$rec = &$form->rec;
     	
+    	if(isset($rec->productId)){
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+    		$form->info = $storeInfo->formInfo;
+    	}
+    	
     	parent::inputDocForm($mvc, $form);
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {

@@ -474,6 +474,11 @@ abstract class cash_Document extends core_Master
     		$row->cashier = $cashierRow->names;
     
     		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
+    		
+    		if($origin = $mvc->getOrigin($rec)){
+    			$options = $origin->allowedPaymentOperations;
+    			$row->operationSysId = $options[$rec->operationSysId]['title'];
+    		}
     	}
     }
 }

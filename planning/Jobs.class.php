@@ -857,6 +857,8 @@ class planning_Jobs extends core_Master
     public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	unset($nRec->quantityProduced);
+    	unset($nRec->history);
+    	unset($nRec->dueDate);
     }
     
     

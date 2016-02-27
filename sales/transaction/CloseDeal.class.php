@@ -161,7 +161,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     						array($docRec->contragentClassId, $docRec->contragentId),
     						array($firstDoc->className, $firstDoc->that),
     						$index,
-    						'quantity' => $quantity),
+    						'quantity' => abs($quantity)),
     				'reason' => 'Извънредни приходи - надплатени',
     		);
     

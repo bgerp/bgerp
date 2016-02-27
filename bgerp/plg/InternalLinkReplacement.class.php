@@ -39,6 +39,10 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         $act = strtolower($params['Act']);
         $threadId = $params['threadId'];
         
+        if (($act == 'list' || $act == 'default') && $ctr == 'colab_threads') {
+            $ctr = 'doc_threads';
+        }
+        
         // Папки
         if($ctr == 'doc_threads' && ($act == 'list' || $act == 'default')) {
             
@@ -63,6 +67,11 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             
             // Прекратяваме по нататъшното изпълнени на програмата
             return FALSE;
+        }
+        
+        if ($ctr == 'colab_threads' && $act == 'single') {
+            $ctr = 'doc_containers';
+            $act = 'list';
         }
         
         // Нишки
@@ -92,7 +101,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         }
         
         // Сингъл
-        if ($act == 'single') {
+        if ($act == 'single' && isset($params['id'])) {
             
             // Вземаме място
             $place = $rt->getPlace();

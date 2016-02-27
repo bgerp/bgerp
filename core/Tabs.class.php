@@ -123,7 +123,7 @@ class core_Tabs extends core_BaseClass
             
             // Ако е оказано да не рендираме селектирания таб и режима е xhtml,pdf или printing, скриваме го
             if($this->hideSelectedTabOnPrinting === TRUE && $selected){
-            	if(Mode::is('printing')){
+            	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
             		$displayNone = 'display:none !important';
             	}
             }

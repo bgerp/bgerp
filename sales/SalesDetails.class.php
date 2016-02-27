@@ -136,6 +136,17 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
+    	$rec = &$form->rec;
+    	if(isset($rec->productId)){
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
+    		
+    		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	}
+    	
     	parent::inputDocForm($mvc, $form);
     }
     

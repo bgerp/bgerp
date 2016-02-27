@@ -662,12 +662,15 @@ class core_Master extends core_Manager
     	$title = $me->getTitleById($id);
     
     	$attr = array();
-    	if($icon === TRUE) {
-    		$attr['ef_icon'] = $me->singleIcon;
-    	} elseif($icon) {
-    		$attr['ef_icon'] = $icon;
+    	
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if($icon === TRUE) {
+    			$attr['ef_icon'] = $me->singleIcon;
+    		} elseif($icon) {
+    			$attr['ef_icon'] = $icon;
+    		}
+    		$attr['class'] = 'specialLink';
     	}
-    	$attr['class'] = 'specialLink';
     	
     	if(!$id) {
     		return "<span style='color:red;'>&nbsp;- - -</span>";
@@ -676,6 +679,10 @@ class core_Master extends core_Manager
     	// Правим линк към единичния изглед на обекта, ако няма права за него
     	// Ако няма права не се показва като линк
     	$url = $me->getSingleUrlArray($id);
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    		$url = array();
+    	}
+    	
     	if($short === TRUE){
     		
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){

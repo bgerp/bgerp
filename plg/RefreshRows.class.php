@@ -184,6 +184,8 @@ class plg_RefreshRows extends core_Plugin
         // Клонираме, за да не променяме оригиналния обект
         $cTpl = clone $tpl;
         
+        jquery_Jquery::runAfterAjax($cTpl, 'makeTooltipFromTitle');
+        
         // Премахваме празните блокове
         $cTpl->removePlaces();
         

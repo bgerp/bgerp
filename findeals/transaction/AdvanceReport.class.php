@@ -75,8 +75,8 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     					$rec->creditAccount,
     					array($originRec->contragentClassId, $originRec->contragentId),   // Перо 1 - Клиент
     					array($origin->className, $origin->that), // Перо 2 - Фин. сделка
-    					array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-    					'quantity' => $vatAmount,
+    					array('currency_Currencies', $rec->currencyId), // Перо 3 - Валута
+    					'quantity' => $vatAmount / $rec->rate,
     			),
     			 
     			'debit' => array('4530', array($origin->className, $origin->that),),

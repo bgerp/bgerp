@@ -275,7 +275,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($mvc->haveRightFor('exportdoc', $data->rec)) {
             Request::setProtected(array('classId', 'docId'));
             $data->toolbar->addBtn("Сваляне", array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id),
-                            "id=btnExport{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
+                            "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
         }
     }
     
@@ -469,11 +469,17 @@ class doc_DocumentPlg extends core_Plugin
             
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach((array)$usedDocuments as $usedCid){
+                $uDoc = doc_Containers::getDocument($usedCid);
+                
                 if($rec->state == 'rejected'){
                     doclog_Used::remove($containerId, $usedCid);
+                    $msg = 'Премахнато използване';
                 } else {
                     doclog_Used::add($containerId, $usedCid);
+                    $msg = 'Използване на документа';
                 }
+                
+                $uDoc->instance->logRead($msg, $uDoc->that);
             }
         }
     }
@@ -907,16 +913,21 @@ class doc_DocumentPlg extends core_Plugin
             $row->title = "#{$handle}";
         }
 
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
-            $url =  array();
-        }
-        
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
         $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
         
         if ($rec->state == 'rejected') {
-            $attr['class'] .= ' state-rejected';
+        	$attr['class'] .= ' state-rejected';
+        }
+        
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
+            $url =  array();
+        } else {
+        	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+        		$url =  array();
+        		unset($attr['class'], $attr['style']);
+        	}
         }
 
         $link = ht::createLink("{$row->title}", $url, NULL, $attr);

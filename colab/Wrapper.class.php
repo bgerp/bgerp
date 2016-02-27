@@ -36,7 +36,7 @@ class colab_Wrapper extends plg_ProtoWrapper
         $threadId = Request::get('threadId', 'int');
         $folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
         
-        if(colab_Folders::count() != 1){
+        if(colab_Folders::count() > 1){
         	$this->TAB('colab_Folders', 'Папки', 'contractor');
         } else {
         	$query = colab_Folders::getQuery();

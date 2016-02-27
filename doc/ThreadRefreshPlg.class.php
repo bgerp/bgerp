@@ -142,6 +142,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // JS функции, които да се пуснат след AJAX
         jquery_Jquery::runAfterAjax($tpl, 'smartCenter');
+        jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
         jquery_Jquery::runAfterAjax($tpl, 'sumOfChildrenWidth');
         jquery_Jquery::runAfterAjax($tpl, 'editCopiedTextBeforePaste');
         jquery_Jquery::runAfterAjax($tpl, 'removeNarrowScroll');

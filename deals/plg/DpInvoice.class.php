@@ -236,7 +236,9 @@ class deals_plg_DpInvoice extends core_Plugin
 	    		$rec->dpOperation = 'deducted';
 
 	    		if(empty($invoicedDp) || $invoicedDp == $deductedDp){
-	    			$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    			if(!($mvc instanceof sales_Proformas)){
+	    				$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    			}
 	    		} else {
 	    			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
 						$downpayment = round(($invoicedDp - $deductedDp) / $rec->rate);

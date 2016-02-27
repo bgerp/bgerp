@@ -4087,6 +4087,9 @@ only screen and (max-width: 320px) {
     display: none; }
   .external .row-negative {
     color: black; }
+  .external .portal.planning {
+    border: none;
+    padding: 0; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -4280,7 +4283,11 @@ only screen and (max-width: 320px) {
     color: black; }
 
   .groupTitle {
-    white-space: nowrap; } }
+    white-space: nowrap; }
+
+  .portal.planning {
+    border: none;
+    padding: 0; } }
 
   .printing .specialLink {
     font-weight: bold; }
