@@ -767,6 +767,17 @@ class core_Html
 
             unset($attr['ef_icon']);
         }
+        
+        // Оцветяваме бутона в зависимост от особеностите му
+        if(!$attr['disabled']) {
+            if($warning){
+                $attr['style'] .= 'color:#772200 !important;';
+            } elseif($attr['target']) { 
+                $attr['style'] .= 'color:#008800 !important;';
+            }
+        } else {
+            $attr['style'] .= 'color:#999 !important;';
+        }
 
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
