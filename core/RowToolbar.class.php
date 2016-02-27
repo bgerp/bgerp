@@ -184,30 +184,35 @@ class core_RowToolbar extends core_BaseClass
      */
     function renderHtml_()
     {
-
-        $dropDownIcon = sbf("img/16/rowtools-btn.png", '');
-        $layout = new ET("\n" . 
-                        "<div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
-                        "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}'>");
-        
         if (!count($this->links) > 0) return;
         
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) return;
         
-        // Сортираме бутоните
-        arr::order($this->links);            
-        
-        foreach($this->links as $id => $linkObj) {
-            $attr = arr::combine($linkObj->attr, array('id' => $this->id));
-            ht::setUniqId($attr);
-            $link = ht::createLink($linkObj->title, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr); 
-            $layout->append($link, 'ROW_LINKS');
+        if(count($this->links)==1) {
+            $linkObj = current($this->links);
+            setIfNot($linkObj->attr['hint'], $linkObj->title);
+            $layout = ht::createLink('', $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $linkObj->attr);
+        } else {
+            $dropDownIcon = sbf("img/16/rowtools-btn.png", '');
+            $layout = new ET("\n" . 
+                            "<div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
+                            "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}'>");
+            // Сортираме бутоните
+            arr::order($this->links);            
+            
+            foreach($this->links as $id => $linkObj) {
+                $attr = $linkObj->attr;
+
+                ht::setUniqId($attr);
+                $link = ht::createLink($linkObj->title, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr); 
+                $layout->append($link, 'ROW_LINKS');
+            }
+            
+            $layout->push('context/lib/contextMenu.css', "CSS");
+            $layout->push('context/lib/contextMenu.js', "JS");
+            jquery_Jquery::run($layout,'prepareContextMenu();', TRUE);
+            jquery_Jquery::runAfterAjax($layout, 'prepareContextMenu');
         }
-        
-        $layout->push('context/lib/contextMenu.css', "CSS");
-        $layout->push('context/lib/contextMenu.js', "JS");
-        jquery_Jquery::run($layout,'prepareContextMenu();', TRUE);
-        jquery_Jquery::runAfterAjax($layout, 'prepareContextMenu');
         
         return $layout;
     }

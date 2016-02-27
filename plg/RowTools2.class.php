@@ -82,9 +82,9 @@ class plg_RowTools2 extends core_Plugin
             $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$rec->id},title=Изтриване на {$singleTitle}");
 
         } else {
-        	$loadList = arr::make($mvc->loadList);
-        	if(in_array('plg_Rejected', $loadList)){
-        		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)){
+        	$loadList = arr::make($mvc->loadList); 
+        	if($mvc->fields['state']->type->options['rejected']){
+        		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)  ){  
         			$rejectUrl = array(
 			            $mvc,
 			            'reject',
