@@ -525,8 +525,8 @@ class blast_ListDetails extends doc_Detail
         $exp->rule("#enclosure", "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies'");
         $exp->rule("#firstRow", "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies'");
         
-        $exp->rule("#csvData", "importCsvFromContacts('crm_Companies', #companiesGroup)");
-        $exp->rule("#csvData", "importCsvFromContacts('crm_Persons', #personsGroup)");
+        $exp->rule("#csvData", "importCsvFromContacts('crm_Companies', #companiesGroup, #listId)");
+        $exp->rule("#csvData", "importCsvFromContacts('crm_Persons', #personsGroup, #listId)");
         
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
@@ -810,8 +810,12 @@ class blast_ListDetails extends doc_Detail
     /**
      * Импортира CSV от моделите на визитника
      */
-    static function importCsvFromContacts($className, $groupId)
+    static function importCsvFromContacts($className, $groupId, $listId)
     {
+        $listRec = blast_Lists::fetch($listId);
+        
+        core_Lg::push($listRec->lg);
+
         $mvc = cls::get($className);
         
         $cQuery = $mvc->getQuery();
@@ -858,6 +862,8 @@ class blast_ListDetails extends doc_Detail
         
         $csv = array_merge(array($columns), (array)$csv);
         
+        core_Lg::pop();
+
         return $csv;
     }
 }
