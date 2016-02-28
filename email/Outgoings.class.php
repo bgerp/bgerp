@@ -1823,7 +1823,7 @@ class email_Outgoings extends core_Master
         $footerData = array();
         
         // Името на компанията
-        $footerData['company'] = tr($companyRec->name);
+        $footerData['company'] = transliterate(tr($companyRec->name));
         
         // Името на потребителя
         $footerData['name'] = transliterate($personRec->name);
@@ -1890,7 +1890,7 @@ class email_Outgoings extends core_Master
         
         // Зареждаме шаблона
         $tpl = new ET(core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_FOOTER_TEXT'));
-        
+
         // Променливи, нужни за определяне дали в реда е бил заместен плейсхолдер
         $tplClone = clone $tpl;
         $tplWithPlaceholders = $tplClone->getContent(NULL, "CONTENT", FALSE, FALSE);
