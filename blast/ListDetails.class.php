@@ -263,14 +263,16 @@ class blast_ListDetails extends doc_Detail
             $row->{$name} = $mvc->getVerbal($rec, $name);
         }
         
-        if ($rec->state != 'stopped') {
+        if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
+            if ($rec->state != 'stopped') {
             
-            // Бутон за спиране
-            $row->state = ht::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
-        } else {
+                // Бутон за спиране
+                $row->state = ht::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
+            } else {
             
-            // Бутон за активиране
-            $row->state = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Започване на изпращане към този имейл');
+                // Бутон за активиране
+                $row->state = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Започване на изпращане към този имейл');
+            }
         }
     }
     

@@ -99,7 +99,7 @@
                             </tr>
                             <tr>
                                 <td></td>
-                                <td><span class='sign_names'>( [#beneficiary#] )</span></td>
+                                <td><span class='sign_names nowrap'>( [#beneficiary#] )</span></td>
                             </tr>
                         </table>
                     </td>

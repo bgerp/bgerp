@@ -473,12 +473,18 @@ class purchase_Purchases extends deals_DealMaster
         
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
-        if($agreedDp && empty($actualDp)){
-        	$result->set('defaultCaseOperation', 'case2supplierAdvance');
-        	$result->set('defaultBankOperation', 'bank2supplierAdvance');
-        } else {
-        	$result->set('defaultCaseOperation', 'case2supplier');
-        	$result->set('defaultBankOperation', 'bank2supplier');
+        
+        // Дефолтните платежни операции са плащания към доставчик
+        $result->set('defaultCaseOperation', 'case2supplier');
+        $result->set('defaultBankOperation', 'bank2supplier');
+        
+        // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
+        // очакваме още да се плаща по аванаса
+        if($agreedDp){
+        	if(empty($actualDp) || $actualDp < $agreedDp * 0.8){
+        		$result->set('defaultCaseOperation', 'case2supplierAdvance');
+        		$result->set('defaultBankOperation', 'bank2supplierAdvance');
+        	}
         }
         
         if (isset($actions['ship'])) {

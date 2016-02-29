@@ -427,6 +427,12 @@ class doc_Folders extends core_Master
                         
                         $notifyArr = $mvc->getUsersArrForNotify($rec);
                         
+                        // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
+                        $isRejected = core_Users::checkUsersIsRejected($notifyArr);
+                        if ($isRejected) {
+                            $notifyArr += core_Users::getByRole('admin');
+                        }
+                        
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                         foreach((array)$notifyArr as $nUserId) {
                             

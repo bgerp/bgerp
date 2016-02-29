@@ -768,11 +768,11 @@ class core_Html
             unset($attr['ef_icon']);
         }
         
-        // Оцветяваме бутона в зависимост от особеностите му
+        // Оцветяваме линка в зависимост от особеностите му
         if(!$attr['disabled']) {
             if($warning){
                 $attr['style'] .= 'color:#772200 !important;';
-            } elseif($attr['target']) { 
+            } elseif($attr['target'] == '_blank') { 
                 $attr['style'] .= 'color:#008800 !important;';
             }
         } else {

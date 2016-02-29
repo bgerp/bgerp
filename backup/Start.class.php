@@ -54,7 +54,7 @@ class backup_Start extends core_Manager
             return;
         }
         
-        self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
+        self::$lockFileName = EF_TEMP_PATH . '/backupLock' . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0, 5) . '.tmp';
         self::$conf = core_Packs::getConfig('backup');
         $now = date("Y_m_d_H_i");
         self::$backupFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".full.gz";

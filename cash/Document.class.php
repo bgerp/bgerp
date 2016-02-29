@@ -185,19 +185,21 @@ abstract class cash_Document extends core_Master
     	// Използваме помощната функция за намиране името на контрагента
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     	 
+		$cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
+    	$form->setDefault('dealCurrencyId', $cId);
+    	$form->setDefault('currencyId', $cId);
+    	
     	if($expectedPayment = $dealInfo->get('expectedPayment')){
     		$amount = $expectedPayment / $dealInfo->get('rate');
-    		$form->setDefault('amount', $amount);
+    		if($form->rec->currencyId == $form->rec->dealCurrencyId){
+    			$form->setDefault('amount', $amount);
+    		}
     	}
     	
     	// Ако потребителя има права, логва се тихо
     	if($caseId = $dealInfo->get('caseId')){
     		cash_Cases::selectCurrent($caseId);
     	}
-    	
-    	$cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$form->setDefault('dealCurrencyId', $cId);
-    	$form->setDefault('currencyId', $cId);
     	
     	$form->setOptions('operationSysId', $options);
     	$defaultOperation = $dealInfo->get('defaultCaseOperation');
@@ -278,6 +280,7 @@ abstract class cash_Document extends core_Master
     		}
     		
     		$dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+    		
     		if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
     			$form->setError('amountDeal', $msg);
     		}

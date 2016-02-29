@@ -383,48 +383,55 @@ class price_ListToCustomers extends core_Detail
     {
         $isProductPublic = cat_Products::fetchField($productId, 'isPublic');
         
-        // Проверяваме дали артикула е частен или стандартен
-        if($isProductPublic == 'no'){
+        // Проверяваме имали последна цена по оферта
+        $rec = sales_QuotationsDetails::getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity);
+
+        // Ако има връщаме нея
+        if(empty($rec->price)){
         	
-        	$rec = (object)array('price' => NULL);
-        	
-        	// Ако драйвера може да върне цена, връщаме нея
-        	$Driver = cat_Products::getDriver($productId);
-        	$price = $Driver->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
-        	if(isset($price)){
-        		$rec->price = $price;
-        		return $rec;
-        	}
-        	
-        	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-        	if(!isset($quantity)){
-        		$quantityJob = cat_Products::getLastJob($productId)->quantity;
-        		if(isset($quantityJob)){
-        			$quantity = $quantityJob;
+        	// Проверяваме дали артикула е частен или стандартен
+        	if($isProductPublic == 'no'){
+        		 
+        		$rec = (object)array('price' => NULL);
+        		 
+        		// Ако драйвера може да върне цена, връщаме нея
+        		$Driver = cat_Products::getDriver($productId);
+        		$price = $Driver->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        		if(isset($price)){
+        			$rec->price = $price;
+        			return $rec;
         		}
-        	}
-        	
-        	// Търсим първо активната търговска рецепта, ако няма търсим активната работна
-        	$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-        	if(empty($bomRec)){
-        		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
-        	}
-        	
-        	// Ако има рецепта връщаме по нея
-        	if($bomRec){
-        		$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId);
-        		$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
-        		if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
-        			$defPriceListId = price_ListRules::PRICE_LIST_COST;
+        		 
+        		// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+        		if(!isset($quantity)){
+        			$quantityJob = cat_Products::getLastJob($productId)->quantity;
+        			if(isset($quantityJob)){
+        				$quantity = $quantityJob;
+        			}
         		}
-        		
-        		$rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
+        		 
+        		// Търсим първо активната търговска рецепта, ако няма търсим активната работна
+        		$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+        		if(empty($bomRec)){
+        			$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+        		}
+        		 
+        		// Ако има рецепта връщаме по нея
+        		if($bomRec){
+        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId);
+        			$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+        			if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
+        				$defPriceListId = price_ListRules::PRICE_LIST_COST;
+        			}
+        	
+        			$rec->price = cat_Boms::getBomPrice($bomRec, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $defPriceListId);
+        		}
+        	} else {
+        		// За стандартните артикули търсим себестойността в ценовите политики
+        		$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         	}
-        } else {
-        	// За стандартните артикули търсим себестойността в ценовите политики
-        	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
-        
+       
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if(!is_null($rec->price)){
         	$vat = cat_Products::getVat($productId);
