@@ -346,12 +346,14 @@ class sales_Invoices extends deals_InvoiceMaster
     		foreach ($docs as $docId){
     			$dRec = sales_Sales::fetch($docId);
     			$date = sales_Sales::getVerbal($dRec, 'valior');
-    			$closedDocuments .= " №{$dRec->id}/{$date},";
+    			$handle = sales_Sales::getHandle($dRec->id);
+    			$closedDocuments .= " #{$handle}/{$date},";
     		}
     		$closedDocuments = trim($closedDocuments, ", ");
     		$defInfo .= tr('|Съгласно договори|*: ') . $closedDocuments . PHP_EOL;
     	} else {
-    		$defInfo .= tr("Съгласно договор") . ": №{$firstRec->id}/{$firstDoc->getVerbal('valior')}";
+    		$handle = sales_Sales::getHandle($firstRec->id);
+    		$defInfo .= tr("Съгласно договор") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
     	}
     	core_Lg::pop();
     	
