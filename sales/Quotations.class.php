@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,12 +28,6 @@ class sales_Quotations extends core_Master
      * Абревиатура
      */
     public $abbr = 'Q';
-    
-    
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_Quotes';
     
     
     /**
@@ -133,12 +127,6 @@ class sales_Quotations extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
-    
-    
-    /**
-     * Брой оферти на страница
-     */
-    public $listItemsPerPage = '20';
     
     
     /**
@@ -250,7 +238,7 @@ class sales_Quotations extends core_Master
     /**
      * Преди показване на форма за добавяне/промяна.
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
        $form = $data->form;
        $rec = &$data->form->rec;
@@ -267,14 +255,17 @@ class sales_Quotations extends core_Master
 	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
        }
        
-       if(empty($rec->id)){
-       	  $mvc->populateDefaultData($form);
-       } else {
+       $contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
+       $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+       $form->setDefault('contragentClassId', $contragentClassId);
+       $form->setDefault('contragentId', $contragentId);
+       
+       if(isset($form->rec->id)){
        		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$form->rec->id}")){
-	       		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
-	        		$form->setReadOnly($fld);
-	        	}
-	       	}
+       			foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
+       				$form->setReadOnly($fld);
+       			}
+       		}
        }
       
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
@@ -378,7 +369,7 @@ class sales_Quotations extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
@@ -418,19 +409,6 @@ class sales_Quotations extends core_Master
     			sales_QuotationsDetails::insertFromSpecification($rec, $origin, $dRows);
 			}
     	}
-    }
-    
-    
-    /**
-     * Попълване на дефолт данни
-     */
-    public function populateDefaultData(core_Form &$form)
-    {
-    	expect($data = doc_Folders::getContragentData($form->rec->folderId), "Проблем с данните за контрагент по подразбиране");
-    	$contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
-    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-    	$form->setDefault('contragentClassId', $contragentClassId);
-    	$form->setDefault('contragentId', $contragentId);
     }
     
     
@@ -547,7 +525,7 @@ class sales_Quotations extends core_Master
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
@@ -721,41 +699,6 @@ class sales_Quotations extends core_Master
     	}
     	
     	return array_values($products);
-    }
-    
-    
-    /**
-     * Интерфейсен метод (@see doc_ContragentDataIntf::getContragentData)
-     */
-	public static function getContragentData($id)
-    {
-        //Вземаме данните от визитката
-        $rec = static::fetch($id);
-        if(!$rec) return;
-        
-        $contrData = new stdClass();
-        $contrData->company = $rec->company;
-         
-        //Заместваме и връщаме данните
-        if (!$rec->person) {
-        	$contrData->companyId = $rec->contragentId;
-            $contrData->tel = $rec->tel;
-            $contrData->fax = $rec->fax;
-            $contrData->pCode = $rec->pCode;
-            $contrData->place = $rec->place;
-            $contrData->address = $rec->address;
-            $contrData->email = $rec->email;
-        } else {
-        	$contrData->person = $rec->person;
-            $contrData->pTel = $rec->tel;
-            $contrData->pFax = $rec->fax;
-            $contrData->pCode = $rec->pCode;
-            $contrData->place = $rec->place;
-            $contrData->pAddress = $rec->address;
-            $contrData->pEmail = $rec->email;
-        }
-        
-        return $contrData;
     }
     
     
@@ -1040,7 +983,7 @@ class sales_Quotations extends core_Master
     /**
      * След извличане на името на документа за показване в RichText-а
      */
-    public static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
     {
     	// Ако има реф да се показва към името му
     	$reff = $mvc->getVerbal($id, 'reff');
