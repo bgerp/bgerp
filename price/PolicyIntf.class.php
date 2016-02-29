@@ -36,6 +36,6 @@ class price_PolicyIntf
      */
     function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $date, $rate, $chargeVat);
+        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $date, $rate, $chargeVat);
     }
 }
