@@ -86,6 +86,12 @@ class frame_Reports extends core_Embedder
 	public $canAdd = 'powerUser';
 	
 	
+	/**
+	 * Кой може да добавя?
+	 */
+	public $canExport = 'powerUser';
+	
+	
     /**
      * Абревиатура
      */
@@ -516,9 +522,18 @@ class frame_Reports extends core_Embedder
 
     	// Ако отчета е активен, може да се експортва
     	if($action == 'export' && isset($rec)){
-    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
-    		if($state != 'active'){
-    			$requiredRoles = 'no_one';
+    		
+    		$canExport = FALSE;
+    		
+    		if ($rec->state !== 'active') {
+    		    $requiredRoles = 'no_one';
+    		} else {
+    		    $Driver = $mvc->getDriver($rec);
+    		    
+    		    if(!$Driver->canSelectInnerObject()){
+    		    
+    		        $requiredRoles = 'no_one';
+    		    }
     		}
     	}
     	
