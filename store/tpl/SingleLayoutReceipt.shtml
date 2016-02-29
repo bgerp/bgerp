@@ -100,8 +100,8 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
-                                <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
                             </tr>
                         </table>
                     </td>
