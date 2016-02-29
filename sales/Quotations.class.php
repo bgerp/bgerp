@@ -375,7 +375,7 @@ class sales_Quotations extends core_Master
 	    	$rec = &$form->rec;
 	    	
 		    if(!$rec->currencyRate){
-			    $rec->currencyRate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
+			    $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL);
 			}
 		
 			if(!$rec->currencyRate){

@@ -211,7 +211,7 @@ class findeals_AdvanceReports extends core_Master
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
     		if(!$rec->rate){
-    			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
     			if(!$rec->rate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
