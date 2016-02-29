@@ -335,8 +335,29 @@ class deals_plg_DpInvoice extends core_Plugin
     		$colspan = count($data->listFields) - 2;
     		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
+    		$iQuery = $mvc->Master->getQuery();
+    		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued'");
+    		$iQuery->where("#id != '{$rec->invoiceId}'");
+    		$iQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
+    		$iQuery->show('id,number');
+    		
+    		$handleArr = array();
+    		while($iRec = $iQuery->fetch()){
+    			$handleArr[$iRec->id] = "№" . $mvc->Master->recToVerbal($iRec)->number;
+    		}
+    		$accruedInvoices = count($handleArr);
+    		$handleString = implode(', ', $handleArr);
     		$colspan = count($data->listFields) - 3;
-    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		
+    		if($accruedInvoices == 1){
+    			$misc = tr("по фактура|* {$handleString}");
+    		} elseif($accruedInvoices) {
+    			$misc = tr("по фактури|* {$handleString}");
+    		} else {
+    			$misc = tr("по договор|* №{$firstDoc->that} |от|* {$valior}");
+    		}
+    		
+    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . $misc . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	}
     	
     	$lastRow->placeObject($data->dpInfo);
