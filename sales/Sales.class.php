@@ -569,12 +569,18 @@ class sales_Sales extends deals_DealMaster
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
-        if($agreedDp && empty($actualDp)){
-        	$result->set('defaultCaseOperation', 'customer2caseAdvance');
-        	$result->set('defaultBankOperation', 'customer2bankAdvance');
-        } else {
-        	$result->set('defaultCaseOperation', 'customer2case');
-        	$result->set('defaultBankOperation', 'customer2bank');
+        
+        // Дефолтните платежни операции са плащания към доставчик
+        $result->set('defaultCaseOperation', 'customer2case');
+        $result->set('defaultBankOperation', 'customer2bank');
+        
+        // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
+        // очакваме още да се плаща по аванаса
+        if($agreedDp){
+        	if(empty($actualDp) || $actualDp < $agreedDp * 0.8){
+        		$result->set('defaultCaseOperation', 'customer2caseAdvance');
+        		$result->set('defaultBankOperation', 'customer2bankAdvance');
+        	}
         }
         
         if (isset($actions['ship'])) {
