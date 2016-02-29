@@ -1362,7 +1362,7 @@ class pos_Receipts extends core_Master {
     		$packId = key($packs);
     		$perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
     		
-    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, NULL, $data->rec->createdOn, 1, 'yes');
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;

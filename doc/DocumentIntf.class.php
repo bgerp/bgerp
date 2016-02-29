@@ -266,4 +266,19 @@ class doc_DocumentIntf
         
         return $this->class->getExportFormats();
     }
+    
+    
+    
+    /**
+     * Връща хеша на подадения документ
+     * 
+     * @param integer $id
+     * 
+     * @return string|NULL
+     */
+    function getDocContentHash($id)
+    {
+        
+        return $this->class->getExportFormats($id);
+    }
 }

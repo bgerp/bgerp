@@ -203,7 +203,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
                         </tr>
                     </table>
                 </td>
@@ -215,7 +215,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class='nowrap'><span class="sign_names">/[#username#]/</span></td>
+                            <td><span class="sign_names nowrap">/[#username#]/</span></td>
                         </tr>
                     </table>
                 </td>

@@ -29,7 +29,7 @@
                 </tr>
                 <tr>
                     <td></td>
-                    <td><span class='sign_names'>/ [#createdByName#] /</span></td>
+                    <td><span class='sign_names nowrap'>/ [#createdByName#] /</span></td>
                 </tr>
             </table>
         </div>
