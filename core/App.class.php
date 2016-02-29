@@ -1085,7 +1085,7 @@ class core_App
      *
      * @return boolean
      */
-    public function isLocked()
+    public static function isLocked()
     {
         if (file_exists(self::lockFileName()) && (time() - filemtime(self::lockFileName())) < 120) {
 
@@ -1118,7 +1118,7 @@ class core_App
      *
      * @return boolean
      */
-    public function unLock()
+    public static function unLock()
     {
         if (file_exists(self::lockFileName())) {
             // Изтриваме остарял файл, ако го има
@@ -1131,7 +1131,7 @@ class core_App
      *
      * @return string
      */
-    private function lockFileName()
+    private static function lockFileName()
     {
         return "bgerpSysLock" . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0,5) . ".lock";
     }
