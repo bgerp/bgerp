@@ -473,7 +473,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 			}
 			
-			
 			$originRef = $cached[$dRec->productId][$dRec->packagingId];
 		}
 	}

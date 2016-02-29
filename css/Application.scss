@@ -1380,6 +1380,9 @@ td.portal-date {
 	.no-border-bottom{
 		border-bottom: none !important;
 	}
+	.no-border td{
+	    border: none !important;
+	}
 	&.print-letter {
 		page-break-after: always;
 		max-width: 840px;
@@ -1603,11 +1606,6 @@ td.rowtools-column {
 .articleCell{
     min-width: 200px;
     max-width: 270px;
-}
-
-
-.no-border > tbody > tr > td{
-    border: none !important;
 }
 
 .wide .document table.listTable {
