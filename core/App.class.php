@@ -1079,4 +1079,61 @@ class core_App
         
         return $isSecure;
     }
+    
+    /**
+     * Проверява заключена ли е системата
+     *
+     * @return boolean
+     */
+    public function isLocked()
+    {
+        if (file_exists(self::lockFileName()) && (time() - filemtime(self::lockFileName())) < 120) {
+
+            return true;
+        } else {
+            self::unLock();
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Заключва системата
+     *
+     * @return boolean - true ако взима lock - false, ако някой друг го е взел
+     */
+    public function getLock()
+    {
+        if (!self::isLocked()) {
+            return touch(self::lockFileName());
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Отключва системата
+     *
+     * @return boolean
+     */
+    public function unLock()
+    {
+        if (file_exists(self::lockFileName())) {
+            // Изтриваме остарял файл, ако го има
+            @unlink(self::lockFileName());
+        }        
+    }
+    
+    /**
+     * Връща името на семафора за заключване
+     *
+     * @return string
+     */
+    private function lockFileName()
+    {
+        return "bgerpSysLock" . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0,5) . ".lock";
+    }
+    
 }
