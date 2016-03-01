@@ -37,7 +37,7 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
+    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
    
     
     /**
