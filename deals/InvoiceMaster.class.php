@@ -119,16 +119,8 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    }
-    
-    
-    /**
-     * След като се поготви заявката за модела
-     */
-    public static function on_AfterGetQuery(core_Mvc $mvc, &$query)
-    {
-    	// Сортираме низходящо по номер
-    	$query->orderBy('#number', 'DESC');
+    	
+    	$data->query->orderBy('#number', 'DESC');
     }
     
     
