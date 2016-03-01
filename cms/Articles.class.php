@@ -767,8 +767,7 @@ class cms_Articles extends core_Master
      */
     public static function getChangeUrl($id)
     {
-        $class = get_called_class();
-        $res = array($class, 'changeFields', $id);
+        $res = array(get_called_class(), 'changeFields', $id);
         
         return $res;
     }
