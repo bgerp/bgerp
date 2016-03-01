@@ -257,7 +257,8 @@ class acc_plg_Contable extends core_Plugin
             	$valior = isset($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
-                if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
+                // Само активни документи с транзакция и в незатворен период могат да се сторнират
+                if (($periodRec->state != 'closed') || ($rec->state != 'active') || empty($jRec)) {
                     $requiredRoles = 'no_one';
                 }
             }
