@@ -628,6 +628,12 @@ class blast_ListDetails extends doc_Detail
                     if (empty($key) || count($err)) {
                         $errLinesArr[] = $row;
                         
+                        if (empty($key)) {
+                            self::logWarning('Грешка при импортиране: Липсва ключове поле за записа - ' . $row, NULL, 1);
+                        } else {
+                            self::logWarning('Грешка при импортиране: ' . implode(', ', $err) . ' - ' . $row, NULL, 1);
+                        }
+                        
                         $skipCnt++;
                         continue;
                     }
