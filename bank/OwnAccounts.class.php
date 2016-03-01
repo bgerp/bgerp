@@ -25,7 +25,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
+    var $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type, blAmount=Сума';
+    var $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**

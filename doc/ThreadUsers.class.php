@@ -19,7 +19,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, doc_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Modified, doc_Wrapper, plg_RowTools2';
     
     
     /**

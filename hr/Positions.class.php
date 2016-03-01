@@ -33,7 +33,7 @@ class hr_Positions extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing, plg_Created';
+    var $loadList = 'plg_RowTools2, hr_Wrapper, plg_Printing, plg_Created';
     
     
     /**
@@ -77,7 +77,7 @@ class hr_Positions extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = '✍,professionId,employmentTotal,employmentOccupied';
+    var $listFields = 'professionId,employmentTotal,employmentOccupied';
     
     
     /**

@@ -258,7 +258,7 @@ class email_Incomings extends core_Master
         if ($imapConn->connect() === FALSE) {
             $imapLastErr = $imapConn->getLastError();
             $errMsg = "Грешка при свързване";
-            email_Accounts::logErr("{$errMsg}: {$imapLastErr}", $accRec->id, 14);
+            email_Accounts::logWarning("{$errMsg}: {$imapLastErr}", $accRec->id, 14);
             $htmlRes .= "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapLastErr . "";
             
             return;

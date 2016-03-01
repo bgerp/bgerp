@@ -37,7 +37,7 @@ class fileman_Data extends core_Manager {
 	/**
 	 * 
 	 */
-    var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools';
+    var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools2';
     
     
     /**

@@ -57,8 +57,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул','tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter,input=hidden');
 		$mvc->FLD('quantity', 'double', 'caption=Количество','tdClass=small-field,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
@@ -364,10 +364,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			// Ако артикула не е складируем, скриваме полето за мярка
 			if(!isset($productInfo->meta['canStore'])){
-				$form->setField('packagingId', 'input=hidden');
 				$measureShort = cat_UoM::getShortName($form->rec->packagingId);
 				$form->setField('quantity', "unit={$measureShort}");
-			}
+			} else {
+    			$form->setField('packagingId', 'input');
+    		}
 			
 			if(isset($mvc->LastPricePolicy)){
 				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);

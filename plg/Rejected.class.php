@@ -221,6 +221,14 @@ class plg_Rejected extends core_Plugin
                 $requiredRoles = 'no_one';
             }
             
+            if ($action == 'restore' || $action == 'reject') {
+                if ($mvc instanceof core_Master) {
+                    if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+            
             if(!$requiredRoles && ($action == 'restore' || $action == 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
                 
                 $requiredRoles = 'user';

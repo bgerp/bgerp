@@ -203,7 +203,7 @@ class sales_Quotations extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
-        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,oldFieldName=rate');
+        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Освободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
@@ -372,18 +372,12 @@ class sales_Quotations extends core_Master
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
 	    	
-		    if(!$rec->currencyRate){
-			    $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL);
-			}
-		
-			if(!$rec->currencyRate){
-				$form->setError('currencyRate', "Не може да се изчисли курс");
-				return;
-			}
-			
-	    	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
-			    $form->setWarning('rate', $msg);
-			}
+	    	if(empty($rec->currencyRate)){
+	    		$rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL);
+	    		if(!$rec->currencyRate){
+	    			$form->setError('currencyRate', "Не може да се изчисли курс");
+	    		}
+	    	}
 		}
     }
     

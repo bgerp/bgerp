@@ -2,6 +2,18 @@
 
 
 /**
+ * Период за преобразуване на предупрежденията в грешки
+ */
+defIfNot('LOG_WARNING_TO_ERR_PERIOD', 1200);
+
+
+/**
+ * Брой записи над които предупрежденията ще са грешки
+ */
+defIfNot('LOG_WARNING_TO_ERR_CNT', 3);
+
+
+/**
  * 
  *
  *
@@ -54,8 +66,18 @@ class log_Setup extends core_ProtoSetup
     		'migrate::removeMaxCrc',
     		'migrate::repairType'
         );
-        
-        
+	
+	
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+             
+            'LOG_WARNING_TO_ERR_PERIOD' => array ('time(suggestions=5 мин, 20 мин, 1 час)', 'caption=Период за преобразуване на предупрежденията в грешки->Максимално време'),
+            'LOG_WARNING_TO_ERR_CNT' => array ('int', 'caption=Брой записи над които предупрежденията ще са грешки->Брой'),
+    );
+    
+    
     /**
      * 
      */

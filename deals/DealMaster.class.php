@@ -1378,11 +1378,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields = arr::make($fields);
     	$allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
     	$allowedFields['originId'] = TRUE;
+    	$allowedFields['currencyRate'] = TRUE;
     	
     	// Проверяваме подадените полета дали са позволени
     	if(count($fields)){
     		foreach ($fields as $fld => $value){
-    			expect(array_key_exists($fld, $allowedFields));
+    			expect(array_key_exists($fld, $allowedFields), $fld);
     		}
     	}
     	 

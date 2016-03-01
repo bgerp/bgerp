@@ -101,6 +101,11 @@ class log_System extends core_Manager
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
         $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
+        
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('className');
+        $this->setDbIndex('objectId');
+        $this->setDbIndex('type');
     }
     
     
@@ -125,6 +130,35 @@ class log_System extends core_Manager
         Debug::log($logStr);
         
         expect(is_string($className));
+        
+        // Ако има предупреждения, които се повтарят за определн период от време, да стават на грешки
+        if ($type == 'warning') {
+            
+            $query = self::getQuery();
+            $time = dt::subtractSecs(log_Setup::get('WARNING_TO_ERR_PERIOD'));
+            $query->where("#type = 'warning'");
+            $query->where("#createdOn >= '{$time}'");
+            $query->where(array("#className = '[#1#]'", $className));
+            $query->where(array("#detail = '[#1#]'", $action));
+            $query->show('id');
+            
+            // Ако сме достигнали лимита за предупреждения, тогава трябва да стане грешка
+            if ($query->count() >= log_Setup::get('WARNING_TO_ERR_CNT')) {
+                
+                $queryErr = self::getQuery();
+                $queryErr->where("#type = 'err'");
+                $queryErr->where("#createdOn >= '{$time}'");
+                $queryErr->where(array("#className = '[#1#]'", $className));
+                $queryErr->where(array("#detail = '[#1#]'", $action));
+                $queryErr->show('id');
+                $queryErr->limit(1);
+                
+                // Ако вече е добавен грешка, да не се добавя пак
+                if (!$queryErr->count()) {
+                    $type = 'err';
+                }
+            }
+        }
         
         $rec = new stdClass();
         $rec->className = $className;

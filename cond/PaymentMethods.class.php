@@ -25,7 +25,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2,plg_Translate';
+    var $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2,plg_Translate';
     
     
     /**
