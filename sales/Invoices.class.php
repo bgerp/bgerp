@@ -403,7 +403,7 @@ class sales_Invoices extends deals_InvoiceMaster
         
         if($rec->state == 'active'){
         	if(empty($rec->number)){
-        		$rec->number = self::getNexNumber($rec);
+        		$rec->number = self::getNextNumber($rec);
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
         }
@@ -563,7 +563,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * 
      * @return int - следващия номер на фактура
      */
-    protected static function getNexNumber($rec)
+    protected static function getNextNumber($rec)
     {
     	$conf = core_Packs::getConfig('sales');
     	if($rec->numlimit == 2){
