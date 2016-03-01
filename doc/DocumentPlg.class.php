@@ -433,7 +433,9 @@ class doc_DocumentPlg extends core_Plugin
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
         } catch (core_exception_Expect $e) {
-          
+            
+            reportException($e);
+            
             // Ако възникне грешка при записването
             $mvc->logErr("Грешка при записване на файла", $id);
         }

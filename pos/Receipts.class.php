@@ -838,7 +838,7 @@ class pos_Receipts extends core_Master {
     			
     			// Намираме цената от ценовата политика
     			$Policy = cls::get('price_ListToCustomers');
-    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId);
+    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId, $product->quantity);
     			
     			// Колко са двете цени с приспадната отстъпка
     			$rPrice1 = $product->price * (1 - $product->discount);

@@ -487,6 +487,7 @@ class blast_ListDetails extends doc_Detail
         	foreach($data->recs as $rec) {
 		        if($mvc->haveRightFor('export', $rec)){
 		        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');
+		        	break;
 		        }
         	}
         }
@@ -603,6 +604,7 @@ class blast_ListDetails extends doc_Detail
             set_time_limit(round(count($csvRows) / 20) + 10);
             
             $newCnt = $skipCnt = $updateCnt = 0;
+            $errLinesArr = array();
             
             if(count($csvRows)) {
                 foreach($csvRows as $row) {
@@ -623,7 +625,15 @@ class blast_ListDetails extends doc_Detail
                     $key = $rec->{$keyField};
                     
                     // Ако ключа е празен, скипваме текущия ред
-                    if(empty($key) || count($err)) {
+                    if (empty($key) || count($err)) {
+                        $errLinesArr[] = $row;
+                        
+                        if (empty($key)) {
+                            self::logWarning('Грешка при импортиране: Липсва ключове поле за записа - ' . $row, NULL, 1);
+                        } else {
+                            self::logWarning('Грешка при импортиране: ' . implode(', ', $err) . ' - ' . $row, NULL, 1);
+                        }
+                        
                         $skipCnt++;
                         continue;
                     }
@@ -659,6 +669,12 @@ class blast_ListDetails extends doc_Detail
                     $this->save($rec);
                 }
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
+                
+                // Ако има грешни линни да се добавят в 'csv' файл
+                if ($errLinesArr) {
+                    $fh = fileman::absorbStr(implode("\n", $errLinesArr), 'exportCsv', 'listDetailsExpErr.csv');
+                    status_Messages::newStatus('|Пропуснатите линии са добави в|*: ' . fileman::getLinkToSingle($fh));
+                }
             } else {
                 $exp->message = tr("Липсват данни за добавяне");
             }
@@ -678,7 +694,7 @@ class blast_ListDetails extends doc_Detail
         $err = array();
         
         // Валидираме полето, ако е имейл
-        if($rec->email) {
+        if (trim($rec->email)) {
             $rec->email = strtolower($rec->email);
             
             // Масив с всички имейли
@@ -706,7 +722,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->mobile) {
+        if (trim($rec->mobile)) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->mobile, $code);
@@ -718,7 +734,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->fax) {
+        if (trim($rec->fax)) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->fax, $code);
