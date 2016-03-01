@@ -756,5 +756,20 @@ class cms_Articles extends core_Master
         
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
-
+    
+    
+    /**
+     * Връща URL за промяна на записа
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public static function getChangeUrl($id)
+    {
+        $class = get_called_class();
+        $res = array($class, 'changeFields', $id);
+        
+        return $res;
+    }
 }
