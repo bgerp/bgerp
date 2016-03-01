@@ -162,7 +162,7 @@ class findeals_AdvanceReports extends core_Master
     public function description()
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
-    	$this->FLD("valior", 'date()', 'caption=Дата, mandatory');
+    	$this->FLD("valior", 'date', 'caption=Дата, mandatory');
     	$this->FLD("number", 'int', 'caption=Номер');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,removeAndRefreshForm=rate');
     	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
