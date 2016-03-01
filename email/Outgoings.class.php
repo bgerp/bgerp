@@ -175,7 +175,7 @@ class email_Outgoings extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText');
-        $this->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote=3)', 'caption=Съобщение,mandatory');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
@@ -1355,6 +1355,11 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Да се цитират документа, ако не се редактира
+        if (!$data->form->rec->id) {
+            $data->form->fields['body']->type->params['appendQuote'] = 3;
+        }
+        
         $form = $data->form;
         $rec = $form->rec;
         
