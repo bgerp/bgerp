@@ -22,11 +22,11 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     protected function setFields($mvc)
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=productCell leftCol wrap');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field,smartCenter');
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-    	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory');
-		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
+    	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		
 		// Допълнително

@@ -135,8 +135,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Плащане
 		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
-		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
-		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс');
+		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
+		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
 		
 		// Наш персонал
@@ -188,13 +188,11 @@ abstract class deals_DealMaster extends deals_DealBase
         	// Не може да се сменя ДДС-то ако има вече детайли
         	$Detail = $mvc->mainDetail;
         	if($mvc->$Detail->fetch("#{$mvc->$Detail->masterKey} = {$form->rec->id}")){
-        		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
+        		foreach (array('chargeVat', 'currencyId', 'deliveryTermId') as $fld){
         			$form->setReadOnly($fld, isset($form->rec->{$fld}) ? $form->rec->{$fld} : $mvc->fetchField($form->rec->id, $fld));
         		}
         	}
         }
-        
-        $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
         $form->setField('sharedUsers', 'input=none');
         
         // Търговеца по дефолт е отговорника на контрагента
@@ -303,16 +301,11 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $rec = &$form->rec;
         
-        // Ако не е въведен валутен курс, използва се курса към датата на документа 
-        if (empty($rec->currencyRate)) {
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
-            if(!$rec->currencyRate){
-            	$form->setError('currencyRate', "Не може да се изчисли курс");
-            }
-        } else {
-        	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
-		    	$form->setWarning('currencyRate', $msg);
-			}
+        if(empty($rec->currencyRate)){
+        	$rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+        	if(!$rec->currencyRate){
+        		$form->setError('currencyRate', "Не може да се изчисли курс");
+        	}
         }
         
         $form->rec->paymentState = 'pending';

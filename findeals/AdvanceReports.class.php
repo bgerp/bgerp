@@ -162,10 +162,10 @@ class findeals_AdvanceReports extends core_Master
     public function description()
     {
     	$this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
-    	$this->FLD("valior", 'date()', 'caption=Дата, mandatory');
+    	$this->FLD("valior", 'date', 'caption=Дата, mandatory');
     	$this->FLD("number", 'int', 'caption=Номер');
-    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код');
-    	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс');
+    	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,removeAndRefreshForm=rate');
+    	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
     	$this->FLD('total', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
@@ -191,9 +191,6 @@ class findeals_AdvanceReports extends core_Master
     	$data->form->setDefault('operationSysId', 'debitDeals');
     	
     	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->get('currency')));
-    	$data->form->setDefault('rate', $dealInfo->get('rate'));
-    	
-    	$data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
     
     
@@ -210,15 +207,9 @@ class findeals_AdvanceReports extends core_Master
     		$rec->creditAccount = $operation['credit'];
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
     		if(!$rec->rate){
-    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
-    			if(!$rec->rate){
-    				$form->setError('rate', "Не може да се изчисли курс");
-    			}
-    		} else {
-    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
-    				$form->setWarning('rate', $msg);
-    			}
+    			$form->setError('rate', "Не може да се изчисли курс");
     		}
     	}
     }
@@ -244,14 +235,6 @@ class findeals_AdvanceReports extends core_Master
     {
     	$rec->total /= $rec->rate;
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
-    	
-    	if($fields['-single']){
-    		
-    		if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-    			unset($row->rate);
-    		}
-    	}
-    	
     	$row->title = $mvc->getLink($rec->id, 0);
     }
     
