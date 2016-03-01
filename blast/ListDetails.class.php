@@ -604,6 +604,7 @@ class blast_ListDetails extends doc_Detail
             set_time_limit(round(count($csvRows) / 20) + 10);
             
             $newCnt = $skipCnt = $updateCnt = 0;
+            $errLinesArr = array();
             
             if(count($csvRows)) {
                 foreach($csvRows as $row) {
@@ -624,7 +625,9 @@ class blast_ListDetails extends doc_Detail
                     $key = $rec->{$keyField};
                     
                     // Ако ключа е празен, скипваме текущия ред
-                    if(empty($key) || count($err)) {
+                    if (empty($key) || count($err)) {
+                        $errLinesArr[] = $row;
+                        
                         $skipCnt++;
                         continue;
                     }
@@ -660,6 +663,12 @@ class blast_ListDetails extends doc_Detail
                     $this->save($rec);
                 }
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
+                
+                // Ако има грешни линни да се добавят в 'csv' файл
+                if ($errLinesArr) {
+                    $fh = fileman::absorbStr(implode("\n", $errLinesArr), 'exportCsv', 'listDetailsExpErr.csv');
+                    status_Messages::newStatus('Пропуснатите линии са добави в: ' . fileman::getLinkToSingle($fh));
+                }
             } else {
                 $exp->message = tr("Липсват данни за добавяне");
             }
@@ -679,7 +688,7 @@ class blast_ListDetails extends doc_Detail
         $err = array();
         
         // Валидираме полето, ако е имейл
-        if($rec->email) {
+        if (trim($rec->email)) {
             $rec->email = strtolower($rec->email);
             
             // Масив с всички имейли
@@ -707,7 +716,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->mobile) {
+        if (trim($rec->mobile)) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->mobile, $code);
@@ -719,7 +728,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->fax) {
+        if (trim($rec->fax)) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->fax, $code);
