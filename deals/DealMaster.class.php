@@ -301,9 +301,11 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $rec = &$form->rec;
         
-        $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
-        if(!$rec->currencyRate){
-        	$form->setError('currencyRate', "Не може да се изчисли курс");
+        if(empty($rec->currencyRate)){
+        	$rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+        	if(!$rec->currencyRate){
+        		$form->setError('currencyRate', "Не може да се изчисли курс");
+        	}
         }
         
         $form->rec->paymentState = 'pending';
