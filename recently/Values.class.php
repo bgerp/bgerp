@@ -28,7 +28,7 @@ class recently_Values extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $loadList = 'plg_Created,plg_RowTools,recently_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,recently_Wrapper';
     
     
     /**

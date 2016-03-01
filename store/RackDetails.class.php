@@ -31,7 +31,7 @@ class store_RackDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, store_Wrapper';
+    var $loadList = 'plg_RowTools2, store_Wrapper';
     
     
     /**

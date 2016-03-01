@@ -24,7 +24,7 @@ class blogm_Categories extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, blogm_Wrapper';
+	var $loadList = 'plg_RowTools2, blogm_Wrapper';
 	
 	
 	/**

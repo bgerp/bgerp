@@ -38,13 +38,13 @@ class cat_products_Params extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, paramId, paramValue, tools=Пулт';
+    var $listFields = 'productId=Продукт №, paramId, paramValue';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
     
     
     /**

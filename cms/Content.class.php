@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,6 +20,7 @@ class cms_Content extends core_Manager
      * Име под което записваме в сесията текущия език на CMS изгледа
      */
     const CMS_CURRENT_LANG = 'CMS_CURRENT_LANG';
+    
     
     /**
      * Заглавие
@@ -36,7 +37,7 @@ class cms_Content extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter,cms_DomainPlg';
+    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter,cms_DomainPlg';
 
 
     /**
@@ -54,43 +55,43 @@ class cms_Content extends core_Manager
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cms,admin,ceo';
+    public $canWrite = 'cms,admin,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cms,admin,ceo';
+    public $canRead = 'cms,admin,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	public $canList = 'ceo,admin,cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	public $canSingle = 'ceo,admin,cms';
     
 
     /**
      * Полета за листовия изглед
      */
-    var $listFields = 'order,✍,menu,source,state';
+    public $listFields = 'order,menu,source,state';
 
 
     /**
      * Поле за инструментите на реда
      */
-    var $rowToolsField = '✍';
+    public $rowToolsField = '✍';
     
     
     /**
      * По кои полета ще се търси
      */
-    var $searchFields = 'menu';
+    public $searchFields = 'menu';
 
 
     /**

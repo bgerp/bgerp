@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field,smartCenter');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field,smartCenter,input=hidden');
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
@@ -331,15 +331,23 @@ class sales_QuotationsDetails extends doc_Detail {
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
-    		 
+    		$form->setDefault('packagingId', key($packs));
+    		
     		if(isset($mvc->LastPricePolicy)){
     			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
     		}
-    	} else {
-    		$form->setReadOnly('packagingId');
+    		
+    		// Ако артикула не е складируем, скриваме полето за мярка
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		if(!isset($productInfo->meta['canStore'])){
+    			$measureShort = cat_UoM::getShortName($rec->packagingId);
+    			$form->setField('packQuantity', "unit={$measureShort}");
+    		} else {
+    			$form->setField('packagingId', 'input');
+    		}
     	}
     	
     	if($form->isSubmitted()){

@@ -67,7 +67,7 @@ class fileman_Buckets extends core_Manager {
         $this->FLD("lifetime", "int", 'caption=Живот');
 
         // Плъгини за контрол на записа и модифицирането
-        $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
+        $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools2,fileman_Wrapper');
     }
 
 

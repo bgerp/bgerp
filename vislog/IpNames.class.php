@@ -38,7 +38,7 @@ class vislog_IpNames extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "vislog_Wrapper,plg_RowTools";
+    var $loadList = "vislog_Wrapper,plg_RowTools2";
     
     
     /**

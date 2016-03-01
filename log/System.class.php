@@ -101,6 +101,11 @@ class log_System extends core_Manager
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
         $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
+        
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('className');
+        $this->setDbIndex('objectId');
+        $this->setDbIndex('type');
     }
     
     
