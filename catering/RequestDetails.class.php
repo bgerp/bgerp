@@ -23,6 +23,12 @@ class catering_RequestDetails extends core_Detail
     
     
     /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = "Детайл на поръчка";
+    
+    
+    /**
      * Страница от менюто
      */
     var $pageMenu = "Кетъринг";
@@ -31,7 +37,7 @@ class catering_RequestDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, 
+    var $loadList = 'plg_Created, plg_RowTools2, 
                      catering_Wrapper, plg_Sorting, 
                      Menu=catering_Menu, 
                      MenuDetails=catering_MenuDetails,
@@ -49,7 +55,7 @@ class catering_RequestDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num, personId, companyName, menuDetailsId, quantity, price=Цена, tools=Ред';
+    var $listFields = 'num, personId, companyName, menuDetailsId, quantity, price=Цена';
     
     
     /**

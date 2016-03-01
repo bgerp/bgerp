@@ -32,7 +32,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
     
     
     /**
@@ -68,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,likeProductId=Влагане като,conversionRate=Отношение';
+    public $listFields = 'likeProductId=Влагане като,conversionRate=Отношение';
     
     
     /**

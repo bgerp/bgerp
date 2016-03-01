@@ -44,7 +44,7 @@ class acc_Limits extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State2, plg_AlignDecimals2, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, acc_WrapperSettings, plg_State2, plg_AlignDecimals2, plg_Search';
     
     
     /**
@@ -86,7 +86,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,limitQuantity,type,side,sharedUsers=Нотифициране,state';
+    public $listFields = 'accountId,when,startDate,limitDuration,limitQuantity,type,side,sharedUsers=Нотифициране,state';
     
     
     /**

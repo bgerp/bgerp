@@ -31,7 +31,7 @@ class cms_Includes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper';
+    public $loadList = 'plg_Created, plg_Modified, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper';
     
          
      

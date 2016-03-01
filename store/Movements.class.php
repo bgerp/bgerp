@@ -26,7 +26,7 @@ class store_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RefreshRows, plg_State';
+    var $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RefreshRows, plg_State';
     
     
     /**
@@ -86,7 +86,7 @@ class store_Movements extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,palletId, positionView=Местене, workerId, state, tools=Пулт';
+    var $listFields = 'id,palletId, positionView=Местене, workerId, state';
     
     
     /**

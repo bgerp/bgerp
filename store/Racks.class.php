@@ -86,7 +86,7 @@ class store_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'rackView';
+    var $listFields = 'rackView=Стелаж';
     
     
     /**

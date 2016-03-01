@@ -6,10 +6,10 @@
  * Клас 'drdata_Languages' -
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   drdata
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @data      http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
@@ -45,7 +45,7 @@ class drdata_Languages extends core_Manager {
         $this->FLD('nativeName', 'varchar', 'caption=Име->Собствено');
         $this->FLD('code', 'varchar(2)', 'caption=ISO 639-1->2 буквен код,rem=ISO 639-1 2 буквен код,tdClass=centerCol');
       
-        $this->load('plg_RowTools');
+        $this->load('plg_RowTools2');
         
         $this->setDbUnique('code');
        

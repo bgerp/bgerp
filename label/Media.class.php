@@ -65,7 +65,7 @@ class label_Media extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State';
     
     
 	/**

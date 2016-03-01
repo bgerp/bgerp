@@ -33,7 +33,7 @@ class price_History extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_AutoFilter';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_AutoFilter';
                     
     
     /**

@@ -37,14 +37,14 @@ class newsbar_News extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'newsbar_Wrapper, plg_Created, plg_State2, plg_RowTools, newsbar_Plugin';
+    var $loadList = 'newsbar_Wrapper, plg_Created, plg_State2, plg_RowTools2, newsbar_Plugin';
     
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,news,startTime,endTime,lang,color,transparency,state';
+    var $listFields = 'news,startTime,endTime,lang,color,transparency,state';
 
 
     /**
