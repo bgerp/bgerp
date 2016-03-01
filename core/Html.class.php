@@ -772,7 +772,7 @@ class core_Html
         if(!$attr['disabled']) {
             if($warning){
                 $attr['style'] .= 'color:#772200 !important;';
-            } elseif($attr['target']) { 
+            } elseif(isset($attr['target']) && $attr['target'] != '_parent') { 
                 $attr['style'] .= 'color:#008800 !important;';
             }
         } else {
