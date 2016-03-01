@@ -81,14 +81,14 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
     	// Количество в основна мярка
-    	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
+    	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
     	
     	// Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
     	// няма стойност, приема се за единица.
-    	$mvc->FLD('quantityInPack', 'double', 'input=none,smartCenter');
+    	$mvc->FLD('quantityInPack', 'double', 'input=none');
     	
     	// Цена за единица продукт в основна мярка
-    	$mvc->FLD('price', 'double', 'caption=Цена,input=none,smartCenter');
+    	$mvc->FLD('price', 'double', 'caption=Цена,input=none');
     	
     	// Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
     	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter');
@@ -96,7 +96,7 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-    	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
     	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
         $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
     	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
