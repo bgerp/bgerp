@@ -3,13 +3,13 @@
 
 
 /**
- * Фактури
+ * Изходящи фактури
  *
  *
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -164,7 +164,6 @@ class sales_Invoices extends deals_InvoiceMaster
     		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
     		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
-    		'paymentType' 		  => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|defMethod',
     		'numlimit'			  => 'lastDocUser|lastDoc',
     );
@@ -221,10 +220,8 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('fromProformaId', 'key(mvc=sales_Proformas,allowEmpty)', 'silent, input=hidden');
         
         $conf = core_Packs::getConfig('sales');
-        if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
-        	$this->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин,before=accountId');
-        }
-        
+        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
+       
         $this->setDbUnique('number');
     }
 	
@@ -497,6 +494,17 @@ class sales_Invoices extends deals_InvoiceMaster
     			}
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
+    		
+    		if(empty($rec->paymentType)){
+    			$rec->paymentType = $mvc->getAutoPaymentType($rec);
+    		}
+    		
+    		if(!empty($rec->paymentType)){
+    			$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
+    			$row->paymentType = tr('Плащане') . " " . mb_strtolower($row->paymentType);
+    			
+    			$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
+    		}
     	}
     }
 
@@ -524,15 +532,12 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        
         $rec = $self->fetch($id);
         
         if (!$rec->number) {
-            
             $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
         } else {
             $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-        
             $hnd = $self->abbr . $number;
         }
         
@@ -787,5 +792,54 @@ class sales_Invoices extends deals_InvoiceMaster
    		$def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_INVOICE_DEF_TPL_BG : $conf->SALE_INVOICE_DEF_TPL_EN;
    		 
    		return $def;
+   	}
+   	
+   	
+   	/**
+   	 * Намира автоматичния метод на плащане
+   	 * 
+   	 * Проверява се какъв тип документи за плащане (активни) имаме в нишката. Ако имаме само ПКО - полето е "В брой", ако имаме само "ПБД" - полето е "По банков път", ако имаме само Прихващания - полето е "С прихващане".
+   	 * ако във фактурата имаме плащане с по-късна дата от сегашната - "По банка"
+   	 * каквото е било плащането в предишната фактура на същия контрагент
+   	 * ако по никакъв начин не може да се определи
+ 
+   	 * @param stdClass $rec - запис
+   	 * @return NULL|cash|bank|intercept - дефолтния начин за плащане в брой, по банка, с прихващане
+   	 * или NULL ако не може да бъде намерено
+   	 */
+   	private function getAutoPaymentType($rec)
+   	{
+   		// Проверяваме имали ПБД-та, ПКО-та или Прихващания
+   		$hasPko = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
+   		$hasBankDocument = bank_IncomeDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
+   		$hasInterceptDocument = findeals_DebitDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
+   		
+   		// Ако има само приходни касови ордер, плащането е в брой
+   		if(!empty($hasPko) && empty($hasBankDocument)) return 'cash';
+   		
+   		// Ако има само приходни банкови документи, плащането е по банка
+   		if(!empty($hasBankDocument) && empty($hasPko)) return 'bank';
+   		
+   		// Ако има прихващащ документ и няма ПКО-та и ПБД-та, плащането е с прихващане
+   		if(!empty($hasInterceptDocument) && empty($hasPko) && empty($hasBankDocument)) return 'intercept';
+   		
+   		// Ако крайната дата на плащане е по-голяма от датата на фактурата
+   		if(isset($rec->dueDate)){
+   			if($rec->dueDate > $rec->date) return 'bank';
+   		}
+   		
+   		// От последната фактура за клиента
+   		$iQuery = $this->getQuery();
+   		$iQuery->where("#folderId = {$rec->folderId} AND #state = 'active' AND #id != {$rec->id}");
+   		$iQuery->orderBy("id", "DESC");
+   		$iQuery->show('paymentType');
+   		if($iRec = $iQuery->fetch()){
+   			if(!empty($iRec->paymentType)){
+   				
+   				return $iRec->paymentType;
+   			}
+   		}
+   		
+   		return NULL;
    	}
 }
