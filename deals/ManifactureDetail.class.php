@@ -30,11 +30,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
 		$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,smartCenter,mandatory');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
-		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
+		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
 	}
 	

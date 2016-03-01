@@ -2992,4 +2992,30 @@ class doc_DocumentPlg extends core_Plugin
         $res['pdf'] = 'PDF формат';
         $res['html'] = 'HTML формат';
     }
+    
+    
+    /**
+     * Връща хеш стойността за документа
+     * Дефолтна реализация на интерфейсен метод
+     * 
+     * @see doc_DocumentIntf
+     * 
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param integer $id
+     */
+    function on_AfterGetDocContentHash($mvc, &$res, $id)
+    {
+        static $hashArr = array();
+        
+        if (!$id) return ;
+        
+        if (!isset($hashArr[$id])) {
+            $rec = $mvc->fetchRec($id);
+            
+            $hashArr[$id] = md5($res . '|' . $rec->title . '|' . $res->subject . '|' . $rec->body);
+        }
+        
+        $res = $hashArr[$id];
+    }
 }

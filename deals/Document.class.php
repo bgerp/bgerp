@@ -48,9 +48,9 @@ abstract class deals_Document extends core_Master
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
     	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
-    	$mvc->FLD('amount', 'double(smartRound)', 'caption=Платени,mandatory,summary=amount');
+    	$mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
     	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal');
-    	$mvc->FLD('amountDeal', 'double(smartRound)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
+    	$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
     	$mvc->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
@@ -253,11 +253,16 @@ abstract class deals_Document extends core_Master
 	
 			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 			$nextHandle = findeals_Deals::getHandle($rec->dealId);
-			$row->nextHandle = ht::createLink("#" . $nextHandle, findeals_Deals::getSingleUrlArray($rec->dealId));
 		
 			$origin = $mvc->getOrigin($rec->id);
 			$fromHandle = $origin->getHandle();
-			$row->dealHandle = ht::createLink("#" . $fromHandle, $origin->getSingleUrlArray());
+			$row->dealHandle = "#" . $fromHandle;
+			$row->nextHandle = "#" . $nextHandle;
+			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+				$row->dealHandle = ht::createLink($row->dealHandle, $origin->getSingleUrlArray());
+				$row->nextHandle = ht::createLink($row->nextHandle, findeals_Deals::getSingleUrlArray($rec->dealId));
+			}
+			
 			$row->dealCurrencyId = $origin->fetchField('currencyId');
 		}
 	}
