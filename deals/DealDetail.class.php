@@ -77,7 +77,7 @@ abstract class deals_DealDetail extends doc_Detail
     public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
     	// Количество в основна мярка
@@ -225,12 +225,11 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		// Ако артикула не е складируем, скриваме полето за мярка
     		if(!isset($productInfo->meta['canStore'])){
-    			$form->setField('packagingId', 'input=hidden');
     			$measureShort = cat_UoM::getShortName($form->rec->packagingId);
     			$form->setField('packQuantity', "unit={$measureShort}");
+    		} else {
+    			$form->setField('packagingId', 'input');
     		}
-    	} else {
-    		$form->setReadOnly('packagingId');
     	}
     	 
     	if ($form->isSubmitted() && !$form->gotErrors()) {

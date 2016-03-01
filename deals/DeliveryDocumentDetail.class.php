@@ -29,7 +29,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	public static function setDocumentFields($mvc)
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount,input=hidden');
 		
 		$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -104,8 +104,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
-		} else {
-			$form->setReadOnly('packagingId');
+			
+			if(!isset($productInfo->meta['canStore'])){
+				$measureShort = cat_UoM::getShortName($rec->packagingId);
+				$form->setField('packQuantity', "unit={$measureShort}");
+			} else {
+				$form->setField('packagingId', 'input');
+			}
 		}
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
