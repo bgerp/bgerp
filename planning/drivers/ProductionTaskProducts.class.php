@@ -96,6 +96,12 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Активен таб на менюто
+     */
+    public $currentTab = 'Задачи';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
