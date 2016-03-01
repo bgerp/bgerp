@@ -72,6 +72,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$row->totalQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->totalQuantity);
 			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
 		}
+		
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 	}
 	
 	
