@@ -109,7 +109,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
-    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field');
+    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field');
     	$this->FLD("planedQuantity", 'double(smartRound)', 'mandatory,caption=Планувано к-во,smartCenter');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
@@ -244,7 +244,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
-    	
+    		
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
@@ -372,7 +372,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		
     		if(cat_Products::getByProperty('canConvert', NULL, 1)){
     			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
-    				$data->toolbar->addBtn('Суровини и материали', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
+    				$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
     			}
     		}
     		

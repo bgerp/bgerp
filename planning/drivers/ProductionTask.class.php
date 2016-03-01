@@ -285,7 +285,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         
         if (!empty($row->originId)) {
-            $resArr['originId'] =  array('name' => tr('Към задание'), 'val' =>"[#originId#]");
+            $resArr['originId'] =  array('name' => tr('Задание'), 'val' =>"[#originId#]");
         }
         
         if (!empty($row->timeStart)) {

@@ -257,8 +257,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Рендираме таблицата с вложените материали
-    	$misc = ($data->masterData->rec->inputStoreId) ? "|вложени от склад|*: {$data->masterData->row->inputStoreId}" : "за изписване от незавършеното производство";
-    	$data->listFields['productId'] = '|Суровини и материали|* ' . "<small style='font-weight:normal'>( {$misc} )</small>";
+    	$misc = ($data->masterData->rec->inputStoreId) ? "|от склад|*: {$data->masterData->row->inputStoreId}" : "за изписване от незавършеното производство";
+    	$data->listFields['productId'] = '|Вложени артикули|* ' . "<small style='font-weight:normal'>( {$misc} )</small>";
     	
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
@@ -272,7 +272,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Добавяне на бутон за нов материал
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'input'))){
-    		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+    		$tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Рендираме таблицата с отпадъците
