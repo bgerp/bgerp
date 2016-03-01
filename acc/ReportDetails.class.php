@@ -280,9 +280,6 @@ class acc_ReportDetails extends core_Manager
         }
         
         $limitTitle = tr("Лимити");
-        if(acc_Limits::haveRightFor('list') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-        	$limitTitle = ht::createLink($limitTitle, array('acc_Limits', 'list'), FALSE, 'title=Към счетоводните лимити');
-        }
         $tpl->replace($limitTitle, 'LIMIT_LINK');
         
         $data->listFields['tools'] = ' ';
