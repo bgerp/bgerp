@@ -22,7 +22,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     protected function setFields($mvc)
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=productCell leftCol wrap');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field,smartCenter');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field,smartCenter,input=hidden');
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
     	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
@@ -81,7 +81,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     	if($form->rec->productId){
     		$packs = cat_Products::getPacks($rec->productId);
+    		$form->setField('packagingId', 'input');
     		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
     		
     		// Слагаме цената от политиката за последна цена
     		if(isset($mvc->LastPricePolicy)){
@@ -90,8 +92,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
     		}
-    	} else {
-    		$form->setReadOnly('packagingId');
     	}
     	
     	if($form->isSubmitted()){

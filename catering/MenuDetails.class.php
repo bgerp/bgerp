@@ -21,6 +21,11 @@ class catering_MenuDetails extends core_Detail
      */
     var $title = "Детайли на меню";
     
+    /**
+     * Заглавие в единично число
+     */
+    var $singleTitle = "Детайл на меню";
+    
     
     /**
      * Страница от менюто
@@ -31,7 +36,7 @@ class catering_MenuDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, 
+    var $loadList = 'plg_Created, plg_RowTools2, 
                      catering_Wrapper, plg_Sorting, 
                      Menu=catering_Menu, 
                      EmployeesList=catering_EmployeesList, 

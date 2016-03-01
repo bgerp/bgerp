@@ -21,7 +21,7 @@ class drdata_Vats extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,plg_Sorting,drdata_Wrapper,plg_RowTools';
+    var $loadList = 'plg_Sorting,drdata_Wrapper,plg_RowTools2';
     
     
     /**

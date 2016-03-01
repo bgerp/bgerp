@@ -276,13 +276,15 @@ class acc_ReportDetails extends core_Manager
         }
     	
         if(isset($data->balanceRec->periodId)){
-        	$tpl->replace(acc_Periods::getVerbal($data->balanceRec->periodId, 'title'), 'periodId');
+        	$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
+        	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+        		$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id));
+        	}
+        	
+        	$tpl->replace($link, 'periodId');
         }
         
         $limitTitle = tr("Лимити");
-        if(acc_Limits::haveRightFor('list') && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-        	$limitTitle = ht::createLink($limitTitle, array('acc_Limits', 'list'), FALSE, 'title=Към счетоводните лимити');
-        }
         $tpl->replace($limitTitle, 'LIMIT_LINK');
         
         $data->listFields['tools'] = ' ';

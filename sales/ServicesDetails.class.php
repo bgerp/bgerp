@@ -119,13 +119,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
-    	$form->setField('packagingId','input=hidden');
     	parent::inputDocForm($mvc, $form);
-    	
-    	if(isset($form->rec->packagingId)){
-    		$measureShort = cat_UoM::getShortName($form->rec->packagingId);
-    		$form->setField('packQuantity', "unit={$measureShort}");
-    	}
     }
     
     

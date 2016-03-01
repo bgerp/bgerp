@@ -168,7 +168,7 @@ class doc_Comments extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,input=hidden,reduceText');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments, appendQuote)', 'caption=Коментар,mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Коментар,mandatory');
     }
     
     
@@ -189,6 +189,11 @@ class doc_Comments extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Да се цитират документа, ако не се редактира
+        if (!$data->form->rec->id) { 
+            $data->form->fields['body']->type->params['appendQuote'] = 'appendQuote';
+        }
+        
         $rec = $data->form->rec;
         
         //Ако добавяме нови данни

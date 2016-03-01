@@ -31,7 +31,7 @@ class bank_Accounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected, plg_Search';
+    var $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search';
     
     
     /**
@@ -43,7 +43,7 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'tools=Пулт, iban, contragent=Контрагент, currencyId';
+    var $listFields = 'iban, contragent=Контрагент, currencyId';
     
     
     /**

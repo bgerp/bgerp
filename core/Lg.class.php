@@ -68,7 +68,7 @@ class core_Lg extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools,plg_AutoFilter';
+    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2,plg_AutoFilter';
     
     
     /**

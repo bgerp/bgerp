@@ -98,7 +98,7 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden');
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
@@ -223,9 +223,9 @@ class store_TransfersDetails extends doc_Detail
     		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		
     		$packs = cat_Products::getPacks($rec->newProductId);
+    		$form->setField('packagingId', 'input');
     		$form->setOptions('packagingId', $packs);
-    	} else {
-    		$form->setReadOnly('packagingId');
+    		$form->setDefault('packagingId', key($packs));
     	}
     	
     	if ($form->isSubmitted()){

@@ -36,7 +36,7 @@ class crm_ext_CourtReg extends core_Detail
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'crm_Wrapper,plg_RowTools';
+    var $loadList = 'crm_Wrapper,plg_RowTools2';
     
     
     /**

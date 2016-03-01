@@ -113,8 +113,8 @@
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         
                                         <!--ET_BEGIN paymentType-->
-                                        <div><span class='quiet'>Type:</span>  [#paymentType#]</div>
-                                        <!--ET_BEGIN DUE_paymentType-->
+                                        <div>[#paymentType#]</div>
+                                        <!--ET_END paymentType-->
                                         
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
