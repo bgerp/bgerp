@@ -87,7 +87,7 @@
                             </tr>
                             <tr>
                                 <td></td>
-                                <td><span class='sign_names'>( [#depositor#] )</span></td>
+                                <td><span class='sign_names nowrap'>( [#depositor#] )</span></td>
                             </tr>
                         </table>
                     </td>

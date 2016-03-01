@@ -104,14 +104,14 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field,smartCenter');
+        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
-        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
+        $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-        $this->FLD('discount', 'percent(maxDecimals=2,Min=0)', 'caption=Отстъпка');
+        $this->FLD('discount', 'percent(maxDecimals=2,Min=0)', 'caption=Отстъпка,smartCenter');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
@@ -156,7 +156,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterPrepareListRecs($mvc, $data)
+    protected static function on_AfterPrepareListRecs($mvc, $data)
     {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
@@ -249,7 +249,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Преди подготвяне на едит формата
      */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
     	if($optional = Request::get('optional')){
     		$prepend = ($optional == 'no') ? 'задължителен' : 'опционален';
@@ -261,7 +261,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Преди показване на форма за добавяне/промяна.
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
         $rec = &$form->rec;
@@ -320,7 +320,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	/**
      * Извиква се след въвеждането на данните от Request във формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
@@ -353,10 +353,10 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			
     			if(empty($policyInfo->price)){
-    				$policyInfo->price = $mvc->tryToCalcPrice($rec);
+    				$policyInfo->price = self::tryToCalcPrice($rec);
     			}
     			
     			if (empty($policyInfo->price)) {
@@ -423,15 +423,15 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Опитваме се да намерим цена за записа, ако има два предишни записа със цени
      */
-    private function tryToCalcPrice($rec)
+    private static function tryToCalcPrice($rec)
     {
     	// Имали за този запис поне два други записа със различни количества
-    	$checkQuery = $this->getQuery();
+    	$checkQuery = self::getQuery();
     	$checkQuery->where("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}");
     	$checkQuery->show('quantity,price');
     	$checkQuery->orderBy("id", 'DESC');
     	$checkQuery->limit(2);
-    		
+    	
     	// Ако да изчисляваме третата цена по формула
     	// (Q1 / Q3) * (P1 - (P1*Q1 - P2*Q2) / (Q1 - Q2)) + (P1*Q1 - P2*Q2) / (Q1 - Q2)
     	if($checkQuery->count() == 2){
@@ -453,7 +453,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	/**
      * Подготовка на бутоните за добавяне на нови редове на фактурата 
      */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	unset($data->toolbar->buttons['btnAdd']);
     }
@@ -463,7 +463,7 @@ class sales_QuotationsDetails extends doc_Detail {
      * След подготовка на детайлите, изчислява се общата цена
      * и данните се групират
      */
-    public static function on_AfterPrepareDetail($mvc, $res, $data)
+    protected static function on_AfterPrepareDetail($mvc, $res, $data)
     {
 	    // Групираме резултатите по продукти и дали са опционални или не
     	$mvc->groupResultData($data);
@@ -716,7 +716,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Преди подготовка на полетата за показване в списъчния изглед
      */
-    public static function on_AfterPrepareListRows($mvc, $data)
+    protected static function on_AfterPrepareListRows($mvc, $data)
     {
     	if(!count($data->recs)) return;
     	 
@@ -784,7 +784,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
@@ -864,5 +864,40 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	return $price * $currencyRate;
+    }
+    
+
+    /**
+     * Връща последната цена за посочения продукт направена оферта към контрагента
+     *
+     * @return object $rec->price  - цена
+     * 				  $rec->discount - отстъпка
+     */
+    public static function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = 1)
+    {
+    	$query = sales_QuotationsDetails::getQuery();
+    	$query->EXT('contragentClassId', 'sales_Quotations', 'externalName=contragentClassId,externalKey=quotationId');
+    	$query->EXT('contragentId', 'sales_Quotations', 'externalName=contragentId,externalKey=quotationId');
+    	$query->EXT('state', 'sales_Quotations', 'externalName=state,externalKey=quotationId');
+    	$query->EXT('date', 'sales_Quotations', 'externalName=date,externalKey=quotationId');
+    	 
+    	// Филтрираме офертите за да намерим на каква цена последно сме
+    	// оферирали артикула за посоченото количество
+    	$query->where("#productId = {$productId} AND #quantity = {$quantity}");
+    	$query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
+    	$query->where("#state = 'active'");
+    	$query->orderBy("quotationId", 'DESC');
+    	$query->orderBy("id", 'DESC');
+    	
+    	$res = (object)array('price' => NULL);
+    	if($rec = $query->fetch()){
+    		$res->price = $rec->price;
+    
+    		if($rec->discount){
+    			$res->discount = $rec->discount;
+    		}
+    	}
+    	 
+    	return $res;
     }
 }

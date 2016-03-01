@@ -100,6 +100,7 @@ class doc_HiddenContainers extends core_Manager
         $from = dt::subtractSecs($conf->DOC_SHOW_DOCUMENTS_LAST_ON);
         
         $i = 0;
+        $kId = 0;
         
         $userId = core_Users::getCurrent();
         
@@ -107,8 +108,13 @@ class doc_HiddenContainers extends core_Manager
         
         $firstCid = NULL;
         
+        $cKeys = array_keys($containerRecsArr);
+        
         foreach ((array)$containerRecsArr as $cId => $cRec) {
             $i++;
+            
+            $nextKey = $cKeys[++$kId];
+            $nextRec = $containerRecsArr[$nextKey];
             
             if (!$firstCid && $cRec->threadId) {
                 $firstCid = doc_Threads::getFirstContainerId($cRec->threadId);
@@ -129,6 +135,24 @@ class doc_HiddenContainers extends core_Manager
             } else {
                 
                 if ($cRec->state != 'rejected') {
+                    
+                    // Ако следващия документ е създаден от същия потребител
+                    // Не е оттеглен и съдържанието е идентично
+                    // Скриваме текущия документ, ако не е бил показан изрично
+                    if (($nextRec && $nextRec->state != 'rejected') 
+                        && ($nextRec->docClass == $cRec->docClass)
+                        && ($cRec->createdBy == $nextRec->createdBy)
+                        && (cls::load($cRec->docClass, TRUE))) {
+                            $clsInst = cls::get($cRec->docClass);
+                            
+                            $cContentHash = $clsInst->getDocContentHash($cRec->docId);
+                            $nContentHash = $clsInst->getDocContentHash($nextRec->docId);
+                            
+                            if ($cContentHash == $nContentHash) {
+                                self::$hiddenDocsArr[$cId] = TRUE;
+                                continue;
+                            }
+                    }
                     
                     // По новите от да не се показват
                     if ($cRec->modifiedOn > $from) {

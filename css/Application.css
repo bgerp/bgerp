@@ -1217,6 +1217,8 @@ td.portal-date {
     background-color: #e0e0e0; }
   .document .no-border-bottom {
     border-bottom: none !important; }
+  .document .no-border td {
+    border: none !important; }
   .document.print-letter {
     page-break-after: always;
     max-width: 840px;
@@ -1413,9 +1415,6 @@ td.rowtools-column {
 .articleCell {
   min-width: 200px;
   max-width: 270px; }
-
-.no-border > tbody > tr > td {
-  border: none !important; }
 
 .wide .document table.listTable {
   margin-bottom: 0; }

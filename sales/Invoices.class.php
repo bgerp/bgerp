@@ -201,7 +201,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кои полета да могат да се променят след активация
      */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo';
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId';
     
     
     /**
@@ -346,12 +346,14 @@ class sales_Invoices extends deals_InvoiceMaster
     		foreach ($docs as $docId){
     			$dRec = sales_Sales::fetch($docId);
     			$date = sales_Sales::getVerbal($dRec, 'valior');
-    			$closedDocuments .= " №{$dRec->id}/{$date},";
+    			$handle = sales_Sales::getHandle($dRec->id);
+    			$closedDocuments .= " #{$handle}/{$date},";
     		}
     		$closedDocuments = trim($closedDocuments, ", ");
     		$defInfo .= tr('|Съгласно договори|*: ') . $closedDocuments . PHP_EOL;
     	} else {
-    		$defInfo .= tr("Съгласно договор") . ": №{$firstRec->id}/{$firstDoc->getVerbal('valior')}";
+    		$handle = sales_Sales::getHandle($firstRec->id);
+    		$defInfo .= tr("Съгласно договор") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
     	}
     	core_Lg::pop();
     	
@@ -401,7 +403,7 @@ class sales_Invoices extends deals_InvoiceMaster
         
         if($rec->state == 'active'){
         	if(empty($rec->number)){
-        		$rec->number = self::getNexNumber($rec);
+        		$rec->number = self::getNextNumber($rec);
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
         }
@@ -561,7 +563,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * 
      * @return int - следващия номер на фактура
      */
-    protected static function getNexNumber($rec)
+    protected static function getNextNumber($rec)
     {
     	$conf = core_Packs::getConfig('sales');
     	if($rec->numlimit == 2){

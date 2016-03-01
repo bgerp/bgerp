@@ -132,7 +132,7 @@ class acc_plg_Contable extends core_Plugin
             
         	unset($error);
             // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($mvc->getValiorDate($rec), $error)){
+            if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
                 $error = ",error={$error}";
             }
             
@@ -254,10 +254,11 @@ class acc_plg_Contable extends core_Plugin
             	
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = isset($jRec) ? $jRec->valior : $mvc->getValiorDate($rec);
+            	$valior = isset($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
-                if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
+                // Само активни документи с транзакция и в незатворен период могат да се сторнират
+                if (($periodRec->state != 'closed') || ($rec->state != 'active') || empty($jRec)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -266,7 +267,7 @@ class acc_plg_Contable extends core_Plugin
                 
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = !empty($jRec) ? $jRec->valior : $mvc->getValiorDate($rec);
+            	$valior = !empty($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
             	
             	$periodRec = acc_Periods::fetchByDate($valior);
                 
@@ -291,7 +292,7 @@ class acc_plg_Contable extends core_Plugin
             if(isset($rec)){
             	
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
-            	$periodRec = acc_Periods::fetchByDate($mvc->getValiorDate($rec));
+            	$periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
             	if ($periodRec->state == 'closed') {
             		$requiredRoles = 'no_one';
             	}
@@ -551,7 +552,7 @@ class acc_plg_Contable extends core_Plugin
      * @param date $res
      * @param mixed $rec
      */
-    public static function on_AfterGetValiorDate($mvc, &$res, $rec)
+    public static function on_AfterGetValiorValue($mvc, &$res, $rec)
     {
     	if(!$res){
     		$rec = $mvc->fetchRec($rec);

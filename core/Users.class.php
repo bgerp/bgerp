@@ -364,6 +364,30 @@ class core_Users extends core_Manager
     
     
     /**
+     * Проверява дали има някой потребител, който не е оттеглен от подадения масив
+     * 
+     * @param array $usersArr
+     * 
+     * @return boolean
+     */
+    public static function checkUsersIsRejected($usersArr = array())
+    {
+        $usersArr = arr::make($usersArr, TRUE);
+        
+        $query = self::getQuery();
+        $query->where("#state != 'rejected'");
+        $query->orWhereArr('id', $usersArr);
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        $cnt = $query->count();
+        
+        return !(boolean) $cnt;
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
