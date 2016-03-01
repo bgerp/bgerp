@@ -24,6 +24,12 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Заглавие
+     */
+    public $title = 'Детайл на задача за производство';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'RowNumb=Пулт,type,productId,packagingId,planedQuantity=Количества->Планувано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
@@ -90,18 +96,24 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Активен таб на менюто
+     */
+    public $currentTab = 'Задачи';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
-    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
+    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field');
+    	$this->FLD("planedQuantity", 'double(smartRound)', 'mandatory,caption=Планувано к-во,smartCenter');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
-    	$this->FLD("planedQuantity", 'double(smartRound)', 'mandatory,caption=Планувано к-во');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
-    	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
+    	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
     	$this->FLD("indTime", 'time', 'caption=Времена->Изпълнение,smartCenter');
     	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
     	
@@ -172,6 +184,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if(isset($rec->productId)){
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    		
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		if(!isset($productInfo->meta['canStore'])){
+    			$form->setField('packagingId', 'input=hidden');
+    			$measureShort = cat_UoM::getShortName($rec->packagingId);
+    			$form->setField('planedQuantity', "unit={$measureShort}");
+    		}
     	} else {
     		$form->setReadOnly('packagingId');
     	}
