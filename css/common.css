@@ -916,7 +916,13 @@ input.more-btn {
 
 .toolbar-btn {
   cursor: pointer;
-  padding: 2px; }
+  padding: 2px;
+  opacity: 0.8; }
+  .toolbar-btn:hover {
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out; }
 
 a.more-btn {
   padding-left: 17px !important;
