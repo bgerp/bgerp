@@ -106,6 +106,8 @@ class log_System extends core_Manager
         $this->setDbIndex('className');
         $this->setDbIndex('objectId');
         $this->setDbIndex('type');
+        
+        $this->setDbIndex('type, createdOn, className');
     }
     
     
