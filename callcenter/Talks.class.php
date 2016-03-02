@@ -1425,10 +1425,15 @@ class callcenter_Talks extends core_Master
                 // Търсим във външните и вътрешните номера
                 $data->query->where(array("#externalNum LIKE '%[#1#]'", $number));
                 $data->query->orWhere(array("#internalNum LIKE '%[#1#]'", $number));
+                
+                if (!Request::get('usersSearch')) {
+                    $userSearchType = $data->listFilter->getFieldType('usersSearch');
+                    $filter->usersSearch = $userSearchType->fitInDomain('all_users');
+                }
             }
             
             // Ако филтъра е по потребители
-            if($filter->usersSearch) {
+            if ($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
     			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
