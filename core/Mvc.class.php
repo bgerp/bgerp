@@ -1068,7 +1068,7 @@ class core_Mvc extends core_FieldSet
             if(count($indexes)) {
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
-                    $html .= "<li class='debug-new'>Премахнат е индекс '<b>{$name}</b>'</li>";
+                    $html .= "<li class='debug-notice'>Премахнат е индекс '<b>{$name}</b>'</li>";
                 }
             }
         } else {
