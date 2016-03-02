@@ -316,6 +316,10 @@ class acc_ReportDetails extends core_Manager
                 	unset($fields['blPrice']);
                 }
                 
+                if(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')){
+                	unset($fields['tools']);
+                }
+                
                 $limitFields = $data->limitFields;
                 
                 $unsetPosition = acc_Lists::getPosition($accInfo->rec->systemId, $data->masterMvc->balanceRefGroupBy);
