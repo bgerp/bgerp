@@ -1214,20 +1214,6 @@ class core_Mvc extends core_FieldSet
     {
         return $tpl;
     }
-
-    
-    /**
-     * Добавя emerg запис в log_Data
-     * 
-     * @param string $action
-     * @param integer $objectId
-     * @param integer $lifeDays
-     */
-    public static function logEmerg($action, $objectId = NULL, $lifeDays = 14)
-    {
-        $className = get_called_class();
-        log_System::add($className, $action, $objectId, 'emerg', $lifeDays);
-    }
     
     
     /**
@@ -1241,20 +1227,6 @@ class core_Mvc extends core_FieldSet
     {
         $className = get_called_class();
         log_System::add($className, $action, $objectId, 'alert', $lifeDays);
-    }
-    
-    
-    /**
-     * Добавя crit запис в log_Data
-     * 
-     * @param string $action
-     * @param integer $objectId
-     * @param integer $lifeDays
-     */
-    public static function logCrit($action, $objectId = NULL, $lifeDays = 14)
-    {
-        $className = get_called_class();
-        log_System::add($className, $action, $objectId, 'crit', $lifeDays);
     }
     
     
