@@ -203,10 +203,10 @@ class plg_Clone extends core_Plugin
         if ($mvc instanceof core_Master) return ;
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
         // Ако листваме
-        if(!arr::haveSection($fields, '-list')) return;
+        if (!arr::haveSection($fields, '-list')) return;
         
         // Ако нямаме права за клониране, да не се показва линка
         if (!$mvc->haveRightFor('clonerec', $rec)) return ;

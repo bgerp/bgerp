@@ -88,7 +88,7 @@ class log_System extends core_Manager
     /**
      * 
      */
-    protected static $notifyErrArr = array('emerg', 'alert', 'crit', 'err', 'logErr');
+    protected static $notifyErrArr = array('alert', 'err', 'logErr');
     
     
     /**
@@ -100,12 +100,14 @@ class log_System extends core_Manager
         $this->FLD('objectId', 'int');
         $this->FLD('detail', 'text');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
-        $this->FLD('type', 'enum(info=Инфо,emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
+        $this->FLD('type', 'enum(info=Инфо,alert=Тревога,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
         
         $this->setDbIndex('createdOn');
         $this->setDbIndex('className');
         $this->setDbIndex('objectId');
         $this->setDbIndex('type');
+        
+        $this->setDbIndex('type, createdOn, className');
     }
     
     
@@ -300,13 +302,8 @@ class log_System extends core_Manager
         while($rec = $query->fetch()) {
             
             switch ($rec->type) {
-                case 'emerg':
                 case 'alert':
                     $msgType = 'спешни';
-                break;
-                
-                case 'crit':
-                    $msgType = 'критични';
                 break;
                 
                 case 'logErr':
