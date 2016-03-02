@@ -101,7 +101,7 @@
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         <!--ET_BEGIN paymentMethodId-->
 					                    <div class='cellRow'>
-					                        <span class='quiet'>Payment method: </span>[#paymentMethodId#]
+					                        <span class='quiet'>Payment method: </span>|[#paymentMethodId#]|*
 					                    </div>
 					                    <!--ET_END paymentMethodId-->
 					                    <!--ET_BEGIN downpayment-->
