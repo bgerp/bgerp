@@ -78,7 +78,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-    	//$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод');
     	
     	$mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
@@ -94,6 +93,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
+    	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
     }
     
     
@@ -303,7 +303,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -484,8 +484,8 @@ abstract class deals_InvoiceMaster extends core_Master
     */
    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
    {
-	   	$origin = $mvc::getOrigin($rec);
-	   	if(!$origin) return;
+	   	$Source = $mvc->getSourceOrigin($rec);
+	   	if(!$Source) return;
 		
 	   	if($rec->_isClone === TRUE) return;
 	   	
@@ -495,114 +495,21 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	// И не се начислява аванс
 	   	if($rec->dpAmount && $rec->dpOperation == 'accrued') return;
 		
-	   	$Detail = $mvc->mainDetail;
+	   	// Ако е ДИ или КИ и има зададена сума не зареждаме нищо
+	   	if($rec->type != 'invoice' && isset($rec->changeAmount)) return;
 	   	
 	   	// И няма детайли
 	   	$Detail = cls::get($mvc->mainDetail);
 	   	if($Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) return;
 	   	
-	   	if($mvc instanceof sales_Invoices && isset($rec->fromProformaId)){
-	   		$proformaRec = sales_Proformas::fetch($rec->fromProformaId);
-	   	
-	   		$query = sales_ProformaDetails::getQuery();
-	   		$query->where("#proformaId = '{$rec->fromProformaId}'");
-	   		while($dRec = $query->fetch()){
-	   			$dRec->invoiceId = $rec->id;
-	   			unset($dRec->id);
-	   			$Detail::save($dRec);
-	   		}
-	   	} elseif($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-	   		$info = $origin->getAggregateDealInfo();
-	   		$agreed = $info->get('products');
-	   		$products = $info->get('shippedProducts');
-	   		$invoiced = $info->get('invoicedProducts');
-	   		$packs = $info->get('shippedPacks');
-	   	
-	   		$mvc::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
-	   	} elseif($origin->isInstanceOf($mvc)){
-	   		$dpOperation = $origin->fetchField('dpOperation');
-	   	
-	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
-	   		if($dpOperation == 'accrued' || isset($rec->changeAmount)) return;
-	   		
-	   		$query = $Detail->getQuery();
-	   		$query->where("#{$Detail->masterKey} = '{$origin->that}'");
-	   	
-	   		while($dRec = $query->fetch()){
-	   			$dRec->{$Detail->masterKey} = $rec->id;
-	   			unset($dRec->id);
-	   			$Detail::save($dRec);
-	   		}
-   		}
-   }
-   
-
-   /**
-    * Подготвя продуктите от ориджина за запис в детайла на модела
-    */
-   protected static function prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs)
-   {
-	   	if(count($products) != 0){
-	   		
-	   		// Записваме информацията за продуктите в детайла
-	   		foreach ($products as $product){
-	   			$continue = FALSE;
-	   			$diff = $product->quantity;
-	   			if(count($invoiced)){
-	   				foreach ($invoiced as $inv){
-	   					if($inv->productId == $product->productId){
-	   						$diff = $product->quantity - $inv->quantity;
-	   						if($diff <= 0){
-	   							$continue = TRUE;
-	   						}
-	   						break;
-	   					}
-	   				}
-	   			} elseif($diff <= 0){
-	   				
-	   				$continue = TRUE;
+	   	if($Source->haveInterface('deals_InvoiceSourceIntf')){
+	   		$detailsToSave = $Source->getDetailsFromSource($mvc);
+	   		if(is_array($detailsToSave)){
+	   			foreach ($detailsToSave as $det){
+	   				$det->{$Detail->masterKey} = $rec->id;
+	   				$Detail->save($det);
 	   			}
-	   	
-	   			if($continue) continue;
-	   			
-	   			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
 	   		}
-	   	}
-   }
-   
-   
-   /**
-    * Записва продукт от ориджина
-    */
-   protected static function saveProductFromOrigin($mvc, $rec, $product, $packs, $restAmount)
-   {
-	   	$dRec = clone $product;
-	   	$index = $product->productId;
-	   	
-	   	// Ако няма информация за експедираните опаковки, визмаме основната опаковка
-   		if(!isset($packs[$index])){
-   			$packs1 = cat_Products::getPacks($product->productId);
-   			$dRec->packagingId = key($packs1);
-   			
-   			$packQuantity = 1;
-   			if($pRec = cat_products_Packagings::fetch("#productId = {$product->productId} AND #packagingId = {$dRec->packagingId}")){
-   				$packQuantity = $pRec->quantity;
-   			}
-	   	} else {
-	   		// Иначе взимаме най-удобната опаковка
-	   		$packQuantity = $packs[$index]->inPack;
-	   		$dRec->packagingId = $packs[$index]->packagingId;
-	   	}
-	   	
-	   	$Detail = $mvc->mainDetail;
-	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;
-	   	$dRec->discount        			  = $product->discount;
-	   	$dRec->price 		  			  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
-	   	$dRec->quantityInPack 			  = $packQuantity;
-	   	$dRec->quantity       			  = $restAmount / $packQuantity;
-	   	
-	   	if($dRec->amount !== 0) {
-	   		$mvc->$Detail->save($dRec);
 	   	}
    }
    
@@ -731,6 +638,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	} 
     	 
     	// Ако ориджина също е фактура
+    	$origin = $mvc->getSourceOrigin($form->rec);
     	if($origin->className  == $mvc->className){
     		$mvc->populateNoteFromInvoice($form, $origin);
     		$data->flag = TRUE;
@@ -904,7 +812,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->username = core_Lg::transliterate(core_Users::recToVerbal($userRec, 'names')->names);
     	
     		if($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)){
-    			$originRec = $mvc->getOrigin($rec)->fetch();
+    			$originRec = $mvc->getSourceOrigin($rec)->fetch();
     			$originRow = $mvc->recToVerbal($originRec);
     			$row->originInv = $originRow->number;
     			$row->originInvDate = $originRow->date;
@@ -1087,6 +995,18 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
+    	
+    	if($action == 'add' && isset($rec->sourceContainerId)){
+    		$Source = doc_Containers::getDocument($rec->sourceContainerId);
+    		if(!$Source->haveInterface('deals_InvoiceSourceIntf')){
+    			$res = 'no_one';
+    		} else {
+    			$sourceState = $Source->fetchField('state');
+    			if($sourceState != 'active'){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
     
 
@@ -1097,15 +1017,68 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$origin = NULL;
     	$rec = static::fetchRec($rec);
-    	 
+    
     	if($rec->originId) {
     		return doc_Containers::getDocument($rec->originId);
     	}
-    	 
+    
     	if($rec->threadId){
     		return doc_Threads::getFirstDocument($rec->threadId);
     	}
-    	
+    	 
     	return $origin;
+    }
+    
+    
+    /**
+     * Кой е източника на фактурата
+     */
+    public static function getSourceOrigin($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	
+    	if($rec->sourceContainerId) {
+    		return doc_Containers::getDocument($rec->sourceContainerId);
+    	}
+    	
+    	return static::getOrigin($rec);
+    }
+    
+    
+    /**
+     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
+     * определен документ
+     *
+     * @param mixed $id - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @return array $details - масив с артикули готови за запис
+     * 				  o productId      - ид на артикул
+     * 				  o packagingId    - ид на опаковка/основна мярка
+     * 				  o quantity       - количество опаковка
+     * 				  o quantityInPack - количество в опаковката
+     * 				  o discount       - отстъпка
+     * 				  o price          - цена за еденица от основната мярка
+     */
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    {
+    	$details = array();
+    	$rec = static::fetchRec($id);
+    	
+    	// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
+    	if($rec->dpOperation == 'accrued') return $details;
+    	
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
+    	 
+    	while($dRec = $query->fetch()){
+    		unset($dRec->id);
+    		unset($dRec->{$Detail->masterKey});
+    		unset($dRec->createdOn);
+    		unset($dRec->createdBy);
+    		$details[] = $dRec;
+    	}
+    	
+    	return $details;
     }
 }

@@ -385,7 +385,9 @@ abstract class bank_Document extends core_Master
 			if(empty($form->rec->id)){
 				$secondOrigin = doc_Containers::getDocument($fromDocument);
 				if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
-					$form->rec->reason = tr("Към|* ") . $secondOrigin->singleTitle . " №{$secondOrigin->that}";
+					$originRec = $secondOrigin->fetch();
+					$title = ($originRec->type == 'dc_note') ? (($originRec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие') : $secondOrigin->singleTitle;
+					$form->rec->reason = tr("Към|* ") . mb_strtolower($title) . " №{$secondOrigin->that}";
 				}
 			}
 		}

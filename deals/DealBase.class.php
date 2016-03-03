@@ -404,12 +404,7 @@ abstract class deals_DealBase extends core_Master
     	$tableMvc->FLD('bQuantity', 'varchar', 'tdClass=aright');
     	
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    	$fields = "code=Код,
-    					   productId=Продукт,
-    					   measure=Мярка,
-    					   quantity=Количество->Поръчано,
-    					   shipQuantity=Количество->Доставено,
-    					   bQuantity=Количество->Остатък";
+    	$fields = $this->getExportFields();
     	
     	$tpl->append($table->get($data->DealReport, $fields), 'DEAL_REPORT');
     	$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
@@ -527,7 +522,9 @@ abstract class deals_DealBase extends core_Master
     	$title = $this->title . " Поръчано/Доставено";
   
     	foreach ($data->dealReportCSV as $rec) {
-    	    $rec->productId = html_entity_decode(strip_tags($rec->productId));
+    	    foreach(array("code", "productId", "measure", "quantity", "shipQuantity", "bQuantity") as $fld) {
+    	       $rec->{$fld} = html_entity_decode(strip_tags($rec->{$fld}));
+    	    }
     	}
     	
     	$csv = $this->prepareCsvExport($data->dealReportCSV);
@@ -592,11 +589,11 @@ abstract class deals_DealBase extends core_Master
     {
     	// Кои полета ще се показват
     	$fields = arr::make("code=Код,
-    					     productId=Продукт,
+    					     productId=Артикул,
     					     measure=Мярка,
-    					     quantity=Количество - Поръчано,
-    					     shipQuantity=Количество - Доставено,
-    					     bQuantity=Количество - Остатък", TRUE);
+    					     quantity=Количество -> Поръчано,
+    					     shipQuantity=Количество -> Доставено,
+    					     bQuantity=Количество -> Остатък", TRUE);
     
     	return $fields;
     }
@@ -611,12 +608,12 @@ abstract class deals_DealBase extends core_Master
 
     	// обобщената информация за цялата нищка
     	$dealInfo = self::getAggregateDealInfo($rec->id);
-   
+
     	$report = array();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
 
     	// Ако има записи където участва артикула подготвяме ги за показване
-    	if(count($dealInfo->products)){
+    	if(count($dealInfo->products) || count ($dealInfo->shippedProducts)){
     		foreach ($dealInfo->products as $id => $product) { 
 		    	// ако можем да го покажем на страницата	
 				$obj = new stdClass();
