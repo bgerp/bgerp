@@ -511,6 +511,8 @@ tr.row-removed {
     color: white;
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
+    .user-profile .user-title .linkWithIcon {
+      color: white !important; }
   .user-profile .profile-image > a,
   .user-profile .profile-image div {
     position: absolute;

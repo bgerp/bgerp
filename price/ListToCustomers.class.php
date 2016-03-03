@@ -395,11 +395,12 @@ class price_ListToCustomers extends core_Detail
         		$rec = (object)array('price' => NULL);
         		 
         		// Ако драйвера може да върне цена, връщаме нея
-        		$Driver = cat_Products::getDriver($productId);
-        		$price = $Driver->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
-        		if(isset($price)){
-        			$rec->price = $price;
-        			return $rec;
+        		if($Driver = cat_Products::getDriver($productId)){
+        			$price = $Driver->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+        			if(isset($price)){
+        				$rec->price = $price;
+        				return $rec;
+        			}
         		}
         		 
         		// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова

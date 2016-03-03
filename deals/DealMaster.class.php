@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -514,7 +514,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * При нова сделка, се ънсетва threadId-то, ако има
      */
-    public static function on_AfterPrepareDocumentLocation($mvc, $form)
+    public static function on_AfterPrepareDocumentLocation11111111111($mvc, $form)
     {   
     	if($form->rec->threadId && !$form->rec->id){
 		     unset($form->rec->threadId);
@@ -717,10 +717,7 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * 
-     * @param unknown $mvc
-     * @param unknown $rec
-     * @param unknown $nRec
+     * Преди клониране
      */
     public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
@@ -1652,5 +1649,76 @@ abstract class deals_DealMaster extends deals_DealBase
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
+     * определен документ
+     *
+     * @param mixed $id - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @return array $details - масив с артикули готови за запис
+     * 				  o productId      - ид на артикул
+     * 				  o packagingId    - ид на опаковка/основна мярка
+     * 				  o quantity       - количество опаковка
+     * 				  o quantityInPack - количество в опаковката
+     * 				  o discount       - отстъпка
+     * 				  o price          - цена за еденица от основната мярка
+     */
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    {
+    	$details = array();
+    	$rec = $this->fetchRec($id);
+    	$ForMvc = cls::get($forMvc);
+    	
+    	$info = $this->getAggregateDealInfo($rec);
+    	$products = $info->get('shippedProducts');
+    	$agreed = $info->get('products');
+    	$invoiced = $info->get('invoicedProducts');
+    	
+    	if($ForMvc instanceof sales_Proformas){
+    		$products = $agreed;
+    		$invoiced = array();
+    		foreach ($products as $product1){
+    			$product1->price *= 1 - $product1->discount;
+    			unset($product1->discount);
+    		}
+    	}
+    	
+    	if(!count($products)) return $details;
+    	
+    	foreach ($products as $product){
+    		$quantity = $product->quantity;
+    		foreach ((array)$invoiced as $inv){
+    			if($inv->productId != $product->productId) continue;
+    			$quantity -= $inv->quantity;
+    		}
+    		
+    		if($quantity <= 0) continue;
+    		
+    		// Ако няма информация за експедираните опаковки, визмаме основната опаковка
+    		if(!isset($packs[$product->productId])){
+    			$packs1 = cat_Products::getPacks($product->productId);
+    			$product->packagingId = key($packs1);
+    			
+    			$product->quantityInPack = 1;
+    			if($pRec = cat_products_Packagings::getPack($product->productId, $product->packagingId)){
+    				$product->quantityInPack = $pRec->quantity;
+    			}
+    		} else {
+    			// Иначе взимаме най-удобната опаковка
+    			$product->quantityInPack = $packs[$product->productId]->inPack;
+    			$product->packagingId = $packs[$product->productId]->packagingId;
+    		}
+    		
+    		$dRec = clone $product;
+    		$dRec->discount        	= $product->discount;
+    		$dRec->price 		  	= ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
+    		$dRec->quantity       	= $quantity / $product->quantityInPack;
+    		$details[] = $dRec;
+    	}
+    	
+    	return $details;
     }
 }

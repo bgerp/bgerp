@@ -850,7 +850,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			
     			// Ако няма извлича се цената от спецификацията
     			$Policy = cls::get('price_ListToCustomers');
-    			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, cat_Products::getClassId(), NULL, $dRec->quantity, $rec->date)->price;
+    			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $dRec->quantity, $rec->date)->price;
     			$dRec->price = deals_Helper::getPurePrice($price, $dRec->vatPercent, $rec->currencyRate, $rec->chargeVat);
     		}
     		

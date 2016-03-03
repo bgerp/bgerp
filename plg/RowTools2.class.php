@@ -192,8 +192,10 @@ class plg_RowTools2 extends core_Plugin
             }
         }
         
+        $img = ht::createElement('img', array('src'=> sbf('img/16/tools.png', "")));
+        
         if($mustShow) {
-            $data->listFields =  arr::combine(array('_rowTools' => '✍'), arr::make($data->listFields, TRUE));
+            $data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));	
         }
     }
 

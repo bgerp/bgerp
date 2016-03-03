@@ -573,6 +573,9 @@ tr.row-removed {
 		color: #fff;
 		font-weight: bold;
 		border-radius: 5px 5px 0 0;
+		.linkWithIcon {
+            color: #fff !important;
+        }
 	}
    .profile-image > a, .profile-image div {
 		position: absolute;

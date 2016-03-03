@@ -878,15 +878,14 @@ class core_Html
      */
     public static function createHint($body, $hint, $icon = 'notice')
     {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
     	if(empty($hint)) return $body;
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
     	
     	$hint = tr($hint);
     	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
     	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
-    	
     	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
         
         $element->append($body, 'body');
