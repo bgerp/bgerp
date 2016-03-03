@@ -27,6 +27,9 @@ class plg_RowTools2 extends core_Plugin
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
+        // Игнорираме действието, ако не се подготвя листовия изглед
+        if(!arr::haveSection($fields, '-list')) return;
+
         //if(!isset($mvc->rowTools2Field)) return;
         
         core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -34,13 +37,13 @@ class plg_RowTools2 extends core_Plugin
 
         // Линк към сингъла
         if(method_exists($mvc, 'act_Single')) {
-            
+ 
             $singleUrl = $mvc->getSingleUrlArray($rec->id);
 
             $singleIcon = $mvc->getIcon($rec->id);
             
             if($singleField = $mvc->rowToolsSingleField) {
-                
+              
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['style'] = 'background-image:url(' . sbf($singleIcon) . ');';
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
