@@ -20,7 +20,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,deals_InvoiceSourceIntf';
     
     
     /**
@@ -326,25 +326,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Подготвя продуктите от ориджина за запис в детайла на модела
-     */
-    protected static function prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs)
-    {
-    	if(count($agreed)){
-    		
-    		// Записваме информацията за продуктите в детайла
-    		foreach ($agreed as $product){
-    			
-    			$diff = $product->quantity;
-    			$product->price *= 1 - $product->discount;
-    			unset($product->discount);
-    			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
-    		}
-    	}
-    }
-    
-    
-    /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
@@ -428,8 +409,9 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
-    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'fromProformaId' => $rec->id))){
-    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'fromProformaId' => $rec->id, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
+    
+    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
+    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
     	}
     	
     	if($rec->state == 'active'){

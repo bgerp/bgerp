@@ -1080,6 +1080,7 @@ class core_App
         return $isSecure;
     }
     
+    
     /**
      * Проверява заключена ли е системата
      *
@@ -1090,9 +1091,9 @@ class core_App
         if (file_exists(self::lockFileName()) && (time() - filemtime(self::lockFileName())) < 120) {
 
             return true;
-        } else {
-            self::unLock();
         }
+
+        self::unLock();
         
         return false;
     }
@@ -1126,6 +1127,7 @@ class core_App
         }        
     }
     
+    
     /**
      * Връща името на семафора за заключване
      *
@@ -1133,7 +1135,7 @@ class core_App
      */
     private static function lockFileName()
     {
-        return "bgerpSysLock" . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0,5) . ".lock";
+        return "bgerpSysLock" . substr(md5(EF_DB_NAME . EF_SALT), 0,5) . ".lock";
     }
     
 }

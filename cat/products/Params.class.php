@@ -246,8 +246,8 @@ class cat_products_Params extends doc_Detail
         }
         
         foreach((array)$data->params as $row) {
-        	if($data->noChange === TRUE){
-        		unset($row->tools);
+        	if($data->noChange !== TRUE){
+        		$row->tools = $row->_rowTools->renderHtml();
         	}
         	
             $block = clone $tpl->getBlock('param');

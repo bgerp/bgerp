@@ -44,8 +44,7 @@
                     <!--ET_END deliveryLocationId-->
                     
                     <!--ET_BEGIN vatId-->
-                     <div>Vat Id:<br>
-                      [#vatId#]</div>
+                     <div>Vat Id: [#vatId#]</div>
                      <!--ET_END vatId-->
                 </td>
                 <td>
