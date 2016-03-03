@@ -772,6 +772,10 @@ class core_Html
         if(!$attr['disabled']) {
             if($warning){
                 $attr['style'] .= 'color:#772200 !important;';
+            } elseif (strpos($url, '://')) {
+                if(!strpos($attr['class'], 'out')) {
+                    $attr['class'] .= ' out';
+                }
             } elseif($attr['target'] == '_blank') { 
                 $attr['style'] .= 'color:#008800 !important;';
             }
