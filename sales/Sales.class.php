@@ -1028,8 +1028,8 @@ class sales_Sales extends deals_DealMaster
     				$bulgariaCountryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
     				if($companyRec->country != $bulgariaCountryId && drdata_Countries::isEu($companyRec->country)){
     					if(empty($companyRec->vatId)){
-    						$row->vatId = tr('Трябва да бъде предоставен');
-    						$row->vatId = "<span class='red'>{$row->vatId}!</span>";
+    						$row->vatId = tr('Ще бъде предоставен');
+    						$row->vatId = "<span class='red'>{$row->vatId}</span>";
     					}
     				}
     			}
