@@ -3,7 +3,7 @@
     <div class="folder-cover [#STATE_CLASS#]">
         <div class="inner-folder">
             <div class="block_title [#STATE_CLASS#] special-title">
-                [#SingleIcon#] [#title#]
+                [#SingleIcon#] [#title#] [#titleNumber#]
             </div>
             <!--ET_BEGIN image-->
             <div class="crmImage">
@@ -15,8 +15,14 @@
             <!--ET_BEGIN contacts-->
             [#contacts#]
             <fieldset class="detail-info">
-                <legend class="groupTitle">|Адрес и контакти|*</legend>
+                <legend class="groupTitle">|Лична информация|*</legend>
                 <div class="groupList">
+                    <!--ET_BEGIN egn-->
+                    <div><b>[#egn#]</b></div>
+                    <!--ET_END egn-->
+                    <!--ET_BEGIN birthday-->
+                    <div>|Рожден ден|*: <b>[#birthday#]</b></div>
+                    <!--ET_END birthday-->
                     <!--ET_BEGIN country-->
                     <div>[#country#]</div>
                     <!--ET_END country-->

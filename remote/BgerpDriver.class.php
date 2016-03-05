@@ -104,7 +104,7 @@ class remote_BgerpDriver extends core_Mvc
             $row->auth = ht::createLink('Получена', NULL, NULL, 'ef_icon=img/16/checked-green.png');
         }
         if($rec->data->rKeyCC) {
-            $row->auth .= ' ' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
+            $row->auth .= '&nbsp;' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
         }
     }
 

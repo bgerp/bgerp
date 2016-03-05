@@ -25,7 +25,7 @@ class currency_Currencies extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
+    var $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_State2';
     
     

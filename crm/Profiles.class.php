@@ -114,7 +114,7 @@ class crm_Profiles extends core_Master
      */
     var $searchFields = 'userId, personId';
     
-    
+ 
     /**
      * 
      */
@@ -141,6 +141,8 @@ class crm_Profiles extends core_Master
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
+        $this->XPR('lastTime',  'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)', 'input=none,smartCenter');
+
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
@@ -664,9 +666,9 @@ class crm_Profiles extends core_Master
     
 
     /**
-     *
+     * Подготвя списък с потребители, които нямат профили
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    static function prepareUnusedUserOptions()
     {
         $usersQuery = core_Users::getQuery();
 
@@ -687,7 +689,19 @@ class crm_Profiles extends core_Master
                 $opt[$uRec->id] = $uRec->nick;
             }
         }
-        
+
+        return $opt;
+    }
+
+
+    /**
+     * Подготвя формата за асоцииране на потребител с профил
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+
+        $opt = self::prepareUnusedUserOptions();
+
         $data->form->setOptions('userId', $opt);
         
         $addUserUrl = array(
@@ -1026,6 +1040,42 @@ class crm_Profiles extends core_Master
 
 
     /**
+     * След подготовката на листовия тулбар
+     * 
+     * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
+     * 
+     * @param crm_Profiles $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar(crm_Profiles $mvc, $data)
+    {
+        $toolbar = $data->toolbar;
+ 
+        $toolbar->removeBtn('btnAdd');
+        
+        
+        if ($mvc->haveRightFor('add')) {
+           if(count(self::prepareUnusedUserOptions())) {
+                $toolbar->addBtn('Асоцииране', array(
+                        $this,
+                        'add'
+                    ),
+                    'id=btnAdd', 'ef_icon = img/16/link.png,title=Асоцииране на визитка с потребител');
+            }
+        $toolbar->addBtn('Нов потребител', array(
+                        'core_Users',
+                        'add',
+                        'ret_url' => TRUE,
+                    ),
+                    'id=new', 'ef_icon=img/16/star_2.png,title=Добавяне на нов потребител');
+
+
+        }
+    }
+
+
+
+    /**
      * След подготовката на редовете на списъчния изглед
      * 
      * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
@@ -1091,7 +1141,7 @@ class crm_Profiles extends core_Master
     	 
     	$data->listFilter->showFields = 'search';
         
-        $data->query->orderBy("lastLoginTime", "DESC");
+        $data->query->orderBy("lastTime", "DESC");
     }
     
     
@@ -1106,17 +1156,6 @@ class crm_Profiles extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        // Ако редактираме или добавяме
-        if ($action == 'edit' || $action == 'add') {
-            
-            // Ако текущия потребител не е userId
-            if ($rec->userId != core_Users::getCurrent()) {
-                
-                // Изискваме роля admin
-                $requiredRoles = 'admin';
-            }
-        }
-        
         // Текущия потребител може да си види IP-то, admin и ceo могат на всичките
         if ($action == 'viewip') {
             if ($rec && ($rec->userId != $userId)) {
@@ -1166,6 +1205,8 @@ class crm_Profiles extends core_Master
         $currUserId = core_Users::getCurrent();
         
         if ($currUserId == $userOrRole) return TRUE;
+
+        if(core_Users::fetch($userOrRole)->state == 'rejected') return FALSE;
         
         if (haveRole('admin, ceo', $currUserId)) return TRUE;
         

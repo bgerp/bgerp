@@ -112,7 +112,7 @@ class blogm_Articles extends core_Master {
 		$this->FLD('body', 'richtext(bucket=' . self::FILE_BUCKET . ')', 'caption=Съдържание,mandatory');
  		$this->FLD('commentsMode', 
             'enum(enabled=Разрешени,confirmation=С потвърждение,disabled=Забранени,stopped=Спрени)',
-            'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
+            'caption=Коментари->Режим,mandatory,maxRadio=' . (Mode::is('screenMode', 'narrow') ? 2 : 4));
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
   		$this->FLD('state', 'enum(draft=Чернова,pending=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
   		
@@ -854,7 +854,7 @@ class blogm_Articles extends core_Master {
     function prepareArchive_(&$data)
     {
 		$query = $this->getQuery();
-        $query->XPR('month', 'varchar', "CONCAT(YEAR(#createdOn), '|', MONTH(#createdOn))");
+        $query->XPR('month', 'varchar', "CONCAT(YEAR(IF(#publishedOn,#publishedOn,#createdOn)), '|', MONTH(IF(#publishedOn,#publishedOn,#createdOn)))");
         
         $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
 

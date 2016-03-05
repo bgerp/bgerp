@@ -86,7 +86,7 @@ class crm_Persons extends core_Master
     /**
      * Полета, които се показват в листови изглед
      */
-    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
+    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,id,name=';
 
 
     /**
@@ -597,15 +597,15 @@ class crm_Persons extends core_Master
         $currentId = $mvc->getVerbal($rec, 'id');
 
 
-        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><div class='custom-rowtools'>". $row->id . ' </div>' . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$row->id}</div>";
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
         if($birthday) {
-            $row->title .= "&nbsp;&nbsp;<div style='display:inline-block'>{$birthday}</div>";
+             
 
             if(strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
@@ -619,11 +619,11 @@ class crm_Persons extends core_Master
                 }
             }
             if($mvc->birthdayFilter){
-            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+                $dateType = tr($dateType);
+            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
             }
         } elseif($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
-            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
 
