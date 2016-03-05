@@ -1057,7 +1057,7 @@ class crm_Profiles extends core_Master
         if ($mvc->haveRightFor('add')) {
            if(count(self::prepareUnusedUserOptions($data))) {
                 $toolbar->addBtn('Асоцииране', array(
-                        $this,
+                        $mvc,
                         'add'
                     ),
                     'id=btnAdd', 'ef_icon = img/16/link.png,title=Асоцииране на визитка с потребител');
