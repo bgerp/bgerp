@@ -529,6 +529,10 @@ class doc_FolderPlg extends core_Plugin
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
+
+                    $row->{$fField} = ht::createLink('',
+                            array('doc_Threads', 'list', 'folderId' => $rec->folderId),
+                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
             } else {
                 if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
