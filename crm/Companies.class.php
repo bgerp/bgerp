@@ -86,7 +86,7 @@ class crm_Companies extends core_Master
     /**
      * Полетата, които ще видим в таблицата
      */
-    var $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,name=';
+    var $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,id,name=';
     
     
     /**
@@ -624,9 +624,10 @@ class crm_Companies extends core_Master
         	$country = $currentCountry;
         }
                 
-       	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><div class='custom-rowtools'>". $row->id . ' </div>'. $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
+
+        $row->id = $mvc->getVerbal($rec, 'id');  
+        
         
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
@@ -636,7 +637,7 @@ class crm_Companies extends core_Master
         $vat = $vatType->toVerbal($rec->vatId);
         $row->vat = $vat;
         
-        $row->titleNumber = "<div class='number-block' style='display:inline'>{$currentId}</div>";
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$row->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {
         	if("BG{$rec->uicId}" == $rec->vatId){

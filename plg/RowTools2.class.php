@@ -67,7 +67,7 @@ class plg_RowTools2 extends core_Plugin
         
 
         if (!empty($singleUrl)) {
-            $ddTools->addLink('Отваряне', $singleUrl, 'ef_icon=' . $singleIcon);
+            $ddTools->addLink('Разглеждане', $singleUrl, 'ef_icon=' . $singleIcon);
         }
 
         if ($mvc->haveRightFor('edit', $rec)) {

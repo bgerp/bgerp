@@ -131,6 +131,15 @@ class plg_State2 extends core_Plugin
             
                 $row->state = ht::createElement('div',
                     array('style' => "text-align:center;"), $row->state);
+
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+
+                if($rec->state == $this->activeState) {
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/lightbulb_off.png');
+                } else {
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/lightbulb.png');
+                }
+
             }
         }
     }
