@@ -268,7 +268,7 @@ class backup_Setup extends core_ProtoSetup
             unlink($touchFile);
         } else {
             unlink($touchFile);
-            return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
+            return "|*<li class='debug-error'>|Няма права за писане в |*" . $conf->BACKUP_LOCAL_PATH . "</li>";
         }
         
         // проверка дали всичко е наред с mysqldump-a
@@ -280,7 +280,7 @@ class backup_Setup extends core_ProtoSetup
         
         if ($returnVar !== 0) {
 
-            return "<li class='debug-error'>mysqldump грешка при свързване!</li>";
+            return "|*<li class='debug-error'>|mysqldump грешка при свързване|*!</li>";
         }
         
         // Проверка дали gzip е наличен

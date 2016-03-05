@@ -881,7 +881,8 @@ class core_Html
     	if(empty($hint)) return $body;
     	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
     	
-    	$hint = tr($hint);
+    	$hint = strip_tags(tr($hint));
+ 
     	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	

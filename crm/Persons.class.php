@@ -86,7 +86,7 @@ class crm_Persons extends core_Master
     /**
      * Полета, които се показват в листови изглед
      */
-    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,id,name=';
+    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
 
 
     /**
@@ -404,8 +404,26 @@ class crm_Persons extends core_Master
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
         }
-     }
+    }
 
+
+    /**
+     * Изпълнява се след подготовката на редовете за листовия изглед
+     */
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if(is_array($data->recs)) {
+            foreach($data->recs as $rec) {
+                $cnt[str::utf2ascii(trim($rec->name))]++;
+            }
+            foreach($data->recs as $rec) {
+                if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
+                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                }
+            }
+
+        }
+    }
 
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
@@ -600,7 +618,7 @@ class crm_Persons extends core_Master
         $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
-        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$row->id}</div>";
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 

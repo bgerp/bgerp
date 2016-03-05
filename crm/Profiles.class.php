@@ -668,7 +668,7 @@ class crm_Profiles extends core_Master
     /**
      * Подготвя списък с потребители, които нямат профили
      */
-    static function prepareUnusedUserOptions()
+    static function prepareUnusedUserOptions($data)
     {
         $usersQuery = core_Users::getQuery();
 
@@ -679,7 +679,7 @@ class crm_Profiles extends core_Master
         $used = array();
 
         while($rec = $query->fetch()) {
-            if($rec->id != $data->form->rec->id) {
+            if(!isset($data->form->rec->id) || $rec->id != $data->form->rec->id) {
                 $used[$rec->userId] = TRUE;
             }
         }
@@ -700,7 +700,7 @@ class crm_Profiles extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
 
-        $opt = self::prepareUnusedUserOptions();
+        $opt = self::prepareUnusedUserOptions($data);
 
         $data->form->setOptions('userId', $opt);
         
@@ -1055,9 +1055,9 @@ class crm_Profiles extends core_Master
         
         
         if ($mvc->haveRightFor('add')) {
-           if(count(self::prepareUnusedUserOptions())) {
+           if(count(self::prepareUnusedUserOptions($data))) {
                 $toolbar->addBtn('Асоцииране', array(
-                        $this,
+                        $mvc,
                         'add'
                     ),
                     'id=btnAdd', 'ef_icon = img/16/link.png,title=Асоцииране на визитка с потребител');

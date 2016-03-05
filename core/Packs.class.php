@@ -1151,6 +1151,7 @@ class core_Packs extends core_Manager
         $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+            $errMsg = tr($errMsg);
             $form->info = "<div style='padding:10px;border:dotted 1px red;background-color:#ffff66;color:red;'>{$errMsg}</div>";
         }
         
