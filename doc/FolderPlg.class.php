@@ -157,7 +157,7 @@ class doc_FolderPlg extends core_Plugin
             	$data->toolbar->addBtn('Папка' . $openThreads,
             			array('doc_Threads', 'list',
             					'folderId' => $data->rec->folderId),
-            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
+            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png'));
             }
         } else {
         	if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
@@ -528,11 +528,11 @@ class doc_FolderPlg extends core_Plugin
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
+                    $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
 
                     $row->{$fField} = ht::createLink('',
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
-                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
+                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
             } else {
                 if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
