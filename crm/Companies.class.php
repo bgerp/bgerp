@@ -86,7 +86,7 @@ class crm_Companies extends core_Master
     /**
      * Полетата, които ще видим в таблицата
      */
-    var $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,id,name=';
+    var $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,name=';
     
     
     /**
@@ -382,6 +382,27 @@ class crm_Companies extends core_Master
     }
     
     
+    
+    /**
+     * Изпълнява се след подготовката на редовете за листовия изглед
+     */
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if(is_array($data->recs)) {
+            foreach($data->recs as $rec) {
+                $cnt[str::utf2ascii(trim($rec->name))]++;
+            }
+            foreach($data->recs as $rec) {
+                if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
+                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                }
+            }
+
+        }
+    }
+        
+
+    
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
      *
@@ -637,7 +658,7 @@ class crm_Companies extends core_Master
         $vat = $vatType->toVerbal($rec->vatId);
         $row->vat = $vat;
         
-        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$row->id}</div>";
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {
         	if("BG{$rec->uicId}" == $rec->vatId){
