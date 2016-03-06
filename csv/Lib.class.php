@@ -140,7 +140,7 @@ class csv_Lib
             $confHash = NULL;
         }
         
-        if($confHash != $hash) {
+        if(($confHash != $hash) || ($delete == 'everytime')) {
             
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
             if($delete) {
