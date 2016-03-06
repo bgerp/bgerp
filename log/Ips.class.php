@@ -24,7 +24,7 @@ class log_Ips extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Ip-та";
+    public $title = "IP-та";
     
     
     /**
