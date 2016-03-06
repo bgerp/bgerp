@@ -160,7 +160,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 				$this->amount488 += $entry['amount'];
 			}
 			
-			$entry['reason'] = 'Разлики от закръгляния';
+			$entry['reason'] = 'Разлики от закръгления';
 			$entries[] = $entry;
 		}
 		

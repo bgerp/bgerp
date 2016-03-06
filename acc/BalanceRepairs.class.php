@@ -25,7 +25,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Корекция на грешки от закръгляния";
+    var $title = "Корекция на грешки от закръгления";
     
     
     /**
