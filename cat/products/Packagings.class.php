@@ -159,7 +159,7 @@ class cat_products_Packagings extends core_Detail
             } 
         }
         
-        if(($action == 'add' ||  $action == 'delete') && isset($rec->productId)) {
+        if(($action == 'add' ||  $action == 'delete' ||  $action == 'edit') && isset($rec->productId)) {
         	$masterState = cat_Products::fetchField($rec->productId, 'state');
         	if($masterState != 'active' && $masterState != 'draft'){
         		$requiredRoles = 'no_one';
