@@ -201,6 +201,13 @@ class cms_Domains extends core_Embedder
     public static function getPublicDomain($part = NULL, $lang = NULL)
     {   
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
+
+        $domainId = cms_Domains::getCurrent('id', FALSE);
+
+        if($domainId && (!isset($domainRec) || ($domainRec->id != $domainId))) {
+            self::setPublicDomain($domainId);
+            $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
+        }
         
         // Вземаме домейна от текущото URL
         $domain = strtolower(trim($_SERVER['SERVER_NAME']));
