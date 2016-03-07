@@ -547,7 +547,7 @@ class cms_Content extends core_Manager
             $lastOrder = 0;
             $query = self::getQuery();
             $query->orderBy("#order", 'DESC');
-            $cd = cms_domains::getCurrent();
+            $cd = cms_Domains::getCurrent();
             
             $typeOrder = cls::get('type_Order');
             if($lastOrder = $query->fetch("#state = 'active' AND #domainId = {$cd}")->order) {
