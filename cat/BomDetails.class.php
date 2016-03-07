@@ -547,6 +547,7 @@ class cat_BomDetails extends doc_Detail
     			if(count($convertableOptions)){
     				core_RowToolbar::createIfNotExists($row->_rowTools);
     				$row->_rowTools->addLink('Заместване', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), array('ef_icon' => "img/16/dropdown.gif", 'title' => "Избор на заместващ материал"));
+    				$row->resourceId = ht::createHint($row->resourceId, 'Артикулът може да бъде заместен');
     			}
     		}
     		
