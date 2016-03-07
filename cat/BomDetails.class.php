@@ -48,12 +48,6 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    //var $rowToolsField = 'tools';
-    
-    
-    /**
      * Активен таб
      */
     var $currentTab = 'Рецепти';

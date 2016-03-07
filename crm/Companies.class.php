@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 20164 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  * @todo:     Да се документира този клас
@@ -87,13 +87,7 @@ class crm_Companies extends core_Master
      * Полетата, които ще видим в таблицата
      */
     var $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,name=';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'id';
-    
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
