@@ -246,6 +246,7 @@ class cat_products_Params extends doc_Detail
         }
         
         foreach((array)$data->params as $row) {
+        	core_RowToolbar::createIfNotExists($row->_rowTools);
         	if($data->noChange !== TRUE){
         		$row->tools = $row->_rowTools->renderHtml();
         	}
