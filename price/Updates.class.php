@@ -561,7 +561,8 @@ class price_Updates extends core_Manager
     	// Рендираме таблицата
     	$table = cls::get('core_TableView', array('mvc' => 'price_Updates'));
     	$table->setFieldsToHideIfEmptyColumn('costAdd');
-    	$details = $table->get($data->rows, 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Надценка,costValue=Стойност,updateMode=Обновяване');
+    	$fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Надценка,costValue=Стойност,updateMode=Обновяване';
+    	$details = $table->get($data->rows, $fields);
     	
     	return $details;
     }

@@ -250,7 +250,8 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
- 
+        $html .= $Bucket->createBucket('import', 'Файлове при импортиране', NULL, '104857600', 'user', 'user');
+        
         //TODO в момента се записват само при инсталация на целия пакет
         
         

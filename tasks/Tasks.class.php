@@ -806,7 +806,8 @@ class tasks_Tasks extends embed_Manager
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd,expectedTimeStart');
-    	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
+    	$fields = 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+    	$tpl = $table->get($data->rows, $fields);
     
     	// Имали бутони за добавяне
     	if(is_array($data->addUrlArray)){

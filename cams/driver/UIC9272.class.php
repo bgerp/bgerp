@@ -39,7 +39,7 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
      */
     function prepareSettingsForm($form)
     {
-        $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
+        $form->FNC('ip', 'ip',
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
         $form->FNC('codec', 'enum(h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
         $form->FNC('width', 'int(min=320,max=1600)', 'caption=Ширина,hint=Хоризонтална резолюция,input');

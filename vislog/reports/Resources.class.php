@@ -220,7 +220,8 @@ class vislog_reports_Resources extends frame_BaseDriver
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'resource=Посещения->Ресурс,cnt=Посещения->Брой');
+    	$fields = 'resource=Посещения->Ресурс,cnt=Посещения->Брой';
+    	$html = $table->get($rows, $fields);
     
     	$tpl->append($html, 'RESOURCES');
         $tpl->append($pager->getHtml(), 'PAGER');
