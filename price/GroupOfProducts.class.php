@@ -117,7 +117,7 @@ class price_GroupOfProducts extends core_Detail
      * Връща масив групите на всички всички продукти към определената дата
      * $productId => $groupId
      */
-    static function getAllProducts($datetime = NULL)
+    static function getAllProducts($datetime = NULL, $showNames = TRUE)
     {
         price_ListToCustomers::canonizeTime($datetime);
 		
@@ -125,22 +125,23 @@ class price_GroupOfProducts extends core_Detail
 		
         $query = self::getQuery();
 		$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+		$query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $query->where("state != 'rejected'");
 		$query->where("#validFrom <= '{$datetime}'");
-		
+		$query->where("#isPublic = 'yes'");
         $query->orderBy("#validFrom", "DESC");
+        $query->show('groupId,productId,isPublic');
         
         $res = array();
-        
         while($rec = $query->fetch()) {
             if(!$used[$rec->productId]) {
                 if($rec->groupId) {
-                    $res[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+                	$res[$rec->productId] = ($showNames === TRUE) ? cat_Products::getTitleById($rec->productId, FALSE) : $rec->productId;
                 }
                 $used[$rec->productId] = TRUE;
             }
         }
-
+        
         asort($res);
 		
         return $res;
