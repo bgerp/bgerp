@@ -1676,8 +1676,7 @@ class crm_Companies extends core_Master
         $fields = array();
         
         foreach($Dfields as $name => $fld){
-            if($fld->input != 'none' && $fld->input != 'hidden' &&
-                            $fld->kind != 'FNC' && !($fld->type instanceof fileman_FileType)) {
+            if($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC') {
                                 
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
                 if ($name == 'groupList') {
