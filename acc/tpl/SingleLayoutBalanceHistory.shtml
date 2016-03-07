@@ -1,5 +1,4 @@
-<div class="singleView">
-<h1>[#TITLE#]</h1>
+    <h1>[#TITLE#]</h1>
     [#HystoryToolbar#]
     <h3 style='margin-top:15px'>
         <b style='font-size: 1.2em'>[#accountId#]</b>
@@ -50,8 +49,7 @@
     </div>
     <div class='clearfix21'></div>
     [#PAGER#]
-    <div class='scrolling-holder'>
+    <div class='overflow-scroll'>
         [#DETAILS#]
     </div>
     [#PAGER#]
-</div>
