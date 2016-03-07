@@ -192,9 +192,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 		        if (isset($data->rec->store)) { 
 		        	$storeId = $data->rec->store;
 		        }
-
-		       
-		        //bp(store_Products::fetchField("#productId = '{$product->productId}' AND #classId = '{$product->classId}' AND #storeId = '{$storeId}'", 'quantity'));
+		        
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
 			    if(!array_key_exists($index, $data->recs)){
@@ -262,7 +260,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 	        			$storeJob[$storeJobRec->productId] += $storeJobRec->quantity;
 	        		}
 	        	}
-	        	//bp($indexJ);
+	        	
 	        	$data->recs[$indexJ] =
 	        		(object) array ('id' => $recJobs->productId,
 	        				'quantityJob'	=> $recJobs->quantity,
@@ -322,7 +320,6 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         	}
         }
 
-        //bp($index,$indexJ, $data);
         return $data;
     }
     

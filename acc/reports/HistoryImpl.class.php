@@ -332,7 +332,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 		
 		$exportFields = $this->getExportFields();
 	
-		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
+		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) {
 			unset ($exportFields['debitQuantity']);
 			unset ($exportFields['creditQuantity']);
 			unset ($exportFields['blQuantity']);

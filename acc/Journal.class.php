@@ -368,7 +368,6 @@ class acc_Journal extends core_Master
         $docRec   = $mvc->fetchRec($docId);
         
         try {
-        	
         	Mode::push("saveTransaction", TRUE);
             $transaction = $mvc->getValidatedTransaction($docRec);
             Mode::pop("saveTransaction");
