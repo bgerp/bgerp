@@ -243,21 +243,20 @@ class acc_BalanceHistory extends core_Manager
         
         $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
         $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-        $optionsFrom = $optionsTo = array();
-        $optionsFrom[dt::today()] = 'Днес';
-        $optionsFrom[$yesterday] = 'Вчера';
-        $optionsFrom[$daybefore] = 'Завчера';
-        $optionsTo[dt::today()] = 'Днес';
-        $optionsTo[$yesterday] = 'Вчера';
-        $optionsTo[$daybefore] = 'Завчера';
+        $options = array();
+        
+        $options[dt::today() . '|' . dt::today()] = 'Днес';
+        $options[$yesterday . '|' . $yesterday] = 'Вчера';
+        $options[$daybefore . '|' . $daybefore] = 'Завчера';
+        
+     
         
         while($bRec = $balanceQuery->fetch()){
             $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
-            $optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
-            $optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
+            $options[$bRec->fromDate . '|' . $bRec->toDate] = $bRow->periodId;
         }
         
-        return (object)array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
+        return $options;
     }
     
     
@@ -272,11 +271,13 @@ class acc_BalanceHistory extends core_Manager
         $filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $filter->class = 'simpleForm';
         
-        $filter->FNC('fromDate', 'date', 'caption=От,input');
-        $filter->FNC('toDate', 'date', 'caption=До,input');
+        $filter->FNC('fromDate', 'date', 'caption=Период,input,placeholder=Начало');
+        $filter->FNC('toDate', 'date', 'caption=-,input,inlineTo=fromDate,placeholder=Край');
+        $filter->FNC('selectPeriod', 'autofillMenu', 'input,inlineTo=fromDate,placeholder=Край', array('caption' => ' '));
+
         $filter->FNC('accNum', 'int', 'input=hidden');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
-        $filter->showFields = 'fromDate,toDate,isGrouped';
+        $filter->showFields = 'fromDate,selectPeriod,toDate,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
         foreach (array(3, 2, 1) as $i){
@@ -295,11 +296,10 @@ class acc_BalanceHistory extends core_Manager
         $filter->setDefault('ent1Id', $data->rec->ent1Id);
         $filter->setDefault('ent2Id', $data->rec->ent2Id);
         $filter->setDefault('ent3Id', $data->rec->ent3Id);
-        
-        $op = $this->getBalancePeriods();
-        
-        $filter->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
-        $filter->setSuggestions('toDate', array('' => '') + $op->toOptions);
+                
+        $toDate = $filter->getField('selectPeriod');
+        $toDate->type->setMenu($this->getBalancePeriods(), 'fromDate|toDate');
+
         $filter->setDefault('fromDate', $data->fromDate);
         $filter->setDefault('toDate', $data->toDate);
         
