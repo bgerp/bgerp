@@ -973,7 +973,8 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$fields = 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено';
+    			$jobsTable = $table->get($data->JobsInfo, $fields);
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');

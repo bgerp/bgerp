@@ -66,11 +66,9 @@ class acc_reports_ManufacturedProducts extends acc_reports_CorespondingImpl
         $today = dt::today();
          
         $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
-        $form->setDefault('to', dt::addDays(-1,$today));
-        
-        //bp($form);
-
+        $form->setDefault('to', dt::addDays(-1, $today));
     }
+    
     
     /**
      * Подготвя формата за въвеждане на данни за вътрешния обект

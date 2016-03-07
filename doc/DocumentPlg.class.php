@@ -1522,7 +1522,6 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
                 
-                //bp($oRec, $requiredRoles);
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме

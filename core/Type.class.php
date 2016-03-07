@@ -267,7 +267,7 @@ class core_Type extends core_BaseClass
             
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
             if (!$res['error'] && isset($this->params['regexp'])) {
-                if (!eregi($this->params['regexp'], $value)) {
+                if (!preg_match($this->params['regexp'], $value)) {
                     $res['error'] = 'Синтактична грешка';
                 }
             }

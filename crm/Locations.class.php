@@ -49,7 +49,7 @@ class crm_Locations extends core_Master {
     /**
      *  Поле за rowTools
      */
-    var $rowToolsField = 'tools';
+    //var $rowToolsField = 'tools';
     
     
     /**
@@ -367,11 +367,13 @@ class crm_Locations extends core_Master {
         $tpl->append(tr('Локации'), 'title');
         
         if(count($data->rows)) {
-            
             foreach($data->rows as $id => $row) {
+            	core_RowToolbar::createIfNotExists($row->_rowTools);
             	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
             	$block->placeObject($row);
+            	$block->append($row->_rowTools->renderHtml(), 'tools');
             	$block->removeBlocks();
+            	
                 $tpl->append($block, 'content');
             }
         } else {

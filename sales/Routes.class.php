@@ -419,7 +419,8 @@ class sales_Routes extends core_Manager {
     	$tpl->replace($title, 'title');
     	
     	$table = cls::get('core_TableView');
-    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт');
+    	$fields = 'salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт';
+    	$tableTpl = $table->get($data->rows, $fields);
     	$tpl->append($tableTpl, 'content');
 
     	return $tpl;

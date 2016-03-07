@@ -712,7 +712,8 @@ class price_ListRules extends core_Detail
 		
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
+		$fields = "rule=Правило,validFrom=От,validUntil=До";
+		$tpl = $table->get($data->priceLists->rows, $fields);
 		
 		$title = 'Себестойности';
 		if($data->priceLists->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
