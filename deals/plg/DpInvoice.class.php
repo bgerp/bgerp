@@ -321,9 +321,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	// Ако няма данни за показване на авансово плащане
     	if(empty($data->dpInfo)) return;
     	
-    	if($data->dpInfo->dpOperation == 'none'){
-    		return;
-    	}
+    	if($data->dpInfo->dpOperation == 'none') return;
     	
     	// Ако няма записи, да не се показва реда "няма записи"
     	if(empty($data->rows)){
