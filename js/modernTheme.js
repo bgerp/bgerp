@@ -65,7 +65,6 @@ function initElements() {
 
 
 function setMaxWidth() {
-	console.log('here');
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
 	if(contentWidth < $('.listTable').first().width()){
