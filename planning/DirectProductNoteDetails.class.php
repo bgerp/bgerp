@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting';
     
     
     /**
@@ -68,7 +68,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количества->Вложено, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи';
+    public $listFields = 'num=№,productId=Материал, packagingId, packQuantity=Количества->Вложено, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи';
     
 
     /**
@@ -81,12 +81,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Активен таб
      */
     public $currentTab = 'Протоколи->Бързо производство';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -229,11 +223,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			
     			// Разделяме записите според това дали са вложими или не
     			if($rec->type == 'input'){
-    				$row->tools->append($Int->toVerbal($countInputed), 'TOOLS');
+    				$row->num = $Int->toVerbal($countInputed);
     				$data->inputArr[$id] = $row;
     				$countInputed++;
     			} else {
-    				$row->tools->append($Int->toVerbal($countPoped), 'TOOLS');
+    				$row->num = $Int->toVerbal($countPoped);
     				$data->popArr[$id] = $row;
     				$countPoped++;
     			}
@@ -258,15 +252,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Рендираме таблицата с вложените материали
     	$misc = ($data->masterData->rec->inputStoreId) ? "|от склад|*: {$data->masterData->row->inputStoreId}" : "за изписване от незавършеното производство";
-    	$data->listFields['productId'] = '|Вложени артикули|* ' . "<small style='font-weight:normal'>( {$misc} )</small>";
+    	$data->listFields['productId'] = 'Вложени артикули|* ' . "<small style='font-weight:normal'>( {$misc} )</small>";
     	
-    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$fieldset = clone $this;
+    	$fieldset->FNC('num', 'int');
+    	$table = cls::get('core_TableView', array('mvc' => $fieldset));
     	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
     	
     	$iData = clone $data;
     	$iData->rows = $data->inputArr;
     	$this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
-    	
     	$detailsInput = $table->get($iData->rows, $iData->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
