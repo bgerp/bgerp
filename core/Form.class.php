@@ -595,7 +595,7 @@ class core_Form extends core_FieldSet
             $i = 1;
             
             foreach ($fields as $name => $field) {
-                expect(is_object($fields[$name]), $fields);
+                expect(is_object($fields[$name]), $fields, $name);
                 $fields[$name]->formOrder = (float) $field->formOrder ? $field->formOrder : $i++;
             }
             
