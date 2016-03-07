@@ -172,7 +172,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$rec = &$form->rec;
     	
-    	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
+    	$matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
@@ -235,7 +235,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
     	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
+    	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
     }
     
     
@@ -419,7 +419,7 @@ class cat_BomDetails extends doc_Detail
     			$notAllowed = array();
     			$mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
     			if(isset($notAllowed[$rec->resourceId])){
-    				$form->setError('resourceId', "Материалът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+    				$form->setError('resourceId', "Артикулът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
     			}
     		}
     		
@@ -435,7 +435,7 @@ class cat_BomDetails extends doc_Detail
     			$cond = "#bomId = {$rec->bomId} AND #id != '{$rec->id}' AND #resourceId = {$rec->resourceId}";
     			$cond .= (empty($rec->parentId)) ? " AND #parentId IS NULL" : " AND #parentId = '{$rec->parentId}'";
     			if(self::fetchField($cond)){
-    				$form->setError('resourceId,parentId', 'Материалът вече се използва в този етап');
+    				$form->setError('resourceId,parentId', 'Артикулът вече се използва в този етап');
     			}
     		}
     		
@@ -636,7 +636,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = "{$title} |вече е етап|*";
-    	$this->Master->logRead("Разпъване на материал", $rec->bomId);
+    	$this->Master->logRead("Разпъване на вложен артикул", $rec->bomId);
     	
     	return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
@@ -672,7 +672,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на материал,ef_icon=img/16/package.png");
+    		$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на артикул за влагане,ef_icon=img/16/package.png");
     		$data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'stage'), NULL, "title=Добавяне на етап,ef_icon=img/16/wooden-box.png");
     		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/recycle.png");
     	}
