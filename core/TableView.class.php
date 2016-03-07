@@ -71,9 +71,10 @@ class core_TableView extends core_BaseClass
     /**
      * Връща шаблон за таблицата
      */
-    function get($rows, $fields)
+    function get($rows, &$listFields)
     {
-        $fields = arr::make($fields, TRUE);
+    	$listFields = arr::make($listFields, TRUE);
+    	$fields = $listFields;
         $header = array();
         $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
         $addRows = "";
@@ -126,6 +127,7 @@ class core_TableView extends core_BaseClass
         		
         		// Махаме колоната от таблицата ако поне един ред няма стойност за нея
         		if($hide === TRUE){
+        			unset($listFields[$name]);
         			unset($fieldList[$name]);
         		}
         	}
