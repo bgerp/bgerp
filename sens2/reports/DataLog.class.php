@@ -155,7 +155,8 @@ class sens2_reports_DataLog extends frame_BaseDriver
     		
     	$table = cls::get('core_TableView', array('mvc' => cls::get('sens2_DataLogs')));
     
-    	$layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
+    	$fields = 'time=Време,indicatorId=Индикатор,value=Стойност';
+    	$layout->append($table->get($data->rows, $fields), 'data');
     		
     	if($data->pager){
     		$layout->append($data->pager->getHtml(), 'data');

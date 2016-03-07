@@ -226,7 +226,8 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
+    	$fields = 'ip=Посещения->Ip,cnt=Посещения->Брой';
+    	$html = $table->get($rows, $fields);
     
     	$tpl->append($html, 'VISITS');
         $tpl->append($pager->getHtml(), 'PAGER');

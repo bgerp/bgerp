@@ -265,8 +265,8 @@ class store_ConsignmentProtocols extends core_Master
     	$mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
     	 
     	$table = cls::get('core_TableView', array('mvc' => $mvcTable));
-    	$details = $table->get($snapshot->rows, 'count=№,productId=Артикул,blQuantity=Количество');
-    	
+    	$fields = 'count=№,productId=Артикул,blQuantity=Количество';
+    	$details = $table->get($snapshot->rows, $fields);
     	
     	$tpl->replace($details, 'SNAPSHOT');
     	$tpl->replace($snapshot->date, 'SNAPSHOT_DATE');

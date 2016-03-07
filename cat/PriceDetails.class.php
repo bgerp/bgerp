@@ -240,7 +240,9 @@ class cat_PriceDetails extends core_Manager
     	$table->setFieldsToHideIfEmptyColumn('document');
     	
     	plg_AlignDecimals2::alignDecimals($fieldSet, $data->primeCostRecs, $data->primeCostRows);
-    	$primeCostTpl = $table->get($data->primeCostRows, "type=Себестойност,document=Документ,modifiedOn=Модифициране,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
+    	
+    	$fields = "type=Себестойност,document=Документ,modifiedOn=Модифициране,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*";
+    	$primeCostTpl = $table->get($data->primeCostRows, $fields);
     	$tpl->append($primeCostTpl, 'primeCosts');
     	
     	// Рендираме информацията за обновяване
@@ -261,7 +263,9 @@ class cat_PriceDetails extends core_Manager
     		
     		$table = cls::get('core_TableView', array('mvc' => $fieldSet));
     		$table->setFieldsToHideIfEmptyColumn('document');
-    		$priceCost = $table->get($data->priceCostRows, "type=Цена,document=Документ,modifiedOn=Модифициране,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*");
+    		
+    		$fields = "type=Цена,document=Документ,modifiedOn=Модифициране,price=Стойност|* <small>({$baseCurrencyCode})</small> |без ДДС|*";
+    		$priceCost = $table->get($data->priceCostRows, $fields);
     		$tpl->append($priceCost, 'priceCosts');
     	}
     	

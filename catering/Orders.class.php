@@ -224,12 +224,8 @@ class catering_Orders extends core_Master
         $table = cls::get('core_TableView', array('mvc' => $mvc));
         
         $data->listFields = arr::make($data->listFields, TRUE);
-        
-        $tpl = $table->get($data->tableData, "counter=№, 
-                                              food=Избор,
-                                              priceForOne=Цена за 1 бр.,
-                                              quantity=Количество,
-                                              priceSum=Сума");
+        $fields = "counter=№, food=Избор,priceForOne=Цена за 1 бр., quantity=Количество,priceSum=Сума";
+        $tpl = $table->get($data->tableData, $fields);
         
         $tpl->prepend("<div><b>Поръчка за храна</b>
                        <br/>№ " . $orderId . " / Дата: " . $orderDate . " към фирма \"" . $orderCompanyName . "\"</div><br/>");

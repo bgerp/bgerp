@@ -74,6 +74,7 @@ class core_TableView extends core_BaseClass
     function get($rows, &$listFields)
     {
     	$listFields = arr::make($listFields, TRUE);
+    	//bp($listFields);
     	$fields = $listFields;
         $header = array();
         $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";

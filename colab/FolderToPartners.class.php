@@ -280,7 +280,8 @@ class colab_FolderToPartners extends core_Manager
 		
 		// Подготвяме таблицата с данните извлечени от журнала
 		$table = cls::get('core_TableView');
-		$details = $table->get($data->partners, 'count=№,names=Свързани');
+		$fields = 'count=№,names=Свързани';
+		$details = $table->get($data->partners, $fields);
 		$dTpl->append($details, 'TABLE_PARTNERS');
         
 		$folderId = $data->masterData->rec->folderId;
