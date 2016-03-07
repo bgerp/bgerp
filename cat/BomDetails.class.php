@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
     
     
     /**
@@ -50,7 +50,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    //var $rowToolsField = 'tools';
     
     
     /**
@@ -116,7 +116,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -545,8 +545,8 @@ class cat_BomDetails extends doc_Detail
     		if($mvc->haveRightFor('edit', $rec)){
     			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
     			if(count($convertableOptions)){
-    				$link = ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
-    				$extraBtnTpl->append($link, 'BTN');
+    				core_RowToolbar::createIfNotExists($row->_rowTools);
+    				$row->_rowTools->addLink('Заместване', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), array('ef_icon' => "img/16/dropdown.gif", 'title' => "Избор на заместващ материал"));
     			}
     		}
     		
