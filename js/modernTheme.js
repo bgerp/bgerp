@@ -38,12 +38,14 @@ function initElements() {
 		
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 
-	if($('body').hasClass('narrow') && viewportWidth <= 800){
-        setViewportWidth(viewportWidth);
-        $(window).resize( function() {
-            viewportWidth = $(window).width();
-            setViewportWidth(viewportWidth);
-        });
+	if($('body').hasClass('narrow')){
+		if(viewportWidth <= 800) {
+			setViewportWidth(viewportWidth);
+	        $(window).resize( function() {
+	            viewportWidth = $(window).width();
+	            setViewportWidth(viewportWidth);
+	        });
+		}
 	} else {
 		$(window).resize( function() {
             setMaxWidth(viewportWidth);
@@ -63,6 +65,7 @@ function initElements() {
 
 
 function setMaxWidth() {
+	console.log('here');
 	var viewportWidth = $(window).width();
 	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
 	if(contentWidth < $('.listTable').first().width()){
@@ -156,7 +159,9 @@ function changePinIcon(){
     		$('.pinned').addClass('hidden');
     		$('.pin').removeClass('hidden');
     	}
-    	setMaxWidth();
+    	if($('body').hasClass('wide')){
+    		setMaxWidth();
+    	}
 	});
 }
 
