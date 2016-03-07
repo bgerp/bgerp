@@ -40,7 +40,7 @@ class bgerp_plg_Export extends core_Plugin
         	$url = getCurrentUrl();
         	$url['export'] = TRUE;
         	
-            $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png');
+            $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png, row=2');
         }
     }
     

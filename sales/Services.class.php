@@ -246,6 +246,7 @@ class sales_Services extends deals_ServiceMaster
     	$query = sales_ServicesDetails::getQuery();
     	$query->where("#shipmentId = {$rec->id}");
     	while($dRec = $query->fetch()){
+    		$dRec->quantity /= $dRec->quantityInPack;
     		unset($dRec->id);
     		unset($dRec->shipmentId);
     		unset($dRec->createdOn);

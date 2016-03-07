@@ -213,4 +213,19 @@ class bgerp_F extends core_Manager
             expect(FALSE);
         }
     }
+    
+    
+    /**
+     * Сваля подадения файл
+     */
+    function act_D()
+    {
+        $fileHnd = Request::get('id');
+        
+        $fName = fileman_Files::fetchByFh($fileHnd, 'name');
+        
+        header("Content-Disposition: attachment; filename={$fName}");
+        
+        return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE));
+    }
 }

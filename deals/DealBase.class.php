@@ -158,6 +158,7 @@ abstract class deals_DealBase extends core_Master
     {
     	if($res == 'no_one') return;
     	
+    	// Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
     	if($action == 'closewith' && isset($rec)){
     		$options = $mvc->getDealsToCloseWith($rec);
     		if(!count($options) || $rec->state != 'draft'){
@@ -176,7 +177,9 @@ abstract class deals_DealBase extends core_Master
     	// Ако има документи в нишката на договора, не може да се затваря
     	if($action == 'close' && isset($rec)){
     		$docCountInThread = doc_Threads::fetch($rec->threadId)->allDocCnt;
-    		if($docCountInThread != 1){
+    		
+    		// Ако има повече от 1 документ в нишката или има контировка документа, не може да се затваря
+    		if($docCountInThread != 1 || acc_Journal::fetchByDoc($mvc, $rec->id)){
     			$res = 'no_one';
     		}
     	}

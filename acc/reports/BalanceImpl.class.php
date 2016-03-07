@@ -289,7 +289,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     	$f = $this->getFields();
     	
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	//bp($data->rows, $data->listFields, $this);
     	$tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
     	
     	$data->summary->colspan = count($data->listFields);

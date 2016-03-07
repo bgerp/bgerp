@@ -327,9 +327,8 @@ class bank_Accounts extends core_Master {
         $tpl->append(tr('Банкови сметки'), 'title');
         
         if(count($data->rows)) {
-            
             foreach($data->rows as $id => $row) {
-                
+            	core_RowToolbar::createIfNotExists($row->_rowTools);
                 $rec = $data->recs[$id];
                 
                 $cCodeRec = currency_Currencies::fetch($rec->currencyId);
@@ -345,7 +344,6 @@ class bank_Accounts extends core_Master {
                 }
                 
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
-            
                 $tpl->append("{$row->title} " . $row->_rowTools->renderHtml(), 'content');
                 
                 $tpl->append("</div>", 'content');

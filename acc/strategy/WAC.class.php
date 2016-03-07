@@ -155,7 +155,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     	
     	// Опитваме се да намерим сумата за к-то
     	$amount = $strategy->consume($quantity);
-    	//bp($strategy,$amount );
+    	
     	// Ако няма
     	if(!isset($amount)){
     		
