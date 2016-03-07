@@ -7,7 +7,7 @@
                         <table class="innerTable footer-notes paddingCells" style='width:100%;'>
                             <tbody>
                                 <tr>
-                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>|Получател|*</b></td>
+                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Получател</b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%;'>
                                         <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>ПРОФОРМА ФАКТУРА</span></div>
                                         <div class='invInfo'>|Номер|*</div>
@@ -23,7 +23,7 @@
                                         <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
-                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>|Доставчик|*</b></td>
+                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Доставчик</b></td>
                                 </tr>
                                 <tr>
                                     <td class="cell">
@@ -47,14 +47,14 @@
                                             <tbody>
                                                 <!--ET_BEGIN contragentVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
+                                                    <td class="aright"><small>ЗДДС&nbsp;№:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
                                                 
                                                 <!--ET_BEGIN uicNo-->
                                                 <tr>
-                                                    <td class="aright"><small>|ЕИК|*: </small></td>
+                                                    <td class="aright"><small>ЕИК: </small></td>
                                                     <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END uicNo-->
@@ -66,13 +66,13 @@
                                             <tbody>
                                                 <!--ET_BEGIN MyCompanyVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>|ЗДДС|*&nbsp;№:</small></td>
+                                                    <td class="aright"><small>ЗДДС&nbsp;№:</small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
                                                 </tr>
                                                 <!--ET_END MyCompanyVatNo-->
                                                 <!--ET_BEGIN uicId-->
                                                 <tr>
-                                                    <td class="aright"><small>|ЕИК|*: </small></td>
+                                                    <td class="aright"><small>ЕИК: </small></td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
                                                 </tr>
                                                 <!--ET_END uicId-->
@@ -94,20 +94,20 @@
                                 <tr>
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>|Основание за ДДС|*:</span> [#vatReason#]</div>
+                                        <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
                                         
-                                        <div class='custom-bg-block'><b>|Плащане|*</b></div>
+                                        <div class='custom-bg-block'><b>Плащане</b></div>
                                         <!--ET_BEGIN paymentMethodId-->
 					                    <div class='cellRow'>
-					                        <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
+					                        <span class='quiet'>Плащане: </span>[#paymentMethodId#]
 					                    </div>
 					                    <!--ET_END paymentMethodId-->
 					                    <!--ET_BEGIN downpayment-->
 					                    <div class='cellRow'>
-					                        <span class='quiet'>|Авансово|*:</span> [#downpayment#]
+					                        <span class='quiet'>Авансово:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
                                        	<!--ET_BEGIN DUE_BLOCK-->
@@ -119,16 +119,16 @@
                                         [#deadline#]
                                         <div>
                                             <!--ET_BEGIN DUE_DATE-->
-                                            <span class='quiet'>|Краен срок за плащане|*:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+                                            <span class='quiet'>Краен срок за плащане:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
                                             <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">|Лихва за просрочено плащане|*: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
+                                            <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
                                         </div>
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN accountId-->
                                         <hr>
                                         <div>
-                                            <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
+                                            <span class='quiet'>Банкова с-ка:</span> [#accountId#]
                                             <div class="smallData">
                                                 <!--ET_BEGIN bank-->
                                                 <div>
@@ -146,7 +146,7 @@
 
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
-                                        <div class='custom-bg-block'><b>|Доставка|*</b></div>
+                                        <div class='custom-bg-block'><b>Доставка</b></div>
                                         <!--ET_BEGIN deliveryId-->
                                         [#deliveryId#]
                                         <!--ET_END deliveryId-->
@@ -157,13 +157,13 @@
                                         <!--ET_END deliveryInfo-->
                                         <!--ET_BEGIN additionalInfo-->
                                        
-                                        <div>|Бележки|*</div>
+                                        <div>Бележки</div>
                                         <div>[#additionalInfo#]</div>
                                          <hr>
                                         <!--ET_END additionalInfo-->
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
-                                                <td class='centered'>|Съставил|*:</td>
+                                                <td class='centered'>Съставил:</td>
                                                 <td class='centered' style="padding-top: 45px;"><span class="sign_names nowrap">[#username#]</span></td>
                                             </tr>
                                         </table>
@@ -171,20 +171,20 @@
                                     <td id='invoice-info' style='width:40%;'>
                                         <table class='no-border paddingCells business-doc-summary-table' style='width:100%;'>
                                             <tr class='nowrap'>
-                                                <td class='aright'>|Стойност|* :</td>
+                                                <td class='aright'>Стойност:</td>
                                                 <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
                                                 <td class='aright' style='width:1%;'> <b class="lighterBold">[#value#]</b></td>
                                             </tr>
                                             <!--ET_BEGIN discountValue-->
                                             <tr class='nowrap'>
-                                                <td class='aright'>|Отстъпка|* :</td>
+                                                <td class='aright'>Отстъпка:</td>
                                                 <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
                                                 <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
                                             </tr>
                                             <!--ET_END discountValue-->
                                             <!--ET_BEGIN neto-->
                                             <tr class='nowrap'>
-                                                <td class='aright'>|Нето|* :</td>
+                                                <td class='aright'>Нето:</td>
                                                 <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
                                                 <td class='aright'><b class="lighterBold">[#neto#]</b></td>
                                             </tr>
@@ -196,13 +196,13 @@
                                             </tr>
                                             <!--ET_BEGIN vatAmount-->
                                             <tr class='nowrap'>
-                                                <td class='aright'>|ДДС|* <b>[#vat#]</b> :</td>
+                                                <td class='aright'>ДДС:<b>[#vat#]</b> :</td>
                                                 <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
                                                 <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
                                             </tr>
                                             <!--ET_END vatAmount-->
                                             <tr class='nowrap'>
-                                                <td class='aright'>|Общо|* :</td>
+                                                <td class='aright'>Общо:</td>
                                                 <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
                                                 <td class='aright'><b>[#total#]</b></td>
                                             </tr>
@@ -210,7 +210,7 @@
                                                 <td colspan='3' style='text-align:right'>
                                                     <!--ET_BEGIN sayWords-->
                                                     <hr>
-                                                    |С думи|*:
+                                                    С думи:
                                                     [#sayWords#]
                                                     <!--ET_END sayWords-->
                                                 </td>

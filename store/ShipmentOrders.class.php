@@ -351,14 +351,16 @@ class store_ShipmentOrders extends store_DocumentMaster
     	 
     	$query = store_ShipmentOrderDetails::getQuery();
     	$query->where("#shipmentId = {$rec->id}");
+    	
     	while($dRec = $query->fetch()){
+    		$dRec->quantity /= $dRec->quantityInPack;
     		unset($dRec->id);
     		unset($dRec->shipmentId);
     		unset($dRec->createdOn);
     		unset($dRec->createdBy);
     		$details[] = $dRec;
     	}
-    	 
+    	
     	return $details;
     }
     

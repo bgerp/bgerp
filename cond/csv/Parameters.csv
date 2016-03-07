@@ -8,4 +8,5 @@
 Общи условия за покупка,text,commonConditionPur
 Общи условия за продажба (английски),text,commonConditionSaleEng
 Общи условия за покупка (английски),text,commonConditionPurEng
-Текст за фактура,text,invoiceText
+Други условия към фактура,text,invoiceText
+Други условия към фактура (английски),text,invoiceTextEng
