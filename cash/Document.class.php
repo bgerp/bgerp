@@ -237,7 +237,8 @@ abstract class cash_Document extends core_Master
     			if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
     				$originRec = $secondOrigin->fetch();
     				$title = ($originRec->type == 'dc_note') ? (($originRec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие') : $secondOrigin->singleTitle;
-    				$form->rec->notes = tr("Kъм|* ") . mb_strtolower($title) . " №{$secondOrigin->that}";
+    				$number = str_pad($originRec->number, 10, "0", STR_PAD_LEFT);
+    				$form->rec->notes = tr("Kъм|* ") . mb_strtolower($title) . " №{$number}";
     			}
     		}
     	}
