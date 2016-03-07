@@ -49,7 +49,7 @@ class crm_Locations extends core_Master {
     /**
      *  Поле за rowTools
      */
-    var $rowToolsField = 'tools';
+    //var $rowToolsField = 'tools';
     
     
     /**
@@ -370,6 +370,7 @@ class crm_Locations extends core_Master {
             
             foreach($data->rows as $id => $row) {
             	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
+            	$block->append("{$row} " . $row->_rowTools->renderHtml(), 'tools');
             	$block->placeObject($row);
             	$block->removeBlocks();
                 $tpl->append($block, 'content');
