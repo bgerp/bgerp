@@ -349,12 +349,14 @@ class deals_plg_DpInvoice extends core_Plugin
     		}
     		$accruedInvoices = count($handleArr);
     		$handleString = implode(', ', $handleArr);
-    		$colspan = count($data->listFields) - 3;
+    		$colspan = count($data->listFields) - 2;
     		
     		if($accruedInvoices == 1){
-    			$misc = tr("по фактура|* {$handleString}");
+    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформа' : 'по фактура';
+    			$misc = tr($docTitle) . " {$handleString}";
     		} elseif($accruedInvoices) {
-    			$misc = tr("по фактури|* {$handleString}");
+    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформи' : 'по фактури';
+    			$misc = tr($docTitle) . " {$handleString}";
     		} else {
     			$misc = tr("по договор|* №{$firstDoc->that} |от|* {$valior}");
     		}
