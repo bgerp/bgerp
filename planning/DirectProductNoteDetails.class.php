@@ -267,7 +267,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$iData->rows = $data->inputArr;
     	$this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
     	
-    	$detailsInput = $table->get($iData->rows, $data->listFields);
+    	$detailsInput = $table->get($iData->rows, $iData->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
     	// Добавяне на бутон за нов материал
@@ -282,7 +282,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$pData = clone $data;
     		$pData->rows = $data->popArr;
     		$this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-    		$popTable = $table->get($pData->rows, $data->listFields);
+    		$popTable = $table->get($pData->rows, $pData->listFields);
     		$detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
     		
     		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
