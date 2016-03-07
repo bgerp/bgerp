@@ -65,14 +65,13 @@ class plg_RowTools2 extends core_Plugin
         $singleTitle = tr($singleTitle);
         $singleTitle = mb_strtolower($singleTitle);
         
-
         if (!empty($singleUrl)) {
-            $ddTools->addLink('Разглеждане', $singleUrl, 'ef_icon=' . $singleIcon);
+            $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle}");
         }
 
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $ddTools->addLink('Редактиране', $editUrl, 'ef_icon=img/16/edit-icon.png');
+            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Изтриване на|* {$singleTitle}");
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {

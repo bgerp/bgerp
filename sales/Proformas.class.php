@@ -415,7 +415,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	}
     	
     	if($rec->state == 'active'){
-    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
     		$amount /= $rec->rate;
     		$amount = round($amount, 2);
     		

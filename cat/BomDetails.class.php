@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
     
     
     /**
@@ -50,7 +50,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    //var $rowToolsField = 'tools';
     
     
     /**
@@ -116,7 +116,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -172,7 +172,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$rec = &$form->rec;
     	
-    	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
+    	$matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
@@ -235,7 +235,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
     	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
+    	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
     }
     
     
@@ -419,7 +419,7 @@ class cat_BomDetails extends doc_Detail
     			$notAllowed = array();
     			$mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
     			if(isset($notAllowed[$rec->resourceId])){
-    				$form->setError('resourceId', "Материалът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+    				$form->setError('resourceId', "Артикулът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
     			}
     		}
     		
@@ -435,7 +435,7 @@ class cat_BomDetails extends doc_Detail
     			$cond = "#bomId = {$rec->bomId} AND #id != '{$rec->id}' AND #resourceId = {$rec->resourceId}";
     			$cond .= (empty($rec->parentId)) ? " AND #parentId IS NULL" : " AND #parentId = '{$rec->parentId}'";
     			if(self::fetchField($cond)){
-    				$form->setError('resourceId,parentId', 'Материалът вече се използва в този етап');
+    				$form->setError('resourceId,parentId', 'Артикулът вече се използва в този етап');
     			}
     		}
     		
@@ -545,8 +545,9 @@ class cat_BomDetails extends doc_Detail
     		if($mvc->haveRightFor('edit', $rec)){
     			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
     			if(count($convertableOptions)){
-    				$link = ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
-    				$extraBtnTpl->append($link, 'BTN');
+    				core_RowToolbar::createIfNotExists($row->_rowTools);
+    				$row->_rowTools->addLink('Заместване', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), array('ef_icon' => "img/16/dropdown.gif", 'title' => "Избор на заместващ материал"));
+    				$row->resourceId = ht::createHint($row->resourceId, 'Артикулът може да бъде заместен');
     			}
     		}
     		
@@ -636,7 +637,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = "{$title} |вече е етап|*";
-    	$this->Master->logRead("Разпъване на материал", $rec->bomId);
+    	$this->Master->logRead("Разпъване на вложен артикул", $rec->bomId);
     	
     	return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
@@ -672,7 +673,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на материал,ef_icon=img/16/package.png");
+    		$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на артикул за влагане,ef_icon=img/16/package.png");
     		$data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'stage'), NULL, "title=Добавяне на етап,ef_icon=img/16/wooden-box.png");
     		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/recycle.png");
     	}
