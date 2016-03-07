@@ -155,11 +155,57 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     
     
     /**
+     * Вербалното представяне на ред от таблицата
+     */
+    protected function getVerbal_($rec)
+    {
+        $Ip = cls::get('type_Ip');        
+        $Int = cls::get('type_Int');
+
+        foreach ($rec as $ip => $createdCnt) {
+
+            $row = new stdClass();
+
+            if ($this->innerState->fRec->to) {
+                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->to, TRUE, TRUE);
+            } else {
+                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->createdOn, TRUE, TRUE);
+            }
+        
+            $row->cnt = $Int->toVerbal($createdCnt);
+        
+            $rows[] = $row;
+        }
+    
+        return $rows;
+    }
+    
+    
+    /**
      * След подготовката на показването на информацията
      */
     public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
+        // Подготвяме страницирането
+        $data = $res;
+        
+        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+        
+        $pager->itemsCount = count($data->ipCnt, COUNT_RECURSIVE);
+        $pager->calc();
+        $data->pager = $pager;
 
+        $rows = $mvc->getVerbal($data->ipCnt);
+        
+        if(is_array($rows)) {
+            foreach ($rows as $id => $row) {
+                if (!$pager->isOnPage()) continue;
+        
+                $data->rows[$id] = $row;
+            }
+        }
     }
     
     
@@ -170,68 +216,38 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
+    	if(empty($data)) return;
+    	
     	$tpl = new ET("
             <h1>Отчет за посещенията по IP</h1>
             [#FORM#]
     		[#PAGER#]
             [#VISITS#]
-    		[#PAGER#]
-        "
-    	);
-    
-    	$form = cls::get('core_Form');
-    
-    	$this->addEmbeddedFields($form);
-    
-    	$form->rec = $data->fRec;
-    	$form->class = 'simpleForm';
-    
-    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
-    
-    	$tpl->placeObject($data->rec);
-
-    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
-
-    	$pager->itemsCount = count($data->ipCnt);
-
-    	$f = cls::get('core_FieldSet');
-
-    	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
-    	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
-    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Потребител');
+    		[#PAGER#]");
+    	 
+    	$explodeTitle = explode(" » ", $this->title);
+    	 
+    	$title = tr("|{$explodeTitle[1]}|*");
     	
-    	$rows = array();
-
-    	$ft = $f->fields;
-    	$ipType = cls::get('type_Ip');
-        $cntType = $ft['cnt']->type;
-      
-        
-    	foreach ($data->ipCnt as $ip => $createdCnt) { 
-	    	if(!$pager->isOnPage()) continue;
-	    		
-	    	$row = new stdClass();
-	   
-	    	if ($data->fRec->to) {
-	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->to, TRUE, TRUE);
-	    	} else {
-	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->createdOn, TRUE, TRUE);
-	    	}
-	    	
-	    	$row->cnt = $cntType->toVerbal($createdCnt);
-
-	    	$rows[] = $row;
-    	}
-
-    	$table = cls::get('core_TableView', array('mvc' => $f));
+    	$tpl->replace($title, 'TITLE');
+    	
+    	$this->prependStaticForm($tpl, 'FORM');
+    	
+    	$tpl->placeObject($data->row);
+    	
+    	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('ip', 'ip(15)', 'tdClass=itemClass');
+    	$tableMvc->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
+    	
+    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	$fields = 'ip=Посещения->Ip,cnt=Посещения->Брой';
-    	$html = $table->get($rows, $fields);
-    
-    	$tpl->append($html, 'VISITS');
-        $tpl->append($pager->getHtml(), 'PAGER');
-    
+
+    	$tpl->append($table->get($data->rows, $fields), 'VISITS');
+    	
+    	if($data->pager){
+    	    $tpl->append($data->pager->getHtml(), 'PAGER');
+    	}
+    	
     	$embedderTpl->append($tpl, 'data');
     }
      
@@ -243,6 +259,64 @@ class vislog_reports_IpImpl extends frame_BaseDriver
      */
     public function hidePriceFields()
     {
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getFields_()
+    {
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
+        $f->FLD('ip', 'ip(15)');
+        $f->FLD('cnt', 'int');
+        $f->FLD('createdBy', 'varchar');
+    
+    
+        return $f;
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    protected function getExportFields_()
+    {
+        // Кои полета ще се показват
+        $fields = arr::make("ip=Посещения->Ip,
+                             cnt=Посещения->Брой=Продукт", TRUE);
+    
+        return $fields;
+    }
+    
+    
+    /**
+     * Създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function exportCsv()
+    {
+        $exportFields = $this->getExportFields();
+        $fields = $this->getFields();
+        
+        foreach($this->prepareEmbeddedData()->rows as $id => $rec) {
+            $rec->ip = html_entity_decode(strip_tags($rec->ip));
+            $data[$id] = $rec;
+        }
+
+        $csv = csv_Lib::createCsv($data, $fields, $exportFields);
+         
+        return $csv;
     }
     
     
