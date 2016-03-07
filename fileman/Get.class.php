@@ -196,7 +196,7 @@ class fileman_Get extends core_Manager {
         $fRec = new stdClass();
         
         if($data === FALSE) {
-            $err[] = "Грешка при свалането на файла.";
+            $err[] = "Грешка при свалянето на файла.";
         } else {
             foreach($http_response_header as $l) {
                 $hArr = explode(':', $l, 2);
