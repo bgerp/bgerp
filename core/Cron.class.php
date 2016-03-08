@@ -338,6 +338,7 @@ class core_Cron extends core_Manager
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
             sleep($rec->delay);
+            Debug::log('Sleep {$rec->delay} sec. in' . __CLASS__);
         }
         
         // Стартираме процеса
