@@ -1000,9 +1000,14 @@ class doc_Threads extends core_Manager
                 }
             }
             
-            if($errCnt) {
+            if ($errCnt) {
                 $message .= $message ? "<br> " : '';
-                $message .= "|Възникнаха|* {$errCnt} |грешки";
+                if ($errCnt == 1) {
+                    $message .= "|Възникна|* {$errCnt} |грешка";
+                } else {
+                    $message .= "|Възникнаха|* {$errCnt} |грешки";
+                }
+                
                 $exp->redirectMsgType = 'error';
             }
             
