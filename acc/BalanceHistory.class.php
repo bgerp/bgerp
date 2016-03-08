@@ -242,7 +242,7 @@ class acc_BalanceHistory extends core_Manager
         $balanceQuery->where("#periodId IS NOT NULL");
         $balanceQuery->orderBy("#fromDate", "DESC");
         
-        Mode::push('text', 'plane');
+        Mode::push('text', 'plain');
         $today = dt::mysql2verbal(dt::addDays(0), 'd.m.Y');
         $yesterday = dt::mysql2verbal(dt::addDays(-1), 'd.m.Y');
         $daybefore = dt::mysql2verbal(dt::addDays(-2), 'd.m.Y');
