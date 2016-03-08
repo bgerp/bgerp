@@ -58,7 +58,7 @@ class core_ObjectReference
      *
      * @var object
      */
-    var $instance;integer
+    var $instance;
     
     
     /**
