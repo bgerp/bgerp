@@ -974,6 +974,20 @@ a.more-btn {
 	background-image: url(../img/16/toggle2.png) !important;
 }
 
+.shortSelect {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    color: #fff;
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    option {
+        color: #222;
+    }
+}
+
 .docBgIcon {
 	padding-left: 22px !important;  
 	background-repeat: no-repeat !important;

@@ -919,6 +919,8 @@ if ($step == 'setup') {
                 </script>");
                 
         sleep(2);
+        Debug::log('Sleep 2 sec. in' . __CLASS__);
+
         $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
         if (($fTime2 - $fTime) > 0) {
             $logModified = TRUE;
@@ -940,6 +942,7 @@ if ($step == 'setup') {
         
     
     sleep(1);
+    Debug::log('Sleep 1 sec. in' . __CLASS__);
 
     contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
@@ -951,6 +954,8 @@ if ($step == 'setup') {
                 </script>");
     // Спираме и smooth скрол-а и чистим setup cookie
     sleep(1);
+    Debug::log('Sleep 1 sec. in' . __CLASS__);
+
     contentFlush("<script>
                         clearInterval(handle);
                         document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';

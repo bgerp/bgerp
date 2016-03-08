@@ -390,6 +390,8 @@ class remote_BgerpDriver extends core_Mvc
         if($me->cronUpdate) {
             core_App::flushAndClose();
             sleep(5);
+            Debug::log('Sleep 5 sec. in' . __CLASS__);
+
             $me->cron_UpdateRemoteNotification();
         }
     }
