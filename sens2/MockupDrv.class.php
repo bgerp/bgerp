@@ -67,6 +67,7 @@ class sens2_MockupDrv  extends sens2_ProtoDriver
         }
 
         sleep(1);
+        Debug::log('Sleep 1 sec. in' . __CLASS__);
 
         return $res;
     }

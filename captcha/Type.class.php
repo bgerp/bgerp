@@ -184,6 +184,7 @@ class captcha_Type extends core_Type {
             return $idStrip;
         } else {
             sleep(2);
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
 
             return FALSE;
         }

@@ -1276,7 +1276,8 @@ class fileman_Files extends core_Master
         if (!$rec) {
             
             sleep(2);
-            
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
+
             return FALSE;
         }
         
@@ -1320,7 +1321,8 @@ class fileman_Files extends core_Master
         if(!$fRec) {
             
             sleep(2);
-            
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
+
             return FALSE;
         }
         
