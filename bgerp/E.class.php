@@ -101,7 +101,7 @@ class bgerp_E extends core_Manager
         
         $retUrl = getRetUrl();
         
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             $retUrl = array($inst, 'single', $docId);
         }
         
@@ -240,8 +240,7 @@ class bgerp_E extends core_Manager
     /**
      * Връща линк за показване на документа във външната част
      * 
-     * @param integer $cid
-     * @param string $mid
+     * @param string $key
      * 
      * @return string
      */

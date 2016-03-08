@@ -256,7 +256,7 @@ class email_Inboxes extends core_Master
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
         }
         
-        if (!$allAccounts) {
+        if (empty($allAccounts)) {
             if (email_Accounts::haveRightFor('add')) {
                 
                 redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активен акаунт');
@@ -859,7 +859,7 @@ class email_Inboxes extends core_Master
         if (self::haveRightFor('add')) {
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
             
-            if (!$allAccounts) {
+            if (empty($allAccounts)) {
                 if (email_Accounts::haveRightFor('add')) {
             
                     redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активен акаунт');

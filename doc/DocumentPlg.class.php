@@ -1419,7 +1419,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      * Забранява изтриването на вече използвани сметки
      *
-     * @param core_Mvc $mvc
+     * @param core_Manager $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass|NULL $rec
@@ -2963,9 +2963,9 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Проверява дали може да се променя записа в зависимост от състоянието на документа
      * 
-     * @param core_Mvc $mvc
+     * @param core_Manager $mvc
      * @param boolean $res
-     * @param string $state
+     * @param object $rec
      * 
      * @see change_Plugin
      */

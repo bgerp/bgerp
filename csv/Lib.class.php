@@ -214,7 +214,7 @@ class csv_Lib
         setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', TRUE));
         if(count($recs) > $exportCnt) {
             $retUrl = getRetUrl();
-            if (!$retUrl) {
+            if (empty($retUrl)) {
                 if ($fieldSet instanceof core_Manager) {
                     if ($fieldSet->haveRightFor('list')) {
                         $retUrl = array($fieldSet, 'list');
@@ -222,7 +222,7 @@ class csv_Lib
                 }
             }
             	
-            if (!$retUrl) {
+            if (empty($retUrl)) {
                 $retUrl = array('Index');
             }
             	
@@ -337,7 +337,7 @@ class csv_Lib
     /**
      * Подоготвя стойност за CSV
      * 
-     * @param array $valsArr
+     * @param string $val
      * @param string $delimiter
      * @param string $enclosure
      * 
