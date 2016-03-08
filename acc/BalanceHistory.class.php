@@ -266,7 +266,7 @@ class acc_BalanceHistory extends core_Manager
         
         while($bRec = $balanceQuery->fetch()){
             $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
-            $options[$bRec->fromDate . '|' . $bRec->toDate] = $bRow->periodId;
+            $options[$bRow->fromDate . '|' . $bRow->toDate] = $bRec->periodId;
         }
         
         return $options;
