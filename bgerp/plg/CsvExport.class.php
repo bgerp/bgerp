@@ -124,7 +124,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	
     	$retUrl = getRetUrl();
     	
-    	if (!$retUrl) {
+    	if (empty($retUrl)) {
     	    if ($this->mvc->haveRightFor('list')) {
     	        $retUrl = array($this->mvc, 'list');
     	    } else {
@@ -148,6 +148,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	}
     	
     	$csvParams = array();
+    	$params = array();
     	
     	if ($filter->showColumnNames == 'yes') {
     	    if ($this->mvc && $this->mvc instanceof core_FieldSet) {

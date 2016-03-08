@@ -361,7 +361,7 @@ class label_Labels extends core_Master
         $redirect = FALSE;
         $optArr = array();
         
-        if ($labelDataArr) {
+        if (!empty($labelDataArr)) {
             $tQuery = label_Templates::getQuery();
             $tQuery->where("#classId = '{$classId}'");
             $tQuery->where("#state != 'rejected'");
