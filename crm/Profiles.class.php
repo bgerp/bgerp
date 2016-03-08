@@ -429,10 +429,6 @@ class crm_Profiles extends core_Master
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
         
-        if (haveRole('powerUser') && ($currUser == $data->rec->userId) && core_Packs::isInstalled('remote')) {
-            $data->toolbar->addbtn('Оторизиране', array('remote_Authorizations', 'add', 'ret_url' => TRUE), 
-                'row=2,ef_icon=img/16/checked-blue.png,title=Оторизиране за ползване на онлайн услуги');
-        }
     }
     
     
@@ -946,7 +942,7 @@ class crm_Profiles extends core_Master
         static $cacheArr = array();
         
         if(!isset($userId)) {
-            $userId = core_Users::getCurrent();
+            $userId =  core_Users::getCurrent();
         }
         
         $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
@@ -954,9 +950,13 @@ class crm_Profiles extends core_Master
         $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr); 
         
         if (!$cacheArr[$key]) {
-            
+
             $userRec = core_Users::fetch($userId);
             
+            if(!$userRec) {
+                $userRec = core_Users::fetch(0);
+            }
+
             if(!$title) {
                 $title = self::getUserTitle($userRec->nick);
             }
@@ -1002,7 +1002,9 @@ class crm_Profiles extends core_Master
     			$attr['title'] = $userRec->names;
     			
     			$link = ht::createLink($title, $url, $warning, $attr);
-    		}
+    		} else {
+                $link = ht::createLink('@anonymous', NULL);
+            }
     		
     		$cacheArr[$key] = $link;
         }
