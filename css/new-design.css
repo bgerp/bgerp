@@ -386,8 +386,8 @@ body {
       .bookmark-links ul a:hover {
         color: #fefdd6; }
 
-a.bookmark-external-url {
-  color: #0066ff; }
+a.bookmark-external-url.out {
+  color: #fefdd6; }
 
 .bookmark-wrong-url {
   color: #bb1111; }
