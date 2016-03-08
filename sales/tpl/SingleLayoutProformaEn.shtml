@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-        <table class='no-border' style='width:100%;' id='inv-holder'>
+        <table style='width:100%;' id='inv-holder'>
             <tbody>
                 <tr>
                     <td>
@@ -99,6 +99,16 @@
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
                                         <div class='custom-bg-block'><b>Payment</b></div>
+                                        <!--ET_BEGIN paymentMethodId-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>Payment method: </span>|[#paymentMethodId#]|*
+					                    </div>
+					                    <!--ET_END paymentMethodId-->
+					                    <!--ET_BEGIN downpayment-->
+					                    <div class='cellRow'>
+					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
+					                    </div>
+					                    <!--ET_END downpayment-->
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
@@ -156,7 +166,7 @@
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
                                                 <td class='centered'>Prepared By:</td>
-                                                <td class='nowrap centered' style="padding-top: 45px;"><span class="sign_names">[#username#]</span></td>
+                                                <td class='centered' style="padding-top: 45px;"><span class="sign_names nowrap">[#username#]</span></td>
                                             </tr>
                                         </table>
                                     </td>

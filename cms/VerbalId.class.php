@@ -32,7 +32,7 @@ class cms_VerbalId extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cms_Wrapper, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, cms_Wrapper, plg_Sorting';
      
     
     /**
@@ -62,7 +62,7 @@ class cms_VerbalId extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = '✍,vid,mvc,recId';
+    public $listFields = 'vid,mvc,recId';
 
 
     /**

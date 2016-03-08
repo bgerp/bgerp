@@ -1,0 +1,9 @@
+<div class="colabFolders" id="colabFolders">
+    <table style='min-width:440px'>
+       <!--ET_BEGIN folders-->
+       <tr class='[#folderName#]'>
+           <td>[#folderName#]</td>
+       </tr>
+       <!--ET_END folders-->
+   </table>
+</div>

@@ -109,10 +109,10 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,refreshForm,silent');
     	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
-    	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=К-во');
-    	$this->FLD('vat', 'percent()', 'caption=ДДС');
+    	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=Количество,smartCenter');
+    	$this->FLD('vat', 'percent', 'caption=ДДС,smartCenter');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=3)', 'caption=Описание');
-    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център,mandatory,remember');
+    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център,mandatory,remember,smartCenter');
     }
     
     

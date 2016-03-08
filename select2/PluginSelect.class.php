@@ -58,26 +58,18 @@ class select2_PluginSelect extends core_Plugin
             
             // Избраната стойност да е на първо мяасто
             if ($value) {
-                $valOptArr = array();
-                
                 if (!isset($invoker->options[$value])) {
                     $allowedListArr = $invoker->getAllowedKeyVal($value);
                     $value = reset($allowedListArr);
                 }
                 
                 if ($value) {
-                    
-                    $tVal = is_array($invoker->options[$value]) ? $invoker->options[$value]['title'] : $invoker->options[$value];
-                    
-                    $setVal = $invoker->getOptionTitle($tVal);
-                    
-                    if(!$setVal && is_numeric($value)) {
-                        $setVal = $invoker->toVerbal($value);
+                    $valOptArr = array();
+                    $valOptArr[$value] = is_array($invoker->options[$value]) ? $invoker->options[$value]['title'] : $invoker->options[$value];
+                    if (isset($valOptArr[$value])) {
+                        unset($invoker->options[$value]);
+                        $invoker->options = $valOptArr + $invoker->options;
                     }
-                    
-                    $valOptArr[$value] = $setVal;
-                    unset($invoker->options[$value]);
-                    $invoker->options = $valOptArr + $invoker->options;
                 }
             }
             
@@ -206,6 +198,10 @@ class select2_PluginSelect extends core_Plugin
                     $r->id = NULL;
                     $group = $r;
                     $isGroup = TRUE;
+                }
+                
+                if ($title->attr) {
+                    $r->attr = $title->attr;
                 }
             } else {
                 $r->text = $title;

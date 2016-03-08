@@ -61,7 +61,7 @@ class expert_Dataset extends core_BaseClass {
 
         
         if(isset($this->rules[$name][$id])) { 
-            $this->log[] = "Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
+            $this->log[] = "<br>Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
         }
 
         $this->rules[$name][$id] = $rule;
@@ -84,7 +84,7 @@ class expert_Dataset extends core_BaseClass {
         $line = trim($files[$stack[0]['file']][$stack[0]['line']-1]);
 
         if(strpos($line, ', "')) {
-            $this->log[] = "Warning: Възможен проблем с двойни кавички в правилото <b>$line</b>";
+            $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>$line</b>";
         }
 
         $this->addRule($name, $expr, $cond);
@@ -166,7 +166,7 @@ class expert_Dataset extends core_BaseClass {
         $div      += count($vars);
 
         foreach($vars as $n) {
-            $trust += $this->trusts[$n];
+            $trust += (1+$this->trusts[$n])/2;
             if(!$this->trusts[$n]) {
                 $trust = 0;
                 break;

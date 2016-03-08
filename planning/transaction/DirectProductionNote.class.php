@@ -41,10 +41,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			if(count($entries)){
 				$result->entries = $entries;
 			}
-			
-			if(!planning_DirectProductNoteDetails::fetch("#noteId = {$rec->id} AND #type = 'input'")){
-				$result->entries = array();
-			}
 		}
 		
 		return $result;
@@ -93,68 +89,94 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		$dRecs = $dQuery->fetchAll();
 		
 		if(is_array($dRecs)){
-			foreach ($dRecs as $dRec){
-				
-				// Влагаме артикула, само ако е складируем, ако не е  
-				// се предполага ,че вече е вложен в незавършеното производство
-				if($dRec->type == 'input'){
-					$productInfo = cat_Products::getProductInfo($dRec->productId);
-					if(!isset($productInfo->meta['canStore'])) continue;
-					
-					$entry = array('debit' => array('61101', array('cat_Products', $dRec->productId),
-													'quantity' => $dRec->quantity),
-								   'credit' => array('321', array('store_Stores', $rec->inputStoreId),
-															array('cat_Products', $dRec->productId),
-															'quantity' => $dRec->quantity),
-								   'reason' => 'Влагане на материал в производството');
-					
-					$entries[] = $entry;
-				}
-			}
 			
-			$costAmount = $index = 0;
-			foreach ($dRecs as $dRec1){
-				$sign = ($dRec1->type == 'input') ? 1 : -1;
-				$productInfo = cat_Products::getProductInfo($dRec1->productId);
-				
-				// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-				if(isset($productInfo->meta['canStore'])){
-					$primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $rec->valior);
-				} else {
-					$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
+			if(!count($dRecs) && empty($rec->inputStoreId)){
+				$amount = cat_Products::getWacAmountInStore($rec->quantity, $rec->productId, $rec->valior);
+				if(!$amount){
+					$amount = cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity, $rec->valior);
 				}
-			
-				$pAmount = $sign * $primeCost;
-				$costAmount += $pAmount;
-				
-				$quantity = ($index == 0) ? $rec->quantity : 0;
-				
-				// Ако е материал го изписваме към произведения продукт
-				if($dRec1->type == 'input'){
-					$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на продукт'));
-				
-					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
-							array('cat_Products', $rec->productId),
-							'quantity' => $quantity);
-						
-					$entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
-							'quantity' => $dRec1->quantity);
-					$entry['reason'] = $reason;
-				} else {
-					$amount = $selfValue;
-					$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId),
-							'quantity' => $dRec1->quantity);
-						
-					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
-							array('cat_Products', $rec->productId),
-							'quantity' => $quantity);
-					$entry['amount'] = $amount;
-					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
-					$total += $amount;
+				if(!$amount){
+					$amount = 0;
 				}
+				$costAmount = $amount;
 				
+				$entry = array('amount' => $amount,
+						'debit' => array('321', array('store_Stores', $rec->storeId),
+								array('cat_Products', $rec->productId),
+								'quantity' => $rec->quantity),
+						'credit' => array('61102'),
+								'reason' => 'Бездетайлно произвеждане');
+				$total += $amount;
+					
 				$entries[] = $entry;
-				$index++;
+			} else {
+				foreach ($dRecs as $dRec){
+					if(empty($rec->inputStoreId)) continue;
+				
+					// Влагаме артикула, само ако е складируем, ако не е
+					// се предполага ,че вече е вложен в незавършеното производство
+					if($dRec->type == 'input'){
+						$productInfo = cat_Products::getProductInfo($dRec->productId);
+						if(!isset($productInfo->meta['canStore'])) continue;
+							
+						$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
+							
+						$entry = array('debit' => array('61101', array('cat_Products', $convInfo->productId),
+								'quantity' => $convInfo->quantity),
+								'credit' => array('321', array('store_Stores', $rec->inputStoreId),
+										array('cat_Products', $dRec->productId),
+										'quantity' => $dRec->quantity),
+								'reason' => 'Влагане на материал в производството');
+							
+						$entries[] = $entry;
+					}
+				}
+					
+				$costAmount = $index = 0;
+				foreach ($dRecs as $dRec1){
+				
+					$sign = ($dRec1->type == 'input') ? 1 : -1;
+					$productInfo = cat_Products::getProductInfo($dRec1->productId);
+				
+					// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
+					if(isset($productInfo->meta['canStore'])){
+						$primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $rec->valior);
+					} else {
+						$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
+					}
+						
+					$pAmount = $sign * $primeCost;
+					$costAmount += $pAmount;
+				
+					$quantity = ($index == 0) ? $rec->quantity : 0;
+					$convInfo = planning_ObjectResources::getConvertedInfo($dRec1->productId, $dRec1->quantity);
+				
+					// Ако е материал го изписваме към произведения продукт
+					if($dRec1->type == 'input'){
+						$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на продукт'));
+				
+						$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
+								array('cat_Products', $rec->productId),
+								'quantity' => $quantity);
+				
+						$entry['credit'] = array('61101', array('cat_Products', $convInfo->productId),
+								'quantity' => $convInfo->quantity);
+						$entry['reason'] = $reason;
+					} else {
+						$entry['debit'] = array('61101', array('cat_Products', $convInfo->productId),
+								'quantity' => $convInfo->quantity);
+				
+						$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
+								array('cat_Products', $rec->productId),
+								'quantity' => $quantity);
+						$entry['amount'] = $amount;
+						$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
+						$total += $amount;
+					}
+				
+					$entries[] = $entry;
+					$index++;
+				}
 			}
 			
 			// Ако има режийни разходи, разпределяме ги

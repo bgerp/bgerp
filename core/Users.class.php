@@ -111,7 +111,7 @@ class core_Users extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools,plg_CryptStore,plg_Search,plg_Rejected,plg_UserReg';
+    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools2,plg_CryptStore,plg_Search,plg_Rejected,plg_UserReg';
     
     
     /**
@@ -323,7 +323,7 @@ class core_Users extends core_Manager
             $rec = core_Users::getCurrent();
         }
         
-        if (is_null($rec)) return ;
+        if (is_null($rec)) return FALSE;
         
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
@@ -360,6 +360,30 @@ class core_Users extends core_Manager
         $isPowerUser = type_Keylist::isIn($powerUserId, $rec->roles);
         
         return (boolean)$isPowerUser;
+    }
+    
+    
+    /**
+     * Проверява дали има някой потребител, който не е оттеглен от подадения масив
+     * 
+     * @param array $usersArr
+     * 
+     * @return boolean
+     */
+    public static function checkUsersIsRejected($usersArr = array())
+    {
+        $usersArr = arr::make($usersArr, TRUE);
+        
+        $query = self::getQuery();
+        $query->where("#state != 'rejected'");
+        $query->orWhereArr('id', $usersArr);
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        $cnt = $query->count();
+        
+        return !(boolean) $cnt;
     }
     
     
@@ -1417,6 +1441,39 @@ class core_Users extends core_Manager
         }
         
         return $teamMates;
+    }
+    
+    
+    /**
+     * Връща подчинените на потребителя
+     * 
+     * @param integer $userId
+     * 
+     * @return array
+     */
+    public static function getSubordinates($userId)
+    {
+        static $subordinatesArr = array();
+        
+        if (self::isContractor($userId)) return array();
+        
+        if (!isset($subordinatesArr[$userId])) {
+            $subordinatesArr[$userId] = keylist::toArray(self::getTeammates($userId));
+            
+            if (!haveRole('ceo', $userId)) {
+                $managers  = core_Users::getByRole('manager');
+                $subordinatesArr[$userId] = array_diff($subordinatesArr[$userId], $managers);
+            }
+            if (!haveRole('manager', $userId)) {
+                $powerUsers  = core_Users::getByRole('powerUser');
+                $subordinatesArr[$userId] = array_diff($subordinatesArr[$userId], $powerUsers);
+            }
+            
+            $ceos = core_Users::getByRole('ceo');
+            $subordinatesArr[$userId] = array_diff($subordinatesArr[$userId], $ceos);
+        }
+        
+        return $subordinatesArr[$userId];
     }
     
     

@@ -546,6 +546,8 @@ class core_Db extends core_BaseClass
      */
     function forceIndex($tableName, $fieldsList, $type = 'INDEX', $indexName = NULL)
     {
+        $res = NULL;
+        
         $fieldsList = arr::make($fieldsList);
         
         if (!$indexName)
@@ -556,6 +558,7 @@ class core_Db extends core_BaseClass
         
         if ($indexes[$indexName]) {
             $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`");
+            $res = TRUE;
         }
         
         // Ако типът е DROP - не създаваме нов индекс
@@ -569,7 +572,10 @@ class core_Db extends core_BaseClass
             
             // Създаване на Индекса
             $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
+            $res = TRUE;
         }
+        
+        return $res;
     }
     
     

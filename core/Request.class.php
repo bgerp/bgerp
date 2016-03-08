@@ -36,7 +36,7 @@ class core_Request
      * Масив с имена на променливи, които ще се предават/получават от клиента
      * чрез защита, непозволяваща тяхното манипулиране
      */
-    static $protected;
+    static $protected = array();
     
     
     /**
@@ -164,7 +164,7 @@ class core_Request
      */
     static function setProtected($protArr)
     {
-        self::$protected = arr::make($protArr, TRUE);
+        self::$protected += arr::make($protArr, TRUE);
     }
     
     
@@ -275,12 +275,16 @@ class core_Request
      * 
      * @return array
      */
-    static function getParams()
+    static function getParams($push = '')
     {
         $paramsArr = array();
         
-        foreach ((array)self::$vars as $dummy=> $arr) {
+        foreach ((array)self::$vars as $dummy => $arr) {
             
+            if($push && ("{$push}" != "{$dummy}")) { 
+                continue;
+            }
+ 
             foreach ((array)$arr as $name=>$val) {
                 
                 // Ако преди не е сетната стойността и не е игнорирана, тогава я добавяме в масива

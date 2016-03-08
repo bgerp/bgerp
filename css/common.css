@@ -749,6 +749,30 @@ input[type="submit"].fright,
 button.fright {
   margin: 1px 0 0 0.5em; }
 
+form[method=post] .toogleHolder {
+  float: right;
+  display: inline-block; }
+    form[method=post] .toogleHolder .toogleBtn.toggleLeft {
+      margin-right: 0 !important;
+      border-radius: 5px 0 0 5px !important; }
+      form[method=post] .toogleHolder .toogleBtn.toggleLeft.toggleOn {
+        color: lightgreen; }
+    form[method=post] .toogleHolder .toogleBtn.toggleRight {
+      margin-left: 0 !important;
+      border-radius: 0 5px 5px 0 !important;
+      border-left: none !important; }
+      form[method=post] .toogleHolder .toogleBtn.toggleRight.toggleOn {
+        color: #ff44ff; }
+    form[method=post] .toogleHolder .toogleBtn.toggleOn {
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+      background: #777777 !important;
+      text-shadow: 1px 1px 0 #333333; }
+    form[method=post] .toogleHolder .toogleBtn.toggleOff {
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+      color: #eeeeee !important; }
+      form[method=post] .toogleHolder .toogleBtn.toggleOff:hover {
+        background-color: #aaaaaa; }
+
 h1:target,
 h2:target,
 h3:target,
@@ -880,14 +904,25 @@ input.more-btn {
   margin-bottom: 0;
   background-position: center center;
   background-image: url(../img/16/toggle-expand.png) !important;
+  background-repeat: no-repeat !important;
   padding-left: 0.3em !important;
   padding-right: 0.3em !important;
   width: 1.9em;
   height: 2em \9; }
 
-.more-btn {
-  background-image: url(../img/16/toggle-expand.png) !important;
-  background-repeat: no-repeat !important; }
+.more-btn:not(.toolbar-btn) {
+  background-repeat: no-repeat !important;
+  background-image: url(../img/16/toggle-expand.png) !important; }
+
+.toolbar-btn {
+  cursor: pointer;
+  padding: 2px;
+  opacity: 0.8; }
+  .toolbar-btn:hover {
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out; }
 
 a.more-btn {
   padding-left: 17px !important;
@@ -901,6 +936,17 @@ a.more-btn {
 
 .more-btn.show-btn {
   background-image: url(../img/16/toggle2.png) !important; }
+
+.shortSelect {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  color: white; }
+  .shortSelect:focus {
+    outline: none;
+    box-shadow: none; }
+  .shortSelect option {
+    color: #222222; }
 
 .docBgIcon {
   padding-left: 22px !important;
@@ -950,6 +996,9 @@ th .rowtools .l {
 
 .rowtools .nw {
   white-space: nowrap; }
+
+.sortBtn {
+  vertical-align: middle; }
 
 /*
  * край на бутони
@@ -1072,6 +1121,12 @@ a.profile {
 .state-rejected .document legend {
   color: #999999 !important;
   text-decoration: line-through !important; }
+
+.single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
+  opacity: 0.5; }
+  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab:hover,
+  .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab.selected {
+    background-color: #cccccc !important; }
 
   .state-rejected div.tab-control.deal-history-tab .tab-row .tab a,
   .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
@@ -1429,6 +1484,8 @@ input:focus[type=button] {
     width: 16em; }
   .wide .vertical .formFields .w25 {
     width: 8em; }
+    .wide .vertical .formFields .inlineTo .w25 {
+      width: 7.5em; }
 
   .narrow .vertical .formFields .w100 {
     width: 100%; }
@@ -2438,6 +2495,13 @@ div.richtextHide {
   margin-left: 4px;
   border-left: dotted 1px #cccccc;
   padding: 10px; }
+
+.strike-text {
+  color: #666666;
+  text-decoration: line-through; }
+  .strike-text .oneLineCode {
+    color: #666666;
+    text-decoration: line-through; }
 
 /*
  * richtext elements

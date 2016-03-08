@@ -383,11 +383,12 @@ body {
       color: #fff612;
       display: block;
       font-size: 0.97em; }
+      .bookmark-links ul a.bookmark-external-url.out {
+        color: #fefdd6; }
+        .bookmark-links ul a.bookmark-external-url.out:visited {
+          color: #febb44; }
       .bookmark-links ul a:hover {
         color: #fefdd6; }
-
-a.bookmark-external-url {
-  color: #0066ff; }
 
 .bookmark-wrong-url {
   color: #bb1111; }
@@ -902,11 +903,11 @@ form[method=post] a.button {
   font-size: 0.9em; }
 
 table.listTable > thead > tr > th {
-  border: 1px solid #d1d1d1;
+  border: 1px solid #dddddd;
   background-color: #eeeeee; }
 
 table.listTable > tbody > tr > td {
-  border: 1px solid #d1d1d1; }
+  border: 1px solid #dddddd; }
 
 .accordian li.btns-title {
   border: 1px solid #777777 !important;

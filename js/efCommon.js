@@ -395,7 +395,7 @@ function toggleFormGroup(id)
 			$('.fs' + id).find('input.combo').each(function(){
 				var idComboBox = $(this).attr('id');
 				if(!comboBoxInited[idComboBox]){
-					comboBoxInit(idComboBox, '_comboSelect');
+					comboBoxInit(idComboBox, idComboBox + "_cs");
 					comboBoxInited[idComboBox] = true;
 				}
 			});
@@ -408,6 +408,15 @@ function toggleFormGroup(id)
 	
 }
 
+
+function toggleFormType(el) {
+	if($(el).hasClass('toggleRight')){
+		$("input[name='Advanced']").val(1);
+	} else {
+		$("input[name='Advanced']").val(0);
+	}
+	$(el).closest('form').submit();
+}
 
 
 /**
@@ -1539,12 +1548,6 @@ function setThreadElemWidth() {
 }
 
 function checkForElementWidthChange() {
-    // Observe a specific DOM element:
-    observeDOM( document.getElementById('main-container') ,function(){
-        setFormElementsWidth();
-        setThreadElemWidth();
-    });
-
     $(window).resize(function(){
         setFormElementsWidth();
         setThreadElemWidth();
@@ -1584,28 +1587,6 @@ function dropMenu(data) {
 
     prepareContextMenu();
 }
-
-
-var observeDOM = (function(){
-    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
-        eventListenerSupported = window.addEventListener;
-
-    return function(obj, callback){
-        if( MutationObserver ){
-            // define a new observer
-            var obs = new MutationObserver(function(mutations, observer){
-                if( mutations[0].addedNodes.length || mutations[0].removedNodes.length )
-                    callback();
-            });
-            // have the observer observe foo for changes in children
-            obs.observe( obj, { childList:true, subtree:true });
-        }
-        else if( eventListenerSupported ){
-            obj.addEventListener('DOMNodeInserted', callback, false);
-            obj.addEventListener('DOMNodeRemoved', callback, false);
-        }
-    }
-})();
 
 /**
  * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
@@ -3106,6 +3087,25 @@ function render_sumOfChildrenWidth() {
 
 
 /**
+* Функция, която извиква подготвянето на setFormElementsWidth
+* Може да се комбинира с efae
+*/
+function render_setFormElementsWidth() {
+        setFormElementsWidth();
+}
+
+
+/**
+* Функция, която извиква подготвянето на  setThreadElemWidth
+* Може да се комбинира с efae
+*/
+function render_setThreadElemWidth() {
+        setThreadElemWidth();
+}
+
+
+
+/**
 * Функция, която извиква подготвянето на editCopiedTextBeforePaste
 * Може да се комбинира с efae
 */
@@ -3149,6 +3149,7 @@ function render_makeTooltipFromTitle() {
  */
 function render_runHljs() {
 	if (typeof hljs != 'undefined') {
+		hljs.initHighlighting.called = false;
   		hljs.initHighlighting();
 	}
 }
@@ -4273,6 +4274,7 @@ function test(){
 	alert();
 }
 
+runOnLoad(makeTooltipFromTitle);
 runOnLoad(maxSelectWidth);
 runOnLoad(smartCenter);
 runOnLoad(sumOfChildrenWidth);

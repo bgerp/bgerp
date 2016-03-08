@@ -31,7 +31,7 @@ class cms_Articles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, plg_AutoFilter, change_Plugin';
+    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, plg_AutoFilter, change_Plugin';
     
     
     /**
@@ -85,7 +85,7 @@ class cms_Articles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'level,✍,title,menuId,state,modifiedOn,modifiedBy';
+    var $listFields = 'level,title,menuId,state,modifiedOn,modifiedBy';
     
     
     /**
@@ -473,43 +473,6 @@ class cms_Articles extends core_Master
     
     
     /**
-     * Създава линк, който води до промяната на записа
-     * 
-     * @param object $mvc
-     * @param string $res
-     * @param integer $id
-     * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
-     * 
-     * @return core_Et - Линк за редирект
-     */
-    static function getChangeLink($id, $title=FALSE)
-    {
-        // URL' то за промяна
-        $changeUrl = array('cms_Articles', 'changefields', $id, 'ret_url' => TRUE);
-        
-        // Иконата за промяна
-        $editSbf = sbf("img/16/edit.png");
-        
-        // Ако е подаде заглавието
-        if ($title) {
-            
-            // Създаваме линк с загллавието
-            $attr = array();
-            $attr['class'] = 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . $editSbf . ');';
-            
-            $link = ht::createLink($title, $changeUrl, NULL, $attr); 
-        } else {
-            
-            // Ако не е подадено заглавиет, създаваме линк с иконата
-            $link = ht::createLink('<img src=' . $editSbf . ' width="12" alt="edit" height="12">', $changeUrl);
-        }
-        
-        return $link;
-    }
-    
-    
-    /**
      * Подготвя Информацията за генериране на Ографа
      * @param stdClass $rec 
      * @return stdClass $ogp
@@ -678,13 +641,24 @@ class cms_Articles extends core_Master
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), 'createdOn=Дата, createdBy=От, Version=Версия');
+        $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
     }
 
 
     protected static function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId));
+        
+        if ($mvc->haveRightFor('add')) {
+            $data->toolbar->addBtn('Нова статия', array(
+                    $this,
+                    'add',
+                    'menuId' => $data->listFilter->rec->menuId,
+                ),
+                'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+        }
+ 
     }
 
 
@@ -793,5 +767,19 @@ class cms_Articles extends core_Master
         
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
-
+    
+    
+    /**
+     * Връща URL за промяна на записа
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public static function getChangeUrl($id)
+    {
+        $res = array(get_called_class(), 'changeFields', $id);
+        
+        return $res;
+    }
 }

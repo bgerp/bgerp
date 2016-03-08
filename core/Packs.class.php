@@ -132,6 +132,10 @@ class core_Packs extends core_Manager
         
         $res = $this->setupPack($pack, 0, TRUE, TRUE, $haveRoleDebug);
         
+        $pack = strtolower($pack);
+        $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
+        $this->logWrite('Инсталиране на пакета', $rec->id);
+        
         if ($haveRoleDebug) {
             
             return $this->renderWrapping($res);
@@ -228,6 +232,10 @@ class core_Packs extends core_Manager
         if (!$retUrl) {
             $retUrl = array($this);
         }
+        
+        $pack = strtolower($pack);
+        $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
+        $this->logWrite('Деинсталиране на пакета', $rec->id);
         
         return new Redirect($retUrl, $res);
     }
@@ -656,6 +664,8 @@ class core_Packs extends core_Manager
      */
     function act_Setup()
     {
+        $this->logWrite('Сетъп на системата');
+        
         if (isDebug()) {
             return $this->firstSetup(array('Index'));
         }
@@ -842,7 +852,9 @@ class core_Packs extends core_Manager
         }
         
         if (method_exists($setup, 'checkConfig')) {
-            $res .= $setup->checkConfig();
+            if ($checkRes = $setup->checkConfig()) {
+                $res .= "<li style='color: red;'>" . $checkRes . '</li>';
+            }
         }
         
         $res .= "</ul>";
@@ -877,7 +889,10 @@ class core_Packs extends core_Manager
     function act_systemUpdate()
     {
 		requireRole('admin');
-		self::systemUpdate();
+		
+		self::logRead('Обновяване на системата');
+		
+		return self::systemUpdate();
     }
 
     
@@ -889,7 +904,7 @@ class core_Packs extends core_Manager
 		$SetupKey = setupKey();
 		//$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
 		
-		redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
+		return new Redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
 	}    
 
 
@@ -1136,6 +1151,7 @@ class core_Packs extends core_Manager
         $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+            $errMsg = tr($errMsg);
             $form->info = "<div style='padding:10px;border:dotted 1px red;background-color:#ffff66;color:red;'>{$errMsg}</div>";
         }
         

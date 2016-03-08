@@ -280,9 +280,11 @@ class core_String
      */
     static function checkHash($str, $length = 4, $moreSalt = '')
     {
-        if ($str == str::addHash(substr($str, 0, strlen($str) - $length - 1), $length, $moreSalt) && substr($str, -1 - $length, 1) == "_") {
+        $oStr = substr($str, 0, strlen($str) - $length - 1);
+        
+        if ($str == str::addHash($oStr, $length, $moreSalt) && substr($str, -1 - $length, 1) == "_") {
 
-            return substr($str, 0, strlen($str) - $length - 1);
+            return $oStr;
         }
         
         return FALSE;

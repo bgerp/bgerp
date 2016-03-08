@@ -599,7 +599,7 @@ class type_Richtext extends type_Blob
         $textMode = Mode::get('text');
         
         if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span style="color: #666; text-decoration: line-through">', '</span>', '<small>', '</small>');
+            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span class="strike-text">', '</span>', '<small>', '</small>');
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif(Mode::is('ClearFormat')) {
            $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", '', '');
@@ -1314,7 +1314,7 @@ class type_Richtext extends type_Blob
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='" . tr('Червени букви') .  "' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:green' title='" . tr('Зелени букви') .  "' onclick=\"s('[color=green]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:#888' title='" . tr('Сиви букви') .  "' onclick=\"s('[color=#888]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
-    		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; text-decoration: line-through; color:#666' title='" . tr('Сиви задраскани букви ') .  "' onclick=\"s('[s]', '[/s]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+    		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; text-decoration: line-through; color:#666' title='" . tr('Сиви задраскани букви ') .  "' onclick=\"s('[s]', '[/s]', document.getElementById('{$formId}'))\">S</a>", 'TBL_GROUP2');
     		$toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             

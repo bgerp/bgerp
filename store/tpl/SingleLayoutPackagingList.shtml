@@ -94,9 +94,8 @@
                     </td>
                     <td>
 
-                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] 
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <!--ET_BEGIN colletsCount-->Collets count calced:&nbsp;[#colletsCount#]<!--ET_BEGIN colletsCount--> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; Collets count: [#palletCountInput#]<!--ET_END palletCountI--></div>
+                        <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                        <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
                         <hr>
                         <table class='centered' style="width:100%">
                             <tr>
@@ -108,7 +107,7 @@
                                 <td></td>
                             </tr>
                             <tr>
-                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
                                 <td class='nowrap centared'><span class="sign_names">[#username#]</span></td>
                             </tr>
                         </table>

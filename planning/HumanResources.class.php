@@ -86,7 +86,7 @@ class planning_HumanResources extends core_Master
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'contractId';
+    public $hideListFieldsIfEmpty = 'contractId';
     
     
     /**

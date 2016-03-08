@@ -68,7 +68,7 @@ class core_Lg extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools,plg_AutoFilter';
+    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2,plg_AutoFilter';
     
     
     /**
@@ -97,6 +97,64 @@ class core_Lg extends core_Manager
     }
     
     
+    /**
+     * Привежда модела за превод в начално състояние
+     */
+    function act_ResetDB()
+    {
+        requireRole('debug');
+
+        bgerp_data_Translations::loadData('everytime');
+
+        redirect(array($this));
+    }
+
+
+    /**
+     * Експортира непопълнените данни, за съответния език
+     */
+    function act_ExportCSV()
+    {
+        requireRole('debug');
+
+        $lg = Request::get('lg');
+        if($lg == 'bg') {
+            $lg = 'en';
+        }
+        
+        $res = array();
+        $query = self::getQuery();
+ 
+        while($rec = $query->fetch()) {
+            if(($rec->lg == $lg) && !preg_match("/[а-я]/iu", $rec->translated)) {
+                $res[$rec->kstring] = $rec;
+                $res[$rec->kstring]->remove = TRUE;
+                continue;
+            }
+            if(isset($res[$rec->kstring])) continue;
+            $res[$rec->kstring] = $rec;
+        }
+
+        foreach($res as $key => $rec) {
+            if($rec->remove) {
+                unset($res[$key]);
+            } else {
+                $res[$key]->lg = $lg;
+            }
+        }
+
+        $csv = csv_Lib::createCsv($res, $this, array('lg'=>'lg', 'kstring'=>'kstring', 'translated'=>'translated'));
+        
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename=bgERP_translation.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    	 
+    	echo $csv;
+    
+    	shutdown();
+    }
+
     /**
      * Задава за текущия език на интерфейса, валиден за сесията
      */
@@ -336,7 +394,7 @@ class core_Lg extends core_Manager
         $filterRec = $data->listFilter->input();
       
         if(!$filterRec->lg) {
-        	$filterRec->lg = core_Lg::getCurrent();
+        	$data->listFilter->rec->lg = $filterRec->lg = core_Lg::getCurrent();
         }
         
         if ($filterRec) {
@@ -379,10 +437,24 @@ class core_Lg extends core_Manager
         
         return $tpl;
     }
+
+
+    /**
+     * Изпълнява се след подготовка на листовия тулбар
+     */
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        if(haveRole('debug')) {
+            $data->toolbar->addBtn('Reset', array($mvc, 'resetDB'));
+            $lg = $data->listFilter->rec->lg;
+            setIfNot($lg, 'en');
+            $data->toolbar->addBtn('Export CSV', array($mvc, 'exportCSV', 'lg' => $lg));
+        }
+    }
     
     
     /**
-     * 
+     * Изпълнява се след подготовка на формата за въвеждане
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {

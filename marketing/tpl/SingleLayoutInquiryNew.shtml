@@ -55,7 +55,7 @@
     <div class='scrolling-holder'>
         <table class='styled-table'>
             <tr>
-                <th colspan='2' style='padding:7px 0px'>|Контактни дани|*</th>
+                <th colspan='2' style='padding:7px 0px'>|Контактни данни|*</th>
             </tr>
             <!--ET_BEGIN company-->
             <tr>

@@ -445,7 +445,7 @@ class pos_Receipts extends core_Master {
 			}
 		}
 		
-		// Можели да бъде направено плащане по бележката
+		// Може ли да бъде направено плащане по бележката
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
 				$res = 'no_one';
@@ -838,7 +838,7 @@ class pos_Receipts extends core_Master {
     			
     			// Намираме цената от ценовата политика
     			$Policy = cls::get('price_ListToCustomers');
-    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId);
+    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId, $product->quantity);
     			
     			// Колко са двете цени с приспадната отстъпка
     			$rPrice1 = $product->price * (1 - $product->discount);
@@ -931,7 +931,7 @@ class pos_Receipts extends core_Master {
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, FALSE, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
@@ -1042,7 +1042,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$value = $rec->total - $rec->paid;
-    	$value = ($value >= 0) ? $value : NULL;
+    	$value = ($value > 0) ? $value : NULL;
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => tr('Въведи платена сума'))) . "<br />", 'INPUT_PAYMENT');
     	
     	// Показваме всички активни методи за плащания
@@ -1362,7 +1362,7 @@ class pos_Receipts extends core_Master {
     		$packId = key($packs);
     		$perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
     		
-    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, NULL, $data->rec->createdOn, 1, 'yes');
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;

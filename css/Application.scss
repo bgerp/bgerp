@@ -573,6 +573,9 @@ tr.row-removed {
 		color: #fff;
 		font-weight: bold;
 		border-radius: 5px 5px 0 0;
+		.linkWithIcon {
+            color: #fff !important;
+        }
 	}
    .profile-image > a, .profile-image div {
 		position: absolute;
@@ -702,10 +705,21 @@ div.productImage {
 		max-width: 200px;
 	}
 }
-.products-table,  .jobTable, .general-product-description, .sales_SalesDetails {
+
+.products-table,  .jobTable, .general-product-description, .sales_SalesDetails, .store_ShipmentOrderDetails {
 	.productPreview {
 		max-width: 120px;
 		max-height: 240px;
+	}
+	.groupList .small-padding .productGroupInfo {
+        padding-top:5px !important; 
+	}
+	.colorBox {
+	   width: 12px;
+	   height: 12px;
+	   margin-bottom: 0;
+	   position: relative;
+	   top: -1px;
 	}
 }
 
@@ -723,6 +737,27 @@ div.productImage {
 	}
 }
 
+.groupList .small-padding .productGroupInfo {
+	padding-top:10px !important; 
+	text-decoration:underline; 
+	padding-left:0;
+}
+
+
+.colorName {
+	position: relative; 
+	top: -2px;
+}
+
+.colorBox {
+	border:solid 1px #333;
+	margin:0px 2px 2px 5px; 
+	height: 14px; 
+	width: 14px; 
+	display: inline-block;
+	position: relative; 
+	top: 2px;
+}
 
 .product-component-stage {
 	background-color: #eee;
@@ -1348,6 +1383,9 @@ td.portal-date {
 	.no-border-bottom{
 		border-bottom: none !important;
 	}
+	.no-border td{
+	    border: none !important;
+	}
 	&.print-letter {
 		page-break-after: always;
 		max-width: 840px;
@@ -1573,11 +1611,6 @@ td.rowtools-column {
     max-width: 270px;
 }
 
-
-.no-border > tbody > tr > td{
-    border: none !important;
-}
-
 .wide .document table.listTable {
 	margin-bottom: 0;
 }
@@ -1612,6 +1645,10 @@ pre.document {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
     zoom: 1;
 	background: rgba(200, 200, 200, 0.3);
+}
+
+.antetkaCell {
+	max-width: 400px;
 }
 
 .threadSubTitle {
@@ -1679,6 +1716,7 @@ pre.document {
 
 .footer-notes > tbody > tr > td{
 	border: 1px solid $gray4;
+	vertical-align: top !important;
 }
 
 .document .paddingCells > tbody > tr > td{
@@ -1696,7 +1734,7 @@ pre.document {
 }
 
 .signature-table{
-	margin-top: 5px;
+	margin-top: 20px;
 	td{
 	   border: none !important;
 	}
@@ -1729,7 +1767,11 @@ pre.document {
 .shipment-table tr td{
 	padding:1px  3px !important;
 }
-
+.half-col {
+	display: inline-block;
+	width: 49%;
+	float: left;
+}
 .narrow .document .half_block {
 	width: 100% !important;
 	clear: both;
@@ -1779,6 +1821,11 @@ pre.document {
 	table {
 	   width: 100%;
 	}
+}
+
+.history-reason {
+	font-size: 0.9em;
+    color: #666;
 }
 /*край на стилове за документи*/
 
@@ -2435,9 +2482,13 @@ fieldset.sharing-history {
 }
 
 .drawing {
-	max-width: 400px;
 	float: right;
+	max-width: 400px;
+	img {
+		max-width: 400px;
+	}
 }
+
 /* стилове за външната част при потребител контрактор */
 .logoutBlock {
     position: absolute;
@@ -3059,6 +3110,18 @@ fieldset.sharing-history {
 	}
 }
 
+.planning_drivers_ProductionTaskDetails .listRowsDetail {
+	width: 100% !important;
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	_overflow: auto !important;
+	margin-bottom: 0;
+	display: block;
+	td {
+		max-width: none !important;
+	}
+}
+
 .document .scrolling-holder {
     margin-bottom: 0;
 }
@@ -3162,6 +3225,24 @@ fieldset.sharing-history {
 .singleView p {
 	margin-bottom: 10px;
 	line-height: 120%;	
+}
+
+.rowtoolsGroup{
+	&.modal-toolbar.iw-contextMenu {
+		padding: 4px 5px 8px 5px;
+		max-width: 160px;
+	}
+	a {
+		text-align: left;
+		display: block;
+		font-size: 0.95em;
+		padding: 3px 0;
+		color: #333 !important;
+		&:hover {
+			color: #000 !important;
+			background-color: #e1e1e1;
+		}
+	}
 }
 
 table.styled-table tr:hover td {
@@ -3313,6 +3394,10 @@ div.location.public {
 .balance-custom-form select{
     width: 100%;
     max-width: 400px;
+}
+
+.productCell {
+	max-width: none !important;
 }
 
 .wide .inline-form {
@@ -4391,6 +4476,10 @@ body.narrow {
     .row-negative {
     	color: #000;
     }
+    .portal.planning {
+        border: none;
+        padding: 0;
+    }
 }
 
 .narrow .external{
@@ -4581,6 +4670,13 @@ body.narrow {
     }
     .row-negative {
     	color: #000;
+    }
+    .groupTitle {
+    	white-space: nowrap;
+    }
+    .portal.planning {
+        border: none;
+        padding: 0;
     }
 }
 

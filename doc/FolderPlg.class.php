@@ -157,7 +157,7 @@ class doc_FolderPlg extends core_Plugin
             	$data->toolbar->addBtn('Папка' . $openThreads,
             			array('doc_Threads', 'list',
             					'folderId' => $data->rec->folderId),
-            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
+            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png'));
             }
         } else {
         	if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
@@ -527,14 +527,17 @@ class doc_FolderPlg extends core_Plugin
             $folderTitle = $mvc->getFolderTitle($rec->id);
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
-                    $row->folder = ht::createLink('',
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
+
+                    $row->{$fField} = ht::createLink('',
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
-                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
+                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
             } else {
                 if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
-                    $row->{$fField} = ht::createLink('', array($mvc, 'createFolder', $rec->id),  "Наистина ли желаете да създадетe папка за документи към  \"{$folderTitle}\"?",
-                    array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn'));
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?"));
                 }
             }
         }
@@ -546,7 +549,7 @@ class doc_FolderPlg extends core_Plugin
      * Вариант на doc_Folders::restrictAccess, който ограничава достъпа до записи, които
      * могат да са корици на папка, но не е задължително да имат създадена папка
      */
-    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $fullAccess=TRUE)
+    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $viewAccess=TRUE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -580,6 +583,11 @@ class doc_FolderPlg extends core_Plugin
         // Всеки (освен конракторите) имат достъп до публичните папки
         if (!core_Users::isContractor()) {
             $conditions[] = "#folderAccess = 'public'";
+            
+            if ($viewAccess) {
+                $conditions[] = "#folderAccess = 'team'";
+                $conditions[] = "#folderAccess = 'private'";
+            }
         }
         
         if ($teammates) {
@@ -595,7 +603,7 @@ class doc_FolderPlg extends core_Plugin
                 }
                 
                 // CEO да може да вижда private папките на друг `ceo`
-                if ($fullAccess) {
+                if ($viewAccess) {
                     $conditions[] = "#folderAccess != 'secret'";
                 }
                 
@@ -796,5 +804,19 @@ class doc_FolderPlg extends core_Plugin
     			$res = array();
     		}
     	}
+    }
+    
+    
+    /**
+     * Филтрираме заявката преди експорт
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Query $query
+     */
+    static function on_AfterPrepareExportQuery($mvc, $query)
+    {
+        if (!Request::get('Rejected')) {
+            $query->where("#state != 'rejected'");
+        }
     }
 }

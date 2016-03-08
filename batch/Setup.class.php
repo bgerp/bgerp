@@ -2,6 +2,18 @@
 
 
 /**
+ * При какъв процент при достигането на края на срока на годност партидите да се оцветяват
+ */
+defIfNot('BATCH_EXPIRYDATE_PERCENT', 0.15);
+
+
+/**
+ * Партиди без движения колко месеца назаде да се затварят
+ */
+defIfNot('BATCH_CLOSE_OLD_BATCHES', type_Time::SECONDS_IN_MONTH);
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -50,6 +62,7 @@ class batch_Setup extends core_ProtoSetup
             'batch_Defs',
     		'batch_Items',
     		'batch_Movements',
+    		'batch_CategoryDefinitions',
         );
     
 
@@ -73,6 +86,15 @@ class batch_Setup extends core_ProtoSetup
         );
     
         
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
+    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на стари партиди->Без движения')
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -99,6 +121,7 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на протокола за бързо производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
         
         $html .= $Plugins->installPlugin('Партиден детайл на артикулите', 'batch_plg_ProductDetail', 'cat_Products', 'private');
+        $html .= $Plugins->installPlugin('Детайл за дефиниции на партиди', 'batch_plg_CategoryDetail', 'cat_Categories', 'private');
         
         $html .= $Plugins->installPlugin('Партиден детайл на детайла напротоколите за отговорно пазене', 'batch_plg_DocumentMovementDetail', 'store_InternalDocumentDetail', 'family');
         $html .= $Plugins->installPlugin('Партидни движения на протоколите за отговорно пазене', 'batch_plg_DocumentMovement', 'store_ConsignmentProtocols', 'private');

@@ -15,7 +15,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -43,7 +43,7 @@ class deals_OpenDeals extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDelivered, amountPaid, toPay=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDelivered, amountPaid, expectedPayment=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
     
     
     /**
@@ -75,6 +75,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Сума->Доставено, summary = amount');
+    	$this->FLD('expectedPayment', 'double(decimals=2)', 'caption=Сума->ОчакванО плащане,oldFieldName=expectedDownpayment');
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
@@ -141,7 +142,7 @@ class deals_OpenDeals extends core_Manager {
     	
     	$show = Request::get('show', 'enum(store,bank,cash)');
     	if($show == 'store'){
-    		unset($data->listFields['toPay']);
+    		unset($data->listFields['expectedPayment']);
     	} else {
     		unset($data->listFields['toDeliver']);
     	}
@@ -160,14 +161,15 @@ class deals_OpenDeals extends core_Manager {
     	
     	$classId = $docClass::getClassId();
     	$new = array(
-    		'valior' => $info->get('agreedValior'),
-    		'amountDeal' => $info->get('amount'),
-    		'amountPaid' => $info->get('amountPaid'), 
-    		'amountDelivered' => $info->get('deliveryAmount'),
-    		'state' => $rec->state,
-    		'docClass' => $classId,
-    		'docId' => $rec->id,
-    		'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
+    		'valior'              => $info->get('agreedValior'),
+    		'amountDeal'          => $info->get('amount'),
+    		'amountPaid'          => $info->get('amountPaid'), 
+    		'amountDelivered'     => $info->get('deliveryAmount'),
+    		'expectedPayment'     => $info->get('expectedPayment'),
+    		'state'               => $rec->state,
+    		'docClass'            => $classId,
+    		'docId'               => $rec->id,
+    		'id'                  => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
     	);
     	
 	    static::save((object)$new);
@@ -193,7 +195,7 @@ class deals_OpenDeals extends core_Manager {
     /**
 	 * След обработка на вербалните данни
 	 */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-list']){
 	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -210,7 +212,7 @@ class deals_OpenDeals extends core_Manager {
 	    	$row->client = $inCharge. " » " . doc_Folders::recToVerbal($folderRec)->title;
 	    	$row->docId = $DocClass->getHandle($rec->docId);
 	    	
-    		// Обръщане на сумите в валутата на документа
+    		// Обръщане на сумите във валутата на документа
 	    	foreach (array('Deal', 'Paid', 'Delivered') as $name){
 	    		$field = "amount{$name}";
 		    	
@@ -247,19 +249,21 @@ class deals_OpenDeals extends core_Manager {
 	    		$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($rec->amountDelivered);
 	    	}
 	    	
-	    	$toPay = ($rec->amountDelivered - $rec->amountPaid) / $docRec->currencyRate;
+	    	if(empty($rec->amountDelivered) && !empty($rec->expectedDownpayment)){
+	    		$rec->amountDelivered = $rec->expectedDownpayment;
+	    	}
+	    	
+	    	$expectedPayment = $rec->expectedPayment / $docRec->currencyRate;
+	    	$row->expectedPayment = $mvc->getFieldType('amountDeal')->toVerbal($expectedPayment);
+	    	
 	    	$toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
 	    	
-	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
-	    	
-	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
-	    	if(empty($toPay)){
-	    		$row->toPay = "<span class='quiet'>{$row->toPay}</span>";
+	    	if(empty($expectedPayment)){
+	    		$row->expectedPayment = "<span class='quiet'>{$row->expectedPayment}</span>";
 	    	}
-	    	if($toPay < 0){
-	    		$row->toPay = "<span style = 'color:red'>{$row->toPay}</span>";
+	    	if($expectedPayment < 0){
+	    		$row->expectedPayment = "<span style = 'color:red'>{$row->expectedPayment}</span>";
 	    	}
-	    	$row->toPay = "<span style = 'float:right'>{$row->toPay}</span>";
 	    	
 	    	if(empty($toDeliver)){
 	    		$row->toDeliver = "<span class='quiet'>{$row->toDeliver}</span>";
@@ -371,6 +375,5 @@ class deals_OpenDeals extends core_Manager {
     	
     	Mode::set('pageMenu', $menu);
 		Mode::set('pageSubMenu', $subMenu);
-    	
     }
 }

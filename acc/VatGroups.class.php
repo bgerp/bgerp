@@ -25,7 +25,7 @@ class acc_VatGroups extends core_Manager
      * 
      * var string|array
      */
-    public $loadList = 'acc_WrapperSettings,plg_RowTools,plg_Created,plg_Modified,plg_State2';
+    public $loadList = 'acc_WrapperSettings,plg_RowTools2,plg_Created,plg_Modified,plg_State2';
     
     
     /**
@@ -71,7 +71,7 @@ class acc_VatGroups extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
+    public $listFields = 'title,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
     
     
     /**

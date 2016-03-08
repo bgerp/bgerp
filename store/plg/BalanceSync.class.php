@@ -49,7 +49,7 @@ class store_plg_BalanceSync extends core_Plugin
 		$balanceRec = acc_Balances::getLastBalance();
 		 
 		// Ако няма баланс няма какво да подготвяме
-		if(empty($balanceRec)) return FALSE;
+		if(empty($balanceRec)) return $all;
 		
 		// Извличане на сметките по които ще се ситематизират данните
 		$conf = core_Packs::getConfig('store');

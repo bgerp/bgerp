@@ -89,7 +89,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info=Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
     
         
     /**
@@ -111,6 +111,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'info,discount';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -121,8 +127,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
-        $this->FLD('info', "varchar(50)", 'caption=Колети');
-        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
+        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по колети->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
     }
 
 
@@ -206,12 +212,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
     		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
     		$form->info = $storeInfo->formInfo;
-    		
-    		if ($form->isSubmitted()){
-    			if(isset($storeInfo->warning)){
-    				$form->setWarning('packQuantity', $storeInfo->warning);
-    			}
-    		}
     	}
     	
     	parent::inputDocForm($mvc, $form);
@@ -222,8 +222,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){
             		$form->setError('info', "Полето може да приема само числа,запетаи и тирета");
             	}
-            	
             	$rec->info = preg_replace("/\s+/", "", $rec->info);
+            } else {
+            	$rec->info = NULL;
             }
         }
     }
@@ -241,12 +242,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     		
-    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
-    		
-    		if($diff < 0){
-    			$row->packQuantity = ht::createHint($row->packQuantity, "Налично количество в склада|*: $quantityInStore", 'warning');
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     		 
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){

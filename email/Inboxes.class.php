@@ -256,10 +256,10 @@ class email_Inboxes extends core_Master
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
         }
         
-        if (!$allAccounts) {
+        if (empty($allAccounts)) {
             if (email_Accounts::haveRightFor('add')) {
                 
-                redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активна кутия');
+                redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активен акаунт');
             } else {
                 
                 redirect(array($mvc), FALSE, '|Няма активна кутия, която да се използва');
@@ -857,6 +857,15 @@ class email_Inboxes extends core_Master
     {
         // Ако има права за добавяне редиректва към добавана на кутия
         if (self::haveRightFor('add')) {
+            $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
+            
+            if (empty($allAccounts)) {
+                if (email_Accounts::haveRightFor('add')) {
+            
+                    redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активен акаунт');
+                }
+            }
+            
             redirect(array('email_Inboxes', 'add', 'ret_url' => TRUE), FALSE, '|Трябва да добавите кутия за изпращане на имейл');
         } else {
             

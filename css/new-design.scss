@@ -418,17 +418,20 @@ body {
             color: #FFF612;
             display: block;
             font-size: 0.97em;
+            &.bookmark-external-url.out {
+	            color: #fefdd6;
+	            &:visited {
+	               color: #febb44;
+	            }
+	        }
             &:hover{
                 color: #fefdd6;
             }
         }
-
+       
     }
 }
 
-a.bookmark-external-url {
-    color: #0066ff;
-}
 .bookmark-wrong-url {
     color: #b11;
 }
@@ -984,12 +987,12 @@ form[method=post] input[type=button], form[method=post] a.button {
 }
 
 table.listTable > thead > tr > th {
-	border: 1px solid #d1d1d1;
+	border: 1px solid #ddd;
 	background-color: #eee;
 }
 
 table.listTable > tbody > tr > td {
-	border: 1px solid #d1d1d1;
+	border: 1px solid #ddd;
 }
 
 .accordian li.btns-title {

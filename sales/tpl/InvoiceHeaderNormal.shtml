@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-        <table class='no-border' style='width:100%;' id='inv-holder'>
+        <table style='width:100%;' id='inv-holder'>
             <tbody>
                 <tr>
                     <td>
@@ -18,9 +18,6 @@
                                         <div class="bigData">[#place#]</div>
                                         <div class='invInfo bigData'>
                                             <div class='original'>[#INV_STATUS#]</div>
-                                            <!--ET_BEGIN POS-->
-                                            <span style='font-weight:normal;'>[#POS#]</span>
-                                            <!--ET_END POS-->
                                             <!--ET_BEGIN originInv-->
                                             <div id='origin-title'>към Фактура <b>[#originInv#]</b> от [#originInvDate#]</div>
                                             <!--ET_END originInv-->
@@ -109,12 +106,12 @@
                                         <div class='custom-bg-block'><b>Плащане</b></div>
                                         
                                         <!--ET_BEGIN paymentType-->
-                                        <div><span class='quiet'>Начин:</span>  [#paymentType#]</div>
-                                        <!--ET_BEGIN DUE_paymentType-->
+                                        <div>[#paymentType#]</div>
+                                        <!--ET_END paymentType-->
                                         
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
-                                        <div><span class='quiet'>Срок за плащане:</span> [#dueTime#] (до [#dueDate#])</div>
+                                        <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
                                         <!--ET_END DUE_BLOCK--> 
                                         
                                         <!--ET_BEGIN deadline-->
@@ -224,7 +221,7 @@
                                             </tr>
                                             <tr>
                                                 <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
                                             </tr>
                                         </table>
                                     </td>

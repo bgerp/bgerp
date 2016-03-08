@@ -20,7 +20,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	protected $hideListFieldsIfEmpty = 'discount';
+	public $hideListFieldsIfEmpty = 'discount';
 	
 	
 	/**
@@ -28,17 +28,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function setDocumentFields($mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap,silent');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,tdClass=centerCol,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount,input=hidden');
 		
-		$mvc->FLD('quantity', 'double', 'caption=К-во,input=none');
+		$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
 		$mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input');
-		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
-		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
-		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
+		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
+		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
+		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
 		
 		$mvc->setDbUnique("{$mvc->masterKey},productId,packagingId,price,quantity,discount");
 	}
@@ -104,8 +104,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
-		} else {
-			$form->setReadOnly('packagingId');
+			
+			if(!isset($productInfo->meta['canStore'])){
+				$measureShort = cat_UoM::getShortName($rec->packagingId);
+				$form->setField('packQuantity', "unit={$measureShort}");
+			} else {
+				$form->setField('packagingId', 'input');
+			}
 		}
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
@@ -152,7 +157,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				if(!$policyInfo){
 					// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
 					$Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
-					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
 				}
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка

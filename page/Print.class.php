@@ -33,7 +33,7 @@ class page_Print extends page_Html {
         $this->append("\n runOnLoad(function(){window.print();});", 'JQRUN');
         $this->append("
          * {
-             background-color: white !important;
+             background-color: none !important;
            }
 	       	#statuses, .toast-container{
 			   display: none !important;

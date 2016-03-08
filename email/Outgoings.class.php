@@ -175,7 +175,7 @@ class email_Outgoings extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText');
-        $this->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote=3)', 'caption=Съобщение,mandatory');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
@@ -1135,7 +1135,8 @@ class email_Outgoings extends core_Master
                     }
                 }
                 
-                if ($quotOtherArr) {
+
+                if (!empty($quotOtherArr)) {
                     $docStr = count($quotOtherArr) == 1 ? 'документ' : 'документи';
                     $form->setWarning('body', "Цитирате {$docStr} от друга нишка|*: " . implode(', ', $quotOtherArr));
                 }
@@ -1355,6 +1356,11 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Да се цитират документа, ако не се редактира
+        if (!$data->form->rec->id) {
+            $data->form->fields['body']->type->params['appendQuote'] = 3;
+        }
+        
         $form = $data->form;
         $rec = $form->rec;
         
@@ -1823,7 +1829,7 @@ class email_Outgoings extends core_Master
         $footerData = array();
         
         // Името на компанията
-        $footerData['company'] = tr($companyRec->name);
+        $footerData['company'] = transliterate(tr($companyRec->name));
         
         // Името на потребителя
         $footerData['name'] = transliterate($personRec->name);
@@ -1890,7 +1896,7 @@ class email_Outgoings extends core_Master
         
         // Зареждаме шаблона
         $tpl = new ET(core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_FOOTER_TEXT'));
-        
+
         // Променливи, нужни за определяне дали в реда е бил заместен плейсхолдер
         $tplClone = clone $tpl;
         $tplWithPlaceholders = $tplClone->getContent(NULL, "CONTENT", FALSE, FALSE);
@@ -2430,7 +2436,7 @@ class email_Outgoings extends core_Master
         }
         
         if ($mvc->haveRightFor('close', $data->rec)) {
-            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), array('ef_icon'=>'img/16/gray-close.png', 'row'=>'2', 'title'=>'Спиране на изпращането'));
+            $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), array('ef_icon'=>'img/16/gray-close.png', 'title'=>'Спиране на изпращането'));
         }
     }
     

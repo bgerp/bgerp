@@ -77,6 +77,7 @@ class compactor_Plugin extends core_Plugin
             $sbfFilePath = core_Sbf::getSbfFilePath($file);
             if(!file_exists($sbfFilePath)) {
                 sleep(1);
+                Debug::log('Sleep 1 sec. in' . __CLASS__);
             }
             $times .= @filemtime($sbfFilePath);
             if(isset($filesArr[$file])) {

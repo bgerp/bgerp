@@ -133,6 +133,8 @@ class type_Users extends type_Keylist
                         $this->options[$key]->title = $uRec->names . " (" . type_Nick::normalize($uRec->nick) . ")";
                         $this->options[$key]->keylist = '|' . $uRec->id . '|';
                         $haveTeamMembers = TRUE;
+                    } else {
+                        $rejected .= $rejected ? '|' . $uRec->id : $uRec->id;
                     }
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
@@ -148,9 +150,19 @@ class type_Users extends type_Keylist
                 } else {
                     unset($this->options[$t . ' team']);
                 }
+
+
             }
         }
         
+        // Добавка за оттеглените потребители
+        if($rejected) {
+            $this->options[$key] = new stdClass();
+            $this->options[$key]->title = tr("Оттеглени потребители");
+            $this->options[$key]->keylist = '|' . $rejected . '|';
+            $this->options[$key]->attr = array('class' => 'team');
+        }
+       
         $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
         
         return $this->options;

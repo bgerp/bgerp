@@ -12,6 +12,8 @@
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Persons extends core_Master
 {
@@ -77,7 +79,7 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export';
@@ -116,9 +118,9 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    var $searchFields = 'name,egn,country,place,email,info,id';
-
-
+    var $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id';
+    
+    
     /**
      * Кой  може да пише?
      */
@@ -260,14 +262,14 @@ class crm_Persons extends core_Master
 
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent');
-        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData');
+            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv');
+        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
         $this->FLD('buzFax', 'drdata_PhoneType(type=fax)', 'caption=Служебни комуникации->Факс,class=contactData,export=Csv');
         $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData,export=Csv');
-
+        
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
@@ -276,11 +278,11 @@ class crm_Persons extends core_Master
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
 
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
+        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,export=Csv');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\')', 'caption=Групи->Групи,remember,silent');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')', 'caption=Групи->Групи,remember,silent,export=Csv');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -404,8 +406,27 @@ class crm_Persons extends core_Master
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
         }
-     }
+    }
 
+
+    /**
+     * Изпълнява се след подготовката на редовете за листовия изглед
+     */
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if(is_array($data->recs)) {
+            $cnt = array();
+            foreach($data->recs as $rec) {
+                $cnt[str::utf2ascii(trim($rec->name))]++;
+            }
+            foreach($data->recs as $rec) {
+                if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
+                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                }
+            }
+
+        }
+    }
 
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
@@ -597,15 +618,15 @@ class crm_Persons extends core_Master
         $currentId = $mvc->getVerbal($rec, 'id');
 
 
-        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><div class='custom-rowtools'>". $row->id . ' </div>' . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
         if($birthday) {
-            $row->title .= "&nbsp;&nbsp;<div style='display:inline-block'>{$birthday}</div>";
+             
 
             if(strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
@@ -619,11 +640,11 @@ class crm_Persons extends core_Master
                 }
             }
             if($mvc->birthdayFilter){
-            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+                $dateType = tr($dateType);
+            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
             }
         } elseif($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
-            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
 
@@ -680,9 +701,7 @@ class crm_Persons extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->groupList) {
-            $mvc->updateGroupsCnt = TRUE;
-        }
+        $mvc->updateGroupsCnt = TRUE;
 
         $mvc->updatedRecs[$id] = $rec;
 
@@ -701,9 +720,9 @@ class crm_Persons extends core_Master
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Persons $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
     static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {
@@ -2546,5 +2565,113 @@ class crm_Persons extends core_Master
     public function getDefaultProductParams($id)
     {
     	return array();
+    }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Persons $mvc
+     * @param array $fields
+     */
+    public static function on_AfterPrepareInportFields($mvc, &$fields)
+    {
+        crm_Companies::on_AfterPrepareInportFields($mvc, $fields);
+        
+        if ($fields['groupList']) {
+            $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
+        }
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от лицата, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
+            $nRec->buzCompanyId = $rec->buzCompanyId;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * Преди записване на в модела
+     * 
+     * @param crm_Persons $mvc
+     * @param stdObjec $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // id на групите
+        if (isset($rec->buzCompanyId)) {
+            $companyName = trim($rec->buzCompanyId);
+            $rec->buzCompanyId = crm_Companies::fetchField(array("#name = '[#1#]'", $companyName), 'id');
+        }
+        
+        // id на групите
+        if (isset($rec->buzLocationId)) {
+            $locationTitle = trim($rec->buzLocationId);
+            $locationTitle = mb_strtolower($locationTitle);
+            $rec->buzLocationId = crm_Locations::fetchField(array("LOWER(#title) = '[#1#]'", $locationTitle), 'id');
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($egn = trim($rec->egn)) {
+            $query->where(array("#egn = '[#1#]'", $egn));
+        }
+        
+        if ($name = $rec->name) {
+            
+            $query->orWhere(array("#name = '[#1#]'", $name));
+            
+            $or = FALSE;
+            if ($tel = trim($rec->tel)) {
+                $query->where(array("#tel = '[#1#]'", $tel), $or);
+                $or = TRUE;
+            }
+            
+            if ($mobile = trim($rec->mobile)) {
+                $query->where(array("#mobile = '[#1#]'", $mobile), $or);
+            }
+        }
+        
+        $query->orderBy('#egn', 'DESC');
+        $query->orderBy('#tel', 'DESC');
+        $query->orderBy('#mobile', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
     }
 }

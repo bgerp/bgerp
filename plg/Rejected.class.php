@@ -31,11 +31,11 @@ class plg_Rejected extends core_Plugin
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
 
-        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull,forceField");
+        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,single=none,notNull,forceField");
         
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
 
-        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Последно модифициране,input=none,column=none,forceField');
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,column=none,forceField');
 
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
     }
@@ -53,7 +53,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите записа?,order=32', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите записа?,order=32,row=2,', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
@@ -93,7 +93,7 @@ class plg_Rejected extends core_Plugin
                 if(isset($data->pager->pageVar)) {
                     unset($curUrl[$data->pager->pageVar]);
                 }
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,row=2,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,' . (Mode::is('screenMode', 'narrow') ? 'row=2,' : '') . 'order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
             }
         }
         if(Request::get('Rejected')) {
@@ -219,6 +219,14 @@ class plg_Rejected extends core_Plugin
             // Не могат да се възстановяват не-оттеглении записи
             if($action == 'restore' && $rec->state != 'rejected') {
                 $requiredRoles = 'no_one';
+            }
+            
+            if ($action == 'restore' || $action == 'reject') {
+                if ($mvc instanceof core_Master) {
+                    if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
             
             if(!$requiredRoles && ($action == 'restore' || $action == 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {

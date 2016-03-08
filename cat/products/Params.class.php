@@ -38,13 +38,13 @@ class cat_products_Params extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, paramId, paramValue, tools=Пулт';
+    var $listFields = 'productId=Продукт №, paramId, paramValue';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
     
     
     /**
@@ -246,14 +246,19 @@ class cat_products_Params extends doc_Detail
         }
         
         foreach((array)$data->params as $row) {
-        	if($data->noChange === TRUE){
-        		unset($row->tools);
+        	core_RowToolbar::createIfNotExists($row->_rowTools);
+        	if($data->noChange !== TRUE){
+        		$row->tools = $row->_rowTools->renderHtml();
         	}
         	
             $block = clone $tpl->getBlock('param');
             $block->placeObject($row);
             $block->removeBlocks();
             $block->append2Master();
+        }
+        
+        if(!$data->params){
+        	$tpl->append("<i>" . tr('Няма') . "</i>", 'NO_ROWS');
         }
         
         return $tpl;

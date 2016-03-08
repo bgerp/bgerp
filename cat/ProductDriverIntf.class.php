@@ -208,4 +208,17 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
 	}
+	
+	
+	/**
+	 * Връща дефолтната дефиниция за партида на артикула
+	 * Клас имплементиращ интерфейса 'batch_BatchTypeIntf'
+	 * 
+	 * @param mixed $id - ид или запис на артикул
+	 * @return NULL|core_BaseClass - клас за дефиниция на партида
+	 */
+	public function getDefaultBatchDef($id)
+	{
+		return $this->class->getDefaultBatchDef($id);
+	}
 }

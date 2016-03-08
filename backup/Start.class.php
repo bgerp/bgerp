@@ -54,7 +54,7 @@ class backup_Start extends core_Manager
             return;
         }
         
-        self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
+        self::$lockFileName = EF_TEMP_PATH . '/backupLock' . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0, 5) . '.tmp';
         self::$conf = core_Packs::getConfig('backup');
         $now = date("Y_m_d_H_i");
         self::$backupFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".full.gz";
@@ -75,7 +75,6 @@ class backup_Start extends core_Manager
             
             shutdown();
         }
-        
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME
@@ -256,11 +255,12 @@ class backup_Start extends core_Manager
         
         // Взимаме мета данните
         $metaArr = self::getMETA();
-        
-        if (count($metaArr) > self::$conf->BACKUP_CLEAN_KEEP) {
+
+        if (count($metaArr['backup']) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
-            $garbage = array_slice($metaArr, 0, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP);
-            $keeped  = array_slice($metaArr, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr));
+            $garbage = array_slice($metaArr['backup'], 0, count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
+            $keeped['backup']  = array_slice($metaArr['backup'], count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr['backup']));
+            $keeped['logNames'] = $metaArr['logNames'];
             file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($keeped));
             
             // Качваме МЕТАТ-а в сториджа
@@ -371,13 +371,13 @@ class backup_Start extends core_Manager
      */
     private static function saveFileMan()
     {
-        $unArchived = fileman_Data::getUnArchived();
+        $unArchived = fileman_Data::getUnArchived(100);
 
         foreach ($unArchived as $fileObj) {
             if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
                 fileman_Data::setArchived($fileObj->id);
             } else {
-                self::logErr("backup не записва файл в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+                self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
             }
         }
     }

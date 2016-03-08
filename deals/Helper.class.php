@@ -359,7 +359,7 @@ abstract class deals_Helper
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
 		if($quantity < 0){
-			$verbalQuantity = "<span class='red'>{$quantity}</span>";
+			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
 		}
 		
 		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
@@ -547,5 +547,92 @@ abstract class deals_Helper
 		}
 		
 		return $combined;
+	}
+	
+	
+	/**
+	 * Връща хинт с количеството в склада
+	 * 
+	 * @param int $productId
+	 * @param int $storeId
+	 * @param double $quantity
+	 * @return string $hint
+	 */
+	public static function getQuantityHint($productId, $storeId, $quantity)
+	{
+		$hint = '';
+		$quantityInStore = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
+		
+		if(is_null($quantityInStore)){
+			$hint = 'Налично количество в склада: н.д.';
+		} elseif($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
+			$quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
+			$measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
+			$hint = "Налично количество в склада|*: {$quantityInStore} {$measureName}";
+		}
+		
+		return $hint;
+	}
+	
+	
+	/**
+	 * Помощна ф-я обръщащи намерените к-ва и суми върнати от acc_Balances::getBlQuantities
+	 *  от една валута в друга подадена
+	 * 
+	 * @see acc_Balances::getBlQuantities
+	 * @param array $array - масив от обекти с ключ ид на перо на валута и полета amount и quantity
+	 * @param varchar $currencyCode - към коя валута да се конвертират
+	 * @param date $date - дата
+	 * @return array $res
+	 * 					->quantity - Количество във подадената валута
+	 * 					->amount   - Сума в основната валута
+	 */
+	public static function convertJournalCurrencies($array, $currencyCode, $date)
+	{
+		$res = (object)array('quantity' => 0, 'amount' => 0);
+		
+		// Ако е масив
+		if(is_array($array)){
+			$currencyItemId = $currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($currencyCode))->id;
+			$currencyListId = acc_Lists::fetchBySystemId('currencies')->id;
+			
+			// За всеки обект от него
+			foreach ($array as $itemId => $obj){
+				
+				// Подсигуряваме се че ключа е перо от номенклатура валута
+				$itemRec = acc_Items::fetch($itemId);
+				$cCode = currency_Currencies::getCodeById($itemRec->objectId);
+				expect(keylist::isIn($currencyListId, $itemRec->lists));
+				
+				// Ако ключа е търсената валута просто събираме
+				if($currencyItemId == $itemId){
+					$quantity = $obj->quantity;
+				} else {
+					if($obj->amount){
+						
+						// Ако има сума обръщаме сумата в количеството на основната валута чрез основния курс
+						$rate = currency_CurrencyRates::getRate($date, $currencyCode, NULL);
+						$quantity = $obj->amount / $rate;
+					} else {
+						// Ако не е конвертираме количеството във търсената валута
+						$quantity = currency_CurrencyRates::convertAmount($obj->quantity, $date, $cCode, $currencyCode);
+					}
+				}
+				
+				// Ако няма сума я изчисляваме възоснова на основния курс
+				if($obj->amount){
+					$amount = $obj->amount;
+				} else {
+					$rate = currency_CurrencyRates::getRate($date, $cCode, NULL);
+					$amount = $rate * $quantity;
+				}
+				
+				// Сумираме к-та и сумите към търсената валута
+				$res->quantity += $quantity;
+				$res->amount += $amount;
+			}
+		}
+		
+		return $res;
 	}
 }

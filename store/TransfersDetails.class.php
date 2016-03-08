@@ -98,10 +98,10 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter');
-        $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input,mandatory');
+        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
     }
@@ -182,11 +182,10 @@ class store_TransfersDetails extends doc_Detail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$quantityInStore = store_Products::fetchField("#productId = {$rec->newProductId} AND #storeId = {$data->masterData->rec->fromStore}", 'quantity');
-    
-    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
-    		if($diff < 0){
-    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$row->packQuantity}</span>";
+    		
+    		$warning = deals_Helper::getQuantityHint($rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity);
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     	}
     }
@@ -224,17 +223,13 @@ class store_TransfersDetails extends doc_Detail
     		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		
     		$packs = cat_Products::getPacks($rec->newProductId);
+    		$form->setField('packagingId', 'input');
     		$form->setOptions('packagingId', $packs);
-    	} else {
-    		$form->setReadOnly('packagingId');
+    		$form->setDefault('packagingId', key($packs));
     	}
     	
     	if ($form->isSubmitted()){
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-    		if(isset($storeInfo->warning)){
-    			$form->setWarning('packQuantity', $storeInfo->warning);
-    		}
             
             $rec->weight = cat_Products::getWeight($rec->newProductId);
             $rec->volume = cat_Products::getVolume($rec->newProductId);

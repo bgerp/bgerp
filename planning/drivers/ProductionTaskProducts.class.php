@@ -24,9 +24,15 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Заглавие
+     */
+    public $title = 'Детайл на задача за производство';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,type,productId,packagingId,planedQuantity=Количества->Планувано,realQuantity=Количества->Изпълнено,storeId,indTime=Изпълнение,totalTime';
+    public $listFields = 'type,productId,packagingId,planedQuantity=Количества->Планувано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
     
     
     /**
@@ -36,15 +42,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'RowNumb';
-    
-    
-    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Modified, plg_Created,planning_Wrapper';
     
     
     /**
@@ -90,19 +90,25 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Активен таб на менюто
+     */
+    public $currentTab = 'Задачи';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD("type", 'enum(input=Вложим,product=Производим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId');
-    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Опаковка,smartCenter');
+    	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
+    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field');
+    	$this->FLD("planedQuantity", 'double(smartRound)', 'mandatory,caption=Планувано к-во,smartCenter');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
-    	$this->FLD("planedQuantity", 'double', 'mandatory,caption=Планувано к-во');
     	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
-    	$this->FLD("realQuantity", 'double', 'caption=Количество->Изпълнено,input=none,notNull');
-    	$this->FLD("indTime", 'time', 'caption=Време за изпълнение,smartCenter');
+    	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
+    	$this->FLD("indTime", 'time', 'caption=Времена->Изпълнение,smartCenter');
     	$this->FNC('totalTime', 'time', 'caption=Времена->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
@@ -147,27 +153,6 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     				$meta = 'canConvert';
     				$products = cat_Products::getByProperty($meta);
     				break;
-    			case 'product':
-    				// За произвеждане може да се избере само артикула от заданието
-    				$origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));
-    				$productId = $origin->fetchField('productId');
-    				$bomRec = cat_Products::getLastActiveBom($productId, 'production');
-    				if(!$bomRec){
-    					$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
-    				}
-    				
-    				$products[$productId] = cat_Products::getTitleById($productId, FALSE);
-    				
-    				// и ако има рецепта артикулите, които са етапи от нея
-    				if(isset($bomRec)){
-    					$sQuery = cat_BomDetails::getQuery();
-    					$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
-    					$sQuery->show('resourceId');
-    					while($sRec = $sQuery->fetch()){
-    						$products[$sRec->resourceId] = cat_Products::getTitleById($sRec->resourceId, FALSE);
-    					}
-    				}
-    				break;
     			case 'waste':
     				$meta = 'canStore,canConvert';
     				$products = cat_Products::getByProperty($meta);
@@ -182,7 +167,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		}
     		
     		// Задаваме опциите с артикулите за избор
-    		$form->setOptions('productId', $products);
+    		$form->setOptions('productId', array('' => '') + $products);
+    		if(count($products) == 1){
+    			$form->setDefault('productId', key($products));
+    		}
     	}
     	
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
@@ -190,6 +178,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if(isset($rec->productId)){
     		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    		
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		if(!isset($productInfo->meta['canStore'])){
+    			$form->setField('packagingId', 'input=hidden');
+    			$measureShort = cat_UoM::getShortName($rec->packagingId);
+    			$form->setField('planedQuantity', "unit={$measureShort}");
+    		}
     	} else {
     		$form->setReadOnly('packagingId');
     	}
@@ -207,9 +203,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$rec = &$form->rec;
     	
     	if($form->isSubmitted()){
-    		if($rec->type == 'product'){
-    			if($mvc->fetchField("#taskId = {$rec->taskId} AND #type = 'product' AND #id != '{$rec->id}'")){
-    				$form->setError('productId', 'По една задача може да има само един производим артикул');
+    		if($rec->type == 'waste'){
+    			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
+    			
+    			if(!isset($selfValue)){
+    				$form->setWarning('productId', 'Отпадакът няма себестойност');
     			}
     		}
     		
@@ -240,11 +238,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$class = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'product') ? 'state-active' : 'row-removed');
-    	
+    		
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-    		$row->ROW_ATTR['class'] = $class;
+    		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	}
     }
@@ -278,6 +275,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$query = planning_drivers_ProductionTaskDetails::getQuery();
     	$query->where("#taskId = {$rec->taskId}");
     	$query->where("#type = '{$rec->type}'");
+    	$query->where("#taskProductId = {$taskProductId}");
+    	$query->where("#state != 'rejected'");
     	$query->show('quantity');
     	
     	while($dRec = $query->fetch()){
@@ -285,6 +284,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	}
     	
     	self::save($rec, 'realQuantity');
+    	$taskOriginId = planning_Tasks::fetchField($rec->taskId, 'originId');
+    	$taskOrigin = doc_Containers::getDocument($taskOriginId);
+    	
+    	// Записваме операцията в регистъра
+    	planning_TaskActions::add($rec->taskId, $rec->productId, $rec->type, $taskOrigin->that, $rec->realQuantity);
     }
     
     
@@ -298,7 +302,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     public static function getOptionsByType($taskId, $type)
     {
     	$options = array();
-    	expect(in_array($type, array('input', 'product', 'waste')));
+    	expect(in_array($type, array('input', 'waste')));
     	
     	$query = self::getQuery();
     	$query->where("#taskId = {$taskId}");
@@ -319,9 +323,6 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	// При добавянето на артикул за влагане/отпадък ако за него има чернова задача за произвеждането му
     	// искаме текущата задача да зависи от изпълнението на другата задача.Т.е да активираме задачата
     	// за влагането на артикула само след завършването на задачата за произвеждането му
-    	
-    	// Ако добавяме артикул за произвеждане не правим нищо
-    	if($rec->type == 'product') return;
     	
     	// Коя е задачата
     	$taskRec = planning_Tasks::fetch($rec->taskId);
@@ -363,15 +364,9 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     		
-    		if(cat_Products::getByProperty('canManifacture', NULL, 1)){
-    			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'product'))){
-    				$data->toolbar->addBtn('Производими', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'product', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
-    			}
-    		}
-    		
     		if(cat_Products::getByProperty('canConvert', NULL, 1)){
     			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'input'))){
-    				$data->toolbar->addBtn('Вложими', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
+    				$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/wooden-box.png,title=Добавяне на вложим артикул');
     			}
     		}
     		
@@ -392,6 +387,6 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
     	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'waste') ? 'отпадъчен артикул' : 'артикул за произвеждане');
+    	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : 'отпадъчен артикул';
     }
 }

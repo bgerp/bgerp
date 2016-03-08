@@ -31,7 +31,7 @@ class email_Salutations extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'email_Wrapper, plg_Sorting, plg_Created, plg_RowTools, plg_Search, plg_State';
+    public $loadList = 'email_Wrapper, plg_Sorting, plg_Created, plg_RowTools2, plg_Search, plg_State';
 
     
     /**

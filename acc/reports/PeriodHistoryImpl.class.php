@@ -358,7 +358,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 		
 		$data->hasSameValues = TRUE;
 		
-		// Можели потребителя да вижда хронологията на сметката
+		// Може ли потребителя да вижда хронологията на сметката
 		$attr = array();
 		$attr['class'] = 'linkWithIcon';
 		$attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';

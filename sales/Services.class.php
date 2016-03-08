@@ -8,12 +8,14 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class sales_Services extends deals_ServiceMaster
 {
+	
+	
     /**
      * Заглавие
      */
@@ -29,7 +31,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf, acc_TransactionSourceIntf=sales_transaction_Service';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf, acc_TransactionSourceIntf=sales_transaction_Service,deals_InvoiceSourceIntf';
     
     
     /**
@@ -186,6 +188,12 @@ class sales_Services extends deals_ServiceMaster
     	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
     					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	$tplArr[] = array('name' => 'Delivery protocol',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Delivery protocol with prices',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
@@ -212,6 +220,58 @@ class sales_Services extends deals_ServiceMaster
     		$operation = $operations[$mvc::$defOperationSysId];
     		$rec->accountId = $operation['debit'];
     		$rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
+    	}
+    }
+    
+    
+    /**
+     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
+     * определен документ
+     *
+     * @param mixed $id - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @return array $details - масив с артикули готови за запис
+     * 				  o productId      - ид на артикул
+     * 				  o packagingId    - ид на опаковка/основна мярка
+     * 				  o quantity       - количество опаковка
+     * 				  o quantityInPack - количество в опаковката
+     * 				  o discount       - отстъпка
+     * 				  o price          - цена за еденица от основната мярка
+     */
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    {
+    	$details = array();
+    	$rec = static::fetchRec($id);
+    	
+    	$query = sales_ServicesDetails::getQuery();
+    	$query->where("#shipmentId = {$rec->id}");
+    	while($dRec = $query->fetch()){
+    		$dRec->quantity /= $dRec->quantityInPack;
+    		unset($dRec->id);
+    		unset($dRec->shipmentId);
+    		unset($dRec->createdOn);
+    		unset($dRec->createdBy);
+    		$details[] = $dRec;
+    	}
+    	
+    	return $details;
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	
+    	if($rec->state == 'active' && $rec->isReverse == 'no'){
+    		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    			$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
+    		}
     	}
     }
 }

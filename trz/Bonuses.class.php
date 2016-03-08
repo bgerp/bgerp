@@ -38,7 +38,7 @@ class trz_Bonuses extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
                     trz_Wrapper';
     
     

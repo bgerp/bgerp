@@ -138,11 +138,10 @@ class cat_products_Packagings extends core_Detail
     		
     		if($roundQuantity != $rec->quantity){
     			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
-    			$rec->quantity = $roundQuantity;
     		}
     		
     		// Закръгляме к-то, така че да е в границите на допустимото от мярката
-    		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
+    		$rec->quantity = $roundQuantity;
     	}
     }
     
@@ -160,7 +159,7 @@ class cat_products_Packagings extends core_Detail
             } 
         }
         
-        if(($action == 'add' ||  $action == 'delete') && isset($rec->productId)) {
+        if(($action == 'add' ||  $action == 'delete' ||  $action == 'edit') && isset($rec->productId)) {
         	$masterState = cat_Products::fetchField($rec->productId, 'state');
         	if($masterState != 'active' && $masterState != 'draft'){
         		$requiredRoles = 'no_one';

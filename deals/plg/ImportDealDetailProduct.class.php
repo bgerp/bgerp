@@ -70,8 +70,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$rec = &$form->rec;
 				
 				// Трябва да има посочен източник
-				if((empty($rec->csvData) && empty($rec->csvFile)) || (!empty($rec->csvData) && !empty($rec->csvFile))){
-					$form->setError('csvData,csvFile', 'Трябва да е попълнено само едно поле');
+				if((empty($rec->csvData) && empty($rec->csvFile))){
+					$form->setError('csvData,csvFile', 'Трябва да е попълнено поне едно от полетата');
+				}
+				
+				// Трябва да има посочен източник
+				if((!empty($rec->csvData) && !empty($rec->csvFile))){
+					$form->setError('csvData,csvFile', 'Трябва да е попълнено само едно от полетата');
 				}
 				
 				if(!$form->gotErrors()){
@@ -190,12 +195,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			}
 		}
 	
-		$msg = "Импортирани са |{$added}|* артикула";
+		$msg = "|Импортирани са|* {$added} |артикула|*";
 		if($failed != 0){
-			$msg .= ". Не са импортирани |{$failed}|* артикула";
+			$msg .= ". |Не са импортирани|* {$failed} |артикула";
 		}
 	
-		return tr($msg);
+		return $msg;
 	}
 	
 	

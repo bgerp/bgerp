@@ -131,6 +131,8 @@ class doc_LikesPlg extends core_Plugin
             if (doc_Likes::dislike($rec->containerId)) {
                 $mvc->logWrite('Премахнато харесване', $rec->id);
                 $mvc->touchRec($rec->id);
+                
+                bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'like' => TRUE));
             }
         } elseif ($action == 'showlikes') {
             

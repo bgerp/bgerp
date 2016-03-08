@@ -51,10 +51,4 @@
 		[#SALE_PAGINATOR#]
 	<!--ET_END SALE_PAGINATOR-->
 	
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-	</div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -145,7 +145,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Можели да се редактират активирани документи
+     * Може ли да се редактират активирани документи
      */
     public $canEditActivated = TRUE;
     
@@ -485,6 +485,11 @@ class cat_Products extends embed_Manager {
 	    			|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
 			    }
+    		}
+    		
+    		// При добавянето на код на частен артикул слагаме предупреждение
+    		if(isset($rec->id) && $rec->isPublic == 'no' AND !empty($rec->code)){
+    			$form->setWarning('code', 'При добавянето на код на частен артикул, той ще стане публичен');
     		}
         }
     }
@@ -1183,7 +1188,9 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			$row->proto = $mvc->getHyperlink($rec->proto);
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    				$row->proto = $mvc->getHyperlink($rec->proto);
+    			}
     		}
     	}
         
@@ -1292,7 +1299,7 @@ class cat_Products extends embed_Manager {
     		$title .= " ({$handle}";
     		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
     		if($count > 1){
-    			$title .= "<small>v{$count}</small>";
+    			$title .= "<small class='versionNumber'>v{$count}</small>";
     		}
     		$title .= ")";
     	}
@@ -1313,15 +1320,17 @@ class cat_Products extends embed_Manager {
     	
     	// Ако ще показваме описание подготвяме го
     	if($showDescription === TRUE){
-    	    $title = "<b>{$title}</b>";
-    	    
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType);
     	    if(!$data){
     	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
     	    }
-    	    
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
+    	    
+    	    // Удебеляваме името само ако има допълнително описание
+    	    if(strlen($descriptionTpl->getContent())){
+    	    	$title = "<b>{$title}</b>";
+    	    }
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
@@ -1346,7 +1355,7 @@ class cat_Products extends embed_Manager {
      */
     public static function getLastJob($id)
     {
-    	$rec = self::fetchRec($id);
+    	expect($rec = self::fetchRec($id));
     	
     	// Какво е к-то от последното активно задание
     	$query = planning_Jobs::getQuery();
@@ -1502,7 +1511,9 @@ class cat_Products extends embed_Manager {
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
     	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    			$res = 'no_one';
+    		    if (!core_Users::isContractor($userId)) {
+    		        $res = 'no_one';
+    		    }
     		}
     	}
     }
@@ -1639,7 +1650,7 @@ class cat_Products extends embed_Manager {
     public function getDefaultCost($id)
     {
     	// За артикула, това е цената по себестойност
-    	return $this->getSelfValue($id);
+    	return self::getSelfValue($id);
     }
     
     
@@ -1861,7 +1872,6 @@ class cat_Products extends embed_Manager {
     public static function renderComponents($components, $makeLinks = TRUE)
     {
     	if(!count($components)) return;
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	$compTpl = getTplFromFile('cat/tpl/Components.shtml');
     	$block = $compTpl->getBlock('COMP');
@@ -1871,7 +1881,10 @@ class cat_Products extends embed_Manager {
     			$obj->quantity = "<span class='red'>???</span>";
     		} else {
     			$obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
-    			$obj->quantity = $Double->toVerbal($obj->quantity / $obj->divideBy);
+    			$quantity = $obj->quantity / $obj->divideBy;
+    			
+    			$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    			$obj->quantity = $Double->toVerbal($quantity);
     		}
     		
     		// Ако ще показваме компонента като линк, го правим такъв
@@ -2086,14 +2099,14 @@ class cat_Products extends embed_Manager {
     	if(!count($defaultTasks)){
     		
     		// Намираме последната активна рецепта
-    		$bomId = self::getLastActiveBom($rec, 'production');
-    		if(!$bomId){
-    			$bomId = self::getLastActiveBom($rec, 'sales');
+    		$bomRec = self::getLastActiveBom($rec, 'production');
+    		if(!$bomRec){
+    			$bomRec = self::getLastActiveBom($rec, 'sales');
     		}
     		
     		// Ако има опитваме се да намерим задачите за производството по нейните етапи
-    		if($bomId){
-    			$defaultTasks = cat_Boms::getTasksFromBom($bomId, $quantity);
+    		if($bomRec){
+    			$defaultTasks = cat_Boms::getTasksFromBom($bomRec, $quantity);
     		}
     	}
     	

@@ -25,13 +25,13 @@ class pos_Favourites extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools2, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
 
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
+    var $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
     
     
     /**

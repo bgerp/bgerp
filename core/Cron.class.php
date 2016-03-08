@@ -338,6 +338,7 @@ class core_Cron extends core_Manager
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
             sleep($rec->delay);
+            Debug::log('Sleep {$rec->delay} sec. in' . __CLASS__);
         }
         
         // Стартираме процеса
@@ -711,7 +712,7 @@ class core_Cron extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec && ($action == 'edit')) {
-            if ($rec->modifiedBy == '-1') {
+            if (!$rec->modifiedBy || $rec->modifiedBy == '-1') {
                 $requiredRoles = 'no_one';
             }
         }

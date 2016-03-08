@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,19 +38,13 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
     
     
     /**
      * Кои полета да се извличат при изтриване
      */
     public $fetchFieldsBeforeDelete = 'id,bomId,type';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
     
     
     /**
@@ -116,7 +110,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->К-во,primeCost,coefficient';
+    public $listFields = 'position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -127,7 +121,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember,removeAndRefreshForm=propQuantity,silent');
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description');
-    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field centerCol,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
@@ -136,7 +130,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
-    	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=К-во,input=none,tdClass=accCell');
+    	$this->FNC("rowQuantity", 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
     	$this->FLD("coefficient", 'double', 'input=none');
     }
 
@@ -150,7 +144,7 @@ class cat_BomDetails extends doc_Detail
     	$masterProductUomId = cat_Products::fetchField($data->masterData->rec->productId, 'measureId');
     	
     	$data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
-    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|К-во|*";
+    	$data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
     	$data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
     	if(!haveRole('ceo, acc, cat, price')){
     		unset($data->listFields['primeCost']);
@@ -172,7 +166,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$rec = &$form->rec;
     	
-    	$matCaption = ($rec->type == 'input') ? 'Материал' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
+    	$matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
     	$form->setField('resourceId', "caption={$matCaption}");
     	
     	// Добавяме всички вложими артикули за избор
@@ -235,7 +229,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
     	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'материал' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
+    	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
     }
     
     
@@ -386,7 +380,10 @@ class cat_BomDetails extends doc_Detail
     		
     		// Ако артикула не е складируем, скриваме полето за мярка
     		if(!isset($pInfo->meta['canStore'])){
-    			$form->setField('packagingId', 'input=hidden');
+    			$measureShort = cat_UoM::getShortName($rec->packagingId);
+    			$form->setField('propQuantity', "unit={$measureShort}");
+    		} else {
+    			$form->setField('packagingId', 'input');
     		}
     		
     		if($rec->type != 'pop'){
@@ -397,8 +394,6 @@ class cat_BomDetails extends doc_Detail
     			
     			$form->setDefault('description', $description);
     		}
-    	} else {
-    		$form->setReadOnly('packagingId');
     	}
     	
     	// Проверяваме дали е въведено поне едно количество
@@ -418,7 +413,7 @@ class cat_BomDetails extends doc_Detail
     			$notAllowed = array();
     			$mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
     			if(isset($notAllowed[$rec->resourceId])){
-    				$form->setError('resourceId', "Материалът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+    				$form->setError('resourceId', "Артикулът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
     			}
     		}
     		
@@ -434,7 +429,7 @@ class cat_BomDetails extends doc_Detail
     			$cond = "#bomId = {$rec->bomId} AND #id != '{$rec->id}' AND #resourceId = {$rec->resourceId}";
     			$cond .= (empty($rec->parentId)) ? " AND #parentId IS NULL" : " AND #parentId = '{$rec->parentId}'";
     			if(self::fetchField($cond)){
-    				$form->setError('resourceId,parentId', 'Материалът вече се използва в този етап');
+    				$form->setError('resourceId,parentId', 'Артикулът вече се използва в този етап');
     			}
     		}
     		
@@ -544,8 +539,9 @@ class cat_BomDetails extends doc_Detail
     		if($mvc->haveRightFor('edit', $rec)){
     			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
     			if(count($convertableOptions)){
-    				$link = ht::createLink('', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
-    				$extraBtnTpl->append($link, 'BTN');
+    				core_RowToolbar::createIfNotExists($row->_rowTools);
+    				$row->_rowTools->addLink('Заместване', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), array('ef_icon' => "img/16/dropdown.gif", 'title' => "Избор на заместващ материал"));
+    				$row->resourceId = ht::createHint($row->resourceId, 'Артикулът може да бъде заместен');
     			}
     		}
     		
@@ -635,7 +631,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$title = cat_Products::getTitleById($rec->resourceId);
     	$msg = "{$title} |вече е етап|*";
-    	$this->Master->logRead("Разпъване на материал", $rec->bomId);
+    	$this->Master->logRead("Разпъване на вложен артикул", $rec->bomId);
     	
     	return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
@@ -671,7 +667,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на материал,ef_icon=img/16/package.png");
+    		$data->toolbar->addBtn('Влагане', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на артикул за влагане,ef_icon=img/16/package.png");
     		$data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'stage'), NULL, "title=Добавяне на етап,ef_icon=img/16/wooden-box.png");
     		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/recycle.png");
     	}
@@ -698,7 +694,7 @@ class cat_BomDetails extends doc_Detail
     		}
     	}
     	
-    	// Можели записа да бъде разширен
+    	// Може ли записа да бъде разширен
     	if(($action == 'expand' || $action == 'shrink') && isset($rec)){
     		
     		// Артикула трябва да е производим и да има активна рецепта
@@ -957,7 +953,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $componentId - на кой ред в рецептата е артикула
      * @return void
      */
-    public static function addProductComponents($productId, $toBomId, $componentId, &$activeBom = NULL)
+    public static function addProductComponents($productId, $toBomId, $componentId, &$activeBom = NULL, $onlyIfQuantitiesAreEqual = FALSE)
     {
     	$me = cls::get(get_called_class());
     	$toBomRec = cat_Boms::fetch($toBomId);
@@ -972,6 +968,11 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако етапа има рецепта
     	if($activeBom){
+    		if($onlyIfQuantitiesAreEqual === TRUE){
+    			if($activeBom->quantity != $toBomRec->quantity) {
+    				return;
+    			}
+    		}
     		
     		$outArr = static::getOrderedBomDetails($activeBom->id);
     		$cu = core_Users::getCurrent();

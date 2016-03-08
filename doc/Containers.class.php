@@ -360,6 +360,11 @@ class doc_Containers extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
+        
+        if ($folderRec->state == 'closed') {
+            $folderRow->title = ht::createHint($folderRow->title, 'Документът се намира в затворена папка', 'warning');
+        }
+        
         $title->replace($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         // Потребител
@@ -397,7 +402,8 @@ class doc_Containers extends core_Manager
         $tpl->appendOnce("\n runOnLoad(function(){flashHashDoc(flashDocInterpolation);});", 'JQRUN');
         
         if(Mode::is('screenMode', 'narrow')) {
-        	$tpl->appendOnce("\n runOnLoad(function(){setThreadElemWidth()});", 'JQRUN');
+        	jquery_Jquery::run($tpl, "setThreadElemWidth();");
+        	jquery_Jquery::runAfterAjax($tpl, "setThreadElemWidth");
         }
     }
     
@@ -1735,6 +1741,7 @@ class doc_Containers extends core_Manager
                                     // Ако не може да се намери съответен документ, изтриваме го
                                     if (self::delete($rec->id)) {
                                         $resArr['del_cnt']++;
+                                        $mustUpdate = FALSE;
                                     }
                                 }
                             }
@@ -2598,7 +2605,7 @@ class doc_Containers extends core_Manager
         
         // Добавя всички функции в масива, които ще се виката
         $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
-        if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
+        if (!empty($runAfterAjaxArr)) {
             
             $runAfterAjaxArr = array_unique($runAfterAjaxArr);
             foreach ((array)$runAfterAjaxArr as $runAfterAjax) {

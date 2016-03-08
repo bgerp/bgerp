@@ -267,7 +267,7 @@ class core_Type extends core_BaseClass
             
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
             if (!$res['error'] && isset($this->params['regexp'])) {
-                if (!eregi($this->params['regexp'], $value)) {
+                if (!preg_match($this->params['regexp'], $value)) {
                     $res['error'] = 'Синтактична грешка';
                 }
             }
@@ -527,12 +527,15 @@ class core_Type extends core_BaseClass
     /**
      * Определя и задава широчината на полето
      */
-    function setFieldWidth(&$attr, $size = NULL)
+    function setFieldWidth(&$attr, $size = NULL, $options = NULL)
     {
-        
-        if(!$size && !$this->maxFieldSize && is_array($this->options)) {
+        if($options === NULL) {
+            $options = $this->options;
+        }
+
+        if(!$size && !$this->maxFieldSize && is_array($options)) {
             $this->maxFieldSize = 1;
-            foreach($this->options as $opt) {
+            foreach($options as $opt) {
                 if(is_object($opt)) {
                     $title = $opt->title;
                 } else {

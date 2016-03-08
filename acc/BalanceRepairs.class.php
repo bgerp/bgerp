@@ -25,7 +25,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Корекция на грешки от закръгляния";
+    var $title = "Корекция на грешки от закръгления";
     
     
     /**
@@ -114,7 +114,7 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
-     * Можели да се контира въпреки, че има приключени пера в транзакцията
+     * Може ли да се контира въпреки, че има приключени пера в транзакцията
      */
     public $canUseClosedItems = TRUE;
     

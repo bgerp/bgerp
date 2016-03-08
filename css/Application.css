@@ -511,6 +511,8 @@ tr.row-removed {
     color: white;
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
+    .user-profile .user-title .linkWithIcon {
+      color: white !important; }
   .user-profile .profile-image > a,
   .user-profile .profile-image div {
     position: absolute;
@@ -625,9 +627,26 @@ div.productImage {
   .products-table .productPreview,
   .jobTable .productPreview,
   .general-product-description .productPreview,
-  .sales_SalesDetails .productPreview {
+  .sales_SalesDetails .productPreview,
+  .store_ShipmentOrderDetails .productPreview {
     max-width: 120px;
     max-height: 240px; }
+  .products-table .groupList .small-padding .productGroupInfo,
+  .jobTable .groupList .small-padding .productGroupInfo,
+  .general-product-description .groupList .small-padding .productGroupInfo,
+  .sales_SalesDetails .groupList .small-padding .productGroupInfo,
+  .store_ShipmentOrderDetails .groupList .small-padding .productGroupInfo {
+    padding-top: 5px !important; }
+  .products-table .colorBox,
+  .jobTable .colorBox,
+  .general-product-description .colorBox,
+  .sales_SalesDetails .colorBox,
+  .store_ShipmentOrderDetails .colorBox {
+    width: 12px;
+    height: 12px;
+    margin-bottom: 0;
+    position: relative;
+    top: -1px; }
 
   .product-component-title td {
     border-top: 1px solid #dddddd;
@@ -637,6 +656,24 @@ div.productImage {
     border-top: none; }
   .product-component-title .anchor-arrow {
     margin-top: -3px; }
+
+.groupList .small-padding .productGroupInfo {
+  padding-top: 10px !important;
+  text-decoration: underline;
+  padding-left: 0; }
+
+.colorName {
+  position: relative;
+  top: -2px; }
+
+.colorBox {
+  border: solid 1px #333333;
+  margin: 0px 2px 2px 5px;
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  position: relative;
+  top: 2px; }
 
 .product-component-stage {
   background-color: #eeeeee;
@@ -1182,6 +1219,8 @@ td.portal-date {
     background-color: #e0e0e0; }
   .document .no-border-bottom {
     border-bottom: none !important; }
+  .document .no-border td {
+    border: none !important; }
   .document.print-letter {
     page-break-after: always;
     max-width: 840px;
@@ -1379,9 +1418,6 @@ td.rowtools-column {
   min-width: 200px;
   max-width: 270px; }
 
-.no-border > tbody > tr > td {
-  border: none !important; }
-
 .wide .document table.listTable {
   margin-bottom: 0; }
 
@@ -1413,6 +1449,9 @@ pre.document {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8, endColorstr=#40C8C8C8);
   zoom: 1;
   background: rgba(200, 200, 200, 0.3); }
+
+.antetkaCell {
+  max-width: 400px; }
 
 .threadSubTitle {
   font-size: 0.75em;
@@ -1464,7 +1503,8 @@ pre.document {
   padding: 1px !important; }
 
 .footer-notes > tbody > tr > td {
-  border: 1px solid #bbbbbb; }
+  border: 1px solid #bbbbbb;
+  vertical-align: top !important; }
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
@@ -1478,7 +1518,7 @@ pre.document {
   border-bottom: 3px solid #dddddd; }
 
 .signature-table {
-  margin-top: 5px; }
+  margin-top: 20px; }
   .signature-table td {
     border: none !important; }
 
@@ -1503,6 +1543,11 @@ pre.document {
 
 .shipment-table tr td {
   padding: 1px 3px !important; }
+
+.half-col {
+  display: inline-block;
+  width: 49%;
+  float: left; }
 
 .narrow .document .half_block {
   width: 100% !important;
@@ -1542,6 +1587,10 @@ pre.document {
   width: 100%; }
   .full-width-holder table {
     width: 100%; }
+
+.history-reason {
+  font-size: 0.9em;
+  color: #666666; }
 
 /*
  * край на стилове за документи
@@ -2128,8 +2177,10 @@ span.sharing-history-title {
   margin-top: 7px; }
 
 .drawing {
-  max-width: 400px;
-  float: right; }
+  float: right;
+  max-width: 400px; }
+  .drawing img {
+    max-width: 400px; }
 
 /*
  * стилове за външната част при потребител контрактор
@@ -2740,6 +2791,16 @@ span.sharing-history-title {
   .overflow-scroll > .antetka {
     margin-top: 0; }
 
+.planning_drivers_ProductionTaskDetails .listRowsDetail {
+  width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  _overflow: auto !important;
+  margin-bottom: 0;
+  display: block; }
+  .planning_drivers_ProductionTaskDetails .listRowsDetail td {
+    max-width: none !important; }
+
 .document .scrolling-holder {
   margin-bottom: 0; }
 
@@ -2836,6 +2897,19 @@ span.sharing-history-title {
 .singleView p {
   margin-bottom: 10px;
   line-height: 120%; }
+
+  .rowtoolsGroup.modal-toolbar.iw-contextMenu {
+    padding: 4px 5px 8px 5px;
+    max-width: 160px; }
+  .rowtoolsGroup a {
+    text-align: left;
+    display: block;
+    font-size: 0.95em;
+    padding: 3px 0;
+    color: #333333 !important; }
+    .rowtoolsGroup a:hover {
+      color: black !important;
+      background-color: #e1e1e1; }
 
 table.styled-table tr:hover td {
   background-color: #ffffcc !important; }
@@ -2966,6 +3040,9 @@ div.location.public {
 .balance-custom-form select {
   width: 100%;
   max-width: 400px; }
+
+.productCell {
+  max-width: none !important; }
 
 .wide .inline-form {
   display: inline-block; }
@@ -4011,6 +4088,9 @@ only screen and (max-width: 320px) {
     display: none; }
   .external .row-negative {
     color: black; }
+  .external .portal.planning {
+    border: none;
+    padding: 0; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -4201,7 +4281,14 @@ only screen and (max-width: 320px) {
     text-decoration: underline; }
 
   .row-negative {
-    color: black; } }
+    color: black; }
+
+  .groupTitle {
+    white-space: nowrap; }
+
+  .portal.planning {
+    border: none;
+    padding: 0; } }
 
   .printing .specialLink {
     font-weight: bold; }

@@ -110,21 +110,28 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     
     
     /**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 */
-	public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-	{
-    	$rec = &$form->rec;
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	if(!count($data->rows)) return;
+    	 
+    	foreach ($data->rows as $id => &$row){
+    		$rec = $data->recs[$id];
     	
-    	if(isset($rec->productId)){
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    		$form->info = $storeInfo->formInfo;
-    		
-    		if($form->isSubmitted()){
-    			if(isset($storeInfo->warning)){
-    				$form->setWarning('packQuantity', $storeInfo->warning);
+    		// Ако артикула може да се влага като друг показваме хинт
+    		if($data->masterData->rec->useResourceAccounts == 'yes'){
+    			 
+    			$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
+    			if($convInfo->productId != $rec->productId){
+    				$convertTitle = cat_Products::getTitleById($convInfo->productId);
+    				$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
     			}
+    		}
+    	
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     	}
     }

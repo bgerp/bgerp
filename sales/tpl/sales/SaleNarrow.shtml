@@ -29,14 +29,9 @@
                     <span class='quiet'>|Авансово|*:</span> [#downpayment#]
                 </div>
                 <!--ET_END downpayment-->
-                <!--ET_BEGIN paymentBeforeShipping-->
-                <div class='cellRow'>
-                    <span class='quiet'>|Преди експедиция|*:</span> [#paymentBeforeShipping#]
-                </div>
-                <!--ET_END paymentBeforeShipping-->
                 <!--ET_BEGIN currencyCode-->
                 <div class='cellRow'>
-                    <span class='quiet'>|Валута|*: </span>[#currencyCode#] [#currencyRateText#]
+                    <span class='quiet'>|Валута|*: </span>[#currencyCode#]
                 </div>
                 <!--ET_END currencyCode-->
                 <!--ET_BEGIN bankAccountId-->
@@ -59,11 +54,6 @@
             [#conditions#]
                     <b>|Условия|*:</b>
                     <ol style = 'margin-top:1px'>
-                        <!--ET_BEGIN pricesAtDate-->
-                        <li>
-                            |Цени към|*: <b>[#pricesAtDate#]</b><br>
-                        </li>
-                        <!--ET_END pricesAtDate-->
                         <!--ET_BEGIN withVat-->
                         <li>|Цените са с включен ДДС|*[#withVat#]</li>
                         <!--ET_END withVat-->

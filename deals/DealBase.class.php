@@ -156,6 +156,9 @@ abstract class deals_DealBase extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	if($res == 'no_one') return;
+    	
+    	// Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
     	if($action == 'closewith' && isset($rec)){
     		$options = $mvc->getDealsToCloseWith($rec);
     		if(!count($options) || $rec->state != 'draft'){
@@ -167,7 +170,17 @@ abstract class deals_DealBase extends core_Master
     	if($action == 'export' && isset($rec)){ 
     		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
     		if($state != 'active'){
-    			$requiredRoles = 'no_one';
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Ако има документи в нишката на договора, не може да се затваря
+    	if($action == 'close' && isset($rec)){
+    		$docCountInThread = doc_Threads::fetch($rec->threadId)->allDocCnt;
+    		
+    		// Ако има повече от 1 документ в нишката или има контировка документа, не може да се затваря
+    		if($docCountInThread != 1 || acc_Journal::fetchByDoc($mvc, $rec->id)){
+    			$res = 'no_one';
     		}
     	}
     }
@@ -358,99 +371,115 @@ abstract class deals_DealBase extends core_Master
     
     
     /**
+     * Подготвя обединено представяне на всички записи от журнала където участва сделката
+     * 
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected function renderDealHistory(&$tpl, $data)
+    {
+    	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('debitAcc', 'varchar', 'tdClass=articleCell');
+    	$tableMvc->FLD('creditAcc', 'varchar', 'tdClass=articleCell');
+    		
+    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    	$fields = "valior=Вальор,debitAcc=Дебит->Сметка,debitQuantity=Дебит->К-во,debitPrice=Дебит->Цена,creditAcc=Кредит->Сметка,creditQuantity=Кредит->К-во,creditPrice=Кредит->Цена,amount=Сума";
+    	
+    	$tpl->append($table->get($data->DealHistory, $fields), 'DEAL_HISTORY');
+    	$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
+    }
+    
+    
+    /**
+     * Рендира информацията за доставеното/полученото по сделката
+     * 
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected function renderDealReport(&$tpl, $data)
+    {
+    	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('code', 'varchar');
+    	$tableMvc->FLD('productId', 'varchar');
+    	$tableMvc->FLD('measure', 'varchar', 'tdClass=accToolsCell,smartCenter');
+    	$tableMvc->FLD('quantity', 'varchar', 'tdClass=aright');
+    	$tableMvc->FLD('shipQuantity', 'varchar', 'tdClass=aright');
+    	$tableMvc->FLD('bQuantity', 'varchar', 'tdClass=aright');
+    	
+    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    	$fields = $this->getExportFields();
+    	
+    	$tpl->append($table->get($data->DealReport, $fields), 'DEAL_REPORT');
+    	$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
+    	 
+    	if($this->haveRightFor('export', $data->rec)){
+    		$expUrl = getCurrentUrl();;
+    		$expUrl['export'] = TRUE;
+    	
+    		$btn = cls::get('core_Toolbar');
+    		$btn->addBtn('Експорт в CSV', $expUrl, NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат');
+    		$btnCSV = 'export';
+    		$btnCSVHtml = $btn->renderHtml("", $btnCSV);
+    		
+    		$tpl->replace($btnCSVHtml, 'TABEXP');
+    	}
+    }
+    
+    
+    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
+    	// Ако има табове
     	if(isset($data->tabs)){
-    		if (isset($data->dealHistory)) {
-    			$tab = 'dealHistory';
-    		} elseif (isset($data->dealReport)) {
-    			$tab =  'dealReport';
-    		} else {
-    			$tab = 'statistic';
+    		
+    		if(isset($data->rec->tplLang)){
+    			core_Lg::pop();
     		}
-   
-    		$tabHtml = $data->tabs->renderHtml("", $tab);
+    		
+    		$tabHtml = $data->tabs->renderHtml("", $data->selectedTab);
     		$tpl->replace($tabHtml, 'TABS');
     		
-    		// Ако има история на сделката показваме я
-    		if(isset($data->dealHistory)){
-    			$tableMvc = new core_Mvc;
-    			$tableMvc->FLD('debitAcc', 'varchar', 'tdClass=articleCell');
-    			$tableMvc->FLD('creditAcc', 'varchar', 'tdClass=articleCell');
-    		
-    			$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    			$fields = "valior=Вальор,debitAcc=Дебит->Сметка,debitQuantity=Дебит->К-во,debitPrice=Дебит->Цена,creditAcc=Кредит->Сметка,creditQuantity=Кредит->К-во,creditPrice=Кредит->Цена,amount=Сума";
-    		
-    			$tpl->append($table->get($data->dealHistory, $fields), 'DEAL_HISTORY');
-    			$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
+    		// Ако има избран таб и това не е статистиката, рендираме го
+    		if(isset($data->{$data->selectedTab}) && $data->selectedTab != 'Statistic'){
+    			$method = "render{$data->selectedTab}";
+    			$mvc->$method($tpl, $data);
     		}
     		
-    		// Ако има отчет на сделката показваме я
-    		if(isset($data->dealReport)){
-    			$tableMvc = new core_Mvc;
-    			$tableMvc->FLD('code', 'varchar');
-    			$tableMvc->FLD('productId', 'varchar');
-    			$tableMvc->FLD('measure', 'varchar', 'tdClass=accToolsCell,smartCenter');
-    			$tableMvc->FLD('quantity', 'varchar', 'tdClass=aright');
-    			$tableMvc->FLD('shipQuantity', 'varchar', 'tdClass=aright');
-    			$tableMvc->FLD('bQuantity', 'varchar', 'tdClass=aright');
-    		
-    			$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-    			$fields = "code=Код,
-    					   productId=Продукт,
-    					   measure=Мярка,
-    					   quantity=Количество->Поръчано,
-    					   shipQuantity=Количество->Доставено,
-    					   bQuantity=Количество->Остатък";
-    		
-    			$tpl->append($table->get($data->dealReport, $fields), 'DEAL_REPORT');
-    			$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
-    			
-    			if($mvc->haveRightFor('export', $data->rec)){
-	    			$expUrl = getCurrentUrl();;
-	    			$expUrl['export'] = TRUE;
-	
-	    			$btn = cls::get('core_Toolbar');
-	    			$btn->addBtn('Експорт в CSV', $expUrl, NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат');
-	    			$btnCSV = 'export';
-	    			$btnCSVHtml = $btn->renderHtml("", $btnCSV);
-	    			$tpl->replace($btnCSVHtml, 'TABEXP');
-    			}
+    		if(isset($data->rec->tplLang)){
+    			core_Lg::push($data->rec->tplLang);
     		}
     	}
     	
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
-    	} elseif(Request::get('dealHistory', 'int')) {
-    		$tpl->removeBlock('STATISTIC_BAR');
-    	}  elseif(Request::get('dealReport', 'int')) {
-    		$tpl->removeBlock('STATISTIC_BAR');
     	}
     }
     
     
     /**
-     * Генерираме ключа за кеша
-     * Интерфейсен метод
-     * 
-     * @param core_Mvc $mvc
-     * @param NULL|FALSE|string $res
-     * @param NULL|integer $id
-     * @param object $cRec
-     * 
-     * @see doc_DocumentIntf
+     * Подготвя табовете на задачите
      */
-    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    public function prepareDealTabs_(&$data)
     {
-        if ($res === FALSE) return ;
-        
-        $dealHistory = Request::get('dealHistory');
-        $dealReport = Request::get('dealReport');
-        
-        $res = md5($res . '|' . $dealHistory . '|' . $dealReport);
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab', 'urlParam' => 'dealTab'));
+    	$url = getCurrentUrl();
+    	unset($url['export']);
+    	
+    	$url['dealTab'] = 'Statistic';
+    	$tabs->TAB('Statistic', 'Статистика' , $url);
+    	
+    	if(haveRole('ceo,acc')){
+    		$url['dealTab'] = 'DealHistory';
+    		$tabs->TAB('DealHistory', 'Обороти' , $url);
+    	}
+    	
+    	$url['dealTab'] = 'DealReport';
+    	$tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    	
+    	$data->tabs = $tabs;
     }
     
     
@@ -459,48 +488,25 @@ abstract class deals_DealBase extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab'));
-    	$url = getCurrentUrl();
-    	unset($url['dealHistory']);
-    	unset($url['dealReport']);
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return;
     	
-    	$histUrl = array();
-    	if($data->rec->state != 'draft' && $data->rec->state != 'rejected'){
+    	$mvc->prepareDealTabs($data);
+    	
+    	$data->selectedTab = $data->tabs->getSelected();
+    	if(!$data->selectedTab){
+    		$data->selectedTab = $data->tabs->getFirstTab();
+    	}
+    	
+    	// Ако има селектиран таб викаме му метода за подготовка на данните
+    	if(isset($data->selectedTab) && $data->selectedTab != 'Statistic'){
+    		$method = "prepare{$data->selectedTab}";
+    		$mvc->$method($data);
     		
-    		$histUrl = $url;
-    		$histUrl['dealHistory'] = TRUE;
-    		
-    		$reportUrl = $url;
-    		$reportUrl['dealReport'] = TRUE;
-    		
-    		// Ако сме в нормален режим
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$tabs->TAB('statistic', 'Статистика' , $url);
-    			$tabs->TAB('dealHistory', 'Обороти' , $histUrl);
-    			$tabs->TAB('dealReport', 'Поръчано/Доставено' , $reportUrl);
-    		
-    			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
-    			if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
-    				$mvc->prepareDealHistory($data);
-    			}
-    			
-    			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
-    			if(Request::get('export', 'int') && haveRole('acc, ceo')){
-    				$mvc->prepareDealReport($data);
-    				$mvc->еxportReport($data);
-    			}
-    			
-    			// Ако е зареден флаг в урл-то и имаме право за отчет подготвяме репорта
-    			if(Request::get('dealReport', 'int') && haveRole('acc, ceo')){
-    				$mvc->prepareDealReport($data);
-    			}
-    		
-    			// Ако имаме сч. права показваме табовете
-    			if(haveRole('acc, ceo')){
-    				$data->tabs = $tabs;
-    			}
+    		// Ако е зареден флаг в урл-то за експорт експортираме
+    		if(Request::get('export', 'int') && $data->selectedTab == 'DealReport' && $mvc->haveRightFor('export', $data->rec)){
+    			$mvc->еxportReport($data);
     		}
-    	} 
+    	}
     }
     
     
@@ -517,10 +523,16 @@ abstract class deals_DealBase extends core_Master
     	$this->requireRightFor('export', $rec);
 
     	$title = $this->title . " Поръчано/Доставено";
-    
+  
+    	foreach ($data->dealReportCSV as $rec) {
+    	    foreach(array("code", "productId", "measure", "quantity", "shipQuantity", "bQuantity") as $fld) {
+    	       $rec->{$fld} = html_entity_decode(strip_tags($rec->{$fld}));
+    	    }
+    	}
+    	
     	$csv = $this->prepareCsvExport($data->dealReportCSV);
     
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($title));
+    	$fileName = str_replace(' ', '_', str::utf2ascii($title));
     	 
     	header("Content-type: application/csv");
     	header("Content-Disposition: attachment; filename={$fileName}.csv");
@@ -540,9 +552,9 @@ abstract class deals_DealBase extends core_Master
     { 	
     	$exportFields = $this->getExportFields();
     	$fields = $this->getFields();
-    	
-    	$csv = csv_Lib::createCsv($data, $fields, $exportFields, array('text'=>'xhtml'));
-    	
+
+    	$csv = csv_Lib::createCsv($data, $fields, $exportFields);
+  
     	return $csv;
     }
     
@@ -559,11 +571,11 @@ abstract class deals_DealBase extends core_Master
     	// Кои полета ще се показват
 		$f = new core_FieldSet;
     	$f->FLD('code', 'varchar');
-    	$f->FLD('productId', 'varchar');
+    	$f->FLD('productId', 'richtext');
     	$f->FLD('measure', 'varchar');
-    	$f->FLD('quantity', 'int');
-    	$f->FLD('shipQuantity', 'int');
-    	$f->FLD('bQuantity', 'int');
+    	$f->FLD('quantity', 'double');
+    	$f->FLD('shipQuantity', 'double');
+    	$f->FLD('bQuantity', 'double');
     
     	return $f;
     }
@@ -580,11 +592,11 @@ abstract class deals_DealBase extends core_Master
     {
     	// Кои полета ще се показват
     	$fields = arr::make("code=Код,
-    					     productId=Продукт,
+    					     productId=Артикул,
     					     measure=Мярка,
-    					     quantity=Количество - Поръчано,
-    					     shipQuantity=Количество - Доставено,
-    					     bQuantity=Количество - Остатък", TRUE);
+    					     quantity=Количество -> Поръчано,
+    					     shipQuantity=Количество -> Доставено,
+    					     bQuantity=Количество -> Остатък", TRUE);
     
     	return $fields;
     }
@@ -599,12 +611,12 @@ abstract class deals_DealBase extends core_Master
 
     	// обобщената информация за цялата нищка
     	$dealInfo = self::getAggregateDealInfo($rec->id);
-   
+
     	$report = array();
-    	$Int = cls::get('type_Int');
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
 
     	// Ако има записи където участва артикула подготвяме ги за показване
-    	if(count($dealInfo->products)){
+    	if(count($dealInfo->products) || count ($dealInfo->shippedProducts)){
     		foreach ($dealInfo->products as $id => $product) { 
 		    	// ако можем да го покажем на страницата	
 				$obj = new stdClass();
@@ -613,13 +625,13 @@ abstract class deals_DealBase extends core_Master
 				// кода на продукта	
 			    $obj->code = $productInfo->productRec->code;
 			    // името на продукта с линк
-				$obj->productId = cat_Products::getShortHyperLink($product->productId);
+				$obj->productId = $product->productId;
 				// мярката му
 				$measureId = $productInfo->productRec->measureId;
-				$obj->measure = cat_UoM::fetchField($measureId,'shortName');
+				$obj->measure = $measureId;
 				    
 				// поръчаното количество
-				$obj->quantity = $Int->toVerbal($product->quantity);
+				$obj->quantity = $product->quantity;
 				
 				if (!$dealInfo->shippedProducts[$id]) {
 					$obj->bQuantity = $obj->quantity;
@@ -636,14 +648,15 @@ abstract class deals_DealBase extends core_Master
 
 			    	// извличаме информацията за продукта
 			    	$shipProductInfo = cat_Products::getProductInfo($shipProduct->productId);
+			    	
 			    	// намираме му мярката
 			    	$shipMeasureId = $shipProductInfo->productRec->measureId;
 			    	// и правим обект с новия продукт		
 			    	$report[$idShip] = (object) array ( "code" => $shipProductInfo->productRec->code,
-			    					"productId" => cat_Products::getShortHyperLink($shipProduct->productId),
-			    					"measure" => cat_UoM::fetchField($shipMeasureId,'shortName'),
+			    					"productId" => $shipProduct->productId,
+			    					"measure" => $shipMeasureId,
 			    					"quantity" => 0,
-			    					"shipQuantity" => $Int->toVerbal($shipProduct->quantity),
+			    					"shipQuantity" => $shipProduct->quantity,
 			    					"bQuantity" => NULL
 			    					
 			    	);
@@ -656,30 +669,48 @@ abstract class deals_DealBase extends core_Master
 			    		$shipQuantityInStore = (double) store_Products::fetchField("#productId = {$shipProduct->productId} AND #storeId = {$shipStoreId}", 'quantity');
 			    			
 			    		// като добавим доставеното количесто
-			    		$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    		$shipObj->shipQuantity = $shipProduct->quantity;
 			    		// и намерим остатъка за доставяне
-			    		$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
-			    			
-						$shipDiff = ($rec->state == 'active') ? $shipQuantityInStore : ($shipQuantityInStore - abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
-			    			
-			    		if($shipDiff < 0){
-			    			$shipObj->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Int->toVerbal($shipObj->quantity)}</span>";
-			    		}
+			    		$shipObj->bQuantity = $shipObj->quantity - $shipObj->shipQuantity;
 			    	} else { 
 			    		// като добавим доставеното количесто
-			    		$shipObj->shipQuantity = $Int->toVerbal($shipProduct->quantity);
+			    		$shipObj->shipQuantity = $shipProduct->quantity;
 			    		// и намерим остатъка за доставяне
-			    		$shipObj->bQuantity = $Int->toVerbal(abs(strip_tags($shipObj->quantity) - strip_tags($shipObj->shipQuantity)));
+			    		$shipObj->bQuantity = $shipObj->quantity - $shipObj->shipQuantity;
 			    	}
 			    }
 		    }
     	}
     	
-    	$data->dealReportCSV = $report;
-    	
+    	$data->dealReportCSV = &$report;
+
+    	foreach ($report as $id =>  $rec) { 
+        	foreach (array('shipQuantity', 'bQuantity') as $fld){
+        	    $rec->$fld =  $Double->toVerbal($rec->$fld);
+        	}
+
+        	if($rec->bQuantity > 0){
+        	    $rec->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Double->toVerbal($rec->quantity)}</span>";
+        	} else {
+        	    $rec->quantity = $Double->toVerbal($rec->quantity);
+        	}
+        	
+        	if (isset($rec->bQuantity)) {
+        	    $rec->bQuantity = ($rec->bQuantity < 0) ? "<span style='color:red'>{$rec->bQuantity}</span>" : $rec->bQuantity;
+        	}
+        	
+        	if (isset($rec->productId)) {
+        	   $rec->productId = cat_Products::getShortHyperLink($rec->productId);
+        	}
+        	
+        	if (isset($rec->measure)) {
+        	   $rec->measure = cat_UoM::getShortName($rec->measure);
+        	}
+    	}
+
     	// правим странициране
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->className,'itemsPerPage' => $this->reportItemsPerPage)); 
-    	
+
     	$cnt = count($report);
     	$pager->itemsCount = $cnt;
     	$data->reportPager = $pager;
@@ -688,9 +719,9 @@ abstract class deals_DealBase extends core_Master
     	
     	$start = $data->reportPager->rangeStart;
     	$end = $data->reportPager->rangeEnd - 1;
-    	
+    
     	// проверяваме дали може да се сложи на страницата
-    	$data->dealReport = array_slice ($report, $start, $end - $start + 1);
+    	$data->DealReport = array_slice ($report, $start, $end - $start + 1);
     }
     
     
@@ -700,6 +731,7 @@ abstract class deals_DealBase extends core_Master
     protected function prepareDealHistory(&$data)
     {
     	$rec = $data->rec;
+    	if(!haveRole('ceo,acc')) return;
     	
     	// Извличаме всички записи от журнала където сделката е в дебита или в кредита
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
@@ -766,6 +798,6 @@ abstract class deals_DealBase extends core_Master
     		}
     	}
     	
-    	$data->dealHistory = $history;
+    	$data->DealHistory = $history;
     }
 }

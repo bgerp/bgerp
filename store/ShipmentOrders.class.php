@@ -40,7 +40,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments,deals_InvoiceSourceIntf';
     
     
     /**
@@ -132,7 +132,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.3|Логистика";
+    public $newBtnGroup = "3.82|Търговия";
     
     
     /**
@@ -303,18 +303,18 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Експедиционно нареждане', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	$tplArr[] = array('name' => 'Packing list', 
-    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
+    	$tplArr[] = array('name' => 'Packaging list', 
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packing list',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Packing list with Declaration',
-    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
+    	$tplArr[] = array('name' => 'Packaging list with Declaration',
+    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
     	$res .= doc_TplManager::addOnce($this, $tplArr);
@@ -327,5 +327,58 @@ class store_ShipmentOrders extends store_DocumentMaster
     static function getRecTitle($rec, $escaped = TRUE)
     {
         return tr("|Експедиционно нареждане|* №") . $rec->id;
+    }
+    
+    
+    /**
+     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
+     * определен документ
+     *
+     * @param mixed $id - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @return array $details - масив с артикули готови за запис
+     * 				  o productId      - ид на артикул
+     * 				  o packagingId    - ид на опаковка/основна мярка
+     * 				  o quantity       - количество опаковка
+     * 				  o quantityInPack - количество в опаковката
+     * 				  o discount       - отстъпка
+     * 				  o price          - цена за еденица от основната мярка
+     */
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    {
+    	$details = array();
+    	$rec = static::fetchRec($id);
+    	 
+    	$query = store_ShipmentOrderDetails::getQuery();
+    	$query->where("#shipmentId = {$rec->id}");
+    	
+    	while($dRec = $query->fetch()){
+    		$dRec->quantity /= $dRec->quantityInPack;
+    		unset($dRec->id);
+    		unset($dRec->shipmentId);
+    		unset($dRec->createdOn);
+    		unset($dRec->createdBy);
+    		$details[] = $dRec;
+    	}
+    	
+    	return $details;
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	 
+    	if($rec->state == 'active' && $rec->isReverse == 'no'){
+    		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    			$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
+    		}
+    	}
     }
 }

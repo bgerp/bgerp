@@ -20,7 +20,7 @@ class bgerp_data_Translations extends core_MVC
     /**
      * Зареждане на стирнговете, които ще се превеждат
      */
-    static function loadData()
+    static function loadData($fromZero = FALSE)
     {
         $file = "bgerp/data/csv/Translations.csv";
         
@@ -32,8 +32,8 @@ class bgerp_data_Translations extends core_MVC
             2 => "translated",
             3 => "csv_createdBy",
         );
-        
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+ 
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, $fromZero);
         
         $res = static::addForAllLg();
         

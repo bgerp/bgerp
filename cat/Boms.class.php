@@ -154,7 +154,7 @@ class cat_Boms extends core_Master
      */
     const PRICE_COEFFICIENT = 0.5;
     
-    public $preventCache = TRUE;
+    
     /**
      * Описание на модела
      */
@@ -263,7 +263,7 @@ class cat_Boms extends core_Master
     {
     	if($rec->cloneDetails === TRUE) return;
     	
-    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL);
+    	cat_BomDetails::addProductComponents($rec->productId, $rec->id, NULL, $activeBom, TRUE);
     }
     
     
@@ -336,6 +336,13 @@ class cat_Boms extends core_Master
     		if($idCount){
     			core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
     		}
+    	}
+    	
+    	//  При активацията на рецептата променяме датата на модифициране на артикула
+    	$type = (isset($rec->type)) ? $rec->type : $mvc->fetchField($rec->id, 'type');
+    	if($type == 'sales' && $rec->state != 'draft'){
+    		$productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
+    		cat_Products::touchRec($productId);
     	}
     }
     
@@ -658,7 +665,7 @@ class cat_Boms extends core_Master
     
     /**
      * Създава дефолтната рецепта за артикула.
-     * Проверява за артикула можели да се създаде дефолтна рецепта, 
+     * Проверява за артикула може ли да се създаде дефолтна рецепта, 
      * ако може затваря предишната дефолтна рецепта (ако е различна) и създава нова
      * активна рецепта с подадените данни.
      * 
@@ -824,7 +831,7 @@ class cat_Boms extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=За к-во,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт,createdOn=На');
     	 if($data->hideToolsCol){
     	 	unset($listFields['tools']);
     	 }
@@ -1109,6 +1116,7 @@ class cat_Boms extends core_Master
     	if($rec->type != 'stage'){
     		
     		if($rec->type == 'pop'){
+    			
     			// Ако е отпадък търсим твърдо мениджърската себестойност
     			$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
     			if(!isset($price)) {
@@ -1166,6 +1174,10 @@ class cat_Boms extends core_Master
     			}
     		}
 			
+    		// Попваме данните, за да кешираме оригиналните
+    		self::popParams($params, $rec->resourceId);
+    		
+    		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
     			$scope = static::getScope($params);
     			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
@@ -1175,8 +1187,6 @@ class cat_Boms extends core_Master
     				cls::get('cat_BomDetails')->save_($rec, 'params');
     			}
     		}
-    		
-    		self::popParams($params, $rec->resourceId);
     	}
     	
     	// Ако реда е отпадък то ще извадим цената му от себестойността
@@ -1330,22 +1340,23 @@ class cat_Boms extends core_Master
      * 
      * @param mixed $id - ид на рецепта
      * @param double $quantity - количество
-     * @return array  - масив със задачи за производство за генерирането на всеки етап
+     * @return array  $tasks - масив със задачи за производство за генерирането на всеки етап
      */
     public static function getTasksFromBom($id, $quantity = 1)
     {
     	expect($rec = self::fetchRec($id));
     	$tasks = array();
-    	$pName = cat_Products::getVerbal($rec->productId, 'name');
+    	$pName = cat_Products::getTitleById($rec->productId, FALSE);
     	
     	// За основния артикул подготвяме задача
     	// В която самия той е за произвеждане
-    	$tasks = array(1 => (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
-    									  'title'    => $pName,
-    									  'quantity' => $quantity,
-    									  'products' => array('production' => array(array('productId' => $rec->productId, 'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'), 'packQuantity' => 1, 'quantityInPack' => 1)),
-    										 				  'input'    => array(),
-    										 				  'waste'    => array())));
+    	$tasks = array(1 => (object)array('driver'          => planning_drivers_ProductionTask::getClassId(),
+    									  'title'           => $pName,
+    									  'plannedQuantity' => $quantity,
+    									  'quantityInPack'  => 1,
+    									  'packagingId'     => cat_Products::fetchField($rec->productId, 'measureId'),
+    									  'productId'       => $rec->productId,
+    									  'products'        => array('input'    => array(),'waste'    => array())));
     	 
     	// Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
     	$dQuery = cat_BomDetails::getQuery();
@@ -1392,12 +1403,12 @@ class cat_Boms extends core_Master
     		
     		// Подготвяме задачата за етапа, с него за производим
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
-    							 'title'    => $pName . " / " . cat_Products::getVerbal($dRec->resourceId, 'name'),
-    							 'quantity' => $quantityP,
-    							 'products' => array(
-		    						'production' => array(array('productId' => $dRec->resourceId, 'packagingId' => $dRec->packagingId, 'packQuantity' => @($quantityP / $quantityP), 'quantityInPack' => $dRec->quantityInPack)),
-		    						'input'      => array(),
-		    						'waste'      => array()));
+    							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
+    							 'plannedQuantity' => $quantityP,
+    							 'productId' => $dRec->resourceId,
+    							 'packagingId' => $dRec->packagingId,
+    							 'quantityInPack' => $dRec->quantityInPack,
+    							 'products' => array('input' => array(), 'waste' => array()));
     
     		// Добавяме директните наследници на етапа като материали за влагане/отпадък
     		while($cRec = $query2->fetch()){
@@ -1405,7 +1416,6 @@ class cat_Boms extends core_Master
     			if($quantityS == cat_BomDetails::CALC_ERROR){
     				$quantityS = 0;
     			}
-    			
     			
     			$quantityS = $quantityS;
     			
@@ -1419,5 +1429,28 @@ class cat_Boms extends core_Master
     	
     	// Връщаме масива с готовите задачи
     	return $tasks;
+    }
+
+    
+    /**
+     * Проверка след изпращането на формата
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+    	$rec = &$form->rec;
+    	if ($form->isSubmitted()){
+    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+    		
+    		if($roundQuantity == 0){
+    			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
+    			return;
+    		}
+    
+    		if($roundQuantity != $rec->quantity){
+    			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
+    		}
+    		
+    		$rec->quantity = $roundQuantity;
+    	}
     }
 }

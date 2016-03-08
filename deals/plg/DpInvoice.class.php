@@ -49,7 +49,7 @@ class deals_plg_DpInvoice extends core_Plugin
         if($rec->type != 'invoice') return;
        
         // Намиране на пораждащия се документ
-        $origin         = $mvc->getOrigin($rec);
+        $origin         = doc_Threads::getFirstDocument($rec->threadId);
         if(!core_Cls::existsMethod($origin->getInstance(), 'getAggregateDealInfo')) return;
         $dealInfo       = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
@@ -75,22 +75,22 @@ class deals_plg_DpInvoice extends core_Plugin
         	if($rec->dpOperation == 'deducted'){
         		$rec->dpAmount *= -1;
         	}
-        	
-        	if(isset($rec->dpAmount)){
-        		$dpAmount = $rec->dpAmount / $rec->rate;
-        		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
-        		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
-        			$vat = 0;
-        		}
-        		
-        		$dpAmount += $dpAmount * $vat;
-        		$dpAmount = round($dpAmount, 2);
-        		
-        		if($rec->dpOperation == 'accrued'){
-        			$form->setDefault('amountAccrued', $dpAmount);
-        		} elseif($rec->dpOperation == 'deducted'){
-        			$form->setDefault('amountDeducted', $dpAmount);
-        		}
+        }
+
+        if(isset($rec->dpAmount)){
+        	$dpAmount = $rec->dpAmount / $rec->rate;
+        	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+        	if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+        		$vat = 0;
+        	}
+        
+        	$dpAmount += $dpAmount * $vat;
+        	$dpAmount = round($dpAmount, 2);
+        
+        	if($rec->dpOperation == 'accrued'){
+        		$form->setDefault('amountAccrued', $dpAmount);
+        	} elseif($rec->dpOperation == 'deducted'){
+        		$form->setDefault('amountDeducted', $dpAmount);
         	}
         }
         
@@ -104,7 +104,7 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	$form->rec->dpAmount = $dpAmount;
         }
-       
+        
         if($form->rec->dpOperation == 'none'){
         	unset($form->rec->dpAmount);
         }
@@ -126,7 +126,6 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	$downpayment = (empty($actualDp)) ? NULL : $actualDp;
     	
-    	// Ако няма авансово плащане на задаваме дефолти
     	if(!isset($downpayment)) {
     		$dpOperation = 'none';
     		
@@ -138,37 +137,48 @@ class deals_plg_DpInvoice extends core_Plugin
     		
     		// Ако няма фактуриран аванс
     		if(empty($invoicedDp)){
-    			 
+    			
     			// Начисляване на аванса
     			$dpAmount = $downpayment;
     			$dpOperation = 'accrued';
     		} else {
-    		
+    			
     			// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
     			$dpAmount = $invoicedDp - $deductedDp;
     			$dpOperation = 'deducted';
     		}
     	}
     	
-    	$dpAmount /= ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
+    	$rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
+    	
+    	$dpAmount /= $rate;
     	$dpAmount = round($dpAmount);
     	
-    	switch($dpOperation){
-    		case 'accrued':
-    			if(isset($dpAmount)){
-    				$form->setDefault('amountAccrued', $dpAmount);
+    	// Ако държавата не е България не предлагаме начисляване на ДДС
+    	if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
+			
+    		switch($dpOperation){
+    			case 'accrued':
+    				if(isset($dpAmount)){
+    					$form->setDefault('amountAccrued', $dpAmount);
+    				}
+    				break;
+    			case 'deducted':
+    				if($dpAmount){
+    					$form->setDefault('amountDeducted', $dpAmount);
+    				}
+    				break;
+    			case 'none';
+    			if(isset($aggreedDp)){
+    				$aggreedDp = round($aggreedDp / $rate);
+    				$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
     			}
     			break;
-    		case 'deducted':
-    			if($dpAmount){
-    				$form->setDefault('amountDeducted', $dpAmount);
-    			}
-    			break;
-    		case 'none';
-    	}
-    	
-    	if($dpOperation){
-    		$form->setDefault('dpOperation', $dpOperation);
+    		}
+    		 
+    		if($dpOperation){
+    			$form->setDefault('dpOperation', $dpOperation);
+    		}
     	}
     }
     
@@ -216,7 +226,8 @@ class deals_plg_DpInvoice extends core_Plugin
 	    		
 	    		$downpayment = round($downpayment / $rec->rate);
 	    		if($rec->dpAmount > $downpayment){
-	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведения аванс е по-голям от очаквания|* <b>{$downpayment} {$rec->currencyId}</b> |{$warningUnit}|*";
+	    			$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
+	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
 	    			
 	    			$form->setWarning('amountAccrued', $warning);
 	    		}
@@ -226,11 +237,14 @@ class deals_plg_DpInvoice extends core_Plugin
 	    		$rec->dpOperation = 'deducted';
 
 	    		if(empty($invoicedDp) || $invoicedDp == $deductedDp){
-	    			$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    			if(!($mvc instanceof sales_Proformas)){
+	    				$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    			}
 	    		} else {
 	    			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
 						$downpayment = round(($invoicedDp - $deductedDp) / $rec->rate);
-	    				$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$downpayment} {$rec->currencyId}</b> |{$warningUnit}|*");
+						$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
+	    				$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
 					}
 	    		}
 	    		
@@ -243,7 +257,10 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
 	    		$vat = 0;
 	    	}
-	    	$rec->dpAmount = round(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate, 6);
+	    	
+	    	if(!is_null($rec->dpAmount)){
+	    		$rec->dpAmount = round(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate, 6);
+	    	}
 	    	
 	    	// Обновяваме данните на мастър-записа при редакция
 	    	if(isset($rec->id)){
@@ -304,21 +321,47 @@ class deals_plg_DpInvoice extends core_Plugin
     	// Ако няма данни за показване на авансово плащане
     	if(empty($data->dpInfo)) return;
     	
-    	if($data->dpInfo->dpOperation == 'none'){
-    		return;
-    	}
+    	if($data->dpInfo->dpOperation == 'none') return;
     	
     	// Ако няма записи, да не се показва реда "няма записи"
     	if(empty($data->rows)){
     		$tpl->removeBlock('NO_ROWS');
     	}
     	
+    	$firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
+    	$valior = $firstDoc->getVerbal('valior');
+    	
     	if($data->dpInfo->dpOperation == 'accrued'){
     		$colspan = count($data->listFields) - 2;
-    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
-    		$colspan = count($data->listFields) - 3;
-    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
+    		
+    		$iQuery = $mvc->Master->getQuery();
+    		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued'");
+    		$iQuery->where("#id != '{$rec->invoiceId}'");
+    		$iQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
+    		$iQuery->show('id,number');
+    		
+    		$handleArr = array();
+    		while($iRec = $iQuery->fetch()){
+    			$handleArr[$iRec->id] = "№" . $mvc->Master->recToVerbal($iRec)->number;
+    		}
+    		$accruedInvoices = count($handleArr);
+    		$handleString = implode(', ', $handleArr);
+    		$colspan = count($fields) - 2;
+    		
+    		if($accruedInvoices == 1){
+    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформа' : 'по фактура';
+    			$misc = tr($docTitle) . " {$handleString}";
+    		} elseif($accruedInvoices) {
+    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформи' : 'по фактури';
+    			$misc = tr($docTitle) . " {$handleString}";
+    		} else {
+    			$misc = tr("по договор|* №{$firstDoc->that} |от|* {$valior}");
+    		}
+    		
+    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . $misc . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	}
     	
     	$lastRow->placeObject($data->dpInfo);

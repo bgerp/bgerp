@@ -38,23 +38,21 @@ class doc_plg_Close extends core_Plugin
     	if($mvc->haveRightFor('close', $data->rec)){
     		$singleTitle = mb_strtolower($mvc->singleTitle);
     		
-            $lastChar = mb_substr($singleTitle, -1);
- 
-            if($lastChar == 'а' || $lastChar == 'я') {
-                $thisObj = "тази {$singleTitle}";
-            } elseif($lastChar == 'o' || $lastChar == 'е'){
-                 $thisObj = "това {$singleTitle}";
+            if($mvc->hasPlugin('doc_FolderPlg')) {
+                $activeMsg = 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея?';
+                $closeMsg = 'Сигурни ли сте, че искате да закриете тази папка и да не може да се добавят документи в нея?';
             } else {
-                 $thisObj = "този {$singleTitle}";
+                $activeMsg = 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея?';
+                $closeMsg = 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея?';
             }
 
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnActivate,row=2,ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle}");
-    			$data->toolbar->setWarning('btnActivate', "Сигурни ли сте, че искате да активирате {$thisObj}?");
+    			$data->toolbar->addBtn("Откриване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnActivate,row=2,ef_icon = img/16/lock_unlock.png,title=Откриване на {$singleTitle}");
+    			$data->toolbar->setWarning('btnActivate', $activeMsg);
     		
     		} elseif($data->rec->state == 'active'){
-    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnClose,row=2,ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle}");
-    			$data->toolbar->setWarning('btnClose', "Сигурни ли сте, че искате да затворите {$thisObj}?");
+    			$data->toolbar->addBtn("Закриване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row=2,ef_icon = img/16/lock.png,title=Закриване на {$singleTitle}");
+    			$data->toolbar->setWarning('btnClose', $closeMsg);
     		}
     	}
     }

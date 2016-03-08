@@ -40,7 +40,7 @@ class bgerp_plg_Export extends core_Plugin
         	$url = getCurrentUrl();
         	$url['export'] = TRUE;
         	
-            $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png');
+            $data->toolbar->addBtn('Експорт', $url, 'ef_icon=img/16/export.png, row=2');
         }
     }
     
@@ -54,6 +54,7 @@ class bgerp_plg_Export extends core_Plugin
     		$nQuery = clone $data->query;
     		$mvc->invoke('AfterPrepareExportQuery', array($nQuery));
     		$recs = $nQuery->fetchAll();
+    		$mvc->invoke('AfterPrepareExportRecs', array(&$recs));
     	    
     		$userId = core_Users::getCurrent();
     		core_Cache::remove($mvc->className, "exportRecs{$userId}");
@@ -106,7 +107,7 @@ class bgerp_plg_Export extends core_Plugin
             $form = cls::get('core_Form');
             $form->method = 'GET';
             $form->title = "Експортиране на {$mvc->title}";
-            $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Драйвър,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+            $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Формат,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
             
             // Ако има опции за избор на драйвър слагаме ги, иначе правим полето readOnly
             if(count($options)){

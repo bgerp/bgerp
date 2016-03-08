@@ -25,7 +25,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
+    var $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type, blAmount=Сума';
+    var $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
@@ -311,11 +311,13 @@ class bank_OwnAccounts extends core_Master {
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
         if($form->rec->id) {
-        	$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
-        	$form->setDefault('iban', $ibanRec->iban);
-        	$form->setDefault('bank', $ibanRec->bank);
-        	$form->setDefault('bic', $ibanRec->bic);
-        	$form->setDefault('currencyId', $ibanRec->currencyId);
+        	if(isset($form->rec->bankAccountId)){
+        		$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
+        		$form->setDefault('iban', $ibanRec->iban);
+        		$form->setDefault('bank', $ibanRec->bank);
+        		$form->setDefault('bic', $ibanRec->bic);
+        		$form->setDefault('currencyId', $ibanRec->currencyId);
+        	}
         }
     }
     
@@ -552,7 +554,7 @@ class bank_OwnAccounts extends core_Master {
      */
     public static function getOwnAccounts($selectIban = TRUE)
     {
-        $Iban = cls::get('iban_Type');
+        $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
        
@@ -561,7 +563,7 @@ class bank_OwnAccounts extends core_Master {
         		$account = bank_Accounts::fetch($rec->bankAccountId);
         		$cCode = currency_Currencies::getCodeById($account->currencyId);
         		if($selectIban === TRUE){
-        			$verbal = $Iban->toVerbal($account->iban);
+        			$verbal = $Varchar->toVerbal($account->iban);
         		} else {
         			$verbal = $rec->title;
         		}

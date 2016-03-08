@@ -80,7 +80,7 @@ class plg_Sorting extends core_Plugin
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
         	
         	// Ако сме в режим принтиране не правим нищо
-        	if (Mode::is('printing') || Mode::is('pdf')) return;
+        	if (Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml')) return;
         	
             foreach($data->plg_Sorting->fields as $field => $direction) {
                 
@@ -128,12 +128,12 @@ class plg_Sorting extends core_Plugin
                     $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
-                    " width='16' height='16' alt='sort'></a>" . "<div class='l'>|{$lastF}|*</div></div>";  
+                    " width='16' height='16' alt='sort' class='sortBtn'></a>" . "<div class='l'>|{$lastF}|*</div></div>";  
                 } else {
                     $fArr[count($fArr)-1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
-                    " width='16' height='16' alt='sort'></a></div>";
+                    " width='16' height='16' alt='sort' class='sortBtn'></a></div>";
                 }
                
                 $data->listFields[$field] = implode('->', $fArr);

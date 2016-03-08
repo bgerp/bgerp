@@ -159,7 +159,7 @@ class planning_Resources extends core_Master
     
     
     /**
-     * Можели записа да се добави в номенклатура при активиране
+     * Може ли записа да се добави в номенклатура при активиране
      */
     public function canAddToListOnActivation($rec)
     {

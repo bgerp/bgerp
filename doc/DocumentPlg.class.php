@@ -107,6 +107,8 @@ class doc_DocumentPlg extends core_Plugin
         // Дали можое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        setIfNot($mvc->canExportdoc, 'powerUser');
+        
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
@@ -205,7 +207,7 @@ class doc_DocumentPlg extends core_Plugin
                 			'originId' => $data->rec->containerId,
                 			'ret_url'=>$retUrl
                 	),
-                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
+                			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
                 }
             }
         } else {
@@ -261,13 +263,19 @@ class doc_DocumentPlg extends core_Plugin
 
         }
         
-        if($mvc->haveRightFor('single') && !core_Users::isContractor()){
+        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::isContractor()) {
             $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
             
             if ($historyCnt) {
                 $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
                 "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
             }
+        }
+        
+        if ($mvc->haveRightFor('exportdoc', $data->rec)) {
+            Request::setProtected(array('classId', 'docId'));
+            $data->toolbar->addBtn("Сваляне", array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id),
+                            "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
         }
     }
     
@@ -425,7 +433,9 @@ class doc_DocumentPlg extends core_Plugin
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
         } catch (core_exception_Expect $e) {
-          
+            
+            reportException($e);
+            
             // Ако възникне грешка при записването
             $mvc->logErr("Грешка при записване на файла", $id);
         }
@@ -461,11 +471,17 @@ class doc_DocumentPlg extends core_Plugin
             
             $usedDocuments = $mvc->getUsedDocs($rec->id);
             foreach((array)$usedDocuments as $usedCid){
+                $uDoc = doc_Containers::getDocument($usedCid);
+                
                 if($rec->state == 'rejected'){
                     doclog_Used::remove($containerId, $usedCid);
+                    $msg = 'Премахнато използване';
                 } else {
                     doclog_Used::add($containerId, $usedCid);
+                    $msg = 'Използване на документа';
                 }
+                
+                $uDoc->instance->logRead($msg, $uDoc->that);
             }
         }
     }
@@ -899,16 +915,21 @@ class doc_DocumentPlg extends core_Plugin
             $row->title = "#{$handle}";
         }
 
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
-            $url =  array();
-        }
-        
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
         $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
         
         if ($rec->state == 'rejected') {
-            $attr['class'] .= ' state-rejected';
+        	$attr['class'] .= ' state-rejected';
+        }
+        
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
+            $url =  array();
+        } else {
+        	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+        		$url =  array();
+        		unset($attr['class'], $attr['style']);
+        	}
         }
 
         $link = ht::createLink("{$row->title}", $url, NULL, $attr);
@@ -1398,7 +1419,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      * Забранява изтриването на вече използвани сметки
      *
-     * @param core_Mvc $mvc
+     * @param core_Manager $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass|NULL $rec
@@ -1501,7 +1522,6 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
                 
-                //bp($oRec, $requiredRoles);
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
@@ -1571,6 +1591,13 @@ class doc_DocumentPlg extends core_Plugin
             if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Проверка, дали има права за експорт на документа
+        if ($action == 'exportdoc') {
+            if ($rec->state == 'rejected' || $rec->state == 'draft' || !$mvc->haveRightFor('single', $rec) || !$mvc->getExportFormats()) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2802,7 +2829,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $colon = $isNarrow ? ':' : '';
             
-            $val = new ET("<td [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
+            $val = new ET("<td class='antetkaCell' [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
             
             if ($isNarrow) {
                 $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
@@ -2916,5 +2943,66 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Обновява modified полетата
         $mvc->touchRec($id);
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @param core_Manager $mvc
+     * @param boolean $res
+     * @param object $rec
+     * 
+     * @see change_Plugin
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Чернова и затворени документи не могат да се променят
+        if (!$mvc->haveRightFor('single', $rec->id)) {
+            
+            $res = FALSE;
+        } 
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * 
+     * @param array $res
+     */
+    public static function on_AfterGetExportFormats($mvc, &$res)
+    {
+        $res = arr::make($res);
+
+        $res['pdf'] = 'PDF формат';
+        $res['html'] = 'HTML формат';
+    }
+    
+    
+    /**
+     * Връща хеш стойността за документа
+     * Дефолтна реализация на интерфейсен метод
+     * 
+     * @see doc_DocumentIntf
+     * 
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param integer $id
+     */
+    function on_AfterGetDocContentHash($mvc, &$res, $id)
+    {
+        static $hashArr = array();
+        
+        if (!$id) return ;
+        
+        if (!isset($hashArr[$id])) {
+            $rec = $mvc->fetchRec($id);
+            
+            $hashArr[$id] = md5($res . '|' . $rec->title . '|' . $res->subject . '|' . $rec->body);
+        }
+        
+        $res = $hashArr[$id];
     }
 }

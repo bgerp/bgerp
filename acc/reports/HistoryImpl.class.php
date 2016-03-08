@@ -74,7 +74,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 		$orderFields = ",valior=Вальор,docId=Документ,debitQuantity=Дебит»К-во,debitAmount=Дебит»Сума,creditQuantity=Кредит»К-во,creditAmount=Кредит»Сума,blQuantity=Остатък»К-во,blAmount=Остатък»Сума";
 		
 		$form->FLD('orderField', "enum({$orderFields})", 'caption=Подредба->По,formOrder=110000');
-		$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+		$form->FLD('orderBy', 'enum(,asc=Възходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
 		
 		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}
@@ -332,7 +332,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 		
 		$exportFields = $this->getExportFields();
 	
-		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
+		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) {
 			unset ($exportFields['debitQuantity']);
 			unset ($exportFields['creditQuantity']);
 			unset ($exportFields['blQuantity']);

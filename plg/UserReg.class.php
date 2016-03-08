@@ -192,7 +192,9 @@ class plg_UserReg extends core_Plugin
                     core_LoginLog::add('user_reg', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec);
+                    if($this->sendActivationLetter($rec) == FALSE) {
+                        redirect(array('Index'), FALSE, "За съжеление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор", 'error');
+                    }
                     
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_REG_MSG);
@@ -370,6 +372,8 @@ class plg_UserReg extends core_Plugin
                 
                 if (!$id) {
                     sleep(2);
+                    Debug::log('Sleep 2 sec. in' . __CLASS__);
+
                     $form->setError('email', 'Няма регистриран потребител с този имейл');
                 } else {
                     
@@ -378,7 +382,9 @@ class plg_UserReg extends core_Plugin
                     core_LoginLog::add('pass_reset', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass');
+                    if($this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass') == FALSE) {
+                        redirect(array('Index'), FALSE, "За съжеление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор", 'error');
+                    }
                     
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
@@ -472,7 +478,7 @@ class plg_UserReg extends core_Plugin
         if ($corpAcc) {
             $PML = email_Accounts::getPML($corpAcc->email);
         } else {
-            $PML = cls::get('phpmailer_Instance');
+            $PML = cls::get('phpmailer_Instance', array('emailTo' =>$rec->email));
         }
 
         
@@ -496,6 +502,8 @@ class plg_UserReg extends core_Plugin
         
         $PML->AddAddress($rec->email);
         
-        $PML->Send();
+        $res = $PML->Send();
+
+        return $res;
     }
 }

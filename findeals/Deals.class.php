@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
     
     
     /**
@@ -64,6 +64,12 @@ class findeals_Deals extends deals_DealBase
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,findeals';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,findeals';
     
     
     /**
@@ -159,7 +165,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Позволени операции на последващите платежни документи
      */
-    protected $allowedPaymentOperations = array(
+    public  $allowedPaymentOperations = array(
     		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
     		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
     		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),
@@ -329,7 +335,7 @@ class findeals_Deals extends deals_DealBase
     		if(!$rec->currencyRate){
     			
     			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
+    			$rec->currencyRate = currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL);
     			if(!$rec->currencyRate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
@@ -890,7 +896,7 @@ class findeals_Deals extends deals_DealBase
     			
     			// Които са контиращи документи
     			if($desc->haveInterface('acc_TransactionSourceIntf') && $desc->fetchField('state') == 'active'){
-    				$date = $desc->getValiorDate();
+    				$date = $desc->getValiorValue();
     				$pRec = acc_Periods::fetchByDate($date);
     				
     				// И вальора им е в приключен период

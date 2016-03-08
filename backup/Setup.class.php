@@ -94,12 +94,6 @@ defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
 
 
 /**
- * Парола за криптиране на архива
- */
-defIfNot('BACKUP_PASS_OFFSET', 'secret');
-
-
-/**
  * Път до масива за съхранение на файлове
  */
 defIfNot('BACKUP_LOCAL_PATH', '/storage');
@@ -213,7 +207,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'full';
         $rec->period = BACKUP_FULL_PERIOD;
         $rec->offset = BACKUP_FULL_OFFSET;
-        $rec->delay = 40;
+        $rec->delay = 7;
         $rec->timeLimit = 2400;
         $html .= core_Cron::addOnce($rec);
         
@@ -224,7 +218,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'binlog';
         $rec->period = BACKUP_BINLOG_PERIOD;
         $rec->offset = BACKUP_BINLOG_OFFSET;
-        $rec->delay = 45;
+        $rec->delay = 9;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
         
@@ -235,7 +229,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'clean';
         $rec->period = BACKUP_CLEAN_PERIOD;
         $rec->offset = BACKUP_CLEAN_OFFSET;
-        $rec->delay = 50;
+        $rec->delay = 15;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
         
@@ -246,8 +240,8 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'fileman';
         $rec->period = BACKUP_FILEMAN_PERIOD;
         $rec->offset = BACKUP_FILEMAN_OFFSET;
-        $rec->delay = 51;
-        $rec->timeLimit = 50;
+        $rec->delay = 5;
+        $rec->timeLimit = 70;
         $html .= core_Cron::addOnce($rec);
         
         return $html;
@@ -274,7 +268,7 @@ class backup_Setup extends core_ProtoSetup
             unlink($touchFile);
         } else {
             unlink($touchFile);
-            return "<li class='debug-error'>Няма права за писане в " . $conf->BACKUP_LOCAL_PATH . "</li>";
+            return "|*<li class='debug-error'>|Няма права за писане в |*" . $conf->BACKUP_LOCAL_PATH . "</li>";
         }
         
         // проверка дали всичко е наред с mysqldump-a
@@ -286,7 +280,7 @@ class backup_Setup extends core_ProtoSetup
         
         if ($returnVar !== 0) {
 
-            return "<li class='debug-error'>mysqldump грешка при свързване!</li>";
+            return "|*<li class='debug-error'>|mysqldump грешка при свързване|*!</li>";
         }
         
         // Проверка дали gzip е наличен

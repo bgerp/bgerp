@@ -522,7 +522,12 @@ class core_App
             $params = $parentUrlArr;
         } else {
             // Всички параметри в рекуеста
-            $params = Request::getParams();
+            $params = Request::getParams('_GET');
+            $allParams = Request::getParams();
+            
+            foreach ($params as $key => $p) {
+                $params[$key] = $allParams[$key];
+            }
         }
         
         // Ако има параметри
@@ -743,12 +748,12 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if($params['ret_url'] === TRUE) {
-            $params['ret_url'] = static::getCurrentUrl();
+            $params['ret_url'] = self::getCurrentUrl();
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
-        if(is_array($params['ret_url'])) {
-            $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
+        if(is_array($params['ret_url'])) {  
+            $params['ret_url'] = self::toUrl($params['ret_url'], 'local');
         }
         
         if($protect) {
@@ -1074,4 +1079,63 @@ class core_App
         
         return $isSecure;
     }
+    
+    
+    /**
+     * Проверява заключена ли е системата
+     *
+     * @return boolean
+     */
+    public static function isLocked()
+    {
+        if (file_exists(self::lockFileName()) && (time() - filemtime(self::lockFileName())) < 120) {
+
+            return true;
+        }
+
+        self::unLock();
+        
+        return false;
+    }
+    
+    
+    /**
+     * Заключва системата
+     *
+     * @return boolean - true ако взима lock - false, ако някой друг го е взел
+     */
+    public function getLock()
+    {
+        if (!self::isLocked()) {
+            return touch(self::lockFileName());
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Отключва системата
+     *
+     * @return boolean
+     */
+    public static function unLock()
+    {
+        if (file_exists(self::lockFileName())) {
+            // Изтриваме остарял файл, ако го има
+            @unlink(self::lockFileName());
+        }        
+    }
+    
+    
+    /**
+     * Връща името на семафора за заключване
+     *
+     * @return string
+     */
+    private static function lockFileName()
+    {
+        return "bgerpSysLock" . substr(md5(EF_DB_NAME . EF_SALT), 0,5) . ".lock";
+    }
+    
 }

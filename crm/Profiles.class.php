@@ -114,7 +114,7 @@ class crm_Profiles extends core_Master
      */
     var $searchFields = 'userId, personId';
     
-    
+ 
     /**
      * 
      */
@@ -141,6 +141,8 @@ class crm_Profiles extends core_Master
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
+        $this->XPR('lastTime',  'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)', 'input=none,smartCenter');
+
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
@@ -264,6 +266,20 @@ class crm_Profiles extends core_Master
                     // Добавяме бутон към сингъла на лицето
                     $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson', 'ef_icon = img/16/vcard.png');    
                 }
+            }
+        }
+        
+        // Ако потребителя е контрактор и текущия е супер потребите
+        // Показваме папките, в които е споделен
+        if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
+            $data->ColabFolders = new stdClass();
+            $data->ColabFolders->rowsArr = array();
+            $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+            
+            $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+            foreach ($sharedFolders as $folderId) {
+                $params['folderId'] = $folderId;
+                $data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
             }
         }
         
@@ -454,6 +470,20 @@ class crm_Profiles extends core_Master
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
         
+        // Показваме достъпните папки на колабораторите
+        if ($data->ColabFolders && $data->ColabFolders->rowsArr) {
+            $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
+            
+            $folderBlockTpl = $colabTpl->getBlock('folders');
+            foreach ((array)$data->ColabFolders->rowsArr as $rows) {
+                
+                $folderBlockTpl->placeObject($rows);
+                $folderBlockTpl->append2Master();
+            }
+            
+            $tpl->prepend($colabTpl, 'colabFolders');
+        }
+        
         if ($data->LoginLog) {
             if ($data->LoginLog->rowsArr) {
                 // Вземаме шаблона за потребителя
@@ -636,9 +666,9 @@ class crm_Profiles extends core_Master
     
 
     /**
-     *
+     * Подготвя списък с потребители, които нямат профили
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    static function prepareUnusedUserOptions($data)
     {
         $usersQuery = core_Users::getQuery();
 
@@ -649,7 +679,7 @@ class crm_Profiles extends core_Master
         $used = array();
 
         while($rec = $query->fetch()) {
-            if($rec->id != $data->form->rec->id) {
+            if(!isset($data->form->rec->id) || $rec->id != $data->form->rec->id) {
                 $used[$rec->userId] = TRUE;
             }
         }
@@ -659,7 +689,19 @@ class crm_Profiles extends core_Master
                 $opt[$uRec->id] = $uRec->nick;
             }
         }
-        
+
+        return $opt;
+    }
+
+
+    /**
+     * Подготвя формата за асоцииране на потребител с профил
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+
+        $opt = self::prepareUnusedUserOptions($data);
+
         $data->form->setOptions('userId', $opt);
         
         $addUserUrl = array(
@@ -903,11 +945,13 @@ class crm_Profiles extends core_Master
     {   
         static $cacheArr = array();
         
-        if(!$userId) {
+        if(!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
         
-        $key = "{$userId}|{$title}|{$warning}|" . implode('|', $attr); 
+        $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
+        
+        $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr); 
         
         if (!$cacheArr[$key]) {
             
@@ -916,14 +960,14 @@ class crm_Profiles extends core_Master
             if(!$title) {
                 $title = self::getUserTitle($userRec->nick);
             }
-    
+            
             $link = $title;
             
             $url  = array();
     		$profileId = self::getProfileId($userId);
-    		if($profileId){
+    		if ($profileId) {
     			
-    			if(crm_Profiles::haveRightFor('single', $profileId)){
+    			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
     				$url  = static::getUrl($userId);
     			} 
     			
@@ -996,6 +1040,42 @@ class crm_Profiles extends core_Master
 
 
     /**
+     * След подготовката на листовия тулбар
+     * 
+     * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
+     * 
+     * @param crm_Profiles $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar(crm_Profiles $mvc, $data)
+    {
+        $toolbar = $data->toolbar;
+ 
+        $toolbar->removeBtn('btnAdd');
+        
+        
+        if ($mvc->haveRightFor('add')) {
+           if(count(self::prepareUnusedUserOptions($data))) {
+                $toolbar->addBtn('Асоцииране', array(
+                        $mvc,
+                        'add'
+                    ),
+                    'id=btnAdd', 'ef_icon = img/16/link.png,title=Асоцииране на визитка с потребител');
+            }
+        $toolbar->addBtn('Нов потребител', array(
+                        'core_Users',
+                        'add',
+                        'ret_url' => TRUE,
+                    ),
+                    'id=new', 'ef_icon=img/16/star_2.png,title=Добавяне на нов потребител');
+
+
+        }
+    }
+
+
+
+    /**
      * След подготовката на редовете на списъчния изглед
      * 
      * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
@@ -1061,7 +1141,7 @@ class crm_Profiles extends core_Master
     	 
     	$data->listFilter->showFields = 'search';
         
-        $data->query->orderBy("lastLoginTime", "DESC");
+        $data->query->orderBy("lastTime", "DESC");
     }
     
     
@@ -1076,17 +1156,6 @@ class crm_Profiles extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        // Ако редактираме или добавяме
-        if ($action == 'edit' || $action == 'add') {
-            
-            // Ако текущия потребител не е userId
-            if ($rec->userId != core_Users::getCurrent()) {
-                
-                // Изискваме роля admin
-                $requiredRoles = 'admin';
-            }
-        }
-        
         // Текущия потребител може да си види IP-то, admin и ceo могат на всичките
         if ($action == 'viewip') {
             if ($rec && ($rec->userId != $userId)) {
@@ -1136,6 +1205,8 @@ class crm_Profiles extends core_Master
         $currUserId = core_Users::getCurrent();
         
         if ($currUserId == $userOrRole) return TRUE;
+
+        if(core_Users::fetch($userOrRole)->state == 'rejected') return FALSE;
         
         if (haveRole('admin, ceo', $currUserId)) return TRUE;
         

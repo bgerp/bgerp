@@ -431,11 +431,16 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Връща масив със стойността на чакащия плейсхолдер
+     * 
+     * @param string $place
+     * @param string $mode
+     * 
+     * @return array
      */
     function getArray($place, $mode = 'push')
     {
-        $res = NULL;
+        $res = array();
 
         if (count($this->pending)) {
             foreach ($this->pending as $sub) {

@@ -970,4 +970,23 @@ class fileman_Files2 extends core_Master
         // Връщаме URL' то
         return $url;
     }
+    
+    
+    /**
+     * Добавя стринг във временната директория с подадения файл
+     * Не се записва във fileman
+     *
+     * @param string $fileStr
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function addStrToFile($fileStr, $name)
+    {
+        $tempDir = fileman::getTempPath() . '/' . $name;
+    
+        expect(@file_put_contents($tempDir, $fileStr) !== FALSE);
+    
+        return $tempDir;
+    }
 }

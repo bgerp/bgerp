@@ -427,6 +427,12 @@ class doc_Folders extends core_Master
                         
                         $notifyArr = $mvc->getUsersArrForNotify($rec);
                         
+                        // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
+                        $isRejected = core_Users::checkUsersIsRejected($notifyArr);
+                        if ($isRejected) {
+                            $notifyArr += core_Users::getByRole('admin');
+                        }
+                        
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                         foreach((array)$notifyArr as $nUserId) {
                             
@@ -657,7 +663,7 @@ class doc_Folders extends core_Master
      * @param int $userId key(mvc=core_Users)
      * @param boolean $fullAccess - Възможно най - много права за папката
      */
-    static function restrictAccess_(&$query, $userId = NULL, $fullAccess=TRUE)
+    static function restrictAccess_(&$query, $userId = NULL, $viewAccess = TRUE)
     {
         if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
@@ -796,6 +802,12 @@ class doc_Folders extends core_Master
         $rec = static::fetch($params['folderId']);
             
         $haveRight = static::haveRightFor('single', $rec);
+        
+        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+                $haveRight = colab_Folders::haveRightFor('single', $rec);
+            }
+        }
         
         // Проверяваме дали има права
         if (!$rec || (!($haveRight) && $rec->access != 'private')) return FALSE;

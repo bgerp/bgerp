@@ -19,15 +19,15 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
-	 * Кой може да избира драйвъра
+	 * Интерфейси които имплементира
 	 */
-	public $canSelectDriver = 'planning,ceo';
+	public $interfaces = 'planning_DriverIntf';
 	
 	
 	/**
-	 * От кои класове може да се избира драйвера
+	 * Кой може да избира драйвъра
 	 */
-	public $availableClasses = 'planning_Tasks';
+	public $canSelectDriver = 'planning,ceo';
 	
 	
 	/**
@@ -49,9 +49,133 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во,silent');
-		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
+    	$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
+		
+		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,after=fixedAssets,removeAndRefreshForm=packagingId,silent');
+		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap');
+		$fieldset->FLD('plannedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Планувано,after=packagingId');
+		$fieldset->FLD("indTime", 'time', 'caption=Произвеждане->Време,smartCenter');
+		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
+		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
+    }
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 */
+	public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
+	{
+		$row->productId = cat_Products::getShortHyperlink($rec->productId);
+		if(!$rec->totalQuantity){
+			$rec->totalQuantity = 0;
+			$row->totalQuantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->totalQuantity);
+			$row->totalQuantity = "<span class='quiet'>{$row->totalQuantity}</span>";
+		}
+		
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
+	{
+		$form = &$data->form;
+		$rec = $form->rec;
+		
+		if(empty($rec->originId)){
+			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+			$rec->originId = $firstDoc->fetchField('containerId');
+		}
+		
+		// За произвеждане може да се избере само артикула от заданието
+		$origin = doc_Containers::getDocument($rec->originId);
+		$productId = $origin->fetchField('productId');
+		$bomRec = cat_Products::getLastActiveBom($productId, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
+		}
+		
+		$products[$productId] = cat_Products::getTitleById($productId, FALSE);
+		
+		// и ако има рецепта артикулите, които са етапи от нея
+		if(!empty($bomRec)){
+			$sQuery = cat_BomDetails::getQuery();
+			$sQuery->where("#bomId = {$bomRec->id} AND #type = 'stage'");
+			$sQuery->show('resourceId');
+			while($sRec = $sQuery->fetch()){
+				$products[$sRec->resourceId] = cat_Products::getTitleById($sRec->resourceId, FALSE);
+			}
+		}
+		
+		// Ако има избран артикул, той винаги присъства в опциите
+		if(isset($rec->productId)){
+			if(!isset($products[$rec->productId])){
+				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+			}
+		}
+		
+		// Добавяме допустимите опции
+		$form->setOptions('productId', array('' => '') + $products);
+		if(count($products) == 1){
+			$form->setDefault('productId', key($products));
+		}
+		
+		// Ако задачата е дефолтна за артикула, задаваме и дефолтите
+		if(isset($rec->systemId)){
+			$originDoc = doc_Containers::getDocument($rec->originId);
+			$originRec = $originDoc->fetch();
+			
+			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
+			if(isset($tasks[$rec->systemId])){
+				foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld){
+					$form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
+				}
+			}
+		}
+
+		if(isset($rec->productId)){
+			$packs = cat_Products::getPacks($rec->productId);
+			$form->setOptions('packagingId', $packs);
+			$form->setDefault('packagingId', key($packs));
+			
+			$productInfo = cat_Products::getProductInfo($rec->productId);
+			if(!isset($productInfo->meta['canStore'])){
+				$measureShort = cat_UoM::getShortName($rec->packagingId);
+				$form->setField('plannedQuantity', "unit={$measureShort}");
+			} else {
+				$form->setField('packagingId', 'input');
+			}
+			
+			$jobRec = $origin->fetch();
+			if($rec->productId == $jobRec->productId){
+				$toProduce = $jobRec->quantity - $jobRec->quantityProduced;
+				$form->setDefault('plannedQuantity', $toProduce);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_Form $form
+	 */
+	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	{
+		$rec = $form->rec;
+		if($form->isSubmitted()){
+			$pInfo = cat_Products::getProductInfo($rec->productId);
+    		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+		}
 	}
 	
 	
@@ -63,22 +187,27 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
 	public function updateEmbedder(&$rec)
 	{
-		 // Колко е общото к-во досега
-		 $dQuery = planning_drivers_ProductionTaskDetails::getQuery();
-		 $dQuery->where("#taskId = {$rec->id}");
-		 $dQuery->where("#state != 'rejected'");
-		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
-		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-		 $dQuery->show('sumQuantity,sumWeight');
+		// Колко е общото к-во досега
+	    $dQuery = planning_drivers_ProductionTaskDetails::getQuery();
+		$dQuery->where("#taskId = {$rec->id}");
+		$dQuery->where("#type = 'product'");
+		$dQuery->where("#state != 'rejected'");
+		$dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
+		$dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
+		$dQuery->show('sumQuantity,sumWeight');
 		 
-		 $res = $dQuery->fetch();
-		 $sumQuantity = $res->sumQuantity;
+		$res = $dQuery->fetch();
 		 
-		 // Преизчисляваме общото тегло
-		 $rec->totalWeight = $res->sumWeight;
-		      
-		 // Изчисляваме колко % от зададеното количество е направено
-		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
+		// Преизчисляваме общото тегло
+		$rec->totalWeight = $res->sumWeight;
+		$rec->totalQuantity = $res->sumQuantity;
+		 
+		// Изчисляваме колко % от зададеното количество е направено
+		@$rec->progress = round($rec->totalQuantity / $rec->plannedQuantity, 2);
+		
+		// Записваме операцията в регистъра
+		$taskOrigin = doc_Containers::getDocument($rec->originId);
+		planning_TaskActions::add($rec->id, $rec->productId, 'product', $taskOrigin->that, $rec->totalQuantity);
 	}
 
 
@@ -134,40 +263,49 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
         $resArr = array();
         
-        if ($row->timeStart) {
-            $resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
-        }
+        $resArr['productId'] = array('name' => tr('Артикул'), 'val' =>"[#productId#]");
         
-        if ($row->timeDuration) {
-            $resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
-        }
+        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("<span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
+        		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity-->"));
         
-        if ($row->timeEnd) {
-            $resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
-        }
+        $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
         
-        if ($row->expectedTimeStart) {
-            $resArr['expectedTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectedTimeStart#]");
-        }
-        
-        if ($row->expectedTimeEnd) {
-            $resArr['expectedTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectedTimeEnd#]");
-        }
-        
-        $resArr['totalQuantity'] =  array('name' => tr('Общо к-во'), 'val' =>"[#totalQuantity#]");
-        
-        if ($row->totalWeight) {
+        if (!empty($row->totalWeight)) {
             $resArr['totalWeight'] =  array('name' => tr('Общо тегло'), 'val' =>"[#totalWeight#]");
         }
         
-        if ($row->fixedAssets) {
+        if (!empty($row->fixedAssets)) {
             $resArr['fixedAssets'] =  array('name' => tr('Машини'), 'val' =>"[#fixedAssets#]");
         }
         
+        if (!empty($row->indTime)) {
+        	$resArr['indTime'] =  array('name' => tr('Време за изпълнение'), 'val' =>"[#indTime#]");
+        }
+       
         $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         
-        if ($row->originId) {
-            $resArr['originId'] =  array('name' => tr('Към задание'), 'val' =>"[#originId#]");
+        if (!empty($row->originId)) {
+            $resArr['originId'] =  array('name' => tr('Задание'), 'val' =>"[#originId#]");
+        }
+        
+        if (!empty($row->timeStart)) {
+        	$resArr['timeStart'] =  array('name' => tr('Начало'), 'val' =>"[#timeStart#]");
+        }
+        
+        if (!empty($row->timeDuration)) {
+        	$resArr['timeDuration'] =  array('name' => tr('Продължителност'), 'val' =>"[#timeDuration#]");
+        }
+        
+        if (!empty($row->timeEnd)) {
+        	$resArr['timeEnd'] =  array('name' => tr('Краен срок'), 'val' =>"[#timeEnd#] [#remainingTime#]");
+        }
+        
+        if (!empty($row->expectedTimeStart)) {
+        	$resArr['expectedTimeStart'] =  array('name' => tr('Очаквано начало'), 'val' =>"[#expectedTimeStart#]");
+        }
+        
+        if (!empty($row->expectedTimeEnd)) {
+        	$resArr['expectedTimeEnd'] =  array('name' => tr('Очакван край'), 'val' =>"[#expectedTimeEnd#]");
         }
         
         return $resArr;
@@ -182,9 +320,38 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      * @param stdClass $rec
      * @param stdClass $nRec
      */
-    public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec, &$nRec)
+    public static function on_BeforeSaveCloneRec(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$rec, &$nRec)
     {
     	unset($nRec->totalWeight);
+    	unset($nRec->systemId);
+    	
+    	// Добавяме артикулите към детайлите за клониране
+    	$cloneDetails = $Embedder->cloneDetailes;
+    	$cloneDetails = arr::make($cloneDetails, TRUE);
+    	$cloneDetails['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
+    	$Embedder->cloneDetailes = implode(',', $cloneDetails);
+    }
+    
+    
+    /**
+     * Преди проверка за права
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$requiredRoles, $action, $rec, $userId = NULL)
+    {
+    	if($action == 'reject' && isset($rec)){
+    		
+    		// Ако има прогрес, задачата не може да се оттегля
+    		if(planning_drivers_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
@@ -193,27 +360,30 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public static function on_AfterCreate(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec)
     {
-    	if(isset($rec->originId) && isset($rec->systemId)){
+    	if(isset($rec->originId)){
     		$originDoc = doc_Containers::getDocument($rec->originId);
-    		if($originDoc->isInstanceOf('planning_Jobs')){
-    			$productId = $originDoc->fetchField('productId');
-    			$tasks = cat_Products::getDefaultProductionTasks($productId, $originDoc->fetchField('quantity'));
+    		$originRec = $originDoc->fetch();
+    		
+    		// Ако е по източник
+    		if(isset($rec->systemId)){
+    			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
     			if(isset($tasks[$rec->systemId])){
     				$def = $tasks[$rec->systemId];
-    				
+    			
+    				// Намираме на коя дефолтна задача отговаря и извличаме продуктите от нея
     				$r = array();
     				foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type){
     					if(is_array($def->products[$var])){
     						foreach ($def->products[$var] as $p){
     							$p = (object)$p;
     							$nRec = new stdClass();
-    							$nRec->taskId = $rec->id;
+    							$nRec->taskId         = $rec->id;
     							$nRec->packagingId    = $p->packagingId;
     							$nRec->quantityInPack = $p->quantityInPack;
-    							$nRec->packagingId    = $p->packagingId;
-    							$nRec->planedQuantity = $p->packQuantity * $rec->totalQuantity;
+    							$nRec->planedQuantity = $p->packQuantity * $rec->plannedQuantity * $rec->quantityInPack;
     							$nRec->productId      = $p->productId;
     							$nRec->type			  = $type;
+    							$nRec->storeId		  = $originRec->storeId;
     							
     							planning_drivers_ProductionTaskProducts::save($nRec);
     						}

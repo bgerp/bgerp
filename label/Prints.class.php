@@ -104,7 +104,7 @@ class label_Prints extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'labelId=Данни->Етикет, mediaId=Данни->Медия, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, createdOn, createdBy, modifiedOn, modifiedBy';
+    public $listFields = 'labelId=Данни->Етикет, mediaId=Данни->Медия, labelsCnt=Брой->Етикети, copiesCnt=Брой->Копия, printedCnt=Брой->Отпечатвания, begin=Брой->Начало, end=Брой->Край, createdOn, createdBy, modifiedOn, modifiedBy';
     
 
     /**
@@ -126,6 +126,9 @@ class label_Prints extends core_Master
         $this->FLD('labelsCnt', 'int(min=1, max=500)', 'caption=Брой етикети, mandatory');
         $this->FLD('copiesCnt', 'int(min=1, max=50)', 'caption=Брой копия, value=1, mandatory');
         
+        $this->FLD('begin', 'int(min=1)', 'caption=Начало, allowEmpty, input=hidden');
+        $this->FLD('end', 'int(min=1)', 'caption=Край, allowEmpty, input=hidden');
+        
         $this->FLD('state', 'enum(active=Активно, closed=Спрян)', 'caption=Състояние, input=none, notNull');
     }
     
@@ -143,6 +146,13 @@ class label_Prints extends core_Master
         label_Labels::requireRightFor('uselabel', $lRec);
         
         $form = $this->getForm();
+        
+        // Показваме полетата, ако има обект
+        if ($lRec->classId && $lRec->objId) {
+             $form->setField('begin', 'input=input');
+             $form->setField('end', 'input=input');
+        }
+        
         $form->input(NULL, TRUE);
         
         $retUrl = getRetUrl();
@@ -167,14 +177,44 @@ class label_Prints extends core_Master
         
         $form->input();
         
-        // Показваме предипреждение, ако ше има празни пространства в една страница на медията
+        // Ако е създаден от обект
+        if ($lRec->classId && $lRec->objId) {
+            $intfInst = cls::getInterface('label_SequenceIntf', $lRec->classId);
+            $allowSkip = FALSE;
+            $estCnt = $intfInst->getEstimateCnt($lRec->objId, $allowSkip);
+            $form->setDefault('labelsCnt', $estCnt);
+            $form->setDefault('begin', 1);
+            $form->setDefault('end', $estCnt);
+            
+            if ($form->isSubmitted()) {
+                
+                // Ако излезем над разрешената стойност
+                if ($form->rec->end > $estCnt) {
+                    $errMsg = "|Надвишавате допустимата бройка|* - {$estCnt}";
+                    if ($allowSkip) {
+                        $form->setWarning('end', $errMsg);
+                    } else {
+                        $form->setError('end', $errMsg);
+                    }
+                }
+                
+                // Ако е зададена по-голяма стойност за начало/край от броя на етикетите
+                $c = $form->rec->end - $form->rec->begin;
+                $c++;
+                if ($c != $form->rec->labelsCnt) {
+                    $form->setWarning('end, begin, labelsCnt', "|Няма да се отпечатат всички номера|*. |Броя на етикетите трябва да е |* {$c}.");
+                }
+            }
+        }
+        
+        // Показваме предупреждение, ако ше има празни пространства в една страница на медията
         if ($form->isSubmitted()) {
             $labelsCnt = label_Media::getCountInPage($form->rec->mediaId);
             
             $allPirntsCnt = $form->rec->labelsCnt * $form->rec->copiesCnt;
             
             if ($allPirntsCnt % $labelsCnt) {
-                $form->setWarning('labelsCnt, copiesCnt', "Броя не е кратен на {$labelsCnt}. Ще има неизползвана част от медията.");
+                $form->setWarning('labelsCnt, copiesCnt', "|Броя не е кратен на|* {$labelsCnt}. |Ще има неизползвана част от медията|*.");
             }
         }
         
@@ -221,7 +261,7 @@ class label_Prints extends core_Master
         $form->title = 'Отпечатване';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Печат', 'save', 'ef_icon = img/16/printer.png, title=Започни да печаташ');
+        $form->toolbar->addSbBtn('В опашката', 'save', 'ef_icon = img/16/printer.png, title=Започни да печаташ');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());

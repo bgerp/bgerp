@@ -32,7 +32,7 @@ class catering_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_State2,
+    public $loadList = 'plg_RowTools2, plg_Created, catering_Wrapper, plg_State2,
                              RequestDetails=catering_RequestDetails,
                              MenuDetails=catering_MenuDetails,
                              EmployeesList=catering_EmployeesList,

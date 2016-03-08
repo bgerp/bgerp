@@ -212,12 +212,12 @@ class core_Embedder extends core_Master
 	 * Изпълнява се след въвеждането на данните от заявката във формата
 	 */
 	public static function on_AfterInputEditForm($mvc, &$form)
-	{
+	{ 
 		if($form->rec->{$mvc->innerClassField}){
 			
 			// Инстанцираме драйвера
 			if($Driver = $mvc->getDriver($form->rec)){
-				// Проверяваме можели въпросния драйвер да бъде избран
+				// Проверяваме може ли въпросния драйвер да бъде избран
 				if(!$Driver->canSelectInnerObject()){
 					$form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
 				}

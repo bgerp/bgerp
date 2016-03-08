@@ -64,7 +64,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round=Точност,showContents";
+    var $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents";
     
     
     /**
@@ -145,7 +145,7 @@ class cat_UoM extends core_Manager
     public static function round($quantity, $productId)
     {
     	// Коя е основната мярка на артикула
-    	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    	$uomId = cat_Products::fetchField($productId, 'measureId');
     	
     	// Имали зададено закръгляне
     	$round = static::fetchField($uomId, 'round');
@@ -427,6 +427,10 @@ class cat_UoM extends core_Manager
     	
     	$data->toolbar->removeBtn('btnAdd');
     	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => $type), "ef_icon=img/16/star_2.png,title=Добавяне на нова {$title}");
+    
+    	if(!haveRole('debug')){
+    		unset($data->listFields['sysId']);
+    	}
     }
     
     

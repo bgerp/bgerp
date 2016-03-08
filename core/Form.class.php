@@ -28,67 +28,67 @@ class core_Form extends core_FieldSet
     /**
      * ET шаблон за формата
      */
-    var $tpl;
+    public $tpl;
     
     
     /**
      * Заглавие на формата
      */
-    var $title;
+    public $title;
     
     
     /**
      * Стойности на полетата на формата
      */
-    var $rec;
+    public $rec;
     
     
     /**
      * Общ лейаут на формата
      */
-    var $layout;
+    public $layout;
     
     
     /**
      * Лейаут на инпут-полетата
      */
-    var $fieldsLayout;
+    public $fieldsLayout;
     
     
     /**
      * Cmd-то на бутона с който е субмитната формата
      */
-    var $cmd;
+    public $cmd;
     
     
     /**
      * Атрибути на елемента <FORM ... >
      */
-    var $formAttr = array();
+    public $formAttr = array();
     
     
     /**
      * Редове с дефиниции [Селектор на стила] => [Дефиниция на стила]
      */
-    var $styles = array();
+    public $styles = array();
     
     
     /**
      * Кои полета от формата да се показват
      */
-    var $showFields;
+    public $showFields;
     
     
     /**
      * В каква посока да са разположени полетата?
      */
-    var $view = 'vertical';
+    public $view = 'vertical';
     
     
     /**
      * CSS class на формата
      */
-    var $class;
+    public $class;
     
     
     /**
@@ -464,6 +464,7 @@ class core_Form extends core_FieldSet
                     "\n</form>\n");
                 
                 jquery_Jquery::run($this->layout, "setFormElementsWidth();");
+                jquery_Jquery::runAfterAjax($this->layout, "setFormElementsWidth");
                 jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
             }
             
@@ -594,7 +595,7 @@ class core_Form extends core_FieldSet
             $i = 1;
             
             foreach ($fields as $name => $field) {
-                expect(is_object($fields[$name]), $fields);
+                expect(is_object($fields[$name]), $fields, $name);
                 $fields[$name]->formOrder = (float) $field->formOrder ? $field->formOrder : $i++;
             }
             
@@ -615,6 +616,21 @@ class core_Form extends core_FieldSet
                 }
             }
             
+            // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
+            foreach ($fields as $name => $field) {
+            	if($field->hideIfOne) {
+	                if((isset($field->options) && count($field->options) == 1)) {
+	                	unset($fields[$name]);
+                        $this->setField($name, 'input=hidden');
+                        $this->setDefault($name, key($field->options));
+	                } elseif(isset($field->type->options) && count($field->type->options) == 1) {
+	                	unset($fields[$name]);
+	                	$this->setField($name, 'input=hidden');
+	                	$this->setDefault($name, key($field->type->options));
+	                }
+            	}
+            }
+
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             
             
@@ -793,7 +809,7 @@ class core_Form extends core_FieldSet
                 $headerRow = $space = '';
                 
                 foreach ($captionArr as $id => $c) {
-                    $captionArr[$id] = $caption = $c = tr($c);
+                    $captionArr[$id] = $caption = $c1 = tr($c);
                     
                     // Удебеляваме имената на задължителните полета
                     if ($field->mandatory || ($id != ($captionArrCount - 1))) {
@@ -802,9 +818,13 @@ class core_Form extends core_FieldSet
                         $caption = "$caption";
                     }
                     
-                    if ($lastCaptionArr[$id] != $c && $id != ($captionArrCount - 1)) {
+                    if ($lastCaptionArr[$id] != $c1 && $id != ($captionArrCount - 1)) {
                         $headerRow .= "<div class=\"formGroup\" >{$space}{$caption}";
                         $space .= "&nbsp;&nbsp;&nbsp;";
+                        $group = $c;
+                        if(strpos($group, '||')) {
+                            list($group, $en) = explode('||', $group);
+                        }
                     }
                 }
                 
@@ -812,6 +832,7 @@ class core_Form extends core_FieldSet
 
                 if($headerRow) {
                     $fsId++;
+                    $fsArr[$fsId] = $group;
                     $fsRow  = " [#FS_ROW{$fsId}#]";
                     $fsHead = " [#FS_HEAD{$fsId}#]";
                     $headerRow .= "[#FS_IMAGE{$fsId}#]</div>";
@@ -820,16 +841,7 @@ class core_Form extends core_FieldSet
                     $fsHead = '';
                 }
 
-                if($fsRow) {
-                    if($field->autohide == 'any' || ($field->autohide == 'autohide' && empty($vars[$name])) ) {
-                    	if(!$fsArr[$fsId]){
-                    		$fsArr[$fsId] = FALSE;
-                    	}
-                    } else {
-                        $fsArr[$fsId] .= $name . ' ';
-                    }
-                }
-                
+                 
                 $caption = core_ET::escape($caption);
                 $fUnit = tr($field->unit);
                 $fUnit = core_ET::escape($fUnit);
@@ -846,7 +858,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr{$fsRow}><td class='formCell' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr{$fsRow}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
 
                     if ($emptyRow > 0) {
@@ -859,22 +871,25 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
 
-                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement'>[#{$field->name}#]{$unit}</td></tr>");
+                    $fld = new ET("\n<tr{$fsRow}><td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td></tr>");
                 }
 
                 if($field->inlineTo) {
                     $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
-                    $tpl->prepend($fld, $field->inlineTo);  
+                    $tpl->prepend($fld, $field->inlineTo);
+                    $tpl->prepend(' inlineTo', $field->inlineTo . '_INLINETO_CLASS');  
                 } else {
                     $tpl->append($fld, 'FIELDS');
                 }
             }
             
+            $usedGroups = self::getUsedGroups($this, $fields, $vars, $vars, 'input');
+
             // Заменяме състоянието на секциите
-            foreach($fsArr as $id => $state) { 
-                if(!$state) {
+            foreach($fsArr as $id => $group) { 
+                if(!$usedGroups[$group]) {
                     $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
-                    $tpl->replace(" class='fs-toggle{$fsId}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
+                    $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
                 } 
             }
@@ -1143,6 +1158,10 @@ class core_Form extends core_FieldSet
      */
     function setError($field, $msg, $ignorable = FALSE)
     {
+        if(haveRole('no_one')) {
+            $ignorable = TRUE;
+        }
+
         // Премахваме дублиращи се съобщения
         if(is_array($this->errors)) {
             foreach($this->errors as $errRec) {
@@ -1245,5 +1264,58 @@ class core_Form extends core_FieldSet
             ));
         
         $field->type->params['isReadOnly'] = TRUE;  
+    }
+
+
+    /**
+     * Кои групи да се показват
+     */
+    public static function getUsedGroups($fieldset, $fields, $rec1, $row, $mode = 'single')
+    { 
+        $res = array();
+        $group = '';
+
+        if(is_array($rec1)) {
+            $rec = (object) $rec1;
+        } else {
+            $rec = $rec1;
+        }
+        
+        if(is_array($fields)){
+			foreach($fields as $name => $caption1) {
+        		if(is_object($caption1)) {
+        			$caption = $caption1->caption ? $caption1->caption : $name;
+        		} else {
+        			$caption = $caption1;
+        		}
+        		if(!isset($fieldset->fields[$name])) continue;
+        		if($fieldset->fields[$name]->{$mode} == 'none') continue;
+        		if($mode == 'single' && !isset($row->{$name})) continue;
+        	
+        		if($fieldset->fields[$name]->autohide == 'any') continue;
+        		if($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
+        			if(!$rec->{$name}) { 
+                        continue;
+                    }
+        			$type = $fieldset->fields[$name]->type;
+        			if(isset($type->options) && is_array($type->options) && key( $type->options) == $rec->{$name}) {
+                        continue;
+                    }
+        		}
+        	
+        		if(strpos($caption, '->')) {
+        			list($group, $caption) = explode('->', $caption);
+        		}
+        	
+        		$res[$group] = TRUE;
+        		if(strpos($group, '||')) {
+        			list($bg, $en) = explode('||', $group);
+        			$res[$bg] = TRUE;
+        			$res[$bg] = TRUE;
+        		}
+        	}
+        }
+ 
+        return $res;
     }
 }

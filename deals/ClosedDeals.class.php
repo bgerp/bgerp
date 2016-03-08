@@ -339,7 +339,8 @@ abstract class deals_ClosedDeals extends core_Master
             $firstRec = $DocClass->fetch($rec->docId);
             $firstRec->state = 'closed';
             $firstRec->closedOn = $mvc->getValiorDate($rec);
-            $DocClass->save($firstRec, 'state,closedOn');
+            $firstRec->modifiedOn = dt::now();
+            $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
             
             if(empty($saveFileds)){
                 $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
@@ -364,7 +365,8 @@ abstract class deals_ClosedDeals extends core_Master
             // Обновяваме състоянието на сделката, само ако не е оттеглена
             if($firstRec->state != 'rejected'){
                 $firstRec->state = 'active';
-                $DocClass->save($firstRec, 'state');
+                $firstRec->modifiedOn = dt::now();
+                $DocClass->save($firstRec, 'modifiedOn,state');
             }
         }
         

@@ -19,22 +19,31 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * Преобразува цветовия модел на подадения PDF файл от RGB в CMYK
      * 
      * @param string $file
+     * @param string $type
+     * @param string $name
      * 
      * @return string|NULL
      */
-    public static function rgbToCmyk($file)
+    public static function rgbToCmyk($file, $type = 'auto', $name = '')
     {
         cls::load('fileman_Files');
         
         if (!$file) return ;
         
-        if ((strlen($file) == FILEMAN_HANDLER_LEN) && (strpos($file, '/') === FALSE)) {
-            $fRec = fileman_Files::fetchByFh($file);
-            
-            expect($fRec);
-    	}
+        $fileType = self::getFileTypeFromStr($file, $type);
         
-    	$name = fileman_Files::getFileNameWithoutExt($file);
+        if ($fileType == 'string') {
+            $name = ($name) ? $name : 'file.pdf';
+            $file = fileman::addStrToFile($file, $name);
+        }
+		
+        if (!$name) {
+            // Вземаме името на файла без разширението
+            $name = fileman_Files::getFileNameWithoutExt($file);
+        } else {
+            $nameAndExt = fileman_Files::getNameAndExt($name);
+            $name = $nameAndExt['name'];
+        }
         
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
@@ -58,12 +67,25 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         
-        $nFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+        $nFileHnd = NULL;
+        
+        if (is_file($outFilePath)) {
+            $nFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+        }
         
         if ($nFileHnd) {
             if ($Script->tempDir) {
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
+            }
+            
+            if ($fileType == 'string') {
+                fileman::deleteTempPath($file);
+            } 
+        } else {
+            if (is_file($errFilePath)) {
+                $err = @file_get_contents($errFilePath);
+                self::logErr('Грешка при конвертиране: ' . $errFilePath);
             }
         }
         
@@ -280,7 +302,8 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
             
             // Заспиваме процеса
             sleep($sleepTime);
-            
+            Debug::log('Sleep {$sleepTime} sec. in' . __CLASS__);
+
             // Увеличаваме броя на опитите с единица
             $trays++;
         }

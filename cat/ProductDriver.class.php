@@ -264,6 +264,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$driverFields = $form->fields;
 
 		if(is_array($driverFields)){
+ 
+            $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
+    
 			foreach ($driverFields as $name => $field){
 				if($field->single != 'none' && isset($data->row->{$name})){
 
@@ -271,10 +274,14 @@ abstract class cat_ProductDriver extends core_BaseClass
 
                     if(strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
+                        
+                        // Групите, които не се използват - не се показват
+                        if(!isset($usedGroups[$group])) continue;
+
                         $group = tr($group);
                         if($group != $lastGroup) {
                             
-                            $dhtml = "<tr><td colspan='3' style='padding-top:10px !important; text-decoration:underline; padding-left:0'>{$group}</td></tr>";
+                            $dhtml = "<tr><td colspan='3' class='productGroupInfo'>{$group}</td></tr>";
                             $tpl->append($dhtml, 'INFO');
                         }
 
@@ -284,17 +291,17 @@ abstract class cat_ProductDriver extends core_BaseClass
                     $caption = tr($caption);
                     $unit = tr($field->unit);
 					
-                    if($field->inlineTo) {
-                        $dhtml = new ET(" {$caption} {$data->row->$name} {$unit}");
+                    if($field->inlineTo) { 
+                        $dhtml = new ET(" {$caption} " . $data->row->{$name} . " {$unit}");
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
-                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>{$data->row->$name} {$unit}[#{$name}#]</td></tr>");
+                        $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
                         $tpl->append($dhtml, 'INFO');
                     }
 				}
 			}
 		}
-
+ 
 		return $tpl;
 	}
 	
@@ -373,6 +380,19 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @return double|NULL $price  - цена
 	 */
 	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща дефолтната дефиниция за партида на артикула
+	 * Клас имплементиращ интерфейса 'batch_BatchTypeIntf'
+	 * 
+	 * @param mixed $id - ид или запис на артикул
+	 * @return NULL|core_BaseClass - клас за дефиниция на партида
+	 */
+	public function getDefaultBatchDef($id)
 	{
 		return NULL;
 	}

@@ -42,6 +42,10 @@
                         Location: [#deliveryLocationId#]
                     </div>
                     <!--ET_END deliveryLocationId-->
+                    
+                    <!--ET_BEGIN vatId-->
+                     <div>Vat Id: [#vatId#]</div>
+                     <!--ET_END vatId-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->
@@ -86,20 +90,10 @@
                         <span class='quiet'>Downpayment:</span> [#downpayment#]
                     </div>
                     <!--ET_END downpayment-->
-                    <!--ET_BEGIN paymentBeforeShipping-->
-                    <div class='cellRow'>
-                        <span class='quiet'>Before shipping:</span> [#paymentBeforeShipping#]
-                    </div>
-                    <!--ET_END paymentBeforeShipping-->
-                    <!--ET_BEGIN paymentOnDelivery-->
-                    <div class='cellRow'>
-                        <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
-                    </div>
-                    <!--ET_END paymentOnDelivery-->
                     <!--ET_BEGIN currencyCode-->
                     <div class='cellRow'>
                         <span class='quiet'>Currency: </span>
-                        [#currencyCode#] [#currencyRateText#]
+                        [#currencyCode#]
                     </div>
                     <!--ET_END currencyCode-->
                     <!--ET_BEGIN bankAccountId-->
@@ -120,11 +114,6 @@
                     <div>
                         <b>Conditions</b>
                         <ol style = 'margin-top:1px'>
-                            <!--ET_BEGIN pricesAtDate-->
-                            <li>
-                                Prices at: <b>[#pricesAtDate#]</b><br>
-                            </li>
-                            <!--ET_END pricesAtDate-->
                             <!--ET_BEGIN withVat-->
                             <li>Prices are with apllied VAT[#withVat#]</li>
                             <!--ET_END withVat-->
@@ -213,7 +202,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
                         </tr>
                     </table>
                 </td>
@@ -225,7 +214,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class='nowrap'><span class="sign_names">/[#username#]/</span></td>
+                            <td><span class="sign_names nowrap">/[#username#]/</span></td>
                         </tr>
                     </table>
                 </td>

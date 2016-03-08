@@ -135,7 +135,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Позволени операции на последващите платежни документи
      */
-    protected $allowedPaymentOperations = array(
+    public $allowedPaymentOperations = array(
     		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
     		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
     		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),

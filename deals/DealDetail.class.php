@@ -20,7 +20,7 @@ abstract class deals_DealDetail extends doc_Detail
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	protected $hideListFieldsIfEmpty = 'discount';
+	public $hideListFieldsIfEmpty = 'discount';
  	
  	
  	/**
@@ -76,27 +76,27 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function getDealDetailFields(&$mvc)
     {
-    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
+    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
     	$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
     	// Количество в основна мярка
-    	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
+    	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
     	
     	// Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
     	// няма стойност, приема се за единица.
-    	$mvc->FLD('quantityInPack', 'double', 'input=none,smartCenter');
+    	$mvc->FLD('quantityInPack', 'double', 'input=none');
     	
     	// Цена за единица продукт в основна мярка
-    	$mvc->FLD('price', 'double', 'caption=Цена,input=none,smartCenter');
+    	$mvc->FLD('price', 'double', 'caption=Цена,input=none');
     	
     	// Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input,smartCenter');
+    	$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter');
     	$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
     	
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-    	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
     	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
         $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
     	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
@@ -225,12 +225,11 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		// Ако артикула не е складируем, скриваме полето за мярка
     		if(!isset($productInfo->meta['canStore'])){
-    			$form->setField('packagingId', 'input=hidden');
     			$measureShort = cat_UoM::getShortName($form->rec->packagingId);
     			$form->setField('packQuantity', "unit={$measureShort}");
+    		} else {
+    			$form->setField('packagingId', 'input');
     		}
-    	} else {
-    		$form->setReadOnly('packagingId');
     	}
     	 
     	if ($form->isSubmitted() && !$form->gotErrors()) {
@@ -260,7 +259,7 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     				
     			if (empty($policyInfo->price) && empty($pRec)) {
     				$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');

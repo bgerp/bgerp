@@ -28,13 +28,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public function setDetailFields($mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
 		$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
-		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
 	}
 	
@@ -95,13 +95,19 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		
 		if($rec->productId){
 			$form->setDefault('measureId', cat_Products::getProductInfo($rec->productId)->productRec->measureId);
-			$shortName = cat_UoM::getShortName($rec->measureId);
-			$form->setField('quantity', "unit={$shortName}");
 			
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
-		} else {
-			$form->setReadOnly('packagingId');
+			$form->setDefault('packagingId', key($packs));
+			
+			// Ако артикула не е складируем, скриваме полето за мярка
+			$productInfo = cat_Products::getProductInfo($rec->productId);
+			if(!isset($productInfo->meta['canStore'])){
+				$measureShort = cat_UoM::getShortName($rec->packagingId);
+				$form->setField('packQuantity', "unit={$measureShort}");
+			} else {
+    			$form->setField('packagingId', 'input');
+    		}
 		}
 		
 		if($form->isSubmitted()){

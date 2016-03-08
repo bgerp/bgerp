@@ -379,7 +379,6 @@ class store_Stores extends core_Master
     {
     	$res = array();
     	$res[] = planning_ConsumptionNotes::getClassId();
-    	$res[] = planning_ProductionNotes::getClassId();
     	$res[] = store_Transfers::getClassId();
     	
     	return $res;

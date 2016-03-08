@@ -29,7 +29,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	protected $hideListFieldsIfEmpty = 'discount';
+	public $hideListFieldsIfEmpty = 'discount';
 	
 	
 	/**
@@ -57,14 +57,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
-		$mvc->FLD('quantity', 'double', 'caption=К-во','tdClass=small-field');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул','tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter,input=hidden');
+		$mvc->FLD('quantity', 'double', 'caption=Количество','tdClass=small-field,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
-		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
+		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
+		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
 	}
 	
@@ -364,10 +364,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			// Ако артикула не е складируем, скриваме полето за мярка
 			if(!isset($productInfo->meta['canStore'])){
-				$form->setField('packagingId', 'input=hidden');
 				$measureShort = cat_UoM::getShortName($form->rec->packagingId);
 				$form->setField('quantity', "unit={$measureShort}");
-			}
+			} else {
+    			$form->setField('packagingId', 'input');
+    		}
 			
 			if(isset($mvc->LastPricePolicy)){
 				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
@@ -472,7 +473,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
 				}
 			}
-			
 			
 			$originRef = $cached[$dRec->productId][$dRec->packagingId];
 		}

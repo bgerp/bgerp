@@ -31,13 +31,33 @@ class bgerp_plg_CsvExport extends core_Manager {
     
     
     /**
-     * Можели да се добавя към този мениджър
+     * Може ли да се добавя към този мениджър
      */
     function isApplicable($mvc)
     {
-    	$exportableFields = arr::make($mvc->exportableCsvFields);
+    	$exportableFields = $this->getExportableCsvFields($mvc);
     	
-    	return count($exportableFields) ? TRUE : FALSE;
+    	return empty($exportableFields) ? FALSE : TRUE;
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * 
+     * @return array
+     */
+    public function getExportableCsvFields($mvc)
+    {
+        $exportableFields = arr::make($mvc->exportableCsvFields, TRUE);
+        
+        $csfFiledsArr = $mvc->selectFields("#export == Csv");
+        
+        foreach ($csfFiledsArr as $name => $field) {
+            $exportableFields[$name] = $name;
+        }
+        
+        return $exportableFields;
     }
     
     
@@ -50,7 +70,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     {
     	$sets = $selected = array();
     	$fields = $this->mvc->selectFields();
-    	$exportableFields = arr::make($this->mvc->exportableCsvFields, TRUE);
+    	$exportableFields = $this->getExportableCsvFields($this->mvc);
     	
     	foreach ($fields as $name => $fld){
     		if(in_array($name, $exportableFields)){
@@ -64,7 +84,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	$selectedFields = cls::get('type_Set')->fromVerbal($selected);
     	
     	$sets = implode(',', $sets);
-    	$form->FNC('showColumnNames', 'enum(no=Не,yes=Да)', 'input,caption=Имена на колони,mandatory');
+    	$form->FNC('showColumnNames', 'enum(yes=Да,no=Не)', 'input,caption=Имена на колони,mandatory');
     	$form->FNC('fields', "set($sets)", 'input,caption=Полета,mandatory');
     	$form->setDefault('fields', $selectedFields);
     	
@@ -102,18 +122,66 @@ class bgerp_plg_CsvExport extends core_Manager {
     	$cu = core_Users::getCurrent();
     	$recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
     	
-    	$conf = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
-    	if(count($recs) > $conf) {
-    		redirect(array($this, 'list'), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    	$retUrl = getRetUrl();
+    	
+    	if (empty($retUrl)) {
+    	    if ($this->mvc->haveRightFor('list')) {
+    	        $retUrl = array($this->mvc, 'list');
+    	    } else {
+    	        $retUrl = array($this->mvc);
+    	    }
     	}
     	
-    	$filedsArr = arr::make($filter->fields, TRUE);
+    	if (!$recs) {
+    	    redirect($retUrl, FALSE, '|Няма данни за експортиране');
+    	}
     	
-    	if ($filedsArr['ExternalLink']) {
+    	$maxCnt = core_Setup::get('EF_MAX_EXPORT_CNT', TRUE);
+    	if (count($recs) > $maxCnt) {
+    		redirect($retUrl, FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $maxCnt, 'error');
+    	}
+    	
+    	$fieldsArr = arr::make($filter->fields, TRUE);
+    	
+    	if ($fieldsArr['ExternalLink'] && $recs) {
     	    $this->prepareExternalLink($recs);
     	}
     	
-    	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure, $filter->fields, $filter->decimalSign, $filter->showColumnNames);
+    	$csvParams = array();
+    	$params = array();
+    	
+    	if ($filter->showColumnNames == 'yes') {
+    	    if ($this->mvc && $this->mvc instanceof core_FieldSet) {
+    	        foreach ($fieldsArr as $field => &$caption) {
+    	            
+    	            if($field != 'ExternalLink'){
+        				$value = $this->mvc->fields[$field]->caption;
+        				$valueArr = explode('->', $value);
+        				if(count($valueArr) == 1){
+        					$value = $valueArr[0];
+        				} else {
+        					$value = $valueArr[1];
+        				}
+        			} else {
+        				$value = 'Връзка';
+        			}
+        			$caption = transliterate(tr($value));
+    	        }
+    	    }
+    	} else {
+    	    $params['columns'] = 'none';
+    	}
+    	
+    	$params['delimiter'] = $filter->delimiter;
+    	$params['decPoint'] = $filter->decimalSign;
+    	$params['enclosure'] = $filter->enclosure;
+    	
+    	// TODO
+    	$params['text'] = 'plain';
+    	
+	    $this->mvc->invoke('BeforeExportCsv', array(&$recs));
+    	
+    	$content = csv_Lib::createCsv($recs, $this->mvc, $fieldsArr, $params);
     	$content = iconv('utf-8', $filter->encoding, $content);
     	
     	return $content;
@@ -140,79 +208,15 @@ class bgerp_plg_CsvExport extends core_Manager {
                 // Флъшваме екшъна за да се запише в модела
                 doclog_Documents::flushActions();
                 
-                $recs[$id]->ExternalLink = bgerp_plg_Blank::getUrlForShow($rec->containerId, $mid);
+                $externalLink = bgerp_plg_Blank::getUrlForShow($rec->containerId, $mid);
+            } elseif ($id && $this->mvc instanceof core_Master) {
+                $externalLink = toUrl(array($this->mvc, 'Single', $id), 'absolute');
+            } else {
+                $externalLink = toUrl(array($this->mvc), 'absolute');
             }
+            
+            $recs[$id]->ExternalLink = $externalLink;
         }
-    }
-    
-    
-    /**
-     * Подготвя контента за експортиране
-     */
-    private function prepareFileContent($recs, $delimiter, $enclosure, $fields, $decimalSign, $showColumnNames)
-    {
-		$fields = arr::make($fields, TRUE);
-		
-    	// Експортваме и имената на колоните ако трябва
-    	$csv = '';
-    	if($showColumnNames == 'yes'){
-    		$rCsv = '';
-    		
-    		foreach($fields as $field => $caption) {
-    			if($field != 'ExternalLink'){
-    				$value = $this->mvc->fields[$field]->caption;
-    				$valueArr = explode('->', $value);
-    				if(count($valueArr) == 1){
-    					$value = $valueArr[0];
-    				} else {
-    					$value = $valueArr[1];
-    				}
-    			} else {
-    				$value = 'Връзка';
-    			}
-    			$value = tr($value);
-    			
-    			$rCsv .= ($rCsv ?  $delimiter : " ") . $value;
-    		}
-    		$csv .= $rCsv . "\r\n";
-    	}
-    	
-    	if(is_array($recs)){
-    		foreach($recs as $rec) {
-    			$this->mvc->invoke('BeforeExportCsv', array($rec));
-    			 
-    			// Всеки нов ред ва началото е празен
-    			$rCsv = '';
-    	
-    			/* за всяка колона */
-    			foreach($fields as $field => $caption) {
-    				$type = $this->mvc->fields[$field]->type;
-    					
-    				if ($type instanceof type_Key) {
-    					Mode::push('text', 'plain');
-    					$value = $this->mvc->getVerbal($rec, $field);
-    					Mode::pop('text');
-    				} elseif($type instanceof type_Double){
-    					$value = number_format($rec->{$field}, 2, $decimalSign, '');
-    				}else {
-    					$value = $rec->{$field};
-    				}
-    				$value = strip_tags($value);
-    				
-    				if (preg_match('/\\r|\\n|\,|"/', $value)) {
-    					$value = $enclosure . str_replace($enclosure, "{$enclosure}{$enclosure}", $value) . $enclosure;
-    				}
-    				
-    				$value = ($value) ? $enclosure . $value . $enclosure : '';
-    				$rCsv .= ($rCsv ?  $delimiter : " ") . $value;
-    			}
-    			
-    			/* END за всяка колона */
-    			$csv .= $rCsv . "\r\n";
-    		}
-    	}
-    	
-    	return $csv;
     }
     
     

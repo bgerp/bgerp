@@ -757,6 +757,40 @@ a.button.fright, input[type="button"].fright, input[type="submit"].fright, butto
 	margin: 1px 0 0 0.5em;
 }
 
+form[method=post] .toogleHolder {
+	float: right;
+	display: inline-block;
+	.toogleBtn {
+		&.toggleLeft {
+			margin-right: 0 !important;
+			border-radius: 5px 0 0 5px  !important;
+			&.toggleOn {
+			    color: lightgreen;
+			}
+		}
+		&.toggleRight {
+			margin-left: 0 !important;
+			border-radius: 0 5px 5px 0 !important; 
+			border-left: none !important;
+			&.toggleOn {
+				color: #f4f;
+			}
+		}
+		&.toggleOn {
+			box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
+			background: #777 !important;
+			text-shadow: 1px 1px 0 #333;
+		}
+		&.toggleOff {
+			box-shadow: inset 0 0 20px rgba(255,255,255, 0.3);
+			color: #eee !important;
+			&:hover {
+				background-color: #aaaaaa;
+			}
+		}
+	}
+}
+
 h1:target, h2:target, h3:target, h4:target, h5:target, h6:target {
    color: blue;
 }
@@ -899,14 +933,28 @@ input.more-btn {
 	margin-bottom: 0;
 	background-position: center center;
 	background-image: url(../img/16/toggle-expand.png) !important;
+	background-repeat: no-repeat !important;
 	padding-left: 0.3em !important;
 	padding-right: 0.3em !important;
 	width: 1.9em;
 	height: 2em \9;
 }
-.more-btn {
+
+.more-btn:not(.toolbar-btn) {
+	background-repeat: no-repeat !important;
 	background-image: url(../img/16/toggle-expand.png) !important;
-    background-repeat: no-repeat !important;
+}
+
+.toolbar-btn {
+	cursor: pointer;
+	padding: 2px;
+	opacity: 0.8;
+	&:hover {
+	   opacity: 1;
+	   transition-property: opacity;
+	   transition-duration: 0.5s;
+	   transition-timing-function: ease-in-out;
+	}
 }
 
 a.more-btn {
@@ -924,6 +972,20 @@ a.more-btn {
 
 .more-btn.show-btn {
 	background-image: url(../img/16/toggle2.png) !important;
+}
+
+.shortSelect {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    color: #fff;
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    option {
+        color: #222;
+    }
 }
 
 .docBgIcon {
@@ -979,6 +1041,10 @@ th .rowtools .r, th .rowtools .l {
 
 .rowtools .nw {
 	white-space: nowrap;
+}
+
+.sortBtn {
+    vertical-align: middle;
 }
 /*край на бутони*/
 
@@ -1107,6 +1173,13 @@ a.profile {
     color: #999 !important;
     text-decoration: line-through !important;
 }
+
+.single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
+	opacity: 0.5;	
+	&:hover, &.selected {
+		background-color: #cccccc !important;
+	}
+} 
 
 .state-rejected {
     div.tab-control.deal-history-tab .tab-row .tab a, .single-thread .document .tab-top div.alphabet .tab-row .tab a {
@@ -1511,6 +1584,12 @@ td.formElement {
     }
 	  .w25 {
        width: 8em;
+    }
+
+    .inlineTo {
+        .w25 {
+            width: 7.5em;
+        }
     }
 }
 
@@ -2637,6 +2716,14 @@ div.richtextHide {
 	margin-left: 4px;
 	border-left: dotted 1px #ccc;
 	padding: 10px; 
+}
+.strike-text {
+	color: #666; 
+	text-decoration: line-through;
+	.oneLineCode {
+	   color: #666; 
+	   text-decoration: line-through;
+	}
 }
 
 /*richtext elements*/

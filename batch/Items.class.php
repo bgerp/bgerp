@@ -25,7 +25,7 @@ class batch_Items extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting';
+    public $loadList = 'plg_RowTools, batch_Wrapper, plg_AlignDecimals2, plg_Search, plg_Sorting, plg_State2';
     
     
     /**
@@ -37,19 +37,13 @@ class batch_Items extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'id=Пулт, batch, productId, storeId, quantity';
+    public $listFields = 'id=Пулт, batch, productId, storeId, quantity, state';
     
     
     /**
      * Поле за показване на пулта за редакция
      */
     public $rowToolsField = 'id';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'batch';
     
     
     /**
@@ -121,17 +115,6 @@ class batch_Items extends core_Master {
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn('Изтрий', array($mvc, 'Truncate', 'ret_url' => TRUE), 'title=Дебъг');
-    	}
-    }
-    
-    
-    /**
      * Форсира запис за партида
      * 
      * @param int $productId - ид на артикул
@@ -168,7 +151,7 @@ class batch_Items extends core_Master {
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
@@ -178,7 +161,12 @@ class batch_Items extends core_Master {
     	$row->quantity .= " {$measureShort}";
     	
     	$row->quantity = "<span class='red'>{$row->quantity}</span>";
-    	$row->ROW_ATTR['class'] = 'state-active';
+    	$Definition = batch_Defs::getBatchDef($rec->productId);
+    	$row->batch = $Definition->toVerbal($rec->batch);
+    	
+    	if(isset($fields['-single'])){
+    		$row->state = $mvc->getFieldType('state')->toVerbal($rec->state);
+    	}
     }
     
     
@@ -214,22 +202,34 @@ class batch_Items extends core_Master {
     	
     	// Опресняваме количеството
     	$rec->quantity = $quantity;
-    	$this->save_($rec, 'quantity');
-    }
-    
-    
-    /**
-     * Изчиства записите
-     * @TODO да се махне, когато минат тестовете
-     */
-    function act_Truncate()
-    {
-    	requireRole('debug');
+    	$fields = 'quantity';
     	
-    	batch_Movements::truncate();
-    	batch_Items::truncate();
+    	// Ако количеството е 0 проверяваме дали можем да затворим партидата
+    	if($rec->quantity == 0 && $rec->state != 'closed'){
+    		
+    		// Проверяваме имали движения по партидата в зададения интервал
+    		$dQuery1 = batch_Movements::getQuery();
+    		$dQuery1->where("#itemId = {$rec->id}");
+    		$before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
+    		$before = dt::addSecs(-1 * $before, dt::today());
+    		$dQuery1->where("#createdOn >= '{$before}'");
+    		
+    		// Ако няма движения през зададеното време по тази партида, затваряме я
+    		if(!$dQuery1->fetch()){
+    			$rec->state = 'closed';
+    			$fields = 'quantity,state';
+    		}
+    		
+    	} else {
+    		
+    		// Активираме партидата
+    		if($rec->state != 'active'){
+    			$rec->state = 'active';
+    			$fields = 'quantity,state';
+    		}
+    	}
     	
-    	return new Redirect(array($this, 'list'), '|Успех');
+    	$this->save_($rec, $fields);
     }
     
     
@@ -238,9 +238,50 @@ class batch_Items extends core_Master {
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->showFields = 'search';
     	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'placeholder=Всички складове');
+    	$data->listFilter->FLD('filterState', 'enum(active=Активни,closed=Затворени,expired=Изтичащ срок)', 'placeholder=Състояние');
+    	$data->listFilter->showFields = 'search,store,filterState';
+    	$data->listFilter->input();
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+    	if($filter = $data->listFilter->rec){
+    		
+    		// Филтрираме по склад
+    		if(isset($filter->store)){
+    			$data->query->where("#storeId = {$filter->store}");
+    		}
+    		
+    		// Филтрираме по състояние
+    		if(isset($filter->filterState)){
+    			if($filter->filterState == 'expired'){
+    				
+    				// Намираме всички артикули с дефиниции
+    				$productsWithDates = array();
+    				$classId = batch_definitions_ExpirationDate::getClassId();
+    				$defQuery = batch_Defs::getQuery();
+    				$defQuery->where("#driverClass = '{$classId}'");
+    				$defQuery->show('productId');
+    				while ($defRec = $defQuery->fetch()){
+    					$productsWithDates[$defRec->productId] = $defRec->productId;
+    				}
+    				
+    				// Оставяме само тези партиди, които са с тип срок на годност
+    				$data->query->in('productId', $productsWithDates);
+    				$data->query->where("#state = 'active'");
+    				
+    				// Ако няма налични артикули, не искаме да намериме записи
+    				if(!count($productsWithDates)){
+    					$data->query->where("1 != 1");
+    				}
+    				
+    				// Подреждаме ги от най-старата към най-новата
+    				$data->query->orderBy('batch', 'ASC');
+    			} else {
+    				$data->query->where("#state = '{$filter->filterState}'");
+    			}
+    		}
+    	}
     }
     
     
@@ -326,9 +367,11 @@ class batch_Items extends core_Master {
         
         // Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
+        
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->view = 'horizontal';
-        $form->toolbar->addSbBtn('', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->setAction(getCurrentUrl());
+        $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Инпутваме формата
         $form->input();

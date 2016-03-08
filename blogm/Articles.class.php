@@ -112,7 +112,7 @@ class blogm_Articles extends core_Master {
 		$this->FLD('body', 'richtext(bucket=' . self::FILE_BUCKET . ')', 'caption=Съдържание,mandatory');
  		$this->FLD('commentsMode', 
             'enum(enabled=Разрешени,confirmation=С потвърждение,disabled=Забранени,stopped=Спрени)',
-            'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
+            'caption=Коментари->Режим,mandatory,maxRadio=' . (Mode::is('screenMode', 'narrow') ? 2 : 4));
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
   		$this->FLD('state', 'enum(draft=Чернова,pending=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
   		
@@ -193,12 +193,12 @@ class blogm_Articles extends core_Master {
      * След обновяването на коментарите, обновяваме информацията в статията
      */
     protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-        if($Detail->className == 'blogm_Comments') {
+    {  
+        if($detailMvc->className == 'blogm_Comments') {
             $queryC = $detailMvc->getQuery();
             $queryC->where("#articleId = {$id} AND #state = 'active'");
             $rec = $mvc->fetch($id);
-            $rec->commentsCnt = $queryC->count();
+            $rec->commentsCnt = $queryC->count(); 
             $mvc->save($rec);
         }
     }
@@ -797,7 +797,8 @@ class blogm_Articles extends core_Master {
  		$layout->append(blogm_Categories::renderCategories($data), 'CATEGORIES');
 		
   		
-        if($data->workshop) { 
+        if($data->workshop) {
+            $data->workshop['ret_url'] = TRUE;
             $layout->append(ht::createBtn('Работилница', $data->workshop, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'WORKSHOP');
         }
         
@@ -853,7 +854,7 @@ class blogm_Articles extends core_Master {
     function prepareArchive_(&$data)
     {
 		$query = $this->getQuery();
-        $query->XPR('month', 'varchar', "CONCAT(YEAR(#createdOn), '|', MONTH(#createdOn))");
+        $query->XPR('month', 'varchar', "CONCAT(YEAR(IF(#publishedOn,#publishedOn,#createdOn)), '|', MONTH(IF(#publishedOn,#publishedOn,#createdOn)))");
         
         $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
 
@@ -1064,6 +1065,21 @@ class blogm_Articles extends core_Master {
         unset($url['PU']);
 
         return $url;
+    }
+
+    
+    /**
+     * След рендиране на синъл изгледа
+     *
+     * @param blogm_Articles $mvc
+     * @param core_ET $tpl
+     * @param object $data
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        // Оттегляне на нотификацията
+        $url = array($mvc, 'single', $data->rec->id);
+        bgerp_Notifications::clear($url);
     }
 
 

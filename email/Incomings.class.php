@@ -218,8 +218,17 @@ class email_Incomings extends core_Master
         $accQuery = email_Accounts::getQuery();
         $accQuery->XPR('order', 'double', 'RAND()');
         $accQuery->orderBy('#order');
-
+        
+        $timeStamp = core_DateTime::mysql2timestamp();
+        $currentMinute = floor($timeStamp / 60);
+        
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
+            if (Request::get('forced') != 'yes') {
+                if ($accRec->period === 0 || $accRec->period === '0') continue ;
+                
+                if ($accRec->period && (($currentMinute % $accRec->period) != 0)) continue;
+            }
+            
             self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
     }
@@ -249,7 +258,7 @@ class email_Incomings extends core_Master
         if ($imapConn->connect() === FALSE) {
             $imapLastErr = $imapConn->getLastError();
             $errMsg = "Грешка при свързване";
-            email_Accounts::logErr("{$errMsg}: {$imapLastErr}", $accRec->id, 14);
+            email_Accounts::logWarning("{$errMsg}: {$imapLastErr}", $accRec->id, 14);
             $htmlRes .= "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapLastErr . "";
             
             return;
@@ -702,7 +711,7 @@ class email_Incomings extends core_Master
             
             self::calcAllToAndCc($rec);
             
-            $errEmailInNameStr = tr('Имейлът в името не съвпада с оригиналния|*.');
+            $errEmailInNameStr = 'Имейлът в името не съвпада с оригиналния|*.';
             
             // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
             $row->AllTo = self::getVerbalEmail($rec->AllTo);
@@ -713,7 +722,11 @@ class email_Incomings extends core_Master
                 }
             
                 if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
-                    $row->AllTo .= $clostStr;
+                    if ($row->AllTo instanceof core_ET) {
+                        $row->AllTo->append($clostStr);
+                    } else {
+                        $row->AllTo .= $clostStr;
+                    }
                 }
             }
             
@@ -724,7 +737,11 @@ class email_Incomings extends core_Master
                 }
                 
                 if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
-                    $row->AllCc .= $clostStr;
+                    if ($row->AllCc instanceof core_ET) {
+                        $row->AllCc->append($clostStr);
+                    } else {
+                        $row->AllCc .= $clostStr;
+                    }
                 }
             }
             
@@ -739,7 +756,15 @@ class email_Incomings extends core_Master
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
                 if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
+                    $returnPathEmailsUniq = array_unique($returnPathEmails);
+                    $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
+                    $rEmailsStr = type_Varchar::escape($rEmailsStr);
+                    $w = 'тези';
+                    if (count($returnPathEmailsUniq) == 1) {
+                        $w = 'този';
+                    }
+                    
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: " . $rEmailsStr, 'warning');
                 }
             }
             
@@ -748,7 +773,7 @@ class email_Incomings extends core_Master
                 
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
                 }
             }
         }
@@ -764,7 +789,11 @@ class email_Incomings extends core_Master
         $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
-            $row->fromEml .= ' (' . trim($row->fromName) . ')';
+            if ($row->fromEml instanceof core_ET) {
+                $row->fromEml->append(' (' . trim($row->fromName) . ')');
+            } else {
+                $row->fromEml .= ' (' . trim($row->fromName) . ')';
+            }
         }
     }
     
@@ -834,22 +863,9 @@ class email_Incomings extends core_Master
      */
     protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
-        if ($type == 'error') {
-            $img = 'img/16/error-red.png';
-        } elseif ($type == 'warning') {
-            $img = 'img/16/error.png';
-        } else {
-            $img = 'img/16/info-16.png';
-        }
+        $hint = 'Възможен проблем|*' . '! ' . $errStr;
         
-        $img = sbf($img, '');
-        
-        $errTitle = tr('Възможен проблем' . '! ') . $errStr;
-        $err = ht::createElement('span', array('style' => 'background:url("' . $img . '"); 
-        													width: 16px; height: 16px; display: inline-block;float: left; margin-right: 2px; top: 1px; position: relative;', 
-												'title' => $errTitle), '', TRUE);
-        
-        return $err . $emailStr;
+        return ht::createHint($emailStr, $hint, $type);
     }
     
     
@@ -943,6 +959,7 @@ class email_Incomings extends core_Master
         }
         
         $email = strtolower($email);
+        $email = type_Email::removeBadPart($email);
         $domain = type_Email::domain($email);
         
         $isPublic = FALSE;
@@ -954,6 +971,7 @@ class email_Incomings extends core_Master
         foreach ($emailsArr as $emailCheck) {
             if ($isPublic) {
                 $emailCheck = strtolower($emailCheck);
+                $emailCheck = type_Email::removeBadPart($emailCheck);
                 if ($emailCheck == $email) {
                     
                     return TRUE;

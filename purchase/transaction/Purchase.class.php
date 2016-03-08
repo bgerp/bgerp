@@ -230,6 +230,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         // Отчитаме ддс-то
     	if($this->class->_total->vat){
+    		$vat = $this->class->_total->vat;
 	        $vatAmount = $this->class->_total->vat * $rec->currencyRate;
 	        $entries[] = array(
 	             'amount' => $vatAmount, // В основна валута
@@ -238,8 +239,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                   '401',
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
 	             			array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
-	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+	                        array('currency_Currencies', $currencyId), // Перо 3 - Валута
+	                    'quantity' => $vat, // "брой пари" във валутата на продажбата
 	                ),
 	                
 	                'debit' => array(
@@ -257,18 +258,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Помощен метод - генерира платежната част от транзакцията за покупка (ако има)
      * 
-     * Ако валутата е основната за сч. период
-     * 
-     *    Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
-     *    Ct: 501. Каси                  	   (Каса, Валута)
-     *    
-     * Ако валутата е различна от основната за сч. период
-     * 
-     *    Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
-     *    Ct: 481. Разчети по курсови разлики  (Валута)
-     *    
-     *    Dt: 481. Разчети по курсови разлики  (Валута)
-     *    Ct: 501. Каси   					   (Каса, Валута)
+     * Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
+     * Ct: 501. Каси                  	   (Каса, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -277,9 +268,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     {
         $entries = array();
     	
-    	// покупката съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
         $amountBase = $quantityAmount = 0;
         
         foreach ($rec->details as $detailRec) {
@@ -294,27 +283,17 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         $quantityAmount += $amountBase;
         
-        $caseArr = array('501',
-                        array('cash_Cases', $rec->caseId),        
-                        array('currency_Currencies', $currencyId),
-                    'quantity' => $quantityAmount,);
-        
-        $dealArr = array('401',
-        				array($rec->contragentClassId, $rec->contragentId),
-                		array('purchase_Purchases', $rec->id),
-                        array('currency_Currencies', $currencyId),
-                    'quantity' => $quantityAmount,);
-        
-        if($rec->currencyId == acc_Periods::getBaseCurrencyCode($rec->valior)){
-        	$entries[] = array('amount' => $amountBase, 'debit' => $dealArr, 'credit' => $caseArr, 'reason' => 'Плащане към доставчик');
-        } else {
-        	$entries = array();
-        	$entries[] = array('amount' => $amountBase * $rec->currencyRate,
-        			'debit' => $dealArr,
-        			'credit' => array('481', array('currency_Currencies', $currencyId),
-        					'quantity' => $quantityAmount), 'reason' => 'Плащане във валута различна от основната');
-        	$entries[] = array('amount' => $amountBase * $rec->currencyRate, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr, 'reason' => 'Плащане във валута различна от основната');
-        }
+        $entries[] = array('amount' => $amountBase * $rec->currencyRate, 
+        				   'debit' => array('401',
+        									array($rec->contragentClassId, $rec->contragentId),
+					                		array('purchase_Purchases', $rec->id),
+					                        array('currency_Currencies', $currencyId),
+                    						'quantity' => $quantityAmount,), 
+        				   'credit' => array('501',
+                        					array('cash_Cases', $rec->caseId),        
+                        					array('currency_Currencies', $currencyId),
+                    						'quantity' => $quantityAmount,), 
+        				   'reason' => 'Плащане към доставчик');
         
         return $entries;
     }
@@ -409,11 +388,17 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Колко е платеното по сделка
      */
-    public static function getPaidAmount($jRecs)
+    public static function getPaidAmount($jRecs, $rec)
     {
-    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503,481', 'credit')->amount;
+    	// Взимаме количествата по валути
+    	$quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503');
+    	$res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
     	
-    	return $paid;
+    	// К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
+    	$amount = $res->quantity;
+    	$amount *= $rec->currencyRate;
+    	
+    	return $amount;
     }
     
     

@@ -192,9 +192,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 		        if (isset($data->rec->store)) { 
 		        	$storeId = $data->rec->store;
 		        }
-
-		       
-		        //bp(store_Products::fetchField("#productId = '{$product->productId}' AND #classId = '{$product->classId}' AND #storeId = '{$storeId}'", 'quantity'));
+		        
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
 			    if(!array_key_exists($index, $data->recs)){
@@ -227,8 +225,8 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 				    $obj->quantityDelivered += $product->quantityDelivered;
 				    $obj->quantityToDelivered += abs($product->quantityDelivered - $product->quantity);
 				    $obj->dateSale = $dateSale[$product->productId];
-				    $obj->sales[] = $product->saleId;
-				    $obj->store[] = $store;
+				    $obj->sales = array($product->saleId);
+				    $obj->store = array($store);
 			        		
 			    }
 			}
@@ -262,7 +260,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 	        			$storeJob[$storeJobRec->productId] += $storeJobRec->quantity;
 	        		}
 	        	}
-	        	//bp($indexJ);
+	        	
 	        	$data->recs[$indexJ] =
 	        		(object) array ('id' => $recJobs->productId,
 	        				'quantityJob'	=> $recJobs->quantity,
@@ -270,7 +268,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 	        				'quantityToProduced'=> abs($recJobs->quantityProduced - $recJobs->quantity),
 	        				'date' => $recJobs->dueDate,
 	        				'jobs' => array($recJobs->id),
-	        				'store' => $storeJob
+	        				'store' => array($storeJob)
 	        				);
 	
 	        // в противен случай го ъпдейтваме
@@ -281,8 +279,8 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
 	        	$obj->quantityProduced += $recJobs->quantityProduced;
 	        	$obj->quantityToProduced += abs($recJobs->quantityProduced - $recJobs->quantity);
 	        	$obj->date =  $recJobs->dueDate;
-	        	$obj->jobs[] = $recJobs->id;
-	        	$obj->store += $storeJob;
+	        	$obj->jobs = array($recJobs->id);
+	        	$obj->store = array($storeJob);
 	
 	        }
 	    }
@@ -322,7 +320,6 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         	}
         }
 
-        //bp($index,$indexJ, $data);
         return $data;
     }
     
@@ -505,7 +502,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     		
     	}
 		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
-	
+
 		$row->inStore = $Int->toVerbal($rec->store);
 		
 		

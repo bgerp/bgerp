@@ -31,7 +31,7 @@ class bank_Accounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected, plg_Search';
+    var $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search';
     
     
     /**
@@ -43,7 +43,7 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'tools=Пулт, iban, contragent=Контрагент, currencyId';
+    var $listFields = 'iban, contragent=Контрагент, currencyId';
     
     
     /**
@@ -216,7 +216,7 @@ class bank_Accounts extends core_Master {
         // ако формата е събмитната, и банката и бика не са попълнени,  
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
         // ако те се разминават с тези в системата
-        if($form->isSubmitted()){
+        if($form->isSubmitted()){  
             if($form->rec->iban{0} != '#') {
                 $bank = bglocal_Banks::getBankName($form->rec->iban);
             }
@@ -327,9 +327,8 @@ class bank_Accounts extends core_Master {
         $tpl->append(tr('Банкови сметки'), 'title');
         
         if(count($data->rows)) {
-            
             foreach($data->rows as $id => $row) {
-                
+            	core_RowToolbar::createIfNotExists($row->_rowTools);
                 $rec = $data->recs[$id];
                 
                 $cCodeRec = currency_Currencies::fetch($rec->currencyId);
@@ -345,8 +344,7 @@ class bank_Accounts extends core_Master {
                 }
                 
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
-                
-                $tpl->append("{$row->title} {$row->tools}", 'content');
+                $tpl->append("{$row->title} " . $row->_rowTools->renderHtml(), 'content');
                 
                 $tpl->append("</div>", 'content');
             }

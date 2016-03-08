@@ -161,19 +161,18 @@ class batch_Defs extends embed_Manager {
     	if(!empty($batch)){
     		$batch = self::getBatchArray($productId, $batch);
     		
-    		foreach ($batch as &$b){
-    			$b = cls::get('type_Varchar')->toVerbal($b);
-    			if(batch_Movements::haveRightFor('list')){
-    				
-    				if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    		foreach ($batch as $key => &$b){
+    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    				if(!haveRole('batch,ceo')){
     					Request::setProtected('batch');
-    					$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $b))->getContent();
     				}
+    				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
     			}
     		}
     		
     		$count = count($batch);
     		$batch = implode(', ', $batch);
+    		
     		$batch = "[html]{$batch}[/html]";
     		$string .= ($string) ? "\n" : '';
     		
@@ -229,6 +228,62 @@ class batch_Defs extends embed_Manager {
     				}
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Форсира партидна дефиниция на артикула ако може
+     * Партидната дефиниция се намира по следния приоритет:
+     * 1. Ако артикула е базиран на прототип неговата партидна дефиниция
+     * 2. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
+     * 3. От драйвера на артикула, ако върне подходящ клас
+     * 
+     * @param int $productId - ид на артикул
+     * @return int $id - форсирания запис
+     */
+    public static function force($productId)
+    {
+    	// Трябва да е подаден складируем артикул
+    	expect($productRec = cat_Products::fetchRec($productId));
+    	expect($productRec->canStore == 'yes');
+    	
+    	// Ако има съществуваща дефиниция, не създаваме нова
+    	if($id = static::fetchField("#productId = {$productRec->id}", 'id')) return $id;
+    	
+    	// Ако артикула е базиран на прототип, който има партида копираме му я
+    	if(isset($productRec->proto)){
+    		if($exRec = static::fetch("#productId = {$productRec->proto}")){
+    			unset($exRec->id,$exRec->modifiedOn,$exRec->modifiedBy);
+    			$exRec->productId = $productRec->id;
+    			
+    			// Записваме точно копие на дефиницията от прототипа
+    			return self::save($exRec);
+    		}
+    	}
+    	
+    	// Ако артикула е в папка на категория, с избрана партида връщаме нея
+    	$folderClassName = doc_Folders::fetchCoverClassName($productRec->folderId);
+    	if($folderClassName == 'cat_Categories'){
+    		$folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
+    		if($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")){
+    			unset($categoryDefRec->id, $categoryDefRec->categoryId);
+    			$categoryDefRec->productId = $productRec->id;
+    				
+    			// Записваме точно копие на дефиницията от категорията
+    			return self::save($categoryDefRec);
+    		}
+    	}
+    	
+    	// Ако горните условия не са изпълнени, питаме драйвера дали може да върне дефиниция
+    	$Driver = cat_Products::getDriver($productRec);
+    	$batchClass = $Driver->getDefaultBatchDef($productRec);
+    	if(!empty($batchClass)){
+    		$BatchType = cls::get($batchClass);
+    		$rec = (object)array('driverClass' => $BatchType->getClassId(), 'productId' => $productRec->id);
+    	
+    		// Записваме дефолтната партида
+    		return self::save($rec);
     	}
     }
 }

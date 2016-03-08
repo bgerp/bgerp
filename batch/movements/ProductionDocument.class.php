@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -61,9 +61,12 @@ class batch_movements_ProductionDocument
 			$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
 			$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
 				
-			foreach ($batches as $b){
+			// Ако няма склад продължаваме
+			if(!$storeId) continue;
+			
+			foreach ($batches as $key => $b){
 				$entries[] = (object)array('productId' => $dRec->productId,
-										   'batch'     => $b,
+										   'batch'     => $key,
 										   'storeId'   => $storeId,
 										   'quantity'  => $quantity,
 										   'operation' => $operation,

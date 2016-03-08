@@ -515,4 +515,37 @@ class currency_CurrencyRates extends core_Detail
 		 
 		return FALSE;
     }
+    
+    
+    /**
+     * Сравнява две суми във валута и проверява дали са в допустими граници
+     * 
+     * @param double $amountFrom
+     * @param double $amountTo
+     * @param date $date
+     * @param string $currencyFromCode
+     * @param string $currencyToCode
+     * 
+     * @return string|FALSE
+     */
+    public static function checkAmounts($amountFrom, $amountTo, $date, $currencyFromCode, $currencyToCode = NULL)
+    {
+    	expect(isset($amountFrom));
+    	expect(isset($amountTo));
+    	if(!$currencyToCode){
+    		$currencyToCode = acc_Periods::getBaseCurrencyCode($date);
+    	}
+    	$expectedAmount = self::convertAmount($amountFrom, $date, $currencyFromCode, $currencyToCode);
+    	
+    	$conf = core_Packs::getConfig('currency');
+    	$percent = $conf->EXCHANGE_DEVIATION * 100;
+    	
+    	@$difference = round(abs($amountTo - $expectedAmount) / min($amountTo, $expectedAmount) * 100);
+    	if($difference > $percent) {
+    		
+    		return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
+    	}
+    	
+    	return FALSE;
+    }
 }

@@ -9,13 +9,14 @@
  * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
  */
 class core_Tabs extends core_BaseClass
 {
+	
 	/**
 	 * Масив с табове
 	 */
@@ -26,6 +27,12 @@ class core_Tabs extends core_BaseClass
 	 * Масив с табове
 	 */
 	protected $urlParam = 'Tab';
+	
+	
+	/**
+	 * Да се рендира ли селектирания таб при принтиране
+	 */
+	protected $hideSelectedTabOnPrinting = FALSE;
 	
 	
 	/**
@@ -112,10 +119,19 @@ class core_Tabs extends core_BaseClass
 
             $tabClass = $this->classes[$tab];
             
+            $displayNone = '';
+            
+            // Ако е оказано да не рендираме селектирания таб и режима е xhtml,pdf или printing, скриваме го
+            if($this->hideSelectedTabOnPrinting === TRUE && $selected){
+            	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            		$displayNone = 'display:none !important';
+            	}
+            }
+            
             if ($url) {
                 $url = ht::escapeAttr($url);
-                $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
-                $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;{$displayNone}' class='tab {$selected}'>";
+                $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}' style='{$displayNone}'>{$title}</a>";
                 if($selected) {
                     $head .= $hintBtn;
                 }
@@ -125,10 +141,7 @@ class core_Tabs extends core_BaseClass
             }
             
             $head .= "</div>\n";
-           
         }
-        
-      
  
         $html = "<div class='tab-control {$this->htmlClass}'>\n";
         $html .= "<div class='tab-row'><div class='row-holder'>\n";

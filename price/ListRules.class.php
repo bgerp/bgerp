@@ -300,12 +300,13 @@ class price_ListRules extends core_Detail
 		    $parentTitle = $parentRec->title;
         }
 		
-        $form->setOptions('productId', cat_Products::getByProperty('canSell'));
-        $availableProducts = price_GroupOfProducts::getAllProducts();
+        $availableProducts = price_GroupOfProducts::getAllProducts(NULL, FALSE);
         if(count($availableProducts)){
-        	$form->setOptions('productId', $availableProducts);
+        	$options = cat_Products::getByProperty('canSell');
+        	$newOptions = array_intersect_key($options, $availableProducts);
+        	$form->setOptions('productId', $newOptions);
         } else {
-        	$form->getFieldType('productId')->options = array('' => '');
+        	$form->setReadOnly('productId');
         }
         
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
@@ -374,6 +375,10 @@ class price_ListRules extends core_Detail
     		$msg = 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!';
     		$data->form->toolbar->setWarning('save', $msg);
     		$data->form->toolbar->setWarning('saveAndNew', $msg);
+    	}
+    	
+    	if(isset($rec->productId)){
+    		$data->form->toolbar->removeBtn('saveAndNew');
     	}
     }
     

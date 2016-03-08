@@ -32,7 +32,7 @@ class catering_Menu extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
+    public $loadList = 'plg_RowTools2, plg_Created, catering_Wrapper, plg_Sorting,
                      plg_Printing, Companies=catering_Companies, CrmCompanies=crm_Companies';
     
     

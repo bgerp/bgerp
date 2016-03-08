@@ -63,6 +63,12 @@ class remote_BgerpDriver extends core_Mvc
 
 
     /**
+     * Дали да се прави обновяване по крон на shutdown
+     */
+    private $cronUpdate = FALSE;
+
+
+    /**
 	 * Добавя полетата на драйвера към Fieldset
 	 * 
 	 * @param core_Fieldset $fieldset
@@ -98,7 +104,7 @@ class remote_BgerpDriver extends core_Mvc
             $row->auth = ht::createLink('Получена', NULL, NULL, 'ef_icon=img/16/checked-green.png');
         }
         if($rec->data->rKeyCC) {
-            $row->auth .= ' ' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
+            $row->auth .= '&nbsp;' . ht::createLink('Дадена', NULL, NULL, 'ef_icon=img/16/checked-orange.png');
         }
     }
 
@@ -136,7 +142,7 @@ class remote_BgerpDriver extends core_Mvc
 
 	
 	/**
-	 * Можели вградения обект да се избере
+	 * Може ли вградения обект да се избере
 	 */
 	public function canSelectDriver($userId = NULL)
 	{
@@ -334,13 +340,15 @@ class remote_BgerpDriver extends core_Mvc
 
                 if($nCnt) {
                     if($nCnt == 1) {
-                        $nCnt = 'едно ново известие';
+                        $nCnt = '|едно ново известие|*';
                     } else {
-                        $nCnt .= ' нови известия';
+                        $nCnt .= ' |нови известия|*';
                     }
                     $url = str_replace(array('http://', 'https://'), array('', ''), $rec->url);
-                    $message = "Имате {$nCnt} в {$url}";
-                    bgerp_Notifications::add($message, $nUrl, $userId);
+                    $message = "|Имате|* {$nCnt} |в|* {$url}";
+
+                    // Добавя, ако няма нофификация
+                    bgerp_Notifications::add($message, $nUrl, $userId, NULL, NULL, TRUE);
                 } else {
                     bgerp_Notifications::clear($nUrl, $userId);
                 }
@@ -356,15 +364,36 @@ class remote_BgerpDriver extends core_Mvc
     {
         expect($id = Request::get('id', 'int'));
         
+        $userId = core_Users::getCurrent();
+        bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
+        
         expect($auth = remote_Authorizations::fetch($id));
 
-        expect($auth->userId == core_Users::getCurrent());
+        expect($auth->userId == $userId);
         
         $url = self::prepareQuestionUrl($auth, __CLASS__, 'Autologin');
         
         remote_Authorizations::logLogin('Автоматично логване', $id);
+
+        $this->cronUpdate = TRUE;
         
         return new Redirect($url);
+    }
+
+
+    /**
+     * Извиква се на on_Shutdown и обновява състоянието на нотификлациите
+     */
+    function on_Shutdown()
+    {
+        $me = cls::get('remote_BgerpDriver');
+        if($me->cronUpdate) {
+            core_App::flushAndClose();
+            sleep(5);
+            Debug::log('Sleep 5 sec. in' . __CLASS__);
+
+            $me->cron_UpdateRemoteNotification();
+        }
     }
 
 

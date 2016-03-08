@@ -475,6 +475,7 @@ class doc_UnsortedFolders extends core_Master
     	// търсим всички дали в тази папка има задачи 
         $queryContainers->where("#folderId = '{$folderData->folderId}' AND #docClass = '{$idTaskDoc}'");
         
+        $resTask = array();
         while ($recContainers = $queryContainers->fetch()) {
         	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
         	
@@ -503,9 +504,6 @@ class doc_UnsortedFolders extends core_Master
     	    		
     	    		} else {
     	    			$timeDuration = $recTask->timeDuration;
-    	    			/*if ($recTask->id == 37) {
-    	    				bp($timeDuration);
-    	    			}*/
     	    		}
 
 	        		// Ако имаме права за достъп до сингъла
@@ -516,8 +514,8 @@ class doc_UnsortedFolders extends core_Master
 			        	$flagUrl = FALSE;
 			        }
 
-			        $resTask = array();
-	        		$resTask = array( 
+			       
+	        		$resTask[] = array( 
 	    			    					'taskId' => $recTask->id,
 	    			    					'rowId' =>  '',
 	    		    						'timeline' => array (
@@ -558,6 +556,9 @@ class doc_UnsortedFolders extends core_Master
         	}
         }
         
+        $resources = array();
+        $attr = array();
+        
         if (is_array($resTask)) {
 	        // намираме, какво е избрано във формата за филтриране
 	        $form = self::prepareFilter();
@@ -573,13 +574,13 @@ class doc_UnsortedFolders extends core_Master
 	        				return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
 	        			}
 	        		});
-	        		
-	        		$i = 0;
+	        	   
+	        	    $i = 0;
 	        		foreach ($resTask as $id => $task) {
-	        				 
+	          
 	        			$rowArr = array ();
 	        			$rowArr[$id] =  $i;
-	        		
+	        
 	        			$resTask[$id]['rowId'] = $rowArr;
 	        			
 	        			$icon = cal_Tasks::getIcon($task['taskId']);
@@ -588,16 +589,12 @@ class doc_UnsortedFolders extends core_Master
 	       
 	        			$attr = array();
 	        			$attr['ef_icon'] = $icon;
-	        			//$attr['style'] .= 'background-color: #FFA3A3;';
-	        			//$attr['style'] .= 'padding-right: 4px;';
-	        			//$attr['style'] .= 'box-shadow: 0px 0px 3px #FF6666 inset;';
 	        			$attr['title'] = $recTitle;
 	        			
 	        			$title = ht::createLink(str::limitLen($recTitle, 35),
 	        					array('cal_Tasks', 'single', $task['taskId']),
 	        					NULL, $attr);
-	
-	        			$resources = array();
+	        			
 	        			$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
 	        		
 	        			$i++;
@@ -666,7 +663,6 @@ class doc_UnsortedFolders extends core_Master
 	        						array('cal_Tasks', 'single', $task['taskId']),
 	        						NULL, $attr);
 	
-	        				$resources = array();
 	        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
 	        				$i++;
 	        			}
@@ -713,7 +709,7 @@ class doc_UnsortedFolders extends core_Master
     		$folderId = $query->fetch()->folderId;
     	}
     	
-    	// За всяко предложение, проверяваме можели да бъде добавен
+    	// За всяко предложение, проверяваме може ли да бъде добавен
     	// такъв документ като нова нишка в папката
     	foreach ($suggestions as $classId => $name){
     		if (!$folderId || !cls::get($classId)->canAddToFolder($folderId)){

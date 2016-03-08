@@ -196,6 +196,8 @@ class type_Set extends core_Type {
         
         $sArr = explode(',', $set);
         
+        $resArr = array();
+        
         foreach($sArr as $set) {
             if($set !== '') {
                 $resArr[$set] = $set;

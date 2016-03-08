@@ -602,12 +602,10 @@ class cal_Reminders extends core_Master
      */
     function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
-        $res = TRUE;
-        
         // Чернова документи не могат да се променят
-        if ($rec->state == 'draft') {
+        if ($res !== FALSE && $rec->state != 'draft') {
             
-            $res = FALSE;
+            $res = TRUE;
         } 
     }
     

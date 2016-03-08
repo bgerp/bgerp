@@ -59,7 +59,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
     	$form->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title)', 'caption=Сензори,mandatory');
     	
     	$form->FLD('orderField', "enum(,time=Време,indicatorId=Индикатор,value=Стойност)", 'caption=Подредба->По,formOrder=110000');
-    	$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+    	$form->FLD('orderBy', 'enum(,asc=Възходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
     }
 
 
@@ -166,7 +166,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
 
 
     /**
-     * Можели вградения обект да се избере
+     * Може ли вградения обект да се избере
      */
     public function canSelectInnerObject($userId = NULL)
     {

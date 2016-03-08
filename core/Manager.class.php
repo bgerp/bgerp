@@ -542,6 +542,10 @@ class core_Manager extends core_Mvc
             $data->pager->setLimit($data->query);
         }
         
+        if (!isset($data->recs)) {
+            $data->recs = array();
+        }
+        
         // Извличаме редовете
         while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
@@ -556,7 +560,11 @@ class core_Manager extends core_Mvc
      */
     function prepareListRows_(&$data)
     {
-        if(count($data->recs)) {
+        if (!isset($data->rows)) {
+            $data->rows = array();
+        }
+        
+        if(isset($data->recs) && !empty($data->recs)) {
             foreach($data->recs as $id => $rec) {
                 $data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
             }
@@ -761,9 +769,12 @@ class core_Manager extends core_Mvc
         // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         
-        // Ако има полета за скриване, ако са празни задаваме ги
-        if(isset($this->hideListFieldsIfEmpty)){
-        	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
+        // Имали колони в които ако няма данни да не се показват ?
+        $hideColumns = arr::make($this->hideListFieldsIfEmpty, TRUE);
+       
+        // Ако има колони за филтриране, филтрираме ги
+        if(count($hideColumns)){
+        	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $hideColumns);
         }
         
         // Рендираме таблицата
@@ -1101,6 +1112,8 @@ class core_Manager extends core_Mvc
             
             if (Request::$vars['_POST']) {
                 self::logWrite(ucfirst($act), Request::get('id'), 180);
+            } else {
+                self::logInfo(ucfirst($act), Request::get('id'));
             }
         }
         

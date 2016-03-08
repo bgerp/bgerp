@@ -298,7 +298,8 @@ class doc_SharablePlg extends core_Plugin
      * 
      * @param core_Master $mvc
      * @param NULL|array $res
-     * @param integer $cid
+     * @param object $rec
+     * @param integer $originId
      */
     function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
     {

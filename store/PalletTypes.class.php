@@ -26,7 +26,7 @@ class store_PalletTypes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools2';
     
     
     /**
@@ -74,7 +74,7 @@ class store_PalletTypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,title,width=Широчина,depth=Дълбочина,height=Височина,maxWeight=Макс. тегло,tools=Пулт';
+    var $listFields = 'id,title,width=Широчина,depth=Дълбочина,height=Височина,maxWeight=Макс. тегло';
     
     
     /**

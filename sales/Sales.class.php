@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -42,7 +42,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf';
     
     
     /**
@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
     /**
@@ -63,6 +63,12 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да чете?
      */
     public $canRead = 'ceo,sales';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,sales';
     
     
     /**
@@ -87,14 +93,14 @@ class sales_Sales extends deals_DealMaster
      * Кой може да принтира фискална бележка
      */
     public $canPrintfiscreceipt = 'ceo,sales';
-    
-    
-    /**
+
+
+	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,sales';
-
-
+	
+	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
@@ -524,22 +530,57 @@ class sales_Sales extends deals_DealMaster
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
+        $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries);
+        $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
-        $result->set('amountPaid', sales_transaction_Sale::getPaidAmount($entries));
-        $result->set('deliveryAmount', sales_transaction_Sale::getDeliveryAmount($entries));
+        $result->set('amountPaid', $paidAmount);
+        $result->set('deliveryAmount', $deliveredAmount);
         $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
+        
+        // Опитваме се да намерим очакваното плащане
+        $expectedPayment = NULL;
+        
+        // Ако доставеното > платено това е разликата
+        if($deliveredAmount > $paidAmount){
+        	$expectedPayment = $deliveredAmount - $paidAmount;
+        } elseif($amountFromProforma = sales_Proformas::getExpectedDownpayment($rec)){
+        	
+        	// Ако има авансова фактура след последния платежен документ, това е сумата от аванса и
+        	$expectedPayment = $amountFromProforma;
+        } else {
+        	
+        	// В краен случай това е очаквания аванс от метода на плащане
+        	$expectedPayment = $downPayment;
+        }
+        
+        // Ако има очаквано плащане, записваме го
+        if($expectedPayment){
+        	if(empty($deliveredAmount)){
+        		$expectedPayment = $expectedPayment - $paidAmount;
+        	}
+        	
+        	if($expectedPayment > 0){
+        		$result->set('expectedPayment', $expectedPayment);
+        	}
+        }
         
         // Спрямо очакваното авансово плащане ако има, кои са дефолт платежните операции
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
-        if($agreedDp && empty($actualDp)){
-        	$result->set('defaultCaseOperation', 'customer2caseAdvance');
-        	$result->set('defaultBankOperation', 'customer2bankAdvance');
-        } else {
-        	$result->set('defaultCaseOperation', 'customer2case');
-        	$result->set('defaultBankOperation', 'customer2bank');
+        
+        // Дефолтните платежни операции са плащания към доставчик
+        $result->set('defaultCaseOperation', 'customer2case');
+        $result->set('defaultBankOperation', 'customer2bank');
+        
+        // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
+        // очакваме още да се плаща по аванаса
+        if($agreedDp){
+        	if(empty($actualDp) || $actualDp < $agreedDp * 0.8){
+        		$result->set('defaultCaseOperation', 'customer2caseAdvance');
+        		$result->set('defaultBankOperation', 'customer2bankAdvance');
+        	}
         }
         
         if (isset($actions['ship'])) {
@@ -709,31 +750,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * След подготовка на сингъла
-     */
-    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
-    {
-    	$data->jobInfo = array();
-    	if($data->rec->state != 'rejected'){
-    		
-    		// Да не се показва блока взависимост в какъв режим сме
-    		if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
-    		
-    		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
-    		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$data->rec->id}");
-    		$dQuery->show('productId,packagingId,quantity,tolerance');
-    		
-    		while($dRec = $dQuery->fetch()){
-    			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $data->rec)){
-    				$data->jobInfo[] = $dRow;
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
@@ -756,13 +772,6 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	// Ако има подготвена информация за наличните задания, рендираме я
-    	if(count($data->jobInfo)){
-    		$table = cls::get('core_TableView');
-    		$jobsInfo = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание');
-    		$tpl->replace($jobsInfo, 'JOB_INFO');
-    	}
-    	
     	// Слагаме iframe заради касовата бележка, ако не принтираме
     	if(!Mode::is('printing')){
     		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
@@ -891,5 +900,142 @@ class sales_Sales extends deals_DealMaster
     	$def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_SALE_DEF_TPL_BG : $conf->SALE_SALE_DEF_TPL_EN;
     	
     	return $def;
+    }
+    
+    
+    /**
+     * След подготовка на информацията за наличните табове
+     */
+    public static function on_AfterPrepareDealTabs($mvc, &$res, &$data)
+    {
+    	if(!isset($data->tabs)) return;
+    	$url = getCurrentUrl();
+    	
+    	if(haveRole('ceo,planning,sales,store')){
+    		$manifacturable = static::getManifacurableProducts($data->rec);
+    		if(count($manifacturable)){
+    			$url['dealTab'] = 'JobsInfo';
+    			$data->tabs->TAB('JobsInfo', 'Задания' , $url);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвяме информацията за наличните задания към артикули от сделката
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    protected function prepareJobsInfo($data)
+    {
+    	$rec = $data->rec;
+    	$data->JobsInfo = array();
+    	
+    	// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
+    	$dQuery = sales_SalesDetails::getQuery();
+    	$dQuery->where("#saleId = {$rec->id}");
+    	$dQuery->show('productId,packagingId,quantity,tolerance');
+    	
+    	while($dRec = $dQuery->fetch()){
+    		if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
+    			$data->JobsInfo[] = $dRow;
+    		}
+    	}
+    	
+    	if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
+    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на информацията на заданията
+     *
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected function renderJobsInfo(&$tpl, $data)
+    {
+    	// Ако има подготвена информация за наличните задания, рендираме я
+    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store')){
+    		
+    		$Jobs = cls::get('planning_Jobs');
+    		$table = cls::get('core_TableView', array('mvc' => $Jobs));
+    		
+    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
+    		
+    		foreach ($data->JobsInfo as &$row){
+    			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
+    				if($row->{$var} == 0){
+    						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
+    					}
+    				}
+    			}
+    	
+    			$jobsTable = $table->get($data->JobsInfo, 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+    			$jobTpl->replace($jobsTable, 'table');
+    			$tpl->replace($jobTpl, 'JOB_INFO');
+    		}
+    		
+    		if(isset($data->addJobUrl)){
+    			$addLink = ht::createLink('', $data->addJobUrl, FALSE, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство към артикул');
+    			$tpl->replace($addLink, 'JOB_ADD_BTN');
+    		}
+    }
+    
+    
+    /**
+     * Връща всички производими артикули от продажбата
+     * 
+     * @param mixed $id - ид или запис
+     * @return array $res - масив с производимите артикули
+     */
+    public static function getManifacurableProducts($id)
+    {
+    	$rec = static::fetchRec($id);
+    	$res = array();
+    	
+    	$saleQuery = sales_SalesDetails::getQuery();
+    	$saleQuery->where("#saleId = {$rec->id}");
+    	$saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+    	$saleQuery->where("#meta = 'yes'");
+    	while($dRec = $saleQuery->fetch()){
+    		$res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * След вербализиране на записа
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->bankAccountId)){
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
+    		}
+    	}
+    	
+    	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
+    		
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    			if($rec->contragentClassId == crm_Companies::getClassId()){
+    				$companyRec = crm_Companies::fetch($rec->contragentId);
+    				$bulgariaCountryId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+    				if($companyRec->country != $bulgariaCountryId && drdata_Countries::isEu($companyRec->country)){
+    					if(empty($companyRec->vatId)){
+    						$row->vatId = tr('Ще бъде предоставен');
+    						$row->vatId = "<span class='red'>{$row->vatId}</span>";
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	
     }
 }

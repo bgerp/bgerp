@@ -298,6 +298,16 @@ class blogm_Comments extends core_Detail {
         }
         
         $rec->spamRate = (int) $sr;
+
+        if(!$rec->id && $rec->spamRate <= 3) {
+            $artRec = $mvc->Master->fetch($rec->articleId);
+            $title = $mvc->Master->getVerbal($artRec, 'title');
+            bgerp_Notifications::add(
+                "Нов коменрар към \"{$title}\"", // съобщение
+                array($mvc->Master, 'single', $rec->articleId), // URL
+                $artRec->createdBy
+            );
+        }
     }
 
 

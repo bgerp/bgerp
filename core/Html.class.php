@@ -247,7 +247,9 @@ class core_Html
                 }
 
                 if ($attr['value'] == $selected) {
-                    $attr['selected'] = 'selected';
+                    if($selected != NULL || $attr['value'] === '' || $attr['value'] === NULL) {
+                        $attr['selected'] = 'selected';
+                    }
                 }
 
                 // Хак за добавяне на плейс-холдер
@@ -593,6 +595,7 @@ class core_Html
         
         // Ако имаме грешка - показваме я и не продължаваме
         if ($attr['error']) {
+        	$attr['error'] = tr($attr['error']);
         	$attr['onclick'] = " alert('{$attr['error']}'); return false; ";
             unset($attr['error']);
         }
@@ -764,6 +767,21 @@ class core_Html
 
             unset($attr['ef_icon']);
         }
+        
+        // Оцветяваме линка в зависимост от особеностите му
+        if(!$attr['disabled']) {
+            if($warning){
+                $attr['style'] .= 'color:#772200 !important;';
+            } elseif (strpos($url, '://')) {
+                if(!strpos($attr['class'], 'out')) {
+                    $attr['class'] .= ' out';
+                }
+            } elseif($attr['target'] == '_blank') { 
+                $attr['style'] .= 'color:#008800 !important;';
+            }
+        } else {
+            $attr['style'] .= 'color:#999 !important;';
+        }
 
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
@@ -858,25 +876,23 @@ class core_Html
      * @param notice|warning|error|string $icon - име на иконката
      * @return core_ET $element                 - шаблон с хинта
      */
-    static function createHint($body, $hint, $icon = 'notice')
+    public static function createHint($body, $hint, $icon = 'notice')
     {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')) return $body;
+    	if(empty($hint)) return $body;
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
     	
-    	$hint = tr($hint);
+    	$hint = strip_tags(tr($hint));
+ 
     	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
     	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
-    	
     	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
         
         $element->append($body, 'body');
         $element->append($hint, 'hint');
         $element->append($iconHtml, 'icon');
-        
-        jquery_Jquery::run($element, 'makeTooltipFromTitle();', TRUE);
-        jquery_Jquery::runAfterAjax($element, 'makeTooltipFromTitle');
-        
+               
     	return $element;
     }
     

@@ -62,55 +62,36 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
      *    Dt: XXX. Разчетна сметка  (Доставчик, Сделки, Валута)
      *    Ct: 501. Каси             (Каса, Валута)
      *    
-     * Ако валутата е различна от основната за сч. период
-     * 
-     *    Dt: XXX. Разчетна сметка             (Доставчик, Сделки, Валута)
-     *    Ct: 481. Разчети по курсови разлики  (Валута)
-     *    
-     *    Dt: 481. Разчети по курсови разлики  (Валута)
-     *    Ct: 501. Каси   					   (Каса, Валута)
-     *    
      * @param stdClass $rec
      * @return array
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$amount = $rec->rate * $rec->amount;
-    	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
     	
-    	// Дебита е винаги във валутата на пораждащия документ,
-    	$debitCurrency = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
-    	$debitQuantity = $amount / $origin->fetchField('currencyRate');
-    	
-    	// Дебитираме разчетната сметка
-    	$dealArr = array($rec->debitAccount,
-    			array($rec->contragentClassId, $rec->contragentId),
-    			array($origin->className, $origin->that),
-    			array('currency_Currencies', $debitCurrency),
-    			'quantity' => $sign * $debitQuantity);
-    	 
-    	$caseCredit = array($rec->creditAccount,
-    			array('cash_Cases', $rec->peroCase),
-    			array('currency_Currencies', $rec->currencyId),
-    			'quantity' => $sign * $rec->amount);
-    	 
-    	// Ако документа е в основната валута, няма к-ви разлики
-    	if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-    		$entry = array('amount' => $sign * $amount, 'debit' => $dealArr, 'credit' => $caseCredit,);
-    		$entry = array($entry);
+    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    	if($rec->currencyId == $baseCurrencyId){
+    		$amount = $rec->amount;
+    	} elseif($rec->dealCurrencyId == $baseCurrencyId){
+    		$amount = $rec->amountDeal;
     	} else {
-    		
-    		// Ако не е минаваме през транзитна сметка '481'
-    		$entry = array();
-    		$entry[] = array('amount' => $sign * $amount,
-    						'debit' => $dealArr,
-    						'credit' => array('481', array('currency_Currencies', $rec->currencyId), 
-    						'quantity' => $sign * $rec->amount));
-    		
-    		$entry[] = array('amount' => $sign * $amount, 'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $sign * $rec->amount), 'credit' => $caseCredit);
+    		$amount = $rec->amount * $rec->rate;
     	}
+    	
+    	$entry = array('amount' => $sign * $amount, 
+    			
+    				   'debit' => array($rec->debitAccount, 
+    				   					array($rec->contragentClassId, $rec->contragentId), 
+    				   				    array($origin->className, $origin->that), 
+    				   					array('currency_Currencies', $rec->dealCurrencyId),
+    				   					'quantity' => $sign * $rec->amountDeal), 
+    			
+    				   'credit' => array($rec->creditAccount, 
+    									array('cash_Cases', $rec->peroCase), 
+    									array('currency_Currencies', $rec->currencyId),
+    									'quantity' => $sign * $rec->amount));
+    	$entry = array($entry);
     	
     	return $entry;
     }

@@ -32,7 +32,7 @@ class drdata_DialCodes extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper,plg_RowTools';
+    var $loadList = 'drdata_Wrapper,plg_RowTools2';
     
     
     /**

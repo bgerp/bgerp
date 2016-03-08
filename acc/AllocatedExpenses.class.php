@@ -418,8 +418,6 @@ class acc_AllocatedExpenses extends core_Master
     	$products = array();
     	if(count($shipped)){
     		foreach ($shipped as $p){
-    			if($p->amount == 0) continue;
-    			
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
     												     'name'      => cat_Products::getTitleById($p->productId), 
     													 'quantity'  => $p->quantity,
@@ -514,7 +512,7 @@ class acc_AllocatedExpenses extends core_Master
     		
     		if(!isset($rec->rate)){
     			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL), 4);
+    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     			if(!$rec->rate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
