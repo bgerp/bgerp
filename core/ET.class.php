@@ -431,7 +431,7 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * Връща масив с всички чакащи плейсхолдери
+     * Връща масив със стойността на чакащия плейсхолдер
      * 
      * @param string $place
      * @param string $mode
