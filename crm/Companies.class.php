@@ -684,9 +684,9 @@ class crm_Companies extends core_Master
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Companies $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
     protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {

@@ -717,9 +717,9 @@ class crm_Persons extends core_Master
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Persons $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
     static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {
