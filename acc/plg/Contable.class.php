@@ -459,11 +459,10 @@ class acc_plg_Contable extends core_Plugin
             return;
         }
         
-        $rec = $mvc->fetchRec($rec);
-        
+        $rec = ((is_object($rec)) ? $mvc->fetch($rec->id) : $mvc->fetch($rec));
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction       = $transactionSource->getTransaction($rec);
-        
+      
         expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
         
         // Проверяваме валидността на транзакцията
