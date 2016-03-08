@@ -344,8 +344,8 @@ class acc_BalanceHistory extends core_Manager
     public static  function addPeriodFields($filter)
     {
         $filter->FNC('selectPeriod', 'autofillMenu', 'input,placeholder=Край,caption=Период');
-        $filter->FNC('toDate', 'date(size=6)', 'caption=-,input,inlineTo=selectPeriod,placeholder=Край');
-        $filter->FNC('fromDate', 'date(size=6)', 'inlineTo=selectPeriod,input,placeholder=Начало', array('caption' => ' '));
+        $filter->FNC('toDate', 'date(width=6)', 'caption=-,input,inlineTo=selectPeriod,placeholder=Край');
+        $filter->FNC('fromDate', 'date(width=6)', 'inlineTo=selectPeriod,input,placeholder=Начало', array('caption' => ' '));
         $toDate = $filter->getField('selectPeriod');
         $toDate->type->setMenu(self::getBalancePeriods(), 'fromDate|toDate');
     }
