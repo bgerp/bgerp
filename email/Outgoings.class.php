@@ -1135,7 +1135,7 @@ class email_Outgoings extends core_Master
                     }
                 }
                 
-                if ($quotOtherArr) {
+                if (!empty($quotOtherArr)) {
                     $docStr = count($quotOtherArr) == 1 ? 'документ' : 'документи';
                     $form->setWarning('body', "Цитирате {$docStr} от друга нишка|*: " . implode(', ', $quotOtherArr));
                 }
