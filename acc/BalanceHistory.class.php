@@ -101,6 +101,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Подготовка на историята
         $this->prepareHistory($data);
+        $data->layoutClass = 'singleView';
         
         // Подготовка на странициране и вербалното представяне
         $this->prepareRows($data);
@@ -575,6 +576,9 @@ class acc_BalanceHistory extends core_Manager
     {
         // Взимаме шаблона за историята
         $tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
+        if(isset($data->layoutClass)){
+        	$tpl->replace($data->layoutClass, 'singleClass');
+        }
         
         if($data->toolbar){
             $tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
