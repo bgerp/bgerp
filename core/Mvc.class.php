@@ -42,7 +42,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Името на класа, case sensitive
      */
-    var $className;
+    public $className;
 
 
     /**
