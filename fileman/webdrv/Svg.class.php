@@ -20,7 +20,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
      * 
      * @param string $file
      * @param string $type
-     * @param string|NULL $name
+     * @param string $name
      * 
      * @return string - манипулатор на новия файл
      */

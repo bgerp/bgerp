@@ -20,7 +20,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * 
      * @param string $file
      * @param string $type
-     * @param string|NULL $name
+     * @param string $name
      * 
      * @return string|NULL
      */
