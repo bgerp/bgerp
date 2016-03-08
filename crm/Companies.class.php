@@ -2,18 +2,17 @@
 
 
 /**
- * Фирми
- *
  * Мениджър на фирмите
- *
- *
+ * 
+ * 
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
- * @todo:     Да се документира този клас
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Companies extends core_Master
 {

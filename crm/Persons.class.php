@@ -12,6 +12,8 @@
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Persons extends core_Master
 {
