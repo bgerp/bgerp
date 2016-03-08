@@ -597,7 +597,7 @@ class cat_BomDetails extends doc_Detail
     	
     	if(!$rec->primeCost && $rec->type != 'stage'){
     		$row->primeCost = "<span class='red'>???</span>";
-    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде намерена себестойност', 'warning');
+    		$row->primeCost = ht::createHint($row->primeCost, 'Няма себестойност', 'warning');
     	}
     	
     	if(is_numeric($rec->propQuantity)){

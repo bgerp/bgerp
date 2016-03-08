@@ -41,4 +41,19 @@ class crm_UsersLoginStatusPlg extends core_Plugin
         }
         
     }
+
+
+    public static function on_AfterPrepareListRows($mvc, $res, $data)
+    {
+        foreach($data->rows as $id => &$row)
+        {
+            $row->title = "<div style='font-size:1.2em;margin-bottom:3px;'>" . crm_Profiles::createLink($id) . "</div>";
+            $row->title .= "<div style='color:#666;margin-bottom:3px;margin-left:3px;'>" . $row->names . "</div>";
+            $row->title .= "<div style='margin-left:3px;'>" . $row->email . "</div>";
+            
+            // Добавяме меню
+            $row->_rowTools->addLink('Профил', crm_Profiles::getUrl($id), 'ef_icon=img/16/user-profile.png');
+
+        }
+    }
 }

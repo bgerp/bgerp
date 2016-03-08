@@ -814,7 +814,7 @@ class sales_Invoices extends deals_InvoiceMaster
    	 * @return NULL|cash|bank|intercept - дефолтния начин за плащане в брой, по банка, с прихващане
    	 * или NULL ако не може да бъде намерено
    	 */
-   	private function getAutoPaymentType($rec)
+   	public function getAutoPaymentType($rec)
    	{
    		// Проверяваме имали ПБД-та, ПКО-та или Прихващания
    		$hasPko = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
