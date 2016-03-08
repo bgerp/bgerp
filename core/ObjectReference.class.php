@@ -28,7 +28,7 @@ class core_ObjectReference
      *
      * @var string име на клас
      */
-    var $className;
+    public $className;
     
     
     /**
@@ -42,7 +42,7 @@ class core_ObjectReference
      *
      * @var mixed
      */
-    var $that;
+    public $that;
     
     
     /**
@@ -50,7 +50,7 @@ class core_ObjectReference
      *
      * @var int key(mvc=core_Interfaces)
      */
-    var $interface;
+    public $interface;
     
     
     /**
@@ -58,7 +58,7 @@ class core_ObjectReference
      *
      * @var object
      */
-    var $instance;
+    public $instance;
     
     
     /**
