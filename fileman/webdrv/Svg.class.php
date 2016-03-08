@@ -24,7 +24,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
      * 
      * @return string - манипулатор на новия файл
      */
-    public static function toSvg($file, $type = 'auto', $name = NULL)
+    public static function toSvg($file, $type = 'auto', $name = '')
     {
         if (!$file) return ;
         
