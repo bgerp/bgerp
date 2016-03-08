@@ -28,67 +28,67 @@ class core_Form extends core_FieldSet
     /**
      * ET шаблон за формата
      */
-    var $tpl;
+    public $tpl;
     
     
     /**
      * Заглавие на формата
      */
-    var $title;
+    public $title;
     
     
     /**
      * Стойности на полетата на формата
      */
-    var $rec;
+    public $rec;
     
     
     /**
      * Общ лейаут на формата
      */
-    var $layout;
+    public $layout;
     
     
     /**
      * Лейаут на инпут-полетата
      */
-    var $fieldsLayout;
+    public $fieldsLayout;
     
     
     /**
      * Cmd-то на бутона с който е субмитната формата
      */
-    var $cmd;
+    public $cmd;
     
     
     /**
      * Атрибути на елемента <FORM ... >
      */
-    var $formAttr = array();
+    public $formAttr = array();
     
     
     /**
      * Редове с дефиниции [Селектор на стила] => [Дефиниция на стила]
      */
-    var $styles = array();
+    public $styles = array();
     
     
     /**
      * Кои полета от формата да се показват
      */
-    var $showFields;
+    public $showFields;
     
     
     /**
      * В каква посока да са разположени полетата?
      */
-    var $view = 'vertical';
+    public $view = 'vertical';
     
     
     /**
      * CSS class на формата
      */
-    var $class;
+    public $class;
     
     
     /**

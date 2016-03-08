@@ -61,7 +61,7 @@ class page_Html extends core_ET {
     {
         // Добавяне на хедърите
         $headers = $invoker->getArray('HTTP_HEADER');
-        if(is_array($headers)) {
+        if (!empty($headers)) {
             foreach($headers as $hdr) {
                 if($hdr{0} == '-') {
                     header_remove(substr($hdr, 1));

@@ -337,8 +337,11 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     	$tableMvc->FLD('shipmentCnt', 'int', 'tdClass=itemClass,smartCenter');
 
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
-		$fields = "article=Продукт,salesCnt=Продажба (бр.),shipmentCnt=Доставка (бр.)";
-    	$tpl->append($table->get($data->rows, $fields), 'CONTENT');
+
+    	$tpl->append($table->get($data->rows, "article=Продукт,
+    					     salesCnt=Продажба (бр.),
+    					     shipmentCnt=Доставка (бр.),
+                             "), 'CONTENT');
 
         if($data->pager){
             $tpl->append($data->pager->getHtml(), 'PAGER');

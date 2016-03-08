@@ -291,8 +291,9 @@ class doc_reports_Docs extends frame_BaseDriver
     	
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	
-    	$fields = "docClass=Създадени документи->Тип,createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой";
-    	$tpl->append($table->get($data->rows, $fields), 'DOCS');
+    	$tpl->append($table->get($data->rows, "docClass=Създадени документи->Тип,
+    	                                       createdBy=Създадени документи->Автор,
+    	                                       cnt=Създадени документи->Брой"), 'DOCS');
     	
     	if($data->pager){
     	    $tpl->append($data->pager->getHtml(), 'PAGER');

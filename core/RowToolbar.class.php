@@ -188,10 +188,12 @@ class core_RowToolbar extends core_BaseClass
         
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) return;
         
-        if(count($this->links)==1) {
+        if(count($this->links) == 1) {
             $linkObj = current($this->links);
             setIfNot($linkObj->attr['hint'], $linkObj->title);
-            $layout = ht::createLink('', $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $linkObj->attr);
+            $linkObj->attr['title'] = tr($linkObj->attr['title']);
+            
+            $layout = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $linkObj->attr);
         } else {
             $dropDownIcon = sbf("img/16/rowtools-btn.png", '');
             $layout = new ET("\n" . 

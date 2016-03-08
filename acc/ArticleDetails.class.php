@@ -105,7 +105,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'reason';
+    public $hideListFieldsIfEmpty = 'reason';
     
     
     /**

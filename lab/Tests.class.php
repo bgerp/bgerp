@@ -295,8 +295,7 @@ class lab_Tests extends core_Master
             $data = new stdClass();
             $data->listFields = arr::make($this->listFields, TRUE);
             
-            $fields = "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}";
-            $tpl = $table->get($tableData, $fields);
+            $tpl = $table->get($tableData, "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
             
             $tpl->prepend("<div style='margin-bottom: 20px;'>
                                <b>Сравнение на тестове</b>
