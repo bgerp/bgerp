@@ -151,7 +151,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
         
         // Добавя всички функции в масива, които ще се виката
-        if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
+        if (!empty($runAfterAjaxArr)) {
             
             // Да няма повтарящи се функции
             $runAfterAjaxArr = array_unique($runAfterAjaxArr);

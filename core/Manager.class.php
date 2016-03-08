@@ -769,9 +769,12 @@ class core_Manager extends core_Mvc
         // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         
-        // Ако има полета за скриване, ако са празни задаваме ги
-        if(isset($this->hideListFieldsIfEmpty)){
-        	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
+        // Имали колони в които ако няма данни да не се показват ?
+        $hideColumns = arr::make($this->hideListFieldsIfEmpty, TRUE);
+       
+        // Ако има колони за филтриране, филтрираме ги
+        if(count($hideColumns)){
+        	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $hideColumns);
         }
         
         // Рендираме таблицата

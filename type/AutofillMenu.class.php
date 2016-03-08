@@ -57,7 +57,7 @@ class type_AutofillMenu extends type_Varchar {
         
             expect($this->namesList);
 
-            $res->append("<select name=erew style='width:20px !important;' onchange='
+            $res->append("<select style='width:24px; border:none; padding-right:5px;' onchange='
             var values = this.value.split(\"{$this->separator}\");
             var names  = \"{$this->namesList}\".split(\"{$this->separator}\"); 
             var valuesLength = values.length;

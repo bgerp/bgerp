@@ -25,12 +25,6 @@ class core_TableView extends core_BaseClass
     
     
     /**
-     * Имали колонки за скриване
-     */
-    protected $hideEmptyColumns = array();
-    
-    
-    /**
      * Инициализира се с информацията за MVC класа и шаблона
      */
     function init($params = array())
@@ -60,22 +54,55 @@ class core_TableView extends core_BaseClass
     
     
     /**
-     * Задава кои полета от таблицата да се скриват ако няма стойност в тях
+     * Филтрира връща колоните, които трябва да се показват
+     * 
+     * @param array $rows         - записи
+     * @param mixed $fields       - масив или списък с колони, които ще се филтрират
+     * @param mixed $filterFields - масив или списък с имена на колони, които могат да се скриват
+     * @return array $fields      - масив с филтрираните колони
      */
-    public function setFieldsToHideIfEmptyColumn($fields)
+    public static function filterEmptyColumns($rows, $fields, $filterFields = '*')
     {
-    	$this->hideEmptyColumns = $fields;
+    	// Имали колони в които ако няма данни да не се показват ?
+    	$fields = arr::make($fields, TRUE);
+    	if($filterFields == '*'){
+    		$filterFields = $fields;
+    	}
+    	
+    	$hideColumns = arr::make($filterFields, TRUE);
+    	
+    	// За всяка колона, която може да се скрива
+    	foreach ($hideColumns as $name => $column){
+    		$hide = TRUE;
+    		
+    		// Ако има поне един запис със стойност за нея, не я скриваме
+    		if(is_array($rows)){
+    			foreach ($rows as $id => $row){
+    				if(!empty($row->{$name})){
+    					$hide = FALSE;
+    					break;
+    				} 
+    			}
+    		}
+    		
+    		// Ако не е намерен поне един запис със стойност за колоната, скриваме я
+    		if($hide === TRUE){
+    			unset($fields[$name]);
+    		}
+    	}
+    	
+    	// Връщаме колоните, които ще се показват
+    	return $fields;
     }
     
     
     /**
      * Връща шаблон за таблицата
      */
-    function get($rows, &$listFields)
+    function get($rows, $fields)
     {
-    	$listFields = arr::make($listFields, TRUE);
-    	//bp($listFields);
-    	$fields = $listFields;
+    	$fields = arr::make($fields, TRUE);
+    	
         $header = array();
         $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
         $addRows = "";
@@ -105,33 +132,6 @@ class core_TableView extends core_BaseClass
             if (count($fieldList)) {
                 asort($fieldList);
             }
-        }
-       
-        // Имали колони в които ако няма данни да не се показват ?
-        $hideColumns = arr::make($this->hideEmptyColumns, TRUE);
-        
-        if(count($hideColumns)){
-        	
-        	// За всяка от тях
-        	foreach ($hideColumns as $name => $column){
-        		$hide = TRUE;
-        		
-        		// Ако някой от записите име стойност за тази колонка, ще я показваме
-        		if(count($rows)){
-        			foreach ($rows as $row1){
-        				if(!empty($row1->{$column})){
-        					$hide = FALSE;
-        					break;
-        				}
-        			}
-        		}
-        		
-        		// Махаме колоната от таблицата ако поне един ред няма стойност за нея
-        		if($hide === TRUE){
-        			unset($listFields[$name]);
-        			unset($fieldList[$name]);
-        		}
-        	}
         }
         
         if(count($fieldList)) {

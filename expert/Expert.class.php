@@ -761,7 +761,7 @@ class expert_Expert extends core_FieldSet {
                 
                 $js = $res->msg->getArray('JS');
                 
-                if(count($js)) {
+                if (!empty($js)) {
                     foreach($js as $file) {
                         if(!$used[$file]) {
                             $res->scripts[] = sbf($file, '', TRUE);

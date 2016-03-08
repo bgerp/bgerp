@@ -233,7 +233,7 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Взима балансовите периоди
      */
-    public function getBalancePeriods()
+    public static function getBalancePeriods()
     {
         // За начална и крайна дата, слагаме по подразбиране, датите на периодите
         // за които има изчислени оборотни ведомости
@@ -245,6 +245,19 @@ class acc_BalanceHistory extends core_Manager
         $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
         $options = array();
         
+
+        // Какви париоди трябва да можем да избираме:
+        // Днес
+        // Вчера
+        // Тази седмици
+        // Предишната седмица
+        // Последните 7 дни
+        // Последните 14 дни
+        // Последните 30 дни
+        // От текущия месец - 6 месеца назад
+        // Тази година
+        // Миналата година
+
         $options[dt::today() . '|' . dt::today()] = 'Днес';
         $options[$yesterday . '|' . $yesterday] = 'Вчера';
         $options[$daybefore . '|' . $daybefore] = 'Завчера';
@@ -271,13 +284,11 @@ class acc_BalanceHistory extends core_Manager
         $filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $filter->class = 'simpleForm';
         
-        $filter->FNC('fromDate', 'date', 'caption=Период,input,placeholder=Начало');
-        $filter->FNC('toDate', 'date', 'caption=-,input,inlineTo=fromDate,placeholder=Край');
-        $filter->FNC('selectPeriod', 'autofillMenu', 'input,inlineTo=fromDate,placeholder=Край', array('caption' => ' '));
+        self::addPeriodFields($filter);
 
         $filter->FNC('accNum', 'int', 'input=hidden');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
-        $filter->showFields = 'fromDate,selectPeriod,toDate,isGrouped';
+        $filter->showFields = 'selectPeriod,toDate,fromDate,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
         foreach (array(3, 2, 1) as $i){
@@ -297,8 +308,6 @@ class acc_BalanceHistory extends core_Manager
         $filter->setDefault('ent2Id', $data->rec->ent2Id);
         $filter->setDefault('ent3Id', $data->rec->ent3Id);
                 
-        $toDate = $filter->getField('selectPeriod');
-        $toDate->type->setMenu($this->getBalancePeriods(), 'fromDate|toDate');
 
         $filter->setDefault('fromDate', $data->fromDate);
         $filter->setDefault('toDate', $data->toDate);
@@ -328,7 +337,20 @@ class acc_BalanceHistory extends core_Manager
         }
     }
     
+
+    /**
+     * Добавя към филтъра полета за избор на период
+     */
+    public static  function addPeriodFields($filter)
+    {
+        $filter->FNC('selectPeriod', 'autofillMenu', 'input,placeholder=Край,caption=Период');
+        $filter->FNC('toDate', 'date(size=6)', 'caption=-,input,inlineTo=selectPeriod,placeholder=Край');
+        $filter->FNC('fromDate', 'date(size=6)', 'inlineTo=selectPeriod,input,placeholder=Начало', array('caption' => ' '));
+        $toDate = $filter->getField('selectPeriod');
+        $toDate->type->setMenu(self::getBalancePeriods(), 'fromDate|toDate');
+    }
     
+
     /**
      * Подготовка на историята за перара
      *

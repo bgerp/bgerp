@@ -335,6 +335,8 @@ class deals_plg_DpInvoice extends core_Plugin
     		$colspan = count($data->listFields) - 2;
     		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
+    		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
+    		
     		$iQuery = $mvc->Master->getQuery();
     		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued'");
     		$iQuery->where("#id != '{$rec->invoiceId}'");
@@ -347,7 +349,7 @@ class deals_plg_DpInvoice extends core_Plugin
     		}
     		$accruedInvoices = count($handleArr);
     		$handleString = implode(', ', $handleArr);
-    		$colspan = count($data->listFields) - 2;
+    		$colspan = count($fields) - 2;
     		
     		if($accruedInvoices == 1){
     			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформа' : 'по фактура';

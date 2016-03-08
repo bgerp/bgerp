@@ -89,7 +89,7 @@ class email_Mime extends core_BaseClass
      * ->type
      * ->param
      */
-    var $files = array();
+    public $files = array();
     
     
     /**
