@@ -696,6 +696,8 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public static function on_AfterPrepareExportQuery($mvc, &$query)
    	{
+   		// Искаме освен фактурите показващи се в лист изгледа да излизат и тези,
+   		// които са били активни, но сега са оттеглени
    		$query->where("#state != 'draft' OR (#state = 'rejected' AND #brState = 'active')");
    	}
    	
