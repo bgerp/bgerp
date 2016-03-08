@@ -383,11 +383,12 @@ body {
       color: #fff612;
       display: block;
       font-size: 0.97em; }
+      .bookmark-links ul a.bookmark-external-url.out {
+        color: #fefdd6; }
+        .bookmark-links ul a.bookmark-external-url.out:visited {
+          color: #febb44; }
       .bookmark-links ul a:hover {
         color: #fefdd6; }
-
-a.bookmark-external-url.out {
-  color: #fefdd6; }
 
 .bookmark-wrong-url {
   color: #bb1111; }
