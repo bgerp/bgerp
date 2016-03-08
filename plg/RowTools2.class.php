@@ -6,7 +6,7 @@
  * Клас 'plg_RowTools2' - Dropdown инструменти за изтриване и редактиране на ред
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2016 Experta OOD
@@ -29,8 +29,6 @@ class plg_RowTools2 extends core_Plugin
         
         // Игнорираме действието, ако не се подготвя листовия изглед
         if(!arr::haveSection($fields, '-list')) return;
-
-        //if(!isset($mvc->rowTools2Field)) return;
         
         core_RowToolbar::createIfNotExists($row->_rowTools);
         $ddTools = &$row->_rowTools;
@@ -66,12 +64,12 @@ class plg_RowTools2 extends core_Plugin
         $singleTitle = mb_strtolower($singleTitle);
         
         if (!empty($singleUrl)) {
-            $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle}");
+            $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$rec->id}");
         }
 
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Изтриване на|* {$singleTitle}");
+            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Изтриване на|* {$singleTitle},id=edt{$rec->id}");
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
@@ -93,7 +91,7 @@ class plg_RowTools2 extends core_Plugin
 			            'id' => $rec->id,
 			            'ret_url' => $retUrl);
                     
-                    $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=del{$rec->id},title=Оттегляне на|* {$singleTitle}");        			
+                    $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");        			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
         			$restoreUrl = array(
 			            $mvc,
@@ -101,7 +99,7 @@ class plg_RowTools2 extends core_Plugin
 			            'id' => $rec->id,
 			            'ret_url' => $retUrl);
 			        
-                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=del{$rec->id},title=Възстановяване на|* {$singleTitle}");        			
+                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");        			
         		}
         	}
         }
@@ -109,7 +107,7 @@ class plg_RowTools2 extends core_Plugin
         if($mvc->hasPlugin('change_Plugin')){
         	if ($mvc->haveRightFor('changerec', $rec)) {
         		$changeUrl = $mvc->getChangeUrl($rec->id);
-        		$ddTools->addLink('Промяна', $changeUrl, 'ef_icon=img/16/edit.png');
+        		$ddTools->addLink('Промяна', $changeUrl, "ef_icon=img/16/edit.png,id=chn{$rec->id},title=Промяна на|* {$singleTitle}");
         	}
         }
     }
@@ -182,10 +180,23 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        foreach($data->rows as &$row) {  
-            if(isset($row->_rowTools)) {
-                $row->_rowTools = $row->_rowTools->renderHtml();
-                if($row->_rowTools) {
+        foreach($data->rows as $id => &$row) {
+			$rec = $data->recs[$id];
+        	
+			// Ако има тулбар за реда
+    		if(isset($row->_rowTools)) {
+    			$tools = &$row->_rowTools;
+            	
+    			// Ако е оказано поле за линк към сингъла, и имаме само бутон за сингъл
+            	if(isset($mvc->rowToolsSingleField) && $tools->hasBtn("single{$rec->id}") && $tools->count() == 1){
+            		
+            		// Махаме го
+            		$tools->removeBtn("single{$rec->id}");
+            	}
+            	
+            	// Рендираме тулбара
+                $tools = $tools->renderHtml();
+                if($tools) {
                     $mustShow = TRUE;
                 }
             }
