@@ -18,7 +18,7 @@ class label_Counters extends core_Master
     /**
      * Плейсхолдер за брояча
      */
-    static $counterPlace = '%';
+    public static $counterPlace = '%';
     
     
     /**

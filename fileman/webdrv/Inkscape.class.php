@@ -35,11 +35,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param string $file
      * @param boolean $cmyk
      * @param string $type
-     * @param string|NULL $name
+     * @param string $name
      * 
      * @return string - Манипулатора на PDF файла
      */
-    public static function toPdf($file, $cmyk = FALSE, $type = 'auto', $name = NULL)
+    public static function toPdf($file, $cmyk = FALSE, $type = 'auto', $name = '')
     {
         if (!$file) return ;
         

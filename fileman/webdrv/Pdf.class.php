@@ -20,11 +20,11 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
      * 
      * @param string $file
      * @param string $type
-     * @param string|NULL $name
+     * @param string $name
      * 
      * @return string|NULL
      */
-    public static function rgbToCmyk($file, $type = 'auto', $name = NULL)
+    public static function rgbToCmyk($file, $type = 'auto', $name = '')
     {
         cls::load('fileman_Files');
         

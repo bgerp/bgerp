@@ -12,6 +12,8 @@
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Persons extends core_Master
 {
@@ -413,6 +415,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if(is_array($data->recs)) {
+            $cnt = array();
             foreach($data->recs as $rec) {
                 $cnt[str::utf2ascii(trim($rec->name))]++;
             }
@@ -717,9 +720,9 @@ class crm_Persons extends core_Master
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Persons $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
     static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {

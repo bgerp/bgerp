@@ -15,6 +15,7 @@
  * 
  * @method fetch(mixed $fields = '*', boolean $cache = TRUE)
  * @method fetchField(string $field = 'id', boolean $cache = TRUE)
+ * @method core_Query getQuery()
  * @method getHandle()
  * @method getHyperlink(boolean $icon = FALSE, boolean $short = FALSE)
  * @method getShortHyperlink(boolean $icon = FALSE)
@@ -28,7 +29,7 @@ class core_ObjectReference
      *
      * @var string име на клас
      */
-    var $className;
+    public $className;
     
     
     /**
@@ -42,7 +43,7 @@ class core_ObjectReference
      *
      * @var mixed
      */
-    var $that;
+    public $that;
     
     
     /**
@@ -50,7 +51,7 @@ class core_ObjectReference
      *
      * @var int key(mvc=core_Interfaces)
      */
-    var $interface;
+    public $interface;
     
     
     /**
@@ -58,7 +59,7 @@ class core_ObjectReference
      *
      * @var object
      */
-    var $instance;
+    public $instance;
     
     
     /**

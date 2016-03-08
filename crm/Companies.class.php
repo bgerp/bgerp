@@ -2,18 +2,17 @@
 
 
 /**
- * Фирми
- *
  * Мениджър на фирмите
- *
- *
+ * 
+ * 
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
- * @todo:     Да се документира този клас
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Companies extends core_Master
 {
@@ -383,6 +382,7 @@ class crm_Companies extends core_Master
     static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if(is_array($data->recs)) {
+            $cnt = array();
             foreach($data->recs as $rec) {
                 $cnt[str::utf2ascii(trim($rec->name))]++;
             }
@@ -684,9 +684,9 @@ class crm_Companies extends core_Master
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Companies $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
     protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {
@@ -1696,7 +1696,7 @@ class crm_Companies extends core_Master
      * След подготовка на полетата за импортиране
      * 
      * @param crm_Companies $mvc
-     * @param array $fields
+     * @param array $recs
      */
     public static function on_AfterPrepareExportRecs($mvc, &$recs)
     {
@@ -1726,7 +1726,7 @@ class crm_Companies extends core_Master
      * След подготовка на записите за експортиране
      * 
      * @param crm_Companies $mvc
-     * @param array $recs
+     * @param object $rec
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
