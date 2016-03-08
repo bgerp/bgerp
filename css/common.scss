@@ -978,9 +978,13 @@ a.more-btn {
     border: none;
     outline: none;
     box-shadow: none;
+    color: #fff;
     &:focus {
         outline: none;
         box-shadow: none;
+    }
+    option {
+        color: #222;
     }
 }
 

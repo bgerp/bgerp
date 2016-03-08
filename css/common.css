@@ -940,10 +940,13 @@ a.more-btn {
 .shortSelect {
   border: none;
   outline: none;
-  box-shadow: none; }
+  box-shadow: none;
+  color: white; }
   .shortSelect:focus {
     outline: none;
     box-shadow: none; }
+  .shortSelect option {
+    color: #222222; }
 
 .docBgIcon {
   padding-left: 22px !important;
