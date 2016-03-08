@@ -2965,7 +2965,7 @@ class doc_DocumentPlg extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param boolean $res
-     * @param string $state
+     * @param object $rec
      * 
      * @see change_Plugin
      */
