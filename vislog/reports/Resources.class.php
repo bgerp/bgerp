@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   vislog
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -153,11 +153,51 @@ class vislog_reports_Resources extends frame_BaseDriver
     
     
     /**
+     * Вербалното представяне на ред от таблицата
+     */
+    protected function getVerbal_($rec)
+    {
+        $Int = cls::get('type_Int');
+    
+        foreach ($rec as $resource => $cnt) {
+    
+            $row = new stdClass();
+
+            $row->resource = $resource;
+    		$row->cnt = $Int->toVerbal($cnt);
+    
+            $rows[] = $row;
+        }
+    
+        return $rows;
+    }
+    
+    
+    /**
      * След подготовката на показването на информацията
      */
     public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
-
+        // Подготвяме страницирането
+        $data = $res;
+        
+        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+        
+        $pager->itemsCount = count($data->resourceCnt, COUNT_RECURSIVE);
+        $pager->calc();
+        $data->pager = $pager;
+        
+        $rows = $mvc->getVerbal($data->resourceCnt);
+        
+        if(is_array($rows)) {
+            foreach ($rows as $id => $row) {
+                if (!$pager->isOnPage()) continue;
+        
+                $data->rows[$id] = $row;
+            }
+        }
     }
     
     
@@ -168,6 +208,8 @@ class vislog_reports_Resources extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
+        if(empty($data)) return;
+        
     	$tpl = new ET("
             <h1>Отчет за посещенията по ресурс</h1>
             [#FORM#]
@@ -176,56 +218,94 @@ class vislog_reports_Resources extends frame_BaseDriver
     		[#PAGER#]
         "
     	);
-    
-    	$form = cls::get('core_Form');
-    
-    	$this->addEmbeddedFields($form);
-    
-    	$form->rec = $data->fRec;
-    	$form->class = 'simpleForm';
-    
-    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
-    
-    	$tpl->placeObject($data->rec);
-    
-    	$html = "<h3>Посещения по ресурс</h3>";
-        
-    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
- 
-        $pager->itemsCount = count($data->resourceCnt);
-   	
-    	$f = cls::get('core_FieldSet');
-
-    	$f->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)', 'caption=Посещения->Ресурс');
-    	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
     	
-    	$rows = array();
+    	$explodeTitle = explode(" » ", $this->title);
+    	
+    	$title = tr("|{$explodeTitle[1]}|*");
+    	 
+    	$tpl->replace($title, 'TITLE');
+    	 
+    	$this->prependStaticForm($tpl, 'FORM');
+    	 
+    	$tpl->placeObject($data->row);
+    	
+    	$tableMvc = new core_Mvc;
+    	$tableMvc->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)', 'tdClass=itemClass');
+    	$tableMvc->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
 
-    	$ft = $f->fields;
-        $resourceType = $ft['resource']->type;
-        $cntType = $ft['cnt']->type;
-        $i = 0;
-   
-    	foreach($data->resourceCnt as $resource => $cnt) {
- 
-            if(!$pager->isOnPage()) continue;
-            
-    		$row = new stdClass();
-    		$row->resource = $resourceType->toVerbal($resource);
-    		$row->cnt = $cntType->toVerbal($cnt);
-    		
-    		$rows[] = $row;
-    	}
-
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'resource=Посещения->Ресурс,cnt=Посещения->Брой');
+    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    	$fields =  'resource=Посещения->Ресурс,cnt=Посещения->Брой';
+    	
+    	$ft = $this->getFields();
+        $resourceType = $ft->fields['resource']->type;
     
-    	$tpl->append($html, 'RESOURCES');
-        $tpl->append($pager->getHtml(), 'PAGER');
+        foreach ($data->rows as $id => $row){
+            $row->resource = $resourceType->toVerbal($row->resource);
+        }
 
+    	$tpl->append($table->get($data->rows, $fields), 'RESOURCES');
+    	 
+    	if($data->pager){
+    	    $tpl->append($data->pager->getHtml(), 'PAGER');
+    	}
+    	 
     	$embedderTpl->append($tpl, 'data');
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getFields_()
+    {
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
+        $f->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)');
+        $f->FLD('cnt', 'int');
+    
+        return $f;
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    protected function getExportFields_()
+    {
+        // Кои полета ще се показват
+        $fields = arr::make("resource=Посещения->Ресурс,
+                             cnt=Посещения->Брой", TRUE);
+    
+        return $fields;
+    }
+    
+    
+    /**
+     * Създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function exportCsv()
+    {
+        $exportFields = $this->getExportFields();
+        $fields = $this->getFields();
+    
+        foreach($this->prepareEmbeddedData()->rows as $id => $rec) {
+            $rec->resource = html_entity_decode(strip_tags($rec->ip));
+            $data[$id] = $rec;
+        }
+
+        $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
+         
+        return $csv;
     }
      
     

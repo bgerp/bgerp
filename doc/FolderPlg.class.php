@@ -532,13 +532,15 @@ class doc_FolderPlg extends core_Plugin
 
                     $row->{$fField} = ht::createLink('',
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
-                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
+                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn', 'order' => 19));
                 }
             } else {
-                if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
-                    core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?"));
-                }
+            	if($mvc->hasPlugin('plg_RowTools2')){
+            		if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
+            			core_RowToolbar::createIfNotExists($row->_rowTools);
+            			$row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
+            		}
+            	}
             }
         }
 

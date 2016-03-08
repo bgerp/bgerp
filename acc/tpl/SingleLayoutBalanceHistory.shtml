@@ -1,4 +1,7 @@
+<div class='[#singleClass#]'>
+    <!--ET_BEGIN TITLE-->
     <h1>[#TITLE#]</h1>
+    <!--ET_END TITLE-->
     [#HystoryToolbar#]
     <h3 style='margin-top:15px'>
         <b style='font-size: 1.2em'>[#accountId#]</b>
@@ -53,3 +56,4 @@
         [#DETAILS#]
     </div>
     [#PAGER#]
+</div>

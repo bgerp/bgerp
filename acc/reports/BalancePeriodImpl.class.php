@@ -559,8 +559,10 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
                     $dataRecs[$id]->$fld = $rec->$fld;
                 }
             }
+
+            $dataRecs[$id]->periodId = html_entity_decode(strip_tags($dataRecs[$id]->periodId->content));
         }
-        
+       
     	$fields = $this->getFields();
 
     	$csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);

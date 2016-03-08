@@ -396,14 +396,18 @@ class planning_Jobs extends core_Master
     	
     	if($fields['-list']){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    		
     		if($rec->quantityNotStored > 0){
     			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-    				$btn = ht::createBtn('ПП', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), FALSE, FALSE, 'title=Създаване на протокол за производство,ef_icon=img/16/page_paste.png');
-    				$row->quantityNotStored = "<div class='fleft'> {$btn} </div><div class='fright' style='display: inline-block;margin-top: 5px;margin-left:2px'>{$row->quantityNotStored}</div>";
+    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    					core_RowToolbar::createIfNotExists($row->_rowTools);
+    					$row->_rowTools->addLink('Протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
+    					$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство');
+    				}
     			}
-    		} else {
-    			$row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
     		}
+    		
+    		$row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
     	}
     	 
     	if($rec->saleId){
