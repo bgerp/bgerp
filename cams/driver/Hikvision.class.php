@@ -48,7 +48,7 @@ class cams_driver_Hikvision extends cams_driver_IpDevice {
         $form->FNC('height', 'int(min=240,max=1520)', 'caption=Височина,hint=Вертикална резолюция,input');
         $form->FNC('FPS', 'int(min=1,max=30)', 'caption=Скорост,hint=Скорост на записа (fps),input');
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
-        $form->FNC('password', 'password(64,autocomplete=off)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
+        $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за Mpeg4 потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
