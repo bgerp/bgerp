@@ -25,12 +25,6 @@ class core_TableView extends core_BaseClass
     
     
     /**
-     * Имали колонки за скриване
-     */
-    protected $hideEmptyColumns = array();
-    
-    
-    /**
      * Инициализира се с информацията за MVC класа и шаблона
      */
     function init($params = array())
@@ -56,15 +50,6 @@ class core_TableView extends core_BaseClass
     {
         
         return (array)$this->mvc->rowToolsColumn;
-    }
-    
-    
-    /**
-     * Задава кои полета от таблицата да се скриват ако няма стойност в тях
-     */
-    public function setFieldsToHideIfEmptyColumn($fields)
-    {
-    	$this->hideEmptyColumns = $fields;
     }
     
     
@@ -147,14 +132,6 @@ class core_TableView extends core_BaseClass
             if (count($fieldList)) {
                 asort($fieldList);
             }
-        }
-        
-        // Имали колони в които ако няма данни да не се показват ?
-        $hideColumns = arr::make($this->hideEmptyColumns, TRUE);
-        
-        // Ако има колони за филтриране, филтрираме ги
-        if(count($hideColumns)){
-        	$fieldList = self::filterEmptyColumns($rows, $fieldList, $hideColumns);
         }
         
         if(count($fieldList)) {
