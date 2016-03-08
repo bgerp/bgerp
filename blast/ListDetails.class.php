@@ -671,7 +671,7 @@ class blast_ListDetails extends doc_Detail
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
                 
                 // Ако има грешни линни да се добавят в 'csv' файл
-                if ($errLinesArr) {
+                if (!empty($errLinesArr)) {
                     $fh = fileman::absorbStr(implode("\n", $errLinesArr), 'exportCsv', 'listDetailsExpErr.csv');
                     status_Messages::newStatus('|Пропуснатите линии са добави в|*: ' . fileman::getLinkToSingle($fh));
                 }
