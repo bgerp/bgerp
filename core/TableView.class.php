@@ -85,7 +85,6 @@ class core_TableView extends core_BaseClass
     	}
     	
     	$hideColumns = arr::make($filterFields, TRUE);
-    	$unset = array();
     	
     	// За всяка колона, която може да се скрива
     	foreach ($hideColumns as $name => $column){
