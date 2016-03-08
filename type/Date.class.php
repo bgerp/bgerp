@@ -99,9 +99,9 @@ class type_Date extends core_Type {
         }
 
         setIfNot($attr['type'], 'text');
-        setIfNot($this->params['size'], 8);
+        setIfNot($this->params['width'], 8);
 
-        $attr['style'] .= ';width:' . $this->params['size'] . 'em;';
+        $attr['style'] .= ';width:' . $this->params['width'] . 'em;';
         
         return $this->createInput($name, $value, $attr);
     }
