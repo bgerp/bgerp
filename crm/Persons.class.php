@@ -415,6 +415,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if(is_array($data->recs)) {
+            $cnt = array();
             foreach($data->recs as $rec) {
                 $cnt[str::utf2ascii(trim($rec->name))]++;
             }
