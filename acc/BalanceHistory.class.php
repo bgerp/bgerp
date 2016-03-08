@@ -241,8 +241,10 @@ class acc_BalanceHistory extends core_Manager
         $balanceQuery->where("#periodId IS NOT NULL");
         $balanceQuery->orderBy("#fromDate", "DESC");
         
-        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
+        Mode::push('text', 'plane');
+        $today = dt::mysql2verbal(dt::addDays(0), 'd.m.Y');
+        $yesterday = dt::mysql2verbal(dt::addDays(-1), 'd.m.Y');
+        $daybefore = dt::mysql2verbal(dt::addDays(-2), 'd.m.Y');
         $options = array();
         
 
@@ -258,7 +260,7 @@ class acc_BalanceHistory extends core_Manager
         // Тази година
         // Миналата година
 
-        $options[dt::today() . '|' . dt::today()] = 'Днес';
+        $options[$today . '|' .$today] = 'Днес';
         $options[$yesterday . '|' . $yesterday] = 'Вчера';
         $options[$daybefore . '|' . $daybefore] = 'Завчера';
         
@@ -268,6 +270,8 @@ class acc_BalanceHistory extends core_Manager
             $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
             $options[$bRow->fromDate . '|' . $bRow->toDate] = $bRow->periodId;
         }
+        
+        Mode::pop('text');
         
         return $options;
     }
@@ -341,13 +345,13 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Добавя към филтъра полета за избор на период
      */
-    public static  function addPeriodFields($filter)
+    public static  function addPeriodFields($filter, $fromDate='fromDate', $toDate='toDate')
     {
-        $filter->FNC('selectPeriod', 'autofillMenu', 'input,placeholder=Край,caption=Период');
-        $filter->FNC('toDate', 'date(width=6)', 'caption=-,input,inlineTo=selectPeriod,placeholder=Край');
-        $filter->FNC('fromDate', 'date(width=6)', 'inlineTo=selectPeriod,input,placeholder=Начало', array('caption' => ' '));
-        $toDate = $filter->getField('selectPeriod');
-        $toDate->type->setMenu(self::getBalancePeriods(), 'fromDate|toDate');
+        $filter->FLD('selectPeriod', 'autofillMenu', 'input,placeholder=Край,caption=Период');
+        $filter->FLD($toDate, 'date(width=6)', 'caption=-,input,inlineTo=selectPeriod,placeholder=Край');
+        $filter->FLD($fromDate, 'date(width=6)', 'inlineTo=selectPeriod,input,placeholder=Начало', array('caption' => ' '));
+        $toDateField = $filter->getField('selectPeriod');
+        $toDateField->type->setMenu(self::getBalancePeriods(), "{$fromDate}|{$toDate}");
     }
     
 
