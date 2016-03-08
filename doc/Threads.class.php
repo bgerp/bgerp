@@ -990,6 +990,8 @@ class doc_Threads extends core_Manager
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
             
+            $message = '';
+            
             if ($successCnt) {
                 if ($successCnt == 1) {
                     $message = "|*{$successCnt} |нишка от|* {$folderFromRow->title} |е преместена в|* {$folderToRow->title}";
@@ -999,7 +1001,8 @@ class doc_Threads extends core_Manager
             }
             
             if($errCnt) {
-                $message .= "<br> |възникнаха|* {$errCnt} |грешки";
+                $message .= $message ? "<br> " : '';
+                $message .= "|Възникнаха|* {$errCnt} |грешки";
                 $exp->redirectMsgType = 'error';
             }
             
