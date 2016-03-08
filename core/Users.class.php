@@ -117,7 +117,7 @@ class core_Users extends core_Manager
     /**
      * Кои колонки да се показват в табличния изглед
      */
-    var $listFields = 'id,title=Имена,rolesInput,last=Последно';
+    var $listFields = 'title=Данни,rolesInput,last=Последно';
     
     
     /**
@@ -820,7 +820,7 @@ class core_Users extends core_Manager
             $row->rolesInput .= "<div style='color:#666;'>" . tr("индиректно") . ": " . $addRoles . "</div>";
         }
 
-        $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";
+        $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";  
     }
     
     

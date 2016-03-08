@@ -42,21 +42,14 @@ class remote_Authorizations extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'crm_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    public $loadList = 'crm_Wrapper, plg_Created, plg_State2, plg_RowTools2';
     
 
     /**
      * Текущ таб
      */
     public $currentTab = 'Профили';
-   
-
-    /**
-     * Поле за инструментите на реда
-     */
-    public $rowToolsField = 'id';
-    
-    
+       
     /**
      * Кой има право да чете?
      */
@@ -72,7 +65,7 @@ class remote_Authorizations extends embed_Manager
     /**
      * Колонки в листовия изглед
      */
-    public $listFields = 'id=✍,userId,url,auth=Оторизация,state,createdOn,createdBy';
+    public $listFields = 'userId,url,auth=Оторизация,state,createdOn,createdBy';
 
 
     /**
@@ -161,7 +154,7 @@ class remote_Authorizations extends embed_Manager
         $data->query->where("#userId = $userId");
         
         // Подготвяме полетата за показване
-        $data->listFields = arr::make("id=№,url=URL на услугата,auth=Оторизация,state=Състояние");
+        $data->listFields = arr::make("url=URL на услугата,auth=Оторизация,state=Състояние");
         
         // Подготвяме навигацията по страници
         $mvc->prepareListPager($data);
@@ -171,6 +164,12 @@ class remote_Authorizations extends embed_Manager
         
         // Подготвяме редовете на таблицата
         $mvc->prepareListRows($data);
+
+        if (haveRole('powerUser') && (core_Users::getCurrent() == $data->masterData->rec->userId)) {
+            $data->masterData->toolbar->addbtn('Оторизиране', array('remote_Authorizations', 'add', 'ret_url' => TRUE), 
+                'row=2,ef_icon=img/16/checked-blue.png,title=Оторизиране за ползване на онлайн услуги');
+        }
+
     }
     
     

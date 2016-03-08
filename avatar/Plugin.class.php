@@ -46,26 +46,9 @@ class avatar_Plugin extends core_Plugin
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
-        $data->listFields = $this->insertAfter($data->listFields, 'id', 'avatar', 'Аватар');
+        $data->listFields = array('avatar' => 'Аватар') + $data->listFields;
     }
-    
-    
-    /**
-     * От масива за източник прави ключ и стойност и ги поставя след определено поле
-     */
-    function insertAfter($sourceArr, $afterField, $key, $value)
-    {
-        foreach($sourceArr as $k => $v) {
-            $destArr[$k] = $v;
-            
-            if($k == $afterField) {
-                $destArr[$key] = $value;
-            }
-        }
         
-        return $destArr;
-    }
-    
     
     /**
      * Връща html <img> елемент, отговарящ на аватара на потребителя
