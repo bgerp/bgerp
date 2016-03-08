@@ -641,13 +641,24 @@ class cms_Articles extends core_Master
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), 'createdOn=Дата, createdBy=От, Version=Версия');
+        $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
     }
 
 
     protected static function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId));
+        
+        if ($mvc->haveRightFor('add')) {
+            $data->toolbar->addBtn('Нова статия', array(
+                    $this,
+                    'add',
+                    'menuId' => $data->listFilter->rec->menuId,
+                ),
+                'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+        }
+ 
     }
 
 

@@ -21,7 +21,7 @@ class plg_ProtoWrapper extends core_Plugin
     /**
      * Наименованието на групата
      */
-    var $title;
+    public $title;
 
 
     /**

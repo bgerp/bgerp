@@ -20,7 +20,7 @@ abstract class deals_DealDetail extends doc_Detail
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	protected $hideListFieldsIfEmpty = 'discount';
+	public $hideListFieldsIfEmpty = 'discount';
  	
  	
  	/**

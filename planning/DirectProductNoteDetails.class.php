@@ -257,11 +257,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$fieldset = clone $this;
     	$fieldset->FNC('num', 'int');
     	$table = cls::get('core_TableView', array('mvc' => $fieldset));
-    	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
     	
     	$iData = clone $data;
     	$iData->rows = $data->inputArr;
     	$this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+    	
+    	$iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
     	$detailsInput = $table->get($iData->rows, $iData->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
@@ -277,6 +278,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$pData = clone $data;
     		$pData->rows = $data->popArr;
     		$this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+    		
+    		$pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
     		$popTable = $table->get($pData->rows, $pData->listFields);
     		$detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
     		

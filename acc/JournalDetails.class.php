@@ -56,7 +56,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'reasonCode';
+    public $hideListFieldsIfEmpty = 'reasonCode';
     
     
     /**
