@@ -2605,7 +2605,7 @@ class doc_Containers extends core_Manager
         
         // Добавя всички функции в масива, които ще се виката
         $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
-        if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
+        if (!empty($runAfterAjaxArr)) {
             
             $runAfterAjaxArr = array_unique($runAfterAjaxArr);
             foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
