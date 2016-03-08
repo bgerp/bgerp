@@ -1696,7 +1696,7 @@ class crm_Companies extends core_Master
      * След подготовка на полетата за импортиране
      * 
      * @param crm_Companies $mvc
-     * @param array $fields
+     * @param array $recs
      */
     public static function on_AfterPrepareExportRecs($mvc, &$recs)
     {
@@ -1726,7 +1726,7 @@ class crm_Companies extends core_Master
      * След подготовка на записите за експортиране
      * 
      * @param crm_Companies $mvc
-     * @param array $recs
+     * @param object $rec
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
