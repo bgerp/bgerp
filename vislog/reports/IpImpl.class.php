@@ -228,8 +228,11 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     	$explodeTitle = explode(" » ", $this->title);
     	 
     	$title = tr("|{$explodeTitle[1]}|*");
+    	
     	$tpl->replace($title, 'TITLE');
+    	
     	$this->prependStaticForm($tpl, 'FORM');
+    	
     	$tpl->placeObject($data->row);
     	
     	$tableMvc = new core_Mvc;
@@ -244,34 +247,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     	if($data->pager){
     	    $tpl->append($data->pager->getHtml(), 'PAGER');
     	}
-    	$rows = array();
-
-    	$ft = $f->fields;
-    	$ipType = cls::get('type_Ip');
-        $cntType = $ft['cnt']->type;
-      
-    	foreach ($data->ipCnt as $ip => $createdCnt) { 
-	    	if(!$pager->isOnPage()) continue;
-	    		
-	    	$row = new stdClass();
-	   
-	    	if ($data->fRec->to) {
-	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->to, TRUE, TRUE);
-	    	} else {
-	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->createdOn, TRUE, TRUE);
-	    	}
-	    	
-	    	$row->cnt = $cntType->toVerbal($createdCnt);
-
-	    	$rows[] = $row;
-    	}
-
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
-    
-    	$tpl->append($html, 'VISITS');
-        $tpl->append($pager->getHtml(), 'PAGER');
-        
+    	
     	$embedderTpl->append($tpl, 'data');
     }
      
