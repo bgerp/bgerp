@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 
     
     /**
@@ -75,7 +75,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
+    public $listFields = 'name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
     
     
     /**
@@ -88,12 +88,6 @@ class tasks_Tasks extends embed_Manager
      * Детайли
      */
     public $details = 'tasks_TaskConditions';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -805,9 +799,11 @@ class tasks_Tasks extends embed_Manager
     	// Ако няма намерени записи, не се рендира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
-    	$fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
-    	$tpl = $table->get($data->rows, $fields);
+    	$fields = 'progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+    	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
+    	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
+    	
+    	$tpl = $table->get($data->rows, $data->listFields);
     
     	// Имали бутони за добавяне
     	if(is_array($data->addUrlArray)){

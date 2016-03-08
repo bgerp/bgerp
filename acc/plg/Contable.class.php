@@ -459,7 +459,7 @@ class acc_plg_Contable extends core_Plugin
             return;
         }
         
-        $rec = ((is_object($rec)) ? $mvc->fetch($rec->id) : $mvc->fetch($rec));
+        $rec = $mvc->fetchRec($rec);
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction       = $transactionSource->getTransaction($rec);
       
