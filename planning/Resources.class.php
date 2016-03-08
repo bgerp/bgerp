@@ -267,8 +267,7 @@ class planning_Resources extends core_Master
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$table = cls::get('core_TableView');
-    	$fields = 'tools=Пулт,objectId=Обект,conversionRate=Конверсия';
-    	$detailTpl = $table->get($data->detailRows, $fields);
+    	$detailTpl = $table->get($data->detailRows, 'tools=Пулт,objectId=Обект,conversionRate=Конверсия');
     	$tpl->append($detailTpl, 'OBJECT_RESOURCES');
     }
     
