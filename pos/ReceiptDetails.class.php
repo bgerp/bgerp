@@ -67,7 +67,7 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    protected $hideListFieldsIfEmpty = 'discountPercent';
+    public $hideListFieldsIfEmpty = 'discountPercent';
     
     
   	/**
