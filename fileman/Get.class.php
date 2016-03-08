@@ -302,7 +302,7 @@ class fileman_Get extends core_Manager {
         	
             foreach($err as $e) {
                 $add->append("<li>" . tr($e), 'ERR');
-                fileman_Files::logWarning('Грешка при добавяне на файла от URL: ' . $е);
+                fileman_Files::logWarning('Грешка при добавяне на файла от URL: ' . $e);
             }
         } else {
             $rec->url = '';
