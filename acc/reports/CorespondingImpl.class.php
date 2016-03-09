@@ -231,7 +231,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} elseif ($this->innerForm->compare == 'year') {
     		$data->toOld = date('Y-m-d',strtotime("-12 months", $from));
     		$data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
-    		bp($data->toOld, $data->fromOld , $from, $to);
+    		//bp($data->toOld, $data->fromOld , $from, $to);
     	}
 
     	$data->groupBy = array();
