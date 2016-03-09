@@ -29,6 +29,9 @@ samp {
 .footerDocTable {
   display: table !important; }
 
+.footer-notes {
+  page-break-inside: auto; }
+
 thead {
   display: table-header-group; }
 

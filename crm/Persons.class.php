@@ -2574,9 +2574,9 @@ class crm_Persons extends core_Master
      * @param crm_Persons $mvc
      * @param array $fields
      */
-    public static function on_AfterPrepareInportFields($mvc, &$fields)
+    public static function on_AfterPrepareImportFields($mvc, &$fields)
     {
-        crm_Companies::on_AfterPrepareInportFields($mvc, $fields);
+        crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
         
         if ($fields['groupList']) {
             $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';

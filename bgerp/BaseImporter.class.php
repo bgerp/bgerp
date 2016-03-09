@@ -56,7 +56,7 @@ class bgerp_BaseImporter extends core_Manager {
             }
         }
         
-        $this->mvc->invoke('AfterPrepareInportFields', array(&$fields));
+        $this->mvc->invoke('AfterPrepareImportFields', array(&$fields));
         
         return $fields;
     }

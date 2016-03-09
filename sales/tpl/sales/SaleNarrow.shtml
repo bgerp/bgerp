@@ -76,6 +76,9 @@
                             <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                         <!--ET_END deliveryBlock-->
                         <!--ET_BEGIN deliveryTermTime--><li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li><!--ET_END deliveryTermTime--> 
+                    	<!--ET_BEGIN commonConditionQuote-->
+	                    <li>[#commonConditionQuote#]</li>
+	                    <!--ET_END commonConditionQuote-->
                     </ol>
                     <!--ET_BEGIN isDelivered-->
                     <div class='stamp'>[#isDelivered#]</div>

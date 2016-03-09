@@ -1450,6 +1450,8 @@ class doc_DocumentPlg extends core_Plugin
     	            
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
+    			} elseif(!doc_Threads::haveRightFor('single', $rec->threadId)){
+    				$requiredRoles = 'no_one';
     			} else{
     				
     				// Ако папката на нишката е затворена, не може да се добавят документи

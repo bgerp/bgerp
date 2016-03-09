@@ -1069,6 +1069,7 @@ div.acc-detail {
 		padding-top: 5px;
 		margin-top: 10px;
 		background-color: transparent;
+		box-shadow: none;
 		p {
 			margin: 0;
 		}
@@ -4480,8 +4481,11 @@ body.narrow {
         border: none;
         padding: 0;
     }
+    .listTable td {
+        vertical-align: top !important;
+    }
 }
-
+ 
 .narrow .external{
 	.scrolling-holder{
 		display: block;
@@ -4751,6 +4755,13 @@ body.narrow {
 	           padding: 3px;
 	       }
 	   }
+	}
+	.jobTable td {
+	   vertical-align: top !important;
+	}
+	.portal.planning {
+	   padding: 0;
+	   border: none;
 	}
     .linkWithIcon{
        background-image: none !important;
