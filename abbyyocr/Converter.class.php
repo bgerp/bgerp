@@ -64,7 +64,7 @@ class abbyyocr_Converter extends core_Manager
             
             $Setup = cls::get('abbyyocr_Setup');
             
-            if ($Setup->checkConfig() !== NULL) {
+            if ($Setup->checkConfig() === NULL) {
                 // URL за създаване
                 $url = toUrl(array(get_called_class(), 'getTextByOcr', $rec->fileHnd, 'ret_url' => TRUE));
             } else {
