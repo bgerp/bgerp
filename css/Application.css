@@ -947,7 +947,8 @@ div.acc-detail {
   .detail-info.portal {
     padding-top: 5px;
     margin-top: 10px;
-    background-color: transparent; }
+    background-color: transparent;
+    box-shadow: none; }
     .detail-info.portal p {
       margin: 0; }
     .detail-info.portal table.listTable th {
