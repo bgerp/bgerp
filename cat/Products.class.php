@@ -613,6 +613,21 @@ class cat_Products extends embed_Manager {
     	    $rec->name = $rec->csv_name;
     	}
     	
+    	// При дублиран запис, правим опит да намерим нов код
+    	$onExist = Mode::get('onExist');
+    	if ($onExist == 'duplicate') {
+    	    $loopCnt = 0;
+    	    while (self::fetch(array("#code = '[#1#]'", $rec->code))) {
+    	        if ($loopCnt > 100) break;
+    	        if (is_int($rec->code)) {
+    	            $rec->code++;
+    	        } else {
+    	            $rec->code = str::increment($rec->code);
+    	        }
+    	        $loopCnt++;
+    	    }
+    	}
+    	
     	if($rec->csv_measureId){
     		$rec->measureId = cat_UoM::fetchBySinonim($rec->csv_measureId)->id;
     	} else {
