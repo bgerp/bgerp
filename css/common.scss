@@ -947,7 +947,7 @@ input.more-btn {
 
 .toolbar-btn {
 	cursor: pointer;
-	padding: 2px;
+	margin: 4px;
 	opacity: 0.8;
 	&:hover {
 	   opacity: 1;
@@ -979,6 +979,7 @@ a.more-btn {
     outline: none;
     box-shadow: none;
     color: #fff;
+    cursor: pointer;
     &:focus {
         outline: none;
         box-shadow: none;
