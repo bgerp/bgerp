@@ -66,7 +66,7 @@
                                 <tr>
                                     <td class='quiet nowrap aright'>|До|*:</td>
                                     <!--ET_BEGIN locationId-->
-                                        <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
+                                        <td><b>[#locationId#]</b><!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress--></td>
                                     <!--ET_END locationId-->
                                     <!--ET_BEGIN formLocation-->
                                         [#formLocation#]
