@@ -841,7 +841,8 @@ class doc_Threads extends core_Manager
         // TODO RequireRightFor
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
         $exp->DEF('#Selected=Избрани', 'varchar', 'fromRequest');
-        
+       
+        $exp->functions['canmovetofolder'] = 'doc_Threads::canmovetofolder';
         $exp->functions['doc_threads_fetchfield'] = 'doc_Threads::fetchField';
         $exp->functions['getcompanyfolder'] = 'crm_Companies::getCompanyFolder';
         $exp->functions['getpersonfolder'] = 'crm_Persons::getPersonFolder';
@@ -866,7 +867,7 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, where=#state !\\= \\\'rejected\\\')', 'width=500px');
+        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'width=500px');
         
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
@@ -912,7 +913,7 @@ class doc_Threads extends core_Manager
 
         $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
         
-        $exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
+        //$exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
         
         $exp->question("#folderId", tr("Моля, изберете папка") . ":", "#dest == 'exFolder'", 'title=' . tr('Избор на папка за нишката'));
         
@@ -927,6 +928,7 @@ class doc_Threads extends core_Manager
         
         $exp->rule("#checkMoveTime", "checkmovetime(#threadId, #moveRest)");
         $exp->WARNING(tr("Операцията може да отнеме време!"), '#checkMoveTime === FALSE');
+        $exp->ERROR('Нишката не може да бъде преместена в избраната папка', 'canMoveToFolder(#threadId, #folderId)');
         
         $result = $exp->solve('#folderId,#moveRest,#checkMoveTime,#haveAccess');
         
@@ -1073,6 +1075,21 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Можели нишката да бъде преместена в папката
+     * 
+     * @param int $threadId - ид на нишка
+     * @param int $folderId - ид на папка
+     * 
+     */
+    public static function canMoveToFolder($threadId, $folderId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	return !$firstDoc->getInstance()->canAddToFolder($folderId);
+    }
+    
+    
+    /**
      * Проверява времето за преместване дали ще е в границата
      * 
      * @param integer $threadId
@@ -1166,13 +1183,8 @@ class doc_Threads extends core_Manager
              *  премести съответстващия му контейнер.
              */
             expect($rec->docId, $rec);
-            $doc->getInstance()->save(
-                (object)array(
-                    'id' => $rec->docId,
-                    'folderId' => $destFolderId,
-                ),
-                'id,folderId'
-            );
+            $nRec = (object)array('id' => $rec->docId, 'folderId' => $destFolderId,);
+            $doc->getInstance()->save_($nRec,'id,folderId');
         }
         
         // Преместваме самата нишка
