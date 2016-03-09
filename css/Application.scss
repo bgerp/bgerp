@@ -4752,6 +4752,13 @@ body.narrow {
 	       }
 	   }
 	}
+	.jobTable td {
+	   vertical-align: top !important;
+	}
+	.portal.planning {
+	   padding: 0;
+	   border: none;
+	}
     .linkWithIcon{
        background-image: none !important;
        padding-left: 0 !important;
