@@ -342,6 +342,8 @@ class cat_products_Packagings extends core_Detail
     		$data->notStorable = TRUE;
     	}
     	
+    	$data->recs = $data->rows = array();
+    	
     	$query = self::getQuery();
     	$query->where("#productId = {$data->masterId}");
     	$query->orderBy('quantity', 'ASC');
