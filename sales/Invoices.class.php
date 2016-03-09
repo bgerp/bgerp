@@ -511,7 +511,10 @@ class sales_Invoices extends deals_InvoiceMaster
     		
     		if(!empty($rec->paymentType)){
     			$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
-    			$row->paymentType = tr('Плащане') . " " . mb_strtolower($row->paymentType);
+    			
+    			core_Lg::push($rec->tplLang);
+    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    			core_Lg::pop();
     			
     			if($makeHint === TRUE){
     				$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');

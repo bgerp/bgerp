@@ -60,7 +60,7 @@
                             <!--ET_BEGIN locationId-->
                             <tr>
                                 <td class='quiet aright'>|До|*:</td>
-                                <td>[#locationId#]</td>
+                                <td>[#locationId#]<!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress--></td>
                             </tr>
                             <!--ET_END locationId-->
                             <!--ET_BEGIN note-->

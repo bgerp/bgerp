@@ -162,10 +162,13 @@ class bgerp_plg_CsvExport extends core_Manager {
         				} else {
         					$value = $valueArr[1];
         				}
+        				foreach ($valueArr as &$v) {
+        				    $v = transliterate(tr($v));
+        				}
+        				$caption = implode(':', $valueArr);
         			} else {
-        				$value = 'Връзка';
+        				$caption = transliterate(tr('Връзка'));
         			}
-        			$caption = transliterate(tr($value));
     	        }
     	    }
     	} else {

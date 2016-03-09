@@ -180,6 +180,10 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+        if (!is_array($data->rows) || empty($data->rows)) return ;
+        
+        $mustShow = FALSE;
+        
         foreach($data->rows as $id => &$row) {
 			$rec = $data->recs[$id];
         	
