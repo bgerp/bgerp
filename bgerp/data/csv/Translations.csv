@@ -1190,6 +1190,7 @@ en,Обслужване,Services
 en,Обхват,Scope
 en,Общ брой палети,Total number of pallets
 en,Общ обем,Total volume
+en,Обем,Volume
 en,Общ,Shared
 en,Общa сума,Total
 en,Общи,General
@@ -1339,6 +1340,9 @@ en,Писмо,Letter
 en,Планиране » За_9a037,Planning » Assignments per sales
 en,Планиране » По_6b082,Planning » Purchases of goods
 en,Планиране » По_e8813,Planning » Purchases of materials
+en,Плащане по банков път,Bank payment
+en,Плащане в брой,Cash payment
+en,Плащане с прихващане,Offsetting payment
 en,Планиране,Planning
 en,Плановик,Planner
 en,Платежни Нареж_44b2,Payment orders
