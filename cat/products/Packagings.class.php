@@ -39,7 +39,7 @@ class cat_products_Packagings extends core_Detail
      */
     var $listFields = 'code=EAN, packagingId=Наименование, quantity=К-во, netWeight=, tareWeight=, weight=Тегло, 
         sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
-        eanCode=,tools=Пулт';
+        eanCode=';
     
     
     /**
@@ -51,7 +51,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_SaveAndNew, plg_AlignDecimals2';
+    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_AlignDecimals2';
     
     
     /**
