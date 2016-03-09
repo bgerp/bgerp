@@ -180,7 +180,7 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        foreach((array)$data->rows as $id => &$row) {
+        foreach($data->rows as $id => &$row) {
 			$rec = $data->recs[$id];
         	
 			// Ако има тулбар за реда
