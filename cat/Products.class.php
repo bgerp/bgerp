@@ -575,20 +575,30 @@ class cat_Products extends embed_Manager {
 	    $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
 	    $fields['groups'] = array('caption' => 'Маркери');
 	    $fields['meta'] = array('caption' => 'Свойства');
-	
-	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Маркери', 'notColumn' => TRUE, 'type' => 'keylist(mvc=cat_Groups, select=name, makeLinks)');
-	    $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => TRUE, 'type' => 'set(canSell=Продаваем,
+	    
+	    $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
+	    $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
+	    $metaType = 'set(canSell=Продаваем,
                                                                                         canBuy=Купуваем,
                                                                                         canStore=Складируем,
                                                                                         canConvert=Вложим,
                                                                                         fixedAsset=Дълготраен актив,
-                                                                			            canManifacture=Производим)');
+                                                                			            canManifacture=Производим)';
+	    
+	    $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => TRUE, 'type' => $categoryType);
+	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Маркери', 'notColumn' => TRUE, 'type' => $groupType);
+	    $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => TRUE, 'type' => $metaType);
+
+	    if (!$mvc->fields['Category']) {
+	        $mvc->FNC('Category', $categoryType);
+	    }
+	    
 	    if (!$mvc->fields['Groups']) {
-	        $mvc->FNC('Groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)');
+	        $mvc->FNC('Groups', $groupType);
 	    }
 	     
 	    if (!$mvc->fields['Meta']) {
-	        $mvc->FNC('Meta', 'set(canSell=Продаваем, canBuy=Купуваем, canStore=Складируем, canConvert=Вложим, fixedAsset=Дълготраен актив, canManifacture=Производим)');
+	        $mvc->FNC('Meta', $metaType);
 	    }
 	}
 	
@@ -705,7 +715,9 @@ class cat_Products extends embed_Manager {
     	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
-    	$mvc->routePublicProduct($rec->csv_category, $rec);
+    	$category = ($rec->csv_category) ? $rec->csv_category : $rec->Category;
+    	
+    	$mvc->routePublicProduct($category, $rec);
     }
     
     
