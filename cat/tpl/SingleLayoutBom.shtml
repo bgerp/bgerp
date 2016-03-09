@@ -8,11 +8,9 @@
     	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: <b>[#expenses#]</b></div>
     <!--ET_END expenses-->
      
-    <div class = 'fieldset-holder' style='margin-top:10px'>
-        <div class="scrolling-holder">
-            [#cat_BomDetails#]
-        </div>
-    </div>
+	<div class="scrolling-holder" style='margin:10px 0'>
+	    [#cat_BomDetails#]
+	</div>
     <!--ET_BEGIN notes-->
 	    <div class='quiet'>|Забележки|*:</div>
 	    <div>[#notes#]</div>
