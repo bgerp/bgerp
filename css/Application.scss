@@ -4481,8 +4481,11 @@ body.narrow {
         border: none;
         padding: 0;
     }
+    .listTable td {
+        vertical-align: top !important;
+    }
 }
-
+ 
 .narrow .external{
 	.scrolling-holder{
 		display: block;
