@@ -628,11 +628,20 @@ class cat_Products extends embed_Manager {
     	if ($onExist == 'duplicate') {
     	    $loopCnt = 0;
     	    while (self::fetch(array("#code = '[#1#]'", $rec->code))) {
-    	        if ($loopCnt > 100) break;
+    	        if ($loopCnt > 100) {
+    	            $rec->code = str::getRand();
+    	            continue;
+    	        }
     	        if (is_int($rec->code)) {
     	            $rec->code++;
     	        } else {
-    	            $rec->code = str::increment($rec->code);
+    	            $nCode = str::increment($rec->code);
+    	            
+    	            if ($nCode !== FALSE) {
+    	                $rec->code = $nCode;
+    	            } else {
+    	                $rec->code .= '_d';
+    	            }
     	        }
     	        $loopCnt++;
     	    }
