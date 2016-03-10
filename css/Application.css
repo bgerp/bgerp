@@ -4095,6 +4095,9 @@ only screen and (max-width: 320px) {
   .external .listTable td {
     vertical-align: top !important; }
 
+.wide .external .vertical .formTable {
+  box-shadow: none !important; }
+
   .narrow .external .scrolling-holder {
     display: block;
     width: 100% !important;
