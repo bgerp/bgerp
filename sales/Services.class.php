@@ -286,7 +286,7 @@ class sales_Services extends deals_ServiceMaster
     			}
     		} elseif($rec->state == 'active'){
     			
-    			// Ако има faktura към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Invoices::haveRightFor('single', $iRec)){
     					$title = "|Фактура|* #" . sales_Invoices::getHandle($iRec->id);
