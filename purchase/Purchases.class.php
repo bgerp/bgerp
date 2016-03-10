@@ -276,6 +276,11 @@ class purchase_Purchases extends deals_DealMaster
         	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
         	$form->setDefault('activityCenterId', $defCenter);
         }
+        
+        $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
+        if($hideRate == 'yes'){
+        	$form->setField('currencyRate', 'input');
+        }
     }
     
     

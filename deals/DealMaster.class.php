@@ -306,7 +306,11 @@ abstract class deals_DealMaster extends deals_DealBase
         	if(!$rec->currencyRate){
         		$form->setError('currencyRate', "Не може да се изчисли курс");
         	}
-        }
+        } else {
+    		if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
+    			$form->setWarning('currencyRate', $msg);
+    		}
+    	}
         
         $form->rec->paymentState = 'pending';
     }

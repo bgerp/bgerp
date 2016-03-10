@@ -358,6 +358,11 @@ class sales_Sales extends deals_DealMaster
         $priceAtDateFld = $form->getFieldType('pricesAtDate');
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
+        
+        $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
+        if($hideRate == 'yes'){
+        	$form->setField('currencyRate', 'input');
+        }
     }
     
     

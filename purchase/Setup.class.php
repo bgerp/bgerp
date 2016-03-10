@@ -20,6 +20,18 @@ defIfNot('PURCHASE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
+ * Колко време да се изчака след активиране на покупка, преди да се провери дали е просрочена
+ */
+defIfNot('PURCHASE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
+
+
+/**
+ * Дали да се въвежда курс в покупката
+ */
+defIfNot('PURCHASE_USE_RATE_IN_CONTRACTS', 'no');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -91,9 +103,10 @@ class purchase_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'PURCHASE_OVERDUE_CHECK_DELAY' => array("time", "caption=Толеранс за просрочване на покупката->Време"),
-			'PURCHASE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
-			'PURCHASE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
+			'PURCHASE_OVERDUE_CHECK_DELAY'   => array("time", "caption=Толеранс за просрочване на покупката->Време"),
+			'PURCHASE_CLOSE_OLDER_THAN'      => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
+			'PURCHASE_CLOSE_OLDER_NUM'       => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
+			'PURCHASE_USE_RATE_IN_CONTRACTS' => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в покупките->Избор'),
 	);
 	
 	
