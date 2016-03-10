@@ -109,10 +109,9 @@
 					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
-                                        <!--ET_BEGIN DUE_BLOCK-->
-                                           [#DUE_BLOCK#]
-                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
-                                        <!--ET_END DUE_BLOCK--> 
+                                        <!--ET_BEGIN dueDate-->
+                                        <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
+                                        <!--ET_END dueDate--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>

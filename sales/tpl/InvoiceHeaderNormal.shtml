@@ -109,10 +109,9 @@
                                         <div>[#paymentType#]</div>
                                         <!--ET_END paymentType-->
                                         
-                                        <!--ET_BEGIN DUE_BLOCK-->
-                                           [#DUE_BLOCK#]
+                                        <!--ET_BEGIN dueDate-->
                                         <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
-                                        <!--ET_END DUE_BLOCK--> 
+                                        <!--ET_END dueDate--> 
                                         
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
