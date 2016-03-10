@@ -524,7 +524,7 @@ class email_Inboxes extends core_Master
     
     /**
      * Форсира папката, с име този имейл. Ако папката липсва, но това е валиден 
-     * имайл на PowerUser 
+     * имeйл на PowerUser 
      *
      * @param string $email
      * @return int key(mvc=doc_Folders)
