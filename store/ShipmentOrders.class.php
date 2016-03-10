@@ -383,8 +383,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Proformas::haveRightFor('single', $iRec)){
-    					$title = "|Проформа|* #" . sales_Proformas::getHandle($iRec->id);
-    					$data->toolbar->addBtn($title, array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
     				}
     			} else {
     				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
@@ -397,8 +396,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Invoices::haveRightFor('single', $iRec)){
-    					$title = "|Фактура|* #" . sales_Invoices::getHandle($iRec->id);
-    					$data->toolbar->addBtn($title, array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
     				}
     			} else {
     				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
