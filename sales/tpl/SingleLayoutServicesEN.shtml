@@ -6,6 +6,9 @@
                     <td class="cell custom-header-bg" style='width:35%;'><b>Receiver</b></td>
                     <td class="cell centered" rowspan='2' style='width:30%;'>
                         <div class="document-title">delivery protocol</div>
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>

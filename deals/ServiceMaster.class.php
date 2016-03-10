@@ -260,6 +260,12 @@ abstract class deals_ServiceMaster extends core_Master
     		}
     		
     		core_Lg::pop();
+    		
+    		if($rec->isReverse == 'yes'){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$row->operationSysId = tr('Отказ от услуга');
+    			}
+    		}
     	}
     }
 
