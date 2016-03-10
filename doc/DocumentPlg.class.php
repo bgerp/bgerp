@@ -3014,7 +3014,7 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($hashArr[$id])) {
             $rec = $mvc->fetchRec($id);
             
-            $hashArr[$id] = md5($res . '|' . $rec->title . '|' . $res->subject . '|' . $rec->body);
+            $hashArr[$id] = md5($res . '|' . $rec->title . '|' . $res->subject . '|' . $rec->body . '|' . $rec->textPart);
         }
         
         $res = $hashArr[$id];
