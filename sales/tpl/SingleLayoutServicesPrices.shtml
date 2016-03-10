@@ -11,7 +11,7 @@
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
+                        <div class="[#STATE_CLASS#]" style='margin-top: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b></td>
