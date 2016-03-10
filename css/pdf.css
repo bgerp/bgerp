@@ -38,3 +38,6 @@ thead {
 .versionNumber {
   margin-left: 5px; }
 
+.staticFormView .formFieldValue {
+  border: solid 1px #bbbbbb; }
+

@@ -4486,6 +4486,10 @@ body.narrow {
     }
 }
  
+.wide .external .vertical .formTable {
+    box-shadow: none !important;
+}
+
 .narrow .external{
 	.scrolling-holder{
 		display: block;
@@ -5187,4 +5191,3 @@ body.narrow {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
-

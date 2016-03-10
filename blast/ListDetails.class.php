@@ -533,7 +533,7 @@ class blast_ListDetails extends doc_Detail
         
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
-        $exp->question("#blastList", tr("Изберете списъка от който да се импортират даните"), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
+        $exp->question("#blastList", tr("Изберете списъка от който да се импортират данните"), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
         $exp->rule("#csvData", "importCsvFromLists(#blastList)", '#blastList');
         
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');

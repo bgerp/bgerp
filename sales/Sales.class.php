@@ -16,10 +16,7 @@ class sales_Sales extends deals_DealMaster
 {
 	
 	
-	const AGGREGATOR_TYPE = 'sale';
-    
-	
-    /**
+	/**
      * Заглавие
      */
     public $title = 'Договори за продажба';
@@ -358,6 +355,11 @@ class sales_Sales extends deals_DealMaster
         $priceAtDateFld = $form->getFieldType('pricesAtDate');
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
+        
+        $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
+        if($hideRate == 'yes'){
+        	$form->setField('currencyRate', 'input');
+        }
     }
     
     
@@ -496,8 +498,6 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
-        
-        $result->setIfNot('dealType', self::AGGREGATOR_TYPE);
         
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();

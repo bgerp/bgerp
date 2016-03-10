@@ -156,7 +156,7 @@ abstract class deals_ServiceMaster extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
@@ -260,6 +260,12 @@ abstract class deals_ServiceMaster extends core_Master
     		}
     		
     		core_Lg::pop();
+    		
+    		if($rec->isReverse == 'yes'){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$row->operationSysId = tr('Отказ от услуга');
+    			}
+    		}
     	}
     }
 

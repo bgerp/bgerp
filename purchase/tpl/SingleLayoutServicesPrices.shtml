@@ -6,14 +6,15 @@
                     <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
                     <td class="cell centered" style='width:30%' rowspan='2'>
                         <div class="document-title">|приемателен протокол|*</div>
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <br>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <br>
+                        <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%'><b>|Доставчик|*</b></td>

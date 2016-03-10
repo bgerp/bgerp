@@ -483,7 +483,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$row = new stdClass();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$Varchar = cls::get('type_Varchar');
-    	
+ 
     	// Вербалното представяне на перата
     	foreach (range(1, 6) as $i){
     		if(!empty($rec->{"item{$i}"})){
@@ -515,7 +515,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	if (isset($rec->measure)) {
     	   $row->measure = $rec->measure;
     	}
-    	
+
     	// Връщаме подготвеното вербално рпедставяне
     	return $row;
     }
@@ -778,11 +778,43 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         
         arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
+        $rows = $this->prepareEmbeddedData()->rows; 
         foreach($this->innerState->recs as $id => $rec) {
-            $this->innerState->recs[$id]->delta = str_replace("&nbsp;", '', $this->innerState->recs[$id]->delta);
+    
+            $dataRecs[] = $this->getVerbalRec($rec, $data);
+            foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld){
+                if(!is_null($rec->{$fld})){
+                    $dataRecs[$id]->{$fld} = $rec->{$fld};
+                }
+            }
+            if(!is_null($rec->delta)){
+                $dataRecs[$id]->delta = str_replace("&nbsp;", '', $rec->delta);
+            }
+            
+            if(!is_null($rec->measure)){
+                $dataRecs[$id]->measure = $rows[$id]->measure;
+            }
+            
+            if(!is_null($rec->valior)){
+                $dataRecs[$id]->valior = $rec->valior;
+            }
+            
+            foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1){
+                if(!is_null($rec->{$fld1})){ 
+                    $dataRecs[$id]->{$fld1} = html_entity_decode(strip_tags($dataRecs[$id]->{$fld1}));
+                } 
+            }
         }
 
-        $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
+        foreach($exportFields as $caption => $name) {
+            if($caption == 'creditAmount') {
+                unset($exportFields[$caption]);
+                $exportFields['sum'] = 'Сума';
+            }
+   
+        }
+
+        $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
     	
     	return $csv;
     }
@@ -805,7 +837,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $f->FLD('creditAmount', 'double');
         $f->FLD('blQuantity', 'double');
         $f->FLD('blAmount', 'double');
+        $f->FLD('quantity', 'double');
+        $f->FLD('sum', 'double');
+        $f->FLD('valior', 'date');
         $f->FLD('delta', 'varchar');
+        $f->FLD('measure', 'varchar');
 
         return $f;
     }

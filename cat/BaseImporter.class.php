@@ -28,6 +28,8 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class cat_BaseImporter extends core_Manager {
     
@@ -273,6 +275,7 @@ class cat_BaseImporter extends core_Manager {
      */
     public static function isApplicable($className)
     {
-    	return $className == self::$applyOnlyTo;
+        
+//     	return $className == self::$applyOnlyTo;
     }
 }
