@@ -1680,6 +1680,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$products = $info->get('shippedProducts');
     	$agreed = $info->get('products');
     	$invoiced = $info->get('invoicedProducts');
+    	$packs = $info->get('shippedPacks');
     	
     	if($ForMvc instanceof sales_Proformas){
     		$products = $agreed;
@@ -1701,7 +1702,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		
     		if($quantity <= 0) continue;
     		
-    		// Ако няма информация за експедираните опаковки, визмаме основната опаковка
+    		// Ако няма информация за експедираните опаковки, взимаме основната опаковка
     		if(!isset($packs[$product->productId])){
     			$packs1 = cat_Products::getPacks($product->productId);
     			$product->packagingId = key($packs1);
