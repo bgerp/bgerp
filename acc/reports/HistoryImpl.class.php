@@ -311,6 +311,14 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	            }
 	            $dataRec[$id] = $row;
 	        }
+	        
+	        if (!is_null($row->docId)) {
+	            $dataRec[$id]->docId = html_entity_decode(strip_tags($row->docId));
+	        }
+	        
+	        if (!is_null($row->reason)) {
+	            $dataRec[$id]->reason = html_entity_decode(strip_tags($row->reason));
+	        }
 	    }
 
 	    $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
