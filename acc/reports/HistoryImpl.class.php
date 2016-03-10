@@ -254,6 +254,31 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 		return $activateOn;
 	}
 	
+	
+	/**
+	 * Ще се експортирват полетата, които се
+	 * показват в табличния изглед
+	 *
+	 * @return array
+	 * @todo да се замести в кода по-горе
+	 */
+	protected function getFields_()
+	{
+	    // Кои полета ще се показват
+	    $f = new core_FieldSet;
+	    $f->FLD('date', 'date');
+	    $f->FLD('baseQuantity', 'double');
+	    $f->FLD('blQuantity', 'double');
+	    $f->FLD('baseAmount', 'double');
+	    $f->FLD('blAmount', 'double');
+	    $f->FLD('creditAmount', 'double');
+	    $f->FLD('creditQuantity', 'double');
+	    $f->FLD('debitQuantity', 'double');
+	    $f->FLD('debitAmount', 'double');
+	    
+	    return $f;
+	}
+	
 
 	/**
 	 * Ако имаме в url-то export създаваме csv файл с данните
@@ -264,7 +289,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	public function exportCsv()
 	{
 
-		$conf = core_Packs::getConfig('core');
+		/*$conf = core_Packs::getConfig('core');
 	
 		if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
 			redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
@@ -292,7 +317,20 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 			$csv = $header . "\n" . $lastRow .  "\n" . $csv . $zeroRow;
 	    } else {
 	    	$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
+	    }*/
+	    
+	    $conf = core_Packs::getConfig('core');
+	    
+	    if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+	        redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
 	    }
+	    //bp($this);
+	    //$exportFields = $this->innerState->listFields;
+	    $exportFields = $this->getExportFields();
+	    
+	    $fields = $this->getFields();
+	   // bp($this->innerState->recs, $fields, $exportFields);
+	    $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
 
 		return $csv;
 	}
@@ -307,9 +345,9 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	protected function getExportFields_()
 	{
 
-		$exportFields['valior']  = "Вальор";
-		$exportFields['docId']  = "Документ";
-		$exportFields['reason']  = "Забележки";
+		//$exportFields['valior']  = "Вальор";
+		//$exportFields['docId']  = "Документ";
+		//$exportFields['reason']  = "Забележки";
 		$exportFields['debitQuantity']  = "Дебит - количество";
 		$exportFields['debitAmount']  = "Дебит";
 		$exportFields['creditQuantity']  = "Кредит - количество";
@@ -327,7 +365,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	 *
 	 * @return stdClass
 	 */
-	protected function generateHeader_($rec)
+	/*protected function generateHeader_($rec)
 	{
 		
 		$exportFields = $this->getExportFields();
@@ -344,14 +382,14 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 			
 		return (object) array('header' => $header, 'exportFields' => $exportFields);
 	}
-	
+	*/
 	
 	/**
 	 * Ще направим row-овете в CSV формат
 	 *
 	 * @return string $rCsv
 	 */
-	protected function generateCsvRows_($rec)
+	/*protected function generateCsvRows_($rec)
 	{
 	
 		$exportFields = $this->generateHeader($this->innerState->rec)->exportFields;
@@ -381,5 +419,5 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 		}
 		
 		return $rCsv;
-	}
+	}*/
 }
