@@ -376,13 +376,34 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$rec = $data->rec;
     	 
     	if($rec->isReverse == 'no'){
+    		
+    		// Към чернова може да се генерират проформи, а към контиран фактури
     		if($rec->state == 'draft'){
-    			if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    				$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
+    			
+    			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(sales_Proformas::haveRightFor('single', $iRec)){
+    					$title = "|Проформа|* #" . sales_Proformas::getHandle($iRec->id);
+    					$data->toolbar->addBtn($title, array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/star_2.png');
+    				}
     			}
+    			
     		} elseif($rec->state == 'active'){
-    			if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    				$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png');
+    			
+    			// Ако има faktura към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(sales_Invoices::haveRightFor('single', $iRec)){
+    					$title = "|Фактура|* #" . sales_Invoices::getHandle($iRec->id);
+    					$data->toolbar->addBtn($title, array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/star_2.png');
+    				}
     			}
     		}
     	}
