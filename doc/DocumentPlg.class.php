@@ -3019,7 +3019,20 @@ class doc_DocumentPlg extends core_Plugin
         
         $res = $hashArr[$id];
     }
+
+
+    /**
+     * Преди рендиране на сингъла
+     */
+    public static function on_BeforeRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
     
-    
-    
+    		// Оставяме състоянието да се показва само ако не е оттеглено
+    		if($data->rec->state != 'rejected'){
+    			unset($data->row->state);
+    		}
+    	}
+    }
 }
