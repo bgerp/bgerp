@@ -20,7 +20,7 @@
                                             <div class='original'>[#INV_STATUS#]</div>
                                         </div>
                                         <!--ET_BEGIN state-->
-                                        <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
+                                        <div class="[#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Seller</b> </td>
@@ -109,10 +109,9 @@
 					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
-                                        <!--ET_BEGIN DUE_BLOCK-->
-                                           [#DUE_BLOCK#]
-                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
-                                        <!--ET_END DUE_BLOCK--> 
+                                        <!--ET_BEGIN dueDate-->
+                                        <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
+                                        <!--ET_END dueDate--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>

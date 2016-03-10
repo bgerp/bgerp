@@ -488,7 +488,7 @@ class acc_Items extends core_Manager
             // Може ли да импортираме от модел, ако да махаме бутона за нормално добавяне
             if($this->haveRightFor('insert', (object)array('listId' => $listId))){
                 $data->toolbar->removeBtn('btnAdd');
-                $data->toolbar->addBtn("Избор", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');
+                $data->toolbar->addBtn("Избор", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на пера');
             }
         }
         

@@ -6,14 +6,15 @@
                     <td class="cell custom-header-bg" style='width:35%'><b>Receiver</b></td>
                     <td class="cell centered" style='width:30%' rowspan='2'>
                         <div class="document-title">acceptance protocol</div>
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <br>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <br>
+                        <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%'><b>Supplier</b></td>
@@ -94,27 +95,27 @@
                     <td class="topCell aright vtop">
                         <table style='margin-bottom:20px;width:100%;' class='business-doc-summary-table'>
                             <tr class='nowrap'>
-                                <td class='aright'>|Value|* :</td>
+                                <td class='aright'>Value :</td>
                                 <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
                                 <td class='aright' style='width:1%'> <b class="lighterBold">[#value#]</b></td>
                             </tr>
                             <!--ET_BEGIN discountValue-->
                             <tr class='nowrap'>
-                                <td class='aright'>|Discount|* :</td>
+                                <td class='aright'>Discount :</td>
                                 <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
                                 <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
                             </tr>
                             <!--ET_END discountValue-->
                             <!--ET_BEGIN neto-->
                             <tr class='nowrap'>
-                                <td class='aright'>|Netto|* :</td>
+                                <td class='aright'>Netto :</td>
                                 <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
                                 <td class='aright'><b class="lighterBold">[#neto#]</b></td>
                             </tr>
                             <!--ET_END neto-->
                             <!--ET_BEGIN baseAmount-->
                             <tr class='nowrap'>
-                                <td class='aright'>|Tax base|* :</td>
+                                <td class='aright'>Tax base :</td>
                                 <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
                                 <td class='aright'><b class="lighterBold">[#baseAmount#]</b></td>
                             </tr>
@@ -126,13 +127,13 @@
                             </tr>
                             <!--ET_BEGIN vatAmount-->
                             <tr class='nowrap'>
-                                <td class='aright'>|VAT|* <b>[#vat#]</b> :</td>
+                                <td class='aright'>VAT <b>[#vat#]</b> :</td>
                                 <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
                                 <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
                             </tr>
                             <!--ET_END vatAmount-->
                             <tr class='nowrap'>
-                                <td class='aright'>|Total|* :</td>
+                                <td class='aright'>Total :</td>
                                 <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
                                 <td class='aright'><b>[#total#]</b></td>
                             </tr>
@@ -140,7 +141,7 @@
                             <tr>
                                 <td colspan = '3' >
                                     <hr>
-                                    |Say words|*: [#sayWords#]
+                                    Say words: [#sayWords#]
                                 </td>
                             </tr>
                             <!--ET_END sayWords-->
