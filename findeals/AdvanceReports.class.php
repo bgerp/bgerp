@@ -419,7 +419,7 @@ class findeals_AdvanceReports extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(purchase_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+    	if(purchase_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
     		$data->toolbar->addBtn('Фактура', array('purchase_Invoices', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/invoice.png,title=Създаване на нова фактура');
     	}
     }
