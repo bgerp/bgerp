@@ -56,7 +56,7 @@ class avatar_Plugin extends core_Plugin
     static function getImg($userId, $email = NULL, $width = NULL)
     {
         if(!$width) {
-            $width = Mode::is('screenMode', 'narrow') ? 48 : 100;
+            $width = Mode::is('screenMode', 'narrow') ? 60 : 100;
         }
         
         $attr = array();

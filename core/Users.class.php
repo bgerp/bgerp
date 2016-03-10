@@ -815,7 +815,7 @@ class core_Users extends core_Manager
             }
         }
 
-        if($addRoles) {
+        if($addRoles && !Mode::is('screenMode', 'narrow')) {
 
             $row->rolesInput .= "<div style='color:#666;'>" . tr("индиректно") . ": " . $addRoles . "</div>";
         }
