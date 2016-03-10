@@ -840,6 +840,11 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->vatDate = $mvc->getFieldType('vatDate')->toVerbal($rec->date);
     		}
     		
+    		foreach (array('contragentPlace', 'contragentAddress') as $cfld){
+    			if(!empty($rec->{$cfld})){
+    				$row->{$cfld} = core_Lg::transliterate($row->{$cfld});
+    			}
+    		}
     		
     		$mvc->prepareMyCompanyInfo($row);
     		core_Lg::pop();
