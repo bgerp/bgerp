@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Покупки
@@ -18,9 +18,6 @@ class purchase_Purchases extends deals_DealMaster
 {
     
     
-	const AGGREGATOR_TYPE = 'purchase';
-	
-	
     /**
      * Заглавие
      */
@@ -405,8 +402,6 @@ class purchase_Purchases extends deals_DealMaster
     {
     	$rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
-        
-        $result->setIfNot('dealType', self::AGGREGATOR_TYPE);
         
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();

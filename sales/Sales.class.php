@@ -16,10 +16,7 @@ class sales_Sales extends deals_DealMaster
 {
 	
 	
-	const AGGREGATOR_TYPE = 'sale';
-    
-	
-    /**
+	/**
      * Заглавие
      */
     public $title = 'Договори за продажба';
@@ -501,8 +498,6 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
-        
-        $result->setIfNot('dealType', self::AGGREGATOR_TYPE);
         
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();
