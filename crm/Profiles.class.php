@@ -964,14 +964,15 @@ class crm_Profiles extends core_Master
             $link = $title;
             
             $url  = array();
+    	    $attr['class'] .= ' profile';
+
     		$profileId = self::getProfileId($userId);
-    		if ($profileId) {
+    		if ($profileId && 0) {
     			
     			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
     				$url  = static::getUrl($userId);
     			} 
     			
-    			$attr['class'] .= ' profile';
     			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none') as $role) {
                     if($role == 'none') {
                         $attr['style'] .= ";color:#333;"; break;
@@ -1003,7 +1004,8 @@ class crm_Profiles extends core_Master
     			
     			$link = ht::createLink($title, $url, $warning, $attr);
     		} else {
-                $link = ht::createLink('@anonymous', NULL);
+                $attr['style'] .= ';color:#999 !important;';
+                $link = ht::createLink($userRec->nick, NULL, NULL, $attr);
             }
     		
     		$cacheArr[$key] = $link;
