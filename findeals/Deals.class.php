@@ -370,8 +370,6 @@ class findeals_Deals extends deals_DealBase
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	
-    	$row->currencyRate .= " за";
     }
     
     
