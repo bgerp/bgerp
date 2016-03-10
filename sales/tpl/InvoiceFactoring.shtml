@@ -23,7 +23,7 @@
                                             <!--ET_END originInv-->
                                         </div>
                                         <!--ET_BEGIN state-->
-                                        <div class="[#STATE_CLASS#] header-state" style='margin:10px 0;'>[#state#]</div>
+                                        <div class="[#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Доставчик</b> </td>
@@ -109,10 +109,9 @@
                                         <div>[#paymentType#]</div>
                                         <!--ET_END paymentType-->
                                         
-                                        <!--ET_BEGIN DUE_BLOCK-->
-                                           [#DUE_BLOCK#]
+                                        <!--ET_BEGIN dueDate-->
                                         <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
-                                        <!--ET_END DUE_BLOCK--> 
+                                        <!--ET_END dueDate--> 
                                         
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]

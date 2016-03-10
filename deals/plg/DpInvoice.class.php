@@ -332,7 +332,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$valior = $firstDoc->getVerbal('valior');
     	
     	if($data->dpInfo->dpOperation == 'accrued'){
-    		$colspan = count($data->listFields) - 2;
+    		$colspan = count($data->listFields) - 1;
     		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
     		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);

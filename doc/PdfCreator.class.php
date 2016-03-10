@@ -236,13 +236,37 @@ class doc_PdfCreator extends core_Manager
      */
     public static function removeFormAttr($html)
     {
-        //Шаблон за намиране на <form ... </form>
+        // Шаблон за намиране на <form ... </form>
         $pattern = '/\<form.*\<\/form\>/is';
         
-        //Премахваме всикo което е между <form> ... </form>
-        $html = preg_replace($pattern, '', $html);
-
-        return $html;
+        // Премахваме всикo което е между <form> ... </form>
+        $res = preg_replace_callback($pattern, array(get_called_class(), 'removeMatchedFormAttr'), $html);
+        
+        if (($res === NULL) || ($res === FALSE)) {
+            $res = $html;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Премахва form елементите, ако вътре няма нещо с клас `staticFormView`
+     * 
+     * @param array $matches
+     * 
+     * @return string
+     */
+    protected static function removeMatchedFormAttr($matches)
+    {
+        if ($matches[0]) {
+            if (!preg_match('/class\s*=\s*(\'|\")staticFormView(\'|\")/i', $matches[0], $m)) {
+                
+                return '';
+            }
+        }
+        
+        return $matches[0];
     }
     
     

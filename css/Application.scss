@@ -1069,6 +1069,7 @@ div.acc-detail {
 		padding-top: 5px;
 		margin-top: 10px;
 		background-color: transparent;
+		box-shadow: none;
 		p {
 			margin: 0;
 		}
@@ -4480,6 +4481,13 @@ body.narrow {
         border: none;
         padding: 0;
     }
+    .listTable td {
+        vertical-align: top !important;
+    }
+}
+ 
+.wide .external .vertical .formTable {
+    box-shadow: none !important;
 }
 
 .narrow .external{
@@ -4751,6 +4759,13 @@ body.narrow {
 	           padding: 3px;
 	       }
 	   }
+	}
+	.jobTable td {
+	   vertical-align: top !important;
+	}
+	.portal.planning {
+	   padding: 0;
+	   border: none;
 	}
     .linkWithIcon{
        background-image: none !important;
@@ -5176,4 +5191,3 @@ body.narrow {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
-

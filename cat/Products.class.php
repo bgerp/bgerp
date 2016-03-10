@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
     /**
@@ -267,6 +267,12 @@ class cat_Products extends embed_Manager {
 	 */
 	protected $createdProducts = array();
 	
+	
+	/**
+	 * Полета, които могат да бъдат експортирани
+	 */
+	public $exportableCsvFields = 'code, name, measureId, groups, meta';
+    
 	
     /**
      * Описание на модела
@@ -553,29 +559,174 @@ class cat_Products extends embed_Manager {
 		$rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
 	}
     
+    
+	/**
+	 * След подготовка на полетата за импортиране
+	 *
+	 * @param crm_Companies $mvc
+	 * @param array $fields
+	 */
+	public static function on_AfterPrepareImportFields($mvc, &$fields)
+	{
+	    $fields = array();
+	     
+	    $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
+	    $fields['name'] = array('caption' => 'Наименование');
+	    $fields['measureId'] = array('caption' => 'Мярка', 'mandatory' => 'mandatory');
+	    $fields['groups'] = array('caption' => 'Маркери');
+	    $fields['meta'] = array('caption' => 'Свойства');
+	    
+	    $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
+	    $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
+	    $metaType = 'set(canSell=Продаваем,
+                                                                                        canBuy=Купуваем,
+                                                                                        canStore=Складируем,
+                                                                                        canConvert=Вложим,
+                                                                                        fixedAsset=Дълготраен актив,
+                                                                			            canManifacture=Производим)';
+	    
+	    $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => TRUE, 'type' => $categoryType);
+	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Маркери', 'notColumn' => TRUE, 'type' => $groupType);
+	    $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => TRUE, 'type' => $metaType);
+
+	    if (!$mvc->fields['Category']) {
+	        $mvc->FNC('Category', $categoryType);
+	    }
+	    
+	    if (!$mvc->fields['Groups']) {
+	        $mvc->FNC('Groups', $groupType);
+	    }
+	     
+	    if (!$mvc->fields['Meta']) {
+	        $mvc->FNC('Meta', $metaType);
+	    }
+	}
+	
 	
     /**
+     * 
      * Обработка, преди импортиране на запис при начално зареждане
+     * 
+     * @param cat_Products $mvc
+     * @param stdObject $rec
      */
     public static function on_BeforeImportRec($mvc, $rec)
     {
+        // Полетата csv_ се попълват в loadSetupData
+        // При 'Импорт' не се използват
+        
     	if(empty($rec->innerClass)){
     		$rec->innerClass = cls::get('cat_GeneralProductDriver')->getClassId();
     	}
     	
-    	$rec->name = isset($rec->csv_name) ? $rec->csv_name : $rec->name;
+    	if (isset($rec->csv_name)) {
+    	    $rec->name = $rec->csv_name;
+    	}
+    	
+    	// При дублиран запис, правим опит да намерим нов код
+    	$onExist = Mode::get('onExist');
+    	if ($onExist == 'duplicate') {
+    	    $loopCnt = 0;
+    	    while (self::fetch(array("#code = '[#1#]'", $rec->code))) {
+    	        if ($loopCnt > 100) {
+    	            $rec->code = str::getRand();
+    	            continue;
+    	        }
+    	        if (is_int($rec->code)) {
+    	            $rec->code++;
+    	        } else {
+    	            $nCode = str::increment($rec->code);
+    	            
+    	            if ($nCode !== FALSE) {
+    	                $rec->code = $nCode;
+    	            } else {
+    	                $rec->code .= '_d';
+    	            }
+    	        }
+    	        $loopCnt++;
+    	    }
+    	}
+    	
     	if($rec->csv_measureId){
     		$rec->measureId = cat_UoM::fetchBySinonim($rec->csv_measureId)->id;
+    	} else {
+    	    if (isset($rec->measureId) && !is_numeric($rec->measureId)) {
+    	        $rec->measureId = cat_UoM::fetchField(array("LOWER(#name) = '[#1#]'", mb_strtolower(trim($rec->measureId))), 'id');
+    	    }
     	}
     	
     	if($rec->csv_groups){
     		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    	} else {
+    	    
+    	    // От вербална стойност се опитваме да вземем невербалната
+            if (isset($rec->groups)) {
+                $groupArr = type_Set::toArray($rec->groups);
+                
+                $groupIdArr = array();
+                
+                foreach ($groupArr as $groupName) {
+                    $groupName = trim($groupName);
+                    $groupName = mb_strtolower($groupName);
+                    $groupId = cat_Groups::fetchField(array("LOWER(#name) = '[#1#]'", $groupName), 'id');
+                    
+                    if (!$groupId) continue;
+                    
+                    $groupIdArr[$groupId] = $groupId;
+                }
+                
+                $rec->groups = type_Keylist::fromArray($groupIdArr);
+            }
     	}
+    	
+    	// Обединяваме маркерите с избраните от потребителя
+    	if ($rec->Groups) {
+    	    $rec->groups = type_Keylist::merge($rec->groups, $rec->Groups);
+    	}
+    	
+    	$nMetaArr = array();
+    	if (isset($rec->meta)) {
+    	    $metaArr = type_Set::toArray($rec->meta);
+    	    if (!empty($metaArr)) {
+    	        $mType = $mvc->getFieldType('meta');
+    	        $suggArr = $mType->suggestions;
+    	        
+    	        foreach ($suggArr as &$s) {
+    	            $s = mb_strtolower($s);
+    	        }
+    	        
+    	        foreach ($metaArr as $m) {
+    	            $m = trim($m);
+    	            if (isset($suggArr[$m])) {
+    	                $nMetaArr[$m] = $m;
+    	            } else {
+    	                $m = mb_strtolower($m);
+    	                $searchVal = array_search($m, $suggArr);
+    	                if ($searchVal !== FALSE) {
+    	                    $nMetaArr[$searchVal] = $searchVal;
+    	                }
+    	            }
+    	        }
+    	    }
+    	}
+    	
+    	// Обединяваме свойствата с избраните от потребителя
+    	if ($rec->Meta) {
+    	    $fMetaArr = type_Set::toArray($rec->Meta);
+    	    $rec->meta .= $rec->meta ? ',' : '';
+    	    $rec->meta .= $rec->Meta;
+    	    
+    	    $nMetaArr = array_merge($nMetaArr, $fMetaArr);
+    	}
+    	$rec->meta = implode(',', $nMetaArr);
+    	
     	$rec->innerForm = (object)array('name' => $rec->name, 'measureId' => $rec->measureId);
     	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
-    	$mvc->routePublicProduct($rec->csv_category, $rec);
+    	$category = ($rec->csv_category) ? $rec->csv_category : $rec->Category;
+    	
+    	$mvc->routePublicProduct($category, $rec);
     }
     
     

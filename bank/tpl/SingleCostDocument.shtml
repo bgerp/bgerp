@@ -11,10 +11,7 @@
                         <small>( [#operationSysId#] )</small><br>
                         |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
                         <!--ET_BEGIN state-->
-                        <br>
-                        <br>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <br>
+                        <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class='top-head'><b>|Получател|*</b></td>

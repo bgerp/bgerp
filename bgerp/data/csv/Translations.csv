@@ -1190,6 +1190,7 @@ en,Обслужване,Services
 en,Обхват,Scope
 en,Общ брой палети,Total number of pallets
 en,Общ обем,Total volume
+en,Обем,Volume
 en,Общ,Shared
 en,Общa сума,Total
 en,Общи,General
@@ -1228,7 +1229,6 @@ en,От склад,From store
 en,От,From
 en,Отваряне на нишката,Open thread
 en,Отваряне,Open
-en,Отворени сделки,Open deals
 en,Отворени теми в,Open themes in
 en,Отворени теми,Open themes
 en,Отворено,Opened
@@ -1270,7 +1270,7 @@ en,Отсъствие,Absence
 en,Оттеглена,Rejected
 en,Оттеглени потр_b482,Rejected users
 en,Оттеглено,Rejected
-en,Оттегляне на д_886c2,Document reject
+en,Оттегляне на д_886c2,Reject the document
 en,Оттегляне на,Reject
 en,Оттегляне,Reject
 en,Отчет за POS про_380b0,Report for POS sales
@@ -1317,14 +1317,14 @@ en,Паролата трябв_08f2,The password must be at least
 en,Партида,Batch
 en,Партиди,Batches
 en,Пасивна,Passive
-en,Пера в номенкл_8048c,Items in the nomenclature
-en,Пера,Items
+en,Пера в номенкл_8048c,List items in the nomenclature
+en,Пера,List items
 en,Период,Period
 en,Периоди,Periods
 en,Периодични про_b38f,Scheduled tasks
-en,Перо 1,Feather 1
-en,Перо 2,Feather 2
-en,Перо 3,Feather 3
+en,Перо 1,List item 1
+en,Перо 2,List item 2
+en,Перо 3,List item 3
 en,Персонал,Personnel
 en,Персонализаци_12704,Personalization of
 en,Персонализация,Personalization
@@ -1339,6 +1339,9 @@ en,Писмо,Letter
 en,Планиране » За_9a037,Planning » Assignments per sales
 en,Планиране » По_6b082,Planning » Purchases of goods
 en,Планиране » По_e8813,Planning » Purchases of materials
+en,Плащане по банков път,Bank payment
+en,Плащане в брой,Cash payment
+en,Плащане с прихващане,Offsetting payment
 en,Планиране,Planning
 en,Плановик,Planner
 en,Платежни Нареж_44b2,Payment orders
@@ -1594,6 +1597,7 @@ en,Промяна,Change
 en,Пропуснати,Missed
 en,Проследяване,Follower
 en,Просрочени,Overdue
+en,Просрочено,Overdue
 en,Протокол за отговорно пазене,Consignment Protocols
 en,Протокол за пр_2df4e,Protocol for changing LTA
 en,Протокол,Protocol
@@ -1613,6 +1617,7 @@ en,Профили,Profiles
 en,Проформа фактура,Proforma Invoice
 en,Проформа фактури,Proforma invoices
 en,Проформи,Proforma Invoices
+en,Проформа,Proforma Invoice
 en,Публикувана,Published
 en,Публична статия,Published article
 en,Публични статии,Public Articles
@@ -2094,6 +2099,7 @@ en,Циркулярно писмо,Circular Letter
 en,Цитат,Quote
 en,Цял ден,All day
 en,Чакащ,Pending
+en,Чакащи сделки,Pending deals
 en,Чакащи бележки,Waiting notes
 en,Чакащи,Pending
 en,Чакащите,Pending
@@ -2348,3 +2354,4 @@ bg,Reset,Нулиране
 bg,Export CSV,Експорт CSV
 en,по проформа,from pro forma
 en,по фактура,from invoice
+en,Словом,Say words

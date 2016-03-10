@@ -16,10 +16,7 @@ class sales_Sales extends deals_DealMaster
 {
 	
 	
-	const AGGREGATOR_TYPE = 'sale';
-    
-	
-    /**
+	/**
      * Заглавие
      */
     public $title = 'Договори за продажба';
@@ -358,6 +355,11 @@ class sales_Sales extends deals_DealMaster
         $priceAtDateFld = $form->getFieldType('pricesAtDate');
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
+        
+        $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
+        if($hideRate == 'yes'){
+        	$form->setField('currencyRate', 'input');
+        }
     }
     
     
@@ -496,8 +498,6 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
-        
-        $result->setIfNot('dealType', self::AGGREGATOR_TYPE);
         
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();
@@ -1020,6 +1020,11 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     	
+    	$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
+    	if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    		$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    	}
+    	
     	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     		
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
@@ -1035,7 +1040,5 @@ class sales_Sales extends deals_DealMaster
     			}
     		}
     	}
-    	
-    	
     }
 }

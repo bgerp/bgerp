@@ -1668,9 +1668,8 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param array $fields
      */
-    public static function on_AfterPrepareInportFields($mvc, &$fields)
+    public static function on_AfterPrepareImportFields($mvc, &$fields)
     {
-        
         $Dfields = $mvc->selectFields();
         
         $fields = array();

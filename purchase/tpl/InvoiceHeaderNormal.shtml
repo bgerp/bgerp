@@ -18,15 +18,12 @@
                                         <div class="bigData">[#place#]</div>
                                         <div class='invInfo bigData'>
                                             <div class='original'>|ОРИГИНАЛ|*</div>
-                                            <!--ET_BEGIN POS-->
-                                            <span style='font-weight:normal;'>[#POS#]</span>
-                                            <!--ET_END POS-->
                                             <!--ET_BEGIN originInv-->
                                             <div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
                                             <!--ET_END originInv-->
                                         </div>
                                         <!--ET_BEGIN state-->
-                                        <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
+                                        <div class="[#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>|Доставчик|*</b> </td>

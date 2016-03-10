@@ -15,8 +15,6 @@
 class findeals_Deals extends deals_DealBase
 {
 	
-	const AGGREGATOR_TYPE = 'deal';
-	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -611,8 +609,6 @@ class findeals_Deals extends deals_DealBase
     public function pushDealInfo($id, &$result)
     {
     	$rec = self::fetchRec($id);
-    	
-    	$result->set('dealType', self::AGGREGATOR_TYPE);
     	
     	$result->set('allowedPaymentOperations', $this->getPaymentOperations($id));
     	$result->set('allowedShipmentOperations', $this->getShipmentOperations($id));
