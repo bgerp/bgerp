@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'findeals_AdvanceReports'
  *
@@ -8,7 +10,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,7 +39,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf, deals_InvoiceSourceIntf';
     
     
     /**
@@ -105,7 +107,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/legend.png';
+    public $singleIcon = 'img/16/legend.png';
     
     
     /**
@@ -177,7 +179,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      *  Обработка на формата за редакция и добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$data->form->setDefault('valior', dt::now());
     	
@@ -197,7 +199,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Проверка и валидиране на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
     	 
@@ -208,6 +210,7 @@ class findeals_AdvanceReports extends core_Master
     		
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
     		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL);
+    		
     		if(!$rec->rate){
     			$form->setError('rate', "Не може да се изчисли курс");
     		}
@@ -218,7 +221,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Извиква се след успешен запис в модела
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// Ако след запис, няма номер, тогава номера му става ид-то на документа
     	if(!$rec->number){
@@ -275,7 +278,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(__CLASS__);
     	 
@@ -329,7 +332,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
@@ -340,7 +343,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
     	$row = new stdClass();
@@ -362,10 +365,11 @@ class findeals_AdvanceReports extends core_Master
     	if(!$rec->total) $res = FALSE;
     }
     
+    
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
@@ -378,23 +382,13 @@ class findeals_AdvanceReports extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото на имейл по подразбиране
      */
-    static function getDefaultEmailBody($id)
+    public static function getDefaultEmailBody($id)
     {
     	$handle = static::getHandle($id);
     	$tpl = new ET(tr("Моля запознайте се с нашия авансов отчет") . ': #[#handle#]');
     	$tpl->append($handle, 'handle');
     
     	return $tpl->getContent();
-    }
-    
-    
-    /**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-    	// Ако резултата е 'no_one' пропускане
-    	if($res == 'no_one') return;
     }
     
     
@@ -419,8 +413,48 @@ class findeals_AdvanceReports extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(purchase_Invoices::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
-    		$data->toolbar->addBtn('Фактура', array('purchase_Invoices', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/invoice.png,title=Създаване на нова фактура');
+    	$rec = $data->rec;
+    	
+    	if($rec->state == 'active'){
+    		if(purchase_Invoices::haveRightFor('add', (object)array('sourceContainerId' => $rec->containerId, 'threadId' => $rec->threadId))){
+    			$data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, '', 'rate' => $rec->rate), NULL, 'ef_icon = img/16/invoice.png,title=Създаване на нова входяща фактура');
+    		}
     	}
+    }
+    
+    
+    /**
+     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
+     * определен документ
+     *
+     * @param mixed $id - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @return array $details - масив с артикули готови за запис
+     * 				  o productId      - ид на артикул
+     * 				  o packagingId    - ид на опаковка/основна мярка
+     * 				  o quantity       - количество опаковка
+     * 				  o quantityInPack - количество в опаковката
+     * 				  o discount       - отстъпка
+     * 				  o price          - цена за еденица от основната мярка
+     */
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    {
+    	$details = array();
+    	$rec = static::fetchRec($id);
+    
+    	$query = findeals_AdvanceReportDetails::getQuery();
+    	$query->where("#reportId = {$rec->id}");
+    	while($dRec = $query->fetch()){
+    		$nRec = new stdClass();
+    		$nRec->productId = $dRec->productId;
+    		$nRec->packagingId = cat_Products::fetchField($dRec->productId, 'measureId');
+    		$nRec->quantityInPack = 1;
+    		$nRec->quantity = $dRec->quantity;
+    		$nRec->price = $dRec->amount / $dRec->quantity;
+    		
+    		$details[] = $nRec;
+    	}
+    	
+    	return $details;
     }
 }
