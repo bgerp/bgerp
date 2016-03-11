@@ -811,6 +811,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 unset($exportFields[$caption]);
                 $exportFields['sum'] = 'Сума';
             }
+            
+            if($caption == 'blAmountCompare') {
+                unset($exportFields[$caption]);
+            }
    
         }
 
