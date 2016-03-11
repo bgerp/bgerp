@@ -33,7 +33,7 @@ class price_History extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_AutoFilter';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_AutoFilter';
                     
     
     /**
@@ -75,13 +75,13 @@ class price_History extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'price,ceo';
+	var $canList = 'priceMaster,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'price,ceo';
+	var $canSingle = 'priceMaster,ceo';
 
 	
     /**
@@ -247,7 +247,7 @@ class price_History extends core_Manager
         $rec->validFrom   = $validFrom;
         $rec->productId   = $productId;
         $rec->price       = $price;
-        self::save($rec);
+        self::save($rec, NULL, 'REPLACE');
 
         return $rec;
     }
@@ -272,7 +272,7 @@ class price_History extends core_Manager
     	requireRole('admin,debug');
     	
     	self::truncate();
-    	core_Statuses::newStatus(tr('Кешираните цени са изтрити'));
+    	core_Statuses::newStatus('Кешираните цени са изтрити');
     	
     	followRetUrl();
     }

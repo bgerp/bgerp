@@ -131,6 +131,15 @@ class plg_State2 extends core_Plugin
             
                 $row->state = ht::createElement('div',
                     array('style' => "text-align:center;"), $row->state);
+
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+
+                if($rec->state == $this->activeState) {
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/lightbulb_off.png');
+                } else {
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/lightbulb.png');
+                }
+
             }
         }
     }
@@ -158,6 +167,17 @@ class plg_State2 extends core_Plugin
         if($rec->state == $this->activeState || $rec->state == $this->closedState) {
 
             $rec->state = ($rec->state == $this->activeState ? $this->closedState : $this->activeState);
+            
+            $act = '';
+            if ($rec->state == $this->activeState) {
+                $act = 'Активиране';
+            } elseif ($rec->state == $this->closedState) {
+                $act = 'Затваряне';
+            }
+            
+            if ($act) {
+                $mvc->logWrite($act, $rec->id);
+            }
             
             $mvc->save($rec, 'state');
         }

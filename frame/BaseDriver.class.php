@@ -15,47 +15,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class frame_BaseDriver extends core_BaseClass
+abstract class frame_BaseDriver extends core_ProtoInner
 {
-	
-	
-	/**
-	 * Вътрешната форма
-	 * 
-	 * @param mixed $innerForm
-	 */
-	protected $innerForm;
-	
-	
-	/**
-	 * Вътрешното състояние
-	 *
-	 * @param mixed $innerState
-	 */
-	protected $innerState;
-	
-	
-	
-	/**
-	 * Задава вътрешната форма
-	 * 
-	 * @param mixed $innerForm
-	 */
-	public function setInnerForm($innerForm)
-	{
-		$this->innerForm = $innerForm;
-	}
-	
-	
-	/**
-	 * Задава вътрешното състояние
-	 * 
-	 * @param mixed $innerState
-	 */
-	public function setInnerState($innerState)
-	{
-		$this->innerState = $innerState;
-	}
 	
 	
 	/**
@@ -91,7 +52,7 @@ abstract class frame_BaseDriver extends core_BaseClass
 	
 	
 	/**
-	 * Можели вградения обект да се избере
+	 * Може ли вградения обект да се избере
 	 */
 	public function canSelectInnerObject($userId = NULL)
 	{
@@ -128,17 +89,6 @@ abstract class frame_BaseDriver extends core_BaseClass
 		}
 		
 		return $this->title;
-	}
-	
-	
-	/**
-	 * Променя ключовите думи
-	 * 
-	 * @param string $searchKeywords
-	 */
-	public function alterSearchKeywords(&$searchKeywords)
-	{
-		
 	}
 	
 	
@@ -183,17 +133,6 @@ abstract class frame_BaseDriver extends core_BaseClass
 
 
 	/**
-	 * Подготвя формата за въвеждане на данни за вътрешния обект
-	 *
-	 * @param core_Form $form
-	 */
-	public function prepareEmbeddedForm(core_Form &$form)
-	{
-		
-	}
-
-
-	/**
 	 * Ако имаме в url-то export създаваме csv файл с данните
 	 * 
 	 * @param core_Mvc $mvc
@@ -203,5 +142,4 @@ abstract class frame_BaseDriver extends core_BaseClass
     {
 
     }
-
 }

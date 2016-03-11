@@ -99,7 +99,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$recs = $query->fetchAll();
     	
     	if(!count($recs)){
-    		core_Statuses::newStatus(tr('Няма налични фактури за експортиране'));
+    		core_Statuses::newStatus('|Няма налични фактури за експортиране');
     		return;
     	}
     	
@@ -107,17 +107,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$content = $this->prepareFileContent($data);
     	$content = iconv('utf-8', 'CP1251', $content);
     	
-    	$timestamp = time();
-    	$name = "invoices{$timestamp}.txt";
-    	
-    	// Записваме файла в системата
-    	$fh = fileman::absorbStr($content, 'exportInvoices', $name);
-    	
-    	// Ще редиректваме към единичния изглед на файла
-    	$retUrl = toUrl(array('fileman_Files', 'single', $fh), 'local');
-    	
-    	// Подменяме урл-то за връщане
-    	Request::push(array('ret_url' => $retUrl));
+    	return $content;
     }
     
     
@@ -172,11 +162,11 @@ class bulmar_InvoiceExport extends core_Manager {
     	$dQuery->where("#invoiceId = {$rec->id}");
     	
     	while($dRec = $dQuery->fetch()){
-    		if(empty($this->cache[$dRec->classId][$dRec->productId])){
-    			$this->cache[$dRec->classId][$dRec->productId] = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    		if(empty($this->cache[$dRec->productId])){
+    			$this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
     		}
     		
-    		$pInfo = $this->cache[$dRec->classId][$dRec->productId];
+    		$pInfo = $this->cache[$dRec->productId];
     		if(empty($pInfo->meta['canStore'])){
     			$byProducts -= $dRec->amount * (1 - $dRec->discount);
     		}
@@ -218,6 +208,10 @@ class bulmar_InvoiceExport extends core_Manager {
     	
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
+    	
+    	if(empty($rec->paymentType)){
+    		$rec->paymentType = $this->Invoices->getAutoPaymentType($rec);
+    	}
     	
     	if($rec->paymentType == 'cash'){
     		$nRec->amountPaid = $nRec->amount;
@@ -314,10 +308,24 @@ class bulmar_InvoiceExport extends core_Manager {
     
     
     /**
-     * Можели да се добавя към този мениджър
+     * Може ли да се добавя към този мениджър
      */
     function isApplicable($mvc)
     {
     	return $mvc->className == self::$applyOnlyTo;
+    }
+    
+    
+    /**
+     * Връща името на експортирания файл
+     * 
+     * @return string $name
+     */
+    public function getExportedFileName()
+    {
+    	$timestamp = time();
+    	$name = "invoices{$timestamp}.txt";
+    	
+    	return $name;
     }
 }

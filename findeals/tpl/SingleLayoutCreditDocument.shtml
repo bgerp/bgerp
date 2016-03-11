@@ -1,13 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <table class='styled-table'>
     	<tr>
             <td>|Вальор|*</td>
@@ -22,26 +13,15 @@
             <td>[#dealId#]</td>
         </tr>
         <tr>
-            <td>|Сума|*</td>
-            <td><span class='cCode'>[#currencyId#]</span> [#amount#]</td>
-        </tr>
-        <!--ET_BEGIN amountBase-->
-        <tr>
-            <td>|Курс|*</td>
-            <td>[#rate#]</td>
+            <td>|Погасено по|* [#dealHandle#]</td>
+            <td><span class='cCode'>[#dealCurrencyId#]</span> [#amount#]</td>
         </tr>
         <tr>
-            <td>|Равностойност|*</td>
-            <td><span class='cCode'>[#baseCurrency#]</span> [#amountBase#]</td>
+            <td>|Заверено по |* [#nextHandle#]</td>
+            <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
-        <!--ET_END amountBase-->
     </table>
     <div>
         [#description#]
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -55,6 +55,12 @@ class lab_TestDetails extends core_Detail
     
     
     /**
+     * Роли, които могат да записват
+     */
+    var $canWrite = 'lab,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -88,6 +94,7 @@ class lab_TestDetails extends core_Detail
         while($mRec = $queryAllMethods->fetch("1=1")) {
             $allMethodsArr[$mRec->id] = $mRec->name;
         }
+        $data->allMethodsArr = $allMethodsArr;
         
         // $methodIdSelectArr
         foreach ($allMethodsArr as $k => $v) {
@@ -95,18 +102,6 @@ class lab_TestDetails extends core_Detail
                 $methodIdSelectArr[$k] = $v;
             }
         }
-        
-        // Заглавие
-        $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'title');
-        
-        if ($data->form->rec->id) {
-            $data->form->title = "Редактиране за тест|* \"" . $testHandler . "\",";
-            $data->form->title .= "<br/>|метод|* \"" . $allMethodsArr[$data->form->rec->methodId] . "\"";
-        } else {
-            $data->form->title = "Добавяне на метод за тест|* \"" . $testHandler . "\"";
-        }
-        
-        // END Заглавие
         
         // Ако сме в режим 'добави' избираме метод, който не е използван
         // за текущия тест. Ако сме в режим 'редактирай' полето за избор на метод е скрито.
@@ -116,6 +111,23 @@ class lab_TestDetails extends core_Detail
         } else {
             $data->form->setOptions('methodId', $methodIdSelectArr);
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	// Заглавие
+    	$testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'title');
+    	
+    	if ($data->form->rec->id) {
+    		$data->form->title = "Редактиране за тест|* \"" . $testHandler . "\",";
+    		$data->form->title .= "|*<br/>|метод|* \"" . $data->allMethodsArr[$data->form->rec->methodId] . "\"";
+    	} else {
+    		$data->form->title = "Добавяне на метод за тест|* \"" . $testHandler . "\"";
+    	}
     }
     
     

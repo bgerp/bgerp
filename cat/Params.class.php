@@ -14,14 +14,26 @@
  * @since     v 0.1
  * @title     Продуктови параметри
  */
-class cat_Params extends core_Master
+class cat_Params extends embed_Manager
 {
     
     
+	/**
+	 * Свойство, което указва интерфейса на вътрешните обекти
+	 */
+	public $driverInterface = 'cond_ParamTypeIntf';
+	
+	
     /**
      * Заглавие
      */
     var $title = "Параметри";
+    
+    
+    /**
+     * Единично заглавие
+     */
+    var $singleTitle = "Параметър";
     
     
     /**
@@ -33,7 +45,7 @@ class cat_Params extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,typeExt,type,lastUsedOn';
+    var $listFields = 'tools=Пулт,typeExt,driverClass=Тип,lastUsedOn';
     
     
     /**
@@ -85,6 +97,12 @@ class cat_Params extends core_Master
     
     
     /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'cat/tpl/SingleLayoutParams.shtml';
+    
+    
+    /**
      * Масив за съответствие на типовете на параметрите с тези в системата
      */
     public static $typeMap = array('double'  => 'type_Double',
@@ -114,13 +132,12 @@ class cat_Params extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Символи,text=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност,time=Време)', 'caption=Тип');
-        $this->FLD('options', 'varchar(128)', 'caption=Стойности');
+        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Символи,text=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност,time=Време)', 'caption=Тип,input=none');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
-        $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
+        $this->FLD('default', 'varchar(64)', 'caption=Конкретизиране->Дефолт');
         $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
         
@@ -151,36 +168,12 @@ class cat_Params extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
+    	$data->form->setField('driverClass', 'caption=Тип');
     	
     	if($data->form->rec->sysId){
     		$data->form->setReadOnly('name');
     		$data->form->setReadOnly('type');
     	}
-    }
-    
-    
-	/**
-     * След изпращане на формата
-     */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    {
-        if ($form->isSubmitted()) {
-        	$rec = &$form->rec;
-        	
-        	if($rec->options){
-        		$vArr = arr::make($rec->options);
-        		$Type = cls::get(static::$typeMap[$rec->type]);
-        		foreach($vArr as $option){
-        			if($rec->type != 'enum' && !$Type->fromVerbal($option)){
-        				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");
-        			}
-        		}
-        	} else {
-        		if($rec->type == 'enum'){
-        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойности");
-        		}
-        	}
-        }
     }
     
     
@@ -237,6 +230,8 @@ class cat_Params extends core_Master
      * отговарящ на типа на параметъра с опции зададените стойности
      * ако е enum или същите като предложения. Използва се и от
      * cond_ConditionsToCustomers
+     * 
+     * @deprecated
      * @param int $paramId - ид на параметър
      * @param string $className - в кой мениджър се намрират параметрите
      * @return core_Type $Type - типа от системата
@@ -266,6 +261,23 @@ class cat_Params extends core_Master
     
     
     /**
+     * Връща типа на параметъра
+     * 
+     * @param mixed $id - ид или запис на параметър
+     * @return FALSE|cond_type_Proto - инстанцирания тип или FALSE ако не може да се определи
+     */
+    public static function getTypeInstance($id)
+    {
+    	$rec = static::fetchRec($id);
+    	if($Driver = static::getDriver($rec)){
+    		return $Type = $Driver->getType($rec);
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     function loadSetupData()
@@ -273,7 +285,7 @@ class cat_Params extends core_Master
     	$file = "cat/csv/Params.csv";
     	$fields = array(
     			0 => "name",
-    			1 => "type",
+    			1 => "driverClass",
     			2 => "suffix",
     			3 => "sysId",
     			4 => "options",
@@ -292,15 +304,25 @@ class cat_Params extends core_Master
      * Връща дефолт стойността за параметъра
      * 
      * @param $paramId - ид на параметър
-     * @return NULL|string
+     * @return FALSE|string
      */
     public static function getDefault($paramId)
     {
     	// Ако няма гледаме имали дефолт за параметъра
     	$default = self::fetchField($paramId, 'default');
     	
-    	if(isset($default) && $default != '') return $default;
+    	if(!empty($default)) return $default;
     	
-    	return NULL;
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	core_Classes::add($rec->driverClass);
+    	$rec->driverClass = cls::get($rec->driverClass)->getClassId();
     }
 }

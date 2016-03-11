@@ -109,7 +109,7 @@ class store_Pallets extends core_Manager
     {
         $this->FLD('label', 'varchar(64)', 'caption=Етикет');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Място->Склад,input=hidden');
-        $this->FLD('productId', 'key(mvc=store_Products, select=name)', 'caption=Продукт,silent');
+        $this->FLD('productId', 'key(mvc=store_Products, select=productId)', 'caption=Продукт,silent');
         $this->FLD('quantity', 'int', 'caption=Количество');
         $this->FLD('comment', 'varchar', 'caption=Коментар');
         $this->FLD('dimensions', 'key(mvc=store_PalletTypes,select=title)', 'caption=Габарити');
@@ -168,7 +168,7 @@ class store_Pallets extends core_Manager
         $data->listFilter->title = 'Търсене на палет в склада';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=productId, allowEmpty=true)', 'caption=Продукт');
         
         $data->listFilter->showFields = 'productIdFilter';
         
@@ -350,7 +350,7 @@ class store_Pallets extends core_Manager
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $form->title = "|Добавяне на палети в склад|* '<b>" . store_Stores::getTitleById($selectedStoreId) . "</b>'";
+        $data->formTitle = "|Добавяне на палети в склад|* '<b>" . store_Stores::getTitleById($selectedStoreId) . "</b>'";
         
         // По подразбиране за нов запис
         if (!$rec->id) {
@@ -386,6 +386,15 @@ class store_Pallets extends core_Manager
         }
         
         $data->form->showFields = 'label, productId, quantity, palletsCnt, comment, dimensions, zone, palletPlaceHowto';
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
     }
     
     
@@ -472,8 +481,8 @@ class store_Pallets extends core_Manager
             // Проверка за количеството
             if (store_Pallets::checkProductQuantity($rec) === FALSE) {
                 redirect(   array("store_Products"),
-                            TRUE,
-                            "Междувременно е палетирано от този продукт " .
+                            FALSE,
+                            "|Междувременно е палетирано от този продукт " .
                             "и наличното непалетирано количество в склада не е достатъчно " .
                             "за извършването на тази операция"
                     );
@@ -652,7 +661,7 @@ class store_Pallets extends core_Manager
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         store_Products::save($recProducts);
         
-        return new Redirect(array($mvc));
+        return redirect(array($mvc));
     }
     
     

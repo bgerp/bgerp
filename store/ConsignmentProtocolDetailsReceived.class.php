@@ -101,10 +101,10 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell,canStore');
     	 
     	return $products;
     }

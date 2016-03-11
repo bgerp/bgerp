@@ -108,7 +108,7 @@ class label_Labels extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=✍, title, templateId, printedCnt, createdOn, createdBy, modifiedOn, modifiedBy';
+    var $listFields = 'tools=✍, title, templateId, printedCnt, Object=Обект, createdOn, createdBy, modifiedOn, modifiedBy';
     
     
     /**
@@ -138,6 +138,8 @@ class label_Labels extends core_Master
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети, input=none');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf)', 'caption=Клас, title=Брой отпечатани етикети, silent, input=hidden');
+        $this->FLD('objId', 'int', 'caption=Отпечатъци, title=Обект, silent, input=hidden');
         
         $this->setDbUnique('title');
     }
@@ -172,6 +174,9 @@ class label_Labels extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Вземаме данните от предишния запис
+        $dataArr = $data->form->rec->params;
+        
         // Ако формата не е субмитната и не я редактираме
         if (!$data->form->isSubmitted() && !$data->form->rec->id) {
             
@@ -182,7 +187,18 @@ class label_Labels extends core_Master
             if (!$templateId) {
                 
                 // Редиректваме към екшъна за избор на шаблон
-                return Redirect(array($mvc, 'selectTemplate'));
+                redirect(array($mvc, 'selectTemplate'));
+            }
+            
+            // Ако се създава етикет от обект, използваме неговите данни
+            Request::setProtected('classId, objId');
+            $classId = Request::get('classId');
+            $objId = Request::get('objId');
+            if ($classId && $objId) {
+                $clsInst = cls::get($classId);
+                $dataArr = (array) $clsInst->getLabelData($objId, 0);
+                $data->form->setDefault('classId', $objId);
+                $data->form->setDefault('objId', $classId);
             }
         }
         
@@ -196,21 +212,34 @@ class label_Labels extends core_Master
             expect($templateId);
         }
         
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
-        $data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
-        
         // Добавяме полетата от детайла на шаблона
         label_TemplateFormats::addFieldForTemplate($data->form, $templateId);
-        
-        // Вземаме данните от предишния запис
-        $dataArr = $data->form->rec->params;
         
         // Обхождаме масива
         foreach ((array)$dataArr as $fieldName => $value) {
             
+            $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
+            
             // Добавяме данните от записите
             $data->form->rec->$fieldName = $value;
+            
+            // Стойностите от обекта да не може да се променят
+            if ($data->form->rec->objId && $data->form->rec->classId) {
+                if ($data->form->fields[$fieldName]) {
+                    $data->form->setReadonly($fieldName);
+                }
+            }
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на етикет от шаблон|* ';
+    	$data->form->title .= '"' . label_Templates::getVerbal($data->form->rec->templateId, 'title') . '"';
     }
     
     
@@ -283,6 +312,16 @@ class label_Labels extends core_Master
         if (label_Templates::haveRightFor('single', $rec->templateId)) {
             $row->templateId = ht::createLink($row->templateId, array('label_Templates', 'single', $rec->templateId));
         }
+        
+        // Показваме линк към обекта, от който е създаден етикета
+        if ($rec->classId && $rec->objId) {
+            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+            if (($intfInst->class instanceof core_Master) && $intfInst->class->haveRightFor('single', $rec->objId)) {
+                $row->Object = $intfInst->class->getLinkToSingle($rec->objId);
+            } else {
+                $row->Object = $intfInst->class->title;
+            }
+        }
     }
     
     
@@ -299,21 +338,108 @@ class label_Labels extends core_Master
         
         // URL' то където ще се редиректва при отказ
         $retUrl = ($retUrl) ? ($retUrl) : (array($this));
-
+        
+        Request::setProtected('class, objectId');
+        
+        // Ако е подаден клас и обект
+        $classId = Request::get('class', 'class(interface=label_SequenceIntf)');
+        $objId = Request::get('objectId');
+        
+        $labelDataArr = array();
+        
+        if ($classId && $objId) {
+            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
+            $labelDataArr = (array) $intfInst->getLabelData($objId, 0);
+        }
+        
         // Вземаме формата към този модел
         $form = $this->getForm();
         
         // Добавяме функционално поле
         $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Шаблон');
         
+        $redirect = FALSE;
+        $optArr = array();
+        
+        if (!empty($labelDataArr)) {
+            $tQuery = label_Templates::getQuery();
+            $tQuery->where("#classId = '{$classId}'");
+            $tQuery->where("#state != 'rejected'");
+            
+            if (!$tQuery->count()) {
+                
+                return new Redirect($retUrl, '|Няма шаблон, който да се използва');
+            }
+            
+            while ($tRec = $tQuery->fetch()) {
+                $template = label_Templates::getTemplate($tRec->id);
+                $templatePlaceArr = label_Templates::getPlaceHolders($template);
+                
+                $cnt = 0;
+                
+                foreach ($templatePlaceArr as $key => $v) {
+                    $key = label_TemplateFormats::getPlaceholderFieldName($key);
+                    if (isset($labelDataArr[$key])) {
+                        $cnt++;
+                    }
+                }
+                
+                // Оцветяваме имената на шаблоните, в зависимост от съвпаданието на плейсхолдерите
+                $percent = 0;
+                $lCnt = count($labelDataArr);
+                if ($lCnt) {
+                    $percent = ($cnt / $lCnt) * 100;
+                }
+                
+                $dataColor = '#000000';
+                if ($percent >= 90) {
+                    $dataColor = '#00ff00';
+                } elseif ($percent <= 10) {
+                    $dataColor = '#999999';
+                }
+
+                $opt = new stdClass();
+                $opt->attr = array('data-color' => $dataColor);
+                $opt->title = label_Templates::getVerbal($tRec, 'title');
+                
+                $optArr[$tRec->id] = $opt;
+            }
+            
+            $form->setOptions('selectTemplateId', $optArr);
+            
+            if (count($optArr) == 1) {
+                $redirect = TRUE;
+            }
+        }
+        
         // Въвеждаме полето
         $form->input('selectTemplateId');
         
         // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
+        if ($redirect || $form->isSubmitted()) {
+            $templId = $form->rec->selectTemplateId;
+            
+            // Ако има само една стойност, избираме и редиректваме
+            if ($redirect && !$templId) {
+                $templId = key($optArr);
+            }
+            
+            $redirectUrl = array($this, 'add', 'templateId' => $templId);
+            
+            if ($classId && $objId) {
+                Request::setProtected('classId, objId');
+                $redirectUrl['classId'] = $classId;
+                $redirectUrl['objId'] = $objId;
+            } else {
+                foreach ($labelDataArr as $labelName => $val) {
+                    $redirectUrl[$labelName] = $val;
+                }
+            }
+            
+            $redirectUrl['ret_url'] = TRUE;
             
             // Редиректваме към екшъна за добавяне
-            return new Redirect(array($this, 'add', 'templateId' => $form->rec->selectTemplateId));
+            return new Redirect($redirectUrl);
         }
         
         // Заглавие на шаблона
@@ -450,11 +576,24 @@ class label_Labels extends core_Master
             $updatePageCnt = TRUE;
             $params[$currPageCntField] = 0;
         }
+        
         $rowId = 0;
         $perPageCnt = 0;
+        $lDataNo = ($data->rec && $data->rec->begin) ? $data->rec->begin : 0;
         
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
+            
+            // Вземаме стойностите на плейсхолдерите от обекта
+            if ($rec->objId && $rec->classId) {
+                $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+                
+                $labelDataArr = (array) $intfInst->getLabelData($rec->objId, $lDataNo++);
+                foreach ($labelDataArr as $key => $val) {
+                    $key = label_TemplateFormats::getPlaceholderFieldName($key);
+                    $params[$key] = $val;
+                }
+            }
             
             $copyId = 1;
             
@@ -675,18 +814,24 @@ class label_Labels extends core_Master
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
+        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'search';
+        $form->showFields = 'search, fState';
         
         // Инпутваме полетата
-        $form->input(NULL, 'silent');
+        $form->input('fState', 'silent');
         
         // Подреждаме по състояние
         $data->query->orderBy('#state=ASC');
         
         // Подреждаме по дата на модифициране
         $data->query->orderBy('#modifiedOn=DESC');
+        
+        if ($state = $data->listFilter->rec->fState) {
+            $data->query->where(array("#state = '[#1#]'", $state));
+        }
     }
     
     

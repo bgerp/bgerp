@@ -23,7 +23,6 @@ abstract class deals_Helper
 			'quantityFld'   => 'packQuantity',
 			'amountFld'     => 'amount',
 			'rateFld' 	    => 'currencyRate',
-			'classId' 	    => 'classId',
 			'productId'	    => 'productId',
 			'chargeVat'     => 'chargeVat',
 			'valior' 	    => 'valior',
@@ -106,8 +105,7 @@ abstract class deals_Helper
 		foreach($recs as &$rec){
 			$vat = 0;
 			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-				$ProductManager = cls::get($rec->$map['classId']);
-				$vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
+				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
 			}
 			$vats[$vat] = $vat;
 			
@@ -287,7 +285,9 @@ abstract class deals_Helper
 	          // Начисляване на ДДС в/у цената
 	         $price *= 1 + $vat;
 	    }
-	   
+	    
+	    expect($rate, 'Не е подаден валутен курс');
+	    
 	    // Обреъщаме в валутата чийто курс е подаден
 	    if($rate != 1){
 	    	$price /= $rate;
@@ -340,22 +340,37 @@ abstract class deals_Helper
 	 * 
 	 * @return stdClass $obj 
 	 * 				->formInfo - информация за формата
-	 * 				->quantity - к-во
+	 * 				->warning - предупреждението
 	 */
-	public static function getProductQuantityInStoreInfo($productId, $productsClassId, $storeId)
+	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
-		$quantity = store_Products::fetchField("#productId = {$productId} AND #classId = {$productsClassId} AND #storeId = {$storeId}", 'quantity');
+		if(empty($packQuantity)){
+			$packQuantity = 1;
+		}
+		
+		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
 		$Double = cls::get('type_Double');
 		$Double->params['smartRound'] = 'smartRound';
 			
-		$pInfo = cls::get($productsClassId)->getProductInfo($productId);
+		$pInfo = cat_Products::getProductInfo($productId);
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
+		$verbalQuantity = $Double->toVerbal($quantity);
+		if($quantity < 0){
+			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
+		}
 		
-		$info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
-		$obj = (object)array('formInfo' => $info, 'quantity' => $quantity);
+		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
+		$obj = (object)array('formInfo' => $info);
+		
+		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
+		
+		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
+		if($packQuantity > ($quantity / $quantityInPack)){
+			$obj->warning = "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*";
+		}
 		
 		return $obj;
 	}
@@ -366,11 +381,258 @@ abstract class deals_Helper
 	 */
 	public static function addNotesToProductRow(&$productRow, $notes)
 	{
-		$RichText = cls::get('type_RichText');
+		$RichText = cls::get('type_Richtext');
 		if(is_string($productRow)){
 			$productRow .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
 		} else {
 			$productRow->append("<div class='small'>{$RichText->toVerbal($notes)}</div>");
 		}
+	}
+	
+	
+	/**
+	 * Помощна функция за показване на пдоробната информация за опаковката при нужда
+	 * 
+	 * @param string $packagingRow
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $quantityInPack
+	 * @return void
+	 */
+	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
+	{
+		if(cat_products_Packagings::getPack($productId, $packagingId)){
+			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
+				 
+				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
+				
+				$shortUomName = cat_UoM::getShortName(cat_Products::getProductInfo($productId)->productRec->measureId);
+				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
+				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
+			}
+		}
+	}
+	
+	
+	/**
+	 * Извлича масив с използваните артикули-документи в бизнес документа
+	 *
+	 * @param core_Mvc $mvc - клас на документа
+	 * @param int $id - ид на документа
+	 * @param string $productFld - името на полето в което е ид-то на артикула
+	 * 
+	 * @return array
+	 */
+	public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
+	{
+		$res = array();
+		 
+		$Detail = cls::get($mvc->mainDetail);
+		$dQuery = $Detail->getQuery();
+		$dQuery->EXT('state', $mvc->className, "externalKey={$Detail->masterKey}");
+		$dQuery->where("#{$Detail->masterKey} = '{$id}'");
+		$dQuery->groupBy($productFld);
+		while($dRec = $dQuery->fetch()){
+		    $cid = cat_Products::fetchField($dRec->{$productFld}, 'containerId');
+			$res[$cid] = $cid;
+		}
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Проверява имали такъв запис 
+	 * 
+	 * @param core_Detail $mvc
+	 * @param int $masterId
+	 * @param int $id
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $price
+	 * @param NULL|double $discount
+	 * @param NULL|double $tolerance
+	 * @param NULL|int $term
+	 * @param NULL|varchar $batch
+	 * @return FALSE|stdClass
+	 */
+	public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = NULL, $term = NULL, $batch = NULL)
+	{
+		$cond = "#{$mvc->masterKey} = $masterId";
+		$vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
+		
+		if($mvc->getField('tolerance', FALSE)){
+			$vars['tolerance'] = $tolerance;
+		}
+		if($mvc->getField('term', FALSE)){
+			$vars['term'] = $term;
+		}
+		
+		if($mvc->getField('batch', FALSE)){
+			$vars['batch'] = $batch;
+		}
+		
+		foreach ($vars as $key => $var){
+			if(isset($var)){
+				$cond .= " AND #{$key} = '{$var}'";
+			} else {
+				$cond .= " AND #{$key} IS NULL";
+			}
+		}
+		
+		if($id){
+			$cond .= " AND #id != {$id}";
+		}
+		
+		return $mvc->fetch($cond);
+	}
+	
+	
+	/**
+	 * Сумиране на записи от бизнес документи по артикули
+	 * 
+	 * @param $arrays - масив от масиви със детайли на бизнес документи
+	 * @return array
+	 */
+	public static function normalizeProducts($arrays, $subtractArrs = array())
+	{
+		$combined = array();
+		$indexArr = arr::make($indexArr);
+		
+		foreach (array('arrays', 'subtractArrs') as $parameter){
+			$var = ${$parameter};
+			
+			if(is_array($var)){
+				foreach ($var as $arr){
+					if(is_array($arr)){
+						foreach ($arr as $p){
+							$index = $p->productId;
+			
+							if(!isset($combined[$index])){
+								$combined[$index] = new stdClass();
+								$combined[$index]->productId = $p->productId;
+							}
+								
+							$d = &$combined[$index];
+							$d->discount = max($d->discount, $p->discount);
+			
+							$sign = ($parameter == 'arrays') ? 1 : -1;
+							
+							//@TODO да може да е -
+							$d->quantity += $sign * $p->quantity;
+							$d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
+			
+							if(empty($d->packagingId)){
+								$d->packagingId = $p->packagingId;
+								$d->quantityInPack = $p->quantityInPack;
+							} else {
+								if($p->quantityInPack < $d->quantityInPack){
+									$d->packagingId = $p->packagingId;
+									$d->quantityInPack = $p->quantityInPack;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(count($combined)){
+			foreach ($combined as &$det){
+				@$det->price = $det->sumAmounts / ($det->quantity * (1 - $det->discount));
+				if($det->price < 0){
+					$det->price = 0;
+				}
+			}
+		}
+		
+		return $combined;
+	}
+	
+	
+	/**
+	 * Връща хинт с количеството в склада
+	 * 
+	 * @param int $productId
+	 * @param int $storeId
+	 * @param double $quantity
+	 * @return string $hint
+	 */
+	public static function getQuantityHint($productId, $storeId, $quantity)
+	{
+		$hint = '';
+		$quantityInStore = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
+		
+		if(is_null($quantityInStore)){
+			$hint = 'Налично количество в склада: н.д.';
+		} elseif($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
+			$quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
+			$measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
+			$hint = "Налично количество в склада|*: {$quantityInStore} {$measureName}";
+		}
+		
+		return $hint;
+	}
+	
+	
+	/**
+	 * Помощна ф-я обръщащи намерените к-ва и суми върнати от acc_Balances::getBlQuantities
+	 *  от една валута в друга подадена
+	 * 
+	 * @see acc_Balances::getBlQuantities
+	 * @param array $array - масив от обекти с ключ ид на перо на валута и полета amount и quantity
+	 * @param varchar $currencyCode - към коя валута да се конвертират
+	 * @param date $date - дата
+	 * @return array $res
+	 * 					->quantity - Количество във подадената валута
+	 * 					->amount   - Сума в основната валута
+	 */
+	public static function convertJournalCurrencies($array, $currencyCode, $date)
+	{
+		$res = (object)array('quantity' => 0, 'amount' => 0);
+		
+		// Ако е масив
+		if(is_array($array)){
+			$currencyItemId = $currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($currencyCode))->id;
+			$currencyListId = acc_Lists::fetchBySystemId('currencies')->id;
+			
+			// За всеки обект от него
+			foreach ($array as $itemId => $obj){
+				
+				// Подсигуряваме се че ключа е перо от номенклатура валута
+				$itemRec = acc_Items::fetch($itemId);
+				$cCode = currency_Currencies::getCodeById($itemRec->objectId);
+				expect(keylist::isIn($currencyListId, $itemRec->lists));
+				
+				// Ако ключа е търсената валута просто събираме
+				if($currencyItemId == $itemId){
+					$quantity = $obj->quantity;
+				} else {
+					if($obj->amount){
+						
+						// Ако има сума обръщаме сумата в количеството на основната валута чрез основния курс
+						$rate = currency_CurrencyRates::getRate($date, $currencyCode, NULL);
+						$quantity = $obj->amount / $rate;
+					} else {
+						// Ако не е конвертираме количеството във търсената валута
+						$quantity = currency_CurrencyRates::convertAmount($obj->quantity, $date, $cCode, $currencyCode);
+					}
+				}
+				
+				// Ако няма сума я изчисляваме възоснова на основния курс
+				if($obj->amount){
+					$amount = $obj->amount;
+				} else {
+					$rate = currency_CurrencyRates::getRate($date, $cCode, NULL);
+					$amount = $rate * $quantity;
+				}
+				
+				// Сумираме к-та и сумите към търсената валута
+				$res->quantity += $quantity;
+				$res->amount += $amount;
+			}
+		}
+		
+		return $res;
 	}
 }

@@ -151,7 +151,7 @@ class cams_Records extends core_Master
         // Ако директорията за flv файловете не съществува,
         // записва в лога 
         if(!is_dir(SBF_CAMS_FLV_PATH)) {
-            $this->log("sbf директорията за flv файловете не съществува - преинсталирайте cams.");
+            $this->logAlert("SBF директорията за .flv файловете не съществува - преинсталирайте cams.");
         }
         
         $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
@@ -276,17 +276,17 @@ class cams_Records extends core_Master
             if(!$secondsToEnd) {
                 // Стартираме конвертирането на видеото към flv, ако това все още не е направено
                 $this->convertToFlv($fp->videoFile, $fp->flvFile, $params);
-                $this->log('Конвертиране към FLV', $rec->id);
+                $this->logInfo('Конвертиране към FLV', $rec->id);
                 $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
             }
             
             if($secondsToEnd === NULL) {
-                $this->log('Правенo е конвертиране, но FLV файлът не се е появил', $rec->id);
+                $this->logErr('Правенo е конвертиране, но FLV файлът не се е появил', $rec->id);
                 $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
             }
         } else {
             if($secondsToEnd === NULL) {
-                $this->log('Има FLV файл, без да е конвертиран', $rec->id);
+                $this->logWarning('Има FLV файл, без да е конвертиран', $rec->id);
                 $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
             }
         }
@@ -319,7 +319,7 @@ class cams_Records extends core_Master
         // Рендираме плеъра
         $tpl = $this->renderSingle($data);
         
-        $this->log("Single", $rec->id);
+        $this->logRead("Разглеждане", $rec->id);
         
         return $this->renderWrapping($tpl);
     }
@@ -367,8 +367,8 @@ class cams_Records extends core_Master
         
         $out = exec($cmd);
         
-        debug::log("cmd = {$cmd}");
-        debug::log("out = {$out}");
+        $this->logDebug("cmd = {$cmd}");
+        $this->logDebug("out = {$out}");
         
         return $out;
     }
@@ -382,8 +382,8 @@ class cams_Records extends core_Master
         $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvFile < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
-        debug::log("cmd = {$cmd}");
-        debug::log("out = {$out}");
+        $this->logDebug("cmd = {$cmd}");
+        $this->logDebug("out = {$out}");
         
         return $out;
     }
@@ -556,7 +556,7 @@ class cams_Records extends core_Master
         // Ако няма никаква камера, редиректваме към камерите, 
         // със съобщение за въведат поне една камера
         if(!isset($fRec->cameraId)) {
-            redirect(array('cams_Cameras'), TRUE, "Моля въведете поне една камера");
+            redirect(array('cams_Cameras'), TRUE, "|Моля въведете поне една камера");
         }
         
         // Задаваме, така получената камера, като последно използвана

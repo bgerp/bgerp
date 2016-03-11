@@ -55,10 +55,12 @@ class type_Nick extends type_Varchar {
      */
     public static function normalize($nick)
     {
-        $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
-	    $nick = str::toUpperAfter($nick);
-	    $nick = str::toUpperAfter($nick, '.');
-	    $nick = str::toUpperAfter($nick, '_');
+        if(!strpos($nick, '@')) {
+            $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
+            $nick = str::toUpperAfter($nick);
+            $nick = str::toUpperAfter($nick, '.');
+            $nick = str::toUpperAfter($nick, '_');
+        }
 
         return $nick;
     }
@@ -103,7 +105,7 @@ class type_Nick extends type_Varchar {
      * Конвертира текста във формат за показване на никове
      * Първа главна буква. След точката и долното тире пак главна буква.
      */
-    function convertValueToNick($value)
+    static function convertValueToNick($value)
     {
         $value = trim($value);
 

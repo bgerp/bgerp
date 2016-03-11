@@ -183,6 +183,7 @@ class email_Fingerprints extends core_Manager
             set_time_limit(10000);
             core_Debug::$isLogging = FALSE;
             $incQuery = email_Incomings::getQuery();
+            $incQuery->show('emlFile,accId,uid');
             while($incRec = $incQuery->fetch()) {
                 if($incRec->emlFile) {
                     $fRec = fileman_Files::fetch($incRec->emlFile, NULL, FALSE);

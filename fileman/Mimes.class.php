@@ -157,7 +157,7 @@ class fileman_Mimes extends core_Mvc {
                 // Може да се направи само ако няма разширение да се променя, но това ще позволи качването на файлове със сгрешени разширения
                 
                 // Масив с разширенията, на които вярваме и няма да се променят, ако mimeto им е в $noTrustMimeArr
-                $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt');
+                $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt', 'svg');
                 
                 // Масив с mime типове
                 $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain', 'application/zip');

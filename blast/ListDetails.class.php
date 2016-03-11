@@ -126,6 +126,26 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Връща броя на записите
+     * 
+     * @param integer $listId
+     * @param NULL|string $state
+     * 
+     * @return integer
+     */
+    public static function getCnt($listId, $state = NULL)
+    {
+        $query = self::getQuery();
+        $query->where("#listId = {$listId}");
+        if ($state) {
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        return (int)$query->count();
+    }
+    
+    
+    /**
      * Извиква се преди подготовката на колоните
      */
     static function on_BeforePrepareListFields($mvc, &$res, $data)
@@ -217,10 +237,22 @@ class blast_ListDetails extends doc_Detail
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $masterRec = $mvc->Master->fetch($rec->listId);
+        $keyField = $masterRec->keyField;
+        
+        if ($keyField == 'email') {
+            $emailState = blast_BlockedEmails::getState($rec->key);
+            
+            if ($emailState == 'error') {
+                $row->ROW_ATTR['class'] .= ' state-error-email';
+            } elseif ($emailState == 'blocked') {
+                $row->ROW_ATTR['class'] .= ' state-blocked-email';
+            }
+        }
+        
         static $fieldsArr;
         
         if(!$fieldsArr) {
-            expect($masterRec = $mvc->Master->fetch($rec->listId));
             $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields);
         }
         
@@ -231,14 +263,16 @@ class blast_ListDetails extends doc_Detail
             $row->{$name} = $mvc->getVerbal($rec, $name);
         }
         
-        if ($rec->state != 'stopped') {
+        if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
+            if ($rec->state != 'stopped') {
             
-            // Бутон за спиране
-            $row->state = ht::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
-        } else {
+                // Бутон за спиране
+                $row->state = ht::createBtn('Спиране', array($mvc, 'stop', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
+            } else {
             
-            // Бутон за активиране
-            $row->state = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Започване на изпращане към този имейл');
+                // Бутон за активиране
+                $row->state = ht::createBtn('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => TRUE), FALSE, FALSE,'title=Започване на изпращане към този имейл');
+            }
         }
     }
     
@@ -263,6 +297,22 @@ class blast_ListDetails extends doc_Detail
     	}
     }
     
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getExportFields_()
+    {
+        // Кои полета ще се показват
+        $fields = arr::make("email=Имейл,
+    					     company=Компания", TRUE);
+    
+        return $fields;
+    }
+    
     
     /**
      * Екшън който експортира данните
@@ -274,45 +324,30 @@ class blast_ListDetails extends doc_Detail
     	
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
-  
-    	// Масива с избраните полета за export
-    	$exportFields = $this->selectFields("#export");
- 
+
     	// взимаме от базата целия списък отговарящ на този бюлетин
     	$query = self::getQuery();
     	$query->where("#listId = '{$rec->listId}'");
+
+    	$allFields = blast_Lists::fetch($rec->listId, 'allFields');
     	
-    	// новите ни ролове
-    	$csv = '';
+    	$fieldSet = cls::get('blast_ListDetails');
+    	$fieldSet->addFNC($allFields->allFields);
     	
-    	while ($fRec = $query->fetch()) {
-    	    foreach ((array)$fRec as $field => $value) {
-    			if (!$exportFields[$field]) continue;
-                
-    			if ($this->fields[$field]->type instanceof type_Blob) {
-    			    $valArr = unserialize($value);
-    			} else {
-    			    $valArr = array($value);
-    			}
-    			
-    			foreach ($valArr as $val) {
-    			    $val = html2text_Converter::toRichText($val);
-    				// escape
-    				if (preg_match("/[\,\"\r\n]/", $val)) {
-    					$val = '"' . str_replace('"', '""', $val) . '"';
-    				}
-    				$csv .= $val. ",";
-    			}
-    		}
-    		$csv = rtrim($csv, ',');
-    		$csv .= "\n";
+    	$listFields = blast_ListDetails::getFncFieldsArr($allFields->allFields);
+
+    	while ($fRec = $query->fetch()) { 
+
+    	     $data[] = (object) unserialize($fRec->data);
     	}
     	
+    	$csv = csv_Lib::createCsv($data, $fieldSet, $listFields);
+
     	$listTitle = blast_Lists::fetchField("#id = '{$rec->listId}'", 'title');
     	
     	// името на файла на кирилица
-    	//$fileName = basename($this->title);
-      	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	$fileName = basename($this->title);
+      	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
     	
     	$fileName = fileman_Files::normalizeFileName($listTitle);
     	
@@ -416,12 +451,15 @@ class blast_ListDetails extends doc_Detail
                     $type = 'varchar';
                     $attr = ",remember";
                     break;
+                case 'date' :
+                    $type = 'type_Date';
+                    break;
                 default :
                 $type = 'varchar';
                 break;
             }
             
-            $this->FNC($name, $type, "caption={$caption},mandatory,input" . $attr);
+            $this->FNC($name, $type, "caption={$caption},mandatory,input,forceField" . $attr);
         }
     }
     
@@ -444,12 +482,12 @@ class blast_ListDetails extends doc_Detail
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, array('ef_icon'=>'img/16/table-import-icon.png', 'title'=>'Внасяне на допълнителни данни'));
-        //bp($data, $data->masterId, $data->recs);
         
         if($data->recs) {
         	foreach($data->recs as $rec) {
 		        if($mvc->haveRightFor('export', $rec)){
 		        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');
+		        	break;
 		        }
         	}
         }
@@ -490,12 +528,12 @@ class blast_ListDetails extends doc_Detail
         $exp->rule("#enclosure", "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies'");
         $exp->rule("#firstRow", "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies'");
         
-        $exp->rule("#csvData", "importCsvFromContacts('crm_Companies', #companiesGroup)");
-        $exp->rule("#csvData", "importCsvFromContacts('crm_Persons', #personsGroup)");
+        $exp->rule("#csvData", "importCsvFromContacts('crm_Companies', #companiesGroup, #listId)");
+        $exp->rule("#csvData", "importCsvFromContacts('crm_Persons', #personsGroup, #listId)");
         
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
-        $exp->question("#blastList", tr("Изберете списъка от който да се импортират даните"), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
+        $exp->question("#blastList", tr("Изберете списъка от който да се импортират данните"), "#source == 'blastList'", 'title=' . tr('Импортиране от съществуващ списък'));
         $exp->rule("#csvData", "importCsvFromLists(#blastList)", '#blastList');
         
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
@@ -566,6 +604,7 @@ class blast_ListDetails extends doc_Detail
             set_time_limit(round(count($csvRows) / 20) + 10);
             
             $newCnt = $skipCnt = $updateCnt = 0;
+            $errLinesArr = array();
             
             if(count($csvRows)) {
                 foreach($csvRows as $row) {
@@ -586,7 +625,15 @@ class blast_ListDetails extends doc_Detail
                     $key = $rec->{$keyField};
                     
                     // Ако ключа е празен, скипваме текущия ред
-                    if(empty($key) || count($err)) {
+                    if (empty($key) || count($err)) {
+                        $errLinesArr[] = $row;
+                        
+                        if (empty($key)) {
+                            self::logWarning('Грешка при импортиране: Липсва ключове поле за записа - ' . $row, NULL, 1);
+                        } else {
+                            self::logWarning('Грешка при импортиране: ' . implode(', ', $err) . ' - ' . $row, NULL, 1);
+                        }
+                        
                         $skipCnt++;
                         continue;
                     }
@@ -622,6 +669,12 @@ class blast_ListDetails extends doc_Detail
                     $this->save($rec);
                 }
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
+                
+                // Ако има грешни линни да се добавят в 'csv' файл
+                if (!empty($errLinesArr)) {
+                    $fh = fileman::absorbStr(implode("\n", $errLinesArr), 'exportCsv', 'listDetailsExpErr.csv');
+                    status_Messages::newStatus('|Пропуснатите линии са добави в|*: ' . fileman::getLinkToSingle($fh));
+                }
             } else {
                 $exp->message = tr("Липсват данни за добавяне");
             }
@@ -641,7 +694,7 @@ class blast_ListDetails extends doc_Detail
         $err = array();
         
         // Валидираме полето, ако е имейл
-        if($rec->email) {
+        if (trim($rec->email)) {
             $rec->email = strtolower($rec->email);
             
             // Масив с всички имейли
@@ -669,7 +722,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->mobile) {
+        if (trim($rec->mobile)) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->mobile, $code);
@@ -681,7 +734,7 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->fax) {
+        if (trim($rec->fax)) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->fax, $code);
@@ -775,8 +828,12 @@ class blast_ListDetails extends doc_Detail
     /**
      * Импортира CSV от моделите на визитника
      */
-    static function importCsvFromContacts($className, $groupId)
+    static function importCsvFromContacts($className, $groupId, $listId)
     {
+        $listRec = blast_Lists::fetch($listId);
+        
+        core_Lg::push($listRec->lg);
+
         $mvc = cls::get($className);
         
         $cQuery = $mvc->getQuery();
@@ -823,6 +880,8 @@ class blast_ListDetails extends doc_Detail
         
         $csv = array_merge(array($columns), (array)$csv);
         
+        core_Lg::pop();
+
         return $csv;
     }
 }

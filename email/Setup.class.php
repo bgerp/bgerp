@@ -1,9 +1,16 @@
 <?php
 
+
 /**
  * Максимално време за еднократно фетчване на писма
  */
 defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
+
+
+/**
+ * Период за сваляне на имейли
+ */
+defIfNot('EMAIL_DOWNLOAD_PERIOD', 120);
 
 
 /**
@@ -184,7 +191,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Управление на входящи имайл сметки и вътрешни кутии";
+    var $info = "Управление на входящи имeйл сметки и вътрешни кутии";
     
     
     /**
@@ -198,6 +205,8 @@ class email_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     
+            'EMAIL_DOWNLOAD_PERIOD' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Период за сваляне на имейлите->Време'),
+            
             // Максимално време за еднократно фетчване на писма
             'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
     
@@ -275,9 +284,12 @@ class email_Setup extends core_ProtoSetup
             'email_Unparsable',
             'email_Salutations',
             'email_ThreadHandles',
+            'email_SendOnTime',
             'migrate::transferThreadHandles',
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',
+            'migrate::repairSendOnTimeClasses',
+            'migrate::updateUserInboxesD',
         );
     
 
@@ -354,7 +366,7 @@ class email_Setup extends core_ProtoSetup
             while($rec = $tQuery->fetch("#handle IS NOT NULL")) {
                 $rec->handle = strtoupper($rec->handle);
                 if($rec->handle{0} >= 'A' && $rec->handle{0} <= 'Z') {
-                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle));
+                    email_ThreadHandles::save( (object) array('threadId' => $rec->id, 'handle' => '#' . $rec->handle), NULL, 'IGNORE');
                 }
             }
         } 
@@ -424,6 +436,95 @@ class email_Setup extends core_ProtoSetup
             $rec->systemId = $systemId;
             
             email_Filters::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Миграция, за поправка на класовете в sendOnTime
+     */
+    public static function repairSendOnTimeClasses()
+    {
+        $query = email_SendOnTime::getQuery();
+        while ($rec = $query->fetch()) {
+            if (!cls::load($rec->class, TRUE)) continue;
+            $clsInst = cls::get($rec->class);
+            
+            $rec->class = core_Cls::getClassName($clsInst);
+            
+            email_SendOnTime::save($rec, 'class');
+        }
+    }
+    
+    
+    /**
+     * Обновява имейл акаунтите в userInboxes в email_Incomings
+     */
+    public static function updateUserInboxesD()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('email_Setup', 'migrateEmails', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Извиква се от core_CallOnTime
+     * Прави миграцията на updateUserInboxesD - добавя стойности за userInboxes и toAndCc
+     * 
+     * @see core_CallOnTime
+     */
+    public static function callback_migrateEmails()
+    {
+        $isLogging = core_Debug::$isLogging;
+        
+        try {
+            core_Debug::$isLogging = FALSE;
+            
+            $inst = cls::get('email_Incomings');
+            
+            $query = $inst->getQuery();
+            $query->where("#headers IS NOT NULL");
+            $query->orWhere("#emlFile IS NOT NULL");
+            
+            $query->where("#userInboxes IS NULL");
+            $query->orWhere("#toAndCc IS NULL");
+            
+            $query->limit(1000);
+            $query->orderBy('createdOn', 'DESC');
+            
+            while ($rec = $query->fetch()) {
+                
+                $haveRec = TRUE;
+                
+                $inst->calcAllToAndCc($rec);
+                
+                $inst->updateUserInboxes($rec);
+            }
+            
+            if ($haveRec) {
+                $callOn = dt::addSecs(120);
+                core_CallOnTime::setCall('email_Setup', 'migrateEmails', NULL, $callOn);
+            }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+            
+            $callOn = dt::addSecs(300);
+            core_CallOnTime::setCall('email_Setup', 'migrateEmails', NULL, $callOn);
+        }
+        
+        core_Debug::$isLogging = $isLogging;
+    }
+    
+    
+    /**
+     * Проверяваме дали всичко е сетнато, за да работи пакета
+     * Ако има грешки, връщаме текст
+     */
+    public function checkConfig()
+    {
+        if (!function_exists('imap_open')) {
+            
+            return 'Не е инсталиран IMAP модула на PHP';
         }
     }
 }

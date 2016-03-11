@@ -48,12 +48,11 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДМА
-     * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */			
-    function getProductInfo($productId, $packagingId = NULL)
+    function getProductInfo($productId)
     {
-        return $this->class->getProductInfo($productId, $packagingId);
+        return $this->class->getProductInfo($productId);
     }
     
     
@@ -126,24 +125,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща параметрите на артикула
-     * @param mixed $id - ид или запис на артикул
-     *
-     * @return array $res - параметрите на артикула
-     * 					['weight']          -  Тегло
-     * 					['width']           -  Широчина
-     * 					['volume']          -  Обем
-     * 					['thickness']       -  Дебелина
-     * 					['length']          -  Дължина
-     * 					['height']          -  Височина
-     * 					['tolerance']       -  Толеранс
-     * 					['transportWeight'] -  Транспортно тегло
-     * 					['transportVolume'] -  Транспортен обем
-     * 					['term']            -  Срок
-     */
-    public function getParams()
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
+	 */
+    public static function getParams($id, $name = NULL)
     {
-    	return $this->class->getParams();
+    	return $this->class->getParams($id, $name);
     }
     
     
@@ -161,45 +152,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща информация за основната опаковка на артикула
-     * 
-     * @param int $productId - ид на продукт
-     * @return stdClass - обект с информация
-     * 				->name     - име на опаковката
-     * 				->quantity - к-во на продукта в опаковката
-     * 				->classId  - ид на cat_Packagings или cat_UoM
-     * 				->id       - на опаковката/мярката
-     */
-    public function getBasePackInfo($productId)
-    {
-    	return $this->class->getBasePackInfo($productId);
-    }
-    
-    
-    /**
-     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
-     */
-    public function getPolicy()
-    {
-    	return $this->class->getPolicy();
-    }
-    
-    
-    /**
-     * Връща описанието на артикула
-     *
-     * @param mixed $id - ид/запис
-     * @param core_Mvc $documentMvc - модела
-     * @param datetime $time - към кое време
-     * @return mixed - описанието на артикула
-     */
-    public function getProductDesc($id, $documentMvc, $time = NULL)
-    {
-    	return $this->getProductDesc($id, $documentMvc, $time);
-    }
-    
-    
-    /**
      * Връща последното не оттеглено или чернова задание за спецификацията
      * 
      * @param mixed $id - ид или запис
@@ -207,18 +159,39 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     public function getLastJob($id)
     {
-    	return $this->getLastJob($id);
+    	return $this->class->getLastJob($id);
     }
     
     
     /**
-     * Намира последната активна технологична рецепта за артикула
+     * Връща последната активна рецепта на спецификацията
      *
      * @param mixed $id - ид или запис
+     * @param sales|production $type - вид работна или търговска
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
-    public function getLastActiveBom($id)
+    public function getLastActiveBom($id, $type = NULL)
     {
-    	return $this->getLastActiveBom($id);
+    	return $this->class->getLastActiveBom($id, $type);
+    }
+    
+    
+    /**
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     *
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
+     * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+     * 				    -> title        - дефолт име на задачата
+     * 					-> driverClass  - драйвър на задача
+     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input      - материали за влагане
+     * 						 - array production - артикули за произвеждане
+     * 						 - array waste      - отпадъци
+     */
+    public static function getDefaultProductionTasks($id, $quantity = 1)
+    {
+    	return $this->class->getDefaultProductionTasks($id, $quantity);
     }
 }

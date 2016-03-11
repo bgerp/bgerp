@@ -128,22 +128,35 @@ class type_Double extends core_Type {
         if(!strlen($value)) return NULL;
         
         $conf = core_Packs::getConfig('core');
-        $decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
-        $thousandsSep = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
+
+        if(!$this->params['decPoint']) {
+            $this->params['decPoint'] = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
+        }
+
+        if(!$this->params['thousandsSep']) {
+            $this->params['thousandsSep'] = html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP);
+        }
         
-        setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
+        
+        if(!isset($this->params['decimals'])) {
+            $this->params['decimals'] = $this->params['decimals'];
+        }
+        
+        if(!isset($this->params['decimals'])) {
+        	$this->params['decimals'] = EF_NUMBER_DECIMALS;
+        }
         
         // Ако закръгляме умно
         if($this->params['smartRound']){
         	
         	// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-        	$decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
+        	$this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
         }
 
         // Закръгляме числото преди да го обърнем в нормален вид
-        $value = round($value, $decimals);
+        $value = round($value, $this->params['decimals']);
         
-        $value = number_format($value, $decimals, $decPoint, $thousandsSep);
+        $value = number_format($value, $this->params['decimals'], $this->params['decPoint'], $this->params['thousandsSep']);
         
         if(!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);

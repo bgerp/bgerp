@@ -50,7 +50,7 @@ class type_Users extends type_Keylist
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    public function prepareOptions($defUser =  NULL)
+    public function prepareOptions()
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -78,15 +78,6 @@ class type_Users extends type_Keylist
             
             $uQuery = core_Users::getQuery();
             $uQuery->orderBy("#names", 'ASC');
-
-            $defUser = trim($defUser, '|');
-            if(is_numeric($defUser) && $defUser > 0) { 
-                $defUserCond = " || (#id = {$defUser})";
-            }
-            
-            if ($defUser != 'all' || $defUser != 'all_users') {
-                $uQuery->where("(#state != 'rejected'){$defUserCond}");
-            }
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
             $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
@@ -109,7 +100,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
                 }
-                $all->keylist = "|{$allUsers}|-1|0";
+                $all->keylist = keylist::normalize("|{$allUsers}|-1|0|");
                 $this->options['all_users'] = $all;
             } else {
                 // Показваме само екипите на потребителя
@@ -132,28 +123,46 @@ class type_Users extends type_Keylist
                 
                 $teamMembers = '';
                 
+                $haveTeamMembers = FALSE;
+                
                 while($uRec = $uQueryCopy->fetch()) {
-                    $key = $t . '_' . $uRec->id;
-                    $this->options[$key] = new stdClass();
-                    $this->options[$key]->title = $uRec->names . " (" . type_Nick::normalize($uRec->nick) . ")";
-                    $this->options[$key]->keylist = '|' . $uRec->id . '|';
+                    
+                    if ($uRec->state != 'rejected') {
+                        $key = $t . '_' . $uRec->id;
+                        $this->options[$key] = new stdClass();
+                        $this->options[$key]->title = $uRec->names . " (" . type_Nick::normalize($uRec->nick) . ")";
+                        $this->options[$key]->keylist = '|' . $uRec->id . '|';
+                        $haveTeamMembers = TRUE;
+                    } else {
+                        $rejected .= $rejected ? '|' . $uRec->id : $uRec->id;
+                    }
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
                 }
                 
-                if($teamMembers) {
+                if($haveTeamMembers) {
                     // Добавка за да има все пак разлика между един потребител и екип,
                     // в който само той е участник
                     if(strpos($teamMembers, '|') === FALSE) {
                         $teamMembers = "{$teamMembers}|{$teamMembers}";
                     }
-                    $this->options[$t . ' team']->keylist = "|{$teamMembers}|";
+                    $this->options[$t . ' team']->keylist = keylist::normalize("|{$teamMembers}|");
                 } else {
                     unset($this->options[$t . ' team']);
                 }
+
+
             }
         }
         
+        // Добавка за оттеглените потребители
+        if($rejected) {
+            $this->options[$key] = new stdClass();
+            $this->options[$key]->title = tr("Оттеглени потребители");
+            $this->options[$key]->keylist = '|' . $rejected . '|';
+            $this->options[$key]->attr = array('class' => 'team');
+        }
+       
         $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
         
         return $this->options;
@@ -165,7 +174,7 @@ class type_Users extends type_Keylist
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareOptions($value);
+        $this->prepareOptions();
         
         if(empty($value)) {
             $value = '|' . core_Users::getCurrent() . '|';
@@ -212,7 +221,7 @@ class type_Users extends type_Keylist
      */
     function fromVerbal_($value)
     {
-        $this->prepareOptions('all');
+        $this->prepareOptions();
        
         if (isset($value) && !$this->options[$value]) {
             $this->error = 'Некоректна стойност';

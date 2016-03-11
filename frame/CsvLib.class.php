@@ -32,13 +32,24 @@ class frame_CsvLib
 	
 	    if ($rec) {
 			// за всеки един запис
-			foreach ($rec as $field => $value) { //bp($rec,$field,$value);
+			foreach ($rec as $field => $value) { 
 		
 				// ако е doubele
-				if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
+				if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 
+						                    'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 
+						                    'quantity', 'аmountSelf', 'sum'))) {
 					 
 					$value = self::toCsvFormatDouble($value);
 		
+				}
+				
+				// ако е doubele
+				if (in_array($field ,array('quantityDelivered', 'quantityDelivered', 'quantityToDeliver', 'quantityJob',
+						                   'quantityТоDelivered', 'quantityProduced', 'quantityToProduced','store', 'inStore'))) {
+				
+						$Int = cls::get('type_Int');
+						$value = $Int->toVerbal($value);
+				
 				}
 	
 				if (is_array($rec)) {
@@ -58,7 +69,31 @@ class frame_CsvLib
 					
 				// ако е date
 				if ($field == 'valior') {
-					$value = self::toCsvFormatData($rec['valior']);
+					if (is_object($rec)) { 
+						$value = self::toCsvFormatData($rec->valior);
+					} else {
+						$value = self::toCsvFormatData($rec['valior']);
+					}
+				}
+				
+				if ($field == 'dateSale') {
+					if (is_object($rec)) { 
+						$value = self::toCsvFormatData($rec->dateSale);
+					} else {
+						$value = self::toCsvFormatData($rec['dateSale']);
+					}
+				}
+				
+				if($field == 'delta') {
+					$value = cls::get('type_Percent')->toVerbal($rec->delta);
+				}
+				
+				if ($field == 'code') {
+					$value = $rec->code;
+				}
+				
+				if ($field == 'measure') {
+					$value = cat_UoM::fetchField($rec->measure,'shortName');
 				}
 		
 				$rows->{$field} = $value;
@@ -76,7 +111,7 @@ class frame_CsvLib
 				}
 			} else {
 				if(!empty($rec->{"ent{$i}Id"})){
-					$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+					$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleNum');
 				}
 			}
 		}
@@ -84,7 +119,7 @@ class frame_CsvLib
 		// Вербалното представяне на перата
 		foreach (range(1, 6) as $i){
 			if(!empty($rec->{"item{$i}"})){
-				$rows->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'title');
+				$rows->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleNum');
 			}
 		}
 		

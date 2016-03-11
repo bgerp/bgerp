@@ -41,7 +41,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($requiredRoles != 'no_one' && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
+        if($requiredRoles != 'no_one' && is_object($rec) && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
             if($action == 'edit') { 
                 $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
             }

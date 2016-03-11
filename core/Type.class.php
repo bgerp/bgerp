@@ -57,7 +57,7 @@ class core_Type extends core_BaseClass
     /**
      * Конструктор. Дава възможност за инициализация
      */
-    function core_Type($params = array())
+    function __construct($params = array())
     {
         if(is_array($params) && count($params)) {
             $this->params = $params;
@@ -93,7 +93,7 @@ class core_Type extends core_BaseClass
      */
     static function escape($value)
     {
-        $value = str_replace(array("&", "<"), array('&amp;', '&lt;'), $value);
+        $value = str_replace(array("&", "<", '&amp;lt;', '&amp;amp;'), array('&amp;', '&lt;', '&lt;', '&amp;'), $value);
         
         return $value;
     }
@@ -185,6 +185,8 @@ class core_Type extends core_BaseClass
             $res->collation = $this->params['collate'];
         } elseif($this->params['ci']) {
             $res->collation = 'utf8_general_ci';
+        } elseif($this->collation) {
+            $res->collation = $this->collation;
         }
         
         return $res;
@@ -265,7 +267,7 @@ class core_Type extends core_BaseClass
             
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
             if (!$res['error'] && isset($this->params['regexp'])) {
-                if (!eregi($this->params['regexp'], $value)) {
+                if (!preg_match($this->params['regexp'], $value)) {
                     $res['error'] = 'Синтактична грешка';
                 }
             }
@@ -525,12 +527,15 @@ class core_Type extends core_BaseClass
     /**
      * Определя и задава широчината на полето
      */
-    function setFieldWidth(&$attr, $size = NULL)
+    function setFieldWidth(&$attr, $size = NULL, $options = NULL)
     {
-        
-        if(!$size && !$this->maxFieldSize && is_array($this->options)) {
+        if($options === NULL) {
+            $options = $this->options;
+        }
+
+        if(!$size && !$this->maxFieldSize && is_array($options)) {
             $this->maxFieldSize = 1;
-            foreach($this->options as $opt) {
+            foreach($options as $opt) {
                 if(is_object($opt)) {
                     $title = $opt->title;
                 } else {
@@ -538,6 +543,7 @@ class core_Type extends core_BaseClass
                 }
                 $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
             }
+            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
         }
  
         // Определяме размера на най-дългия възможен стринг, като най-дългата опция

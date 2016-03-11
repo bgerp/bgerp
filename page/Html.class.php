@@ -18,11 +18,13 @@ class page_Html extends core_ET {
     /**
      * Конструктор, който генерира лейаута на шаблона
      */
-    function page_Html() {
+    function __construct() {
         
         $bodyClass = Mode::is('screenMode', 'narrow') ? "narrow narrow-scroll" : "wide";
-
-        $this->core_ET(
+        
+        $bodyId = str::getRand();
+        
+        parent::__construct(
             "<!doctype html>" .
             
             (Mode::is('screenMode', 'narrow') ?
@@ -40,7 +42,7 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN STYLES-->\n<style type=\"text/css\">[#STYLES#]\n</style><!--ET_END STYLES-->" .
             "<!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->" .
             "\n</head>" .
-            "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
+            "\n<body<!--ET_BEGIN ON_LOAD--> onload=\"[#ON_LOAD#]\"<!--ET_END ON_LOAD--> id= \"{$bodyId}\" class=\"{$bodyClass} [#BODY_CLASS_NAME#]\">" .
         	"<!--ET_BEGIN START_SCRIPTS-->\n<script type=\"text/javascript\">[#START_SCRIPTS#]\n</script><!--ET_END START_SCRIPTS-->" .
             "<!--ET_BEGIN PAGE_CONTENT-->[#PAGE_CONTENT#]<!--ET_END PAGE_CONTENT-->" .
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
@@ -59,7 +61,7 @@ class page_Html extends core_ET {
     {
         // Добавяне на хедърите
         $headers = $invoker->getArray('HTTP_HEADER');
-        if(is_array($headers)) {
+        if (!empty($headers)) {
             foreach($headers as $hdr) {
                 if($hdr{0} == '-') {
                     header_remove(substr($hdr, 1));

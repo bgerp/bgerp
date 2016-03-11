@@ -21,7 +21,7 @@ class drdata_Vats extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,plg_Sorting,drdata_Wrapper,plg_RowTools';
+    var $loadList = 'plg_Sorting,drdata_Wrapper,plg_RowTools2';
     
     
     /**
@@ -69,9 +69,23 @@ class drdata_Vats extends core_Manager
     /**
      * Колко най-много vat номера да бъдат обновени след залез?
      */
-    const MAX_CNT_VATS_FOR_UPDATE = 5;
-
-
+    const MAX_CNT_VATS_FOR_UPDATE = 1;
+    
+    
+    /**
+     * Колко най-много vat номера (по cron) да бъдат обновени след залез?
+     */
+    const CRON_MAX_CNT_VATS_FOR_UPDATE = 5;
+    
+    
+    /**
+     * След колко време да се проверяват unknown статусите
+     * 24*60*60 - 1 ден
+     */
+    static $unknowTTL = 86400;
+    
+    
+    
     /**
      * Заглавие
      */
@@ -108,8 +122,9 @@ class drdata_Vats extends core_Manager
     function description()
     {
         $this->FLD('vat', 'drdata_vatType(64)', 'caption=VAT');
-        $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input2=none');
-        $this->FLD('lastChecked', 'datetime', 'caption=Проверен на,input2=none');
+        $this->FLD('status', 'enum(not_vat,bulstat,syntax,unknown,valid,invalid)', 'caption=Състояние,input=none');
+        $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Проверен на,input=none');
+        $this->FLD('lastUsed', 'datetime(format=smartTime)', 'caption=Използван на,input=none');
         $this->FLD('info', 'varchar', 'caption=Информация');
 
         $this->setDbUnique('vat');
@@ -129,27 +144,27 @@ class drdata_Vats extends core_Manager
         
         if ($form->isSubmitted()) {
             if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
-                $res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
+                $res = new Redirect (array($this, 'Check'), '|Не сте въвели VAT номер');
             } else {
                 list($status, ) = $this->check($vat);  
                 switch($status) {
                     case 'valid' :
-                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е валиден");
+                        $res = new Redirect (array($this), "|VAT номера|* <i>'{$vat}'</i> |е валиден|*");
                         break;
                     case 'bulstat' :
-                        $res = new Redirect (array($this), "Номера <i>'{$vat}'</i> е валиден БУЛСТАТ/ЕИК");
+                        $res = new Redirect (array($this), "|Номера|* <i>'{$vat}'</i> |е валиден БУЛСТАТ/ЕИК|*");
                         break;
                     case 'syntax' :
-                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е синтактично грешен");
+                        $res = new Redirect (array($this), "|VAT номера|* <i>'{$vat}'</i> |е синтактично грешен|*");
                         break;
                     case 'invalid' :
-                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е невалиден");
+                        $res = new Redirect (array($this), "|VAT номера|* <i>'{$vat}'</i> |е невалиден|*");
                         break;
                     case 'unknown' :
-                        $res = new Redirect (array($this), "Не може да се определи статуса на VAT номера <i>'{$vat}'</i>");
+                        $res = new Redirect (array($this), "|Не може да се определи статуса на VAT номера|* <i>'{$vat}'</i>");
                         break;
                     case 'not_vat' :
-                        $res = new Redirect (array($this), "Това не е VAT номер - <i>'{$vat}'</i>");
+                        $res = new Redirect (array($this), "|Това не е VAT номер|* - <i>'{$vat}'</i>");
                         break;
                     default : expect(FALSE);
                 }
@@ -197,26 +212,29 @@ class drdata_Vats extends core_Manager
             $rec = new stdClass();
             list($rec->status, $rec->info) = $this->checkStatus($canonocalVat);
             $rec->vat = $canonocalVat;
-            $rec->lastChecked = dt::verbal2mysql();
+            $rec->lastUsed = $rec->lastChecked = dt::verbal2mysql();
             if(in_array($rec->status, array('valid', 'invalid', 'unknown'))) {
                 $this->save($rec);
             }
         } else {
             // Проверяваме дали кеша не е изтекъл
-            $conf = core_Packs::getConfig('drdata');
-            $expDate = dt::addSecs(-$conf->DRDATA_VAT_TTL);
-            $expUnknown = dt::addSecs(-24*60*60);
+            $expDate = dt::subtractSecs(drdata_Setup::get('VAT_TTL'));
+            $lastUsedExp = dt::subtractSecs(drdata_Setup::get('LAST_USED_EXP'));
+            $expUnknown = dt::subtractSecs(self::$unknowTTL);
+            
+            $rec->lastUsed = dt::verbal2mysql();
+            $this->save($rec, 'lastUsed');
             
             // Ако информацията за данъчния номер е остаряла или той е неизвестен и не сме го проверявали последните 24 часа 
-            if(($rec->lastChecked < $expDate) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown) ) {
-
+            if((($rec->lastChecked <= $expDate) && ($rec->lastUsed >= $lastUsedExp)) || ($rec->status == self::statusUnknown && $rec->lastChecked < $expUnknown) ) {
+                
                 // Ако не е достигнат максимума, добавяме и този запис за обновяване
                 if(count($this->updateOnShutdown) < self::MAX_CNT_VATS_FOR_UPDATE) {
                     $this->updateOnShutdown[] = $rec;
                 }
             }
         }
- 
+        
         return array($rec->status, $rec->info);        
     }
     
@@ -258,6 +276,7 @@ class drdata_Vats extends core_Manager
                 $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
                 @$result = $client->checkVat($params);
             } catch (Exception $e) {
+                reportException($e);
                 $result = new stdClass();
             }
             
@@ -283,7 +302,7 @@ class drdata_Vats extends core_Manager
         foreach ($this->updateOnShutdown as $rec) {
             list($rec->status, $rec->info) = $this->checkStatus($rec->vat);
             $rec->lastChecked = dt::verbal2mysql();
-            $this->save($rec);
+            $this->save($rec, 'status, info, lastChecked');
         }
     }
     
@@ -478,5 +497,53 @@ class drdata_Vats extends core_Manager
         }
     	
     	return $uic;
+    }
+    
+    
+    /**
+     * Извиква се от крона. Премахва старите статус съобщения
+     */
+    function cron_checkVats()
+    {
+        // За да се стартира on_ShutDown
+        cls::get(get_called_class());
+        
+        $expDate = dt::subtractSecs(drdata_Setup::get('VAT_TTL'));
+        $lastUsedExp = dt::subtractSecs(drdata_Setup::get('LAST_USED_EXP'));
+        $unknownExpDate = dt::subtractSecs(self::$unknowTTL);
+        
+        $statusUnknown = self::statusUnknown;
+        
+        $query = $this->getQuery();
+        $query->where("#lastChecked <= '{$expDate}'");
+        $query->where("#lastUsed >= '{$lastUsedExp}'");
+        $query->orWhere("#status = '{$statusUnknown}' AND #lastChecked <= '{$unknownExpDate}'");
+        
+        $query->limit(self::CRON_MAX_CNT_VATS_FOR_UPDATE);
+        
+        $query->orderBy('lastChecked', 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            $this->updateOnShutdown[] = $rec;
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'checkVats';
+        $rec->description = 'Проверка на VAT номера';
+        $rec->controller = $mvc->className;
+        $rec->action = 'checkVats';
+        $rec->period = 10;
+        $rec->offset = rand(0,8);
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec);
     }
 }

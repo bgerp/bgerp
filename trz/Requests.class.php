@@ -37,7 +37,7 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, trz_Wrapper, 
+    public $loadList = 'plg_RowTools2, trz_Wrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing, doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
     
@@ -210,30 +210,17 @@ class trz_Requests extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->fields['paid']->caption = 'Вид'; 
-    	
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
-        $data->listFilter->setDefault('selectedUsers', 'all_users'); 
-                 
+
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields .= ', selectedUsers, personId, paid';
+        $data->listFilter->showFields .= ', personId, paid';
         
-        $data->listFilter->input('selectedUsers, personId, paid', 'silent');
+        $data->listFilter->input('personId, paid', 'silent');
         
      	if($data->listFilter->rec->paid) {
     		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
     	}
-    	
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
-        }
 
-        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
-            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-        }
-        
     	if($data->listFilter->rec->personId) {
     		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
     	}
@@ -351,7 +338,7 @@ class trz_Requests extends core_Master
             doc_ThreadUsers::removeContainer($rec->containerId);
             doc_Threads::updateThread($rec->threadId);
             
-    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+    		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
     
@@ -506,33 +493,26 @@ class trz_Requests extends core_Master
     	return array('crm_PersonAccRegIntf');
     }
     
-    
     /**
-     * Преди да се подготвят опциите на кориците, ако
+     * Метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    public static function getCoverOptions($coverClass)
+    function restrictQueryOnlyFolderForDocuments($query)
     {
-    	$groups = array();
-    	
-    	if($coverClass instanceof crm_Persons){
-    		
-    		// Искаме да филтрираме само групата "Служители"
-    		$sysIdEmployees = crm_Groups::getIdFromSysId('employees');
-    		$sysIdManagers  = crm_Groups::getIdFromSysId('managers');
-    		$sysIdUsers = crm_Groups::getIdFromSysId('users');
-    		
-    		$groups = array($sysIdEmployees=>$sysIdEmployees, $sysIdManagers=>$sysIdManagers, $sysIdUsers=>$sysIdUsers);
-    		$groupList = keylist::fromArray($groups);
-    		
-    		$query = $coverClass->getQuery();
-    		$query->where("#state != 'rejected'");
-    		$query->likeKeylist('groupList', $groupList);
-    		
-    		while($rec = $query->fetch()){
-    			$options[$rec->id] = $coverClass::getTitleById($rec->id);
-    		}
-    	
-    		return $options;
-    	}
+    	$pQuery = crm_Persons::getQuery();
+        
+        // Искаме да филтрираме само групата "Служители"
+        $employeesId = crm_Groups::getIdFromSysId('employees');
+        
+        if($employees = $pQuery->fetchAll("#groupList LIKE '%|$employeesId|%'", 'id')) {
+            $list = implode(',', array_keys($employees));
+            $query->where("#coverId IN ({$list})");
+        } else {
+            $query->where("#coverId = -2");
+        }
     }
+    
 }

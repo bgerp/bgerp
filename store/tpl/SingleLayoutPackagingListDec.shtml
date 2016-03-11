@@ -1,13 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <table class="innerTable border-table paddingCells">
             <tbody>
@@ -15,14 +6,15 @@
                     <td class="cell custom-header-bg" style='width:35%;'><b>Receiver</b></td>
                     <td class="cell centered" rowspan='2' style='width:30%;'>
                         <div class="document-title">PACKAGING LIST</div>
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <br>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <br>
+                        <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b></td>
@@ -102,9 +94,8 @@
                     </td>
                     <td>
 
-                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <!--ET_BEGIN colletsCount-->Collets count calced:&nbsp;[#colletsCount#]<!--ET_BEGIN colletsCount--> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; Collets count: [#palletCountInput#]<!--ET_END palletCountI--></div>
+                        <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                        <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
                         <hr>
                         <table class='center' style='width:100%;'>
                             <tr>
@@ -117,7 +108,7 @@
                             </tr>
                             <tr>
                                 <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
                             </tr>
                         </table>
                     </td>
@@ -164,9 +155,4 @@
             <div class='clearfix21'></div>
             </div>
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

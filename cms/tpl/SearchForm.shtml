@@ -1,0 +1,9 @@
+|*<form [#FORM_ATTR#] action='[#ACTION#]' id="searchform">
+<div id="simpleSearch">
+    <input tabindex="1" autocomplete="off" value='[#VALUE#]' placeholder="|Търсене|*" name="q" title="|Търсене на статии|* [alt-shift-f]" accesskey="f" id="searchInput"/>
+    <button type="submit" title="|Търси този текст в статиите|*" id="searchButton">
+    <img src="[#FIND_IMG#]" alt="Search" height="13" width="12">
+    </button>
+    <!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->
+</div>
+</form>

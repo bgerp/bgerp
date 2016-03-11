@@ -38,13 +38,13 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, FALSE);
         
-        // Зареждаме плъгина, който проверява можели да се оттегли/възстанови докумена
+        // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
        
-        // Ако е оказано че при контиране/възстановяване/оттегляне да се заключва баланса зареждаме плъгина 'acc_plg_LockBalances'
+        // Ако е оказано, че при контиране/възстановяване/оттегляне да се заключва баланса зареждаме плъгина 'acc_plg_LockBalances'
         if($mvc->lockBalances === TRUE){
         	
-        	// Зареждаме плъгина, така се подсигуряваме че ивентите му ще се изпълняват винаги след тези на 'acc_plg_Contable'
+        	// Зареждаме плъгина, така се подсигуряваме, че ивентите му ще се изпълняват винаги след тези на 'acc_plg_Contable'
         	$mvc->load('acc_plg_LockBalanceRecalc');
         }
     }
@@ -132,12 +132,12 @@ class acc_plg_Contable extends core_Plugin
             
         	unset($error);
             // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($rec->{$mvc->valiorFld}, $error)){
+            if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
                 $error = ",error={$error}";
             }
             
             $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
-            
+           
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
@@ -190,12 +190,12 @@ class acc_plg_Contable extends core_Plugin
         
         if($docPeriod){
             if($docPeriod->state == 'closed'){
-                $error = "Не може да се контира в затворения сч. период \'{$docPeriod->title}\'";
+                $error = tr("|Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'");
             } elseif($docPeriod->state == 'draft'){
-                $error = "Не може да се контира в бъдещия сч. период \'{$docPeriod->title}\'";
+                $error = tr("|Не може да се контира в бъдещия сч. период|* \'{$docPeriod->title}\'");
             }
         } else {
-            $error = "Не може да се контира в несъществуващ сч. период";
+            $error = tr("Не може да се контира в несъществуващ сч. период");
         }
         
         return ($error) ? FALSE : TRUE;
@@ -254,10 +254,11 @@ class acc_plg_Contable extends core_Plugin
             	
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = isset($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	$valior = isset($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
-                if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
+                // Само активни документи с транзакция и в незатворен период могат да се сторнират
+                if (($periodRec->state != 'closed') || ($rec->state != 'active') || empty($jRec)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -266,7 +267,7 @@ class acc_plg_Contable extends core_Plugin
                 
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = !empty($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	$valior = !empty($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
             	
             	$periodRec = acc_Periods::fetchByDate($valior);
                 
@@ -291,7 +292,7 @@ class acc_plg_Contable extends core_Plugin
             if(isset($rec)){
             	
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
-            	$periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
+            	$periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
             	if ($periodRec->state == 'closed') {
             		$requiredRoles = 'no_one';
             	}
@@ -370,20 +371,14 @@ class acc_plg_Contable extends core_Plugin
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         } catch (acc_journal_RejectRedirect $e){
         	
-        	return Redirect(array($mvc, 'single', $rec->id), FALSE, $e->getMessage(), 'error');
+        	redirect(array($mvc, 'single', $rec->id), FALSE, '|' . $e->getMessage(), 'error');
         }
         
-        $handle = $mvc->getHandle($rec->id);
-        
-        if(!empty($cRes)){
-            $action = ($rec->isContable == 'activate') ? "активиран" : "контиран";
-            $cRes = "е {$action} успешно";
-        } else {
-            $cRes = 'НЕ Е контиран';
+        if(empty($cRes)){
+        	$handle = $mvc->getHandle($rec->id);
+        	$cRes = 'НЕ Е контиран';
+        	status_Messages::newStatus("#{$handle} |" . $cRes);
         }
-        
-        // Слагане на статус за потребителя
-        status_Messages::newStatus("#{$handle} " . tr($cRes));
     }
     
     
@@ -426,7 +421,8 @@ class acc_plg_Contable extends core_Plugin
             $id = $id->id;
         }
         
-        $res = acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+        // Оттегляме транзакцията при нужда
+        acc_Journal::rejectTransaction($mvc->getClassId(), $id);
     }
     
     
@@ -464,10 +460,9 @@ class acc_plg_Contable extends core_Plugin
         }
         
         $rec = $mvc->fetchRec($rec);
-        
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction       = $transactionSource->getTransaction($rec);
-        
+      
         expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
         
         // Проверяваме валидността на транзакцията
@@ -545,6 +540,22 @@ class acc_plg_Contable extends core_Plugin
     {
     	if(!$res){
     		$res = ($mvc->canUseClosedItems === TRUE) ? TRUE : FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Връща вальора на документа по подразбиране
+     * 
+     * @param core_Mvc $mvc
+     * @param date $res
+     * @param mixed $rec
+     */
+    public static function on_AfterGetValiorValue($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$rec = $mvc->fetchRec($rec);
+    		$res = $rec->{$mvc->valiorFld};
     	}
     }
 }

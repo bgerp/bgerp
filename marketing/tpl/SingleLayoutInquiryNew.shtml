@@ -1,18 +1,19 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-    
-    <div><b>[#innerClass#]</b>: [#title#]</div>
-     
-    [#innerState#]
+	    <div><b>[#innerClass#]</b>: [#title#]</div>
+	    <!--ET_BEGIN proto--><div class='quiet'><small>|Базирано на|*: [#proto#]</small></div><!--ET_END proto--> 
+	    
+	    <!--ET_BEGIN inqDescription-->
+	    <fieldset class="detail-info">
+		    <legend class="groupTitle">|Съобщение|*</legend>
+		     [#inqDescription#]
+	    </fieldset>
+	    <!--ET_END inqDescription-->
+	    
+	    <fieldset class="detail-info">
+		    <legend class="groupTitle">|Описание|*</legend>
+		     [#innerState#]
+	     </fieldset>
     </div>
     
     <!--ET_BEGIN QUANTITY-->
@@ -27,18 +28,21 @@
                 <td  style='text-align:right'>[#quantity1#]</td>
             </tr>
             <!--ET_END quantity1-->
+            
             <!--ET_BEGIN quantity2-->
             <tr>
-                <td>|Количество|*</td>
+                <td>|Количество|* 2</td>
                 <td  style='text-align:right'>[#quantity2#]</td>
             </tr>
             <!--ET_END quantity2-->
+            
             <!--ET_BEGIN quantity3-->
             <tr>
-                <td>|Количество|*</td>
+                <td>|Количество|* 3</td>
                 <td  style='text-align:right'>[#quantity3#]</td>
             </tr>
             <!--ET_END quantity3-->
+            
             <!--ET_BEGIN QUANTITY_ROW-->
             <tr>
                 <td>|Количество|*</td>
@@ -51,7 +55,7 @@
     <div class='scrolling-holder'>
         <table class='styled-table'>
             <tr>
-                <th colspan='2' style='padding:7px 0px'>|Контактни дани|*</th>
+                <th colspan='2' style='padding:7px 0px'>|Контактни данни|*</th>
             </tr>
             <!--ET_BEGIN company-->
             <tr>
@@ -118,9 +122,4 @@
             </tr>
         </table>
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

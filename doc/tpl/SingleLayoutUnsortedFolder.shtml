@@ -25,6 +25,14 @@
                 </div>
             </fieldset>
             <!--ET_END detailBlock-->
+            
+            <!--ET_BEGIN showDocumentsAsButtons-->
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Бързи бутони в папката|*</legend>
+                [#showDocumentsAsButtons#]
+            </fieldset>
+            <!--ET_END showDocumentsAsButtons-->
+             
             <!--ET_BEGIN DETAILS-->
             [#DETAILS#]
             <!--ET_END DETAILS-->

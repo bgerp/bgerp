@@ -794,7 +794,7 @@ class distro_Files extends core_Detail
                     
                     // Ако възникне грешка
                     // Записваме грешката
-                    static::log("Възникна грешка при обхождането на хранилище '{$repoId}'");
+                    fileman_Repositories::logErr("Възникна грешка при обхождането на хранилището", $repoId);
                     
                     // Прескачаме хранилището
                     continue;
@@ -1182,10 +1182,6 @@ class distro_Files extends core_Detail
                 
                 // Добавяме към шаблона за таблиците
                 $tplTable->append($tplRow, 'repoRow');
-            } else {
-                
-                // Добавяме в шаблона
-                $tplTable->append($tplTable,'repoTable');
             }
             
             // Добавяме в резултатния шаблон
@@ -1253,11 +1249,11 @@ class distro_Files extends core_Detail
         if ($this->save($rec)) {
             
             // Съобщени
-            $msg = 'Успешно премахнат от хранилището';
+            $msg = '|Успешно премахнат от хранилището';
         } else {
             
             // Ако има грешка
-            $msg = 'Грешка при изтриването';
+            $msg = '|Грешка при изтриването';
         }
         
         // URL за редирект
@@ -1271,7 +1267,7 @@ class distro_Files extends core_Detail
         }
         
         // Редиректваме
-        return new Redirect($retUrl, tr($msg));
+        return new Redirect($retUrl, $msg);
     }
     
     
@@ -1340,7 +1336,7 @@ class distro_Files extends core_Detail
         if (!$resArr) return ;
         
         // Сетваме грешката
-        static::log('Възникна грешка: ' . serialize($resArr), $id);
+        self::logErr("Възникна грешка: " . serialize($resArr), $id);
     }
     
     
@@ -1429,7 +1425,7 @@ class distro_Files extends core_Detail
         if (!$haveSuggRepos) {
             
             // Добавяме статус съобщение
-            status_Messages::newStatus(tr('Няма други файлове за добавяне'));
+            status_Messages::newStatus('|Няма други файлове за добавяне');
             
             // Редиректваме
             return new Redirect($retUrl);

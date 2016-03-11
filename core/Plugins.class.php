@@ -33,7 +33,7 @@ class core_Plugins extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_SystemWrapper,plg_RowTools,plg_State';
+    var $loadList = 'plg_SystemWrapper,plg_RowTools2,plg_State';
     
 
     /**
@@ -107,6 +107,15 @@ class core_Plugins extends core_Manager
         
         return $res;
 
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('name');
     }
     
     
@@ -206,7 +215,7 @@ class core_Plugins extends core_Manager
                         if (cls::load($plugin, TRUE)) {
                             $obj->loadSingle($name, $plugin);
                         } else {
-                            DEBUG::log("Липсващ плъгин: {$plugin}");
+                            $this->logWarning("Липсващ плъгин: {$plugin}");
                         }
                     }
                 }
@@ -238,7 +247,7 @@ class core_Plugins extends core_Manager
             }
         } else {
         	
-        	// Ако не е закачен запомняме че този плъгин трябва да се закачи при инстанцирането на класа
+        	// Ако не е закачен запомняме, че този плъгин трябва да се закачи при инстанцирането на класа
         	$class = strtolower($class);
         	$name = $name ? $name : $plugin;
         	$this->attachedPlugins[$class][$cover][$name] = $plugin;

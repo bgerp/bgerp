@@ -45,6 +45,19 @@ class phpmailer_Instance extends core_BaseClass
         $PML->SMTPSecure = $conf->PML_SMTPSECURE;
         $PML->Username  = $conf->PML_USERNAME;
         $PML->Password  = $conf->PML_PASSWORD;
+
+        if($params['emailTo']) {
+            list($user, $domain) = explode('@', $params['emailTo']);
+            if($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
+                if(count($mxhosts) && ! $params['Host']) {
+                    $params['Host'] = $mxhosts[0];
+                    $params['SMTPAuth'] = FALSE;
+                    $params['SMTPSecure'] = FALSE;
+                    $params['XMailer'] = 'bgERP direct SMTP';
+                }
+            }
+            unset($params['emailTo']);
+        }
         
         // Добавяме динамичните параметри, които могат да 
         // "препокрият" зададените конфигурационни стойности
@@ -53,7 +66,7 @@ class phpmailer_Instance extends core_BaseClass
                 $PML->{$name} = $value;
             }
         }
-        
+ 
         // Връщаме създадения обект
         return $PML;
     }

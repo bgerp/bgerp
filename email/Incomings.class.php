@@ -183,7 +183,12 @@ class email_Incomings extends core_Master
         
         $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
         
+        $this->FLD('userInboxes', 'keylist(mvc=email_Inboxes, select=email)', 'caption=Имейли на потребители');
+        
+        $this->FLD("toAndCc", "blob(serialize,compress)", 'caption=Имейл до');
+        
         $this->setDbUnique('hash');
+        $this->setDbIndex('fromEml');
     }
     
     
@@ -213,8 +218,17 @@ class email_Incomings extends core_Master
         $accQuery = email_Accounts::getQuery();
         $accQuery->XPR('order', 'double', 'RAND()');
         $accQuery->orderBy('#order');
-
+        
+        $timeStamp = core_DateTime::mysql2timestamp();
+        $currentMinute = floor($timeStamp / 60);
+        
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
+            if (Request::get('forced') != 'yes') {
+                if ($accRec->period === 0 || $accRec->period === '0') continue ;
+                
+                if ($accRec->period && (($currentMinute % $accRec->period) != 0)) continue;
+            }
+            
             self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
     }
@@ -229,7 +243,7 @@ class email_Incomings extends core_Master
         $lockKey = 'Inbox:' . $accRec->id;
                    
         if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-            $this->log("Кутията {$accRec->email} е заключена от друг процес", NULL, 7);
+            email_Accounts::logWarning("Кутията е заключена от друг процес", $accRec->id, 7);
 
             return;
         }
@@ -242,9 +256,10 @@ class email_Incomings extends core_Master
 
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
-            $errMsg = "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapConn->getLastError() . "";
-            $this->log($errMsg, NULL, 14);
-            $htmlRes .= $errMsg;
+            $imapLastErr = $imapConn->getLastError();
+            $errMsg = "Грешка при свързване";
+            email_Accounts::logWarning("{$errMsg}: {$imapLastErr}", $accRec->id, 14);
+            $htmlRes .= "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapLastErr . "";
             
             return;
         }
@@ -269,11 +284,10 @@ class email_Incomings extends core_Master
                 }
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
-                    $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
-                    $this->log($logMsg, NULL, 7);
+                    email_Accounts::logInfo("Fetching message {$i}", $accRec->id);
                 }
                 
-                // Изтриване на писмото, ако ако сметката е настроена така
+                // Изтриване на писмото, ако сметката е настроена така
                 if ($accRec->deleteAfterRetrieval == 'yes') {
                     $imapConn->delete($i);
                     $statusSum['delete']++;
@@ -300,7 +314,8 @@ class email_Incomings extends core_Master
         $duration = time() - $startTime;
         
         // Генерираме и записваме лог съобщение
-        $msg = "{$accRec->email}: ($duration s); Total: {$numMsg}";
+        $logMsg = "($duration s); Total: {$numMsg}";
+        $msg = "{$accRec->email}: {$logMsg}";
         
         $newStatusArr = array();
         
@@ -327,12 +342,13 @@ class email_Incomings extends core_Master
             
             // Добавяме към съотбщението
             $msg .= ", {$statusKey}: {$statusCnt}";
+            $logMsg .= ", {$statusKey}: {$statusCnt}";
         }
         
         // Показваме стринга
         echo "<h3> $msg </h3>";
 
-        $this->log($msg, NULL, 7);
+        email_Accounts::logInfo($logMsg, $accRec->id);
     }
 
 
@@ -400,10 +416,17 @@ class email_Incomings extends core_Master
                 } elseif(self::process($mime, $accId, $uid)) {
                     $status = 'incoming';
                 }
+                
+                if ($status == 'returned' || $status == 'receipt') {
+                    $fromEml = $mime->getFromEmail();
+                    $state = ($status == 'returned') ? 'error' : 'ok';
+                    blast_BlockedEmails::addEmail($fromEml, TRUE, $state);
+                }
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
             $status = 'error';
+            reportException($exp);
         }
         
         // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
@@ -427,6 +450,8 @@ class email_Incomings extends core_Master
         
         // Декодираме и запазваме събджекта на писмото
         $rec->subject = $mime->getSubject();
+        
+        $rec->subject = str::limitLen($rec->subject, 245, 20, '.....');
         
         // Извличаме информация за изпращача
         $rec->fromName = $mime->getFromName();
@@ -577,13 +602,14 @@ class email_Incomings extends core_Master
     protected function isDownloaded($imapConn, $msgNum)
     {
         static $isDown = array();
-        $this->log("Check Down: $msgNum  ", NULL, 7);
         $accId = $imapConn->accRec->id;
-
+        
+        email_Accounts::logInfo("Check Down: $msgNum", $accId);
+        
         // Номерата почват от 1
         if($msgNum < 1) {
-            $this->log("TRUE: $msgNum < 1", NULL, 7);
-
+            email_Accounts::logInfo("TRUE: $msgNum < 1", $accId);
+            
             return TRUE;
         }
         
@@ -593,7 +619,7 @@ class email_Incomings extends core_Master
 
             // Ако няма хедъри, значи има грешка
             if(!$headers) {
-                $this->log("[{$accId}][{$msgNum}] - missing headers", NULL, 7);
+                email_Accounts::logWarning("[{$msgNum}] - missing headers", $accId, 7);
 
                 return TRUE;
             }
@@ -601,8 +627,8 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
         
-        $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum], NULL, 7);
-
+        email_Accounts::logInfo("Result: $msgNum  " . $isDown[$accId][$msgNum], $accId);
+        
         return $isDown[$accId][$msgNum];
     }
     
@@ -683,10 +709,73 @@ class email_Incomings extends core_Master
                 }
             }
             
-            static::calcAllToAndCc($rec);
+            self::calcAllToAndCc($rec);
             
-            $row->allTo = self::getVerbalEmail($rec->allTo);
-            $row->allCc = self::getVerbalEmail($rec->allCc);
+            $errEmailInNameStr = 'Имейлът в името не съвпада с оригиналния|*.';
+            
+            // Проверяваме да няма подадени "грешн" имейли в name частта, които да объркат потребителите
+            $row->AllTo = self::getVerbalEmail($rec->AllTo);
+            
+            if ($rec->AllTo && $rec->headers) {
+                if (!self::checkNamesInEmails($rec->AllTo)) {
+                    $row->AllTo = self::addErrToEmailStr($row->AllTo, $errEmailInNameStr, 'error');
+                }
+            
+                if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
+                    if ($row->AllTo instanceof core_ET) {
+                        $row->AllTo->append($clostStr);
+                    } else {
+                        $row->AllTo .= $clostStr;
+                    }
+                }
+            }
+            
+            $row->AllCc = self::getVerbalEmail($rec->AllCc);
+            if ($rec->AllCc && $rec->headers) {
+                if (!self::checkNamesInEmails($rec->AllCc)) {
+                    $row->AllCc = self::addErrToEmailStr($row->AllCc, $errEmailInNameStr,'error');
+                }
+                
+                if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
+                    if ($row->AllCc instanceof core_ET) {
+                        $row->AllCc->append($clostStr);
+                    } else {
+                        $row->AllCc .= $clostStr;
+                    }
+                }
+            }
+            
+            if (trim($rec->fromEml) && $rec->headers) {
+                if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+                }
+            }
+            
+            // Ако имейлът не съвпада с този на Return-Path, добавяме предупреждение
+            if ($rec->headers) {
+                $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
+                $returnPathEmails = type_Email::extractEmails($returnPath);
+                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                    $returnPathEmailsUniq = array_unique($returnPathEmails);
+                    $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
+                    $rEmailsStr = type_Varchar::escape($rEmailsStr);
+                    $w = 'тези';
+                    if (count($returnPathEmailsUniq) == 1) {
+                        $w = 'този';
+                    }
+                    
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: " . $rEmailsStr, 'warning');
+                }
+            }
+            
+            if (trim($rec->fromEml) && $rec->headers) {
+                $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
+                
+                // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
+                if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
+                }
+            }
         }
         
         if(!$rec->toBox) {
@@ -700,12 +789,204 @@ class email_Incomings extends core_Master
         $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
-            $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
+            if ($row->fromEml instanceof core_ET) {
+                $row->fromEml->append(' (' . trim($row->fromName) . ')');
+            } else {
+                $row->fromEml .= ' (' . trim($row->fromName) . ')';
+            }
         }
+    }
+    
+    
+    /**
+     * Връща стринг с най-близкия имейл, на който отговаря
+     * 
+     * @param array $emailsArr
+     * 
+     * @return string
+     */
+    protected static function getClosestEmail($emailsArr)
+    {
+        $res = '';
+        
+        foreach ((array)$emailsArr as $emailArr) {
+                    
+            $email = trim($emailArr['address']);
+            $email = strtolower($email);
+            
+            $allEmailToArr[$email] = $email;
+        }    
+        
+        $closestEmail = email_Inboxes::getClosest($allEmailToArr);
+        
+        if ($closestEmail) {
+            if (!$allEmailToArr[$closestEmail]) {
+                $res = ' (' . tr('до') . ' ' . type_Varchar::escape($closestEmail) . ')';
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Проверява дали има имейл и дали съвпада с оригиналния имейл в name частта
+     * 
+     * @param array $emailsArr
+     * 
+     * @return boolean
+     */
+    protected static function checkNamesInEmails($emailsArr)
+    {
+        if (!$emailsArr) return TRUE;
+        
+        foreach ($emailsArr as $emailArr) {
+            if (!$emailArr['name']) continue;
+            $pEmailsFromName = type_Email::extractEmails($emailArr['name']);
+            if (!$pEmailsFromName) continue;
+            
+            if (!self::checkEmailIsExist($emailArr['address'], $pEmailsFromName)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Добавя иконка за грешка пред стринга
+     * 
+     * @param string $emailStr
+     * @param string $errStr
+     * @param string $type
+     * 
+     * @return string
+     */
+    protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
+    {
+        $hint = 'Възможен проблем|*' . '! ' . $errStr;
+        
+        return ht::createHint($emailStr, $hint, $type);
+    }
+    
+    
+    /**
+     * Проверява дали имейла е в добър списък
+     * Дали от нишката има изпращане към този имейл
+     * Дали папката е на контрагент и имейла го има в списъка
+     * 
+     * @param string $email
+     * @param integer $threadId
+     * @param integer $folderId
+     * 
+     * @return boolean
+     */
+    protected static function checkEmailIsFromGoodList($email, $threadId, $folderId)
+    {
+        static $threadEmailsArr = array();
+        static $checkedEmailsArr = array();
+        static $contrDataEmailsArr = array();
+        
+        // Всички изпратени имейли в нишката
+        if (!isset($threadEmailsArr[$threadId])) {
+            $threadEmailsArr[$threadId] = array();
+            $emailRecsArr = doclog_Documents::getRecs(NULL, doclog_Documents::ACTION_SEND, $threadId);
+            
+            foreach ($emailRecsArr as $emailRecArr) {
                 
-        if($fields['-list']) {
-           // $row->textPart = mb_Substr($row->textPart, 0, 100);
+                $toArr = type_Emails::toArray($emailRecArr->data->to);
+                $ccArr = type_Emails::toArray($emailRecArr->data->cc);
+                $allArr = array_merge((array)$toArr, (array)$ccArr);
+                
+                foreach ($allArr as $emailStr) {
+                    $threadEmailsArr[$threadId][$emailStr] = $emailStr;
+                }
+            }
         }
+        
+        $email = trim($email);
+        $email = strtolower($email);
+        
+        if (!isset($checkedEmailsArr[$threadId][$email])) {
+            // Дали е в изпратените имейли
+            $checked = self::checkEmailIsExist($email, $threadEmailsArr[$threadId], TRUE);
+            
+            if (!$checked) {
+                // Ако папката е на котрагент, проверява в техните имейли
+                if ($folderId) {
+                    $cover = doc_Folders::getCover($folderId);
+            		if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)){
+            			if (!isset($contrDataEmailsArr[$folderId])) {
+            			    $contrData = $cover->getContragentData();
+            			    $contrDataEmailsArr[$folderId] = type_Emails::toArray($contrData->groupEmails);
+            			}
+            			$checkedEmailsArr[$threadId][$email] = self::checkEmailIsExist($email, $contrDataEmailsArr[$folderId], TRUE);
+            		}
+                }
+            } else {
+                $checkedEmailsArr[$threadId][$email] = TRUE;
+            }
+        }
+        
+        if (!isset($checkedEmailsArr[$threadId][$email])) {
+            $checkedEmailsArr[$threadId][$email] = !(boolean)$threadEmailsArr[$threadId];
+        }
+        
+        return $checkedEmailsArr[$threadId][$email];
+    }
+    
+    
+    /**
+     * Проверява дали имейла може да е еднакъв с подадения масив
+     * Публичните трябва да съвпадат точно
+     * При останалите домейна трябва да съвпада
+     * 
+     * @param string $email
+     * @param array $emailsArr
+     * @param boolean $emailsArr
+     * 
+     * @return boolean
+     */
+    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE)
+    {
+        if (!$emailsArr) {
+            if ($mandatory) {
+                
+                return FALSE;
+            } else {
+                
+                return TRUE;
+            }
+        }
+        
+        $email = strtolower($email);
+        $email = type_Email::removeBadPart($email);
+        $domain = type_Email::domain($email);
+        
+        $isPublic = FALSE;
+        
+        if (drdata_Domains::isPublic($domain)) {
+            $isPublic = TRUE;
+        }
+        
+        foreach ($emailsArr as $emailCheck) {
+            if ($isPublic) {
+                $emailCheck = strtolower($emailCheck);
+                $emailCheck = type_Email::removeBadPart($emailCheck);
+                if ($emailCheck == $email) {
+                    
+                    return TRUE;
+                }
+            } else {
+                $cDomain = type_Email::domain($emailCheck);
+                $cDomain = strtolower($cDomain);
+                if ($domain == $cDomain) {
+                    
+                    return TRUE;
+                }
+            }
+        }
+        
+        return FALSE;
     }
     
     
@@ -759,17 +1040,25 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Пресмята стойностите за AllTo и AllCc - всички получатели на имейла
      * 
-     * Enter description here ...
-     * @param unknown_type $rec
+     * @param stdObject $rec
+     * @param boolean $saveIfNotExist
      */
-    protected static function calcAllToAndCc($rec)
+    public static function calcAllToAndCc($rec, $saveIfNotExist = TRUE)
     {
+        if (isset($rec->AllTo) || isset($rec->AllCc)) return ;
+        
+        if ($rec->toAndCc) {
+            $rec->AllTo = $rec->toAndCc['allTo'];
+            $rec->AllCc = $rec->toAndCc['allCc'];
+            
+            return ;
+        }
+        
         // Ако няма хедъри
-        if (!$rec->headers) {
-            
-            expect($rec->emlFile);
-            
+        if (!$rec->headers && $rec->emlFile) {
+                        
             // Манипулатора на eml файла
             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
             
@@ -802,14 +1091,22 @@ class email_Incomings extends core_Master
         // Парсираме To хедъра
         $allTo  = email_Mime::getHeadersFromArr($headersArr, 'to', '*');
         $toParser = new email_Rfc822Addr();
-        $rec->allTo = array();
-        $toParser->ParseAddressList($allTo, $rec->allTo);
+        $rec->AllTo = array();
+        $toParser->ParseAddressList($allTo, $rec->AllTo);
         
         // Парсираме cc хедъра
         $allCc = email_Mime::getHeadersFromArr($headersArr, 'cc', '*');
+        
         $ccParser = new email_Rfc822Addr();
-        $rec->allCc = array();
-        $ccParser->ParseAddressList($allCc, $rec->allCc);
+        $rec->AllCc = array();
+        $ccParser->ParseAddressList($allCc, $rec->AllCc);
+        
+        $rec->toAndCc = array('allTo' => $rec->AllTo, 'allCc' => $rec->AllCc);
+        
+        if ($rec->id && $saveIfNotExist) {
+            $inst = cls::get(get_called_class());
+            $inst->save_($rec, 'toAndCc');
+        }
      }
     
  
@@ -876,7 +1173,7 @@ class email_Incomings extends core_Master
         $rec->description = 'Сваляне на имейли в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
-        $rec->period = 2;
+        $rec->period = round(email_Setup::get('DOWNLOAD_PERIOD') / 60);
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
@@ -983,7 +1280,7 @@ class email_Incomings extends core_Master
             // Извличаме записа на сметката, от която е изтеглено това писмо
             $accRec = email_Accounts::fetch($rec->accId);
         }
-
+        
         // Ако сметката е с рутиране
         if($accRec && ($accRec->applyRouting == 'yes')) {
         
@@ -1050,22 +1347,29 @@ class email_Incomings extends core_Master
     }
     
     
-    
-    /**
-     * Преди вкарване на запис в модела
-     */
-    static function on_BeforeSave($mvc, $id, &$rec) {
-        //При сваляне на имейл-а, състоянието е затворено
-        
-        if (!$rec->id) {
-            $rec->state = 'closed';
-            $rec->_isNew = TRUE;
-        }
-    }
-
-
     /**
      * Извиква се след вкарване на запис в таблицата на модела
+     * 
+     * @param email_Incomings $mvc
+     * @param integer|NULL $id
+     * @param stdObject $rec
+     * @param mixed $saveFileds
+     */
+    static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        $mvc->calcAllToAndCc($rec, FALSE);
+        
+        $mvc->updateUserInboxes($rec, FALSE);
+    }
+    
+    
+    /**
+     * Извиква се след вкарване на запис в таблицата на модела
+     * 
+     * @param email_Incomings $mvc
+     * @param integer|NULL $id
+     * @param stdObject $rec
+     * @param mixed $saveFileds
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
@@ -1078,6 +1382,48 @@ class email_Incomings extends core_Master
                 // Ако рутираме по нишка или потребителски филтър да не се създават правила
                 $mvc->makeRouterRules($rec);
             }
+        }
+    }
+    
+    
+    /**
+     * Добавя id-тата на имейлите към акаунтите
+     * 
+     * @param stdObject $rec
+     * @param boolean $forceSave
+     * 
+     * @return integer|FALSE
+     */
+    public function updateUserInboxes($rec, $forceSave = TRUE)
+    {
+        if (!$rec) return ;
+        
+        $rec->userInboxes = '';
+        
+        self::calcAllToAndCc($rec, $forceSave);
+        
+        $allEmailsArr = array_merge($rec->AllTo, $rec->AllCc);
+        
+        foreach ($allEmailsArr as $allTo) {
+            $email = $allTo['address'];
+            $email = trim($email);
+            $emailArr[$email] = $email;
+        }
+        
+        if ($emailArr) {
+            $emailIdArr = email_Inboxes::getEmailsRecField($emailArr);
+            
+            if ($emailIdArr) {
+                $emailIdArr = array_values($emailIdArr);
+                $emailIdArr = arr::make($emailIdArr, TRUE);
+                
+                $rec->userInboxes = type_Keylist::fromArray($emailIdArr);
+            }
+        }
+        
+        if ($rec->id && $forceSave) {
+            
+            return $this->save_($rec, 'userInboxes');
         }
     }
     
@@ -1281,33 +1627,37 @@ class email_Incomings extends core_Master
         
         $contragentData = $addrParse->extractContact($textPart);
         
+        $headersArr = array();
+        
         // Ако няма хедъри
         // За съвместимост със стар код
         if (!$msg->headers) {
             
-            // Манипулатора на eml файла
-            $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
-            
-            // Съдържаниетое
-            $rawEmail = fileman_Files::getContent($fh); 
-            
-            // Инстанция на класа
-            $mime = cls::get('email_Mime');
-            
-            // Парсираме имейла
-            $mime->parseAll($rawEmail);
-            
-            // Вземаме хедърите
-            $headersArr = $mime->parts[1]->headersArr;
-            
-            // Ако няма хедъри, записваме ги
-            $nRec = new stdClass();
-            $nRec->id = $msg->id;
-            $nRec->headers = $headersArr;
-            
-            $eInc = cls::get('email_Incomings');
-
-            $eInc->save_($nRec, 'headers');
+            if ($msg->emlFile) {
+                // Манипулатора на eml файла
+                $fh =  fileman_Files::fetchField($msg->emlFile, 'fileHnd');
+                
+                // Съдържаниетое
+                $rawEmail = fileman_Files::getContent($fh); 
+                
+                // Инстанция на класа
+                $mime = cls::get('email_Mime');
+                
+                // Парсираме имейла
+                $mime->parseAll($rawEmail);
+                
+                // Вземаме хедърите
+                $headersArr = $mime->parts[1]->headersArr;
+                
+                // Ако няма хедъри, записваме ги
+                $nRec = new stdClass();
+                $nRec->id = $msg->id;
+                $nRec->headers = $headersArr;
+                
+                $eInc = cls::get('email_Incomings');
+    
+                $eInc->save_($nRec, 'headers');
+            }
         } else {
             
             // Хедърите ги преобразуваме в масив
@@ -1450,7 +1800,7 @@ class email_Incomings extends core_Master
             $i++;
             
             if($i % 100 == 1) {
-                $this->log("Update email $i", NULL, 7);
+                email_Incomings::logInfo("Update email - " . $i);
             }
             self::save($rec);
         }
@@ -1492,7 +1842,7 @@ class email_Incomings extends core_Master
                         'forward',
                         $data->rec->containerId,
                         'ret_url' => TRUE,
-                    ), NULL, array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
+                    ), NULL, array('order'=>'19', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
                 );
             }
         }
@@ -1623,22 +1973,24 @@ class email_Incomings extends core_Master
         // Превръщаме в масив
         $filesArr = keylist::toArray($rec->files);
          
-         // Ако има HTML файл
-         if ($rec->htmlFile) {
-             
-             // Добавяме го към файловете
-             $filesArr[$rec->htmlFile] = $rec->htmlFile;
-         }
+        // Ако има HTML файл, добавяме го към файловете
+        if ($rec->htmlFile) {
+            $filesArr[$rec->htmlFile] = $rec->htmlFile;
+        }
          
-         // Добавяме EML файла, към файловете
-         $filesArr[$rec->emlFile] = $rec->emlFile;
-         
-         // Обхождаме всички файлове
-         foreach ($filesArr as $fileId) {
-             
+        // Ако има, добавяме EML файла, към файловете
+        if ($rec->emlFile) {
+            $filesArr[$rec->emlFile] = $rec->emlFile;
+        }
+
+        $fhArr = array();
+
+        // Обхождаме всички файлове
+        foreach ($filesArr as $fileId) {
+                     
             // Вземаме записите за файловете
             $fRec = fileman_Files::fetch($fileId);
-             
+                 
             // Създаваме масив с прикачените файлове
             $fhArr[$fRec->fileHnd] = $fRec->name;
         }
@@ -1703,5 +2055,27 @@ class email_Incomings extends core_Master
         $rec = $this->fetch($id);
         
         return $rec->lg;
+    }
+    
+    
+    /**
+     * Намираме потребители, които да се нотифицират допълнително за документа
+     * Извън споделени/абонирани в нишката
+     * 
+     * @param stdObject $rec
+     * 
+     * @return array
+     */
+    public function getUsersArrForNotifyInDoc($rec)
+    {
+        if (!isset($rec->userInboxes)) {
+            $this->updateUserInboxes($rec);
+        }
+        
+        $userInboxes = type_Keylist::toArray($rec->userInboxes);
+        
+        $usersArr = email_Inboxes::getInChargeForInboxes($userInboxes);
+        
+        return $usersArr;
     }
 }

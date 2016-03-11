@@ -82,7 +82,7 @@ class currency_CurrencyRates extends core_Detail
      * Код на междинна валута за косвено изчисляване изчисляване на курсове.
      * 
      * Когато курсът на една валута (X) към друга (Y) не е изрично записан в БД, той може да бъде 
-     * изчислен чрез преминаване през трета валута, при условие че в БД има записани курсовете
+     * изчислен чрез преминаване през трета валута, при условие, че в БД има записани курсовете
      * както на X така и на Y към тази трета валута. В тази променлива е посочен кода на 
      * междинната валута
      * 
@@ -156,7 +156,7 @@ class currency_CurrencyRates extends core_Detail
             
             $this->Currencies->save($currenciesRec, 'lastUpdate,lastRate');
             
-            $this->save($rec);
+            $this->save($rec, NULL, 'IGNORE');
             
             $countCurrencies++;
         }
@@ -188,7 +188,7 @@ class currency_CurrencyRates extends core_Detail
     {   
         $this->requireRightFor('retrieve');
 
-        return new Redirect (array('currency_CurrencyRates', 'default'), $this->retrieveCurrenciesFromEcb());
+        return new Redirect(array('currency_CurrencyRates', 'default'), '|' . $this->retrieveCurrenciesFromEcb());
     }
     
     
@@ -359,6 +359,29 @@ class currency_CurrencyRates extends core_Detail
         return NULL;
     }
     
+    
+    /**
+     * Проверява дали има валутен курс и редиректва при нужда
+     * 
+     * @param NULL|double $rate
+     */
+    public static function checkRateAndRedirect($rate)
+    {
+        if (!is_null($rate)) return ;
+        
+        $errMsg = 'Няма валутен курс';
+        
+        self::logErr($errMsg);
+        
+        $errMsg = '|' . $errMsg;
+        
+        if (self::haveRightFor('list')) {
+            redirect(array(get_called_class(), 'list', 'ret_url' => TRUE), FALSE, $errMsg, 'error');
+        } else {
+            status_Messages::newStatus($errMsg, 'error');
+        }
+    }
+    
 
     /**
      * Връща директния курс на една валута към друга, без преизчисляване през трета валута
@@ -394,20 +417,36 @@ class currency_CurrencyRates extends core_Detail
     protected static function getStoredRate($date, $fromId, $toId)
     {
         if (!isset(static::$cache[$date][$fromId][$toId])) {
-            /* @var $query core_Query */
-            $query = static::getQuery();
             
+        	// Търсим най-близкия минал или текущ курс до подадената дата
+            $query = static::getQuery();
             $query->where("#date <= '{$date}'");
             $query->where("#baseCurrencyId = {$fromId}");
             $query->where("#currencyId = {$toId}");
             $query->orderBy('date', 'DESC');
             $query->limit(1);
             
-            if ($rec = $query->fetch()) {
-                static::$cache[$date][$rec->baseCurrencyId][$rec->currencyId] = $rec->rate;
+            // Ако има го кешираме
+            if ($pastRec = $query->fetch()) {
+            	static::$cache[$date][$pastRec->baseCurrencyId][$pastRec->currencyId] = $pastRec->rate;
+            } else {
+            	
+            	// Ако няма намираме най-близкия курс след зададената дата
+            	$fQuery = static::getQuery();
+            	$fQuery->where("#date > '{$date}'");
+            	$fQuery->where("#baseCurrencyId = {$fromId}");
+            	$fQuery->where("#currencyId = {$toId}");
+            	$fQuery->orderBy('date', 'ASC');
+            	$fQuery->limit(1);
+            	
+            	// Ако намери кешираме го
+            	if ($nextRec = $fQuery->fetch()) {
+            		static::$cache[$date][$nextRec->baseCurrencyId][$nextRec->currencyId] = $nextRec->rate;
+            	}
             }
         }
     
+        // Ако имаме кеширан курс връщаме го
         if (isset(static::$cache[$date][$fromId][$toId])) {
             return static::$cache[$date][$fromId][$toId];
         }
@@ -458,7 +497,7 @@ class currency_CurrencyRates extends core_Detail
      * Приемливото отклонение е дефинирано в , дефолт 5%
      * @param double $givenRate - подаден курс.
      * @param string $from - код от коя валута
-     * @param string $то - код към коя валута
+     * @param string $to - код към коя валута
      * @return mixed FALSE - ако няма отколонение
      * 				 $msg  - 'предупреждението за съответствие'
      */
@@ -475,5 +514,38 @@ class currency_CurrencyRates extends core_Detail
 		}
 		 
 		return FALSE;
+    }
+    
+    
+    /**
+     * Сравнява две суми във валута и проверява дали са в допустими граници
+     * 
+     * @param double $amountFrom
+     * @param double $amountTo
+     * @param date $date
+     * @param string $currencyFromCode
+     * @param string $currencyToCode
+     * 
+     * @return string|FALSE
+     */
+    public static function checkAmounts($amountFrom, $amountTo, $date, $currencyFromCode, $currencyToCode = NULL)
+    {
+    	expect(isset($amountFrom));
+    	expect(isset($amountTo));
+    	if(!$currencyToCode){
+    		$currencyToCode = acc_Periods::getBaseCurrencyCode($date);
+    	}
+    	$expectedAmount = self::convertAmount($amountFrom, $date, $currencyFromCode, $currencyToCode);
+    	
+    	$conf = core_Packs::getConfig('currency');
+    	$percent = $conf->EXCHANGE_DEVIATION * 100;
+    	
+    	@$difference = round(abs($amountTo - $expectedAmount) / min($amountTo, $expectedAmount) * 100);
+    	if($difference > $percent) {
+    		
+    		return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
+    	}
+    	
+    	return FALSE;
     }
 }

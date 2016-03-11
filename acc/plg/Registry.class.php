@@ -13,7 +13,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -42,9 +42,10 @@ class acc_plg_Registry extends core_Plugin
             $lists = keylist::addKey('', $autoListId);
             acc_Lists::updateItem($mvc, $rec->id, $lists);
             
-            if(haveRole('ceo,acc')){
+            if(haveRole('debug')){
             	$list = acc_Lists::fetchField("#systemId = '{$mvc->autoList}'", 'name');
-            	core_Statuses::newStatus(tr("|Обекта е добавен в номенклатура|*: {$list}"));
+            	$title = $mvc->getTitleById($rec->id);
+            	core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$list}'");
             }
         }
     }
@@ -79,11 +80,11 @@ class acc_plg_Registry extends core_Plugin
     			// Активираме перото
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     				if($itemRec->state != 'active'){
-    					if(haveRole('ceo,acc')){
+    					if(haveRole('debug')){
     						if($itemRec->lists){
-    							core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
+    							core_Statuses::newStatus("|Активирано е перо|*: {$itemRec->title}");
     						} else {
-    							core_Statuses::newStatus(tr("|Перо|*: {$itemRec->title} е без номенклатури"));
+    							core_Statuses::newStatus("|Перо|*: {$itemRec->title} е без номенклатури");
     						}
     					}
     				}
@@ -93,7 +94,8 @@ class acc_plg_Registry extends core_Plugin
     		}
     	}
     	
-    	// Ако обекта е затворен или оттеглен, Отбелязваме перото му че е за затваряне
+    	// Ако обекта е затворен или оттеглен
+    	// Отбелязваме перото му, че е за затваряне
     	if($rec->state == 'rejected' || $rec->state == 'closed'){
     		$mvc->closeItems[$rec->id] = $rec; 
     	}
@@ -106,7 +108,7 @@ class acc_plg_Registry extends core_Plugin
     public static function on_Shutdown($mvc)
     {
     	// Ако има пера отбелязани за затваряне, затваряме ги. Затварянето на перата трябва
-    	// да става на on_Shutdown, поради това че някои пера може да са начало на нишка, 
+    	// да става на on_Shutdown, поради това, че някои пера може да са начало на нишка, 
     	// а ако те се затворят преди да се е оттеглила цялата нишка това води до не пълно оттегляне
     	// затова затваряме перото след като са се изпълнили всички други действия на плъгините
     	if(count($mvc->closeItems)){
@@ -115,8 +117,8 @@ class acc_plg_Registry extends core_Plugin
     				if($itemRec->state == 'active'){
 	    				acc_Lists::removeItem($mvc, $rec->id);
 	    				 
-	    				if(haveRole('ceo,acc')){
-	    					core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+	    				if(haveRole('debug')){
+	    					core_Statuses::newStatus("|Затворено е перо|*: {$itemRec->title}");
 	    				}
     				}
     			}
@@ -156,7 +158,7 @@ class acc_plg_Registry extends core_Plugin
     		
     		// Ъпдейтваме информацията за перото
     		if($msg){
-    			if(haveRole('ceo,acc')){
+    			if(haveRole('debug')){
     				$title = $mvc->getTitleById($rec->id);
     				core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listRec->name}'");
     			}

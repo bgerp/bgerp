@@ -25,7 +25,7 @@ class survey_Alternatives extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper, plg_Sorting, plg_SaveAndNew,options=survey_Options';
+    var $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options';
     
   
     /**
@@ -67,7 +67,7 @@ class survey_Alternatives extends core_Detail {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'survey,ceo';
+	var $canList = 'admin';
     
     
     /**

@@ -163,7 +163,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	$transfer = FALSE;
         	
         	$amount = $detailRec->amount;
@@ -174,16 +174,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 			if(empty($pInfo->meta['canStore'])){
 
 				if(isset($pInfo->meta['fixedAsset'])){
-					$debitArr = array('613', array($detailRec->classId, $detailRec->productId),
+					$reason = 'Приети ДА';
+					$debitArr = array('613', array('cat_Products', $detailRec->productId),
 											'quantity' => $detailRec->quantity,);
 				} else {
 					$transfer = TRUE;
 					$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
 					
+					$reason = 'Приети услуги и нескладируеми консумативи';
 					$debitArr = array(
 							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
 							array('hr_Departments', $centerId),
-							array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
+							array('cat_Products', $detailRec->productId), // Перо 1 - Артикул
 							'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
 					);
 				}
@@ -200,22 +202,27 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                ),
 	                
 	                'debit' => $debitArr,
+    				'reason' => $reason,
             	);
     			
     			// Ако сме дебитирали 60020, превхвърляме сумата в 61101 или 61102
     			if($transfer === TRUE){
-    				$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
-    				if($resourceRec){
-    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId),
-    							'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
+    				
+    				$pInfo = cat_Products::getProductInfo($detailRec->productId);
+    				if(isset($pInfo->meta['canConvert'])){
+    					$newArr = array('61101', array('cat_Products', $detailRec->productId),
+    							'quantity' => $detailRec->quantity);
+						$reason = 'Вложени в производството нескладируеми услуги и консумативи';
     				} else {
     					$newArr = array('61102');
+						$reason = 'Отнесени общи (нескладируеми и невложими) разходи за дейността';
     				}
     			
     				$entries[] = array(
     						'amount' => $amount * $rec->currencyRate, // В основна валута
     						'debit' => $newArr,
     						'credit' => $debitArr, 
+    						'reason' => $reason,
     				);
     			}
     		}
@@ -223,6 +230,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         // Отчитаме ддс-то
     	if($this->class->_total->vat){
+    		$vat = $this->class->_total->vat;
 	        $vatAmount = $this->class->_total->vat * $rec->currencyRate;
 	        $entries[] = array(
 	             'amount' => $vatAmount, // В основна валута
@@ -231,14 +239,15 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                   '401',
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
 	             			array('purchase_Purchases', $rec->id),				// Перо 2 - Сделки
-	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+	                        array('currency_Currencies', $currencyId), // Перо 3 - Валута
+	                    'quantity' => $vat, // "брой пари" във валутата на продажбата
 	                ),
 	                
 	                'debit' => array(
 	                    '4530', 
 	                		array('purchase_Purchases', $rec->id),
 	                ),
+	        		'reason' => 'ДДС за начисляване при фактуриране',
 	         );
         }
 	        
@@ -249,18 +258,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Помощен метод - генерира платежната част от транзакцията за покупка (ако има)
      * 
-     * Ако валутата е основната за сч. период
-     * 
-     *    Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
-     *    Ct: 501. Каси                  	   (Каса, Валута)
-     *    
-     * Ако валутата е различна от основната за сч. период
-     * 
-     *    Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
-     *    Ct: 481. Разчети по курсови разлики  (Валута)
-     *    
-     *    Dt: 481. Разчети по курсови разлики  (Валута)
-     *    Ct: 501. Каси   					   (Каса, Валута)
+     * Dt: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
+     * Ct: 501. Каси                  	   (Каса, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -269,9 +268,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     {
         $entries = array();
     	
-    	// покупката съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
         $amountBase = $quantityAmount = 0;
         
         foreach ($rec->details as $detailRec) {
@@ -284,29 +281,19 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	$amountBase += $this->class->_total->vat;
         }
         
-        $quantityAmount += $amountBase;// / $rec->currencyRate;
+        $quantityAmount += $amountBase;
         
-        $caseArr = array('501',
-                        array('cash_Cases', $rec->caseId),        
-                        array('currency_Currencies', $currencyId),
-                    'quantity' => $quantityAmount,);
-        
-        $dealArr = array('401',
-        				array($rec->contragentClassId, $rec->contragentId),
-                		array('purchase_Purchases', $rec->id),
-                        array('currency_Currencies', $currencyId),
-                    'quantity' => $quantityAmount,);
-        
-        if($rec->currencyId == acc_Periods::getBaseCurrencyCode($rec->valior)){
-        	$entries[] = array('amount' => $amountBase, 'debit' => $dealArr, 'credit' => $caseArr);
-        } else {
-        	$entries = array();
-        	$entries[] = array('amount' => $amountBase * $rec->currencyRate,
-        			'debit' => $dealArr,
-        			'credit' => array('481', array('currency_Currencies', $currencyId),
-        					'quantity' => $quantityAmount));
-        	$entries[] = array('amount' => $amountBase * $rec->currencyRate, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr);
-        }
+        $entries[] = array('amount' => $amountBase * $rec->currencyRate, 
+        				   'debit' => array('401',
+        									array($rec->contragentClassId, $rec->contragentId),
+					                		array('purchase_Purchases', $rec->id),
+					                        array('currency_Currencies', $currencyId),
+                    						'quantity' => $quantityAmount,), 
+        				   'credit' => array('501',
+                        					array('cash_Cases', $rec->caseId),        
+                        					array('currency_Currencies', $currencyId),
+                    						'quantity' => $quantityAmount,), 
+        				   'reason' => 'Плащане към доставчик');
         
         return $entries;
     }
@@ -335,7 +322,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	$amount = round($detailRec->amount, 2);
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
@@ -347,7 +334,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	        	$debit = array(
 	                  $debitAccId, 
 	                       array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
-	                       array($detailRec->classId, $detailRec->productId),  // Перо 2 - Артикул
+	                       array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
 	                  'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
 	            );
 	        	
@@ -361,6 +348,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                       array('currency_Currencies', $currencyId),          // Перо 3 - Валута
 	                    'quantity' => $amount, // "брой пари" във валутата на покупката
 		             ),
+	        		'reason' => 'Заскладени материални запаси',
 		        );
         	}
         }
@@ -372,15 +360,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща записите от журнала за това перо
      */
-    protected static function getEntries($id)
+    public static function getEntries($id)
     {
-    	// Кешираме записите за перото, ако не са извлечени
-    	if(empty(self::$cache[$id])){
-    		self::$cache[$id] = acc_Journal::getEntries(array('purchase_Purchases', $id));
-    	}
-    
     	// Връщане на кешираните записи
-    	return self::$cache[$id];
+    	return acc_Journal::getEntries(array('purchase_Purchases', $id));
     }
     
     
@@ -398,8 +381,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getDownpayment($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    	
     	return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'debit')->amount;
     }
     
@@ -407,23 +388,25 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Колко е платеното по сделка
      */
-    public static function getPaidAmount($jRecs)
+    public static function getPaidAmount($jRecs, $rec)
     {
-    	$jRecs = static::getEntries($jRecs);
+    	// Взимаме количествата по валути
+    	$quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503');
+    	$res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
     	
-    	$paid = acc_Balances::getBlAmounts($jRecs, '501,503,481', 'credit')->amount;
+    	// К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
+    	$amount = $res->quantity;
+    	$amount *= $rec->currencyRate;
     	
-    	return $paid;
+    	return $amount;
     }
     
     
     /**
      * Колко е платеното по сделка
      */
-    public static function getBlAmount($id)
+    public static function getBlAmount($jRecs)
     {
-    	$jRecs = static::getEntries($id);
-    	
     	$paid = acc_Balances::getBlAmounts($jRecs, '401')->amount;
     	$paid += acc_Balances::getBlAmounts($jRecs, '402')->amount;
     	
@@ -436,8 +419,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getDeliveryAmount($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    
     	$delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit')->amount;
     	$delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912')->amount;
     
@@ -450,8 +431,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getAmountToInvoice($jRecs)
     {
-    	$jRecs = static::getEntries($jRecs);
-    
     	return acc_Balances::getBlAmounts($jRecs, '4530')->amount;
     }
     
@@ -459,15 +438,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($id, $accs = '321,302,601,602,60010,60020', $groupByStore = FALSE)
+    public static function getShippedProducts($jRecs, $accs = '321,302,601,602,60010,60020', $groupByStore = FALSE)
     {
     	$res = array();
-    	$query = purchase_PurchasesDetails::getQuery();
-    	$query->where("#requestId = '{$id}'");
-    	$query->show('id, productId, classId, quantityDelivered');
-    
-    	// Намираме всички транзакции с перо сделката
-    	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
     	$dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit');
@@ -484,10 +457,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     				// Ако има интерфейса за артикули-пера, го добавяме
     				if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
     					$obj = new stdClass();
-    					$obj->classId    = $itemRec->classId;
     					$obj->productId  = $itemRec->objectId;
     					 
-    					$index = $obj->classId . "|" . $obj->productId;
+    					$index = $obj->productId;
     					if(empty($res[$index])){
     						$res[$index] = $obj;
     					}
@@ -502,6 +474,12 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     					}
     				}
     			}
+    		}
+    	}
+    	
+    	foreach ($res as &$r){
+    		if($r->quantity){
+    			$r->price = $r->amount / $r->quantity;
     		}
     	}
     	

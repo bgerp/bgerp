@@ -22,7 +22,7 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
 
 
 /**
- * 
+ * Сол за префика на ключовете
  */
 defIfNot('CORE_CACHE_PREFIX_SALT', md5(EF_SALT . '_CORE_CACHE'));
 
@@ -46,19 +46,19 @@ class core_Cache extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Кеширани обекти';
+    public $title = 'Кеширани обекти';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Кеширан обект";
+    public $singleTitle = "Кеширан обект";
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	public $canList = 'admin';
 	
 	
 	/**
@@ -78,6 +78,12 @@ class core_Cache extends core_Manager
 	 */
 	public $canDelete = 'no_one';
 	
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id,key';
+
     
     /**
      * Описание на модела (таблицата)
@@ -96,13 +102,13 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието на кеша за посочения обект
      */
-    static function get($type, $handler, $keepMinutes = 1, $depends = array())
+    static function get($type, $handler, $keepMinutes = NULL, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
         $key = $Cache->getKey($type, $handler);
         
-        if($data = $Cache->getData($key)) {
+        if($data = $Cache->getData($key, $keepMinutes)) {
             if($dHash = $Cache->getDependsHash($depends)) {
                 
                 // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
@@ -230,6 +236,22 @@ class core_Cache extends core_Manager
         
         return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
     }
+
+
+    /**
+     * След изтриване на записи на модела
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param core_Query $query
+     */
+    static function on_AfterDelete($mvc, &$res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->deleteData($rec->key, TRUE);
+        }
+    }
+
     
     
     /**
@@ -247,7 +269,7 @@ class core_Cache extends core_Manager
         
         $deletedRecs = 0;
         
-        while ($rec = $query->fetch()) {
+        while($rec = $query->fetch()) {
             $deletedRecs += $this->deleteData($rec->key);
         }
         
@@ -325,7 +347,7 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието записано на дадения ключ
      */
-    function getData($key)
+    function getData($key, $keepMinutes = NULL)
     {   
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
@@ -341,10 +363,13 @@ class core_Cache extends core_Manager
             return $res;
         }
  
-        if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
-            
-            $this->idByKey[$key] = $rec->id;
-            
+        if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key), NULL, FALSE)) {
+
+            if($keepMinutes) {
+                $rec->lifetime = time() + $keepMinutes * 60;
+                $this->save($rec,  'lifetime');
+            }
+                        
             $data = $rec->data;
             
             if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
@@ -361,13 +386,15 @@ class core_Cache extends core_Manager
     /**
      * Изтрива съдържанието на дадения ключ
      */
-    function deleteData($key)
+    function deleteData($key, $onlyInMemory = FALSE)
     {
         if (function_exists('apc_delete')) {
             apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
             xcache_unset($key);
         }
+
+        if($onlyInMemory) return;
 
         return $this->delete(array("#key LIKE '[#1#]'", $key));
     }

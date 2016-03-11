@@ -1,15 +1,22 @@
+<!--ET_BEGIN TITLE-->
 <div style='margin-bottom: 5px;' class='product-title'>[#TITLE#]</div>
- <!--ET_BEGIN image-->
-
-<!--ET_END image-->
+<!--ET_END TITLE-->
+<!--ET_BEGIN image-->
 <div class="productImage">
     [#image#]
 </div>
+<!--ET_END image-->
+
+<!--ET_BEGIN info-->
 [#info#]
+<!--ET_END info-->
+
 <!--ET_BEGIN INFORMATION-->
 [#INFORMATION#] 
 <!--ET_END INFORMATION-->
 
 <!--ET_BEGIN PARAMS-->
+<div style='margin-top:5px'>
 [#PARAMS#]
+</div>
 <!--ET_END PARAMS-->

@@ -88,7 +88,7 @@ class hr_Shifts extends core_Master
     static function on_BeforePrepareEditForm($mvc, $data)
     {
         if(!$mvc->WorkingCycles->fetch('1=1')) {
-            redirect(array('hr_WorkingCycles'), TRUE, "Моля въведете поне един работен режим");
+            redirect(array('hr_WorkingCycles'), FALSE, "|Моля въведете поне един работен режим");
         }
     }
     

@@ -89,7 +89,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info, productId, packagingId, uomId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info=Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
     
         
     /**
@@ -111,31 +111,37 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'info,discount';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
-    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка,after=productId,silent,removeAndRefreshForm=packPrice|discount|uomId');
+    	$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
-        $this->FLD('info', "varchar(50)", 'caption=Колети');
-        $this->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
+        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по колети->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
     }
 
 
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     	$property .= ',canStore';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	
     	return $products;
     }
@@ -201,24 +207,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     { 
     	$rec = &$form->rec;
-    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    	 
-    	if(isset($rec->productId)){
-    		if(isset($masterStore)){
-    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
     	
-    	if ($form->isSubmitted()){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
-    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
-    		
-			if(isset($storeInfo)){
-    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
-    			}
-    		}
+    	if(isset($rec->productId)){
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+    		$form->info = $storeInfo->formInfo;
     	}
     	
     	parent::inputDocForm($mvc, $form);
@@ -229,8 +222,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){
             		$form->setError('info', "Полето може да приема само числа,запетаи и тирета");
             	}
-            	
             	$rec->info = preg_replace("/\s+/", "", $rec->info);
+            } else {
+            	$rec->info = NULL;
             }
         }
     }
@@ -248,16 +242,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$storeId = $data->masterData->rec->storeId;
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     		
-    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
-    		
-    		if($diff < 0){
-    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     		 
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
+    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning');
     		}
     	}
     }
@@ -268,13 +260,16 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     			
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+                batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
+                
     			if($rec->notes){
-    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
+    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes, $rec->batch);
     			}
     		}
     	}
@@ -286,7 +281,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cls::get($rec->classId)->getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cls::get($rec->classId)->getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
     }
 }

@@ -347,9 +347,39 @@ class status_Messages extends core_Manager
             $resObj->arg = array('id'=>'statuses', 'html' => $res, 'replace' => FALSE);
             
             $resStatus[] = $resObj;
+            
+            if ($soundNotifObj = self::getSoundNotifications($value['type'])) {
+                $resStatus[] = $soundNotifObj;
+            }
         }
         
         return $resStatus;
+    }
+    
+    
+    /**
+     * Връща обект за звукава нотификация
+     * 
+     * @param string $type
+     * 
+     * @return stdClass|NULL
+     */
+    public static function getSoundNotifications($type)
+    {
+        if ($type == 'error') {
+            
+            $obj = new stdClass();
+            
+            $notifyArr = array('title' => tr('Грешка'), 'blinkTimes' => 2);
+            
+            $notifyArr['soundOgg'] = sbf("sounds/error.ogg", '');
+            $notifyArr['soundMp3'] = sbf("sounds/error.mp3", '');
+            
+            $obj->func = 'Notify';
+            $obj->arg = $notifyArr;
+            
+            return $obj;
+        }
     }
     
     

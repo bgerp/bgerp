@@ -44,7 +44,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2';
     
     
     /**
@@ -91,10 +91,8 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     
     /**
      * Какви продукти да могат да се избират в детайла
-     *
-     * @var enum(canManifacture=Производими,canConvert=Вложими)
      */
-    protected $defaultMeta = 'canConvert';
+    protected $defaultMeta = 'canConvert,canStore';
     
     
     /**
@@ -107,35 +105,33 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         parent::setDetailFields($this);
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId');
+        $this->setDbUnique('noteId,productId');
     }
     
     
     /**
-     * След извличане на записите от базата данни
+     * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-    	if(!count($data->recs)) return;
-    	
-    	if($data->masterData->rec->state != 'draft') return;
-    	
-    	foreach ($data->rows as $id => $row){
+    	if(!count($data->rows)) return;
+    	 
+    	foreach ($data->rows as $id => &$row){
     		$rec = $data->recs[$id];
-    		
-    		// Проверка дали артикула не е ресурс
-    		if(!planning_ObjectResources::getResource($rec->classId, $rec->productId)){
-    			
-    			$row->productId = "<span style='color:#9A5919' title = '" . tr('Артикула трябва да стане ресурс за да се контира документа') . "'>{$row->productId}</span>";
-    			
-    			// Ако не е ресурс и имаме права поставямя бутони за добавяне като ресурс
-    			if(cls::haveInterface('planning_ResourceSourceIntf', $rec->classId)){
-    				if(planning_ObjectResources::haveRightFor('add', (object)array('classId' => $rec->classId, 'objectId' => $rec->productId))){
-    					$retUrl = array($mvc->Master, 'resave', $rec->noteId);
-    					$row->productId .= " " . ht::createLink('', array('planning_ObjectResources', 'NewResource', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/star_1.png,title=Създаване като нов ресурс');
-    					$row->productId .= " " . ht::createLink('', array('planning_ObjectResources', 'add', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/find.png,title=Връзване към съществуващ ресурс');
-    				}
+    	
+    		// Ако артикула може да се влага като друг показваме хинт
+    		if($data->masterData->rec->useResourceAccounts == 'yes'){
+    			 
+    			$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
+    			if($convInfo->productId != $rec->productId){
+    				$convertTitle = cat_Products::getTitleById($convInfo->productId);
+    				$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
     			}
+    		}
+    	
+    		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
+    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     		}
     	}
     }

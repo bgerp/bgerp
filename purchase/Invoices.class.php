@@ -20,7 +20,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
     
     
     /**
@@ -44,7 +44,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv,
+    public $loadList = 'plg_RowTools, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, acc_plg_DocumentSummary, plg_Search';
     
@@ -124,7 +124,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой е основния детайл
      */
-    protected $mainDetail = 'purchase_InvoiceDetails';
+    public $mainDetail = 'purchase_InvoiceDetails';
     
     
     /**
@@ -151,11 +151,11 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
-    	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
+    	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контирана, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
     	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие, dc_note=Известие)', 'caption=Вид, input=hidden');
     }
     
@@ -165,6 +165,19 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+		$origin = $mvc->getOrigin($data->form->rec);
+    	if($origin->isInstanceOf('findeals_AdvanceReports')){
+    		$data->form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
+    		$data->form->setField('vatRate', 'input');
+    		$data->form->setDefault('vatRate', 'separate');
+    		
+    		if(isset($data->form->rec->id)){
+    			if(purchase_InvoiceDetails::fetch("#invoiceId = {$data->form->rec->id}")){
+    				$data->form->setReadOnly('vatRate');
+    			}
+    		}
+    	}
+    	
     	parent::prepareInvoiceForm($mvc, $data);
     	
     	if($data->aggregateInfo){
@@ -231,15 +244,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    		if($fields['-single']){
-    			if($rec->type == 'dc_note'){
-    				$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
-    				$type = ($rec->dealValue <= 0) ? 'Credit note' : 'Debit note';
-    			} else {
-    				$type = $rec->type;
-    			}
-    		}
-    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_Accounts::fetch($rec->accountId);
@@ -299,7 +303,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
     		 
-    		 if(!(($firstDoc->getInstance() instanceof purchase_Purchases || $firstDoc->getInstance() instanceof findeals_AdvanceDeals) && $docState == 'active')){
+    		 if(!(($firstDoc->isInstanceOf('purchase_Purchases') || $firstDoc->isInstanceOf('findeals_AdvanceDeals')) && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}
@@ -343,6 +347,52 @@ class purchase_Invoices extends deals_InvoiceMaster
    					$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
    					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
    				}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	if(empty($rec->number)){
+    		redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	
+    	if($rec->state == 'active'){
+    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+    		$amount = round($amount, 2);
+    
+    		if($amount < 0){
+    			if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    				$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов приходен касов ордер към документа');
+    			}
+    			
+    			if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    				$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов приходен банков документ');
+    			}
+    		} else {
+    			if(cash_Rko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    				$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов разходен касов ордер към документа');
+    			}
+    			
+    			if(bank_SpendingDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    				$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
+    			}
     		}
     	}
     }

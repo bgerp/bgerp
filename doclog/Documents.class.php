@@ -2,7 +2,7 @@
 
 
 /**
- * Колко дни да се пази в лога в core_Logs
+ * Колко дни да се пази в лога
  */
 defIfNot('DOCLOG_DOCUMENTS_DAYS', 5);
 
@@ -109,13 +109,13 @@ class doclog_Documents extends core_Manager
     /**
      * Екшъна за изпращане
      */
-    const ACTION_SEND    = 'send';
+    const ACTION_SEND = 'send';
     
     
     /**
      * Екшъна за връщане
      */
-    const ACTION_RETURN  = '_returned';
+    const ACTION_RETURN = '_returned';
     
     
     /**
@@ -127,13 +127,13 @@ class doclog_Documents extends core_Manager
     /**
      * Екшъна за отваряне
      */
-    const ACTION_OPEN    = 'open';
+    const ACTION_OPEN = 'open';
     
     
     /**
      * Екшъна за печатане
      */
-    const ACTION_PRINT   = 'print';
+    const ACTION_PRINT = 'print';
     
     
     /**
@@ -145,19 +145,31 @@ class doclog_Documents extends core_Manager
     /**
      * Екшъна за факс
      */
-    const ACTION_FAX     = 'fax';
+    const ACTION_FAX = 'fax';
     
     
     /**
      * Екшъна за PDF
      */
-    const ACTION_PDF     = 'pdf';
+    const ACTION_PDF = 'pdf';
+    
+    
+    /**
+     * Екшън за експортиране
+     */
+    const ACTION_EXPORT = 'export';
     
     
     /**
      * Екшъна за сваляне
      */
     const ACTION_DOWNLOAD = 'download';
+    
+    
+    /**
+     * Екшъна за действията/историята на документа
+     */
+    const ACTION_HISTORY = 'history';
     
     
     /**
@@ -193,6 +205,7 @@ class doclog_Documents extends core_Manager
             self::ACTION_DISPLAY . '=разглеждане',
             self::ACTION_FAX     . '=факс',
             self::ACTION_PDF     . '=PDF',
+            self::ACTION_EXPORT     . '=експорт',
             self::ACTION_DOWNLOAD . '=сваляне',
             self::ACTION_CHANGE . '=промяна',
             self::ACTION_FORWARD . '=препращане',
@@ -234,7 +247,7 @@ class doclog_Documents extends core_Manager
         
         $this->setDbIndex('containerId');
         
-        $this->setDbUnique('mid');
+        $this->setDbUnique('containerId, action, mid');
     } 
     
     
@@ -297,7 +310,7 @@ class doclog_Documents extends core_Manager
         
         // Декорираме IP адреса
         if ($rec->ip) {
-            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time);
+            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time, TRUE);
         }
     }
     
@@ -320,7 +333,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Препращания';
+        $data->TabCaption = tr('Препращания');
         
         // Екшъна
         $action = static::ACTION_FORWARD;
@@ -340,47 +353,105 @@ class doclog_Documents extends core_Manager
         // Масив с данните във вербален вид
         $rows = array();
         
+        foreach ($recs as $rec) {
+            krsort($rec->data->{$action});
+        }
+        
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+        // Обхождаме всички препратени записи
+        foreach ($dataRecsArr as $forwardRec) {
+            
+            // Записите
+            $row = (object)array(
+                'time' => $forwardRec['on'],
+                'from' => $forwardRec['from'],
+            );
+
+            // Записите във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Вземаме документите
+            $doc = doc_Containers::getDocument($forwardRec['containerId']);
+
+            // Ако имаме права за сингъл на документ
+            if ($doc->haveRightFor('single')) {
+            
+                // Вербални данни на докуемент
+                $docRow = $doc->getDocumentRow();
+                
+                // Създаваме линк към документа
+                $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
+            }
+            
+            // Добавяме в главния масив
+            $rows[] = $row;    
+        }
+
+        // Заместваме данните за рендиране
+        $data->rows = $rows; 
+    }
+    
+    
+    /**
+     * Връща масив със записи за странира
+     * 
+     * @param object $data
+     * @param array $recs
+     * @param string $action
+     * 
+     * @return array
+     */
+    protected function getRecsForPaging(&$data, $recs, $action)
+    {
+        $resArr = array();
+        
+        $cid = $data->masterData->rec->containerId;
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
+        $allDataAct = array();
+        
         // Обхождаме записите
         foreach ($recs as $rec) {
             
-            // Ако няма запис за препращане на съответния запис прескачаме            
-            if (!count($rec->data->$action)) continue;
+            if (!$rec->data->{$action}) continue;
             
-            // Обхождаме всички препратени записи
-            foreach ($rec->data->{$action} as $forwardRec) {
-                
-                // Записите
-                $row = (object)array(
-                    'time' => $forwardRec['on'],
-                    'from' => $forwardRec['from'],
-                );
-
-                // Записите във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
-                // Вземаме документите
-                $doc = doc_Containers::getDocument($forwardRec['containerId']);
-
-                // Ако имаме права за сингъл на документ
-                if ($doc->haveRightFor('single')) {
-                
-                    // Вербални данни на докуемент
-                    $docRow = $doc->getDocumentRow();
-                    
-                    // Създаваме линк към документа
-                    $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
-                }
-                
-                // Добавяме в главния масив
-                $rows[] = $row;    
+            foreach ($rec->data->{$action} as $actVal) {
+                $allDataAct[] = $actVal;
             }
         }
-
-        // Сортираме
-        krsort($rows);
         
-        // Заместваме данните за рендиране
-        $data->rows = $rows; 
+        $cnt = count($allDataAct);
+        
+        if (!$cnt) return $resArr;
+        
+        $data->pager->itemsCount = $cnt;
+        $data->pager->calc();
+        
+        $curr = 0;
+        $showedCnt = 0;
+        $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        
+	    foreach ($allDataAct as $val) {
+	        if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                $curr++;
+                
+                if ($curr <= $data->pager->rangeStart) continue;
+                
+                if ($showedCnt >= $limit) break;
+            }
+            
+            $resArr[] = $val;
+            
+            $showedCnt++;
+	    }
+	    
+	    return $resArr;
     }
     
     
@@ -406,6 +477,9 @@ class doclog_Documents extends core_Manager
         // Заместваме в главния шаблон за детайлите
         $tpl->append($forwardTpl, 'content');
         
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
+        
         return $tpl;
     }
     
@@ -428,7 +502,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Отпечатвания';
+        $data->TabCaption = tr('Отпечатвания');
         
         // Създаваме странициране
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
@@ -437,7 +511,7 @@ class doclog_Documents extends core_Manager
         $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_PRINT));
         
         // Екшъните
-        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF);
+        $actionArr = array(static::ACTION_PRINT, static::ACTION_PDF, static::ACTION_EXPORT);
         
         // Вземаме записите
         $recs = static::getRecs($cid, $actionArr, NULL, $data->pager);
@@ -463,6 +537,9 @@ class doclog_Documents extends core_Manager
 
             // Записите във вербален вид
             $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            $row->action = tr($row->action);
+            $row->action = str::mbUcfirst($row->action);
             
             // Екшъна за отваряне
             $openAction = static::ACTION_OPEN;
@@ -540,7 +617,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Виждания';
+        $data->TabCaption = tr('Виждания');
         
         // Екшъна
         $action = static::ACTION_OPEN;
@@ -559,43 +636,70 @@ class doclog_Documents extends core_Manager
         
         // Масив с данния във вербален вид
         $rows = array();
+                
+        $i = 0;
         
-        // Бутона да не е линк
-        $data->disabled = TRUE;
+        $nRecsArr = array();
         
-        // Обхождаме всички записи
-        foreach ($recs as $i=>$rec) {
-            
+        foreach ($recs as $rec) {
             // Ако не виждан
-            if (count($rec->data->{$action}) == 0) {
-                
-                continue;
-            } else {
-                
-                // Бутона да не е линк
-                $data->disabled = FALSE;
-            }
+            if (!$rec->data->{$action} || !count($rec->data->{$action}))  continue;
             
-            // Обхождаме всички записи
-            foreach ($rec->data->{$action} as $o) {
-                
-                // Данните, които ще се визуализрат
-                $row = (object)array(
-                    'time' => $o['on'],
-                    'ip' => $o['ip'],
-                    'openAction' => static::formatViewReason($rec),
-                );
-                
-                // Данните във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-
-                // Добавяме в масива
-                $rows[] = $row;
+            foreach ($rec->data->{$action} as $ip => $act) {
+                $act['ParentRec'] = $rec;
+                $nRecsArr[$act['on'] . ' '. $i++] = $act;
             }
         }
-
-        // Сортираме масива
-        ksort($rows);
+        
+        if (!$nRecsArr) {
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        krsort($nRecsArr);
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
+        $openCnt = count($nRecsArr);
+        
+        $data->pager->itemsCount = $openCnt;
+        $data->pager->calc();
+        
+        $curr = 0;
+        $showedCnt = 0;
+        $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        
+        foreach ($nRecsArr as $o) {
+            
+            if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                $curr++;
+                
+                if ($curr <= $data->pager->rangeStart) continue;
+                
+                if ($showedCnt >= $limit) break;
+            }
+            
+            $showedCnt++;
+            
+            // Данните, които ще се визуализрат
+            $row = (object)array(
+                'time' => $o['on'],
+                'ip' => $o['ip'],
+                'openAction' => static::formatViewReason($o['ParentRec'])
+            );
+            
+            // Данните във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Добавяме в масива
+            $rows[] = $row;
+            
+        }
         
         // Дабавяме в $data
         $data->rows = $rows; 
@@ -624,6 +728,9 @@ class doclog_Documents extends core_Manager
         // Заместваме в главния шаблон за детайлите
         $tpl->append($openTpl, 'content');
         
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
+        
         return $tpl;
     }
     
@@ -646,7 +753,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Изпращания';
+        $data->TabCaption = tr('Изпращания');
         
         // Екшъните
         $actionArr = array(static::ACTION_SEND, static::ACTION_FAX);
@@ -720,7 +827,7 @@ class doclog_Documents extends core_Manager
                 
                 // Ip от което е върнато
                 if ($rec->data->returnedIp) {
-                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn, TRUE);
                 }
                 
                 $row->returnedAndReceived .=  $returnedStr;
@@ -844,7 +951,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Сваляния';
+        $data->TabCaption = tr('Сваляния');
         
         // Екшъна
         $action = static::ACTION_DOWNLOAD;
@@ -862,41 +969,46 @@ class doclog_Documents extends core_Manager
         }
        
         $rows = array();
-
-        // Обхождаме записите
-        foreach ($recs as $rec) {
-
-            // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$action}) == 0) continue;
-            
-            // Обхождаме всички сваляния
-            foreach ($rec->data->{$action} as $fh => $downData) {
-                foreach ($downData as $downData2) {
-                    // СЪздаваме обект със запсиите
-                    $nRec = (object)array(
-                        'time' => $downData2['seenOnTime'],
-                        'from' => $downData2['seenFrom'],
-                        'ip' => $downData2['ip'],
-                    );
-                    
-                    // Вземаме вербалните стойности
-                    $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
-                    
-                    // Превръщаме манипулатора, в линк за сваляне
-                    $row->fileHnd = fileman_Files::getLink($fh);
-                    
-                    // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
-                    $row->ip = $row->from ? $row->from : $row->ip;
-                    
-                    // Записваме в масив данните, с ключ датата
-                    $rows[] = $row;    
+        
+        $i = 0;
+        
+        $nArr = array();
+        foreach ($recs as $key => $rec) {
+            foreach ($rec->data->{$action} as $fh => $rArr) {
+                foreach ($rArr as $dArr) {
+                    $dArr['fileHnd'] = $fh;
+                    $nArr[$dArr['seenOnTime'] . ' ' . $i++] = $dArr;
                 }
             }
         }
-
-        // Подреждаме масива
-        krsort($rows);
-
+        $rec->data->{$action} = $nArr;
+        
+        krsort($rec->data->{$action});
+        
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+        // Обхождаме всички сваляния
+        foreach ($dataRecsArr as $downData) {
+            // СЪздаваме обект със запсиите
+            $nRec = (object)array(
+                'time' => $downData['seenOnTime'],
+                'from' => $downData['seenFrom'],
+                'ip' => $downData['ip'],
+            );
+            
+            // Вземаме вербалните стойности
+            $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
+            
+            // Превръщаме манипулатора, в линк за сваляне
+            $row->fileHnd = fileman_Files::getLink( $downData['fileHnd']);
+            
+            // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
+            $row->ip = $row->from ? $row->from : $row->ip;
+            
+            // Записваме в масив данните, с ключ датата
+            $rows[] = $row;    
+        }
+        
         // Променяме всички вербални данни, да показват откритите от нас
         $data->rows = $rows;
     }
@@ -924,6 +1036,8 @@ class doclog_Documents extends core_Manager
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
         
+        $tpl->append($data->pager->getHtml());
+        
         return $tpl;
     }
     
@@ -946,7 +1060,7 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Промени';
+        $data->TabCaption = tr('Промени');
         
         // Екшъна
         $action = static::ACTION_CHANGE;
@@ -1012,7 +1126,80 @@ class doclog_Documents extends core_Manager
         $tpl->append($sendTpl, 'content');
         
         return $tpl;
-    }  
+    }
+    
+    
+    /**
+     * Подготвяне на данните за рендиране на детайла за действията с документа
+     * 
+     * @param object $data
+     */
+    function prepareHistory($data)
+    {
+        // Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
+        // Вземаме cid от URL' то
+        $cid = Request::get('Cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        $data->TabCaption = tr('История');
+        
+        $action = static::ACTION_HISTORY;
+        
+        $document = doc_Containers::getDocument($cid);
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_HISTORY));
+        
+        // Вземаме записите
+        $recs = log_Data::getRecs($document, $document->that, $data->pager);
+        
+        // Ако няма записи бутона да не е линк
+        if (empty($recs)) {
+            
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        $data->rows = log_Data::getRows($recs, array('actionCrc', 'actTime', 'userId', 'ROW_ATTR'));
+    }
+    
+    
+    /**
+     * Рендиране на данните за шаблона на детайла за действията с документа
+     * 
+     * @param object $data
+     */
+    static function renderHistory($data)
+    {
+        // Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $logTpl = $inst->get($data->rows, 'actTime=Дата, userId=Потребител, actionCrc=Действие');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($logTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
+        
+        return $tpl;
+    }
     
     
     /**
@@ -1069,9 +1256,9 @@ class doclog_Documents extends core_Manager
         if ($pager) {
             
             // Задаваме лимита за странициране
-            $pager->setLimit($query);    
+            $pager->setLimit($query);
         }
-
+        
         // Записите да се подреждат по дата в обратен ред
         $query->orderBy('createdOn', 'DESC');
         
@@ -1107,7 +1294,7 @@ class doclog_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
 
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD))) {
+        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
             $rec->mid = static::generateMid();
         }
         
@@ -1277,7 +1464,10 @@ class doclog_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
         
-        core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
+		// Съобщение в лога
+        $doc = doc_Containers::getDocument($sendRec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Върнато писмо", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1318,12 +1508,11 @@ class doclog_Documents extends core_Manager
     
         static::save($rcvRec);
         
-        $msg = tr("Потвърдено получаване|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
-        
         // Нотификация за получаване на писмото до адресата.
         /*
-         * За сега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
+         * Засега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
          *  
+        $msg = tr("Потвърдено получаване|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
         $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
         bgerp_Notifications::add(
             $msg, // съобщение
@@ -1333,9 +1522,11 @@ class doclog_Documents extends core_Manager
         );
         */
         
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($sendRec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Потвърдено получаване", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
-        core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
-    
         return TRUE;
     }
     
@@ -1451,9 +1642,10 @@ class doclog_Documents extends core_Manager
         
         static::pushAction($action);
         
-        $msg = tr("Видян документ|*: ") . doc_Containers::getDocTitle($action->containerId);
-        
-        core_Logs::add('doc_Containers', $action->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($action->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Видян документ", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $action;
     }
@@ -1510,11 +1702,10 @@ class doclog_Documents extends core_Manager
         static::pushAction($rec);
 
         // Съобщение в лога
-        $msg = tr("Препратен имейл|*: ") . doc_Containers::getDocTitle($containerId);
-        
-        // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
-       
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Препратен имейл", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+		
         return $rec;
     }
     
@@ -1578,10 +1769,9 @@ class doclog_Documents extends core_Manager
         }
         
         // Съобщение в лога
-        $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
-        
-        // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logWrite("Промяна", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1655,8 +1845,11 @@ class doclog_Documents extends core_Manager
         // Добавяме запис в лога
         $msg = tr("Свален файл|*: ") . fileman_Files::getLink($fh);
         
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
-
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Свален файл", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+        
         return $rec;
     }
     
@@ -1772,8 +1965,6 @@ class doclog_Documents extends core_Manager
      */
     protected static function buildThreadHistory($threadId)
     {
-        static::log('Регенериране на историята на нишка', $threadId, 3);
-        
         $query = static::getQuery();
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
@@ -1787,6 +1978,9 @@ class doclog_Documents extends core_Manager
         $data = array();   // Масив с историите на контейнерите в нишката
         $changesArr = array();
         while ($rec = $query->fetch()) {
+            if (!isset($data[$rec->containerId])) {
+                $data[$rec->containerId] = new stdClass();
+            }
             if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward) && ($rec->action != $used)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
@@ -1815,10 +2009,20 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
             $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
-            $data[$rec->containerId]->summary[$used] += count($rec->data->{$used});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
-
+        
+        $contQuery = doc_Containers::getQuery();
+        $contQuery->where("#threadId = {$threadId}");
+        while ($cRec = $contQuery->fetch()) {
+            if (!isset($data[$cRec->id])) {
+                $data[$cRec->id] = new stdClass();
+                $data[$cRec->id]->containerId = $cRec->id;
+            }
+            
+            $data[$cRec->id]->summary[$used] = doclog_Used::getUsedCount($cRec->id);
+        }
+        
         return $data;
     }
     
@@ -1889,6 +2093,7 @@ class doclog_Documents extends core_Manager
                 static::ACTION_USED => array('използване', 'използвания'),
                 static::ACTION_FAX => array('факс', 'факс'),
                 static::ACTION_PDF => array('pdf', 'pdf'),
+                static::ACTION_EXPORT => array('експорт', 'експорта'),
             );
             
             $wordingsTitle = $wordings;
@@ -1907,6 +2112,7 @@ class doclog_Documents extends core_Manager
                     static::ACTION_USED => array('изп', 'изп'),
                     static::ACTION_FAX => array('факс', 'факс'),
                     static::ACTION_PDF => array('pdf', 'pdf'),
+                    static::ACTION_EXPORT => array('експ', 'експ'),
                 );
             }
         }
@@ -1919,6 +2125,7 @@ class doclog_Documents extends core_Manager
                 static::ACTION_RETURN  => static::ACTION_SEND,
                 static::ACTION_PRINT   => static::ACTION_PRINT,
                 static::ACTION_PDF     => static::ACTION_PRINT,
+                static::ACTION_EXPORT     => static::ACTION_PRINT,
                 static::ACTION_OPEN    => static::ACTION_OPEN,
                 static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
                 static::ACTION_CHANGE    => static::ACTION_CHANGE,
@@ -1928,7 +2135,7 @@ class doclog_Documents extends core_Manager
         }
         
         $html = '';
-       
+        
         foreach ($data->summary as $action=>$count) {
             if ($count == 0) {
                 continue;
@@ -1946,13 +2153,17 @@ class doclog_Documents extends core_Manager
             
             $actionVerbal = tr($actionVerbal);
             
-            $document = doc_Containers::getDocument($data->containerId);
-            
             $linkArr = array();
-            if($document->haveRightFor('single') && !core_Users::isContractor()){
-                $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+            try {
+                if ($data->containerId) {
+                    $document = doc_Containers::getDocument($data->containerId);
+                }
+                if($document->haveRightFor('single') && !core_Users::isContractor()){
+                    $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
             }
-            
             
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
             $html .= "<li class=\"action {$action}\">{$link}</li>";
@@ -2018,9 +2229,11 @@ class doclog_Documents extends core_Manager
             case static::ACTION_SEND:
                 $row = (object)array('toEmail' => $rec->data->to);
                 $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                return 'Имейл до ' . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
+                return tr('Имейл до|* ') . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
             case static::ACTION_PRINT:
-                return 'Отпечатване / ' . static::getVerbal($rec, 'createdOn');
+                return tr('Отпечатване|* / ') . static::getVerbal($rec, 'createdOn');
+            case static::ACTION_EXPORT:
+                return tr('Експортиране|* / ') . static::getVerbal($rec, 'createdOn');
             case static::ACTION_OPEN:
                 if ($deep && !empty($rec->parentId)) {
                     $parentRec = static::fetch($rec->parentId);
@@ -2029,7 +2242,7 @@ class doclog_Documents extends core_Manager
                     $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
                     $doc = doc_Containers::getDocument($rec->containerId);
                     $docRow = $doc->getDocumentRow();
-                    $res = 'Показване на ' . ht::createLink($docRow->title, $linkArr) . ' / ' . static::getVerbal($rec, 'createdOn');
+                    $res = tr('Показване на|* ') . ht::createLink($docRow->title, $linkArr) . ' / ' . static::getVerbal($rec, 'createdOn');
                 }
                 return $res;
             default:
@@ -2074,7 +2287,7 @@ class doclog_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], TRUE);
             $cnt = count($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
@@ -2217,14 +2430,18 @@ class doclog_Documents extends core_Manager
         // Ако не сме задали да не се проверява 
         if ($action === FALSE) {
             
-            // Вземаме записа, ако има такъв
-            $rec = static::fetch(array("#mid = '[#1#]'", $mid));
+            $query = self::getQuery();
+            $query->where(array("#mid = '[#1#]'", $mid));
             
-            // Ако екшъна е един от посочените, връщаме FALSE
-            if (in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD))) {
-                
-                return FALSE;
+            // Трябва да има един такъв екшън
+            while ($rec = $query->fetch()) {
+                if (in_array($rec->action, array(self::ACTION_SEND, self::ACTION_OPEN, self::ACTION_PRINT, self::ACTION_FAX, self::ACTION_PDF, self::ACTION_EXPORT, self::ACTION_USED))) {
+                    
+                    return $rec;
+                }
             }
+            
+            return FALSE;
         } else {
             
             // Акшъна по подразбиране да е send
@@ -2266,7 +2483,7 @@ class doclog_Documents extends core_Manager
         }
 
         if($count > 0) {
-            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия", DOCLOG_DOCUMENTS_DAYS);
+            self::logInfo("Записани {$count} действия", NULL, DOCLOG_DOCUMENTS_DAYS);
         }
     }
     
@@ -2347,52 +2564,21 @@ class doclog_Documents extends core_Manager
         if ($data->masterData->rec->containerId != $cid) return ;
         
         // Името на таба
-        $data->TabCaption = 'Използване';
+        $data->TabCaption = tr('Използване');
         
-        // Екшъна
-        $action = static::ACTION_USED;
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
         
-        // Вземаме записите
-        $recs = static::getRecs($cid, $action);
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
         
-        // Ако няма записи не се изпълнява
-        if (empty($recs)) {
-            
+        $data->rows = doclog_Used::prepareRecsFor($cid, $data->pager);
+        
+        if (empty($data->rows)) {
+        
             // Бутона да не е линк
             $data->disabled = TRUE;
-            
-            return ;
         }
-        
-        $rows = array();
-        foreach ($recs as $rec) {
-        	if(!count($rec->data->used)) {
-        		$data->disabled = TRUE;
-	            return;
-        	}
-        	foreach ($rec->data->used as $d){
-        		
-        		$class = $d->class;
-        		$row = new stdClass();
-        		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
-        		$state = $class::fetchField($d->id, 'state');
-        		if ($class::haveRightFor('single', $d->id)) {
-        		    $singleUrl = array($class, 'single', $d->id);
-        		} else {
-        		    $singleUrl = array();
-        		}
-        		
-        		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
-	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
-	        	$row->author = $d->author;
-	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
-	        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
-	        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
-	        	$rows[] = $row;
-        	}
-        }
-        
-        $data->rows = $rows;
     }
     
     
@@ -2411,10 +2597,13 @@ class doclog_Documents extends core_Manager
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $sendTpl = $inst->get($data->rows, 'lastUsedOn=Последно, link=Документ, author=От');
+        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, containerId=Документ, createdBy=От');
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -2473,19 +2662,22 @@ class doclog_Documents extends core_Manager
     		if($isRejected){
     			 
     			// При оттегляне се изтрива записа от лога
-    			$msg = static::removeUsed($rec, $inClass);
+    			static::removeUsed($rec, $inClass);
+    			$msg = "Изтрито използване на документ";
     		} else {
     			 
     			// При активация/възстановяване се вкарва запис в лога
     			$rec->data->{$action}[] = $inClass;
-    			$msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
+    			$msg = "Използване";
     		}
     		
     		// Пушваме съответното действие
     		static::pushAction($rec);
     		
     		// Съобщение в лога
-    		core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+    		$doc = doc_Containers::getDocument($rec->containerId);
+    		$docInst = $doc->getInstance();
+    		$docInst->logRead($msg, $doc->that, DOCLOG_DOCUMENTS_DAYS);
     	}
     	
         return $rec;
@@ -2510,7 +2702,5 @@ class doclog_Documents extends core_Manager
 	    		}
 	    	}
     	}
-    	
-        return tr("Изтрито използване на документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
     }
 }

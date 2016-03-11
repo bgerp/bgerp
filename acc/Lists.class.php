@@ -67,7 +67,7 @@ class acc_Lists extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,systemId,lastUseOn,isDimensional,tools=Пулт';
+    var $listFields = 'num=№,nameLink=Наименование,regInterfaceId,itemsCnt,systemId,lastUseOn,isDimensional,tools=Пулт';
     
     
     /**

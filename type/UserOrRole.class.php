@@ -94,7 +94,7 @@ class type_UserOrRole extends type_User
             
             while($rec = $rQuery->fetch()) {
                 $roleObj = new stdClass();
-                $roleObj->title = $rec->role;
+                $roleObj->title = core_Roles::getVerbal($rec, 'role');
                 $roleObj->id = $rec->id;
                 $roleObj->value = self::getSysRoleId($rec->id);
                 $this->options['r_' . $rec->id] = $roleObj;
@@ -276,5 +276,21 @@ class type_UserOrRole extends type_User
                 return $optVal;
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        // Позволените са латински цифри и _
+        $key = preg_replace('/[^0-9\_\-]/i', '', $key);
+        
+        return $key;
     }
 }

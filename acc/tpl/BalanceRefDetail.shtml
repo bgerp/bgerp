@@ -12,6 +12,8 @@
 	    </div>
 	</fieldset>
 	
+	 <!--ET_BEGIN LIMIT_BLOCK-->
+	 [#LIMIT_BLOCK#]
 	<fieldset class='top-tab-content' style ='margin-top:10px;background-color:#ffeeee;'>
 	    <legend class='groupTitle nowrap'>[#LIMIT_LINK#] [#BTN_LIMITS#]</legend>
 	    <div class='detail-info portal acc-summary'>
@@ -22,4 +24,5 @@
 		    </div>
 	    </div>
 	</fieldset>
+	 <!--ET_END LIMIT_BLOCK-->
 </div>

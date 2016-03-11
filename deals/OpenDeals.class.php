@@ -2,7 +2,7 @@
 
 
 /**
- * Клас за Отворени сделки. След запис на активна сделка
+ * Клас за Чакащи сделки. След запис на активна сделка
  * се създава нов запис в модела. Така лесно могат да се създават пораждащи
  * документи възоснова на тях.
  * Модела се използва в модулите 'cash', 'bank', 'store'
@@ -15,7 +15,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,7 +25,7 @@ class deals_OpenDeals extends core_Manager {
     /**
      * Заглавие
      */
-    public $title = 'Отворени сделки';
+    public $title = 'Чакащи сделки';
     
     
     /**
@@ -37,13 +37,13 @@ class deals_OpenDeals extends core_Manager {
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Отворена сделка";
+    public $singleTitle = "Чакаща сделка";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDelivered, amountPaid, toPay=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDelivered, amountPaid, expectedPayment=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
     
     
     /**
@@ -75,6 +75,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Сума->Доставено, summary = amount');
+    	$this->FLD('expectedPayment', 'double(decimals=2)', 'caption=Сума->Очаквано плащане,oldFieldName=expectedDownpayment');
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
@@ -105,22 +106,21 @@ class deals_OpenDeals extends core_Manager {
     {
     	
     	$data->listFilter->FNC('show', 'varchar', 'input=hidden');
-    	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
+    	$data->listFilter->FNC('sState', 'enum(pending=Чакащи,all=Всички)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
     	
     	$data->listFilter->showFields = 'search,from,to';
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
+    		$data->listFilter->setDefault('sState', 'pending');
     	}
     	$data->listFilter->input(NULL, 'silent');
         
     	$data->query->orderBy('state', "ASC");
 		$data->query->orderBy('id', "DESC");
 		
-		$data->listFilter->setDefault('sState', 'active');
-		
 		if(isset($data->listFilter->rec->sState) && $data->listFilter->rec->sState != 'all'){
-			$data->query->where("#state = '{$data->listFilter->rec->sState}'");
+			$data->query->where("#expectedPayment > 0");
 		}
 		
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -141,7 +141,7 @@ class deals_OpenDeals extends core_Manager {
     	
     	$show = Request::get('show', 'enum(store,bank,cash)');
     	if($show == 'store'){
-    		unset($data->listFields['toPay']);
+    		unset($data->listFields['expectedPayment']);
     	} else {
     		unset($data->listFields['toDeliver']);
     	}
@@ -160,14 +160,15 @@ class deals_OpenDeals extends core_Manager {
     	
     	$classId = $docClass::getClassId();
     	$new = array(
-    		'valior' => $info->get('agreedValior'),
-    		'amountDeal' => $info->get('amount'),
-    		'amountPaid' => $info->get('amountPaid'), 
-    		'amountDelivered' => $info->get('deliveryAmount'),
-    		'state' => $rec->state,
-    		'docClass' => $classId,
-    		'docId' => $rec->id,
-    		'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
+    		'valior'              => $info->get('agreedValior'),
+    		'amountDeal'          => $info->get('amount'),
+    		'amountPaid'          => $info->get('amountPaid'), 
+    		'amountDelivered'     => $info->get('deliveryAmount'),
+    		'expectedPayment'     => $info->get('expectedPayment'),
+    		'state'               => $rec->state,
+    		'docClass'            => $classId,
+    		'docId'               => $rec->id,
+    		'id'                  => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
     	);
     	
 	    static::save((object)$new);
@@ -193,7 +194,7 @@ class deals_OpenDeals extends core_Manager {
     /**
 	 * След обработка на вербалните данни
 	 */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-list']){
 	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -210,7 +211,7 @@ class deals_OpenDeals extends core_Manager {
 	    	$row->client = $inCharge. " » " . doc_Folders::recToVerbal($folderRec)->title;
 	    	$row->docId = $DocClass->getHandle($rec->docId);
 	    	
-    		// Обръщане на сумите в валутата на документа
+    		// Обръщане на сумите във валутата на документа
 	    	foreach (array('Deal', 'Paid', 'Delivered') as $name){
 	    		$field = "amount{$name}";
 		    	
@@ -247,19 +248,21 @@ class deals_OpenDeals extends core_Manager {
 	    		$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($rec->amountDelivered);
 	    	}
 	    	
-	    	$toPay = ($rec->amountDelivered - $rec->amountPaid) / $docRec->currencyRate;
+	    	if(empty($rec->amountDelivered) && !empty($rec->expectedDownpayment)){
+	    		$rec->amountDelivered = $rec->expectedDownpayment;
+	    	}
+	    	
+	    	$expectedPayment = $rec->expectedPayment / $docRec->currencyRate;
+	    	$row->expectedPayment = $mvc->getFieldType('amountDeal')->toVerbal($expectedPayment);
+	    	
 	    	$toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
 	    	
-	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
-	    	
-	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
-	    	if(empty($toPay)){
-	    		$row->toPay = "<span class='quiet'>{$row->toPay}</span>";
+	    	if(empty($expectedPayment)){
+	    		$row->expectedPayment = "<span class='quiet'>{$row->expectedPayment}</span>";
 	    	}
-	    	if($toPay < 0){
-	    		$row->toPay = "<span style = 'color:red'>{$row->toPay}</span>";
+	    	if($expectedPayment < 0){
+	    		$row->expectedPayment = "<span style = 'color:red'>{$row->expectedPayment}</span>";
 	    	}
-	    	$row->toPay = "<span style = 'float:right'>{$row->toPay}</span>";
 	    	
 	    	if(empty($toDeliver)){
 	    		$row->toDeliver = "<span class='quiet'>{$row->toDeliver}</span>";
@@ -324,7 +327,7 @@ class deals_OpenDeals extends core_Manager {
 	    foreach ($buttons as $title => $className){
 	    	$Cls = cls::get($className);
 	    	$str = mb_strtolower($Cls->singleTitle);
-	    	if($draftRec = $Cls->fetchField("#threadId = '{$threadId}' AND #state = 'draft'", 'id')){
+	    	if($draftRec = $Cls->fetch("#threadId = '{$threadId}' AND #state = 'draft'")){
 	    		if($Cls->haveRightFor('single', $draftRec)){
 	    			$btns .= ht::createBtn($title, array($className, 'single', $draftRec->id), NULL, NULL, "ef_icon=img/16/view.png,title=Преглед на {$str} #{$Cls->getHandle($draftRec->id)}");
 	    		}
@@ -371,6 +374,5 @@ class deals_OpenDeals extends core_Manager {
     	
     	Mode::set('pageMenu', $menu);
 		Mode::set('pageSubMenu', $subMenu);
-    	
     }
 }

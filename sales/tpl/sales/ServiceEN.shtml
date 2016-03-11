@@ -13,7 +13,7 @@
                         <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
-                    <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>
+                    <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                     <!--ET_END state-->
                 </td>
                 <td class='custom-header-bg' width='38%'><b>Supplier</b></td>
@@ -34,6 +34,11 @@
                         Location: [#deliveryLocationId#]
                     </div>
                     <!--ET_END deliveryLocationId-->
+                    
+                    <!--ET_BEGIN vatId-->
+                     <div>Vat Id:<br>
+                      [#vatId#]</div>
+                     <!--ET_END vatId-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->
@@ -78,20 +83,10 @@
                         <span class='quiet'>Downpayment:</span> [#downpayment#]
                     </div>
                     <!--ET_END downpayment-->
-                    <!--ET_BEGIN paymentBeforeShipping-->
-                    <div class='cellRow'>
-                        <span class='quiet'>Before shipping:</span> [#paymentBeforeShipping#]
-                    </div>
-                    <!--ET_END paymentBeforeShipping-->
-                    <!--ET_BEGIN paymentOnDelivery-->
-                    <div class='cellRow'>
-                        <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
-                    </div>
-                    <!--ET_END paymentOnDelivery-->
                     <!--ET_BEGIN currencyId-->
                     <div class='cellRow'>
                         <span class='quiet'>Currency: </span>
-                        [#currencyId#] [#currencyRateText#]
+                        [#currencyId#]
                     </div>
                     <!--ET_END currencyId-->
                     <!--ET_BEGIN bankAccountId-->
@@ -101,7 +96,6 @@
                     </div>
                     <!--ET_END bankAccountId-->
                     <!--ET_BEGIN caseId-->
-                    <hr>
                     <div class='cellRow'>
                         <span class='quiet'>Case: </span>[#caseId#]
                     </div>
@@ -113,11 +107,6 @@
                     <div>
                         <b>Conditions</b>
                         <ol style = 'margin-top:1px'>
-                            <!--ET_BEGIN pricesAtDate-->
-                            <li>
-                                Prices at: <b>[#pricesAtDate#]</b><br>
-                            </li>
-                            <!--ET_END pricesAtDate-->
                             <!--ET_BEGIN withVat-->
                             <li>Prices are with apllied VAT[#withVat#]</li>
                             <!--ET_END withVat-->
@@ -138,6 +127,9 @@
                             <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime--><li>Delivery time up to [#deliveryTermTime#] after starting the order</li><!--ET_END deliveryTermTime--> 
+                        	<!--ET_BEGIN commonConditionQuote-->
+	                    	<li>[#commonConditionQuote#]</li>
+	                    	<!--ET_END commonConditionQuote-->
                         </ol>
                     </div>
                 </td>
@@ -147,27 +139,27 @@
                         <tr class='nowrap'>
                             <td class='aright'>Value :</td>
                             <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
-                            <td class='aright' style='width:1%;'> <b>[#value#]</b></td>
+                            <td class='aright' style='width:1%;'> <b  class="lighterBold">[#value#]</b></td>
                         </tr>
                         <!--ET_BEGIN discountValue-->
                         <tr class='nowrap'>
                             <td class='aright'>Discount :</td>
                             <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                            <td class='aright'><b>[#discountValue#]</b></td>
+                            <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
                         </tr>
                         <!--ET_END discountValue-->
                         <!--ET_BEGIN neto-->
                         <tr class='nowrap'>
-                            <td class='aright'>Neto :</td>
+                            <td class='aright'>Netto:</td>
                             <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                            <td class='aright'><b>[#neto#]</b></td>
+                            <td class='aright'><b class="lighterBold">[#neto#]</b></td>
                         </tr>
                         <!--ET_END neto-->
                         <!--ET_BEGIN baseAmount-->
                         <tr class='nowrap'>
                             <td class='aright'>Tax base :</td>
                             <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                            <td class='aright'><b>[#baseAmount#]</b></td>
+                            <td class='aright'><b class="lighterBold">[#baseAmount#]</b></td>
                         </tr>
                         <!--ET_END baseAmount-->
                         <tr>
@@ -179,7 +171,7 @@
                         <tr class='nowrap'>
                             <td class='aright'>VAT <b>[#vat#]</b> :</td>
                             <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                            <td class='aright'><b>[#vatAmount#]</b></td>
+                            <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
                         </tr>
                         <!--ET_END vatAmount-->
                         <tr class='nowrap'>
@@ -205,7 +197,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+                            <td><span class="sign_names nowrap">[#responsible#]</span></td>
                         </tr>
                     </table>
                 </td>
@@ -217,7 +209,7 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class='nowrap'><span class="sign_names">/ [#username#] /</span></td>
+                            <td><span class="sign_names nowrap">/ [#username#] /</span></td>
                         </tr>
                     </table>
                 </td>

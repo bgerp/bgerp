@@ -10,13 +10,21 @@
 	<!--ET_BEGIN header-->
 		<div class='header [#STATE_CLASS#] no-print'>
 			<div class='docBgIcon' style='[#iconStyle#]'>
-		        [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
+		        <div class='document-title-group'>[#singleTitle#] <b>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
+				</div>
+				<!--ET_BEGIN DocumentSettingsLeft-->
+					<div class='document-settings-left'>
+						[#DocumentSettingsLeft#]
+					</div>
+				<!--ET_END DocumentSettingsLeft-->
 				
 				<!--ET_BEGIN DocumentSettings-->
 					<div class='document-settings'>
 						[#DocumentSettings#]
 					</div>
 				<!--ET_END DocumentSettings-->
+				<div class='clearfix21'></div>
 		    </div>
 		</div>
 	<!--ET_END header-->
+	[#LetterHead#]

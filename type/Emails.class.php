@@ -52,6 +52,18 @@ class type_Emails extends type_Varchar {
      */
     const ALL     = 0;
     
+
+    /**
+     * Инициализиране на типа
+     * Задава, че в базата имейлите ще са case-insensitive
+     */
+    function init($params = array())
+    {
+        setIfNot($params['params']['ci'], 'ci');
+        
+        parent::init($params);
+    }
+    
     
     /**
      * Превръща вербална стойност на списък имейли към вътрешно представяне

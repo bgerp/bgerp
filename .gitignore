@@ -1,3 +1,4 @@
+/vendor
 syntax: regexp
 ^tests$
 /.settings
@@ -6,3 +7,5 @@ syntax: regexp
 /.git
 /.gitignore
 /.idea
+/composer.lock
+/composer.phar

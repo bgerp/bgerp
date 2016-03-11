@@ -564,12 +564,7 @@ class callcenter_Numbers extends core_Manager
         $form->setField('classId', 'input=none');
         
         // Ако добавяме нов
-        if (!$form->rec->id) {
-            
-            // Добавяме титлата на формата
-            $form->title = "Добавяне на вътрешен номер";
-        } else {
-            
+        if ($form->rec->id) {
             // Да е избран потребителя, който редактираме
             $userId = crm_Profiles::fetchField($form->rec->contragentId, 'userId');
             $form->setDefault('userId', $userId);
@@ -577,6 +572,18 @@ class callcenter_Numbers extends core_Manager
     }
 
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	// Добавяме титлата на формата
+    	if (!$data->form->rec->id) {
+    		$data->form->title = "Добавяне на вътрешен номер";
+    	}
+    }
+    
+    
 	/**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
@@ -783,9 +790,9 @@ class callcenter_Numbers extends core_Manager
         if ($savedNums) {
             
             if ($savedNums == 1) {
-                $res = tr("Добавен e|* {$savedNums} |номер");
+                $res = "|Добавен e|* {$savedNums} |номер";
             } else {
-                $res = tr("Добавени са|* {$savedNums} |номера");
+                $res = "|Добавени са|* {$savedNums} |номера";
             }
         }
         
@@ -800,9 +807,9 @@ class callcenter_Numbers extends core_Manager
             }
             
             if ($delNums == 1) {
-                $res .= tr("Изтрит e|* {$delNums} |номер");
+                $res .= "|Изтрит e|* {$delNums} |номер";
             } else {
-                $res .= tr("Изтрити са|* {$delNums} |номера");
+                $res .= "|Изтрити са|* {$delNums} |номера";
             }
         }
         
@@ -818,9 +825,9 @@ class callcenter_Numbers extends core_Manager
         if (!$res) {
             
             // Добавяме текста
-            $res = tr('Няма нови номера');
+            $res = '|Няма нови номера';
         }
         
-        return Redirect($retUrl, FALSE, $res);
+        return new Redirect($retUrl, $res);
     }
 }

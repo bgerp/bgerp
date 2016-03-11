@@ -103,7 +103,7 @@ class core_Array
             $mixed = explode($sep, $mixed);
             $p = array();
 
-            if (count($mixed > 0)) {
+            if (count($mixed) > 0) {
                 foreach ($mixed as $index => $value) {
                     $value = str_replace(static::$rand, $sep, $value);
 
@@ -433,7 +433,7 @@ class core_Array
     	$vFields = arr::make($valueFields, TRUE);
     	
     	// Нормализираме масива със същ. данни във вид лесен за обработка
-    	if(count($old)){
+    	if(is_array($old)){
     		foreach ($old as $oRec){
     			$oKey = self::makeUniqueIndex($oRec, $keyFields);
     			$vKey = self::makeUniqueIndex($oRec, $vFields);
@@ -448,7 +448,7 @@ class core_Array
     	$insert = $upArr = array();
     	
     	// Обикаляме масива с нови данни
-    	if(count($new)){
+    	if(is_array($new)){
     		foreach ($new as $nRec){
     			$nKey = self::makeUniqueIndex($nRec, $keyFields);
     			$nValKey = self::makeUniqueIndex($nRec, $vFields);
@@ -456,7 +456,7 @@ class core_Array
     			$uRec = clone $nRec;
     		
     			// Ако записа се среща с този индекс и с тази стойност на зададените полета в $modOld
-    			// то отбелязваме записа че е за обновяване
+    			// то отбелязваме записа, че е за обновяване
     			if(array_key_exists($nKey, $modOld)){
     				if($modOld[$nKey][0] != $nValKey){
     					$uRec->id = $modOld[$nKey][1];
@@ -473,7 +473,7 @@ class core_Array
     	
     	// Обръщаме останалите елементи в масив само с ид-та
     	$delete = array();
-    	if(count($modOld)){
+    	if(is_array($modOld)){
     		foreach ($modOld as $ar){
     			$delete[$ar[1]] = $ar[1];
     		}
@@ -501,5 +501,21 @@ class core_Array
     	}
     	
     	return $nKey;
+    }
+
+
+    /**
+     * Връща броя на елементите в масива
+     * Ако аргумента не е масив - предполага, че се каства към FALSE
+     */
+    public static function count($arr)
+    {
+        if(is_array($arr)) {
+
+            return count($arr);
+        } else {
+            // Очаква се или масив или == FALSE
+            expect(!$arr, $arr);
+        }
     }
 }

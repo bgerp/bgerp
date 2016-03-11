@@ -1,14 +1,5 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
-    <table class='no-border' style='width:100%;'>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <table style='width:100%;'>
         <tbody>
             <tr>
                 <td>
@@ -19,15 +10,13 @@
                                     <tr>
                                         <td class="cell custom-header-bg" style='width:33%;height:20px;'><b>|От склад|*</b></td>
                                         <td class="cell centered" rowspan='2' style='width:34%;'>
-                                            <div class="document-title">|МЕЖДУСКЛАДОВ ТРАНСФЕР|*</div>
+                                            <div class="document-title">|междускладов трансфер|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
                                             </div>
                                             <!--ET_BEGIN state-->
-                                            <br>
-                                            <div class="[#STATE_CLASS#]">[#state#]</div>
-                                            <br>
+                                            <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
                                         <td class="cell custom-header-bg vtop" style='width:33%;'><b>|До склад|*</b></td>
@@ -53,7 +42,7 @@
                                 [#store_TransfersDetails#]
                             </div>
                             <div class="lines"></div>
-                            <table class="innerTable footer-notes no-border paddingCells" style='width:100%;'>
+                            <table class="innerTable footer-notes paddingCells" style='width:100%;'>
                                 <tbody>
                                     <tr>
                                         <!--ET_BEGIN leftColum-->

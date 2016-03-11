@@ -76,7 +76,13 @@ class doc_Threads extends core_Manager
      */
     var $doWithSelected = 'open=Отваряне,close=Затваряне,restore=Възстановяване,reject=Оттегляне,move=Преместване';
     
+
+    /**
+     * Кешираме достъпа до даден контейнер
+     */
+    var $haveRightForSingle = array();
     
+
     /**
      * Данните на адресата, с най - много попълнени полета
      */
@@ -137,6 +143,128 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logRead($action, $objectId, $lifeDays)
+     */
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
+    {
+        self::logToDocument('read', $action, $objectId, $lifeDays);
+        
+        return parent::logRead($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     * 
+     * @see core_Mvc::logWrite($action, $objectId, $lifeDays)
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        self::logToDocument('write', $action, $objectId, $lifeDays);
+        
+        return parent::logWrite($action, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $type
+     * @param string $action
+     * @param integer|NULL $objectId
+     * @param integer|NULL $lifeDays
+     */
+    protected static function logToDocument($type, $action, $objectId, $lifeDays)
+    {
+        if (!$objectId) return ;
+        
+        $allowedType = array('read', 'write');
+        
+        if (!in_array($type, $allowedType)) {
+            
+            return ;
+        }
+        
+        try {
+            
+            $firstCid = self::getFirstContainerId($objectId);
+            
+            if (!$firstCid) return ;
+            
+            $type = strtolower($type);
+            $type = ucfirst($type);
+            $fncName = 'log' . $type;
+            
+            doc_Containers::$fncName($action, $firstCid, $lifeDays);
+            
+            return TRUE;
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+        }
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        if (doc_Threads::haveRightFor('single', $objId)) {
+            
+            $fistContainerId = self::fetchField($objId, 'firstContainerId');
+            
+            return doc_Containers::getLinkForObject($fistContainerId);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        $fistContainerId = self::fetchField($id, 'firstContainerId');
+        
+        return doc_Containers::getTitleForId_($fistContainerId);
+    }
+    
+    
+    /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'write')
+    {
+        if (($type == 'read') && ($folderId = Request::get('folderId', 'int')) && ($msg == 'Листване')) {
+            doc_Folders::logRead('Разглеждане на папка', $folderId);
+        } else {
+            parent::logInAct($msg, $rec, $type);
+        }
+    }
+    
+    
+    /**
      * Поправка на структурата на нишките
      * 
      * @param datetime $from
@@ -180,41 +308,47 @@ class doc_Threads extends core_Manager
         $query->orWhere("#lastAuthor IS NULL");
         $query->orWhere("#lastState IS NULL");
         
+        $query->limit(500);
+
         while ($rec = $query->fetch()) {
+            try {
             
-            // Ако има нишка без firstContainerId
-            if (!isset($rec->firstContainerId)) {
-            
-                // Първия документ от нишката
-                $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                // Ако има нишка без firstContainerId
+                if (!isset($rec->firstContainerId)) {
                 
-                // Ако не може да се определи първия документ в нишката, изтриваме нишката
-                if (!$firstCid) {
-                    if ($rec->id) {
-                        self::delete($rec->id);
-                        $resArr['del_cnt']++;
-                        continue;
+                    // Първия документ от нишката
+                    $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                    
+                    // Ако не може да се определи първия документ в нишката, изтриваме нишката
+                    if (!$firstCid) {
+                        if ($rec->id) {
+                            self::delete($rec->id);
+                            $resArr['del_cnt']++;
+                            continue;
+                        }
+                    }
+                    
+                    $rec->firstContainerId = $firstCid;
+                    
+                    if (self::save($rec, 'firstContainerId')) {
+                        $resArr['firstContainerId']++;
                     }
                 }
                 
-                $rec->firstContainerId = $firstCid;
-                
-                if (self::save($rec)) {
-                    $resArr['firstContainerId']++;
+                // Ако няма папка използваме папката за несортирани
+                if (!isset($rec->folderId) && isset($defaultFolderId)) {
+                    $rec->folderId = $defaultFolderId;
+                    
+                    if (self::save($rec, 'folderId')) {
+                        $resArr['folderId']++;
+                    }
                 }
-            }
-            
-            // Ако няма папка използваме папката за несортирани
-            if (!isset($rec->folderId) && isset($defaultFolderId)) {
-                $rec->folderId = $defaultFolderId;
                 
-                if (self::save($rec)) {
-                    $resArr['folderId']++;
-                }
+                // Обновяваме нишката
+                self::updateThread($rec->id);
+            } catch (Exception $e) {
+                reportException($e);
             }
-            
-            // Обновяваме нишката
-            self::updateThread($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
@@ -248,34 +382,37 @@ class doc_Threads extends core_Manager
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
         
         while ($rec = $query->fetch()) {
-            
-            if (!$rec->firstContainerId) continue;
-            
             try {
-                $cRec = doc_Containers::fetch($rec->firstContainerId);
-            } catch (Exception $e) {
-                continue;
-            }
-            
-            if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
-            
-            try {
-                $clsInst = cls::get($cRec->docClass);
-                $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                if (!$rec->firstContainerId) continue;
                 
-                if (!isset($iRec->state)) continue;
-                
-                // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
-                if ($iRec->state != 'rejected') continue;
-                if ($iRec->state == $rec->state) continue;
-                $rec->state = $iRec->state;
-                
-                if (self::save($rec, 'state')) {
-                    $resArr['firstContainerIdState']++;
+                try {
+                    $cRec = doc_Containers::fetch($rec->firstContainerId);
+                } catch (Exception $e) {
+                    continue;
                 }
-            } catch (core_exception_Expect $e) {
                 
-                continue;
+                if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
+                
+                try {
+                    $clsInst = cls::get($cRec->docClass);
+                    $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                    
+                    if (!isset($iRec->state)) continue;
+                    
+                    // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
+                    if ($iRec->state != 'rejected') continue;
+                    if ($iRec->state == $rec->state) continue;
+                    $rec->state = $iRec->state;
+                    
+                    if (self::save($rec, 'state')) {
+                        $resArr['firstContainerIdState']++;
+                    }
+                } catch (core_exception_Expect $e) {
+                    
+                    continue;
+                }
+            } catch (Exception $e) {
+                reportException($e);
             }
         }
         
@@ -307,19 +444,23 @@ class doc_Threads extends core_Manager
     function doRejectOrRestore($act)
     {
         if($selected = Request::get('Selected')) {
+            Debug::log('Selected = ' . $selected);
             $selArr = arr::make($selected);
             
             foreach($selArr as $id) {
                 if($this->haveRightFor('single', $id)) {
-                    Request::push(array('id' => $id, 'Selected' => FALSE));
+                    $this->haveRightForSingle[$id] = TRUE;
+                    Request::push(array('id' => $id, 'Selected' => FALSE), $act . '/' . $id);
                     $res = Request::forward();
-                    Request::pop();
+                    Request::pop($act . '/' . $id);
                 }
-            }
+            } 
         } else {
             expect($id = Request::get('id', 'int'));
             expect($rec = $this->fetch($id));
-            $this->requireRightFor('single', $rec);
+            if(!$this->haveRightForSingle[$id]) {
+                $this->requireRightFor('single', $rec);
+            }
             $fDoc = doc_Containers::getDocument($rec->firstContainerId);
             
             Request::push(array('id' => $fDoc->that, 'Ctr' => $fDoc->className, 'Act' => $act));
@@ -376,7 +517,7 @@ class doc_Threads extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
+        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи, mine=Само моите)', 
             'allowEmpty,caption=Подредба,input,silent,refreshForm');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
@@ -431,8 +572,9 @@ class doc_Threads extends core_Manager
         expect($folderRec = doc_Folders::fetch($folderId));
         
         doc_Folders::requireRightFor('single', $folderRec);
-        
-        $mvc::applyFilter($data->listFilter->rec, $data->query);
+
+        $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
+        $data->rejQuery = clone($data->query);
 
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -451,6 +593,8 @@ class doc_Threads extends core_Manager
      */
     public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = FALSE, $rejected = FALSE)
     {
+        if (!$folderId) return array();
+        
     	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
     	// Проверяваме имали кеширани данни
@@ -519,12 +663,71 @@ class doc_Threads extends core_Manager
             $query->groupBy('`doc_threads`.`id`');
         }
         
+        if($filter->documentClassId){
+        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
+        }
+        
+
         // Подредба - @TODO
         switch ($filter->order) {
         	default:
             case 'open':
+            case 'mine':
                 $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
                 $query->orderBy('#isOpened,#state=ASC,#last=DESC,#id=DESC');
+                if($filter->order == 'mine') {
+                    if($cu = core_Users::getCurrent()) {
+
+                        // Извличаме тредовете, където има добавени от потребителя документи;
+                        $cQuery = doc_Containers::getQuery();
+                        $cQuery->show('threadId');
+                        $cQuery->groupBy('threadId');
+                        $tList = array();
+                        $cond = "#createdBy = {$cu}";
+                        if($filter->folderId) {
+                            $cond .= " AND #folderId = $filter->folderId";
+                        }
+                        while($cRec = $cQuery->fetch($cond)) {
+                            $tList[$cRec->threadId] = $cRec->threadId;
+                        }
+
+                        // Извличаме тредовете, където потребителя е лайквал документи
+                        $lQuery = doc_Likes::getQuery();
+                        $lQuery->EXT('threadId', 'doc_Containers', 'externalKey=containerId');
+                        $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
+                        $lQuery->show('threadId');
+                        $lQuery->groupBy('threadId');
+                        while($lRec = $lQuery->fetch($cond)) {
+                            $tList[$lRec->threadId] = $lRec->threadId;
+                        }
+                        
+                        // Добавяме нишките, в които има входящи имейли към съответния потребител
+                        $currUsersInboxesIdsArr = email_Inboxes::getUserInboxesIds($cu);
+                        if (!empty($currUsersInboxesIdsArr)) {
+                            $userInboxesKeylist = type_Keylist::fromArray($currUsersInboxesIdsArr);
+                            $iQuery = email_Incomings::getQuery();
+                            $iQuery->show('threadId');
+                            $iQuery->groupBy('threadId');
+                            if ($filter->folderId) {
+                                $iQuery->where("#folderId = '{$filter->folderId}'");
+                            }
+                            
+                            $iQuery->likeKeylist('userInboxes', $userInboxesKeylist);
+                            
+                            while ($iRec = $iQuery->fetch()) {
+                                $tList[$iRec->threadId] = $iRec->threadId;
+                            }
+                        }
+                        
+                        if (!empty($tList)) {
+                            $tList = implode(',', $tList);
+                            $query->where("#id IN ({$tList})"); // OR #createdBy = {$cu} OR #modifiedBy = {$cu}
+                        } else {
+                            $query->where("1 = 2");
+                        }
+                    }
+                }
                 break;
             case 'recent':
                 $query->orderBy('#last=DESC,#id=DESC');
@@ -537,10 +740,6 @@ class doc_Threads extends core_Manager
                 break;
         }
        
-        if($filter->documentClassId){
-        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
-        }
     }
     
     
@@ -557,47 +756,51 @@ class doc_Threads extends core_Manager
 
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+            $docRow = $docProxy->getDocumentRow();
+            $attr = array();
+            $attr['class'] .= 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
+
+            if(mb_strlen($docRow->title) > self::maxLenTitle) {
+                $attr['title'] = $docRow->title;
+            }
+            
+            $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+                array('doc_Containers', 'list',
+                    'threadId' => $rec->id,
+                    'folderId' => $rec->folderId,
+                    'Q' => Request::get('search') ? Request::get('search') : NULL),
+                NULL, $attr);
+
+            if($docRow->subTitle) {
+                $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+            }
+
+            if($docRow->authorId > 0) {
+                $row->author = crm_Profiles::createLink($docRow->authorId);
+            } else {
+                $row->author = $docRow->author;
+            }
+            $row->hnd = "<div class='rowtools'>";
+            $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
+            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
+            $row->hnd .= '</div>';
+            $row->hnd .= '</div>';
         } catch (core_Exception_Expect $expect) {
-
-            return;
+            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
+            $row->title = '?????????????';
+            if($rec->firstContainerId) {
+                $cRec = doc_Containers::fetch($rec->firstContainerId);
+            }
+            $row->author = crm_Profiles::createLink($rec->createdBy);
+        
+            if($cRec->docClass ) {
+                if($classRec =  core_Classes::fetch($cRec->docClass )) {
+                    $row->title = $classRec->title;
+                }
+            }
+            
         }
-        
-        $docRow = $docProxy->getDocumentRow();
-        
-        $attr = array();
-        $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
-
-        if(mb_strlen($docRow->title) > self::maxLenTitle) {
-            $attr['title'] = $docRow->title;
-        }
-		
-        $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
-            array('doc_Containers', 'list',
-                'threadId' => $rec->id,
-                'folderId' => $rec->folderId,
-                'Q' => Request::get('search') ? Request::get('search') : NULL),
-            NULL, $attr);
-
-        if($docRow->subTitle) {
-            $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
-        }
-
-        if($docRow->authorId > 0) {
-        	$row->author = crm_Profiles::createLink($docRow->authorId);
-        } else {
-            $row->author = $docRow->author;
-        }
-        
-        $row->hnd = "<div class='rowtools'>";
-        
-        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-        
-        $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
-        
-        $row->hnd .= '</div>';
-        
-        $row->hnd .= '</div>';
     }
     
     
@@ -638,13 +841,15 @@ class doc_Threads extends core_Manager
         // TODO RequireRightFor
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
         $exp->DEF('#Selected=Избрани', 'varchar', 'fromRequest');
-        
+       
+        $exp->functions['canmovetofolder'] = 'doc_Threads::canmovetofolder';
         $exp->functions['doc_threads_fetchfield'] = 'doc_Threads::fetchField';
         $exp->functions['getcompanyfolder'] = 'crm_Companies::getCompanyFolder';
         $exp->functions['getpersonfolder'] = 'crm_Persons::getPersonFolder';
         $exp->functions['getcontragentdata'] = 'doc_Threads::getContragentData';
         $exp->functions['getquestionformoverest'] = 'doc_Threads::getQuestionForMoveRest';
         $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
+        $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
         
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
@@ -662,15 +867,15 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, where=#state !\\= \\\'rejected\\\')', 'width=500px');
+        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'width=500px,mandatory');
         
         // Информация за фирма и представител
         $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
-        $exp->DEF('#salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение');
+        $exp->DEF('#salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,notNull');
         $exp->DEF('#name', 'varchar(255)', 'caption=Имена,width=100%,mandatory,remember=info');
         
         // Адресни данни
-        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,notNull');
+        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,notNull,mandatory');
         $exp->DEF('#pCode', 'varchar(16)', 'caption=П. код,recently');
         $exp->DEF('#place', 'varchar(64)', 'caption=Град,width=100%');
         $exp->DEF('#address', 'varchar(255)', 'caption=Адрес,width=100%');
@@ -708,7 +913,7 @@ class doc_Threads extends core_Manager
 
         $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
         
-        $exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
+        //$exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
         
         $exp->question("#folderId", tr("Моля, изберете папка") . ":", "#dest == 'exFolder'", 'title=' . tr('Избор на папка за нишката'));
         
@@ -719,9 +924,13 @@ class doc_Threads extends core_Manager
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
         $exp->rule("#moveRest", "'no'", '#Selected');
         $exp->rule("#haveAccess", "haveaccess(#folderId)");
-        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте че искате да преместите нишката?"), '#haveAccess === FALSE');
+        $exp->WARNING(tr("Нямате достъп до избраната папка! Сигурни ли сте, че искате да преместите нишката?"), '#haveAccess === FALSE');
         
-        $result = $exp->solve('#folderId,#moveRest,#haveAccess');
+        $exp->rule("#checkMoveTime", "checkmovetime(#threadId, #moveRest)");
+        $exp->WARNING(tr("Операцията може да отнеме време!"), '#checkMoveTime === FALSE');
+        $exp->ERROR('Нишката не може да бъде преместена в избраната папка', 'canMoveToFolder(#threadId, #folderId)');
+        
+        $result = $exp->solve('#folderId,#moveRest,#checkMoveTime,#haveAccess');
         
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
@@ -731,6 +940,14 @@ class doc_Threads extends core_Manager
             $selected = $exp->getValue('Selected');
             $moveRest = $exp->getValue('moveRest');
             $threadRec = doc_Threads::fetch($threadId);
+            $time = doc_Threads::getExpectationMoveTime($threadId, $moveRest);
+            
+            $time = ceil($time);
+            $time += 10;
+            
+            if ($time > ini_get('max_execution_time')) {
+                core_App::setTimeLimit($time);
+            }
             
             if($moveRest == 'yes') {
                 $doc = doc_Containers::getDocument($threadRec->firstContainerId);
@@ -757,8 +974,14 @@ class doc_Threads extends core_Manager
             foreach($selArr as $threadId) {
                 try {
                     $this->move($threadId, $folderId);
+                    
+                    doc_Threads::logWrite('Преместена нишка', $threadId);
+                    
                     $successCnt++;
-                } catch ( core_Exception_Expect $expect ) { $errCnt++; }
+                } catch (core_Exception_Expect $expect) { 
+                    reportException($expect);
+                    $errCnt++; 
+                }
             }
             
             // Изходяща папка
@@ -769,6 +992,8 @@ class doc_Threads extends core_Manager
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
             
+            $message = '';
+            
             if ($successCnt) {
                 if ($successCnt == 1) {
                     $message = "|*{$successCnt} |нишка от|* {$folderFromRow->title} |е преместена в|* {$folderToRow->title}";
@@ -777,8 +1002,14 @@ class doc_Threads extends core_Manager
                 }
             }
             
-            if($errCnt) {
-                $message .= "<br> |възникнаха|* {$errCnt} |грешки";
+            if ($errCnt) {
+                $message .= $message ? "<br> " : '';
+                if ($errCnt == 1) {
+                    $message .= "|Възникна|* {$errCnt} |грешка";
+                } else {
+                    $message .= "|Възникнаха|* {$errCnt} |грешки";
+                }
+                
                 $exp->redirectMsgType = 'error';
             }
             
@@ -844,6 +1075,86 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Можели нишката да бъде преместена в папката
+     * 
+     * @param int $threadId - ид на нишка
+     * @param int $folderId - ид на папка
+     * 
+     */
+    public static function canMoveToFolder($threadId, $folderId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	return !$firstDoc->getInstance()->canAddToFolder($folderId);
+    }
+    
+    
+    /**
+     * Проверява времето за преместване дали ще е в границата
+     * 
+     * @param integer $threadId
+     * @param string $moveRest
+     * 
+     * @return boolean
+     */
+    public static function checkExpectationMoveTime($threadId, $moveRest = 'no')
+    {
+        $maxTimeForMove = 5;
+        
+        if (self::getExpectationMoveTime($threadId, $moveRest) >= $maxTimeForMove) return FALSE;
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Връща предполагаемото време, което ще отнеме за преместване на нишките
+     * 
+     * @param integer $threadId
+     * @param string $moveRest
+     * 
+     * @return double
+     */
+    public static function getExpectationMoveTime($threadId, $moveRest = 'no')
+    {
+        $timeFormMoveContainer = 0.006;
+        $timeFormMoveThread = 0.02;
+        
+        $moveTime = 0;
+        
+        $threadRec = doc_Threads::fetch($threadId);
+        $doc = doc_Containers::getDocument($threadRec->firstContainerId);
+        
+        if ($moveRest == 'yes') {
+            $msgRec = $doc->fetch();
+            $msgQuery = email_Incomings::getSameFirstDocumentsQuery($threadRec->folderId, array('fromEml' => $msgRec->fromEml));
+        } else {
+            $msgQuery = $doc->getQuery();
+            $msgQuery->where(array("#threadId = '[#1#]'", $threadId));
+        }
+        
+        $msgQuery->show('threadId');
+        $msgQuery->groupBy('threadId');
+        
+        while ($mRec = $msgQuery->fetch()) {
+            if (!$mRec->threadId) continue;
+            
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->where(array("#threadId = '[#1#]'", $mRec->threadId));
+            $cQuery->show('id');
+            
+            if ($cCnt = $cQuery->count()) {
+                $moveTime += $timeFormMoveContainer * $cCnt;
+            }
+            
+            $moveTime += $timeFormMoveThread;
+        }
+        
+        return $moveTime;
+    }
+    
+    
+    /**
      * Преместване на нишка от в друга папка.
      *
      * @param int $id key(mvc=doc_Threads)
@@ -872,13 +1183,8 @@ class doc_Threads extends core_Manager
              *  премести съответстващия му контейнер.
              */
             expect($rec->docId, $rec);
-            $doc->getInstance()->save(
-                (object)array(
-                    'id' => $rec->docId,
-                    'folderId' => $destFolderId,
-                ),
-                'id,folderId'
-            );
+            $nRec = (object)array('id' => $rec->docId, 'folderId' => $destFolderId,);
+            $doc->getInstance()->save_($nRec,'id,folderId');
         }
         
         // Преместваме самата нишка
@@ -1142,7 +1448,19 @@ class doc_Threads extends core_Manager
         doc_Folders::updateFolderByContent($rec->folderId);
     }
     
+
+    /**
+     * Отчита последно модифицаране на нишката към момента
+     */
+    public static function setModification($id)
+    {
+        $rec = self::fetch($id);
+        $rec->modifiedOn = dt::now();
+        $rec->modifiedBy = core_Users::getCurrent();
+        self::save($rec, 'modifiedOn,modifiedBy');
+    }
     
+
     /**
      * Оттегля цяла нишка, заедно с всички документи в нея
      * 
@@ -1159,6 +1477,7 @@ class doc_Threads extends core_Manager
         }
         
         $rec->state = 'rejected';
+        $rec->modifiedOn = dt::now();
         static::save($rec);
 
         // Оттегляме всички контейнери в нишката
@@ -1242,7 +1561,6 @@ class doc_Threads extends core_Manager
             if(Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
-                $data->rejQuery = clone($data->query);
                 $data->rejQuery->where("#state = 'rejected'");
                 // Показваме или само оттеглените или всички останали нишки
          	    $data->query->where("#state != 'rejected' OR #state IS NULL");
@@ -1270,21 +1588,36 @@ class doc_Threads extends core_Manager
         		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
-        		
-        		$data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
-        		
+        		$data->rejQuery->where("#folderId = {$data->folderId}");
+        		$data->rejectedCnt = $data->rejQuery->count();;
+        		 
         		if($data->rejectedCnt) {
         			$curUrl = getCurrentUrl();
         			$curUrl['Rejected'] = 1;
+                    if(isset($data->pager->pageVar)) {
+                        unset($curUrl[$data->pager->pageVar]);
+                    }
+
+                    $data->rejQuery->orderBy('modifiedOn', 'DESC');
+                    $data->rejQuery->limit(1); 
+                    $lastRec = $data->rejQuery->fetch();
+                    $color = dt::getColorByTime($lastRec->modifiedOn);
+
         			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
-        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), 'ef_icon = img/16/bin_closed.png');
+        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-        	    if($managersIds = self::getFastButtons($data->folderId)){
+            	$managersIds = self::getFastButtons($data->folderId);
+        	    if(count($managersIds)){
+        	    	
+        	    	// Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
         			foreach ($managersIds as $classId){
         				$Cls = cls::get($classId);
-        				$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        				if($Cls->haveRightFor('add', (object)array('folderId' => $data->folderId))){
+        					$btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle; 
+        					$data->toolbar->addBtn($btnTitle, array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        				}
         			}
         		}
         	}
@@ -1300,43 +1633,33 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Връща масив с ид-та на мениджърите за които ще има бързи, ако няма връща NULL
+     * Връща масив с ид-та на мениджърите които ще бъдат бързи бутони в папката
+     * 
+     * @param int $folderId - ид на папката
+     * @return array $res - намерените мениджъри
      */
     private static function getFastButtons($folderId)
     {
-    	$managersIds = array();
+    	$Cover = doc_Folders::getCover($folderId);
+    	if(!$Cover->haveInterface('doc_FolderIntf')) return;
     	
-    	// Ако няма кеширани, $managersIds намираме ги
-    	if(!count($managersIds)){
-    		
-    		// Намираме имали класове с интерфейса за добавяне
-    		$classesToAdd = core_Classes::getOptionsByInterface('doc_AddToFolderIntf');
-    		
-    		if(count($classesToAdd)){
-    			$folderRec = doc_Folders::fetch($folderId);
-    			$cu = core_Users::getCurrent();
-    		
-    			// За всеки мениджър
-    			foreach ($classesToAdd as $classId => $className){
-    						
-    				// Проверяваме дали може да се добавя като бърз бутон
-    				if(cls::load($className, TRUE)){
-    					
-    					$Cls = cls::get($className);
-    					if($Cls->haveRightFor('add', (object)array('folderId' => $folderRec->id))){
-    						
-    						// Ако имплементира интерфейсния метод 'mustShowButton', и той върне TRUE
-    						if(cls::existsMethod($Cls, 'mustShowButton') && $Cls->mustShowButton($folderRec, $cu)){
-    							$managersIds[$classId] = $classId;
-    						}
-    					}
-    				}
+    	$managers = $Cover->getDocButtonsInFolder();
+    	
+    	$res = array();
+    	if(is_array($managers) && count($managers)){
+    		foreach ($managers as $manager){
+    			
+    			// Проверяваме дали може да се зареди класа
+    			if(cls::load($manager, TRUE)){
+    				$Cls = cls::get($manager);
+    				expect(cls::haveInterface('doc_DocumentIntf', $Cls));
+    				
+    				$res[$Cls->getClassId()] = $Cls->getClassId();
     			}
     		}
     	}
     	
-    	// Връщаме ид-та на всички мениджъри, които да имат бързи бутони
-    	return count($managersIds) ? $managersIds : NULL;
+    	return $res;
     }
     
     
@@ -1436,7 +1759,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->log('Отвори нишка', $id);
+        $this->logWrite('Отвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -1472,7 +1795,7 @@ class doc_Threads extends core_Manager
         
         $this->updateThread($rec->id);
         
-        $this->log('Затвори нишка', $id);
+        $this->logWrite('Затвори нишка', $id);
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
@@ -1644,7 +1967,7 @@ class doc_Threads extends core_Manager
             $query->XPR('threadShared', 'varchar', '#shared');
         }
         
-        $query->orWhere("#threadShared LIKE '%|{$userId}|%'");
+        $query->orWhere("LOCATE('|{$userId}|', #threadShared)");
     }
     
     
@@ -1723,10 +2046,18 @@ class doc_Threads extends core_Manager
         
         // Записите за нишката
         $rec = static::fetch($params['threadId']);
-
-        // Проверяваме дали има права
-        if (!$rec || !static::haveRightFor('single', $rec)) return FALSE;
         
+        $haveRight = static::haveRightFor('single', $rec);
+
+        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+                $haveRight = colab_Threads::haveRightFor('single', $rec);
+            }
+        }
+        
+        // Проверяваме дали има права
+        if (!$rec || !$haveRight) return FALSE;
+            
         // Инстанция на първия документ
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
         
@@ -1885,7 +2216,7 @@ class doc_Threads extends core_Manager
     function on_BeforePrepareListPager($mvc, &$res, &$data)
     {
         // id на папката
-        $folderId = Request::get('folderId');
+        $folderId = Request::get('folderId', 'int');
         
         $key = doc_Folders::getSettingsKey($folderId);
         $vals = core_Settings::fetchKey($key);

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,6 +20,7 @@ class cms_Content extends core_Manager
      * Име под което записваме в сесията текущия език на CMS изгледа
      */
     const CMS_CURRENT_LANG = 'CMS_CURRENT_LANG';
+    
     
     /**
      * Заглавие
@@ -36,7 +37,7 @@ class cms_Content extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter';
+    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter,cms_DomainPlg';
 
 
     /**
@@ -54,43 +55,43 @@ class cms_Content extends core_Manager
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cms,admin,ceo';
+    public $canWrite = 'cms,admin,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cms,admin,ceo';
+    public $canRead = 'cms,admin,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	public $canList = 'ceo,admin,cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	public $canSingle = 'ceo,admin,cms';
     
 
     /**
      * Полета за листовия изглед
      */
-    var $listFields = 'order,✍,menu,source,state';
+    public $listFields = 'order,menu,source,state';
 
 
     /**
      * Поле за инструментите на реда
      */
-    var $rowToolsField = '✍';
+    public $rowToolsField = '✍';
     
     
     /**
      * По кои полета ще се търси
      */
-    var $searchFields = 'menu';
+    public $searchFields = 'menu';
 
 
     /**
@@ -149,7 +150,7 @@ class cms_Content extends core_Manager
 
         if($lang) {
             self::setLang($lang);
-            redirect(array('cms_Content', 'Show', 'lg' => $lang));
+            return new Redirect(array('cms_Content', 'Show', 'lg' => $lang));
         }
 
         $lang = self::getLang();
@@ -190,38 +191,11 @@ class cms_Content extends core_Manager
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
-        $form = $data->listFilter;
-        
-        // В хоризонтален вид
-        $form->view = 'horizontal';
-        
-        // Добавяме бутон
-        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $form->showFields = 'search';
-        
-        $form->input('search', 'silent');
-
-        $domainId = cms_Domains::getCurrent();
-       
-        $data->query->where("#domainId = {$domainId}");
-        
         $data->query->orderBy('#order', 'ASC');
     }
 
 
-    /**
-     * Изпълнява се след подготовката на формата за единичен запис
-     */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-        $data->form->rec->domainId = cms_Domains::getCurrent();
-        $data->form->setReadOnly('domainId');
-     }
-
-    
+   
     /**
      * Подготвя данните за публичното меню
      */
@@ -245,7 +219,7 @@ class cms_Content extends core_Manager
         
         $cMenuId = Mode::get('cMenuId');
         if(!$cMenuId) {
-            $cMenuId = Request::get('cMenuId');
+            $cMenuId = Request::get('cMenuId', 'int');
             Mode::set('cMenuId', $cMenuId);
         }
         
@@ -535,10 +509,10 @@ class cms_Content extends core_Manager
     public static function getMenuOpt($class)
     {   
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getCurrent();
+        $domainId = cms_Domains::getPublicDomain('id');  
         $query = self::getQuery();
         $query->orderBy('#order');
-        while($rec = $query->fetch("#domainId = {$domainId} && #source = {$classId}")) {
+        while($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {  
             $res[$rec->id] = $rec->menu;
         }
 
@@ -573,7 +547,7 @@ class cms_Content extends core_Manager
             $lastOrder = 0;
             $query = self::getQuery();
             $query->orderBy("#order", 'DESC');
-            $cd = cms_domains::getCurrent();
+            $cd = cms_Domains::getCurrent();
             
             $typeOrder = cls::get('type_Order');
             if($lastOrder = $query->fetch("#state = 'active' AND #domainId = {$cd}")->order) {

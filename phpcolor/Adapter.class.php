@@ -23,7 +23,7 @@ require_once PHPCOLOR_VERSION . '/Color.class.php';
  * @license   GPL 3
  * @since     v 0.1
  */
-class phpcolor_Adapter extends core_Mvc
+class  phpcolor_Adapter extends core_Mvc
 {    
 
     /**
@@ -35,10 +35,15 @@ class phpcolor_Adapter extends core_Mvc
      */
     static function changeColor($hexColor, $type='lighten', $ammount = 10, $mix = '#fff')
     {
+        $cObj = new color_Object($hexColor);
+
+        $hexColor = $cObj->getHex('');
+
         try {
             $myColor = new Color($hexColor);
         } catch (Exception $e) {
-            core_Logs::log($e->getMessage() . ' - ' . $hexColor);
+            reportException($e);
+            self::logErr($e->getMessage() . ' - ' . $hexColor);
             
             return FALSE;
         }
@@ -69,11 +74,15 @@ class phpcolor_Adapter extends core_Mvc
      */
     static function checkColor($hexColor, $type='light')
     {
+        $cObj = new color_Object($hexColor);
+
+        $hexColor = $cObj->getHex('');
+ 
         try {
     	    $myColor = new Color($hexColor);
         } catch (Exception $e) {
-            
-            core_Logs::log($e->getMessage() . ' - ' . $hexColor);
+            reportException($e);
+            self::logErr($e->getMessage() . ' - ' . $hexColor);
             
             return FALSE;
         }

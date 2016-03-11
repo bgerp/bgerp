@@ -23,6 +23,14 @@ class cash_InternalMoneyTransfer extends core_Master
    
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = "Вътрешни касови трансфери";
@@ -154,7 +162,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
     	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Сторниран, closed=Контиран)', 
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
@@ -186,9 +194,9 @@ class cash_InternalMoneyTransfer extends core_Master
             return;
         }
 	   
-    	if($folderId = Request::get('folderId')){
+    	if($folderId = Request::get('folderId', 'int')){
     		if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
-	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
+	        	return redirect(array('cash_Cases', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна каса");
 	        }
         }
         
@@ -322,9 +330,6 @@ class cash_InternalMoneyTransfer extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}	
     	
     	if($fields['-single']) {
     		$row->currency = currency_Currencies::getCodeById($rec->currencyId);

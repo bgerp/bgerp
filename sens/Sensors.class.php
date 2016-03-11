@@ -234,7 +234,7 @@ class sens_Sensors extends core_Master
         }
     }
     
-    
+ 
     /**
      * Приема id и key - базиран на драйвера и сол
      * Затваря връзката с извикващия преждевременно.
@@ -272,5 +272,6 @@ class sens_Sensors extends core_Master
         $rec = $this->fetch("#id = $id");
         $driver = cls::get($rec->driver, (array) $rec);
         $driver->process();
+        shutdown();
     }
 }

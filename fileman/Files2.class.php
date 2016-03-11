@@ -224,7 +224,7 @@ class fileman_Files2 extends core_Master
         // Ако копирането не премине успешно
         if (!$copied) {
             expect($copied, 'Не може да бъде копиран файла');
-            core_Logs::log("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'");
+            self::logErr("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'", $rec->id);
         }
         
         // Времето на екстрактване
@@ -969,5 +969,24 @@ class fileman_Files2 extends core_Master
         
         // Връщаме URL' то
         return $url;
+    }
+    
+    
+    /**
+     * Добавя стринг във временната директория с подадения файл
+     * Не се записва във fileman
+     *
+     * @param string $fileStr
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function addStrToFile($fileStr, $name)
+    {
+        $tempDir = fileman::getTempPath() . '/' . $name;
+    
+        expect(@file_put_contents($tempDir, $fileStr) !== FALSE);
+    
+        return $tempDir;
     }
 }

@@ -25,8 +25,8 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State';
+    var $loadList = 'plg_Created, plg_RowTools2, bank_Wrapper, acc_plg_Registry,
+                     plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
@@ -38,7 +38,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, bankAccountId, currency=Валута, type, blAmount=Сума';
+    var $listFields = 'title, bankAccountId, currency=Валута, type, blAmount=Сума';
     
     
     /**
@@ -186,15 +186,14 @@ class bank_OwnAccounts extends core_Master {
      */
     function description()
     {
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,input=none');
         $this->FLD('type', 'enum(current=Разплащателна,
                                  deposit=Депозитна,
                                  loan=Кредитна,
                                  personal=Персонална,
                                  capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
-        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name, makeLinks)', 'caption=Титуляри->Име,mandatory');
-        $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
+        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
@@ -236,8 +235,14 @@ class bank_OwnAccounts extends core_Master {
         	}
         }
         
-        $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-        $row->currency = currency_Currencies::getCodeById($currencyId);
+        if($rec->bankAccountId){
+        	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+        	$row->currency = currency_Currencies::getCodeById($currencyId);
+        	$ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
+        	
+        	$row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
+        	$row->bic = bank_Accounts::getVerbal($ownAccounts, 'bic');
+        }
     }
     
     
@@ -272,7 +277,7 @@ class bank_OwnAccounts extends core_Master {
         $currencyId = acc_Periods::getBaseCurrencyCode();
         $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
         $colspan = count($data->listFields) - 1;
-        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b> <span class='cCode'>{$currencyId}</span></td><td>&nbsp;</td></tr>");
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]:&nbsp;<span class='cCode'>{$currencyId}</span>&nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
         $lastRow->replace(tr("Общо"), 'caption');
         $lastRow->replace($total, 'total');
         
@@ -288,41 +293,47 @@ class bank_OwnAccounts extends core_Master {
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $optionAccounts = $mvc->getPossibleBankAccounts();
+        $form = &$data->form;
+        $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=bic|bank,input');
+        $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
+        $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
+        $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
+        $form->FNC('fromOurCompany', 'int', 'input=hidden');
+        if(Request::get('fromOurCompany', 'int')){
+        	$form->rec->fromOurCompany = TRUE;
+        }
         
-        $titulars = $mvc->getTitulars();
-        
-        $data->form->setOptions('bankAccountId', $optionAccounts);
-        $data->form->setSuggestions('titulars', $titulars);
+    	$optionAccounts = $mvc->getPossibleBankAccounts();
+    	if(count($optionAccounts)){
+    		$form->setSuggestions('iban', array('' => '') + $optionAccounts);
+    	}
         
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
-        if($data->form->rec->id) {
-            $data->form->setReadOnly('bankAccountId');
+        if($form->rec->id) {
+        	if(isset($form->rec->bankAccountId)){
+        		$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
+        		$form->setDefault('iban', $ibanRec->iban);
+        		$form->setDefault('bank', $ibanRec->bank);
+        		$form->setDefault('bic', $ibanRec->bic);
+        		$form->setDefault('currencyId', $ibanRec->currencyId);
+        	}
         }
     }
     
     
     /**
-     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
-     * тези включени в група "Управители"
+     * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-    function getTitulars()
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        $options = array();
-        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
-        $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
-        
-        while($personRec = $personQuery->fetch()) {
-            $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
-        }
-        
-        if(count($options) == 0) {
-            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
-        }
-        
-        return $options;
+    	// Ако има форма, и тя е събмитната и действието е 'запис'
+    	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+    		if(isset($data->form->rec->fromOurCompany)){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			$data->retUrl = toUrl(array('crm_Companies', 'single', $ourCompany->id, 'Tab' => 'ContragentBankAccounts'));
+    		}
+    	}
     }
     
     
@@ -344,7 +355,9 @@ class bank_OwnAccounts extends core_Master {
         
         while($rec = $queryBankAccounts->fetch()) {
             if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
-                $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
+            	
+            	$iban = $bankAccounts->getVerbal($rec, 'iban');
+                $options[$rec->iban] = $iban;
             }
         }
         
@@ -409,10 +422,49 @@ class bank_OwnAccounts extends core_Master {
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-        $rec = $form->rec;
+        $rec = &$form->rec;
+        
+        if(!$form->gotErrors()){
+        	if(isset($rec->iban)){
+        		$accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
+        		
+        		if(!$accountRec){
+        			$form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
+        			$form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
+        		} else {
+        			$form->setDefault('bank', $accountRec->bank);
+        			$form->setDefault('bic', $accountRec->bic);
+        			$form->setDefault('currencyId', $accountRec->currencyId);
+        		}
+        	}
+        }
         
         if($form->isSubmitted()) {
-            if(!$rec->title) {
+        	
+        	if(empty($rec->bankAccountId)){
+        		$accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
+        		
+        		// Проверка дали вече нямаме наша сметка с този IBAN
+        		if(self::fetchField("#bankAccountId = '{$accountRec->id}'")){
+        			$form->setError('iban', 'Вече има наша сметка с този|* IBAN');
+        			return;
+        		}
+        		
+        		// Проверка дали няма чужда сметка с този IBAN
+        		$ourCompany = crm_Companies::fetchOurCompany();
+        		if(!empty($accountRec)){
+        			if($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId){
+        				$form->setError('iban', 'Подадения IBAN принадлежи на чужда сметка');
+        				return;
+        			}
+        		}
+        	}
+        	
+        	if(isset($rec->iban)){
+        		$rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
+        	}
+        	
+        	if(!$rec->title) {
                 $rec->title = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
             }
         }
@@ -420,16 +472,38 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Обработка на ролите
+     * Добавя нова наша сметка
+     * 
+     * @param string $iban
+     * @param int $currencyId
+     * @param string $bank
+     * @param string $bic
+     * @return int $accId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action)
+    private function addNewAccount($iban, $currencyId, $bank, $bic)
     {
-        if($action == 'add') {
-            if(!$mvc->canAddOwnAccount()) {
-                $res = 'no_one';
-            }
-        }
+    	$IbanType = core_Type::getByName('iban_Type(64)');
+    	expect(currency_Currencies::fetch($currencyId));
+    	$iban = trim($iban);
+    	
+    	$accRec = new stdClass();
+    	foreach (array('iban', 'bic', 'bank', 'currencyId') as $fld){
+    		$accRec->{$fld} = ${$fld};
+    	}
+    	
+    	if($exRecId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $iban), 'id')){
+    		$accRec->id = $exRecId;
+    	}
+    	
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$accRec->contragentId = $ourCompany->id;
+    	$accRec->contragentCls = $ourCompany->classId;
+    	
+    	$accId = bank_Accounts::save($accRec);
+    	
+    	return $accId;
     }
+    
     
     /*******************************************************************************************
      * 
@@ -480,20 +554,22 @@ class bank_OwnAccounts extends core_Master {
      */
     public static function getOwnAccounts($selectIban = TRUE)
     {
-        $Iban = cls::get('iban_Type');
+        $Varchar = cls::get('type_Varchar');
         $accounts = array();
         $query = static::getQuery();
-        
+       
         while($rec = $query->fetch()) {
-            $account = bank_Accounts::fetch($rec->bankAccountId);
-            $cCode = currency_Currencies::getCodeById($account->currencyId);
-            if($selectIban === TRUE){
-            	$verbal = $Iban->toVerbal($account->iban);
-            } else {
-            	$verbal = $rec->title;
-            }
-            
-            $accounts[$rec->id] = "{$cCode} - {$verbal}";
+        	if(isset($rec->bankAccountId)){
+        		$account = bank_Accounts::fetch($rec->bankAccountId);
+        		$cCode = currency_Currencies::getCodeById($account->currencyId);
+        		if($selectIban === TRUE){
+        			$verbal = $Varchar->toVerbal($account->iban);
+        		} else {
+        			$verbal = $rec->title;
+        		}
+        		
+        		$accounts[$rec->id] = "{$cCode} - {$verbal}";
+        	}
         }
         
         return $accounts;
@@ -516,8 +592,9 @@ class bank_OwnAccounts extends core_Master {
         
         if($filter = $data->listFilter->rec) {
             if($filter->own) {
-                foreach($fields as $fld){
-                    $data->query->where("#{$fld} = {$filter->own}");
+                foreach($fields as $i => $fld){
+                	$or = ($i === 0) ? FALSE : TRUE;
+                    $data->query->where("#{$fld} = {$filter->own}", $or);
                 }
             }
         }

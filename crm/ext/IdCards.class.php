@@ -1,6 +1,20 @@
 <?php
+
+
+/**
+ * Мениджър на лични карти
+ *
+ * @category  bgerp
+ * @package   crm
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2015 Experta OOD
+ * @license   GPL 3
+ * @since     0.12
+ */
 class crm_ext_IdCards extends core_Detail
 {
+	
+	
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -14,9 +28,15 @@ class crm_ext_IdCards extends core_Detail
 
     
     /**
+     * Единично заглавие
+     */
+    var $singleTitle = 'Лична карта';
+    
+    
+    /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'crm_Wrapper,plg_RowTools';
+    var $loadList = 'crm_Wrapper,plg_RowTools2';
     
     
     /**
@@ -43,9 +63,6 @@ class crm_ext_IdCards extends core_Detail
         $this->FLD('idCardIssuedBy', 'varchar', 'caption=Издадена от');
 
         $this->setDbUnique('personId');
-
-        // Може ли двама души да имат една карта?
-        // $this->setDbUnique('idCardNumber');
 	}
     
 	
@@ -66,7 +83,7 @@ class crm_ext_IdCards extends core_Detail
         if ($data->IdCard->rec) {
             $data->IdCard->row = static::recToVerbal($data->IdCard->rec);    
         }
-        $data->canChange         = static::haveRightFor('edit');
+        $data->canChange = static::haveRightFor('edit');
     }
     
     

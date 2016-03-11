@@ -1,6 +1,8 @@
 <h1>[#TITLE#]</h1>
-[#FORM#]
-<div class='summary-block'>
+<div class='inline-form'>
+	[#FORM#]
+</div>
+<div class='summary-block' style='margin-top: 5px;'>
     <table style='min-width:200px;'>
             <tr>
                 <th></th>
@@ -27,6 +29,11 @@
                 <td class='summary-cell aright'><span class='cCode'>[#baseCurrencyCode#]</span></td>
             </tr>
         </table>
+</div>
+<div class='clearfix21'></div>
+<div>
+ [#buttonList#][#buttonPie#][#buttonBar#]
+        
 </div>
 [#PAGER#]
 <div class='overflow-scroll'>

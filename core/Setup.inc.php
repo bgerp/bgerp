@@ -648,7 +648,7 @@ if($step == 3) {
     // Необходими модули на Apache
     $log[] = 'h:Проверка за необходимите Apache модули:';
 
-    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite', 'mod_deflate');
+    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_rewrite', 'mod_deflate');
     
     $activeApacheModules = apache_get_modules();
     
@@ -657,6 +657,21 @@ if($step == 3) {
             $log[] = "inf:Наличен Apache модул: <b>`$module`</b>";
         } else {
             $log[] = "err:Липсващ Apache модул: <b>`$module`</b>";
+        }
+    }
+    
+    if (!core_Os::isWindows()) {
+        // Необходими програми на сървъра
+        $log[] = 'h:Проверка за необходимите програми на сървъра:';
+        
+        $requiredPrograms = array('wget');
+        
+        foreach($requiredPrograms as $program){
+            if (exec('which ' . escapeshellcmd($program))){
+                $log[] = "inf:Налична програма: <b>`$program`</b>";
+            } else {
+                $log[] = "err:Липсващ програма: <b>`$program`</b>";
+            }
         }
     }
     
@@ -671,6 +686,7 @@ if($step == 3) {
 
     	} catch (core_Exception_Expect $e) {
     		$log[] = "err: " . $e->getMessage();
+    		reportException($e);
     	}
     } else {
         $log[] = "err:Недефинирани константи за връзка със сървъра на базата данни";
@@ -827,7 +843,7 @@ if ($step == 'setup') {
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
-        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3>");
+        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
         
         exit;
     }
@@ -903,6 +919,8 @@ if ($step == 'setup') {
                 </script>");
                 
         sleep(2);
+        Debug::log('Sleep 2 sec. in' . __CLASS__);
+
         $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
         if (($fTime2 - $fTime) > 0) {
             $logModified = TRUE;
@@ -924,6 +942,7 @@ if ($step == 'setup') {
         
     
     sleep(1);
+    Debug::log('Sleep 1 sec. in' . __CLASS__);
 
     contentFlush("<h3 id='success'>Инициализирането завърши успешно!</h3>");
     
@@ -935,6 +954,8 @@ if ($step == 'setup') {
                 </script>");
     // Спираме и smooth скрол-а и чистим setup cookie
     sleep(1);
+    Debug::log('Sleep 1 sec. in' . __CLASS__);
+
     contentFlush("<script>
                         clearInterval(handle);
                         document.cookie = 'setup=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
@@ -981,9 +1002,11 @@ if($step == 'start') {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
         } catch (core_exception_Expect $e) {
             file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            reportException($e);
         }
     } catch (Exception $e) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
+        reportException($e);
     }
     
     $Packs = cls::get('core_Packs');
@@ -1064,7 +1087,7 @@ function gitLastCommitDate($repoPath, &$log)
     // Първият ред съдържа резултата
     if (gitExec($command, $res)) {
 
-        return trim(substr($res[0], 0, strpos($res[0], " +")));
+        return trim(substr(trim($res[0], "'"), 0, strpos($res[0], " +")));
     }
 
     return FALSE;

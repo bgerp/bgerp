@@ -78,11 +78,12 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 			$currencyId = currency_Currencies::getIdByCode($rec->currencyId);
 			
     		foreach ($rec->details as $dRec) {
-    			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$pInfo = cat_Products::getProductInfo($dRec->productId);
     			$transfer = FALSE;
     			
     			if(isset($pInfo->meta['fixedAsset'])){
-    				$debitArr = array('613', array($dRec->classId, $dRec->productId),
+    				$reason = 'Приети ДА';
+    				$debitArr = array('613', array('cat_Products', $dRec->productId),
     									'quantity' => $dRec->quantity,);
     			} else {
     				$transfer = TRUE;
@@ -91,9 +92,10 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     				$debitArr = array(
     							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
     							array('hr_Departments', $centerId),
-    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
+    							array('cat_Products', $dRec->productId), // Перо 1 - Артикул
     							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
     					);
+    				$reason = 'Приети услуги и нескладируеми консумативи';
     			}
     	
     			$amount = $dRec->amount;
@@ -110,28 +112,33 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							array('currency_Currencies', $currencyId),          // Перо 3 - Валута
     							'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
     					),
+    					'reason' => $reason,
     			);
     			
     			// Ако сме дебитирали 60020 сметка, прехвърляме го в 61101 или 61102
     			if($transfer === TRUE){
-    				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
-    				if($resourceRec){
-    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId), 
-    										 'quantity' => $dRec->quantity / $resourceRec->conversionRate);
+    				$pInfo = cat_Products::getProductInfo($dRec->productId);
+    				if(isset($pInfo->meta['canConvert'])){
+    					$newArr = array('61101', array('cat_Products', $dRec->productId),
+    							'quantity' => $dRec->quantity);
+						$reason = 'Вложени в производството нескладируеми услуги и консумативи';
     				} else {
     					$newArr = array('61102');
+						$reason = 'Отнесени общи (нескладируеми и невложими) разходи за дейността';
     				}
     				
     				$entries[] = array(
     						'amount' => $sign * $amount * $rec->currencyRate,
     						'debit' => $newArr,
     						'credit' => $debitArr,
+    						'reason' => $reason,
     						);
     			}
     		}
     		
     		// Отчитаме ддс-то
     		if($this->class->_total){
+    			$vat = $this->class->_total->vat;
     			$vatAmount = $this->class->_total->vat * $rec->currencyRate;
     			$entries[] = array(
     					'amount' => $sign * $vatAmount, // В основна валута
@@ -140,14 +147,15 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							$rec->accountId,
     							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
     							array($origin->className, $origin->that),			// Перо 2 - Сделка
-    							array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-    							'quantity' => $sign * $vatAmount, // "брой пари" във валутата на продажбата
+    							array('currency_Currencies', $currencyId), // Перо 3 - Валута
+    							'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
     					),
     	
     					'debit' => array(
     							'4530',
     							array($origin->className, $origin->that),
     					),
+    					'reason' => 'ДДС за начисляване при фактуриране',
     			);
     		}
     	}

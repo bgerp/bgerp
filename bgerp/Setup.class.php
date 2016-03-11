@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * FileHandler на логото на фирмата на английски
  */
@@ -14,7 +13,6 @@ defIfNot(BGERP_COMPANY_LOGO_EN, '');
 defIfNot(BGERP_COMPANY_LOGO, '');
 
 
-
 /**
  * След колко време, ако не работи крона да бие нотификация
  */
@@ -22,10 +20,9 @@ defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
 
 
 /**
- * 
+ * Звуков сигнал при нотификация
  */
-defIfNot(BGERP_BOOKMARK_SHOW_LIMIT, 30);
-
+defIfNot(BGERP_SOUND_ON_NOTIFICATION, 'scanner');
 
 
 /**
@@ -75,8 +72,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
-        
-        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Ограничение на бързите връзки (за Модерна вътрешна страница)->Брой, customizeBy=powerUser'),
+                
+        'BGERP_SOUND_ON_NOTIFICATION' => array ('enum(none=Няма,snap=Щракване,scanner=Скенер,notification=Нотификация,beep=Beep)', 'caption=Звуков сигнал при нотификация->Звук, customizeBy=user'),
      );
     
     
@@ -84,9 +81,7 @@ class bgerp_Setup extends core_ProtoSetup {
      * Описание на системните действия
      */
     var $systemActions = array(
-        
-        'Поправка' => array ('doc_Containers', 'repair', 'ret_url' => TRUE)
-    
+        array('title' => 'Поправка', 'url' => array('doc_Containers', 'repair', 'ret_url' => TRUE), 'params' => array('title' => 'Поправка на системата'))
     );
     
     /**
@@ -118,7 +113,9 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Portal',
             'bgerp_Notifications',
             'bgerp_Recently',
-            'bgerp_Bookmark'
+            'bgerp_Bookmark',
+            'bgerp_LastTouch',
+            'bgerp_E'
         );
         
         $instances = array();
@@ -135,9 +132,9 @@ class bgerp_Setup extends core_ProtoSetup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,logs,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
-                  email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cond,cash,bank,
-                  budget,purchase,accda,sens,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
+        $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
+                  email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cash,bank,
+                  budget,purchase,accda,permanent,sens2,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
         
@@ -175,6 +172,8 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $haveError = array();
         
+        core_Debug::$isLogging = FALSE;
+
         do {
             $loop++;
             
@@ -197,6 +196,7 @@ class bgerp_Setup extends core_ProtoSetup {
                         //$haveError = TRUE;
                         file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                         $haveError[$p] .= "<h3 class='debug-error'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
+                        reportException($exp);
                     }
                 }
             }
@@ -226,6 +226,7 @@ class bgerp_Setup extends core_ProtoSetup {
                             //$haveError = TRUE;
                             file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n",  FILE_APPEND);
                             $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
+                            reportException($exp);
                         }
                     }
                 }
@@ -236,16 +237,21 @@ class bgerp_Setup extends core_ProtoSetup {
             
         } while (!empty($haveError) && ($loop<5));
         
+
+        core_Debug::$isLogging = TRUE;
+
         $html .= implode("\n", $haveError);
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('Notes', 'Прикачени файлове в бележки', NULL, '1GB', 'user', 'user');
         $Bucket->createBucket('bnav_importCsv', 'CSV за импорт', 'csv', '20MB', 'user', 'every_one');
+        $Bucket->createBucket('exportCsv', 'Експортирани CSV-та', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
- 
+        $html .= $Bucket->createBucket('import', 'Файлове при импортиране', NULL, '104857600', 'user', 'user');
+        
         //TODO в момента се записват само при инсталация на целия пакет
         
         
@@ -273,14 +279,8 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
         
+        $html .= core_Classes::add('bgerp_plg_CsvExport');
+        
         return $html;
-    }
-    
-    
-    /**
-     * Временно, преди този клас да стане наследник на core_ProtoSetup
-     */
-    function loadSetupData()
-    {
     }
 }

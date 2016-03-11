@@ -51,7 +51,7 @@ class core_Manager extends core_Mvc
     /**
      * Колко дни да пазим логовете за този клас?
      */
-    public static $logKeepDays = 180;
+    public static $logKeepDays = 7;
     
     
     /**
@@ -83,6 +83,36 @@ class core_Manager extends core_Mvc
      *                                                                                      *
      ****************************************************************************************/
     
+
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleForId($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $linkArr = array();
+
+        if ($inst->haveRightFor('list', $objId)) {
+            $linkArr = array(get_called_class(), 'list', $objId);
+        }
+        
+        $link = ht::createLink($title, $linkArr);
+        
+        return $link;
+    }
+    
     
     /**
      * Изпълнява заявка за листов изглед на страница от модела
@@ -100,7 +130,9 @@ class core_Manager extends core_Mvc
         // Създаваме обекта $data
         $data = new stdClass();
         $data->action = 'list';
-
+        
+        $data->ListId = Request::get('id', 'int');
+        
         // Създаваме заявката
         $data->query = $this->getQuery();
         
@@ -134,8 +166,10 @@ class core_Manager extends core_Mvc
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
         
-        // Записваме, че потребителя е разглеждал този списък
-        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->logInAct('Листване', NULL, 'read');
+        }
         
         return $tpl;
     }
@@ -210,7 +244,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->log($data->cmd, $id);
+        $this->logWrite('Изтриване', $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -263,18 +297,19 @@ class core_Manager extends core_Mvc
         
         // Генерираме събитие в $this, след въвеждането на формата
         $this->invoke('AfterInputEditForm', array($data->form));
-        
+       
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
-        
+       
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
             
             // Записваме данните
             $id = $this->save($rec);
             
-            // Правим запис в лога
-            $this->log($data->cmd, $id);
+            $msg = ($data->cmd == 'Add') ? 'Създаване' : 'Редактиране';
+            
+            $this->logInAct($msg, $rec);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -291,6 +326,9 @@ class core_Manager extends core_Mvc
         // Подготвяме лентата с инструменти на формата
         $this->prepareEditToolbar($data);
         
+        // Подготвяме заглавието на формата
+        $this->prepareEditTitle($data);
+        
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
@@ -303,6 +341,37 @@ class core_Manager extends core_Mvc
         return $tpl;
     }
     
+    
+    /**
+     * Подготвя заглавието на формата
+     */
+    function prepareEditTitle_($data)
+    {
+    	$data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+    			"|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
+    }
+    
+    
+    /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'write')
+    {
+        $id = NULL;
+        
+        if ($rec) {
+            $id = $rec->id;
+        }
+        if ($type == 'write') {
+            $this->logWrite($msg, $id);
+        } else {
+            $this->logRead($msg, $id);
+        }
+    }
     
     /**
      * Начално установяване на мениджъра
@@ -374,6 +443,10 @@ class core_Manager extends core_Mvc
             $data->listFilter = $this->getForm($formParams);
         }
         
+        if ($data->ListId) {
+            $data->query->where($data->ListId);
+        }
+        
         return $data;
     }
     
@@ -411,12 +484,14 @@ class core_Manager extends core_Mvc
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
         
-        if($perPage) {
-            if(!isset($data->pageVar)) {
-                $data->pageVar = 'P_' . $this->className;
-            }
+        if($perPage) {  
             $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar));
             $data->pager->itemsPerPage = $perPage;
+            if(isset($data->rec->id)) {
+                $data->pager->setPageVar($this->className, $data->rec->id);
+            } else {
+                $data->pager->setPageVar($this->className);
+            }
         }
         
         return $data;
@@ -449,6 +524,10 @@ class core_Manager extends core_Mvc
     {
         setIfNot($data->title, $this->title);
         
+        if ($data->ListId) {
+            $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
+        }
+        
         return $data;
     }
     
@@ -461,6 +540,10 @@ class core_Manager extends core_Mvc
         // Добавяме лимит според страньора, ако има такъв
         if ($data->pager) {
             $data->pager->setLimit($data->query);
+        }
+        
+        if (!isset($data->recs)) {
+            $data->recs = array();
         }
         
         // Извличаме редовете
@@ -477,7 +560,11 @@ class core_Manager extends core_Mvc
      */
     function prepareListRows_(&$data)
     {
-        if(count($data->recs)) {
+        if (!isset($data->rows)) {
+            $data->rows = array();
+        }
+        
+        if(isset($data->recs) && !empty($data->recs)) {
             foreach($data->recs as $id => $rec) {
                 $data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
             }
@@ -510,9 +597,6 @@ class core_Manager extends core_Mvc
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
         
         $data->form->input(NULL, 'silent');
-   
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
-        "|*" . ($this->title ? ' |в|* ' . '"' . tr($this->title) . '"' : '');
 
         // Ако имаме 
         if($data->form->rec->id && $data->form->cmd != 'refresh') {
@@ -682,10 +766,20 @@ class core_Manager extends core_Mvc
     {
         $table = cls::get('core_TableView', array('mvc' => $this));
         
+        // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         
+        // Имали колони в които ако няма данни да не се показват ?
+        $hideColumns = arr::make($this->hideListFieldsIfEmpty, TRUE);
+       
+        // Ако има колони за филтриране, филтрираме ги
+        if(count($hideColumns)){
+        	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $hideColumns);
+        }
+        
+        // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
-
+        
         if(!$class = $data->listClass) {
             $class = 'listRows';
         }
@@ -710,7 +804,7 @@ class core_Manager extends core_Mvc
      */
     function renderListToolbar_($data)
     {
-        if(cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing') && $data->toolbar->count()) {
+        if(isset($data->toolbar) && cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing') && $data->toolbar->count()) {
             $res = new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
         }
 
@@ -823,34 +917,6 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Добавя запис в лога
-     */
-    static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
-    {
-        if (!$logKeepDays) {
-            $logKeepDays = self::$logKeepDays;
-        }
-        
-        core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
-    }
-    
-    
-    /**
-     * Разшифрова лог съобщение
-     */
-    function logToVerbal($objectId, $detail)
-    {
-        $text = ucfirst($detail) . ' "' . tr($this->title ? $this->title : $this->className) . '"';
-        
-        if ($objectId) {
-            $text .= ', ' . $objectId . " - " . $this->getTitleById($objectId);
-        }
-        
-        return $text;
-    }
-    
-    
-    /**
      * Връща списък е елементи <option> при ajax заявка
      */
     function act_ajax_GetOptions()
@@ -879,8 +945,6 @@ class core_Manager extends core_Mvc
         }
         
         $select = new ET('');
-        
-        $this->log("ajaxGetOptions|{$q}");
         
         $options = $this->fetchOptions($q);
         
@@ -1033,5 +1097,26 @@ class core_Manager extends core_Mvc
         $title = $this->title;
         
         return $title;
+    }
+    
+    
+    /**
+     * @see core_BaseClass::action_()
+     */
+    function action_($act)
+    {
+        $res = parent::action_($act);
+        
+        // Ако заявката не е по AJAX и няма нищо записано в лога, записваме екшъна
+        if (!Request::get('ajax_mode') && !count(log_Data::$toAdd)) {
+            
+            if (Request::$vars['_POST']) {
+                self::logWrite(ucfirst($act), Request::get('id'), 180);
+            } else {
+                self::logInfo(ucfirst($act), Request::get('id'));
+            }
+        }
+        
+        return $res;
     }
 }

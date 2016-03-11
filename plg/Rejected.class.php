@@ -24,23 +24,18 @@ class plg_Rejected extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-        if(!isset($mvc->fields['state'])) {
-            $mvc->FLD('state',
-                'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
-                'caption=Състояние,column=none,input=none,notNull');
-        }
+        $mvc->FLD('state', 'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
+                'caption=Състояние,column=none,input=none,notNull,forceField');
         
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
 
-        if(!isset($mvc->fields['exState'])) {
-            $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull");
-        }
+        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,single=none,notNull,forceField");
         
-        if(!isset($mvc->fields['lastUsedOn'])) {
-            $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-        }
+        $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none,forceField');
+
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,column=none,forceField');
 
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
     }
@@ -58,7 +53,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?,order=32', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
+                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите записа?,order=32,row=2,', 'ef_icon = img/16/reject.png, title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
@@ -69,7 +64,7 @@ class plg_Rejected extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите записа?,order=32', 'ef_icon = img/16/restore.png');
         }
     }
     
@@ -89,9 +84,16 @@ class plg_Rejected extends core_Plugin
             $rejCnt = $data->rejQuery->count();
 
             if($rejCnt) {
+                $data->rejQuery->orderBy('#modifiedOn', 'DESC', TRUE);
+                $data->rejQuery->limit(1);
+                $lastRec = $data->rejQuery->fetch();
+                $color = dt::getColorByTime($lastRec->modifiedOn);
                 $curUrl = getCurrentUrl();
-                $curUrl['Rejected'] = 1;
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,row=2,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  'ef_icon = img/16/bin_closed.png');
+                $curUrl['Rejected'] = 1; 
+                if(isset($data->pager->pageVar)) {
+                    unset($curUrl[$data->pager->pageVar]);
+                }
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", $curUrl, 'id=binBtn,class=fright,' . (Mode::is('screenMode', 'narrow') ? 'row=2,' : '') . 'order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title),  "ef_icon = img/16/bin_closed.png, style=color:#{$color};");
             }
         }
         if(Request::get('Rejected')) {
@@ -121,9 +123,10 @@ class plg_Rejected extends core_Plugin
         
         $rec->exState = $rec->state;
         $rec->state = 'rejected';
+        $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
 
-        $mvc->log('reject', $rec->id);
+        $mvc->logWrite('Оттегляне', $rec->id);
     }
     
     
@@ -140,15 +143,14 @@ class plg_Rejected extends core_Plugin
     {
         $res = FALSE;
         $rec = $mvc->fetchRec($id);
-                        
+        
         if (!isset($rec->id) || $rec->state != 'rejected') {
             return;
         }
         
         $rec->state = $rec->exState;
+        $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
-
-        $mvc->log('restore', $rec->id);
     }
 
 
@@ -166,7 +168,9 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('reject', $rec);
             $mvc->reject($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
-                        
+
+            $mvc->logInAct('Оттегляне', $rec);
+            
             return FALSE;
         }
         
@@ -177,6 +181,8 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('restore', $rec);
             $mvc->restore($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
+            
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
@@ -205,6 +211,7 @@ class plg_Rejected extends core_Plugin
             if($action == 'reject') {
                 // Системните записи, оттеглените и тези, които могат да се изтриват
                 if($rec->createdBy == -1 || $rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
+                    
                     $requiredRoles = 'no_one';
                 }
             }
@@ -213,11 +220,19 @@ class plg_Rejected extends core_Plugin
             if($action == 'restore' && $rec->state != 'rejected') {
                 $requiredRoles = 'no_one';
             }
-
-            if(!$requiredRoles && ($action == 'restore' || $action = 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
+            
+            if ($action == 'restore' || $action == 'reject') {
+                if ($mvc instanceof core_Master) {
+                    if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+            
+            if(!$requiredRoles && ($action == 'restore' || $action == 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
+                
                 $requiredRoles = 'user';
             }
-
         }
     }
     

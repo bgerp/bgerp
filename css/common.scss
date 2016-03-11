@@ -440,6 +440,50 @@ input[type="search"]::-webkit-search-decoration {
     -webkit-appearance: none;
 }
 
+#simpleSearch {
+	width:15em;
+	max-width:100%;
+	border:solid 1px #ccc;
+	display:block;
+	position:relative;
+	height:1.5em;
+}
+
+.narrow #simpleSearch {
+	height:1.3em;
+}
+
+#simpleSearch input {
+	top:0.1em;
+	position:absolute;
+	display:inline-block;
+	border:none;
+	outline:none;
+	height:1.2em;
+	font-size:0.95em;
+ 	width:90%;
+	padding:0px;
+	padding-left:0.2em;
+}
+
+#simpleSearch button {
+	width:10%;
+	margin-right:0px;
+	padding:0;
+	height:1.8em;
+	right:0px;
+	position:absolute;
+	border:none;
+	background-color:transparent;
+	cursor:pointer;
+	display:inline-block;
+}
+
+.narrow #simpleSearch button {
+	margin-right:3px;
+}
+
+
 /**
  * Remove inner padding and border in Firefox 4+.
  */
@@ -713,6 +757,40 @@ a.button.fright, input[type="button"].fright, input[type="submit"].fright, butto
 	margin: 1px 0 0 0.5em;
 }
 
+form[method=post] .toogleHolder {
+	float: right;
+	display: inline-block;
+	.toogleBtn {
+		&.toggleLeft {
+			margin-right: 0 !important;
+			border-radius: 5px 0 0 5px  !important;
+			&.toggleOn {
+			    color: lightgreen;
+			}
+		}
+		&.toggleRight {
+			margin-left: 0 !important;
+			border-radius: 0 5px 5px 0 !important; 
+			border-left: none !important;
+			&.toggleOn {
+				color: #f4f;
+			}
+		}
+		&.toggleOn {
+			box-shadow: inset 0 0 15px rgba(0,0,0,0.8); 
+			background: #777 !important;
+			text-shadow: 1px 1px 0 #333;
+		}
+		&.toggleOff {
+			box-shadow: inset 0 0 20px rgba(255,255,255, 0.3);
+			color: #eee !important;
+			&:hover {
+				background-color: #aaaaaa;
+			}
+		}
+	}
+}
+
 h1:target, h2:target, h3:target, h4:target, h5:target, h6:target {
    color: blue;
 }
@@ -797,7 +875,7 @@ table .linkWithIcon {
 }
 
 .linkWithIcon{
-	padding-left: 22px !important;  
+	padding-left: 25px !important;  
 	background-repeat: no-repeat !important;
 	background-position: 3px center;
 	&.sick {
@@ -829,6 +907,23 @@ table .linkWithIcon {
 	}
 }
 
+a.linkInTitle {
+	color: #004488 !important;
+}
+
+.smallLinkWithWithIcon {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	top: 2px;
+	position: relative;
+	margin-bottom: 0 !important;
+	opacity: 0.8;
+	&:hover {
+	   opacity: 1;
+	}
+}
+
 .linkWithIconSpan {
 	display: inline-block;
 }
@@ -838,14 +933,28 @@ input.more-btn {
 	margin-bottom: 0;
 	background-position: center center;
 	background-image: url(../img/16/toggle-expand.png) !important;
+	background-repeat: no-repeat !important;
 	padding-left: 0.3em !important;
 	padding-right: 0.3em !important;
 	width: 1.9em;
 	height: 2em \9;
 }
-.more-btn {
+
+.more-btn:not(.toolbar-btn) {
+	background-repeat: no-repeat !important;
 	background-image: url(../img/16/toggle-expand.png) !important;
-    background-repeat: no-repeat !important;
+}
+
+.toolbar-btn {
+	cursor: pointer;
+	margin: 4px;
+	opacity: 0.8;
+	&:hover {
+	   opacity: 1;
+	   transition-property: opacity;
+	   transition-duration: 0.5s;
+	   transition-timing-function: ease-in-out;
+	}
 }
 
 a.more-btn {
@@ -863,6 +972,21 @@ a.more-btn {
 
 .more-btn.show-btn {
 	background-image: url(../img/16/toggle2.png) !important;
+}
+
+.shortSelect {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    color: #fff;
+    cursor: pointer;
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    option {
+        color: #222;
+    }
 }
 
 .docBgIcon {
@@ -919,6 +1043,10 @@ th .rowtools .r, th .rowtools .l {
 .rowtools .nw {
 	white-space: nowrap;
 }
+
+.sortBtn {
+    vertical-align: middle;
+}
 /*край на бутони*/
 
 
@@ -943,6 +1071,7 @@ a {
 /*Хипервръзки към профилите на потребители*/
 a.profile {
 	padding: 2px;
+    border-radius:3px;
 	&.ceo {
 		color: #0000cc;
 		&.inactive {
@@ -1036,14 +1165,35 @@ a.profile {
 }
 
 .state-rejected { 
-    background-color: #c66;
+    background-color: rgba(204, 102, 102, 0.8);
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
 .state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font {
+.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
     color: #999 !important;
     text-decoration: line-through !important;
+}
+
+.single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
+	opacity: 0.5;	
+	&:hover, &.selected {
+		background-color: #cccccc !important;
+	}
+} 
+
+.state-rejected {
+    div.tab-control.deal-history-tab .tab-row .tab a, .single-thread .document .tab-top div.alphabet .tab-row .tab a {
+        color: #999 !important;
+        text-decoration: none !important;
+    }
+}
+
+.detail-info.state-rejected {
+    td, th, a, p, span, ul, ol, li, div {
+        color: #999 !important;
+        text-decoration: line-through !important;
+    }
 }
 
 .state-rejected .document .profile{
@@ -1133,6 +1283,14 @@ table.listTable {
 	margin-bottom: 12px;
 }
 
+.wide .singleView table.listTable > tbody > tr > td {
+    max-width: 70% !important;
+}
+
+.wide .singleView table.listTable {
+    max-width: 915px !important;
+}
+
 table.listTable:not(.noHoverTable) > tbody > tr:hover {
  	background-color: $beige;
     &.state-draft {
@@ -1215,6 +1373,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     border: solid 1px $orange;
 }
 
+span.inputLackOfChoice {
+   border:solid 1px #bbb;
+   background-color:#ddd;
+   padding:4px;
+   border-radius:2px;
+}
+
+span.inputLackOfChoiceMandatory {
+    padding:4px;
+    background-color:yellow;
+    border:solid 1px red;
+    border-radius:2px;
+}
+
 .formInfo, .formWarning {
     margin-bottom: 8px;
 }
@@ -1247,6 +1419,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 /*общи стилове за елементите на формите*/
 .formFields {
 	margin-bottom: 10px;
+}
+.narrow .vertical .formFields {
+    margin-bottom: 0;
 }
 
 .staticFormView .formFieldValue {
@@ -1338,7 +1513,7 @@ td.formElement {
 }
 
 .narrow .formFields table > tbody > tr > td {
-	padding-bottom: 3px !important;
+	padding-bottom: 1px !important;
 }
 
 .formFields > table .richedit-toolbar {
@@ -1410,6 +1585,12 @@ td.formElement {
     }
 	  .w25 {
        width: 8em;
+    }
+
+    .inlineTo {
+        .w25 {
+            width: 7.5em;
+        }
     }
 }
 
@@ -1592,7 +1773,7 @@ td.formElement {
 	background-image: none;
 	border: solid 1px $gray4;
 	border-top: none;
-	padding: 9px 6px 3px 6px !important;
+	padding: 3px 6px 3px 6px !important;
     background-color: #ffffee;
     input {
 	    margin-right: 5px;
@@ -1677,10 +1858,12 @@ table.keylist {
 	}
 }
 
-.narrow table.keylist td {
-	padding-top: 0.1em;
-	padding-bottom: 0 !important;
-	
+.narrow table.keylist{
+	margin-bottom: -3px;
+	td {
+		padding-top: 0.1em;
+		padding-bottom: 0 !important;
+	}
 }
 
 td.keylist-group{
@@ -1690,35 +1873,57 @@ td.keylist-group{
 	    font-size: 0.95em;
 	    margin-top: 1px;
 	    cursor: pointer; 
-	    img {
-	        display: none;
-	    	margin-right: 5px;
-	    	top: 2px;
-	    	position: relative;
+	    position: relative;
+	  
+	    .minus, .plus {
+	       position: absolute;
+	       right: 3px;
+           top: 5px;
+	       display: none;
 	    } 
+	    .invert-checkbox {
+	       float: left;
+	       display: block;
+	       margin-right: 5px;
+	    }
+	     .hidden {
+	        display: none !important;
+	    }
     }
 }
 
-.narrow .keylistCategory .keylist-group > div {
-    position: relative;
+.formGroup {
+	position: relative;
+	img {
+	    display: inline-block;
+	    position: absolute;
+	    top: 7px;
+	    right: 5px;
+	}
+}
+
+.narrow td.keylist-group {
+    .minus, .plus  {
+        top: 7px;
+    }
     .invert-checkbox {
-        position: absolute;
-        right: 3px;
-        top: 50%;
-        margin-top: -8px;
+       position: relative;
+       padding: 5px;
+       left: -5px;
+       top: -3px;
+       margin-right: -5px;
     }
 }
 
-.keylistCategory{
-	&.opened  .invert-checkbox {
-	   float: right;
-	   display: block;
-	}
-	&.closed  .invert-checkbox {
-        display: none;
-	}
-	 .hidden {
-        display: none !important;
+.hiddenFormRow {
+	display: none;
+}
+
+.openToggleRow {
+    .formGroup {
+        .btns-icon{
+		   display: none !important;
+	    }
     }
 }
 
@@ -2005,17 +2210,17 @@ div.alphabet div.tab-page {
 		z-index: 1;
 		white-space: nowrap;
 		position: relative;
-		padding:0;
+		padding:0 !important;
 		@include border-radius4(5px, 5px, 0, 0);
 		a {
 			display: inline-block;
 			color: #048;
-			padding: 4px 5px 4px 5px;
+			padding: 4px 5px 4px 5px !important;
 			@include border-radius4(5px, 5px, 0, 0);
 		}
 		span {
 			display: inline-block;
-			padding: 4px 5px 4px 5px;
+			padding: 4px 5px 4px 5px !important;
 		}
 		&:hover a {
 			background-color: $beige !important;
@@ -2043,7 +2248,7 @@ div.alphabet div.tab-page {
 }
 
 .narrow .single-thread .document div.alphabet div.tab-row {
-	padding-bottom: 1px
+	padding-bottom: 0px
 }
 
 .narrow .single-thread .document div.alphabet div.tab-row .tab select {
@@ -2120,7 +2325,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
                 padding: 4px;
                 border: 1px solid #bbb;
                 margin: 0 3px 0 0;
-                background-color: #f1f1f1 !important;
+                background-color: #ffffcc !important;
                 a {
                     color: #333;
                 }
@@ -2258,6 +2463,10 @@ a.rtbutton {
     height: 1.2em;
 	min-width:15px;
 	text-align:center;
+}
+
+.richtext-holder-group{
+	z-index: 1001;
 }
 
 .richtext-holder-group a.rtbutton{
@@ -2417,7 +2626,11 @@ a.lang {
 	font-family: sans-serif;
 	line-height: 1.4em;
 }
-
+h3.richtext-title {
+    margin-top: 0!important;
+    color: #333;
+}
+    
 pre.rich-text {
     font-family: Courier New,monospace;
     padding: 10px;
@@ -2430,6 +2643,7 @@ pre.rich-text {
     white-space: pre-wrap;
 	overflow: auto; 
 	font-size: 0.97em;
+	margin: 0;
 }
 
 .narrow pre.rich-text {
@@ -2503,6 +2717,14 @@ div.richtextHide {
 	margin-left: 4px;
 	border-left: dotted 1px #ccc;
 	padding: 10px; 
+}
+.strike-text {
+	color: #666; 
+	text-decoration: line-through;
+	.oneLineCode {
+	   color: #666; 
+	   text-decoration: line-through;
+	}
 }
 
 /*richtext elements*/
@@ -2592,7 +2814,6 @@ div.richtext ol ol ol {
 }
 
 .quote-title {
-	margin-top: 1em;
 	margin-bottom: 0.1em;
 }
 
@@ -2953,7 +3174,7 @@ div.statuses-message h2 {
 		}
 	}
 	.btns {
-        min-height: 17px;
+        min-height: 20px;
 		display: block;
 		float: right;
 		color: #999;
@@ -3079,14 +3300,14 @@ span.cng {
 }
 
 
-td.rightCol {
+td.rightCol, th.rightCol {
 	white-space:nowrap;
-	text-align:right;
+	text-align:right !important;
 }
 
-td.leftCol {
+td.leftCol, th.leftCol {
 	white-space:nowrap;
-	text-align:left;
+	text-align:left !important;
 }
 
 td.centerCol {

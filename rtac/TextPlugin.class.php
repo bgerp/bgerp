@@ -61,18 +61,32 @@ class rtac_TextPlugin extends core_Plugin
         
         // Ако не са зададени права в параметрите
         if (!($userRolesForTextComplete = $mvc->params['userRolesForTextComplete'])) {
-            $userRolesForTextComplete = $conf->RTAC_DEFAUL_ROLES_FOR_TEXTCOMPLETE;
+            $userRolesForTextComplete = $conf->RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE;
         }
         
         // Ако потребителя има права за добавяне на блокови елементи
         if (core_Users::haveRole($userRolesForTextComplete) && ($suggestionsArr = $mvc->getSuggestions())) {
-            
-            // Добавяме данните
-            $tpl->appendOnce("rtacObj.textCompleteObj = {};", 'SCRIPTS');
-            $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ";", 'SCRIPTS');
-            
-            // Стартираме скрипта
-            $inst->runAutocompleteText($tpl, $id);
+            unset($suggestionsArr['']);
+            if ($suggestionsArr) {
+                // Добавяме данните
+                $tpl->appendOnce("rtacObj.textCompleteObj = {};", 'SCRIPTS');
+                
+                $tpl->appendOnce("rtacObj.textCompleteStrEnd = {};", 'SCRIPTS');
+                if (!isset($mvc->params['strAfterSuggestion'])) {
+                    $strEnd = ' ';
+                } elseif ($mvc->params['strAfterSuggestion'] == 'strAfterSuggestion') {
+                    $strEnd = '';
+                } else {
+                    $strEnd = $mvc->params['strAfterSuggestion'];
+                }
+                
+                $tpl->appendOnce("rtacObj.textCompleteStrEnd.{$id} = " . json_encode($strEnd) . ";", 'SCRIPTS');
+                
+                $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ";", 'SCRIPTS');
+                
+                // Стартираме скрипта
+                $inst->runAutocompleteText($tpl, $id);
+            }
         }
         
         return ;

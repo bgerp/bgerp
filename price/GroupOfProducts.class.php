@@ -33,7 +33,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_SaveAndNew';
                     
  
     /**
@@ -51,19 +51,19 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'price,ceo';
+    var $canEdit = 'priceMaster,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'price,ceo';
+    var $canAdd = 'priceMaster,ceo';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'price,ceo';
+    var $canDelete = 'priceMaster,ceo';
     
     
     /**
@@ -105,7 +105,8 @@ class price_GroupOfProducts extends core_Detail
         $query->where("#validFrom <= '{$datetime}'");
         $query->where("#productId = {$productId}");
         $query->limit(1);
-
+		$query->show('groupId');
+        
         if($rec = $query->fetch()) {
 			return $rec->groupId;
         }
@@ -116,7 +117,7 @@ class price_GroupOfProducts extends core_Detail
      * Връща масив групите на всички всички продукти към определената дата
      * $productId => $groupId
      */
-    static function getAllProducts($datetime = NULL)
+    static function getAllProducts($datetime = NULL, $showNames = TRUE)
     {
         price_ListToCustomers::canonizeTime($datetime);
 		
@@ -124,22 +125,23 @@ class price_GroupOfProducts extends core_Detail
 		
         $query = self::getQuery();
 		$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+		$query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $query->where("state != 'rejected'");
 		$query->where("#validFrom <= '{$datetime}'");
-		
+		$query->where("#isPublic = 'yes'");
         $query->orderBy("#validFrom", "DESC");
+        $query->show('groupId,productId,isPublic');
         
         $res = array();
-        
         while($rec = $query->fetch()) {
             if(!$used[$rec->productId]) {
                 if($rec->groupId) {
-                    $res[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+                	$res[$rec->productId] = ($showNames === TRUE) ? cat_Products::getTitleById($rec->productId, FALSE) : $rec->productId;
                 }
                 $used[$rec->productId] = TRUE;
             }
         }
-
+        
         asort($res);
 		
         return $res;
@@ -192,40 +194,49 @@ class price_GroupOfProducts extends core_Detail
         
         if($rec->groupId) {
 	        $groupName = price_Groups::getTitleById($rec->groupId);
-	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
+	        $data->formTitle = '|Добавяне на артикул към група|* "' . $groupName . '"';
         }
-        
         
         // За опции се слагат само продаваемите продукти
         $products = cat_Products::getByProperty('canSell');
-        
         expect(count($products), 'Няма продаваеми продукти');
-        $now = dt::now();
-        foreach ($products as $id => &$product){
-        	if(is_object($product)) continue;
-        	
-        	if($groupId = $mvc->getGroup($id, $now)){
-        		$groupTitle = price_Groups::getTitleById($groupId, FALSE);
-        		$product .=  " -- " . tr('група') . " {$groupTitle}";
-        	}
-        }
         
-        $data->form->setOptions('productId', $products);
-
         if($data->masterMvc instanceof cat_Products) {
-            $data->form->title = "Добавяне в ценова група";
+            $data->formTitle = "Добавяне в ценова група";
             $data->form->setField('productId', 'input');
             $data->form->setReadOnly('productId');
             $pInfo = cat_Products::getProductInfo($rec->productId);
             expect(isset($pInfo->meta['canSell']), 'Продукта не е продаваем');
             
-            if(!$rec->groupId) {
+            if(!isset($rec->groupId)) {
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
             }
+        } else {
+        	$now = dt::now();
+        	
+        	foreach ($products as $id => &$product){
+        		if(is_object($product)) continue;
+        		 
+        		if($groupId = self::getGroup($id, $now)){
+        			$groupTitle = price_Groups::fetchField($groupId, 'title');
+        			$product .=  " -- " . tr('група') . " {$groupTitle}";
+        		}
+        	}
+        	
+        	$data->form->setOptions('productId', $products);
         }
     }
     
 
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
+    }
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
@@ -362,7 +373,11 @@ class price_GroupOfProducts extends core_Detail
      */
     public function preparePriceGroup($data)
     { 
-        $query = $this->getQuery();
+    	if($data->masterData->rec->isPublic == 'no'){
+    		$data->dontRender = TRUE;
+    	}
+    	
+    	$query = $this->getQuery();
        	$query->where("#productId = {$data->masterId}");
        	$query->orderBy("#validFrom", "DESC");
        	$data->recs = $data->rows = array();
@@ -395,6 +410,8 @@ class price_GroupOfProducts extends core_Detail
      */
     public function renderPriceGroup($data)
     {
+        if($data->dontRender === TRUE) return;
+        
         // Премахваме продукта - в случая той е фиксиран и вече е показан 
         unset($data->listFields[$this->masterKey]);
         
@@ -409,7 +426,7 @@ class price_GroupOfProducts extends core_Detail
         $tpl->append($details, 'CONTENT');
         $tpl->replace(get_class($this), 'DetailName');
         
-        if ($data->addUrl) {
+        if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
         	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, NULL, 'title=Задаване на ценова група');
         	$tpl->append($addBtn, 'TITLE');
         }

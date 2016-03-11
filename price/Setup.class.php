@@ -41,6 +41,21 @@ class price_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    			'systemId'    => "Update primecosts",
+    			'description' => "Обновяване на себестойностите",
+    			'controller'  => "price_Updates",
+    			'action'      => "Updateprimecosts",
+    			'period'      => 60,
+    			'timeLimit'   => 360,
+    		),
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
@@ -52,20 +67,26 @@ class price_Setup extends core_ProtoSetup
             'migrate::priceHistoryTruncate',
             'price_History',
         	'price_ListDocs',
+    		'price_ProductCosts',
+    		'price_Updates',
+    		'migrate::truncateProductCosts',
         );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'price';
+    var $roles = array(array('priceDealer'),
+    				   array('price', 'priceDealer'),
+    				   array('priceMaster', 'price'),
+    );
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price, ceo"),
+            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "priceMaster, ceo"),
         );
     
     
@@ -91,5 +112,14 @@ class price_Setup extends core_ProtoSetup
         if($history->db->tableExists($history->dbTableName)) {
             $history->truncate();
         }
+    }
+    
+    
+    /**
+     * Миграция за изтриване на кешираните цени
+     */
+    function truncateProductCosts()
+    {
+    	price_ProductCosts::truncate();
     }
 }

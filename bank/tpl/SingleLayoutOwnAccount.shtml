@@ -3,7 +3,7 @@
     <div class='scrolling-holder'>
         <div class="folder-cover [#STATE_CLASS#]">
             <div class="inner-folder">
-                <div class="block_title state-active special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
+                <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
@@ -20,22 +20,35 @@
                                 <td class='dt'>|Валута|*:</td>
                                 <td><b>[#currency#]</b></td>
                             </tr>
+                            
+                            <!--ET_BEGIN bank-->
+                            <tr>
+                                <td class='dt'>|Банка|*:</td>
+                                <td><b>[#bank#]</b></td>
+                            </tr>
+                            <!--ET_END bank-->
+                            
+                            <!--ET_BEGIN bic-->
+                            <tr>
+                                <td class='dt'>BIC:</td>
+                                <td><b>[#bic#]</b></td>
+                            </tr>
+                            <!--ET_END bic-->
+                            
                             <tr>
                                 <td class='dt'>|Тип|*:</td>
                                 <td><b>[#type#]</b></td>
                             </tr>
                             <tr>
-                                <td class='dt'>|Титуляри|*:</td>
-                                <td><b>[#titulars#]</b></td>
-                            </tr>
-                            <tr>
-                                <td class='dt'>|Представляват|*:</td>
-                                <td>[#together#]</td>
-                            </tr>
-                            <tr>
                                 <td class='dt'>|Oператори|*:</td>
                                 <td>[#operators#]</td>
                             </tr>
+                            <!--ET_BEGIN comment-->
+                            <tr>
+                            	<td class='dt'>|Бележки|*:</td>
+                            	<td>[#comment#]</td>
+                            </tr>
+                            <!--ET_END comment-->
                         </table>
                     </div>
                 </fieldset>

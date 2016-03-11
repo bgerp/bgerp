@@ -12,14 +12,10 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Receipts extends core_Manager
+class email_Receipts extends email_ServiceEmails
 {
-    /**
-     * Плъгини за работа
-     */
-    var $loadList = 'email_Wrapper';
     
-
+    
     /**
      * Заглавие на таблицата
      */
@@ -27,52 +23,48 @@ class email_Receipts extends core_Manager
     
     
     /**
-     * Кой има право да чете?
+     * Масив с думи, които НЕ трябва да съществуват в стринга
      */
-    var $canRead = 'admin, ceo, email';
+    protected static $negativeWordsArr = array('fail', 'sorry', 'rejected', 'not be delivered', "couldn t be delivered");
     
     
     /**
-     * Кой има право да променя?
+     * Масив с думи, които трябва да съществуват в стринга
      */
-    var $canWrite = 'no_one';
+    protected static $positiveWordsArr = array('delivered to the user');
     
     
-    /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin, email';
-    
-	
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('data', 'blob(compress)', 'caption=Данни');
-        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email)', 'caption=Сметка');
-        $this->FLD('uid', 'int', 'caption=Imap UID');
-        $this->FLD('createdOn', 'datetime', 'caption=Създаване');
+        $this->addFields();  
     }
     
-
+    
     /**
      * Проверява дали в $mime се съдържа върнато писмо и
      * ако е така - съхраняваго за определено време в този модел
      */
-    static function process($mime, $accId, $uid)
+    static function process($mime, $accId, $uid, $forcedMid = FALSE)
     {
-        // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
-        $soup = $mime->getHeader('X-Original-To', '*') .
-                $mime->getHeader('Delivered-To', '*') .
-                $mime->getHeader('To', '*');
-
-        if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
-            return;
+        if ($forcedMid === FALSE) {
+            // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
+            $soup = $mime->getHeader('X-Original-To', '*') .
+                    $mime->getHeader('Delivered-To', '*') .
+                    $mime->getHeader('To', '*');
+    
+            if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
+                
+                return;
+            }
+            
+            $mid = $matches[1];
+        } else {
+            $mid = $forcedMid;
         }
         
-        $mid = $matches[1];
-
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
 
@@ -94,5 +86,71 @@ class email_Receipts extends core_Manager
 
         return $isReceipt;
     }
-     
+    
+    
+    /**
+     * Проверява дали трябва да е обрабтна разписак
+     * 
+     * @param email_Mime $mime
+     */
+    public static function isForReceipts($mime)
+    {
+        $isGoodTextPart = self::checkTextPart($mime->textPart);
+        
+        // Ако съдържа някои от позитивните или отрицателните думи
+        if (!is_null($isGoodTextPart)) return $isGoodTextPart;
+        
+        // Проверяваме и хедърите за специфични маркери
+        $isGoodHeader = self::checkHeader($mime);
+        
+        return $isGoodHeader;
+    }
+    
+    
+    /**
+     * Проверява подадения текст, дали може да е обратна разписка
+     * 
+     * @param string $text
+     * 
+     * @return boolean|NULL
+     */
+    protected static function checkTextPart($text)
+    {
+        $text = plg_Search::normalizeText($text);
+        
+        // При наличие на някоя от негативните думи, прекратяваме
+        foreach (self::$negativeWordsArr as $negativeWord) {
+            if (stripos($text, $negativeWord) !== FALSE) {
+                
+                return FALSE;
+            }
+        }
+        
+        // Ако открием съвпадение с някоя дума, от позитивните думи
+        foreach (self::$positiveWordsArr as $positveWord) {
+            if (stripos($text, $positveWord) !== FALSE) {
+                
+                return TRUE;
+            }
+        }
+    }
+    
+    
+    /**
+     * Проверява хедърите, дали може да е обратна разписка
+     * 
+     * @param email_Mime $mime
+     * 
+     * @return boolean
+     */
+    protected static function checkHeader($mime)
+    {
+        $autoSubmitted = $mime->getHeader('Auto-Submitted', '*');
+        $autoSubmitted = strtolower($autoSubmitted);
+        $autoSubmitted = trim($autoSubmitted);
+        
+        if ($autoSubmitted == 'auto-replied') return TRUE;
+        
+        return FALSE;
+    }
 }

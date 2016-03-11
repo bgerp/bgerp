@@ -45,13 +45,13 @@ class webkittopdf_Converter extends core_Manager
      * @return string|NULL $fh - Файлов манипулатор на новосъздадения pdf файл
      */
     static function convert($html, $fileName, $bucketName, $jsArr=array())
-    {   
+    {
         // Вземаме конфигурационните данни
     	$conf = core_Packs::getConfig('webkittopdf');
         
     	if (!webkittopdf_Setup::isEnabled()) {
             
-    	    core_Logs::log("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
+    	    self::logAlert("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
     	    
             throw new core_exception_Expect("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
         }
@@ -173,7 +173,7 @@ class webkittopdf_Converter extends core_Manager
         }
         
     
-        // Ако е зададен енкодинг за текущия фай;
+        // Ако е зададен енкодинг за текущия файл
         if ($conf->WEBKIT_TO_PDF_INPUT_ENCODING) {
             
             // Добавяме в настройките
@@ -194,7 +194,9 @@ class webkittopdf_Converter extends core_Manager
         $exec = ($xvfb) ? "{$xvfb} {$wk}" : $wk;
         
         //Стартираме скрипта за генериране на pdf файл от html файл
-        shell_exec($exec);
+        $res = shell_exec($exec);
+        
+        self::logDebug("Резултат от изпълнението на '{$exec}': " . $res);
         
         //Качвания новосъздадения PDF файл
         $Fileman = cls::get('fileman_Files');
@@ -202,10 +204,14 @@ class webkittopdf_Converter extends core_Manager
         // Ако възникне грешка при качването на файла (липса на права)
         try {
             
+            expect(is_file($pdfPath));
+            
             // Качваме файла в кофата и му вземаме манипулатора
             $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName); 
         } catch (core_exception_Expect $e) {
             $fh = NULL;
+            reportException($e);
+            self::logErr("Грешка при изпълнени на '{$exec}': " . $res);
         }
         
         //Изтриваме временната директория заедно с всички създадени папки
@@ -213,6 +219,18 @@ class webkittopdf_Converter extends core_Manager
         
         //Връщаме манипулатора на файла
         return $fh;
+    }
+    
+    
+    /**
+     * Проверява дали има функция за конвертиране
+     * 
+     * @return boolean
+     */
+    public static function isEnabled()
+    {
+        
+        return (boolean)webkittopdf_Setup::isEnabled();
     }
     
     

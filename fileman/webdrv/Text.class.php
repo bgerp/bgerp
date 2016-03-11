@@ -121,7 +121,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         $params = unserialize($script->params);
 
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($params['fileHnd'], $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($params['fileHnd'], $params)) {
             
             // Отключваме предишния процес
             core_Locks::release($params['lockId']);
@@ -131,6 +131,8 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         
         // Вземаме съдържанието на файла
         $text = fileman_Files::getContent($params['fileHnd']);
+        
+        $text = mb_strcut($text, 0, 1000000);
         
         $text = i18n_Charset::convertToUtf8($text);
         

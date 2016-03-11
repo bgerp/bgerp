@@ -48,7 +48,7 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
-     * Можели да се контира въпреки че има приключени пера в транзакцията
+     * Може ли да се контира въпреки, че има приключени пера в транзакцията
      */
     public $canUseClosedItems = TRUE;
     
@@ -152,6 +152,8 @@ class acc_ClosePeriods extends core_Master
     	$this->FLD("amountVatGroup2", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
     	$this->FLD("amountVatGroup3", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група В,notNull,default=0');
     	$this->FLD("amountVatGroup4", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Г,notNull,default=0');
+    	
+    	$this->FLD("amountKeepBalance", 'double(decimals=2,min=0)', 'caption=Други разходи->Салдо за поддържане,notNull,default=0');
     	
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',

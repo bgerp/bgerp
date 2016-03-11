@@ -12,6 +12,8 @@
  * @license   GPL 3
  * @since     v 0.12
  * @title     Физически лица
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Persons extends core_Master
 {
@@ -38,9 +40,6 @@ class crm_Persons extends core_Master
         
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
-    		
-    	// Интерфейс за източник на производствен ресурс
-    	'planning_ResourceSourceIntf',
     		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
@@ -80,10 +79,10 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export';
     
     
     /**
@@ -92,6 +91,12 @@ class crm_Persons extends core_Master
     var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
 
 
+    /**
+     * Полета за експорт
+     */
+    var $exportableCsvFields = 'name,egn,country,place,email,info,birthday,pCode,place,address,tel,fax,mobile';
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -113,9 +118,9 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    var $searchFields = 'name,egn,country,place,email,info,id';
-
-
+    var $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id';
+    
+    
     /**
      * Кой  може да пише?
      */
@@ -212,7 +217,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=planning_ObjectResources';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
     
     
     /**
@@ -257,14 +262,14 @@ class crm_Persons extends core_Master
 
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent');
-        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData');
+            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv');
+        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
         $this->FLD('buzFax', 'drdata_PhoneType(type=fax)', 'caption=Служебни комуникации->Факс,class=contactData,export=Csv');
         $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData,export=Csv');
-
+        
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
@@ -273,11 +278,11 @@ class crm_Persons extends core_Master
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
 
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
+        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,export=Csv');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\')', 'caption=Групи->Групи,remember,silent');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')', 'caption=Групи->Групи,remember,silent,export=Csv');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -288,7 +293,7 @@ class crm_Persons extends core_Master
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
-     * @param core_Mvc $mvc
+     * @param crm_Persons $mvc
      * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
@@ -301,6 +306,8 @@ class crm_Persons extends core_Master
         
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('users', $default);
+        
+        $options = array();
         
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
@@ -399,8 +406,27 @@ class crm_Persons extends core_Master
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
         }
-     }
+    }
 
+
+    /**
+     * Изпълнява се след подготовката на редовете за листовия изглед
+     */
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if(is_array($data->recs)) {
+            $cnt = array();
+            foreach($data->recs as $rec) {
+                $cnt[str::utf2ascii(trim($rec->name))]++;
+            }
+            foreach($data->recs as $rec) {
+                if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
+                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                }
+            }
+
+        }
+    }
 
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
@@ -592,15 +618,15 @@ class crm_Persons extends core_Master
         $currentId = $mvc->getVerbal($rec, 'id');
 
 
-        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><div class='custom-rowtools'>". $row->id . ' </div>' . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
         if($birthday) {
-            $row->title .= "&nbsp;&nbsp;<div style='display:inline-block'>{$birthday}</div>";
+             
 
             if(strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
@@ -614,11 +640,11 @@ class crm_Persons extends core_Master
                 }
             }
             if($mvc->birthdayFilter){
-            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+                $dateType = tr($dateType);
+            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
             }
         } elseif($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
-            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
 
@@ -675,9 +701,7 @@ class crm_Persons extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->groupList) {
-            $mvc->updateGroupsCnt = TRUE;
-        }
+        $mvc->updateGroupsCnt = TRUE;
 
         $mvc->updatedRecs[$id] = $rec;
 
@@ -685,15 +709,20 @@ class crm_Persons extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
+        
+        if (crm_Profiles::fetch("#personId = {$rec->id}")) {
+            $Profiles = cls::get('crm_Profiles');
+            $Profiles->invoke('AfterMasterSave', array($rec, $mvc));
+        }
     }
     
     
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Persons $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
     static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {
@@ -896,7 +925,9 @@ class crm_Persons extends core_Master
     function updateGroupsCnt()
     {
         $query = $this->getQuery();
-
+        
+        $groupsCnt = array();
+        
         while($rec = $query->fetch()) {
             $keyArr = keylist::toArray($rec->groupList);
 
@@ -1213,8 +1244,8 @@ class crm_Persons extends core_Master
      */
     public static function createRoutingRules($emails, $objectId)
     {
-        // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
-        $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
+        // Приоритетът на всички правила, генериране след запис на визитка е нисък и нарастващ с времето
+        $priority = email_Router::dateToPriority(dt::now(), 'low', 'asc');
 
             // Нормализираме параметъра $emails - да стане масив от имейл адреси
         if (!is_array($emails)) {
@@ -1271,7 +1302,6 @@ class crm_Persons extends core_Master
     /**
      * Връща данните на лицето
      * @param integer $id    - id' то на записа
-     * @param email   $email - Имейл
      *
      * return object
      */
@@ -1280,7 +1310,7 @@ class crm_Persons extends core_Master
         //Вземаме данните
         $person = crm_Persons::fetch($id);
 
-        //Заместваме и връщаме данните
+        // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
@@ -1289,6 +1319,7 @@ class crm_Persons extends core_Master
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
+            $contrData->uicId = $person->egn;
             $contrData->place = $person->place;
             $contrData->email = $person->buzEmail;
             $contrData->tel = $person->buzTel;
@@ -1410,7 +1441,7 @@ class crm_Persons extends core_Master
                 $address = $vcard->getAddress();
 
                 // За сега използваме първия адрес от първия възможен тип:
-                $address = reset(reset($address));
+                $address = reset($address);
 
                 $rec->place    = $address['locality'];
 
@@ -1515,7 +1546,7 @@ class crm_Persons extends core_Master
                 //
                 // {{{ Снимка
                 //
-                if ($photoUrl == $vcard->getPhotoUrl()) {
+                if ($photoUrl = $vcard->getPhotoUrl()) {
                     // @TODO: Как да добавя файл в кофата 'pictures' когато знам URL-то му???
                 }
                 //
@@ -1774,7 +1805,7 @@ class crm_Persons extends core_Master
      * 
      * Връща масив, от който се създава бутона за създаване на входящ документ
      * 
-     * @param fileman_Files $fRec - Обект са данни от модела
+     * @param stdObject $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
      * $arr['class'] - Името на класа
@@ -1893,7 +1924,7 @@ class crm_Persons extends core_Master
             $retUrl = ($data->retUrl) ? $data->retUrl : array('crm_Persons', 'single', $id);
             
             // Редиректваме
-            return Redirect($retUrl);
+            return new Redirect($retUrl);
         }
         
         // Задаваме текущия потребител да е отговорник по подразбиране
@@ -1952,6 +1983,8 @@ class crm_Persons extends core_Master
 //            $form->setDefault('photo', $currVcard['photoUrl'][$photoKey]);    
 //        }
         
+        $phonesStrArr = array();
+        
         // Вземаме всички телефонни номера и ги групираме в масив в зависимост от вида им
         $phonesStrArr['work'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'work');
         $phonesStrArr['voice'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'voice');
@@ -2002,6 +2035,7 @@ class crm_Persons extends core_Master
             unset($addressLabel['work']);
             
             // Създаваме нов масив, където на първо място са домашните
+            $newAddLabel = array();
             $newAddLabel['home'] = $addressLabel['home'];
             $newAddLabel['dom'] = $addressLabel['dom'];
             $newAddLabel += (array)$addressLabel;
@@ -2069,7 +2103,79 @@ class crm_Persons extends core_Master
         return static::renderWrapping($form->renderHtml());
     }
     
-
+    
+    /**
+     * Поправяне на ключовете в документите
+     */
+    function act_RepairKeywords()
+    {
+        requireRole('admin');
+        
+        core_App::setTimeLimit(600);
+        
+        $force = Request::get('force');
+        
+        $rArr = self::regenerateSerchKeywords($force);
+        $cnt = $rArr['crm_Persons'] + $rArr['crm_Companies'];
+        
+        if ($cnt == 0) {
+            $msg = '|Няма ключове за поправяне';
+        } else {
+            
+            if ($cnt == 1) {
+                $msg = "|Поправен|* {$cnt} |запис";
+            } else {
+                $msg = "|Поправени|* {$cnt} |записа";
+            }
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array('core_Packs');
+        }
+        
+        return new Redirect($retUrl, $msg);
+    }
+    
+    
+    /**
+     * Регенерира ключовите думи, ако е необходимо
+     * 
+     * @param boolean $force
+     * @param array $rClassArr
+     * 
+     * @return array
+     */
+    public static function regenerateSerchKeywords($force = FALSE, $rClassArr = array('crm_Persons', 'crm_Companies'))
+    {
+        $resArr = array();
+        
+        $rClassArr = arr::make($rClassArr);
+        
+        foreach ($rClassArr as $class) {
+            $clsInst = cls::get($class);
+            
+            $query = $clsInst->getQuery();
+            $query->show('searchKeywords');
+            $resArr[$class] = 0;
+            while ($rRec = $query->fetch()) {
+                $generatedKeywords = $clsInst->getSearchKeywords($rRec);
+                
+                if (!$force && ($generatedKeywords == $rRec->searchKeywords)) continue;
+                
+                $rRec->searchKeywords = $generatedKeywords;
+                
+                $clsInst->save_($rRec, 'searchKeywords');
+                
+                $resArr[$class]++;
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Подготвяме рожденния ден. Ако няма въведение хубави данни, използваме ЕГН' то
      */
@@ -2103,7 +2209,9 @@ class crm_Persons extends core_Master
             $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
 
             $query = $mvc->getQuery();
-
+            
+            $similars = array();
+            
             while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
                 $similars[$similarRec->id] = $similarRec;
                 $similarName = TRUE;
@@ -2151,11 +2259,10 @@ class crm_Persons extends core_Master
      * Връща папката на фирмата от бизнес имейла, ако имаме достъп до нея
      * 
      * @param email $email - Имейл, за който търсим
-     * @param object $eContragentData - Контрагент данни за потребител
      * 
-     * @return integet $fodlerId - id на папката
+     * @return integer|FALSE $fodlerId - id на папката
      */
-    static function getFolderFromBuzEmail($email, &$pContragentData=NULL)
+    static function getFolderFromBuzEmail($email)
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
@@ -2165,9 +2272,6 @@ class crm_Persons extends core_Master
         
         // Ако има бизнес имейл и асоциирана фирма с потребителя
         if ($companyId = $personRec->buzCompanyId) {
-            
-            // Вземам контрагент данните за потребителя
-            $pContragentData = crm_Persons::getContragentData($personRec->id);
             
             // Вземаме папката на фирмата
             $folderId = crm_Companies::forceCoverAndFolder($companyId);
@@ -2331,7 +2435,7 @@ class crm_Persons extends core_Master
      * в зависимост от дъжавата му
      * 
      * @param int $id - ид на записа
-     * @return string(3) - BGN|EUR|USD за дефолт валутата
+     * @return string - BGN|EUR|USD за дефолт валутата
      */
     public static function getDefaultCurrencyId($id)
     {
@@ -2375,58 +2479,13 @@ class crm_Persons extends core_Master
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
     		if(haveRole('powerUser')){
-    			core_Statuses::newStatus(tr("|Лицето е включено в група |* '{$groupName}'"));
+    			core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
     		}
     		
     		return static::save($rec, 'groupList');
     	}
     	
     	return TRUE;
-    }
-    
-    
-    /**
-     * Можели обекта да се добави като ресурс?
-     *
-     * @param int $id - ид на обекта
-     * @return boolean - TRUE/FALSE
-     */
-    public function canHaveResource($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$groupId = crm_Groups::getIdFromSysId('employees');
-    	
-    	// Само ако е от група "Служители"
-    	if(keylist::isIn($groupId, $rec->groupList)){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-     
-    /**
-     * Връща дефолт информация от източника на ресурса
-     *
-     * @param int $id - ид на обекта
-     * @return stdClass $res  - обект с информация
-     * 		o $res->name      - име
-     * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
-     * 		o $res->type      -  тип на ресурса (material,labor,equipment)
-     */
-    public function getResourceSourceInfo($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	$res = new stdClass();
-    	
-    	// Основната мярка на ресурса е 'час'
-    	$res->measureId = cat_UoM::fetchBySinonim('h')->id; 
-    	
-    	// Типа на ресурса ще е 'труд'
-    	$res->type = 'labor'; 
-    	
-    	return $res;
     }
     
     
@@ -2456,12 +2515,163 @@ class crm_Persons extends core_Master
     		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	if(count($meta)){
-    		foreach ($meta as &$m){
-    			$m = TRUE;
-    		}
+    	return $meta;
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	 
+    	$rec = $this->fetch($id);
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
+    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	
+    	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
+    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    		$res[] = 'findeals_Deals';
     	}
     	
-    	return $meta;
+    	// Ако е в група на клиент, показваме бутона за продажба
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$res[] = 'sales_Sales';
+    	}
+    	 
+    	// Ако е в група на достачик, показваме бутона за покупка
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$res[] = 'purchase_Purchases';
+    	}
+    	 
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
+     * универсален артикул, създаден в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $params - масив с дефолтни параметри И техните стойности
+     * 				<ид_параметър> => <дефолтна_стойност>
+     */
+    public function getDefaultProductParams($id)
+    {
+    	return array();
+    }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Persons $mvc
+     * @param array $fields
+     */
+    public static function on_AfterPrepareImportFields($mvc, &$fields)
+    {
+        crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
+        
+        if ($fields['groupList']) {
+            $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
+        }
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от лицата, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
+            $nRec->buzCompanyId = $rec->buzCompanyId;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * Преди записване на в модела
+     * 
+     * @param crm_Persons $mvc
+     * @param stdObjec $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // id на групите
+        if (isset($rec->buzCompanyId)) {
+            $companyName = trim($rec->buzCompanyId);
+            $rec->buzCompanyId = crm_Companies::fetchField(array("#name = '[#1#]'", $companyName), 'id');
+        }
+        
+        // id на групите
+        if (isset($rec->buzLocationId)) {
+            $locationTitle = trim($rec->buzLocationId);
+            $locationTitle = mb_strtolower($locationTitle);
+            $rec->buzLocationId = crm_Locations::fetchField(array("LOWER(#title) = '[#1#]'", $locationTitle), 'id');
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($egn = trim($rec->egn)) {
+            $query->where(array("#egn = '[#1#]'", $egn));
+        }
+        
+        if ($name = $rec->name) {
+            
+            $query->orWhere(array("#name = '[#1#]'", $name));
+            
+            $or = FALSE;
+            if ($tel = trim($rec->tel)) {
+                $query->where(array("#tel = '[#1#]'", $tel), $or);
+                $or = TRUE;
+            }
+            
+            if ($mobile = trim($rec->mobile)) {
+                $query->where(array("#mobile = '[#1#]'", $mobile), $or);
+            }
+        }
+        
+        $query->orderBy('#egn', 'DESC');
+        $query->orderBy('#tel', 'DESC');
+        $query->orderBy('#mobile', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
     }
 }

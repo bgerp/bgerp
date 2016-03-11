@@ -438,7 +438,7 @@ class fileman_Files extends core_Master
      */
     static function getContent($hnd)
     {
-        Debug::log("fileman_Files::getContent('{$hnd}')");
+        log_System::add(get_called_class(), "fileman_Files::getContent('{$hnd}')");
         //expect($path = fileman_Download::getDownloadUrl($hnd));  
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
@@ -455,7 +455,7 @@ class fileman_Files extends core_Master
         
         if($sRec->state != 'active') return FALSE;
         
-        return $this->setData($fileHnd, $sRec->dataId);
+        return $this->setData($dHnd, $sRec->dataId);
     }
     
     
@@ -574,7 +574,7 @@ class fileman_Files extends core_Master
         $act = $class->getActionForAddFile();
         
         // Други допълнителни данни
-        $bucketId = Request::get('bucketId');
+        $bucketId = Request::get('bucketId', 'int');
         $callback = Request::get('callback');
         
         $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
@@ -753,7 +753,7 @@ class fileman_Files extends core_Master
             self::renameFile($fRec, $form->rec->name, TRUE);
 
             // Редиректваме
-            Redirect($retUrl);
+            return new Redirect($retUrl);
         }
         
         // Задаваме по подразбиране да е текущото име на файла
@@ -1276,7 +1276,8 @@ class fileman_Files extends core_Master
         if (!$rec) {
             
             sleep(2);
-            
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
+
             return FALSE;
         }
         
@@ -1320,7 +1321,8 @@ class fileman_Files extends core_Master
         if(!$fRec) {
             
             sleep(2);
-            
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
+
             return FALSE;
         }
         

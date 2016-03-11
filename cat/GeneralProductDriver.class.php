@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Универсален артикул
@@ -15,12 +15,6 @@
 class cat_GeneralProductDriver extends cat_ProductDriver
 {
 	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationBaseDriver';
-
 
 	/**
 	 * Дефолт мета данни за всички продукти
@@ -29,61 +23,268 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Добавя полетата на вътрешния обект
+	 * Добавя полетата на драйвера към Fieldset
 	 *
-	 * @param core_Fieldset $form
+	 * @param core_Fieldset $fieldset
 	 */
-	public function addEmbeddedFields(core_Fieldset &$form)
+	public function addFields(core_Fieldset &$fieldset)
 	{
 		// Добавя полетата само ако ги няма във формата
-		
-		if(!$form->getField('info', FALSE)){
-			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
+		if(!$fieldset->getField('info', FALSE)){
+			$fieldset->FLD('info', 'richtext(rows=4, bucket=Notes)', "caption=Описание,mandatory");
 		} else {
-			$form->setField('info', 'input');
+			$fieldset->setField('info', 'input');
 		}
 		
-		if(!$form->getField('measureId', FALSE)){
-			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory,formOrder=4");
+		if(!$fieldset->getField('photo', FALSE)){
+			$fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение");
 		} else {
-			$form->setField('measureId', 'input');
+			$fieldset->setField('photo', 'input');
 		}
 		
-		if(!$form->getField('photo', FALSE)){
-			$form->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
+		if(!$fieldset->getField('measureId', FALSE)){
+			$fieldset->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory");
 		} else {
-			$form->setField('photo', 'input');
+			$fieldset->setField('measureId', 'input');
 		}
 	}
 	
 	
 	/**
-	 * Рендира вградения обект
+	 * Преди показване на форма за добавяне/промяна.
 	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
 	 * @param stdClass $data
 	 */
-	public function renderEmbeddedData($data)
+	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
-		if($this->innerState->photo){
-			$size = array(280, 150);
-			$Fancybox = cls::get('fancybox_Fancybox');
-			
-			$attr = array();
-			if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')){
-				$attr['isAbsolute'] = TRUE;
-			}
-			
-			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550), NULL, $attr);
+		$form = &$data->form;
+		$rec = &$form->rec;
+		
+		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
+			$form->setField('photo', 'input=none');
+			$form->setField('info', 'input=none');
+			$measureName = $Driver->getDefaultUom();
+			$form->setDefault('measureId', cat_UoM::fetchBySinonim($measureName)->id);
+			$form->setField('measureId', 'display=hidden');
 		}
 		
+		// Само при добавянето на нов артикул
+		if(empty($rec->id) || $data->action == 'clone'){
+			$refreshFields = array('param');
+			
+			// Имали дефолтни параметри
+			$defaultParams = $Driver->getDefaultParams($rec, $Embedder->getClassId(), $data->action);
+			foreach ($defaultParams as $id => $value){
+				
+				// Всеки дефолтен параметър го добавяме към формата
+				$paramRec = cat_Params::fetch($id);
+				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},categoryParams,before=meta");
+				$form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id));
+				
+				// Ако параметъра има суфикс, добавяме го след полето
+				if(!empty($paramRec->suffix)){
+					$suffix = cat_Params::getVerbal($paramRec, 'suffix');
+					$form->setField("paramcat{$id}", "unit={$suffix}");
+				}
+				
+				// Ако има дефолтна стойност, задаваме и нея
+				if(isset($value)){
+					$form->setDefault("paramcat{$id}", $value);
+				}
+			}
+			
+			$refreshFields = implode('|', $refreshFields);
+			
+			$remFields = $form->getFieldParam($Embedder->driverClassField, 'removeAndRefreshForm') . "|" . $refreshFields;
+			$form->setField($Embedder->driverClassField, "removeAndRefreshForm={$remFields}");
+			
+            $remFields = $form->getFieldParam('proto', 'removeAndRefreshForm') . "|" . $refreshFields;
+			$form->setField('proto', "removeAndRefreshForm={$remFields}");
+        }
+	}
+	
+	
+	/**
+	 * Връща масив с дефолтните параметри за записа
+	 * Ако артикула има прототип взимаме неговите параметри, 
+	 * ако няма тези от корицата му
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	private function getDefaultParams($rec, $classId, $action)
+	{
+		$res = array();
+		
+		// Ориджина е прототипа (ако има)
+		$originRecId = $rec->proto;
+		if(isset($rec->proto)){
+			$classId = cat_Products::getClassId();
+		}
+		
+		// Ако има ордижнин и не клонираме
+		if(isset($rec->originId) && $action != 'clone'){
+			$document = doc_Containers::getDocument($rec->originId);
+			
+			// Ако е запитване
+			if($document->isInstanceOf('marketing_Inquiries2')){
+				$originRecId = $document->that;
+				$classId = $document->getClassId();
+			}
+		}
+		
+		// Ако клонираме артикул
+		if($action == 'clone' && isset($rec->id)){
+			$originRecId = $rec->id;
+		}
+		
+		// Ако има намерен ордижнин
+		if($originRecId){
+			
+			// Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
+			$paramQuery = cat_products_Params::getQuery();
+			$paramQuery->where("#classId = {$classId} AND #productId = {$originRecId}");
+			while($pRec = $paramQuery->fetch()){
+				$res[$pRec->paramId] = $pRec->paramValue;
+			}
+		} else {
+			
+			// Иначе взимаме параметрите от корицата му, ако можем
+			if(isset($rec->folderId)){
+				$cover = doc_Folders::getCover($rec->folderId);
+				if($cover->haveInterface('cat_ProductFolderCoverIntf')){
+					$res = $cover->getDefaultProductParams();
+				}
+			}
+		}
+		
+		// Връщаме намерените параметри (ако има);
+		return $res;	
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param int $id
+	 * @param stdClass $rec
+	 */
+	public static function on_AfterSave(cat_ProductDriver $Driver, embed_Manager $Embedder, &$id, $rec)
+	{
+		$arr = (array)$rec;
+		$classId = $Embedder->getClassId();
+		
+		// За всеко поле от записа 
+		foreach ($arr as $key => $value){
+			
+			// Ако името му съдържа ключова дума
+			if(strpos($key, 'paramcat') !== FALSE){
+				$paramId = substr($key, 8);
+				
+				// Има стойност и е разпознато ид на параметър
+				if(cat_Params::fetch($paramId) && !empty($value)){
+					$dRec = (object)array('productId'  => $rec->id,
+										  'classId'    => $classId,
+										  'paramId'    => $paramId,
+										  'paramValue' => $value);
+					
+					// Записваме продуктовия параметър с въведената стойност
+					if(!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)){
+						$dRec->id = $exRec->id;
+					}
+					
+					cat_products_Params::save($dRec);
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures($productId)
+	{
+		return cat_products_Params::getFeatures('cat_Products', $productId);
+	}
+	
+	
+	/**
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $classId - ид на ембедъра
+	 * @param string $id   - ид на записа
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @return mixed - стойност или FALSE ако няма
+	 */
+	public function getParams($classId, $id, $name = NULL)
+	{
+		if(isset($name)){
+			
+			return cat_products_Params::fetchParamValue($classId, $id, $name);
+		}
+		
+		// Ако не искаме точен параметър връщаме всичките параметри за артикула
+		$foundParams = array();
+		$pQuery = cat_products_Params::getQuery();
+		$pQuery->where("#productId = {$id}");
+		$pQuery->EXT('name', 'cat_Params', 'externalName=name,externalKey=paramId');
+		$pQuery->EXT('suffix', 'cat_Params', 'externalName=suffix,externalKey=paramId');
+		while($pRec = $pQuery->fetch()){
+			if($pRec->suffix){
+				$pRec->name .= "({$pRec->suffix})";
+			}
+			$foundParams[$pRec->name] = $pRec->paramValue;
+		}
+		
+		return $foundParams;
+	}
+	
+	
+	/**
+	 * Подготвя данните за показване на описанието на драйвера
+	 *
+	 * @param stdClass $data
+	 * @return stdClass
+	 */
+	public function prepareProductDescription(&$data)
+	{
+		parent::prepareProductDescription($data);
+		
+		if($data->rec->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+		}
+		
+		$data->masterId = $data->rec->id;
+		$data->masterClassId = $data->Embedder->getClassId();
+		cat_products_Params::prepareParams($data);
+	}
+	
+	
+	/**
+	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET
+	 */
+	public function renderProductDescription($data)
+	{
 		// Ако не е зададен шаблон, взимаме дефолтния
-		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
+		$layout = ($data->isSingle !== TRUE) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
+		$tpl = getTplFromFile($layout);
 		$tpl->placeObject($data->row);
 		
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
-		if(!$this->EmbedderRec->haveInterface('cat_ProductAccRegIntf')){
+		if(!cls::haveInterface('cat_ProductAccRegIntf', $data->Embedder)){
 			$data->noChange = TRUE;
-		} 
+		}
 		
 		// Рендираме параметрите винаги ако сме към артикул или ако има записи
 		if($data->noChange !== TRUE || count($data->params)){
@@ -91,218 +292,52 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$tpl->append($paramTpl, 'PARAMS');
 		}
 		
+		if($data->isSingle !== TRUE){			
+			$wrapTpl = new ET("<!--ET_BEGIN paramBody--><div class='general-product-description'>[#paramBody#][#COMPONENTS#]</div><!--ET_END paramBody-->");
+			if(strlen(trim($tpl->getContent()))){
+				$wrapTpl->append($tpl, 'paramBody');
+			}
+			
+			return $wrapTpl;
+		}
+		
 		return $tpl;
 	}
 	
 	
 	/**
-	 * Подготвя данните необходими за показването на вградения обект
-	 *
-	 * @param core_Form $innerForm
-	 * @param stdClass $innerState
-	 */
-	public function prepareEmbeddedData()
-	{
-		$data = new stdClass();
-		$innerForm = $this->innerForm;
-		$innerState = $this->innerState;
-		
-		$fSet = new core_FieldSet;
-		$this->addEmbeddedFields($fSet);
-		$fields = $fSet->selectFields();
-		
-		$row = new stdClass();
-		foreach ($fields as $name => $fld){
-			$row->{$name} = $fld->type->toVerbal($innerState->{$name});
-		}
-		
-		if($innerState->photo){
-			$size = array(280, 150);
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$row->image = $Fancybox->getImage($innerState->photo, $size, array(550, 550));
-		}
-		
-		$data->row = $row;
-		$data->prepareForPublicDocument = $this->prepareForPublicDocument;
-		$data->masterId = $this->EmbedderRec->rec()->id;
-		$data->masterClassId = $this->EmbedderRec->getClassId();
-		
-		cat_products_Params::prepareParams($data);
-		
-		return $data;
-	}
-	
-	
-	/**
-	 * Връща информацията за продукта от драйвера
+	 * Добавя ключови думи за пълнотекстово търсене
 	 * 
-	 * @param stdClass $innerState
-	 * @param int $packagingId
-	 * @return stdClass $res
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $res
+	 * @param stdClass $rec
 	 */
-	public function getProductInfo($packagingId = NULL)
-	{
-		$innerState = $this->innerState;
-		$res = new stdClass();
-		$res->productRec = new stdClass();
-		
-		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
-		$res->productRec->info = $innerState->info;
-		$res->productRec->measureId = $innerState->measureId;
-		
-		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
-		
-		return $res;
-	}
-	
-	
-	/**
-	 * Кои опаковки поддържа продукта
-	 */
-	public function getPacks()
-	{
-		return $options = array('' => cat_UoM::getTitleById($this->innerState->measureId));
-	}
-	
-	
-	/**
-	 * Връща счетоводните свойства на обекта
-	 */
-	public function getFeatures()
-	{
-		return cat_products_Params::getFeatures($this->EmbedderRec->getClassId(), $this->EmbedderRec->rec()->id);
-	}
-	
-	
-	/**
-	 * Кои документи са използвани в полетата на драйвера
-	 */
-	public function getUsedDocs()
-	{
-		// Мъчим се да извлечем използваните документи от описанието (ако има такива)
-		return doc_RichTextPlg::getAttachedDocs($this->innerState->info);
-	}
-	
-	
-	/**
-	 * Променя ключовите думи от мениджъра
-	 */
-	public function alterSearchKeywords(&$searchKeywords)
+	public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
 	{
 		$RichText = cls::get('type_Richtext');
-		$info = strip_tags($RichText->toVerbal($this->innerForm->info));
-		$searchKeywords .= " " . plg_Search::normalizeText($info);
+		$info = strip_tags($RichText->toVerbal($rec->info));
+		$res .= " " . plg_Search::normalizeText($info);
 	}
 	
 	
 	/**
-	 * Подготвя формата за въвеждане на данни за вътрешния обект
+	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @param core_Form $form
+	 * @param int $measureId - мярка
+	 * @return int - ид на мярката
 	 */
-	public function prepareEmbeddedForm(core_Form &$form)
+	public function getDefaultUom($measureName = NULL)
 	{
-		if($this->EmbedderRec->haveInterface('marketing_InquiryEmbedderIntf')){
-			$form->setField('photo', 'input=none');
-			$form->setDefault('measureId', $this->getDriverUom());
-			$form->setField('measureId', 'display=hidden');
-		}
-		
-		if(isset($form->rec->folderId)){
-			$Cover = doc_Folders::getCover($form->rec->folderId);
+		if(!isset($measureName)){
+			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
+			$measureName = cat_UoM::getShortName($defMeasure);
 			
-			// Ако корицата е категория и има позволени мерки, оставяме само тях
-			if($Cover->getInstance() instanceof cat_Categories){
-				$arr = keylist::toArray($Cover->fetchField('measures'));
-				if(count($arr)){
-					$options = array();
-					foreach ($arr as $mId){
-						$options[$mId] = cat_UoM::getTitleById($mId);
-					}
-					$form->setOptions('measureId', $options);
-				}
-			}
+			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
+			return $measureName;
 		}
-		
-		// Викаме метода на бащата
-		parent::prepareEmbeddedForm($form);
-	}
 	
-	
-	/**
-	 * Изображението на артикула
-	 */
-	public function getProductImage()
-	{
-		return $this->innerState->photo;
-	}
-	
-	
-	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
-	 */
-	public function getParams()
-	{
-		$res = array();
-		$embedderRec = $this->EmbedderRec->rec()->id;
-		$embedderClassId = $this->EmbedderRec->getClassId();
-		
-		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-			
-			$res[$p] = cat_products_Params::fetchParamValue($embedderRec, $embedderClassId, $p);
-		}
-		
-		return $res;
-	}
-	
-	
-	/**
-	 * Подготвя данните за показване на описанието на драйвера
-	 * 
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 */
-	public function prepareProductDescription($documentType = 'public')
-	{
-		if($documentType == 'public'){
-			$this->prepareForPublicDocument = TRUE;
-		}
-		$data = $this->prepareEmbeddedData();
-		unset($this->prepareForPublicDocument);
-		$data->noChange = TRUE;
-		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
-		
-		return $data;
-	}
-	
-	
-	/**
-	 * Рендира данните за показване на артикула
-	 */
-	public function renderProductDescription($data)
-	{
-		$tpl = $this->renderEmbeddedData($data);
-		
-		$title = $this->EmbedderRec->getShortHyperlink();
-		$tpl->replace($title, "TITLE");
-		
-		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-		
-		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-		$wrapTpl->append($tpl, 'paramBody');
-		
-		return $wrapTpl;
+		return $measureName;
 	}
 }

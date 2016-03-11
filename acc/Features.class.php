@@ -26,7 +26,7 @@ class acc_Features extends core_Manager
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'acc_WrapperSettings, plg_State2, plg_Search,
-                     plg_Created, plg_Sorting, plg_ExportCsv';
+                     plg_Created, plg_Sorting';
     
     
     /**
@@ -345,7 +345,10 @@ class acc_Features extends core_Manager
     	// Синхронизира всички свойства на перата
     	$this->syncAllItems();
     	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logWrite("Синхронизиране на счетоводните свойства");
+    	
     	// Редирект към списъка на свойствата
-    	return Redirect(array($this, 'list'), FALSE, tr('Всички свойства са синхронизирани успешно'));
+    	return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
     }
 }

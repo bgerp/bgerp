@@ -27,7 +27,7 @@ class acc_Journal extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing, plg_Search,
-                     acc_Wrapper, plg_Sorting';
+                     acc_Wrapper, plg_Sorting, bgerp_plg_Blank';
     
     
     /**
@@ -115,9 +115,9 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Кеш на афектираните пера
+     * Кои полета да се извличат при изтриване
      */
-    protected $updated = array();
+    var $fetchFieldsBeforeDelete = 'id';
     
     
     /**
@@ -227,6 +227,7 @@ class acc_Journal extends core_Master
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item){
                     if(isset($dRec->$item)){
                         $mvc->affectedItems[$dRec->$item] = $dRec->$item;
+                        acc_Items::updateEarliestUsedOn($dRec->$item, $rec->valior);
                     }
                 }
             }
@@ -306,8 +307,11 @@ class acc_Journal extends core_Master
         // Контиране на документа
         $mvc->conto($docId);
         
+        // Записваме, че потребителя е разглеждал този списък
+        $mvc->logWrite("Контиране на документ", $docId);
+        
         // Редирект към сингъла
-        return redirect(array($mvc, 'single', $docId));
+        return new Redirect(array($mvc, 'single', $docId));
     }
     
     
@@ -341,6 +345,9 @@ class acc_Journal extends core_Master
         
         list($docClassId, $docId) = $result;
         
+        // Записваме, че потребителя е разглеждал този списък
+        $mvc->logWrite("Сторниране на документ", $docId);
+        
         return new Redirect(array($docClassId, 'single', $docId));
     }
     
@@ -361,7 +368,6 @@ class acc_Journal extends core_Master
         $docRec   = $mvc->fetchRec($docId);
         
         try {
-        	
         	Mode::push("saveTransaction", TRUE);
             $transaction = $mvc->getValidatedTransaction($docRec);
             Mode::pop("saveTransaction");
@@ -379,6 +385,9 @@ class acc_Journal extends core_Master
         	if($notifyDocument === TRUE){
         		$docClass->finalizeTransaction($docRec);
         	}
+        	
+        	// Нотифицираме документа че транзакцията му е записана
+        	$mvc->invoke('AfterTransactionIsSaved', array($docRec));
         }
         
         return $success;
@@ -428,11 +437,17 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Връща записа отговарящ на даден документ
+     * Връща записа в журнала породен от подадения документ
+     * 
+     * @param mixed $doc - документа
+     * @param int $docId - ид на документа
+     * @return stdClass|FALSE - намерения запис
      */
-    public static function fetchByDoc($docClassId, $docId)
+    public static function fetchByDoc($doc, $docId)
     {
-        return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+    	$docClassId = cls::get($doc)->getClassId();
+    	
+    	return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
     }
     
     
@@ -455,7 +470,26 @@ class acc_Journal extends core_Master
     		acc_Balances::alternate($rec->valior);
     	}
     	
+    	// Нотифицираме документа че транзакцията му е записана
+    	$DocClass = cls::get($docClassId);
+    	$DocClass->invoke('AfterTransactionIsDeleted', array($DocClass->fetchRec($docId)));
+    	
     	return array($docClassId, $docId);
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		
+    		// Ако вече са заопашени ид-та за обновяване, махаме ги от опашката след като са изтрити
+    		if(isset($mvc->updateQueue[$id])){
+    			unset($mvc->updateQueue[$id]);
+    		}
+    	}
     }
     
     
@@ -519,7 +553,7 @@ class acc_Journal extends core_Master
                 acc_Journal::delete("#id = {$rec->id}");
                 
                 // Логваме в журнала
-                acc_Articles::log("Изтрит ред '{$rec->id}' от журнала На документ {$document->className}:{$rec->docId}");
+                self::logWrite("Изтрит ред от журнала на документ", $rec->id);
             }
         }
     }
@@ -551,8 +585,13 @@ class acc_Journal extends core_Master
         // Извличаме ид-та на журналите, имащи ред с участник това перо
         expect($itemRec = acc_Items::fetchRec($item));
         $jQuery = acc_JournalDetails::getQuery();
-        
+
         acc_JournalDetails::filterQuery($jQuery, NULL, NULL, NULL, $itemRec->id);
+        
+        // Искаме вальора да е след първия ден от периода, в който е датата на създаване на перото за което търсим
+        $fromDate = dt::mysql2verbal($itemRec->earliestUsedOn, 'Y-m-01');
+        $fromDate = dt::verbal2mysql($fromDate, FALSE);
+        $jQuery->where("#valior >= '{$fromDate}'");
         
         if($showAllRecs === FALSE) return $jQuery->fetchAll();
         
@@ -562,6 +601,8 @@ class acc_Journal extends core_Master
         while($jRec = $jQuery->fetch()){
             $jIds[$jRec->journalId] = $jRec->journalId;
         }
+        
+        $now = dt::now();
         
         // Извличаме всички транзакции на намерените журнали
         $jQuery = acc_JournalDetails::getQuery();
@@ -597,33 +638,20 @@ class acc_Journal extends core_Master
                 acc_Items::notifyObject($rec);
             }
         }
-        
-        // Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
-        if(count($mvc->updated)){
-        	
-        	// Увеличаваме времето за изпълнение спрямо броя променените записи
-        	$timeLimit = count($mvc->updated) * 15;
-        	core_App::setTimeLimit($timeLimit);
-        	
-            foreach ($mvc->updated as $journalId){
-                $rec = $mvc->fetchRec($journalId);
-                $mvc->updateMaster($rec);
-                
-                // Нотифицираме документа породил записа в журнала че журнала му е променен
-                if(cls::load($rec->docType, TRUE)){
-                    cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
-                }
-            }
-        }
     }
     
     
     /**
-     * Обновява данните на журнала след промяна в детайлите
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    private function updateMaster($id)
+    public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
+        if(!$rec) return;
+        
         $rec->totalAmount = 0;
         
         $dQuery = acc_JournalDetails::getQuery();
@@ -634,19 +662,14 @@ class acc_Journal extends core_Master
             $rec->totalAmount += $dRec->amount;
         }
         
-        $this->save_($rec, 'totalAmount');
-    }
-    
-    
-    /**
-     * Поддържа точна информацията за записите в детайла
-     */
-    public static function on_AfterUpdateDetail($mvc, $id, $Detail)
-    {
-        // Ако има промяна в детайлите, маркираме журнала че е променен
-        if(!empty($id)){
-            $mvc->updated[$id] = $id;
+        $id = $this->save_($rec, 'totalAmount');
+        
+        // Нотифицираме документа породил записа в журнала, че журнала му е променен
+        if(cls::load($rec->docType, TRUE)){
+        	cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
         }
+        
+        return $id;
     }
     
     
@@ -663,7 +686,7 @@ class acc_Journal extends core_Master
     private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
     {
     	// Дигаме времето за изпълнение на скрипта
-    	set_time_limit(1100);
+    	core_App::setTimeLimit(1500);
     	
     	// Филтрираме записите в журнала по подадените параметри
     	$to = (!$to) ? dt::today() : $to;
@@ -755,11 +778,13 @@ class acc_Journal extends core_Master
     		
     		if(!$form->gotErrors()){
     			$accounts = keylist::toArray($rec->accounts);
-    			$types = arr::make($rec->types, TRUE);
+    			$types = type_Keylist::toArray($rec->types);
     			foreach ($accounts as $id => $accId){
     				$accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
     			}
     			$res = $this->reconto($accounts, $rec->from, $rec->to, $types);
+    			
+    			$this->logWrite("Реконтиране на документ", $rec->id);
     			
     			return followRetUrl(NULL, tr("|Реконтирани са|* {$res} |документа|*"));
     		}
@@ -770,6 +795,75 @@ class acc_Journal extends core_Master
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
     	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logRead("Разглеждане на реконтиране на документ", $form->rec->id);
+    	
     	return $tpl;
+    }
+    
+    
+	/**
+     * Връща сумите от журнала за посочената кореспонденция
+     * 
+     * @param date $from          - начална дата
+     * @param date $to            - крайна дата
+     * @param string $debitSysId  - систем ид на сметка в дебита
+     * @param string $creditSysId - систем ид на сметка в кредита
+     * @param array $items        - масив със стойности на пера с ключове на коя позиция се намират (debitItem1, debitItem2 ... creditItem1 ....)
+     * 
+     * @return stdClass $res - масив с сумарните стойностти
+     * 					->debitQuantity  - Обща сума на дебитното к-во
+     * 					->creditQuantity - Обща сума на кредитното к-во
+     * 					->amount         - Обща сума
+     */
+    public static function getJournalSums($from, $to, $debitSysId = NULL, $creditSysId = NULL, $items = array())
+    {
+    	// Подготвяме заявката
+    	$dQuery = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($dQuery, $from, $to);
+    	
+    	if($debitSysId){
+    		expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка със систем ид {$debitAccId}");
+    		$dQuery->where("#debitAccId = {$debitAccId}");
+    	}
+    	
+    	if($creditSysId){
+    		expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка със систем ид {$creditSysId}");
+    		$dQuery->where("#creditAccId = {$creditAccId}");
+    	}
+    	
+    	// Задаваме да се извлекат сумираните стойностти на някои полета
+    	$dQuery->XPR('sumDebitQuantity', 'double', "ROUND(SUM(#debitQuantity), 2)");
+    	$dQuery->XPR('sumCreditQuantity', 'double', "ROUND(SUM(#creditQuantity), 2)");
+    	$dQuery->XPR('sumAmount', 'double', "ROUND(SUM(#amount), 2)");
+    	
+    	// Ако има зададени пера, допълваме ограниченията на заявката
+    	$itemsArr = arr::make($items, TRUE);
+    	if(count($itemsArr)){
+    		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $el){
+    			if(isset($itemsArr[$el])){
+    				$dQuery->where("#{$el} = {$itemsArr[$el]}");
+    			}
+    		}
+    	}
+    	
+    	$dRec = $dQuery->fetch();
+    	
+    	$res = new stdClass();
+    	$res->debitQuantity  = $dRec->sumDebitQuantity;
+    	$res->creditQuantity = $dRec->sumCreditQuantity;
+    	$res->amount         = $dRec->sumAmount;
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * След подготовка на полетата
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	$baseCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['totalAmount'] .= "|* ({$baseCode})";
     }
 }

@@ -61,7 +61,7 @@ class cash_Cases extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State';
+    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
@@ -264,10 +264,12 @@ class cash_Cases extends core_Master {
 		$data->listFilter->showFields .= ',case';
 		$data->listFilter->setDefault('case', static::getCurrent('id', FALSE));
 		$data->listFilter->input();
+		
 		if($filter = $data->listFilter->rec) {
 			if($filter->case) {
-				foreach($fields as $fld){
-					$data->query->where("#{$fld} = {$filter->case}");
+				foreach($fields as $i => $fld){
+					$or = ($i === 0) ? FALSE : TRUE;
+					$data->query->where("#{$fld} = {$filter->case}", $or);
 				}
 			}
 		}
@@ -295,7 +297,7 @@ class cash_Cases extends core_Master {
     	$currencyId = acc_Periods::getBaseCurrencyCode();
     	$state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
     	$colspan = count($data->listFields) - 1;
-    	$lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b>  <span class='cCode'>{$currencyId}</span></td><td>&nbsp;</td></tr>");
+    	$lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<span class='cCode'>{$currencyId}</span> <b>[#total#]</b> </td><td>&nbsp;</td></tr>");
     	$lastRow->replace(tr("Общо"), 'caption');
     	$lastRow->replace($total, 'total');
     	

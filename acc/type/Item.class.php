@@ -15,6 +15,8 @@
  */
 class acc_type_Item extends type_Key
 {
+    
+    
     /**
      * Параметър определящ максималната широчина на полето
      */
@@ -109,6 +111,30 @@ class acc_type_Item extends type_Key
     
     
     /**
+     * Връща възможните стойности за ключа
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    function getAllowedKeyVal($id, $listId = NULL)
+    {
+        $inst = cls::get($this->params['mvc']);
+        
+        $rec = $inst->fetch($id);
+        $listArr = type_Keylist::toArray($rec->lists);
+        
+        $resArr = array();
+        
+        foreach ($listArr as $listId) {
+            $resArr[] = $id . '.' . $listId;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Рендира HTML инпут поле
      */
     function renderInput_($name, $value = "", &$attr = array())
@@ -145,6 +171,22 @@ class acc_type_Item extends type_Key
         }
         
         return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        // Позволените са латински цифри и .
+        $key = preg_replace('/[^0-9\.]/i', '', $key);
+        
+        return $key;
     }
     
     

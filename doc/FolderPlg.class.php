@@ -45,10 +45,12 @@ class doc_FolderPlg extends core_Plugin
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
 		setIfNot($mvc->canCreatenewfolder, 'powerUser');
+		setIfNot($mvc->canViewlogact, 'powerUser');
 		
         $mvc->details = arr::make($mvc->details);
 
         $mvc->details['Rights'] = $mvc->className;
+        $mvc->details['History'] = $mvc->className;
     }
     
     
@@ -69,6 +71,39 @@ class doc_FolderPlg extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
+    }
+    
+    
+    /**
+     * След подготовка на таба със правата
+     */
+    public static function on_AfterPrepareHistory($mvc, $res, $data)
+    {
+        $data->TabCaption = 'История';
+    }
+
+    
+    /**
+     * След рендиране на таба със правата
+     */
+    public static function on_AfterRenderHistory($mvc, &$tpl, $data)
+    {
+        if (($data->masterData->ActionLog) && ($data->masterData->ActionLog->rows)) {
+            $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
+            
+            $logBlockTpl = $tpl->getBlock('log');
+            
+            foreach ((array)$data->masterData->ActionLog->rows as $rows) {
+                $logBlockTpl->placeObject($rows);
+                $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                $logBlockTpl->append2Master();
+            }
+            
+            $tpl->append($data->masterData->ActionLog->pager->getHtml(), 'pager');
+            $tpl->append($data->masterData->ActionLog->actionLogLink, 'actionLogLink');
+        } else {
+            $data->masterData->History->disabled = TRUE;
+        }
     }
 
     
@@ -122,11 +157,10 @@ class doc_FolderPlg extends core_Plugin
             	$data->toolbar->addBtn('Папка' . $openThreads,
             			array('doc_Threads', 'list',
             					'folderId' => $data->rec->folderId),
-            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
+            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png'));
             }
-            
         } else {
-        	if($mvc->haveRightFor('createnewfolder', $data->rec)){//bp();
+        	if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -134,7 +168,59 @@ class doc_FolderPlg extends core_Plugin
         	}
         }
     }
-
+    
+    
+    /**
+     * Подготовка за рендиране на единичния изглед
+     * 
+     * @param core_Master $mvc
+     * @param object $res
+     * @param object $data
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        // Рендираме екшън лога на потребителя
+        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+            
+            $data->HaveRightForLog = TRUE;
+            
+            $data->ActionLog = new stdClass();
+            
+            $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
+            
+            $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
+            
+            $data->ActionLog->recs = log_Data::getRecs($mvc, $data->rec->id, $data->ActionLog->pager);
+            $data->ActionLog->rows = log_Data::getRows($data->ActionLog->recs, array('userId', 'actTime', 'actionCrc', 'ROW_ATTR'));
+            
+            // Ако има роля admin
+            if (log_Data::haveRightFor('list')) {
+                
+                $attr = array();
+                $attr['class'] = 'linkWithIcon';
+		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+		        $attr['title'] = tr('Екшън лог на потребителя');
+                
+                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
+                
+                $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     * 
+     * @param core_Master $mvc
+     * @param core_ET $tpl
+     * @param object $data
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
+    }
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -169,10 +255,12 @@ class doc_FolderPlg extends core_Plugin
             // забраняваме достъпа
             if (!doc_Folders::haveRightToObject($rec, $userId)) {
                 
-                if($requiredRoles != 'no_one'){
+                if($requiredRoles != 'no_one' && $rec->access == 'team'){
                 	
                 	// Ако има зададени мастър роли за достъп
             		$requiredRoles = $mvc->coverMasterRoles ? $mvc->coverMasterRoles : 'no_one';
+            	} else {
+            		$requiredRoles = 'no_one';
             	}
             }
 
@@ -192,6 +280,12 @@ class doc_FolderPlg extends core_Plugin
         	} elseif($rec->state == 'rejected'){
         		$requiredRoles = 'no_one';
         	}
+        }
+        
+        if (($action == 'viewlogact') && $rec) {
+            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -215,18 +309,16 @@ class doc_FolderPlg extends core_Plugin
             }
         }
     }
-
-
+    
+    
     /**
      * Предпазва от листване скритите папки
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
-    { 
-        if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
-            $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");
-        }
+    {
+        $mvc->restrictAccess($data->query);
     }
-
+    
     
     /**
      * Дефолт имплементация на метод, която форсира създаването на обект - корица
@@ -312,7 +404,7 @@ class doc_FolderPlg extends core_Plugin
         $rec->folderId = $mvc->forceCoverAndFolder($rec);
  
         if(doc_Folders::haveRightFor('single', $rec->folderId)){
-        	$res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId), 'Папката е създадена успешно');
+        	$res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId), '|Папката е създадена успешно');
         } else {
         	$res = new Redirect(array($mvc, 'single', $rec->id));
         }
@@ -435,15 +527,20 @@ class doc_FolderPlg extends core_Plugin
             $folderTitle = $mvc->getFolderTitle($rec->id);
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
-                    $row->folder = ht::createLink('',
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
+
+                    $row->{$fField} = ht::createLink('',
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
-                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
+                            NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn', 'order' => 19));
                 }
             } else {
-                if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
-                    $row->{$fField} = ht::createLink('', array($mvc, 'createFolder', $rec->id),  "Наистина ли желаете да създадетe папка за документи към  \"{$folderTitle}\"?",
-                    array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn'));
-                }
+            	if($mvc->hasPlugin('plg_RowTools2')){
+            		if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
+            			core_RowToolbar::createIfNotExists($row->_rowTools);
+            			$row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадетe папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
+            		}
+            	}
             }
         }
 
@@ -454,7 +551,7 @@ class doc_FolderPlg extends core_Plugin
      * Вариант на doc_Folders::restrictAccess, който ограничава достъпа до записи, които
      * могат да са корици на папка, но не е задължително да имат създадена папка
      */
-    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $fullAccess=TRUE)
+    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $viewAccess=TRUE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -481,39 +578,56 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $conditions = array(
-            "#shared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
-            "#inCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
+            "LOCATE('|{$userId}|', #folderShared) ", // Всеки има достъп до споделените с него папки
+            "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
         );
         
         // Всеки (освен конракторите) имат достъп до публичните папки
         if (!core_Users::isContractor()) {
-            $conditions[] = "#access = 'public'";
+            $conditions[] = "#folderAccess = 'public'";
+            
+            if ($viewAccess) {
+                $conditions[] = "#folderAccess = 'team'";
+                $conditions[] = "#folderAccess = 'private'";
+            }
         }
         
         if ($teammates) {
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник
-            $conditions[] = "#access = 'team' AND #inCharge IN ({$teammates})";
+            $conditions[] = "#folderAccess = 'team' AND #folderInCharge IN ({$teammates})";
         }
         
         switch (true) {
             case core_Users::haveRole('ceo') :
                 // CEO вижда всичко с изключение на private и secret папките на другите CEO
                 if ($ceos) {
-                    $conditions[] = "#inCharge NOT IN ({$ceos})";
+                    $conditions[] = "#folderInCharge NOT IN ({$ceos})";
                 }
                 
                 // CEO да може да вижда private папките на друг `ceo`
-                if ($fullAccess) {
-                    $conditions[] = "#access != 'secret'";
+                if ($viewAccess) {
+                    $conditions[] = "#folderAccess != 'secret'";
                 }
                 
             break;
             case core_Users::haveRole('manager') :
                 // Manager вижда private папките на подчинените в екипите си
                 if ($subordinates) {
-                    $conditions[] = "#access = 'private' AND #inCharge IN ({$subordinates})";
+                    $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
                 }
             break;
+        }
+        
+        if (!$query->fields['folderAccess']) {
+            $query->XPR('folderAccess', 'varchar', '#access');
+        }
+        
+        if (!$query->fields['folderInCharge']) {
+            $query->XPR('folderInCharge', 'varchar', '#inCharge');
+        }
+        
+        if (!$query->fields['folderShared']) {
+            $query->XPR('folderShared', 'varchar', '#shared');
         }
         
         $query->where(core_Query::buildConditions($conditions, 'OR'));
@@ -571,9 +685,9 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = &$form->rec;
+        
         if ($form->isSubmitted()) {
-            
-            $rec = &$form->rec;
             
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array)$mvc->fields as $name=>$field) {
@@ -606,6 +720,55 @@ class doc_FolderPlg extends core_Plugin
             	$form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
             }
         }
+        
+        if ($form->isSubmitted()) {
+            
+            // При променя на споделените потребители прави или чисти нотификацията
+            if ($rec->id) {
+                $oRec = $mvc->fetch($form->rec->id);
+                
+                $sArr = type_Keylist::getDiffArr($oRec->shared, $rec->shared);
+                
+                $currUserNick = core_Users::getCurrent('nick');
+                $currUserNick = type_Nick::normalize($currUserNick);
+                
+        		if(doc_Folders::haveRightToObject($rec) && ($mvc instanceof core_Master)) {
+        			$url = array($mvc, 'single', $rec->id);
+        		} else {
+        			$url = array($mvc, 'list');
+        		}
+                
+        		$folderTitle = $mvc->getFolderTitle($rec->id);
+        		
+        		$notifyArr = $sArr['add'];
+        		$delNotifyArr = $sArr['delete'];
+        		
+        		if ($rec->inCharge != $oRec->inCharge) {
+        		    $notifyArr[$rec->inCharge] = $rec->inCharge;
+        		    $delNotifyArr[$oRec->inCharge] = $oRec->inCharge;
+        		}
+        		
+                if ($notifyArr) {
+                    foreach ($notifyArr as $notifyUserId) {
+                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                        bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
+                    }
+                } else if ($delNotifyArr) {
+                    foreach ($delNotifyArr as $clearUser) {
+                        bgerp_Notifications::setHidden($url, 'yes', $clearUser);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        bgerp_Notifications::clear(array($mvc, 'list'));
     }
     
     
@@ -626,5 +789,36 @@ class doc_FolderPlg extends core_Plugin
     			$data->retUrl = toUrl(array($mvc, 'list'));
     		}
     	}
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     */
+    public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		
+    		// Ако има зададени такива тях, иначе никои
+    		if(isset($mvc->defaultDefaultDocuments)){
+    			$res = arr::make($mvc->defaultDefaultDocuments);
+    		} else {
+    			$res = array();
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Филтрираме заявката преди експорт
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Query $query
+     */
+    static function on_AfterPrepareExportQuery($mvc, $query)
+    {
+        if (!Request::get('Rejected')) {
+            $query->where("#state != 'rejected'");
+        }
     }
 }

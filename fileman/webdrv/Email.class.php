@@ -58,9 +58,8 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $htmlPartUrl = static::getHtmlPart($mime);
         
         // Вземаме хедърите
-        $headersStr = static::getHeaders($mime);
-        $headersStr = type_Varchar::escape($headersStr);
-        
+        $headersStr = $mime->getHeadersVerbal();
+       
         // Добавяме стилове
         $headersStr = "<div class='email-source-holder'><div class='email-source'>{$headersStr}</div><div>";
         
@@ -196,22 +195,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $htmlFileHnd = fileman_Files::fetchField($htmlFile, 'fileHnd');
         
         return fileman_Download::getDownloadUrl($htmlFileHnd);
-    }
-    
-    
-    /**
-     * Връща хедърите на имейла
-     * 
-     * @param email_Mime $mimeInst - Инстанция към класа
-     * @param object $parseHeaders - Дали да се парсират хедърите
-     * 
-     * return array $headersArr - Масив с хедърите
-     */
-    static function getHeaders($mimeInst, $parseHeaders=FALSE)
-    {
-        $headersStr = $mimeInst->getHeadersStr();
-        
-        return $headersStr;
     }
     
     

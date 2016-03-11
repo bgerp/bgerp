@@ -77,21 +77,15 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     * 
      */
-    var $rowToolsSingleField = 'id';
+    var $listFields = 'type, placeHolder, formatParams';
     
     
     /**
      * 
      */
-    var $listFields = 'placeHolder, type, formatParams';
-    
-    
-    /**
-     * 
-     */
-    var $rowToolsField = 'placeHolder';
+    var $rowToolsField = 'type';
     
     
     /**
@@ -588,11 +582,16 @@ class label_TemplateFormats extends core_Detail
             // Ако има шаблон за субституиране с брояч
             if (label_Counters::haveCounterPlace($formatVal)) {
                 
-                // Очакваме да има избран брояч
-                expect($rec->formatParams['CounterId'], 'Не е избран брояч');
-                
-                // Заместваме брояча
-                $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId, $updateTempData);
+                if ($rec->formatParams['CounterId']) {
+                    // Заместваме брояча
+                    $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId, $updateTempData);
+                } else {
+                    $formatVal = str_replace(label_Counters::$counterPlace, $val, $formatVal);
+                }
+            } else {
+                if (!strlen($formatVal) && isset($val)) {
+                    $formatVal = $val;
+                }
             }
             
             // Типа на баркода
@@ -675,7 +674,7 @@ class label_TemplateFormats extends core_Detail
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Масив с шаблоните
-        static $fieldsArr=array();
+        static $fieldsArr = array();
         
         // Ако не е сетнат за този шаблон
         if(!$fieldsArr[$rec->type]) {
@@ -737,6 +736,8 @@ class label_TemplateFormats extends core_Detail
         
         // Ако не се съдържа в шаблона
         if (!$placesArr[$rec->placeHolder]) {
+            
+            $row->placeHolder = ht::createHint($row->placeHolder, 'Плейсхолдера липсва в шаблона', 'error');
             
             // Добавяме клас за грешка
             $row->ROW_ATTR['class'] .= ' row-error';

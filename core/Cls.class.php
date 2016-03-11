@@ -182,7 +182,7 @@ class core_Cls
                 core_Cls::$singletons[$class] = new stdClass();
                 core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
                 
-                // Ако класа е наследник на core_BaseClass предизвикваме събитие че е бил инстанциран
+                // Ако класа е наследник на core_BaseClass предизвикваме събитие, че е бил инстанциран
                 if(core_Cls::$singletons[$class] instanceof core_BaseClass){
                 	core_Cls::$singletons[$class]->invoke('AfterInstance');
                 }
@@ -373,7 +373,7 @@ class core_Cls
         foreach($lines as $l) {
             $l = ltrim($l, "\n* \r\t");
             
-            if(!$firstLine && $l) {
+            if(!isset($firstLine) && $l) {
                 $firstLine = $l;
             }
             
@@ -382,7 +382,7 @@ class core_Cls
             }
         }
         
-        if($titleLine) return $titleLine;
+        if(isset($titleLine)) return $titleLine;
         
         $obj = cls::get($class);
         

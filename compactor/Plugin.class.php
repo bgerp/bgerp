@@ -52,7 +52,7 @@ class compactor_Plugin extends core_Plugin
     {   
         $filesArr = arr::make($filesArr, TRUE);
         $configFilesArr = arr::make($configFilesArr, TRUE);
- 
+        
         // Не правим нищо, ако конфигурационните файлове и текущите нямат сечение
         if(!count(array_intersect_key($filesArr, $configFilesArr))) return;
         
@@ -66,10 +66,18 @@ class compactor_Plugin extends core_Plugin
         $content = '';
 
         foreach($configFilesArr as $file) {
+            
+            // Ако достигне до тук без да са заместени плейсхолдерите
+            // Може да се стигне до тук ако е закачен плъгина, но не е инсталиран пакета
+            if ((strpos($file, '[#') !== FALSE) && (strpos($file, '#]') !== FALSE)) {
+                $file = compactor_Setup::preparePacksPath('compactor', $file);
+            }
+            
             sbf($file);
             $sbfFilePath = core_Sbf::getSbfFilePath($file);
             if(!file_exists($sbfFilePath)) {
                 sleep(1);
+                Debug::log('Sleep 1 sec. in' . __CLASS__);
             }
             $times .= @filemtime($sbfFilePath);
             if(isset($filesArr[$file])) {
@@ -122,11 +130,11 @@ class compactor_Plugin extends core_Plugin
         
         // Заместваме локалните линкове към файловете с абсолютни
         $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
-       //  bp($textChanged);
+        
 	    if (!$textChanged && $text) {
-	        core_Logs::add(get_called_class(), NULL, "Грешка при извикване на регулярен израз: " . preg_last_error());
+	        log_System::add('compactor_Plugin', "Грешка при извикване на регулярен израз: " . preg_last_error(), NULL, 'err');
 	    }
-	   
+        
 	    return $textChanged;
 	}
 	

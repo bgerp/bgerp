@@ -1,4 +1,4 @@
-<div style="display: block;">
+<div class='singleView'>
 [#SingleToolbar#]
     <div class='scrolling-holder'>
 	    <div class="user-profile">
@@ -12,18 +12,45 @@
 	        <!--ET_BEGIN userInfo-->
 	        [#userInfo#]
 	        <!--ET_END userInfo-->
+	        
 	        <div style="clear:both;"></div>
+	        
+            <!--ET_BEGIN colabFolders-->
+            <fieldset class="detail-info">
+	             <legend class="groupTitle">
+	                 |Достъпни папки|*
+	             </legend>
+                [#colabFolders#]
+            </fieldset>    
+            <!--ET_END colabFolders-->
+	        
+	        <div style="clear:both;"></div>
+	        
+	        <!--ET_BEGIN logTabs-->
+		        <fieldset class="detail-info">
+		        	<legend class="groupTitle">
+				        |Логове|*
+				    </legend>
+			        <div class='tab-control alphabet' style='padding-top: 5px;'>
+				        [#logTabs#]
+			        </div>
+		        </fieldset>
+	        <!--ET_END logTabs-->
+            <!--ET_BEGIN AuthorizationsList-->
+		        <fieldset class="detail-info">
+		        	<legend class="groupTitle">
+				        |Оторизации|*
+				    </legend>
+				        [#AuthorizationsList#]
+		        </fieldset>
+	        <!--ET_END AuthorizationsList-->
+
 	        <!--ET_BEGIN DETAILS-->
 	        [#DETAILS#]
 	        <!--ET_END DETAILS-->
 	        <div style="clear:both;"></div>
-	        <!--ET_BEGIN loginLog-->
-	        [#loginLog#]
-	        <!--ET_END loginLog-->
-	        <div style="clear:both;"></div>
+	        </div>
 	    </div>
     </div>
-</div>
-</div>	
 </div>
 

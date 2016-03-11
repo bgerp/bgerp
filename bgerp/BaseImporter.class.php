@@ -56,6 +56,8 @@ class bgerp_BaseImporter extends core_Manager {
             }
         }
         
+        $this->mvc->invoke('AfterPrepareImportFields', array(&$fields));
+        
         return $fields;
     }
     
@@ -70,16 +72,39 @@ class bgerp_BaseImporter extends core_Manager {
     public function import($rows, $fields)
     {
         $html = '';
-        $created = $updated = 0;
+        $created = $updated = $skipped = $duplicated = 0;
         core_Debug::startTimer('import');
+        
+        $onExist = Mode::get('onExist');
+        
+        // Увеличаваме времето, ако е необходимо
+        $rCnt = count($rows);
+        $time = ceil($rCnt / 10);
+        if ($time > ini_get('max_execution_time')) {
+            core_App::setTimeLimit($time);
+        }
+        
+        $oFields = $this->getFields();
         
         foreach ($rows as $row){
             $rec = new stdClass();
             
-            foreach($fields as $name => $position){
-                if($position != -1){
+            foreach ($fields as $name => $position){
+                if ($position != -1){
                     $value = $row[$position];
+                    if (isset($oFields[$name]['notColumn'])) {
+                        $value = $position;
+                    }
+                    
                     $rec->{$name} = $value;
+                    
+                    // Ако ще се добавя файл, правим опит да свалим файла и да го добавим
+                    if (isset($rec->{$name})) {
+                        if ($this->mvc->getFieldType($name) instanceof fileman_FileType) {
+                            $bucketId = fileman_Buckets::fetchByName('import');
+                            $rec->{$name} = fileman_Get::getFile((object)array('url' => $rec->{$name}, 'bucketId' => $bucketId));
+                        }
+                    }
                 }
             }
             
@@ -91,7 +116,18 @@ class bgerp_BaseImporter extends core_Manager {
             
             if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
                 $rec->id = $exRec->id;
-                $updated++;
+            }
+            
+            if ($rec->id) {
+                if ($onExist == 'skip') {
+                    $skipped++;
+                    continue;
+                } elseif ($onExist == 'duplicate') {
+                    unset($rec->id);
+                    $duplicated++;
+                } else {
+                    $updated++;
+                }
             } else {
                 $created++;
             }
@@ -101,8 +137,21 @@ class bgerp_BaseImporter extends core_Manager {
         
         core_Debug::stopTimer('import');
         
-        $html .= "Импортирани {$created} нови записа, обновени {$updated} съществуващи записа<br />";
-        $html .= "Общо време: " . round(core_Debug::$timers['import']->workingTime, 2) . " с";
+        if ($created) {
+            $html .= "|Импортирани|* {$created} |нови записа|*.";
+        }
+        
+        foreach (array('Обновени' => $updated, 'Пропуснати' => $skipped, 'Дублирани' => $duplicated) as $verbName => $cnt) {
+            if ($cnt) {
+                $html .= ($html) ? '<br />' : '';
+                $html .= "|{$verbName}|* {$cnt} |съществуващи записа|*.";
+            }
+        }
+        
+        if (isDebug()) {
+            $html .= ($html) ? '<br />' : '';
+            $html .= "|Общо време|*: " . round(core_Debug::$timers['import']->workingTime, 2);
+        }
         
         return $html;
     }

@@ -106,7 +106,7 @@ class budget_Assets extends core_Manager
     	$this->FLD('currency','key(mvc=currency_Currencies, select=code)', 'caption=Парични средства->Валута');
     	$this->FLD('rate','double', 'caption=Парични средства->Курс');
     	$this->FLD('company','key(mvc=crm_Companies, select=name)', 'caption=Контрагент->Фирма');
-    	$this->FLD('person','key(mvc=crm_Persons, select=name)', 'caption=Контрагент->Лице');
+    	$this->FLD('person','key(mvc=crm_Persons, select=name)', 'caption=Контрагент->Име');
     	$this->FLD('state','enum(1=Идеен проект,
     							 2=Планиране,
     							 3=Проектиране,

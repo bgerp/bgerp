@@ -24,7 +24,7 @@ class cat_type_Density extends cat_type_Uom {
 	function init($params = array())
     {
     	// Основната мярка на типа е метри
-    	$this->params['unit'] = 'kg/cub.m';
+    	$this->params['unit'] = 'kg/m3';
     	parent::init($this->params);
     }
 }

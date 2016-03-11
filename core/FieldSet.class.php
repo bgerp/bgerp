@@ -53,7 +53,7 @@ class core_FieldSet extends core_BaseClass
     /**
      * Данни за полетата
      */
-    var $fields = array();
+    public $fields = array();
     
     
     /**
@@ -169,16 +169,31 @@ class core_FieldSet extends core_BaseClass
         $params = arr::make($params, TRUE);
         $names = arr::make($names, TRUE);
         
+        $params['after'] = explode('|', $params['after']);
+        $params['before'] = explode('|', $params['before']);
+        
+        $paramsS = $params;
+
         foreach ($names as $name => $caption) {
+
             
+            $params = $paramsS;
+            
+            $mustOrder = $params['mustOrder'];
+
             if ($newField && isset($this->fields[$name])) {
+                
+                if($params['forceField']) return;
+
                 error("@Дублирано име на поле", "'{$name}'");
             } elseif (!$newField && !isset($this->fields[$name])) {
                 error("@Несъществуващо поле", "'{$name}'", $this->fields);
             } elseif(!isset($this->fields[$name])) {
                 $this->fields[$name] = new stdClass();
+                $mustOrder = TRUE;
             }
-             
+
+
             foreach ($params as $member => $value) {
                 // Ако има - задаваме suggestions (предложенията в падащото меню)
                 if($member == 'suggestions') {
@@ -202,13 +217,39 @@ class core_FieldSet extends core_BaseClass
             
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
-            
-            if(isset($params['before']) || isset($params['after'])) {
+
+            // Параметри, които се предават на типа
+            $typeParams = array('maxRadio' => 0, 'maxColumns' => 0, 'columns' => 0, 'mandatory' => 0, 'groupByDiv' => 0, 'maxCaptionLen' => 1, 'options' => 1);
+            foreach($typeParams as $pName => $force) {
+                if(isset($this->fields[$name]->{$pName}) && ($force || !isset($this->fields[$name]->type->params[$pName]))) {
+                    if($pName == 'options') {
+                        $this->fields[$name]->type->{$pName} = $this->fields[$name]->{$pName};
+                    } else {
+                        $this->fields[$name]->type->params[$pName] = $this->fields[$name]->{$pName};
+                    }
+                }
+            }
+
+            // Слага полета с еднаква група последователно, независимо от реда на постъпването им
+            if(strpos($this->fields[$name]->caption, '->')) {
+                list($group, $caption) = explode('->', $this->fields[$name]->caption);
+                
+                if(strpos($group, '||')) {
+                    list($group, $en) = explode('||', $group);
+                }
+
+                if(isset($this->lastFroGroup[$group]) ) { 
+                    $params['after'][] = $this->lastFroGroup[$group];  
+                }
+                $this->lastFroGroup[$group] = $name;
+            }
+        
+            if((count($params['before']) || count($params['after'])) && $mustOrder) {
                 $newFields = array();
                 $isSet = FALSE;
                 foreach($this->fields as $exName => $exFld) {
                     
-                    if($params['before'] == $exName) {
+                    if(in_array($exName, $params['before'])) {
                         $isSet = TRUE;
                         $newFields[$name] = &$this->fields[$name];
                     }
@@ -217,13 +258,43 @@ class core_FieldSet extends core_BaseClass
                         $newFields[$exName] = &$this->fields[$exName];
                     }
 
-                    if($params['after'] == $exName) {
+                    if(in_array($exName, $params['after'])) {
                         $newFields[$name] = &$this->fields[$name];
                         $isSet = TRUE;
                     }
-
                 }
                 $this->fields = $newFields;
+            }
+
+
+            // Проверяваме дали има предишни полета, които трябва да се подредят преди или след това поле
+            if($mustOrder) {
+                $firstArr = $secondArr = $before = $after = array();
+                $second = FALSE;
+                foreach($this->fields as $exName => $exFld) {
+                    if($name == $exName) {
+                        $second = TRUE;
+                        continue;
+                    }
+                    if(in_array($name, $exFld->before)) {
+                        $before[$exName] = &$this->fields[$exName];
+                        continue;
+                    }
+                    if(in_array($name, $exFld->after)) {
+                        $after[$exName] = &$this->fields[$exName];
+                        continue;
+                    }
+                    if(!$second) {
+                        $firstArr[$exName] = &$this->fields[$exName];
+                    } else {
+                        $secondArr[$exName] = &$this->fields[$exName];
+                    }
+                }
+
+                if(count($before) || count($after)) {
+                    $me = array($name => $this->fields[$name]);  
+                    $this->fields = $firstArr + $before + $me + $after + $secondArr;
+                }
             }
         }
     }
@@ -250,6 +321,10 @@ class core_FieldSet extends core_BaseClass
     {
         if(is_string($suggestions)) {
             $suggestions = arr::make($suggestions, TRUE);
+        }
+        
+        if(!isset($this->fields[$name])){
+        	error("@Несъществуващо поле", "'{$name}'", $this->fields);
         }
         
         $this->fields[$name]->type->suggestions = $suggestions;
@@ -403,7 +478,7 @@ class core_FieldSet extends core_BaseClass
             ));
         
         foreach ($fArr as $name => $caption) {
-            if (!$where || eval("return $cond;")) {
+            if (!$where || @eval("return $cond;")) {
                 $res[$name] = $this->fields[$name];
             }
         }
@@ -466,6 +541,21 @@ class core_FieldSet extends core_BaseClass
     	$fieldType = $this->getFieldType($name);
     	
     	return $fieldType->params[$paramName];
+    }
+    
+    
+    /**
+     * Задава/Подменя тип на полето
+     * 
+     * @param string $name - име на полето
+     * @param mixed $Type - инстанция или име на тип
+     * @return void
+     */
+    function setFieldType($name, $type)
+    {
+    	$fieldType = core_Type::getByName($type);
+    	
+    	$this->getField($name)->type = $fieldType;
     }
     
     

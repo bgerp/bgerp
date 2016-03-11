@@ -54,6 +54,12 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'reasonCode';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -105,13 +111,10 @@ class acc_JournalDetails extends core_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
-        $hasReasonFld = FALSE;
         
         if (count($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
-                
-                $hasReasonFld = isset($row->reasonCode) ? TRUE : $hasReasonFld;
                 
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
@@ -142,10 +145,6 @@ class acc_JournalDetails extends core_Detail
                 }
             }
         }
-        
-        if($hasReasonFld === FALSE){
-        	unset($res->listFields['reasonCode']);
-        }
     }
     
     
@@ -159,7 +158,7 @@ class acc_JournalDetails extends core_Detail
      * @param mixed $items2     - списък с пера, от които поне един може да е на втора позиция
      * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
      * @param boolean $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
-     * иначе приема че не трябва да се търсят пера
+     * иначе приема, че не трябва да се търсят пера
      */
     public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $strict = FALSE)
     {

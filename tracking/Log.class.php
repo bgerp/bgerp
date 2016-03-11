@@ -124,10 +124,10 @@ class tracking_Log extends core_Master {
         $conf = core_Packs::getConfig('tracking');
         // Ако получаваме данни от неоторизирано IP ги игнорираме
         if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
-            file_put_contents('tracking.log', "\n неоторизирано IP", FILE_APPEND);
+            // file_put_contents('tracking.log', "\n неоторизирано IP ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             exit;
         }
-        file_put_contents('tracking.log', "\n accepted", FILE_APPEND);
+        // file_put_contents('tracking.log', "\n accepted", FILE_APPEND);
         
         $trackerId = Request::get('trackerId', 'varchar');
         $trackerData = Request::get('data', 'varchar');
@@ -139,39 +139,69 @@ class tracking_Log extends core_Master {
         $recVehicle = tracking_Vehicles::getRecByTrackerId($trackerId);
         if (FALSE === $recVehicle) {
             /* @TODO Логваме съобщение, че нямаме въведена кола за този тракер */
-            file_put_contents("tracking.log", "\n Липсваща кола с тракер No:{$trackerId}". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
+            //file_put_contents("tracking.log", "\n Липсваща кола с тракер No: {$trackerId} ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             
             exit;
         }
         
         $trackerDataArr = self::parseTrackingData($trackerData);
         
+        $rec = new stdClass();
+        
         // Проверяваме дали скоростта е нула
          if (($trackerDataArr['speed']-0.01) < 0) {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
             $query = $this->getQuery();
             $query->show('data');
-            $query->where(array("#trackerId = '[#1#]'", $trackerId));
-            $query->orderBy('#createdOn','DESC');
+            $query->where(array("#vehicleId = '[#1#]'", $recVehicle->id));
+            $query->orderBy('#fixTime','DESC');
             $query->limit(1);
             $rec = $query->fetch();
             $recData = self::parseTrackingData($rec->data); 
-            if (is_array($recData) && ($recData['speed'] -0.01) < 0) {
-                file_put_contents('tracking.log', "\n NEZAPISAN", FILE_APPEND);
+            if (is_array($recData) && (($recData['speed'] -0.01) < 0)) {
+                // file_put_contents('tracking.log', "\n NEZAPISAN - sprial". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
                 
                 // Не го записваме
                 exit;
             }
         }
         
+        // Записваме в базата само ако записа е валиден
+        $data = self::parseTrackingData($trackerData);
+        if ($data['status'] != 'A') {
+
+        	shutdown();
+        }
+        
         $rec->vehicleId = $recVehicle->id;
         $rec->driverId = $recVehicle->personId;
-        $rec->trackerId = $trackerId;
         $rec->data = $trackerData;
         $rec->fixTime = self::GMT2Local($trackerDataArr['fixTime']);
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
+    }
+    
+    
+    /**
+     * Функция по крон, която се стартира ежеседмично и изтрива старите записи
+     * 
+     */
+    function cron_DeleteOldRecords()
+    {
+        $conf = core_Packs::getConfig('tracking');
+    
+        $date = dt::addDays( -$conf->DAYS_TO_KEEP );
+    
+        if ($numRows = self::delete("#createdOn < '{$date}'")) {
+    
+            $this->logWrite("Изтрити изтекли записи за тракери");
+            
+            $info = "Изтрити са {$numRows} изтекли записи за тракери";
+            $this->logInfo($info);
+        }
+    
+        return $info;
     }
     
     

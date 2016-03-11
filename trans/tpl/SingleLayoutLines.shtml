@@ -1,19 +1,10 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class="scrolling-holder">
 		<table class="innerTable border-table paddingCells" style='width: 100%'>
 		    <tr>
 		        <td class='custom-header-bg' style='width:36%;'><b>|Възложител|*</b></td>
 		        <td class="cell centered" rowspan = '2'>
-			        <div class="document-title"> |Транспортна линия|*</div>
+			        <div class="document-title">|транспортна линия|*</div>
 			        <div style="padding-top:5px;">
 			            № <span class="bigData">[#id#]</span> /
 			            <span class="bigData">[#start#]</span>
@@ -23,7 +14,7 @@
 			        <div style='margin-top: 5px;'>[#repeat#]</div>
 			        <!--ET_END repeat-->
 			        <!--ET_BEGIN state-->
-			        <div class="[#STATE_CLASS#]" style='margin: 10px 0;'>[#state#]</div>
+			        <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
 			        <!--ET_END state-->
 			        </td>
 			        <td class='custom-header-bg' style='width:36%;'><b>|Изпълнител|*</b></td>
@@ -132,5 +123,4 @@
 		    <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
 		</div>
 	</div>
-	[#DETAILS#]
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

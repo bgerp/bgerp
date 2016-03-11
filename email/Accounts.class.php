@@ -237,6 +237,40 @@ class email_Accounts extends core_Master
     
     
     /**
+     * Връща масив с всички активни сметки
+     * 
+     * @param array $filterArr
+     * 
+     * @return array
+     */
+    public static function getEmailsByType($filterArr = array('common', 'corporate'))
+    {
+        static $resArr = array();
+        
+        $filterArr = arr::make($filterArr);
+        
+        $hash = md5(implode('|', $filterArr));
+        
+        if (isset($resArr[$hash])) return $resArr[$hash];
+        
+        $resArr[$hash] = array();
+        
+        $query = self::getQuery();
+        $query->where("#state = 'active'");
+        
+        if ($filterArr) {
+            $query->orWhereArr('type', $filterArr);
+        }
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$hash][$rec->email] = $rec->email;
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
      * Връща масив с активните корпоратвини акауни
      * 
      * @return array
@@ -536,7 +570,7 @@ class email_Accounts extends core_Master
             $params['SMTPAuth'] = FALSE;
         }
 
-        $params['XMailer'] = 'bgERP using PML';
+        $params['XMailer'] = 'bgERP email client';
 
         $pml = cls::get('phpmailer_Instance', $params);
 

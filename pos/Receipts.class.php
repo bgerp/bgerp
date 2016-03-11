@@ -39,7 +39,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state , createdOn, createdBy';
     
     
     /**
@@ -153,37 +153,10 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен,pending=Чакащ)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,pending=Чакащ)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
-    }
-    
-    
-	/**
-     * Извиква се преди изпълняването на екшън
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    	$id = Request::get('id', 'int');
-    	if($action == 'terminal' && !$id) {
-    		
-    		// Ако не е зададено Ид, намираме кой е последно добавената бележка
-	    	$cu = core_Users::getCurrent();
-    		$query = static::getQuery();
-    		$posId = pos_Points::getCurrent();
-	    	$query->where("#createdBy = {$cu}");
-	    	$query->where("#pointId = {$posId}");
-	    	$query->where("#state = 'draft'");
-	    	$query->orderBy("#createdOn", "DESC");
-	    	if($rec = $query->fetch()) {
-	    		
-	    		return Redirect(array($mvc, 'terminal', $rec->id));
-	    	}
-    		
-	    	// Ако няма последно добавена бележка създаваме нова
-    		return Redirect(array($mvc, 'new'));
-    	}
     }
     
     
@@ -209,7 +182,10 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
-    	return Redirect(array($this, 'terminal', $id));
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logWrite("Отваряне на бележка в ПОС терминала", $id);
+    	
+    	return new Redirect(array($this, 'terminal', $id));
     }
     
     
@@ -251,6 +227,26 @@ class pos_Receipts extends core_Master {
     		if($rec->transferedIn){
     			$row->transferedIn = sales_Sales::getHyperlink($rec->transferedIn, TRUE);
     		}
+    		
+    		if($rec->state == 'closed' || $rec->state == 'rejected'){
+    			$reportQuery = pos_Reports::getQuery();
+    			$reportQuery->where("#state = 'active'");
+    			$reportQuery->show('details');
+    			
+    			// Опитваме се да намерим репорта в който е приключена бележката
+    			//@TODO не е много оптимално защото търсим в блоб поле...
+    			while($rRec = $reportQuery->fetch()){
+    				$id = $rec->id;
+    				$found = array_filter($rRec->details['receipts'], function ($e) use (&$id) {
+    								return $e->id == $id;
+    							});
+    				
+    				if($found){
+    					$row->inReport = pos_Reports::getHyperlink($rRec->id, TRUE);
+    					break;
+    				}
+    			}
+    		}
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права
@@ -271,6 +267,8 @@ class pos_Receipts extends core_Master {
     	$cu = core_Users::fetch($rec->createdBy);
     	$row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
+    	
+    	$row->time = dt::mysql2verbal(dt::now(), 'H:i');
     }
 
     
@@ -326,15 +324,13 @@ class pos_Receipts extends core_Master {
     	$query->orderBy("id", "ASC");
     	
 	    while($rec = $query->fetch()) {
-	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
-	    	$packagingId = $rec->value;
-	    	$quantityInPack = isset($packagingId) ? $info->packagingRec->quantity : 1;
+	    	$info = cat_Products::getProductInfo($rec->productId);
+	    	$quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
 	    	
 	    	$products[] = (object) array(
-	    		'classId'     => cat_Products::getClassId(),
 	    		'productId'   => $rec->productId,
 		    	'price'       => $rec->price / $quantityInPack,
-	    	    'packagingId' => $packagingId,
+	    	    'packagingId' => $rec->value,
 	    		'vatPrice'    => $rec->price * $rec->param,
 	    		'discount'    => $rec->discountPercent,
 		    	'quantity'    => $rec->quantity);
@@ -406,10 +402,18 @@ class pos_Receipts extends core_Master {
 			}
 		}
 		
-		// Никой неможе да редактира бележка
+		// Никой не може да редактира бележка
 		if($action == 'edit') {
 			$res = 'no_one';
 		}
+		
+		// Никой не може да оттегли затворена бележка
+		if($action == 'reject' && isset($rec)) {
+			if($rec->state == 'closed'){
+				$res = 'no_one';
+			}
+		}
+		
 		
 		// Ако бележката е започната, може да се изтрие
 		if($action == 'delete' && isset($rec)) {
@@ -441,7 +445,7 @@ class pos_Receipts extends core_Master {
 			}
 		}
 		
-		// Можели да бъде направено плащане по бележката
+		// Може ли да бъде направено плащане по бележката
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
 				$res = 'no_one';
@@ -462,7 +466,7 @@ class pos_Receipts extends core_Master {
 		
 		// Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
 		if($action == 'transfer' && isset($rec)) {
-			if(empty($rec->id) || $rec->total == 0 || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
+			if(empty($rec->id) || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
 				$res = 'no_one';
 			}
 		}
@@ -479,7 +483,10 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetch($id));
     	
     	// Имаме ли достъп до терминала
-    	$this->requireRightFor('terminal', $rec);
+    	if(!$this->haveRightFor('terminal', $rec)){
+    		
+    		return new Redirect(array($this, 'new'));
+    	}
     	
     	// Лейаут на терминала
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
@@ -506,10 +513,10 @@ class pos_Receipts extends core_Master {
     			// Добавяне на табовете показващи се в широк изглед отстрани
     			if(!Mode::is('screenMode', 'narrow')){
     				$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-    				$tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}'>|Бележки|*</a></li>"));
+    				$tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}' accesskey='p'>|Бележки|*</a></li>"));
     				 
     				if($selectedFavourites = $this->getSelectFavourites()){
-    					$tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li>"));
+    					$tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li>"));
     					$tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
     				} else {
     					$tab->replace("class='active'", 'active');
@@ -584,7 +591,7 @@ class pos_Receipts extends core_Master {
     {
     	$data->row = $this->recToverbal($data->rec);
     	unset($data->row->contragentName);
-    	$data->details = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
+    	$data->receiptDetails = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
     }
     
     
@@ -596,7 +603,12 @@ class pos_Receipts extends core_Master {
     private function renderReceipt($data)
     {
     	// Слагане на мастър данните
-    	$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
+    	if(!Mode::is('printing')){
+    		$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
+    	} else {
+    		$tpl = getTplFromFile('pos/tpl/terminal/ReceiptPrint.shtml');
+    	}
+    	
     	$tpl->placeObject($data->row);
     	
     	$img = ht::createElement('img',  array('src' => sbf('pos/img/bgerp.png', '')));
@@ -604,7 +616,7 @@ class pos_Receipts extends core_Master {
     	$tpl->append($logo, 'LOGO');
     	
     	// Слагане на детайлите на бележката
-    	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->details);
+    	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
     	$tpl->append($detailsTpl, 'DETAILS');
     	
     	return $tpl;
@@ -623,7 +635,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	
     	// Рендиране на пулта
-    	$tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer'>|Прехвърляне|*</a></li>");
+    	$tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form' accesskey='z'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment' accesskey='x'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer' accesskey='c'>|Прехвърляне|*</a></li>");
     	$tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
     	
     	// Ако сме в тесен режим
@@ -634,7 +646,7 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li><a href='#tools-drafts' '|Всички чернови бележки|*'>|Бележки|*</a></li>");
+    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose' accesskey='i'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search' accesskey='o'>|Търсене|*</a></li><li><a href='#tools-drafts' title='|Всички чернови бележки|*' accesskey='p'>|Бележки|*</a></li>");
     	
     		// Добавяне на таба с черновите
     		$tpl->append($this->renderDraftsTab($id), 'DRAFTS');
@@ -734,7 +746,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$searchUrl = toUrl(array('pos_Receipts', 'getSearchResults'), 'local');
-    	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl));
+    	$inpFld = ht::createTextInput('select-input-pos', '', array('id' => 'select-input-pos', 'data-url' => $searchUrl, "type" => 'text'));
     	$block->replace($inpFld, 'INPUT_SEARCH');
     	
     	return $block;
@@ -825,8 +837,8 @@ class pos_Receipts extends core_Master {
     		foreach ($products as $product){
     			
     			// Намираме цената от ценовата политика
-    			$Policy = cls::get($product->classId)->getPolicy();
-    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->classId, $product->packagingId);
+    			$Policy = cls::get('price_ListToCustomers');
+    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->packagingId, $product->quantity);
     			
     			// Колко са двете цени с приспадната отстъпка
     			$rPrice1 = $product->price * (1 - $product->discount);
@@ -839,7 +851,7 @@ class pos_Receipts extends core_Master {
     			}
     			
     			// Добавяме го като детайл на продажбата;
-    			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
+    			sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
     		}
     	}
     	
@@ -847,7 +859,7 @@ class pos_Receipts extends core_Master {
     	$rec->transferedIn = $sId;
     	$rec->state = 'closed';
     	$this->save($rec);
-    	core_Statuses::newStatus(tr("|Бележка|* №{$rec->id} |е затворена|*"));
+    	core_Statuses::newStatus("|Бележка|* №{$rec->id} |е затворена|*");
     	
     	// Споделяме потребителя към нишката на създадената продажба
     	$cu = core_Users::getCurrent();
@@ -855,7 +867,7 @@ class pos_Receipts extends core_Master {
     	doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
     	
     	// Редирект към новата бележка
-    	return new redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
+    	return new Redirect(array('sales_Sales', 'single', $sId), '|Успешно прехвърляне на бележката');
     }
     
     
@@ -919,7 +931,7 @@ class pos_Receipts extends core_Master {
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, FALSE, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
@@ -983,7 +995,7 @@ class pos_Receipts extends core_Master {
     		return array($resObj);
     		 
     	} else {
-    		Redirect(array($this, 'terminal', $rec->id));
+    		return new Redirect(array($this, 'terminal', $rec->id));
     	}
     }
     
@@ -1030,7 +1042,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$value = $rec->total - $rec->paid;
-    	$value = ($value >= 0) ? $value : NULL;
+    	$value = ($value > 0) ? $value : NULL;
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value, 'title' => tr('Въведи платена сума'))) . "<br />", 'INPUT_PAYMENT');
     	
     	// Показваме всички активни методи за плащания
@@ -1129,7 +1141,7 @@ class pos_Receipts extends core_Master {
     	}
     	 
     	if($this->fetchField($receiptId, 'paid')){
-    		core_Statuses::newStatus(tr('|Не може да се добавя продукт, ако има направено плащане|*!'), 'error');
+    		core_Statuses::newStatus('|Не може да се добавя продукт, ако има направено плащане|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	 
@@ -1169,12 +1181,12 @@ class pos_Receipts extends core_Master {
     				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
     			} else {
     				
-    				// Ако няма приемаме че от ляво е колчиество а от дясно код
+    				// Ако няма приемаме, че от ляво е колчиество а от дясно код
     				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     				$rec->ean = $matches[3];
     			}
     			
-    			// Ако има само лява част приемаме че е количество
+    			// Ако има само лява част приемаме, че е количество
     		} elseif(!empty($matches[1]) && empty($matches[3])) {
     			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     		} else {
@@ -1188,7 +1200,7 @@ class pos_Receipts extends core_Master {
     	
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
-    		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
+    		core_Statuses::newStatus('|Не е избран артикул|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	 
@@ -1197,13 +1209,13 @@ class pos_Receipts extends core_Master {
     	
     	// Ако не е намерен продукт
     	if(!$rec->productId) {
-    		core_Statuses::newStatus(tr('|Няма такъв продукт в системата, или той не е продаваем|*!'), 'error');
+    		core_Statuses::newStatus('|Няма такъв продукт в системата, или той не е продаваем|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     
     	// Ако няма цена
     	if(!$rec->price) {
-    		core_Statuses::newStatus(tr('|Артикулът няма цена|*!'), 'error');
+    		core_Statuses::newStatus('|Артикулът няма цена|*!', 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	
@@ -1234,7 +1246,7 @@ class pos_Receipts extends core_Master {
     		
     		return $resArr;
     	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*!'), 'error');
+    		core_Statuses::newStatus('|Проблем при добавяне на артикул|*!', 'error');
     	}
     	
     	return $this->pos_ReceiptDetails->returnError($receiptId);
@@ -1248,7 +1260,11 @@ class pos_Receipts extends core_Master {
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft');
+    	if($rec->state != 'draft'){
+    		
+    		// Създаване на нова чернова бележка
+    		return new Redirect(array($this, 'new'));
+    	}
     	
     	$this->requireRightFor('close', $rec);
     	
@@ -1260,7 +1276,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	// Създаване на нова чернова бележка
-    	return redirect(array($this, 'new'));
+    	return new Redirect(array($this, 'new'));
     }
     
     
@@ -1292,7 +1308,7 @@ class pos_Receipts extends core_Master {
     		return array($resObj);
     		
     	} else {
-    		Redirect(array($this, 'terminal', $rec->id));
+    		return new Redirect(array($this, 'terminal', $rec->id));
     	}
     }
     
@@ -1330,7 +1346,9 @@ class pos_Receipts extends core_Master {
     	
     	$Policy = cls::get('price_ListToCustomers');
     	$Products = cls::get('cat_Products');
+    	
     	foreach ($sellable as $id => $name){
+    		if(is_object($name)) continue;
     		
     		// Показваме само до определена бройка
     		if($count >= $this->maxSearchProducts) break;
@@ -1338,16 +1356,13 @@ class pos_Receipts extends core_Master {
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
     		
-    		$basePackInfo = $Products->getBasePackInfo($id);
-    		if($basePackInfo->classId != 'cat_UoM'){
-    			$packId = $basePackInfo->id;
-    			$perPack = $basePackInfo->quantity;
-    		} else {
-    			$packId = NULL;
-    			$perPack = 1;
-    		}
+    		$pInfo = cat_Products::getProductInfo($id);
     		
-    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), $packId, NULL, $data->rec->createdOn, 1, 'yes');
+    		$packs = $Products->getPacks($id);
+    		$packId = key($packs);
+    		$perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
+    		
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $packId, 1, $data->rec->createdOn, 1, 'yes');
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
@@ -1359,7 +1374,6 @@ class pos_Receipts extends core_Master {
     							 'packagingId' => $packId,
     							 'vat'	       => $vat);
     		
-    		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
     			$obj->stock /= $perPack;
@@ -1386,7 +1400,7 @@ class pos_Receipts extends core_Master {
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
     	
-    	$row->packagingId = ($obj->packagingId) ? cat_Packagings::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
+    	$row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
@@ -1400,6 +1414,8 @@ class pos_Receipts extends core_Master {
     		$params = keylist::toArray($data->showParams);
     		$values = NULL;
     		foreach ($params as $pId){
+    			
+    			//@TODO да използва нов метод getParamValue
     			if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
     				$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
     			}
@@ -1471,7 +1487,7 @@ class pos_Receipts extends core_Master {
     			$nRec->managerId = cat_Products::getClassId();
     			$nRec->quantity = $rec->quantity;
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
-    			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec->measure = cat_UoM::getShortName($rec->value);
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price;
     			

@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -43,7 +43,7 @@ class sales_SalesDetails extends deals_DealDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy';
+                        plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy';
     
     
     /**
@@ -97,7 +97,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
     
         
     /**
@@ -137,26 +137,13 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
-    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
-    	
     	if(isset($rec->productId)){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
-    			
-    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
     			$form->info = $storeInfo->formInfo;
-    		}
-    	}
-    	
-    	if ($form->isSubmitted()){
-    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
-    		
-    		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
-    		if(isset($storeInfo)){
-    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
-    			}
     		}
     	}
     	
@@ -170,26 +157,24 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$rows = &$data->rows;
-    	 
+    	
     	if(!count($data->recs)) return;
     	 
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
-    			if(isset($pInfo->meta['canStore'])){
-    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
-    				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
-    					
-    				if($diff < 0){
-    					$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
+    				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
+    				if(strlen($warning)){
+    					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
     				}
     			}
     		}
     		
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
+    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning');
     		}
     	}
     }
@@ -205,15 +190,14 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
-    		$params = cls::get($rec->classId)->getParams($rec->productId);
-    		if(!empty($params['term'])){
-    			
+    		$term = cat_Products::getParams($rec->productId, 'term');
+    		if(!empty($term)){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
-    				$form->setDefault('term', $params['term']);
+    				$form->setDefault('term', $term);
     			}
     			
-    			$termVerbal = $mvc->getFieldType('term')->toVerbal($params['term']);
+    			$termVerbal = $mvc->getFieldType('term')->toVerbal($term);
     			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
     		}
     	}
@@ -229,37 +213,44 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function prepareJobInfo($rec, $masterRec)
     {
-    	$pRec = cls::get($rec->classId)->fetch($rec->productId, 'isPublic,containerId');
-    	if($pRec->isPublic === 'yes') return;
-    	$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-    	if(!isset($pInfo->meta['canManifacture'])) return;
-    	
     	$row = new stdClass();
+    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->quantity = $row->quantityFromTasks = $row->quantityProduced = 0;
+    	$jobRec = NULL;
     	
-    	// Кой е артикула
-    	$row->productId = cls::get($rec->classId)->getShortHyperLink($rec->productId);
+    	$pRec = cat_Products::fetch($rec->productId);
     	
-    	if($masterRec->state == 'active') {
-    		
-    		// Проверяваме имали задание
-    		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state != 'draft' && #state != 'rejected')", 'id,state,dueDate')){
-    		
-    			// Ако има такова, добавяме линк към сингъла му
-    			$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
-    			if(planning_Jobs::haveRightFor('single', $jobRec)){
-    				$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
-    			}
-    			$row->jobId .= " ( " . planning_Jobs::getVerbal($jobRec, 'dueDate') . " )";
-    		
-    		} else {
-    			// Ако няма задание, добавяме бутон за създаване на ново задание
-    			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
-    				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'ret_url' => TRUE);
-    				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
-    			}
-    		}
+    	// Имаме ли активно задание по тази продажба
+    	$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+    	
+    	// Ако няма търсим, имаме ли активно задание
+    	if(!$jobRec){
+    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
     	}
     	
-    	return $row;
+    	// Ако и такова няма намираме последното задание-чернова към тази продажба
+    	if(!$jobRec){
+    		$jQuery = planning_Jobs::getQuery();
+    		$jQuery->where("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND #state = 'draft'");
+    		$jQuery->orderBy("id", 'DESC');
+    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #state = 'draft'");
+    	}
+    	
+    	if(!empty($jobRec)){
+    		$row->quantity = $jobRec->quantity;
+    		$row->quantityFromTasks = planning_TaskActions::getQuantityForJob($jobRec->id, 'product');
+    		$row->quantityProduced = $jobRec->quantityProduced;
+    		
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			$row->dueDate = cls::get('type_Date')->toVerbal($jobRec->dueDate);
+    			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
+    		
+    		$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
+    		$row->jobId = ht::createLink($row->jobId, planning_Jobs::getSingleUrlArray($jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
+    		$row->ROW_ATTR['class'] = "state-{$jobRec->state}";
+    	
+    		return $row;
+    	}
     }
 }

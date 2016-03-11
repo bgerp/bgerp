@@ -42,7 +42,7 @@ class blast_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search';
+    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search, bgerp_plg_Blank';
     
     
     /**
@@ -66,7 +66,7 @@ class blast_Lists extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'bgerp_PersonalizationSourceIntf';
+    var $interfaces = 'bgerp_PersonalizationSourceIntf, doc_DocumentIntf';
     
     
     /**
@@ -148,6 +148,12 @@ class blast_Lists extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -159,6 +165,10 @@ class blast_Lists extends core_Master
         $this->FNC('allFields', 'text', 'column=none,input=none');
         
         $this->FLD('contactsCnt', 'int', 'caption=Записи,input=none');
+        
+        cls::get('core_Lg');
+        
+        $this->FLD('lg', 'enum(, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull,allowEmpty');
         
         $this->setDbUnique('title');
     }
@@ -251,10 +261,10 @@ class blast_Lists extends core_Master
     /**
      * Поддържа точна информацията за записите в детайла
      */
-    static function on_AfterUpdateDetail($mvc, $id, $Detail)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetch($id);
-        $dQuery = $Detail->getQuery();
+        $dQuery = $detailMvc->getQuery();
         $dQuery->where("#listId = $id");
         $rec->contactsCnt = $dQuery->count();
         
@@ -288,6 +298,27 @@ class blast_Lists extends core_Master
         if (!$data->form->rec->fields) {
             $template = new ET (getFileContent("blast/tpl/ListsEditFormTemplates.txt"));
             $data->form->rec->fields = $template->getContent();
+        }
+        
+        if (!$data->form->rec->id) {
+            $data->form->setDefault('lg', core_Lg::getCurrent());
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if ($data->rec->keyField == 'email' && blast_Emails::haveRightFor('add') && $data->rec->state != 'draft' && $data->rec->state != 'rejected') {
+            
+            Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
+        
+            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id, 'ret_url' => TRUE), 'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
         }
     }
     
@@ -376,6 +407,23 @@ class blast_Lists extends core_Master
         
         return $csv;
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $cnt = blast_ListDetails::getCnt($rec->id);
+        
+        $Int = cls::get('type_Int');
+        $row->DetailsCnt = $Int->toVerbal($cnt);
+    }
+    
     
     /**
      * Преобразува стринга с полета в масив с инстанции на класовете
@@ -603,5 +651,66 @@ class blast_Lists extends core_Master
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        $allFieldsArr = array('title' => 'Заглавие',
+        						'keyField' => 'Ключово поле',
+        						'allFields' => 'Всички полета',
+        						'DetailsCnt' => 'Брой абонати',
+        						'lg' => 'Език',
+        						'lastUsedOn' => 'Последна употреба'
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        $resArr['created'] =  array('name' => tr('Създаване'), 'val' =>"[#createdBy#], [#createdOn#]");
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = arr::make($res);
+        
+        $res['external']['created'] = TRUE;
     }
 }

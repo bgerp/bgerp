@@ -17,6 +17,12 @@ class acc_Limits extends core_Manager
 {
     
     
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'limitDuration';
+	
+	
     /**
      * Заглавие
      */
@@ -38,7 +44,7 @@ class acc_Limits extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State2, plg_AlignDecimals2, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, acc_WrapperSettings, plg_State2, plg_AlignDecimals2, plg_Search';
     
     
     /**
@@ -80,7 +86,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,limitQuantity,type,side,sharedUsers=Нотифициране,state';
+    public $listFields = 'accountId,when,startDate,limitDuration,limitQuantity,type,side,sharedUsers=Нотифициране,state';
     
     
     /**
@@ -94,7 +100,7 @@ class acc_Limits extends core_Manager
      */
     function description()
     {
-        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
+        $this->FLD('accountId', 'key(mvc=acc_Accounts,select=title,allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
         $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начало,mandatory');
         $this->FLD('limitDuration', 'time(suggestions=1 седмица|2 седмици|1 месец|3 месеца|6 месеца|1 година)', 'caption=Продължителност');
         
@@ -165,17 +171,22 @@ class acc_Limits extends core_Manager
     			}
     		}
     		
+    		// Алп сметката е пасивна - избираме кредит и максимим по дефолт
     		if($accInfo->rec->type == 'passive'){
     			$form->setDefault('side', 'credit');
     			$form->setDefault('type', 'maximum');
     		} else {
+    			
+    			// Ако е активна или смесена - дебит и минимум
     			$form->setDefault('side', 'debit');
     			$form->setDefault('type', 'minimum');
     		}
     		
+    		// Ако лимита идва от корицата на обект
     		if(isset($rec->classId) && isset($rec->objectId)){
-    			
     			$form->setField('side', 'input=hidden');
+    			
+    			// Намираме на коя позиция е перото на обекта и го избираме
     			if($itemRec = acc_Items::fetchItem($rec->classId, $rec->objectId)){
     				foreach (range(1, 3) as $i){
     					if(isset($accInfo->groups[$i])){
@@ -189,6 +200,7 @@ class acc_Limits extends core_Manager
     		}
     	}
     	
+    	// Веднъж създаден записа, не може да се сменя сметката
     	if($rec->id){
     		$form->setReadOnly('accountId');
     	}
@@ -207,28 +219,6 @@ class acc_Limits extends core_Manager
     		$form->rec->when = NULL;
     		$form->rec->exceededAmount = NULL;
     		$form->rec->status = 'normal';
-    	}
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
-    {
-    	$rows = $data->rows;
-    	
-    	if(!count($rows)) return;
-    	
-    	$unsetDuration = TRUE;
-    	foreach ($rows as $row){
-    		if(isset($row->limitDuration)){
-    			$unsetDuration = FALSE;
-    		}
-    	}
-    	
-    	if($unsetDuration === TRUE){
-    		unset($data->listFields['limitDuration']);
     	}
     }
     
@@ -272,7 +262,6 @@ class acc_Limits extends core_Manager
         $form->view = 'horizontal';
         
         $form->FNC('account', 'acc_type_Account(allowEmpty)', 'caption=Сметка,input');
-        //$form->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent,refreshForm');
         $form->FNC("state2", 'enum(all=Всички,active=Активни,closed=Затворени,exceeded=Надвишени)', 'caption=Вид,input');
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->showFields = 'search,account,state2';
@@ -332,10 +321,15 @@ class acc_Limits extends core_Manager
     	
     	if($action == 'add' || $action == 'edit' || $action == 'delete'){
     		if(isset($rec->objectId) && isset($rec->classId)){
-    			if(!acc_Items::fetchItem($rec->classId, $rec->objectId)){
+    			$item = acc_Items::fetchItem($rec->classId, $rec->objectId);
+    			if(!$item){
     				$requiredRoles = 'no_one';
     			} else {
-    				$requiredRoles = cls::get($rec->classId)->getRequiredRoles('addacclimits');
+    				if($item->state == 'closed'){
+    					$requiredRoles = 'no_one';
+    				} else {
+    					$requiredRoles = cls::get($rec->classId)->getRequiredRoles('addacclimits');
+    				}
     			}
     		}
     	}
@@ -367,7 +361,7 @@ class acc_Limits extends core_Manager
     	
     	
     /**
-     * ЕКшън проверяващ дали лимитите са надвишени
+     * Еkшън проверяващ дали лимитите са надвишени
      */
     function act_checkLimits()
     {
@@ -377,7 +371,10 @@ class acc_Limits extends core_Manager
     	$this->cron_CheckAccLimits();
     	core_Users::cancelSystemUser();
     	
-    	return redirect(array($this, 'list'));
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logRead("Проверка на счетоводните лимити");
+    	
+    	return new Redirect(array($this, 'list'));
     }
     
     

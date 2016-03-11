@@ -38,7 +38,7 @@ class core_App
 
             // Задаваме стойности по подразбиране на обкръжението
             if (!core_Mode::is('screenMode')) {
-                core_Mode::set('screenMode', logs_Browsers::detectMobile() ? 'narrow' : 'wide');
+                core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
 
             // Генерираме съдържанието
@@ -46,8 +46,7 @@ class core_App
             
             // Ако не сме в DEBUG режим и заявката е по AJAX
             if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                core_Logs::log("Стартиране на core_App::run() през AJAX");
-                
+                log_System::add('core_App', "Стартиране на core_App::run() през AJAX");
                 return ;
             }
             
@@ -55,7 +54,7 @@ class core_App
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
         }
-    }
+    } 
 
 
     /**
@@ -193,7 +192,7 @@ class core_App
 
                 // Дали това не е името на приложението?
                 if (!isset($q['App']) && $id == 0) {
-                    $q['App'] = strtolower($prm);
+                    $q['App'] =  preg_replace("/[^a-zA-Z0-9_\-]*/", '', strtolower($prm));
                     continue;
                 }
 
@@ -208,7 +207,7 @@ class core_App
                             $className{0} = strtoupper($prm{0});
                         }
                     }
-                    $q['Ctr'] = $prm;
+                    $q['Ctr'] =  preg_replace("/[^a-zA-Z0-9_]*/", '', $prm);
                     continue;
                 }
 
@@ -388,8 +387,15 @@ class core_App
             header('Expires: -1'); // Proxies.
             header('Connection: close');
         }
-        
-        echo $content;                       // Output content
+
+        // Логваме съдържанието
+        if($content) {
+            Debug::log(mb_substr($content, 0, 255));
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+            echo $content; // Output content
+        }
             
         // Изпращаме съдържанието на изходния буфер
         ob_end_flush();
@@ -516,7 +522,12 @@ class core_App
             $params = $parentUrlArr;
         } else {
             // Всички параметри в рекуеста
-            $params = Request::getParams();
+            $params = Request::getParams('_GET');
+            $allParams = Request::getParams();
+            
+            foreach ($params as $key => $p) {
+                $params[$key] = $allParams[$key];
+            }
         }
         
         // Ако има параметри
@@ -737,12 +748,12 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if($params['ret_url'] === TRUE) {
-            $params['ret_url'] = static::getCurrentUrl();
+            $params['ret_url'] = self::getCurrentUrl();
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
-        if(is_array($params['ret_url'])) {
-            $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
+        if(is_array($params['ret_url'])) {  
+            $params['ret_url'] = self::toUrl($params['ret_url'], 'local');
         }
         
         if($protect) {
@@ -838,6 +849,10 @@ class core_App
             case 'absolute' :
                 $url = rtrim(static::getBoot(TRUE), '/') . $pre . $urlQuery;
                 break;
+                
+            case 'absolute-force' :
+                $url = rtrim(static::getBoot(TRUE, TRUE), '/') . $pre . $urlQuery;
+                break;
         }
 
         
@@ -861,10 +876,12 @@ class core_App
     /**
      * Връща относително или пълно URL до папката на index.php
      *
-     * @param boolean $absolute;
+     * @param boolean $absolute
+     * @param boolean $forceHttpHost
+     * 
      * @return string
      */
-    public static function getBoot($absolute = FALSE)
+    public static function getBoot($absolute = FALSE, $forceHttpHost = FALSE)
     {
         static $relativeWebRoot = NULL;
 
@@ -877,9 +894,12 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            defIfNot('BGERP_ABSOLUTE_HTTP_HOST', $_SERVER['HTTP_HOST']);
+            if(defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;             
+            } else {
+                $boot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $dirName;                           
+            }
             
-            $boot = $protocol . "://" . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
         } else {
 
             $scriptName = $_SERVER['SCRIPT_NAME'];
@@ -1016,22 +1036,106 @@ class core_App
     
     
     /**
-     * Увеличава времето за изпълнение на скрипта
+     * Увеличава времето за изпълнение на скрипта, само ако
+     * вече не е зададено по-голямо време
      * 
      * @param int $time - времето за увеличение в секунди
+     * @param boolean $force - форсиране или не
      * @return void
      */
-    public static function setTimeLimit($time)
+    public static function setTimeLimit($time, $force = FALSE)
     {
     	expect(is_numeric($time));
     	
-    	// Увеличава времето за изпълнение
-    	set_time_limit($time);
+    	$now = time();
     	
-    	// Записваме последното зададено време за изпълнение;
-    	self::$runningTimeLimit = $time;
-    	
-    	// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
-    	self::$timeSetTimeLimit = time();
+    	// Ако форсираме или новото максимално време за изпълнение е по-голямо от старото задаваме го
+    	if($force || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)){
+    		
+    		// Увеличава времето за изпълнение
+    		set_time_limit($time);
+    		
+    		// Записваме последното зададено време за изпълнение;
+    		self::$runningTimeLimit = $time;
+    		 
+    		// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
+    		self::$timeSetTimeLimit = $now;
+    	}
     }
+    
+    
+    /**
+     * Проверка дали връзката е по https
+     * 
+     * @return boolean
+     */
+    public static function isConnectionSecure()
+    {
+        static $isSecure = NULL;
+        
+        if (!isset($isSecure)) {
+            $isSecure = (boolean) ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443);
+        }
+        
+        return $isSecure;
+    }
+    
+    
+    /**
+     * Проверява заключена ли е системата
+     *
+     * @return boolean
+     */
+    public static function isLocked()
+    {
+        if (file_exists(self::lockFileName()) && (time() - filemtime(self::lockFileName())) < 120) {
+
+            return true;
+        }
+
+        self::unLock();
+        
+        return false;
+    }
+    
+    
+    /**
+     * Заключва системата
+     *
+     * @return boolean - true ако взима lock - false, ако някой друг го е взел
+     */
+    public function getLock()
+    {
+        if (!self::isLocked()) {
+            return touch(self::lockFileName());
+        }
+        
+        return false;
+    }
+    
+    
+    /**
+     * Отключва системата
+     *
+     * @return boolean
+     */
+    public static function unLock()
+    {
+        if (file_exists(self::lockFileName())) {
+            // Изтриваме остарял файл, ако го има
+            @unlink(self::lockFileName());
+        }        
+    }
+    
+    
+    /**
+     * Връща името на семафора за заключване
+     *
+     * @return string
+     */
+    private static function lockFileName()
+    {
+        return "bgerpSysLock" . substr(md5(EF_DB_NAME . EF_SALT), 0,5) . ".lock";
+    }
+    
 }

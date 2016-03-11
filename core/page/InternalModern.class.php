@@ -80,7 +80,7 @@ class core_page_InternalModern extends core_page_Active
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url  = toUrl(array('bgerp_Portal', 'Show'));
-        $attr = array('id' => 'nCntLink');
+        $attr = array('id' => 'nCntLink', 'title' => tr('Неразгледани известия'));
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
@@ -99,33 +99,32 @@ class core_page_InternalModern extends core_page_Active
      */
     static function getTemplate()
     {
-    	if (isset($_COOKIE['menuInformation'])) {
-    		$openMenuInfo = $_COOKIE['menuInformation'];
+    	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
+    		$openMenuInfo = $_COOKIE['menuInfo'];
     		$mainContainerClass = '';
+    		
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
-    		if($openMenuInfo){
-    			if(strrpos($openMenuInfo, "l") !== FALSE) {
-    				$openLeftBtn = ' menu-active ';
-    				$openLeftMenu = ' sidemenu-open ';
-    				$mainContainerClass .= ' sidemenu-push-toright ';
-    			}
-    			if(strrpos($openMenuInfo, "r") !== FALSE) {
-    				$openRightBtn = ' menu-active ';
-    				$openRightMenu = ' sidemenu-open';
-    				$mainContainerClass .= ' sidemenu-push-toleft ';
-    				$pin = ' hidden ';
-    			} else {
-    				$pinned = ' hidden ';
-    			}
-    		} 
+			if(strrpos($openMenuInfo, "l") !== FALSE) {
+				$openLeftBtn = ' menu-active ';
+				$openLeftMenu = ' sidemenu-open ';
+				$mainContainerClass .= ' sidemenu-push-toright ';
+			}
+			if(strrpos($openMenuInfo, "r") !== FALSE) {
+				$openRightBtn = ' menu-active ';
+				$openRightMenu = ' sidemenu-open';
+				$mainContainerClass .= ' sidemenu-push-toleft ';
+				$pin = ' hidden ';
+			} else {
+				$pinned = ' hidden ';
+			}
     	} else {
     			$pinned = ' hidden ';
     	}
     	
-    	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
-    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}"));
-        $searchImg = ht::createElement('img', array('src' => sbf('img/search_2.png', '')));
-    	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}"));
+    	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
+    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}", 'alt' => 'pin'));
+        $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
+    	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}", 'alt' => 'unpin'));
     	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
     	
     	// Задаваме лейаута на страницата
@@ -175,12 +174,19 @@ class core_page_InternalModern extends core_page_Active
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"), "DEBUG");
     	}
-    	// Опаковките и главното съдържание заемат екрана до долу
     	
+        // Опаковките и главното съдържание заемат екрана до долу
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
     	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
     	
+    	if(Mode::is('screenMode', 'narrow')){
+        	$tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+    	}
     	
+        // Добавяме кода, за определяне параметрите на браузъра
+        $Browser = cls::get('log_Browsers');
+        $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
+
         return $tpl;
     }
     
@@ -278,7 +284,7 @@ class core_page_InternalModern extends core_page_Active
                 if (strtolower($currUrl['Ctr']) != 'core_packs') {
                     
                     // Редиректваме към yправление на пакети
-                    return redirect(array('core_Packs', 'list'), FALSE, tr('Няма инсталирано меню'));
+                    redirect(array('core_Packs', 'list'), FALSE, '|Няма инсталирано меню');
                 }
             }
         }
@@ -325,9 +331,9 @@ class core_page_InternalModern extends core_page_Active
         
         // Създава линк за превключване между режимите
        	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Мобилен"), array('logs_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
+       		$mode = ht::createLink(tr("Мобилен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
        	} else {
-       		$mode = ht::createLink(tr("Десктоп"), array('logs_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
+       		$mode = ht::createLink(tr("Десктоп"), array('log_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
        	if(isDebug()) {
        		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
@@ -379,13 +385,12 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($portalLink, 'PORTAL');
         
         // Рендираме бутоните за търсене
-        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
+        $inputType = "<input class='serch-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
         $attr = array();
         $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
-        
         $searchLink = '';
         
         if (doc_Search::haveRightFor('list')) {

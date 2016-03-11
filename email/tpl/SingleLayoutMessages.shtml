@@ -1,10 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div  class='clearfix21 antetka'>
-        <!--ET_BEGIN subject-->          
-        <div style='margin-bottom:10px;'>
-            |Относно|*: <b>[#subject#]</b>
-        </div>
-        <!--ET_END subject-->
         <div class="em-holder" style='float:left;margin-right:10px;'>
             <div class="small">
                 <table class='top-table'>
@@ -14,18 +9,18 @@
                         <td>[#fromEml#]</td>
                     </tr>
                     <!--ET_END fromEml-->
-                    <!--ET_BEGIN allTo-->          
+                    <!--ET_BEGIN AllTo-->          
                     <tr>
                         <td  class='aright'>|До|*:</td>
-                        <td>[#allTo#]</td>
+                        <td>[#AllTo#]</td>
                     </tr>
-                    <!--ET_END allTo-->
-                    <!--ET_BEGIN allCc-->          
+                    <!--ET_END AllTo-->
+                    <!--ET_BEGIN AllCc-->          
                     <tr>
                         <td  class='aright'>|Кп|*:</td>
-                        <td>[#allCc#]</td>
+                        <td>[#AllCc#]</td>
                     </tr>
-                    <!--ET_END allCc-->
+                    <!--ET_END AllCc-->
                     <!--ET_BEGIN date-->          
                     <tr>
                         <td class='aright'>|На|*:</td>
@@ -52,9 +47,15 @@
         <div class="clearfix21"></div>
     </div>
     <div style='clear: both;'></div>
-    <!--ET_BEGIN textPart--> 
-    <div style='padding:5px;margin-top:10px;'>
+
+   
+    <div style='padding:6px 10px 10px;'>
+        <!--ET_BEGIN subject-->          
+        <h3 class='richtext-title'>|Относно|*: [#subject#]</h3>
+        <!--ET_END subject-->
+        <!--ET_BEGIN textPart--> 
         <div>[#textPart#]</div>
+        <!--ET_END textPart--> 
     </div>
-    <!--ET_END textPart--> 
+   
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

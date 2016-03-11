@@ -19,9 +19,7 @@
  * [Име] 		- име на артикула
  * [Код]    	- код на артикула	       
  * [Мерки]      - вербално име на мярка, ако няма такава се създава нова 
- * [Групи]      - Маркери в които да се добави артикула
- * [Категория]  - Име на папка от тип Категория където да се добави
- * [Свойства]   - Свойства които да имат артикулите
+ * [Маркери]    - Маркери в които да се добави артикула ( разделени с '|' ако са повече от един)
  * 
  * 
  * @category  bgerp
@@ -30,6 +28,8 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class cat_BaseImporter extends core_Manager {
     
@@ -55,7 +55,7 @@ class cat_BaseImporter extends core_Manager {
     /**
      * Кои полета от cat_Products ще получат стойностти от csv-то
      */
-    private static $importFields = "name,code,measureId,groups,category,meta";
+    private static $importFields = "name,code,measureId,groups";
     
     
     /*
@@ -82,8 +82,6 @@ class cat_BaseImporter extends core_Manager {
     	
     	// Взимат се всички полета на мениджъра, в който ще се импортира
     	$cloneMvc = clone $this->mvc;
-    	$cloneMvc->FLD("category", 'varchar', 'caption=Категория,mandatory');
-    	
     	$Dfields = $cloneMvc->selectFields();
     	$selFields = arr::make(self::$importFields, TRUE);
     	
@@ -95,10 +93,12 @@ class cat_BaseImporter extends core_Manager {
     				$fld->mandatory = 'mandatory';
     			}
     			$captionArr = explode('->', $fld->caption);
-    			$arr = array('caption' => $captionArr[0], 'mandatory' => $fld->mandatory);
+    			$arr = array('caption' => "Колони->{$captionArr[0]}", 'mandatory' => $fld->mandatory);
     			$fields[$name] = $arr;
     		}
     	}
+    	$fields['category'] = array('caption' => 'Папка->Категория', 'mandatory' => 'mandatory', 'type' => 'key(mvc=cat_Categories,select=name,allowEmpty)', 'notColumn' => 'notColumn');
+    	$fields['meta'] = array('caption' => 'Папка->Свойства', 'mandatory' => 'mandatory', 'type' => 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем, canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'notColumn' => 'notColumn');
     	
     	return $fields;
     }
@@ -152,11 +152,10 @@ class cat_BaseImporter extends core_Manager {
     	// Намира се на кой индекс стои името на групата, Мярката и категорията
     	$groupIndex = $fields['groups'];
     	$measureIndex = $fields['measureId'];
-    	$categoryIndex = $fields['category'];
     	
     	$newMeasures = $newGroups = $newCategories = array();
 	    foreach($rows as $row) {
-	    	foreach (array('groupIndex' => 'newGroups', 'measureIndex' => 'newMeasures', 'categoryIndex' => 'newCategories') as $indName => $inArr){
+	    	foreach (array('groupIndex' => 'newGroups', 'measureIndex' => 'newMeasures') as $indName => $inArr){
 	    		
 	    		// Групираме по стойност
 	    		if(!in_array($row[${$indName}], ${$inArr})){
@@ -166,7 +165,7 @@ class cat_BaseImporter extends core_Manager {
 	    }
 	    
 	    // Връщат се масив съдържащ уникалните групи, мерни единици и категории
-	    $res = array('groups' => $newGroups, 'measures' => $newMeasures, 'categories' => $newCategories);
+	    $res = array('groups' => $newGroups, 'measures' => $newMeasures);
 		
     	return $res;
     }
@@ -183,39 +182,8 @@ class cat_BaseImporter extends core_Manager {
     {
     	$params = $this->filterImportParams($rows, $fields);
     	
-    	$measures = $groups = $categories = array();
-    	$addedCategories = $addedMeasures = $addedGroups = $updatedGroups = $updatedCategories = 0;
-    	
-    	// Импортиране на групите
-    	foreach($params['groups'] as $gr){
-    		
-    		$nRec = new stdClass();
-    		$nRec->name = $gr;
-    		if($rec = cat_Groups::fetch("#name = '{$gr}'")){
-    			$nRec->id = $rec->id;
-    			$updatedGroups++;
-    		} else {
-    			$addedGroups++;
-    		}
-    			
-    		$groups[$gr] = cat_Groups::save($nRec);
-    	}
-    	
-    	
-    	// Импортиране на катгеориите
-    	foreach($params['categories'] as $gr){
-    	
-    		$nRec = new stdClass();
-    		$nRec->name = $gr;
-    		if($rec = cat_Categories::fetch("#name = '{$gr}'")){
-    			$nRec->id = $rec->id;
-    			$updatedCategories++;
-    		} else {
-    			$addedCategories++;
-    		}
-    		 
-    		$categories[$gr] = cat_Categories::save($nRec);
-    	}
+    	$measures = $groups = array();
+    	$addedCategories = $addedMeasures = $addedGroups = $updatedGroups = 0;
     	
     	// Импортиране на мерните единици
     	foreach($params['measures'] as $measure){
@@ -223,15 +191,33 @@ class cat_BaseImporter extends core_Manager {
     			$id = cat_UoM::save((object)array('name' => $measure, 'shortName' => $measure));
     			$addedMeasures++;
     		}
-    		
+    	
     		$measures[$measure] = $id;
     	}
     	
-    	$html .= "Добавени {$addedGroups} нови групи, Обновени {$updatedGroups} съществуващи групи<br>";
-    	$html .= "Добавени {$addedMeasures} нови мерни единици<br/>";
-    	$html .= "Добавени {$addedCategories} нови категории<br/>";
+    	// Импортиране на групите
+    	foreach($params['groups'] as $gr){
+    		$grArr = explode('|', $gr);
+    		foreach ($grArr as $markerName){
+    			if($markerName === '') continue;
+    			
+    			$name = plg_Search::normalizeText($markerName);
+    			$query = cat_Groups::getQuery();
+    			plg_Search::applySearch($name, $query);
+    			
+    			if(!$id = cat_Groups::fetchField(array("#searchKeywords LIKE '%[#1#]%'", $name), 'id')){
+    				$id = cat_Groups::save((object)array('name' => $markerName));
+    				$addedGroups++;
+    			}
+    			
+    			$groups[$markerName] = $id;
+    		}
+    	}
     	
-    	$res = array('groups' => $groups, 'measures' => $measures, 'categories' => $categories);
+    	$html .= "Добавени {$addedGroups} нови групи, Обновени {$updatedGroups} съществуващи маркера<br>";
+    	$html .= "Добавени {$addedMeasures} нови мерни единици<br/>";
+    	
+    	$res = array('groups' => $groups, 'measures' => $measures);
     	
     	return $res;
     }
@@ -249,13 +235,25 @@ class cat_BaseImporter extends core_Manager {
     	$added = $updated = 0;
     	
     	foreach($rows as $row) {
+    		
 	    	$rec = new stdClass();
 	    	$rec->name = $row[$fields['name']];
 	    	$rec->measureId = $params['measures'][$row[$fields['measureId']]];
 	    	$rec->code = $row[$fields['code']];
-	    	$rec->groups = keylist::addKey('', $params['groups'][$row[$fields['groups']]]);
-	    	$rec->csv_category = $params['categories'][$row[$fields['category']]];
-	    	$rec->meta = $row[$fields['meta']];
+	    	$rec->folderId = cat_Categories::forceCoverAndFolder($fields['category']);
+	    	$rec->meta = $fields['meta'];
+	    	
+	    	$markerIds = array();
+	    	$groups = explode('|', $row[$fields['groups']]);
+	    	foreach ($groups as $grName){
+	    		if($grName === '') continue;
+	    		$index = $params['groups'][$grName];
+	    		$markerIds[$index] = $index;
+	    	}
+	    	
+	    	if(count($markerIds)){
+	    		$rec->groups = keylist::fromArray($markerIds);
+	    	}
 	    	
 	    	if($rec->id = cat_Products::fetchField(array("#code = '[#1#]'", $code), 'id')){
 	    		$updated++;
@@ -277,6 +275,7 @@ class cat_BaseImporter extends core_Manager {
      */
     public static function isApplicable($className)
     {
-    	return $className == self::$applyOnlyTo;
+        
+//     	return $className == self::$applyOnlyTo;
     }
 }

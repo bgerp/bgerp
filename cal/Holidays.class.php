@@ -322,14 +322,12 @@ class cal_Holidays extends core_Master
                     $delta = 0;
                 } elseif($rec->weekday && $rec->base) {
                     $month = $rec->base;
-					$base = dt::firstDayOfMounthTms($month, $year, $rec->weekday);  
+					$base = dt::firstDayOfMonthTms($month, $year, $rec->weekday);  
 					$delta = 0;  
                 } else {              	
-                    $base = mktime(0, 0, 0, $rec->base, 1, $year);
+                    $base = mktime(23, 59, 59, $rec->base, 1, $year);
                     $delta = -1;
                 }
-                
-             
                 
                 $calRec = new stdClass();
                
@@ -358,7 +356,7 @@ class cal_Holidays extends core_Master
                 $events[] = $calRec;
             }
         }
- 
+        
         $resArr = cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
 
         $status = 'В календара са добавени ' . $resArr['new'] . ', обновени ' . $resArr['updated'] . 

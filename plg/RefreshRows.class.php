@@ -152,8 +152,10 @@ class plg_RefreshRows extends core_Plugin
             
             $res = array($resObj);
             
-            // Добавяме в лога
-            core_Logs::add($mvc, NULL, 'AJAX refresh list: ' . $mvc->title, self::$logKeepDays);
+            // Да предизвикаме релоад след връщане назад
+            $resObjReload = new stdClass();
+            $resObjReload->func = 'forceReloadAfterBack';
+            $res[] = $resObjReload;
         }
         
         return FALSE;
@@ -181,6 +183,8 @@ class plg_RefreshRows extends core_Plugin
         
         // Клонираме, за да не променяме оригиналния обект
         $cTpl = clone $tpl;
+        
+        jquery_Jquery::runAfterAjax($cTpl, 'makeTooltipFromTitle');
         
         // Премахваме празните блокове
         $cTpl->removePlaces();
@@ -274,25 +278,6 @@ class plg_RefreshRows extends core_Plugin
         if (Request::get('ajax_mode')) {
             
             $res = $tpl;
-            
-            return FALSE;
-        }
-    }
-    
-    
-    /**
-     * Преди вкарване на записив в лога
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $detail
-     * @param integer $objectId
-     * @param integer $logKeepDays
-     */
-    static function on_BeforeLog($mvc, &$res, $detail, $objectId = NULL, &$logKeepDays = NULL)
-    {
-        // Ако заявката е по AJAX
-        if (Request::get('ajax_mode')) {
             
             return FALSE;
         }

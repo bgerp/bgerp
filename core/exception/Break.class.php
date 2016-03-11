@@ -4,12 +4,17 @@
 /**
  * 
  * 
- * 
- * @author developer
- *
+ * @category  bgerp
+ * @package   core
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class core_exception_Break extends Exception
 {
+    
+    
     /**
      * Вербален тип на изключението
      */
@@ -21,7 +26,7 @@ class core_exception_Break extends Exception
      */
     public $dump;
     
-
+    
     /**
      *  Конструктор на изключението
      */
@@ -32,8 +37,8 @@ class core_exception_Break extends Exception
         $this->type  = $type;
         $this->dump  = $dump;
     }
-
-
+    
+    
     /**
      * Връща параметъра $type
      */
@@ -41,8 +46,8 @@ class core_exception_Break extends Exception
     {
         return $this->type;
     }
-
-
+    
+    
     /**
      * Връща параметъра $dump
      */
@@ -50,7 +55,7 @@ class core_exception_Break extends Exception
     {
         return $this->dump;
     }
-
+    
     
     public function getDebug()
     {

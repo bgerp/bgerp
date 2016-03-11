@@ -29,10 +29,10 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason' => "Протокол от производство №{$rec->id}",
-				'valior' => $rec->valior,
+				'reason'      => "Протокол от производство №{$rec->id}",
+				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
-				'entries' => array()
+				'entries'     => array()
 		);
 	
 		// Ако има ид, добавяме записите
@@ -71,71 +71,68 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		$dQuery->where("#noteId = {$rec->id}");
 		$dQuery->orderBy("id", 'ASC');
 		
-		$errorArr = array();
+		$errorArr2 = $errorArr = array();
+		$expenses = 0;
 		
 		while($dRec = $dQuery->fetch()){
 			unset($entry);
 			
 			if(isset($dRec->bomId)){
-					
-			if(empty($dRec->jobId)) return FALSE;
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
-					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
 					
-					// Единични суми от рецептата
-					$priceObj = cat_Boms::getPrice($dRec->productId, $dRec->bomId);
+					$quantityProduced = planning_Jobs::fetchField($dRec->jobId, 'quantityProduced');
+					$quantityToProduce = $dRec->quantity + $quantityProduced;
 					
-					// проверяваме цената за к-то от заданието
-					$bomAmount = ($priceObj->base + $quantityJob * $priceObj->prop) / $quantityJob;
-					$bomAmount *= $dRec->quantity;
+					// Извличаме информацията за ресурсите в рецептата за двете количества
+					$resourceInfoProduced = cat_Boms::getResourceInfo($dRec->bomId, $quantityProduced, $rec->valior);
+					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId, $quantityToProduce, $rec->valior);
 					
 					$mapArr = $resourceInfo['resources'];
 					if(count($mapArr)){
 						foreach ($mapArr as $index => $res){
-							if($res->type == 'input'){
-								
-								/*
-								 * За всеки ресурс началното количество се разделя на количеството от заданието и се събира
-								 * с пропорционалното количество. След това се умножава по количеството посочено в протокола за
-								 * от производството и това количество се изписва от ресурсите.
-								 */
-								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + ($res->propQuantity / $resourceInfo['quantity']));
-								$resQuantity = core_Math::roundNumber($resQuantity);
-								
-								$res->finalQuantity = $resQuantity;
-							}
+							$res->propQuantity = $res->propQuantity - $resourceInfoProduced['resources'][$index]->propQuantity;
+							
+							// Подготвяме количеството
+							$resQuantity = $dRec->quantity * ($res->propQuantity / $resourceInfo['quantity']);
+							$res->propQuantity = core_Math::roundNumber($resQuantity);
 						}
 						
-						arr::order($mapArr, 'finalQuantity', 'DESC');
+						arr::order($mapArr, 'propQuantity', 'DESC');
+						arr::order($mapArr, 'type', 'ASC');
 						
 						foreach ($mapArr as $index => $res){
 							$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 							
 							if($res->type == 'input'){
-								$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени ресурси в произведен артикул';
+								
+								$pInfo = cat_Products::getProductInfo($res->productId);
+								$convInfo = planning_ObjectResources::getConvertedInfo($res->productId, $res->propQuantity);
+								
+								$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($pInfo->meta['canStore'])) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложени материали в производството на артикул');
+								
 								$entry = array(
 										'debit' => array('321', array('store_Stores', $rec->storeId),
-															  array($dRec->classId, $dRec->productId),
+															  array('cat_Products', $dRec->productId),
 												'quantity' => $pQuantity),
-										'credit' => array('61101', array('planning_Resources', $res->resourceId),
-												'quantity' => $res->finalQuantity),
+										'credit' => array('61101', array('cat_Products', $convInfo->productId),
+												'quantity' => $convInfo->quantity),
 										'reason' => $reason,
 								);
 							} else {
+								$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $res->productId, NULL, $rec->valior);
 								
 								// Сумата на дебита е себестойността на отпадния ресурс
-								$amount = $resQuantity * planning_Resources::fetchField($res->resourceId, "selfValue");
-								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + ($res->propQuantity / $resourceInfo['quantity']));
-								$resQuantity = core_Math::roundNumber($resQuantity);
+								$amount = $res->propQuantity * $selfValue;
+								$convInfo = planning_ObjectResources::getConvertedInfo($res->productId, $resQuantity);
 								
 								$entry = array(
 										'amount' => $amount,
-										'debit' => array('61101', array('planning_Resources', $res->resourceId),
-														'quantity' => $resQuantity),
+										'debit' => array('61101', array('cat_Products', $convInfo->productId),
+														'quantity' => $convInfo->quantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
-																 array($dRec->classId, $dRec->productId),
+																 array('cat_Products', $dRec->productId),
 															'quantity' => $pQuantity),
-										'reason' => 'Приспадане себестойността на отпадък от произведен артикул',
+										'reason' => 'Приспадане себестойността на отпадък от произведен продукт',
 								);
 								
 								$total += $amount;
@@ -146,15 +143,19 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					}
 					
 					// Ако има режийни разходи за разпределение
-					if(isset($resourceInfo['expenses'])){
-						$costAmount = $resourceInfo['expenses'] * $bomAmount;
+					if($resourceInfo['expenses']){
+						$primeCost1 = $resourceInfoProduced['primeCost'];
+						$primeCost2 = $resourceInfo['primeCost'];
+						$amount = $primeCost2 * $quantityToProduce - $primeCost1 * $quantityProduced;
+						
+						$costAmount = $resourceInfo['expenses'] * $amount;
 						$costAmount = round($costAmount, 2);
 						
 						if($costAmount){
 							$costArray = array(
 									'amount' => $costAmount,
 									'debit' => array('321', array('store_Stores', $rec->storeId),
-											array($dRec->classId, $dRec->productId),
+											array('cat_Products', $dRec->productId),
 											'quantity' => 0),
 									'credit' => array('61102'),
 									'reason' => 'Разпределени режийни разходи',
@@ -166,77 +167,32 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					}
 				}
 			
+			foreach ($resourceInfo['resources'] as $r){
+				if($r->propQuantity == cat_BomDetails::CALC_ERROR){
+					$errorArr2[] = cat_Products::getTitleById($dRec->productId);
+					break;
+				}
+			}
+				
 			if(!$entry){
-				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
+				$errorArr[] = cat_Products::getTitleById($dRec->productId);
 			}
 		}
 		
-		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		// Ако някой от артикулите не може да бдъе произведем сетваме, че ще правимр едирект със съобщението
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат произведени");
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото нямат задания или рецепти избрани в протокола");
+			}
+			
+			if(count($errorArr2)){
+				$errorArr = implode(', ', $errorArr2);
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат произведени, защото не може да се определят количествата на вложените материали");
 			}
 		}
 		
 		// Връщаме ентритата
 		return $entries;
-	}
-	
-	
-	/**
-	 * Връща директната контировка ако:
-	 * за артикула има ресурс, който има дебитно салдо в 61101 и е вложим
-	 * или ако няма рецепта.
-	 * 
-	 * 		Dt: 321. Суровини, материали, продукция, стоки      (Складове, Артикули)
-	 * 		Ct: 61101. Разходи за Ресурси             (Ресурси)
-	 * 
-	 */
-	private static function getDirectEntry($dRec, $rec)
-	{
-		$entry = array();
-		
-		// Референция към артикула
-		$productRef = new core_ObjectReference($dRec->classId, $dRec->productId);
-		$pInfo = $productRef->getProductInfo();
-		
-		// Ако към артикула имаме ресурс
-		if($resourceId = planning_ObjectResources::getResource($dRec->classId, $dRec->productId)->resourceId){
-			$blQuantity = FALSE;
-		
-			// И ресурса е перо
-			$item = acc_Items::fetchItem('planning_Resources', $resourceId);
-			if($item){
-				
-				// Намираме крайното салдо на ресурса по сметка 61101 за този център и този ресурс
-				$bQuery = acc_BalanceDetails::getQuery();
-
-				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '61101', NULL, $item->id);
-				$bRec = $bQuery->fetch();
-				
-				// Ако имаме дебитно салдо
-				if($bRec->blQuantity > 0){
-					$blQuantity = $bRec->blQuantity;
-				}
-			}
-		
-			// и е вложим
-			if(isset($pInfo->meta['canConvert'])){
-				
-				// и имаме дебитно салдо или няма рецепта директно го произвеждаме от ресурса
-				if($blQuantity || empty($dRec->bomId)){
-					$entry = array(
-							'debit' => array('321', array('store_Stores', $rec->storeId),
-									array($dRec->classId, $dRec->productId),
-									'quantity' => $dRec->quantity),
-							'credit' => array('61101', array('planning_Resources', $resourceId),
-									'quantity' => $dRec->quantity),
-					);
-				}
-			}
-		}
-		
-		return $entry;
 	}
 }

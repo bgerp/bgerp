@@ -507,7 +507,10 @@ class barcode_Generator extends core_Manager
         }
         
         // Очакваме да може да се определят размерите
-        if (!$width || !$height) expect(FALSE, 'Не може да се определят размерите на баркода.');
+        if (!$width || !$height) {
+            self::logWarning("Проблем при генериране на баркод с текст '{$text}' в тип '{$type}'");
+            expect(FALSE, 'Проблем при генериране на баркод', $text, $type);
+        }
         
         // Ако широчината не е четно число, тогава му добавяме единица
         if ($width % 2 != 0) {
@@ -667,17 +670,31 @@ class barcode_Generator extends core_Manager
         switch ($type) {
             case 'datamatrix' :
             case 'qr' :
-                expect($size['width'] == $size['height'], "За типа '{$type}' височината и широчината трябва да са равни.");
+                expect($size['width'] == $size['height'], "За типа '{$type}' височината и широчината трябва да са равни");
                 break;
             
             default :
-            expect($size['width'], 'Не сте въвели широчина.');
-            expect($size['height'], 'Не сте въвели височина.');
+            expect($size['width'], 'Не сте въвели широчина на баркода');
+            expect($size['height'], 'Не сте въвели височина на баркода');
             break;
         }
         
         // Минималната широчина на баркода трябва да е по малка от широчината зададена от потребителя
         expect($size['width'] >= $minWidthAndHeightArr['width'], "Минималната широчина за баркода е {$minWidthAndHeightArr['width']}");
         expect($size['height'] >= $minWidthAndHeightArr['height'], "Минималната височина за баркода е {$minWidthAndHeightArr['height']}");
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        
+        return ht::createLink(get_called_class(), array());
     }
 }

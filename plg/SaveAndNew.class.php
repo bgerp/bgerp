@@ -119,7 +119,9 @@ class plg_SaveAndNew extends core_Plugin
                 $permanentName = cls::getClassName($mvc) . '_' . $name;
                 
                 if (Mode::is($permanentName)) {
-                    $data->form->setDefault($name, Mode::get($permanentName));
+                	if($data->form->cmd !== 'refresh'){
+                		$data->form->setDefault($name, Mode::get($permanentName));
+                	}
                 }
             }
         }

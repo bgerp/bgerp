@@ -1,28 +1,20 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-        <table class="innerTable"  cellpadding="5" style='width:100%'>
+        <table class="innerTable paddingCells" style='width:100%'>
             <tbody>
                 <tr>
                     <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
                     <td class="cell centered" style='width:30%' rowspan='2'>
-                        <div class="document-title">|ПРИЕМАТЕЛЕН ПРОТОКОЛ|*</div>
+                        <div class="document-title">|приемателен протoкол|*</div>
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>
                         </div>
                         <!--ET_BEGIN state-->
-                        <br>
-                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                        <br>
+                        <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                         <!--ET_END state-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%'><b>|Доставчик|*</b></td>
@@ -98,7 +90,7 @@
                             </tr>
                             <tr>
                                 <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
-                                <td class='nowrap centered'><span class="sign_names">[#delivered#]</span></td>
+                                <td class='centered'><span class="sign_names nowrap">[#delivered#]</span></td>
                             </tr>
                         </table>
                     </td>
@@ -106,9 +98,4 @@
             </tbody>
         </table>
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

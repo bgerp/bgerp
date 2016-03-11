@@ -16,12 +16,6 @@
 abstract class deals_ManifactureMaster extends core_Master
 {
 	
-	
-	/**
-	 * Опашка от записи за записване в on_Shutdown
-	 */
-	protected $updated = array();
-
 
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -45,7 +39,7 @@ abstract class deals_ManifactureMaster extends core_Master
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
+				'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
 				'caption=Статус, input=none'
 		);
 	}
@@ -67,18 +61,18 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
+	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+	        $row->storeId = store_Stores::getHyperlink($rec->storeId);
+	    }
+		
 		if($fields['-single']){
-			
 			$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
 			if($storeLocation){
 				$row->storeLocation = crm_Locations::getAddress($storeLocation);
 			}
-			
-			$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		}
-		 
+		
 		if($fields['-list']){
-			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->title = $mvc->getLink($rec->id, 0);
 		}
@@ -141,28 +135,34 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	public function getUsedDocs_($id)
 	{
-		$res = array();
-		
-		$Detail = $this->mainDetail;
-		$dQuery = $this->$Detail->getQuery();
-		$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
-		$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-		$dQuery->groupBy('productId,classId');
-		while($dRec = $dQuery->fetch()){
-			if(isset($dRec->classId) && isset($dRec->productId)){
-				$productMan = cls::get($dRec->classId);
-				if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-					$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-				}
+		return deals_Helper::getUsedDocs($this, $id);
+	}
+	
+	
+	/**
+	 * Добавя ключови думи за пълнотекстово търсене
+	 */
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		if($rec->id){
+			$detailsKeywords = '';
+			
+			$Detail = $mvc->mainDetail;
+			$dQuery = $Detail::getQuery();
+			$dQuery->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+			$dQuery->show('productId');
+			while($dRec = $dQuery->fetch()){
+				$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->productId));
 			}
+			
+			$res = " " . $res . " " . $detailsKeywords;
 		}
-		 
-		return $res;
 	}
 	
 	
 	/**
      * В кои корици може да се вкарва документа
+     * 
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
@@ -197,7 +197,7 @@ abstract class deals_ManifactureMaster extends core_Master
     {
     	// Може да добавяме или към нишка с начало задание
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	if($firstDoc->getInstance() instanceof planning_Jobs){
+    	if($firstDoc->isInstanceOf('planning_Jobs')){
     		
     		return TRUE;
     	} 
@@ -222,35 +222,14 @@ abstract class deals_ManifactureMaster extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    function updateMaster_($id)
     {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$mvc->updateMaster($id);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
-     */
-    public function updateMaster($id)
-    {
-    	// Обновяваме класа за всеки случай
+    	// Записваме документа за да му се обновят полетата
     	$rec = $this->fetchRec($id);
     	$this->save($rec);
     }

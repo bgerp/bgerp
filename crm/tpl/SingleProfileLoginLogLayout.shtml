@@ -1,16 +1,12 @@
-<fieldset class="detail-info">
-    <legend class="groupTitle">
-        |Логин лог|*<!--ET_BEGIN loginLogLink--> [#loginLogLink#]<!--ET_END loginLogLink-->
-    </legend>
-    <div class="groupList">
-        <table style='min-width:440px'>
-            <!--ET_BEGIN log-->
-            <tr class='[#logClass#]'>
-                <td>[#status#]</td>
-                <td class='centered'>[#createdOn#]</td>
-                <td class='aright'>[#ip#]</td>
-            </tr>
-            <!--ET_END log-->
-        </table>
-    </div>
-</fieldset>
+<div class="groupList" id="profileLoginLog">
+    <table style='min-width:440px'>
+       <!--ET_BEGIN log-->
+       <tr class='[#logClass#]'>
+            <td>[#createdOn#]</td>
+           <td>[#status#]</td>
+           <td class='aright'>[#ip#]</td>
+       </tr>
+       <!--ET_END log-->
+   </table>
+   <!--ET_BEGIN loginLogLink--> [#loginLogLink#]<!--ET_END loginLogLink-->
+</div>

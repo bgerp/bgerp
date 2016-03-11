@@ -59,7 +59,7 @@ class drdata_Emails extends core_BaseClass
         $result['value'] = $email;
         
         if (preg_match('/^www\./i', $email)) {
-            $result['warning'] = "Наистина ли имейла започва с| <B>www.</B> ?";
+            $result['warning'] = "Наистина ли имейла започва с|* <B>www.</B> ?";
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката
@@ -97,7 +97,7 @@ class drdata_Emails extends core_BaseClass
      * 
      * @param string $domain
      */
-    function mxAndARecordsValidate($domain)
+    public static function mxAndARecordsValidate($domain)
     {
         $hosts = dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
         

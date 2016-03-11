@@ -31,8 +31,11 @@ do {
     
     if ($trackerData['CRC'] != crc16($trackerData['allData'])) {
         // Гласим параметрите за URL-то да пратят грешка
-        $trackerData['ID'] = 'CRC Error';
-        $trackerData['data'] = '';
+        // $trackerData['ID'] = 'CRC Error';
+        // $trackerData['data'] = '';
+        
+        // Пропускаме грешните
+        continue;
     }
     
     $params = array('trackerId'=>$trackerData['ID'],

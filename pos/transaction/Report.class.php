@@ -44,9 +44,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $totalAmount = 0;
         
         $paymentsArr = $productsArr = array();
-    	if(!$rec->details){
-    		$this->class->extractData($rec);
-    	}
+    	$this->class->extractData($rec);
     	
     	if(count($rec->details['receiptDetails'])){
     		foreach ($rec->details['receiptDetails'] as $dRec){

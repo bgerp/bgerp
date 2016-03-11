@@ -77,7 +77,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
     
         
     /**

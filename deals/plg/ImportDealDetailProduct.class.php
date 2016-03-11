@@ -70,8 +70,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$rec = &$form->rec;
 				
 				// Трябва да има посочен източник
-				if((empty($rec->csvData) && empty($rec->csvFile)) || (!empty($rec->csvData) && !empty($rec->csvFile))){
-					$form->setError('csvData,csvFile', 'Трябва да е попълнено само едно поле');
+				if((empty($rec->csvData) && empty($rec->csvFile))){
+					$form->setError('csvData,csvFile', 'Трябва да е попълнено поне едно от полетата');
+				}
+				
+				// Трябва да има посочен източник
+				if((!empty($rec->csvData) && !empty($rec->csvFile))){
+					$form->setError('csvData,csvFile', 'Трябва да е попълнено само едно от полетата');
 				}
 				
 				if(!$form->gotErrors()){
@@ -102,9 +107,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 							$msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
 							
 							self::cacheImportParams($mvc, $rec);
+							$mvc->Master->logWrite('Импортиране на артикули', $rec->{$mvc->masterKey});
 							
 							// Редирект кум мастъра на документа към който ще импортираме
-							return Redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), 'FALSE', $msg);
+							redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), FALSE, '|' . $msg);
 						}
 					}
 				}
@@ -135,7 +141,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					             'price'    => $row[$fields['price']]
 			);
 		
-			// Подсигуряваме се че подадените данни са във вътрешен вид
+			// Подсигуряваме се, че подадените данни са във вътрешен вид
 			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
 			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
 			if($obj->price){
@@ -189,12 +195,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			}
 		}
 	
-		$msg = "Импортирани са |{$added}|* артикула";
+		$msg = "|Импортирани са|* {$added} |артикула|*";
 		if($failed != 0){
-			$msg .= ". Не са импортирани |{$failed}|* артикула";
+			$msg .= ". |Не са импортирани|* {$failed} |артикула";
 		}
 	
-		return tr($msg);
+		return $msg;
 	}
 	
 	
@@ -236,7 +242,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		// Настройки на данните
 		$form->FLD("delimiter", 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5');
 		$form->FLD("enclosure", 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане');
-		$form->FLD("firstRow", 'enum(columnNames=Имена на колони,data=Данни)', 'width=100%,caption=Настройки->Първи ред');
+		$form->FLD("firstRow", 'enum(data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Настройки->Първи ред');
 		$form->setOptions("delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
 		$form->setSuggestions("enclosure", array('"' => '"', '\'' => '\''));
 		$form->setDefault("delimiter", ',');

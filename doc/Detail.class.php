@@ -36,7 +36,7 @@ abstract class doc_Detail extends core_Detail
 	{
 		// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
 		if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
-			$master = $mvc->getMasterMvc($rec);
+			$master = $mvc->getMasterMvc($data->form->rec);
 		
 			// Променяма да сочи към single-a
 			$data->retUrl = toUrl(array($master, 'single', $data->form->rec->{$mvc->masterKey}));

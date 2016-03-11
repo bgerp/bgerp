@@ -67,6 +67,20 @@ class fileman_Get extends core_Manager {
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        
+        return ht::createLink(get_called_class(), array());
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     static function on_ValidateFormDownloadFromUrl(&$form)
@@ -137,6 +151,172 @@ class fileman_Get extends core_Manager {
     
     
     /**
+     * Функция, за вземане на файла от подаденото URL
+     * 
+     * @param stdObject $rec - bucketId,callback,url
+     * @param string $add
+     * @param string $err
+     * 
+     * @return NULL|string
+     */
+    public static function getFile($rec, &$add=NULL, &$err=array())
+    {
+        // Определяне на името на файла
+        // 1. От URL-to , ако има след интервал нещо друго
+        // 2. От Хедърите
+        // 3. От URL-то ако в него има стринг, приличащ на име на файл
+        
+        // Име на временния файл
+        $tmpFile = str::getRand('********') . '_' . time();
+        
+        $opts = array('http' =>
+                array(
+                        'method'  => 'GET',
+                        'header' => array(
+                                "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1\r\n" .
+                                "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8\r\n" .
+                                "Accept-Language: bg,en-us;q=0.7,en;q=0.3\r\n" .
+                                "DNT: 1\r\n" .
+                                "Connection: close\r\n"
+                        ),
+                )
+        );
+        
+        $context  = stream_context_create($opts);
+        
+        // Вземаме данните от посоченото URL
+        $data = @file_get_contents($rec->url, FALSE, $context);
+        
+        if(!$data) {
+            $data = @file_get_contents($rec->url);
+        }
+        
+        $fh = NULL;
+        
+        $fRec = new stdClass();
+        
+        if($data === FALSE) {
+            $err[] = "Грешка при свалянето на файла.";
+        } else {
+            foreach($http_response_header as $l) {
+                $hArr = explode(':', $l, 2);
+                if(isset($hArr[1])) {
+                    $h = $headers[strtolower(trim($hArr[0]))] = strtolower(trim($hArr[1]));
+                    $hArr = explode(';', $h);
+                    foreach($hArr as $part) {
+                        if(strpos($part, '=')) {
+                            $pair = explode('=', $part, 2);
+                            $headers[trim(strtolower($pair[0]))] = trim($pair[1], "\"\' \t");
+                        }
+                    }
+                }
+            }
+            
+            // Вземаме миме-типа от хедърите
+            if(isset($headers['content-type'])) {
+                $ct = $headers['content-type'];
+                $ct = explode(';', $ct);
+                $ct = $ct[0];
+                $exts = fileman_Mimes::getExtByMime($ct);
+                if(count($exts)) {
+                    foreach($exts as $e) {
+                        if(stripos($rec->url, '.' . $e)) {
+                            $ext = $e;
+                            break;
+                        }
+                    }
+        
+                    if(!$ext) $ext = $exts[0];
+                }
+            }
+            
+            $fileName = $headers['filename'];
+            
+            if(!$fileName && $ext) {
+        		
+                $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
+        		
+                preg_match($fPattern, $rec->url, $matches);
+        		
+                $fileName = decodeUrl($matches[0]);
+            }
+            
+            // Ако URL-то завършва с нещо като име на файл, го вземаме
+            if(!$fileName) {
+                $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
+                preg_match($fPattern, $rec->url, $matches);
+                if(!in_array(strtolower($matches[2]), array('php', 'asp', 'jsp')) ) {
+                    $fileName = $matches[1];
+                }
+            }
+            
+            if(!$fileName) {
+                $urlArr = parse_url($rec->url);
+                $fileName = str_replace('.', '_', $urlArr['host']);
+            }
+            
+            if(!$fileName) {
+                $fileName = $tmpFile;
+            }
+            
+            if($ct && $fileName) {
+                $fileName = fileman_Mimes::addCorrectFileExt($fileName, $ct);
+            }
+            
+            // Записваме данните в посочения файл
+            file_put_contents($tmpFile, $data);
+            
+            if($rec->bucketId) {
+        
+                // Вземаме инфото на обекта, който ще получи файла
+                $Buckets = cls::get('fileman_Buckets');
+                
+                // Ако файла е валиден по размер и разширение - добавяме го към собственика му
+                if($Buckets->isValid($err, $rec->bucketId, $fileName, $tmpFile)) {
+                    
+                    $filemanInst = cls::get('fileman_Files');
+                    
+                    // Създаваме файла
+                    $fh = $filemanInst->createDraftFile($fileName, $rec->bucketId);
+        			
+                    // Записваме му съдържанието
+                    $filemanInst->setContent($fh, $tmpFile);
+        			
+                    $add = $Buckets->getInfoAfterAddingFile($fh);
+        			
+                    if($rec->callback) {
+                        if (isset($fh)) {
+                            $fRec = fileman_Files::fetchByFh($fh);
+                        }
+                        $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$fRec->name}') != true) self.close(); else   self.focus();  </script>");
+                    }
+                }
+            }
+        
+            @unlink($tmpFile);
+        }
+        
+        // Ако има грешки, показваме ги в прозореца за качване
+        if(count($err)) {
+            $add = new ET("<div style='border:dotted 1px red; background-color:#ffc;'><ul>[#ERR#]</ul></div>");
+        	
+            foreach($err as $e) {
+                $add->append("<li>" . tr($e), 'ERR');
+                fileman_Files::logWarning('Грешка при добавяне на файла от URL: ' . $e);
+            }
+        } else {
+            $rec->url = '';
+        	
+            if (isset($fh)) {
+                fileman_Files::logWrite('Добавен файл от линк', $fRec->id);
+            }
+        }
+        
+        return $fh;
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function act_Dialog()
@@ -151,150 +331,7 @@ class fileman_Get extends core_Manager {
         $rec = $form->input('bucketId,callback,url', TRUE);
  
         if($form->isSubmitted()) {
-            
-            // Определяне на името на файла
-            // 1. От URL-to , ако има след интервал нещо друго
-            // 2. От Хедърите
-            // 3. От URL-то ако в него има стринг, приличащ на име на файл
-
-            // Име на временния файл
-            $tmpFile = str::getRand('********') . '_' . time();
-            
-            $err = array();
-
-            $opts = array('http' =>
-                array(
-                    'method'  => 'GET',
-                    'header' => array(
-                        "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:14.0) Gecko/20100101 Firefox/14.0.1\r\n" .
-                        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8\r\n" .
-                        "Accept-Language: bg,en-us;q=0.7,en;q=0.3\r\n" .
-                        "DNT: 1\r\n" .
-                        "Connection: close\r\n" 
-                    ), 
-                )
-            );
-            
-            $context  = stream_context_create($opts);
-
-
-
-            // Вземаме данните от посоченото URL
-            $data = @file_get_contents($rec->url, FALSE, $context);
-
-            if(!$data) {
-                $data = @file_get_contents($rec->url);
-            }
-            
-            if($data === FALSE) {
-                $err[] = "Грешка при свалането на файла.";
-            } else {
-                foreach($http_response_header as $l) {
-                    $hArr = explode(':', $l, 2);
-                    if(isset($hArr[1])) {
-                        $h = $headers[strtolower(trim($hArr[0]))] = strtolower(trim($hArr[1]));
-                        $hArr = explode(';', $h);
-                        foreach($hArr as $part) {
-                            if(strpos($part, '=')) {
-                                $pair = explode('=', $part, 2);
-                                $headers[trim(strtolower($pair[0]))] = trim($pair[1], "\"\' \t");
-                            }
-                        }
-                    }
-                }
-     
-                // Вземаме миме-типа от хедърите
-                if(isset($headers['content-type'])) {
-                    $ct = $headers['content-type'];
-                    $ct = explode(';', $ct);
-                    $ct = $ct[0];
-                    $exts = fileman_Mimes::getExtByMime($ct);
-                    if(count($exts)) {
-                        foreach($exts as $e) {
-                            if(stripos($rec->url, '.' . $e)) {
-                                $ext = $e;
-                                break;
-                            }
-                        }
-
-                        if(!$ext) $ext = $exts[0];
-                    }
-                }
-
-                $fileName = $headers['filename'];
-              
-                if(!$fileName && $ext) {
-
-                    $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
-
-                    preg_match($fPattern, $rec->url, $matches);
-
-                    $fileName = decodeUrl($matches[0]);
-                }
-                
-                // Ако URL-то завършва с нещо като име на файл, го вземаме
-                if(!$fileName) {
-                    $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
-                    preg_match($fPattern, $rec->url, $matches);
-                    if(!in_array(strtolower($matches[2]), array('php', 'asp', 'jsp')) ) {
-                        $fileName = $matches[1];
-                    }
-                }
-
-                if(!$fileName) {
-                    $urlArr = parse_url($rec->url);
-                    $fileName = str_replace('.', '_', $urlArr['host']);
-                }
-
-                if(!$fileName) {
-                    $fileName = $tmpFile;
-                }
-                
-                if($ct && $fileName) {
-                    $fileName = fileman_Mimes::addCorrectFileExt($fileName, $ct);
-                }
-
-                // Записваме данните в посочения файл
-                file_put_contents($tmpFile, $data);
-     
-                if($rec->bucketId) {
-                        
-                    // Вземаме инфото на обекта, който ще получи файла
-                    $Buckets = cls::get('fileman_Buckets');
-                        
-                    // Ако файла е валиден по размер и разширение - добавяме го към собственика му
-                    if($Buckets->isValid($err, $rec->bucketId, $fileName, $tmpFile)) {
-                            
-                        // Създаваме файла
-                        $fh = $this->Files->createDraftFile($fileName, $rec->bucketId);
-                        
-                        // Записваме му съдържанието
-                        $this->Files->setContent($fh, $tmpFile);
-                            
-                        $add = $Buckets->getInfoAfterAddingFile($fh);
-                            
-                        if($rec->callback) {
-                            $name = fileman_Files::fetchByFh($fh, 'name');
-                            $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$name}') != true) self.close(); else   self.focus();  </script>");
-                        }
-                    }
-                }
-                
-                
-                @unlink($tmpFile);
-            }
-
-            // Ако има грешки, показваме ги в прозореца за качване
-            if(count($err)) {
-                $add = new ET("<div style='border:dotted 1px red; background-color:#ffc;'><ul>[#ERR#]</ul></div>");
-                
-                foreach($err as $e) {
-                    $add->append("<li>" . tr($e), 'ERR');
-                }
-            } else {
-                $rec->url = '';
-            }
-
+            $this->getFile($rec, $add);
         }
         
         $form->addAttr('url', array('style' => 'width:100%;'));

@@ -1,39 +1,81 @@
+var currentMenuInfo = getCookie('menuInfo');
+
 function slidebars(){
-    initElements();
+	initElements();
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
+	if($('body').hasClass('wide')) {
+		setMaxWidth();
+	}
 }
 
 /**
  * Създава лентите и задава необходините опции спрямо ширината на страницата
  */
 function initElements() {
-    if($('#main-container > .tab-control > .tab-row').length == 0) {
-        $('#framecontentTop').css('border-bottom', '1px solid #ccc');
-    }
-
 	var viewportWidth = $(window).width();
+	
 	if(viewportWidth > 600){
 		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
 	} else {
 		$('.btn-sidemenu').jPushMenu();
 	}
-	if(getCookie('menuInformation') == null && viewportWidth > 1264 && !isTouchDevice()) {
+	
+    if($('#main-container > .tab-control > .tab-row').length == 0) {
+        $('#framecontentTop').css('border-bottom', '1px solid #ccc');
+    }
+    if($('.narrow .vertical .formTable').length) {
+		$('#main-container').addClass('unbeddedHeader');
+	}
+    
+	if(getCookie('menuInfo') == null && viewportWidth > 1264 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();
 		if(viewportWidth > 1604){
 			$('.btn-menu-right ').click();
 		}
 	}
-
+		
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 
-	if($('body').hasClass('narrow') && viewportWidth <= 800){
-        setViewportWidth(viewportWidth);
-        $(window).resize( function() {
-            viewportWidth = $(window).width();
-            setViewportWidth(viewportWidth);
+	if($('body').hasClass('narrow')){
+		if(viewportWidth <= 800) {
+			setViewportWidth(viewportWidth);
+	        $(window).resize( function() {
+	            viewportWidth = $(window).width();
+	            setViewportWidth(viewportWidth);
+	        });
+		}
+	} else {
+		$(window).resize( function() {
+            setMaxWidth(viewportWidth);
         });
+	}
+	// за всяко кликане на линк, ще променяме бисквитката
+	$('#nav-panel li a').on('click', function(e){
+		setMenuCookie();
+	});
+	
+	$(window).focus(function() {
+		if ($(window).width() > 700) {
+			setCookie('menuInfo', currentMenuInfo);
+		}
+	});
+}
+
+
+function setMaxWidth() {
+	var viewportWidth = $(window).width();
+	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
+	if(contentWidth < $('.listTable').first().width()){
+		
+		if(contentWidth < $('.listTable').first().width()) {
+			$('#packWrapper, .listBlock').width(contentWidth);
+			$('.document').width(contentWidth-140);
+			$('.document').css('min-width', '40em');
+			$('.document .scrolling-holder').css('max-width', contentWidth-140);
+			$('.document .scrolling-holder').addClass('overflow-scroll');
+		}
 	}
 }
 
@@ -68,8 +110,12 @@ function setMenuCookie(){
 		if ($(this).attr('data-menuid') != 'undefined')
 			openMenus += $(this).attr('data-menuId') + ",";
 	});
-	menuState += " " + openMenus;
-	setCookie('menuInformation', menuState);
+	
+	var verticalOffset = $('#nav-panel').scrollTop();
+	menuState += " " + openMenus +  ":"  + verticalOffset;
+	currentMenuInfo = menuState;
+	setCookie('menuInfo', menuState);
+	
 }
 
 
@@ -79,12 +125,13 @@ function setMenuCookie(){
 function openSubmenus() {
 	if ($(window).width() < 700) return;
 
-	var menuInfo = getCookie('menuInformation');
+	var menuInfo = getCookie('menuInfo');
     if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
-    	var endPos = menuInfo.length ;
+    	var endPos = menuInfo.indexOf(':');
+    	menuScroll = menuInfo.substring(endPos+1);
     	menuInfo = menuInfo.substring(startPos, endPos);
-
+    	
     	menuArray = menuInfo.split(',');
 
         $.each(menuArray, function( index, value ) {
@@ -92,6 +139,9 @@ function openSubmenus() {
         	$("li[data-menuid='" + value + "']").addClass('open');
         	$("li[data-menuid='" + value + "']").find('ul').css('display', 'block');
         });
+        if(menuScroll){
+        	$('#nav-panel').scrollTop(menuScroll);
+        }
     }
 }
 
@@ -107,6 +157,9 @@ function changePinIcon(){
     	} else {
     		$('.pinned').addClass('hidden');
     		$('.pin').removeClass('hidden');
+    	}
+    	if($('body').hasClass('wide')){
+    		setMaxWidth();
     	}
 	});
 }
@@ -249,9 +302,9 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
 		}
 		
 		window.location.href = obj.href = obj.href + amp + fieldName + '=' + encodeURIComponent(inputVal);
+		
+		return false;
 	}
-	
-	window.location.href = obj.href;
 }
 
 

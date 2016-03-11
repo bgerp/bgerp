@@ -6,7 +6,7 @@
  *
  * Инсталиране/Деинсталиране на драйвери за устройствата на Тераком ООД - Русе 
  *
- * @category  vendors
+ * @category  bgerp
  * @package   teracom
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD
@@ -44,7 +44,9 @@ class teracom_Setup extends core_ProtoSetup
                                  
         // Добавяме наличните драйвери
         $drivers = array(
+            'teracom_TCW181BCM',
             'teracom_TCW122BCM',
+            'teracom_TCW122B',
             'teracom_TCW121',
         );
         

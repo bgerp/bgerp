@@ -20,7 +20,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,deals_InvoiceSourceIntf';
     
     
     /**
@@ -51,14 +51,20 @@ class sales_Proformas extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
-                    doc_plg_HidePrices, doc_ActivatePlg';
+					doc_EmailCreatePlg, bgerp_plg_Blank, crm_plg_UpdateContragentData, plg_Printing, Sale=sales_Sales,
+                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone';
     
     
     /**
      * Детайла, на модела
      */
     public $details = 'sales_ProformaDetails' ;
+    
+    
+    /**
+     * Детайли за клониране
+     */
+    public $cloneDetailes = 'sales_ProformaDetails' ;
     
     
     /**
@@ -70,7 +76,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кой е основния детайл
      */
-    protected $mainDetail = 'sales_ProformaDetails';
+    public $mainDetail = 'sales_ProformaDetails';
     
     
     /**
@@ -130,7 +136,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Икона за фактура
      */
-    public $singleIcon = 'img/16/invoice.png';
+    public $singleIcon = 'img/16/proforma.png';
     
     
     /**
@@ -158,6 +164,17 @@ class sales_Proformas extends deals_InvoiceMaster
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
     	'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
     	'accountId' 		  => 'lastDocUser|lastDoc',
+    	'template' 		      => 'lastDocUser|lastDoc|defMethod',
+    );
+    
+    
+    /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array(
+    		'vatId'   => 'contragentVatNo',
+    		'uicId'   => 'uicNo',
+    		'egn'     => 'uicNo',
     );
     
     
@@ -169,7 +186,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	 
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     
@@ -178,29 +195,52 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    function loadSetupData()
+    {
+    	$tplArr = array();
+    	$tplArr[] = array('name' => 'Проформа', 'content' => 'sales/tpl/SingleLayoutProforma.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Pro forma', 'content' => 'sales/tpl/SingleLayoutProformaEn.shtml', 'lang' => 'en');
+    	
+    	$res = '';
+    	$res .= doc_TplManager::addOnce($this, $tplArr);
+    
+    	return $res;
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'paymentMethodId', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
-    		$data->form->setField($fld, 'input=hidden');
+    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
+    		$form->setField($fld, 'input=hidden');
     	}
     	
     	if(!haveRole('ceo,acc')){
-    		$data->form->setField('number', 'input=none');
+    		$form->setField('number', 'input=none');
     	}
     	 
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$data->form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
     		}
     	}
     	
     	if(empty($data->flag)){
     		if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
-    			$data->form->setDefault('accountId', $ownAcc);
+    			$form->setDefault('accountId', $ownAcc);
+    		}
+    	}
+    	
+    	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
+    		if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    			$form->setField('vatReason', 'input,mandatory');
     		}
     	}
     }
@@ -235,7 +275,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	if(empty($rec->number)){
     		$rec->number = $rec->id;
-    		$mvc->save($rec, 'number');
+    		$mvc->save_($rec, 'number');
     	}
     }
     
@@ -261,33 +301,25 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-
+		
     	if($fields['-single']){
-    
+    		if(empty($rec->vatReason)){
+    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
+    				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
+    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');
+    			}
+    		}
+    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
-    			$row->bank = $Varchar->toVerbal($ownAcc->bank);
-    			$row->bic = $Varchar->toVerbal($ownAcc->bic);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Подготвя продуктите от ориджина за запис в детайла на модела
-     */
-    protected static function prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs)
-    {
-    	if(count($agreed)){
-    		
-    		// Записваме информацията за продуктите в детайла
-    		foreach ($agreed as $product){
     			
-    			$diff = $product->quantity;
-    			$product->price *= 1 - $product->discount;
-    			unset($product->discount);
-    			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
+    			core_Lg::push($rec->tplLang);
+    			$row->bank = core_Lg::transliterate($Varchar->toVerbal($ownAcc->bank));
+    			core_Lg::pop($rec->tplLang);
+    			
+    			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
     	}
     }
@@ -315,7 +347,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->getInstance() instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
+    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active'){
     		
     		return TRUE;
     	}
@@ -330,6 +362,10 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	
+    	if($data->paymentPlan){
+    		$tpl->placeObject($data->paymentPlan);
+    	}
     }
     
     
@@ -339,5 +375,99 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	return tr("|Проформа фактура|* №") . $rec->id;
+    }
+    
+    
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+    	parent::prepareSingle_($data);
+    	 
+    	$rec = &$data->rec;
+    	if(empty($rec->dpAmount)) {
+    		$total = $this->_total->amount- $this->_total->discount;
+    		$total = $total + $this->_total->vat;
+    		$origin = $this->getOrigin($rec);
+    		$methodId = $origin->fetchField('paymentMethodId');
+    		
+    		if($methodId){
+    			core_Lg::push($rec->tplLang);
+    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
+    			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    			core_Lg::pop();
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    
+    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
+    		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png');
+    	}
+    	
+    	if($rec->state == 'active'){
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
+    		$amount /= $rec->rate;
+    		$amount = round($amount, 2);
+    		
+    		if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
+		    }
+		    
+    		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
+		    }
+    	}
+    }
+    
+    
+    /**
+     * Намира очаквания аванс по проформа, ако има
+     * Връща начисления аванс от последната проформа за начисляване на аванс,
+     * ако има платежни документи след нея не връщаме сумата (не очакваме аванс)
+     * 
+     * @param mixed $saleId - ид или запис на продажба
+     * @return NULL|double - очаквано авансово плащане
+     */
+    public static function getExpectedDownpayment($saleId)
+    {
+    	$saleRec = sales_Sales::fetchRec($saleId);
+    	
+    	$expectedDownpayment = NULL;
+    	
+    	// Намираме последната проформа към продажбата (ако има)
+    	$pQuery = self::getQuery();
+    	$pQuery->where("#originId = {$saleRec->containerId}");
+    	$pQuery->where("#state = 'active'");
+    	$pQuery->where("#dpAmount IS NOT NULL AND #dpOperation = 'accrued'");
+    	$pQuery->orderBy('id', 'DESC');
+    	
+    	// Ако има намерена проформа
+    	if($profRec = $pQuery->fetch()){
+    		
+    		// Ако има приходен касов ордер с вальор по-голям не намираме очакван аванс
+    		if(cash_Pko::fetchField("#threadId = {$saleRec->threadId} AND #state = 'active' AND #valior > '{$profRec->date}'")) return $expectedDownpayment;
+    		
+    		// Ако има приходен банков ордер с вальор по-голям не намираме очакван аванс
+    		if(bank_IncomeDocuments::fetchField("#threadId = {$saleRec->threadId} AND #state = 'active' AND #valior > '{$profRec->date}'")) return $expectedDownpayment;
+    		
+    		// Ако няма платежен документ след проформата намираме очаквания и аванс
+    		$expectedDownpayment += $profRec->dealValue + $profRec->vatAmount;
+    		$expectedDownpayment = round($expectedDownpayment, 2);
+    	}
+    	
+    	// Връщаме очаквания аванс
+    	return $expectedDownpayment;
     }
 }

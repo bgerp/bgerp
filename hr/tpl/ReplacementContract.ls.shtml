@@ -10,7 +10,7 @@
 <h3 class="centered"><b>[#employeeRec_name#]</b></h3>
 <br> 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;от друга страна, наричан/а/ <b>РАБОТНИК /СЛУЖИТЕЛ/</b> 
-<p> с ЕГН: <b>[#employeeRec_egn#]</b>, 
+    с ЕГН: <b>[#employeeRec_egn#]</b>, 
     местоживеене: [#employeeRec_address#], 
     лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], 
     образование: [#education#], 

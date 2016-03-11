@@ -28,17 +28,26 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public function setDetailFields($mvc)
 	{
-		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
+		$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
-		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
 	}
 	
 
+	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$data->query->orderBy('id', 'ASC');
+	}
+	
+	
 	/**
 	 * Изчисляване на количеството на реда в брой опаковки
 	 *
@@ -55,19 +64,6 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 	
 	/**
-	 * Преди подготвяне на едит формата
-	 */
-	public static function on_BeforePrepareEditForm($mvc, &$res, $data)
-	{
-		if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
-			$data->ProductManager = cls::get($classId);
-	
-			$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
-		}
-	}
-	
-	
-	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param core_Manager $mvc
@@ -78,9 +74,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$form = &$data->form;
 		
 		if(!$mvc->defaultMeta) return;
-		
-		$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
-		$products = $ProductManager->getByProperty($mvc->defaultMeta);
+		$products = cat_Products::getByProperty($mvc->defaultMeta);
 		 
 		expect(count($products));
 			
@@ -100,31 +94,30 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$rec = &$form->rec;
 		
 		if($rec->productId){
-			$form->setDefault('measureId', cls::get($rec->classId)->getProductInfo($rec->productId)->productRec->measureId);
-			$shortName = cat_UoM::getShortName($rec->measureId);
-			$form->setField('quantity', "unit={$shortName}");
+			$form->setDefault('measureId', cat_Products::getProductInfo($rec->productId)->productRec->measureId);
 			
-			$packs = cls::get($rec->classId)->getPacks($rec->productId);
-			if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
-				$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
-			}
-			if(count($packs)){
-				$form->setOptions('packagingId', $packs);
+			$packs = cat_Products::getPacks($rec->productId);
+			$form->setOptions('packagingId', $packs);
+			$form->setDefault('packagingId', key($packs));
+			
+			// Ако артикула не е складируем, скриваме полето за мярка
+			$productInfo = cat_Products::getProductInfo($rec->productId);
+			if(!isset($productInfo->meta['canStore'])){
+				$measureShort = cat_UoM::getShortName($rec->packagingId);
+				$form->setField('packQuantity', "unit={$measureShort}");
 			} else {
-				$form->setReadOnly('packagingId');
-			}
-			
-			$form->setField('packagingId', "placeholder=" . cat_UoM::getTitleById($rec->measureId));
+    			$form->setField('packagingId', 'input');
+    		}
 		}
 		
 		if($form->isSubmitted()){
-			
-			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
+			$productInfo = cat_Products::getProductInfo($rec->productId);
+			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 			
 			if($rec->productId){
-				$rec->measureId = $productInfo->productRec->measureId;
+				if($rec->productId){
+					$rec->measureId = $productInfo->productRec->measureId;
+				}
 			}
 			
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -150,25 +143,16 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
-		if (!empty($data->toolbar->buttons['btnAdd'])) {
-			$productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-			$masterRec = $data->masterData->rec;
-	
-			foreach ($productManagers as $manId => $manName) {
-				$productMan = cls::get($manId);
-				$products = $productMan->getByProperty($mvc->defaultMeta);
-	
+		if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
+				unset($data->toolbar->buttons['btnAdd']);
+				$products = cat_Products::getByProperty($mvc->defaultMeta, NULL, 1);
+				
 				if(!count($products)){
-					$error = "error=Няма {$productMan->title}, ";
+					$error = "error=Няма артикули, ";
 				}
 	
-				$title = mb_strtolower($productMan->singleTitle);
-				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-						"id=btnAdd-{$manId},{$error} order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
-				unset($error);
-			}
-	
-			unset($data->toolbar->buttons['btnAdd']);
+				$data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE),
+						"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
 		}
 	}
 	
@@ -178,24 +162,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		if($rec->productId){
-			$ProductMan = cls::get($rec->classId);
-			$row->productId = $ProductMan->getShortHyperLink($rec->productId);
-		}
+		$row->productId = cat_Products::getShortHyperLink($rec->productId);
 		
-		if($rec->measureId){
-			$row->measureId = cat_UoM::getShortName($rec->measureId);
-		}
-		
-		if (empty($rec->packagingId)) {
-			$row->packagingId = ($rec->measureId) ? $row->measureId : '???';
-		} else {
-			if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
-				$shortUomName = cat_UoM::getShortName($rec->measureId);
-				$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
-				$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-				$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
-			}
+		// Показваме подробната информация за опаковката при нужда
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	
+		if($rec->batch){
+			batch_Defs::appendBatch($rec->productId, $rec->batch, $notes);
+			$RichText = cls::get('type_Richtext');
+			$row->productId .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
 		}
 	}
 }

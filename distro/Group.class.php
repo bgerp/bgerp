@@ -533,7 +533,7 @@ class distro_Group extends core_Master
      * @param integer $id
      * @param core_Detail $Detail
      */
-    static function on_AfterUpdateDetail($mvc, $id, $Detail)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         // Вземаме записа за мастера на детайла
         $rec = $mvc->fetch($id);

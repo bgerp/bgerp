@@ -32,7 +32,7 @@ class catering_Menu extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
+    public $loadList = 'plg_RowTools2, plg_Created, catering_Wrapper, plg_Sorting,
                      plg_Printing, Companies=catering_Companies, CrmCompanies=crm_Companies';
     
     
@@ -283,7 +283,7 @@ class catering_Menu extends core_Master
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->day) {
-            redirect(array('catering_Menu', 'edit'), TRUE, "Няма въведени данни в полето \"Ден\"");
+            redirect(array('catering_Menu', 'edit'), FALSE, '|Няма въведени данни в полето "Ден"');
         }
         
         switch ($rec->day) {

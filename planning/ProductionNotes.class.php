@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_ConsumptionNotes' - Документ за Протокол за производство
+ * Клас 'planning_ProductionNotes' - Документ за Протокол за групово производство
  *
  * 
  *
@@ -10,11 +10,12 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
-class planning_ProductionNotes extends deals_ManifactureMaster
+class planning_ProductionNotes extends planning_ProductionDocument
 {
 	
 	
@@ -27,26 +28,32 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за производство';
+	public $title = 'Протоколи за групово производство';
+	
+	
+	/**
+	 * Име на документа в бързия бутон за добавяне в папката
+	 */
+	public $buttonInFolderTitle = 'Произвеждане';
 	
 	
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Mpn';
+	public $abbr = 'Mpd';
 	
 	
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ProductionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ProductionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
 	
 	
 	/**
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
 	/**
@@ -88,25 +95,19 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning';
+	public $canAdd = 'no_one';
 	
 	
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за производство';
+	public $singleTitle = 'Протокол за групово производство';
 	
 	
 	/**
 	 * Файл за единичния изглед
 	 */
 	public $singleLayoutFile = 'planning/tpl/SingleLayoutProductionNote.shtml';
-	
-	 
-	/**
-	 * Групиране на документите
-	 */
-	public $newBtnGroup = "3.6|Производство";
 	
 	
 	/**
@@ -149,6 +150,14 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Какво движение на партида поражда документа в склада
+	 *
+	 * @param out|in|stay - тип движение (излиза, влиза, стои)
+	 */
+	public $batchMovementDocument = 'in';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -158,82 +167,41 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
-	{
-		$form = &$data->form;
-		
-		if($form->rec->originId){
-			
-			// Ако се създава към задание
-			$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
-			$bomRec = cat_Products::getLastActiveBom($originRec->productId);
-			if(!$bomRec){
-				$title = cat_Products::getTitleById($originRec->productId);
-				$caption = str_replace(',', '.', $title);
-				
-				// И няма рецепта, показваме полето за себестойност
-				$form->FNC('selfValue', 'double', "input,after=note,mandatory,caption=|Производство на|* {$caption}->|Ед. ст-ст|*");
-			} else {
-				$form->rec->bomId = $bomRec->id;
-			}
-		}
-	}
-	
-	
-	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		// Ако е към задания
-		if($rec->originId){
+		// Ако е към задание
+		$firstDocumentInThread = doc_Threads::getFirstDocument($rec->threadId);
+		if(!isset($firstDocumentInThread)) return;
+		if(!$firstDocumentInThread->isInstanceOf('planning_Jobs')) return;
 			
-			// Добавяме информацията за артикула от заданието
-			$originRec = doc_Containers::getDocument($rec->originId)->rec();
-			$Products = cls::get('cat_Products');
-			$pInfo = $Products->getProductInfo($originRec->productId);
+		// Добавяме информацията за артикула от заданието
+		$originRec = $firstDocumentInThread->rec();
+		$productRec = cat_Products::fetch($originRec->productId);
+		$toProduce = $originRec->quantity - $originRec->quantityProduced;
+		if($toProduce <= 0) return;
 			
-			// Ако артикула не е производим, не го добавяме
-			if(empty($pInfo->meta['canManifacture'])) return;
-			
-			$dRec = (object)array('noteId'    => $rec->id, 
-								  'productId' => $originRec->productId, 
-								  'quantity'  => $originRec->quantity, 
-								  'jobId'     => $originRec->id,
-								  'measureId' => $Products->fetchField($originRec->productId, 'measureId'),
-								  'classId'   => $Products->getClassId(),
-								  'selfValue' => $rec->selfValue,
-								  'bomId'     => $rec->bomId,
-								);
-			
-			// Запис на детайла
-			planning_ProductionNoteDetails::save($dRec);
+		// Ако артикула не е производим, не го добавяме
+		if($productRec->canManifacture != 'yes') return;
+		$bomRec = cat_Products::getLastActiveBom($productRec, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($productRec, 'sales');
 		}
-	}
-	
-	
-	/**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
-		if($action == 'add' && isset($rec->originId)){
 			
-			// Ако добавяме към източник, трябва да е не оттеглено и чернова задание
-			$origin = doc_Containers::getDocument($rec->originId);
-			if(!($origin->instance() instanceof planning_Jobs)){
-				$requiredRoles = 'no_one';
-			}
-			
-			$state = $origin->fetchField('state');
-			if($state == 'rejected' || $state == 'draft'){
-				$requiredRoles = 'no_one';
-			}
+		// Ако има рецепта, добавяме артикула от заданието като първи детайл
+		if($bomRec){
+			$dRec = (object)array('noteId'         => $rec->id,
+								  'productId'      => $originRec->productId,
+								  'quantity'       => $toProduce,
+								  'jobId'          => $originRec->id,
+								  'packagingId'    => $productRec->measureId,
+								  'quantityInPack' => 1,
+								  'bomId'          => $bomRec->id,
+				);
+					
+			// Добавяме артикула от заданието в протокола, с количеството оставащо за производство
+			planning_ProductionNoteDetails::save($dRec);
 		}
 	}
 	

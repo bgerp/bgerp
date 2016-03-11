@@ -123,13 +123,8 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
-        if (defined('EF_LANGUAGES')) {
-            $lang = EF_LANGUAGES;
-        } else {
-            $lang = 'bg=Български';
-        }
         
-        $this->FLD('lg', 'enum(' . $lang . ')', 'caption=Език,notNull');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език,notNull');
         
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Лого');
@@ -650,6 +645,14 @@ class marketing_Bulletins extends core_Master
         $form->setDefault('delayBeforeOpenInHit', '5'); // 5 секунди
         $form->setDefault('delayAfterClose', '3600'); // 1 часа
         $form->setDefault('delayBeforeOpen', '60'); // 1 мин
+        
+        $langQuery = drdata_Languages::getQuery();
+        $langOpt = array();
+        while($lRec = $langQuery->fetch()) {
+            $langOpt[$lRec->code] = $lRec->languageName;
+        }
+        $data->form->setOptions('lg', $langOpt);
+        
         $form->setDefault('lg', core_Lg::getCurrent());
     }
     
@@ -759,7 +762,7 @@ class marketing_Bulletins extends core_Master
         // Ако има имейл регистриран от този браузър
         // Ако име абонамент за бюлетина
         // Или ако има логване от този браузър
-        if (($haveEmail = logs_Browsers::getVars(array('email')))
+        if (($haveEmail = log_Browsers::getVars(array('email')))
             || ($haveRec = marketing_BulletinSubscribers::haveRecForIp($id))
             || ($isLogged = core_LoginLog::isLoggedBefore())) {
             
@@ -808,6 +811,7 @@ class marketing_Bulletins extends core_Master
     	$this->requireRightFor('export', $rec);
     
     	$detail = cls::get('marketing_BulletinSubscribers');
+    	
     	// Масива с избраните полета за export
     	$exportFields = $detail->selectFields("#export");
     	
@@ -826,32 +830,11 @@ class marketing_Bulletins extends core_Master
     		$detailRecs[] = $recs; 
     	}
 
-    	// новите ни ролове
-    	$rCsv = '';
-    	$csv = '';
+    	$csv = csv_Lib::createCsv($detailRecs, $detail, $listFields);
     	
-    	/* за всеки ред */
-    	foreach($detailRecs as $rec) { 
-
-	    	foreach ($rec as $field => $value) {
-	    		if($exportFields[$field]) {
-
-					$val = html2text_Converter::toRichText($value);
-					// escape
-					if (preg_match('/\\r|\\n|,|"/', $val)) {
-						$val = '"' . str_replace('"', '""', $val) . '"';
-					}
-					$rCsv .= $val. "," . "\n";
-		
-				} else {
-					$rCsv .= "";
-				}	
-	    	}
-    	}
+    	$listTitle = $this->title. " за домейн ". self::fetchField("#id = '{$rec->id}'", 'domain');
     	
-    	$csv = $rCsv;
-    
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($listTitle));
     	
     	// правим CSV-то
     	header("Content-type: application/csv");
@@ -970,7 +953,7 @@ class marketing_Bulletins extends core_Master
      * @param integer $id
      * @param marketing_BulletinSubcribers $detailMvc
      */
-    public static function on_AfterUpdateDetail($mvc, $id, $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $query = $detailMvc->getQuery();
         $query->where("#bulletinId = $id");
@@ -1149,6 +1132,22 @@ class marketing_Bulletins extends core_Master
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
     }
     
     

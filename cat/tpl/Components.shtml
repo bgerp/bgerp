@@ -1,0 +1,23 @@
+<div class='component-title'>|Включва|*:</div>
+<div class='product-component-holder'>
+    <table class='product-component-list' style='width: 100%'>
+    <!--ET_BEGIN COMP-->
+    [#COMP#]
+        <tr class='level[#level#] [#titleClass#]'>
+	        <td style='width:1%'><span class='componentCode'>[#componentCode#]</span> </td> 
+	        <td class='componentTitle'>[#componentTitle#]</td>
+	        <td class='centered'>[#componentMeasureId#]</td>
+	        <td class='aright' style='padding-right: 10px; padding-left: 15px;'>[#componentQuantity#]</td>
+        </tr>
+        
+        <!--ET_BEGIN componentDescription-->
+        <tr class='level[#leveld#]'>
+        	<td></td>
+	        <td colspan="3" class='product-component-description'>
+	        [#componentDescription#]
+	        </td>
+        </tr>
+        <!--ET_END componentDescription-->
+    <!--ET_END COMP-->
+    </table>
+</div>

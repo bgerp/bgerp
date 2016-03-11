@@ -103,7 +103,7 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
     			$entry['amount'] = abs($b['blAmount']);
     			$quantity = abs($b['blQuantity']);
     			
-    			// Ако не е задено дестинационно перо, приемаме че е същото
+    			// Ако не е задено дестинационно перо, приемаме, че е същото
     			// ent1Id, ent2Id и ent3Id са същите като избраните пера за прехвърляне
     			$toEnt1Id = ($rec->toEnt1Id) ? $rec->toEnt1Id : $b['ent1Id'];
     			$toEnt2Id = ($rec->toEnt2Id) ? $rec->toEnt2Id : $b['ent2Id'];

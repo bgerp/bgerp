@@ -114,7 +114,7 @@ class sens_driver_IpDevice extends core_BaseClass
     function saveState()
     {
         if (!permanent_Data::write($this->getStateKey(), $this->stateArr)) {
-            sens_Sensors::log("Неуспешно записване на " . cls::getClassName($this));
+            $this->logWarning("Неуспешно записване на драйвер");
         }
     }
     
@@ -293,7 +293,7 @@ class sens_driver_IpDevice extends core_BaseClass
         $settingsArr = (array) $this->getSettings();
 
         foreach ($this->params as $param => $arr) {
-        	// Ако в сетингите е зададено че параметъра е изчисляем:
+        	// Ако в сетингите е зададено, че параметъра е изчисляем:
         	// Създаваме logPeriod 
         	if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
         		$settingsArr["logPeriod_{$settingsArr["name_{$param}"]}"] = $settingsArr["logPeriod_{$param}"];

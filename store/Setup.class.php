@@ -1,4 +1,6 @@
 <?php
+
+
 // Кои сч. сметки ще се използват за синхронизиране със склада
 defIfNot('STORE_ACC_ACCOUNTS', '');
 
@@ -78,7 +80,8 @@ class store_Setup extends core_ProtoSetup
     		'store_ConsignmentProtocols',
     		'store_ConsignmentProtocolDetailsSend',
     		'store_ConsignmentProtocolDetailsReceived',
-    		'migrate::updateConfig'
+    		'migrate::updateConfig',
+    		'migrate::updateTransfers',
         );
     
 
@@ -185,5 +188,46 @@ class store_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Изтриване на кеш
+     */
+    public function truncateCacheProducts1()
+    {
+    	try{
+    		if(cls::load('store_Products', TRUE)){
+    			$Products = cls::get('store_Products');
+    			
+    			if($Products->db->tableExists($Products->dbTableName)) {
+    				store_Products::truncate();
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на междускладовите трансфери
+     */
+    public function updateTransfers()
+    {
+    	$Transfers = cls::get('store_TransfersDetails');
+    	$Transfers->setupMvc();
+    	
+    	$query = $Transfers->getQuery();
+    	$query->where("#newProductId IS NULL || #newProductId = 0");
+    	while($rec = $query->fetch()){
+    		try{
+    			$productId = store_Products::fetchField($rec->productId, 'productId');
+    			$rec->newProductId = $productId;
+    			$Transfers->save_($rec, 'newProductId');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
     }
 }

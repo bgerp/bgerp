@@ -42,7 +42,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Името на класа, case sensitive
      */
-    var $className;
+    public $className;
 
 
     /**
@@ -63,6 +63,12 @@ class core_Mvc extends core_FieldSet
      * Дали id-тата на този модел да са защитени?
      */
     var $protectId = TRUE;
+
+    
+    /**
+     * Име на съответстващата таблица в базата данни
+     */
+    public $dbTableName;
 
 
     /**
@@ -186,9 +192,15 @@ class core_Mvc extends core_FieldSet
             expect(!is_object($cond), $cond);
             $casheKey = $cond . '|' . $fields;
 
-            if (is_object($me->_cashedRecords[$casheKey])) {
+            if (isset($me->_cashedRecords[$casheKey])) {
 
-                return clone ($me->_cashedRecords[$casheKey]);
+                if(is_object($me->_cashedRecords[$casheKey])) {
+
+                    return clone ($me->_cashedRecords[$casheKey]);
+                } else {
+
+                    return $me->_cashedRecords[$casheKey];
+                }
             }
         }
 
@@ -285,7 +297,7 @@ class core_Mvc extends core_FieldSet
             $field = $this->getField($name);
 
             // Правим MySQL представяне на стойността
-            $value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
+            $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : NULL, $field->value);
 
             // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
             if($value === NULL) {
@@ -503,7 +515,7 @@ class core_Mvc extends core_FieldSet
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
      * на $class отговарящи на условието where
      */
-    function makeArray4Select_($fields = NULL, $where = "", $index = 'id')
+    function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $orderBy = NULL)
     {
         $query = $this->getQuery();
 
@@ -512,7 +524,7 @@ class core_Mvc extends core_FieldSet
         if ($fields) {
             $query->show($fields);
             $query->show($index);
-            $query->orderBy($fields);
+            $query->orderBy($orderBy ? $orderBy : $fields);
         }
         
         $res = FALSE;
@@ -609,7 +621,7 @@ class core_Mvc extends core_FieldSet
 
         $value = $rec->{$fieldName};
 
-        if (is_array($me->fields[$fieldName]->options)) {
+        if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
             $res = $me->fields[$fieldName]->options[$value];
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
@@ -684,7 +696,44 @@ class core_Mvc extends core_FieldSet
 		
         return $me->getRecTitle($rec, $escaped);
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        
+        return self::getTitleById($id);
+    }
+    
 
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleForId($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $link = ht::createLink($title, array());
+        
+        return $link;
+    }
+    
 
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален
@@ -920,7 +969,7 @@ class core_Mvc extends core_FieldSet
 
                 // Ще обновяваме ли колацията?
                 if($this->db->isType($mfAttr->type, 'have_collation')) {
-                    setIfNot($mfAttr->collation, EF_DB_COLLATION);
+                    setIfNot($mfAttr->collation, $field->collation, EF_DB_COLLATION);  
                     $mfAttr->collation = strtolower($mfAttr->collation);
                     $updateCollation = $mfAttr->collation != $dfAttr->collation;
                     $style = $updateCollation ? $green : "";
@@ -946,6 +995,9 @@ class core_Mvc extends core_FieldSet
                     		}
                     	}
                     } catch(core_exception_Expect $e){
+                        
+                        reportException($e);
+                        
                     	if($mfAttr->field){
                     		$html .= "<li class='debug-error'>Проблем при обновяване на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
                     	} else {
@@ -1005,6 +1057,9 @@ class core_Mvc extends core_FieldSet
                     		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                     	}
                     } catch(core_exception_Expect $e){
+                        
+                        reportException($e);
+                        
                     	$html .= "<li class='debug-error'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
                     }
                 }
@@ -1013,13 +1068,13 @@ class core_Mvc extends core_FieldSet
             if(count($indexes)) {
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
-                    $html .= "<li class='debug-new'>Премахнат е индекс '<b>{$name}</b>'</li>";
+                    $html .= "<li class='debug-notice'>Премахнат е индекс '<b>{$name}</b>'</li>";
                 }
             }
         } else {
             $html .= "<li class='debug-info'>" . ('Без установяване на DB таблици, защото липсва модел') . "</li>";
         }
-
+        
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
 
@@ -1146,121 +1201,198 @@ class core_Mvc extends core_FieldSet
             return $idStrip;
         } else {
             sleep(2);
+            Debug::log('Sleep 2 sec. in' . __CLASS__);
 
             return FALSE;
         }
     }
     
-    
     /**
-     * Добавя emerg запис в logs_Data
-     * 
-     * @param string $action
-     * @param integer $objectId
-     * @param integer $time
+     * Прави стандартна 'обвивка' на изгледа
+     * @todo: да се отдели като плъгин
      */
-    protected static function logEmerg($action, $objectId = NULL, $time = NULL)
+    function renderWrapping_($tpl, $data = NULL)
     {
-        $className = get_called_class();
-        logs_Data::add('emerg', $action, $className, $objectId, $time);
+        return $tpl;
     }
     
     
     /**
-     * Добавя alert запис в logs_Data
+     * Добавя alert запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logAlert($action, $objectId = NULL, $time = NULL)
+    public static function logAlert($action, $objectId = NULL, $lifeDays = 14)
     {
         $className = get_called_class();
-        logs_Data::add('alert', $action, $className, $objectId, $time);
+        log_System::add($className, $action, $objectId, 'alert', $lifeDays);
     }
     
     
     /**
-     * Добавя crit запис в logs_Data
+     * Добавя err запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logCrit($action, $objectId = NULL, $time = NULL)
+    public static function logErr($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        logs_Data::add('crit', $action, $className, $objectId, $time);
+        log_System::add($className, $action, $objectId, 'err', $lifeDays);
     }
     
     
     /**
-     * Добавя err запис в logs_Data
+     * Добавя warning запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logErr($action, $objectId = NULL, $time = NULL)
+    public static function logWarning($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        logs_Data::add('err', $action, $className, $objectId, $time);
+        log_System::add($className, $action, $objectId, 'warning', $lifeDays);
     }
     
     
     /**
-     * Добавя warning запис в logs_Data
+     * Добавя notice запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logWarning($action, $objectId = NULL, $time = NULL)
+    public static function logNotice($action, $objectId = NULL, $lifeDays = 5)
     {
         $className = get_called_class();
-        logs_Data::add('warning', $action, $className, $objectId, $time);
+        log_System::add($className, $action, $objectId, 'notice', $lifeDays);
     }
     
     
     /**
-     * Добавя notice запис в logs_Data
+     * Добавя info запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logNotice($action, $objectId = NULL, $time = NULL)
+    public static function logInfo($action, $objectId = NULL, $lifeDays = 7)
     {
         $className = get_called_class();
-        logs_Data::add('notice', $action, $className, $objectId, $time);
+        log_System::add($className, $action, $objectId, 'info', $lifeDays);
     }
     
     
     /**
-     * Добавя info запис в logs_Data
+     * Добавя debug запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logInfo($action, $objectId = NULL, $time = NULL)
+    public static function logDebug($action, $objectId = NULL, $lifeDays = 1)
     {
         $className = get_called_class();
-        logs_Data::add('info', $action, $className, $objectId, $time);
+        log_System::add($className, $action, $objectId, 'debug', $lifeDays);
     }
     
     
     /**
-     * Добавя debug запис в logs_Data
+     * Добавя info запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
-     * @param integer $time
+     * @param integer $lifeDays
      */
-    protected static function logDebug($action, $objectId = NULL, $time = NULL)
+    public static function logRead($action, $objectId = NULL, $lifeDays = 180)
     {
+        if (core_Users::getCurrent() <= 0) {
+            
+            self::logInfo($action, $objectId);
+        }
+        
         $className = get_called_class();
-        logs_Data::add('debug', $action, $className, $objectId, $time);
+        log_Data::add('read', $action, $className, $objectId, $lifeDays);
     }
-
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     */
+    public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
+    {
+        if (core_Users::getCurrent() <= 0) {
+            
+            self::logInfo($action, $objectId);
+        }
+        
+        $className = get_called_class();
+        log_Data::add('write', $action, $className, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Добавя info запис в log_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $lifeDays
+     */
+    public static function logLogin($action, $objectId = NULL, $lifeDays = 180)
+    {
+        if (core_Users::getCurrent() <= 0) {
+            
+            self::logInfo($action, $objectId);
+        }
+        $className = get_called_class();
+        log_Data::add('login', $action, $className, $objectId, $lifeDays);
+    }
+    
+    
+    /**
+     * Оптимизиране на таблиците по крон
+     * 
+     * @return string
+     */
+    public function cron_OptimizeTables()
+    {
+        $db = cls::get('core_Db');
+        
+        $dbName = $db->escape($db->dbName);
+        $dbRes = $db->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '{$dbName}'");
+        if (!is_object($dbRes)) {
+        
+        	return FALSE;
+        }
+        
+        $html = '';
+        
+        while ($resArr = $db->fetchArray($dbRes)) {
+            $dbTable = cls::get('core_Db');
+            $name = $dbTable->escape($resArr['TABLE_NAME']);
+            
+            if (!$name) continue;
+            
+            $dbTableRes = $dbTable->query("OPTIMIZE TABLE $name");
+            
+            if (!is_object($dbTableRes)) continue;
+            
+            $optRes = $dbTable->fetchArray($dbTableRes);
+            $html .= "<li>" . implode(' ',  $optRes) . "</li>";
+            
+            $dbTable->freeResult($dbTableRes);
+        }
+        
+        $db->freeResult($dbRes);
+        
+        return $html;
+    }
 }

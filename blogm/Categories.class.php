@@ -24,7 +24,7 @@ class blogm_Categories extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, blogm_Wrapper';
+	var $loadList = 'plg_RowTools2, blogm_Wrapper';
 	
 	
 	/**
@@ -69,7 +69,7 @@ class blogm_Categories extends core_Manager {
 	function description()
 	{
 		$this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
-		$this->FLD('description', 'text', 'caption=Описание');
+		$this->FLD('description', 'richtext', 'caption=Описание');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 
 		$this->setDbUnique('title');

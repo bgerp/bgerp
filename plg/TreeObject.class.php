@@ -186,12 +186,11 @@ class plg_TreeObject extends core_Plugin
 			$parentId = $rec->{$mvc->parentFieldName};
 			
 			// Проверяваме дали е сетнат в $data->recs, ако не е го извличаме, продължаваме докато
-			// всички бащи присъстват в $data->recs. Правим това за да се подсигурим че при
+			// всички бащи присъстват в $data->recs. Правим това за да се подсигурим, че при
 			// вече филтрирани записи по някакъв признак, да не се показват само намерените 
 			// редове, а и техните бащи
 			while($parentId){
-				if(!isset($data->recs[$parentId])){
-					$parentRec = $mvc->fetch($parentId);
+				if(!isset($data->recs[$parentId]) && ($parentRec = $mvc->fetch($parentId))){
 					$parentRec->show = TRUE;
 					$rec->show = TRUE;
 					$data->recs[$parentId] = $parentRec;
@@ -302,6 +301,20 @@ class plg_TreeObject extends core_Plugin
 		return $return;
 	}
 
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		// Ако може да се добавя поделемент, показваме бутон за добавяне
+		if($mvc->haveRightFor('add')){
+			$url = array($mvc, 'add', 'parentId' => $data->rec->id, 'ret_url' => TRUE);
+			$parentTitle = $mvc->getVerbal($data->rec, 'name');
+			$data->toolbar->addBtn('Подниво', $url, "ef_icon=img/16/add.png,title=Добави нов поделемент на '{$parentTitle}'");
+		}
+	}
+	
 	
 	/**
 	 * След преобразуване на записа в четим за хора вид.

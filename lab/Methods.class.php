@@ -33,7 +33,7 @@ class lab_Methods extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State,
-                             Params=lab_Parameters, plg_RowTools, plg_Printing, 
+                             Params=lab_Parameters, plg_RowTools2, plg_Printing, 
                              lab_Wrapper, plg_Sorting, fileman_Files';
     
     

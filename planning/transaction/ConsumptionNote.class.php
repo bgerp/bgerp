@@ -29,7 +29,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason' => "Протокол за влагане №{$rec->id}",
+				'reason' => "Протокол за влагане в производство №{$rec->id}",
 				'valior' => $rec->valior,
 				'totalAmount' => NULL,
 				'entries' => array()
@@ -58,29 +58,29 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$dQuery = planning_ConsumptionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
-			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+			$pInfo = cat_Products::getProductInfo($dRec->productId);
 			$debitArr = NULL;
 			
 			if($rec->useResourceAccounts == 'yes'){
-				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
-				if($resourceRec){
-					// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-					$debitArr = array('61101', array('planning_Resources', $resourceRec->resourceId),
-							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
-				}
-				$reason = 'Влагане на ресурс в производството';
+				$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
+				
+				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
+				$debitArr = array('61101', array('cat_Products', $convInfo->productId),
+								  'quantity' => $convInfo->quantity);
+				
+				$reason = 'Влагане на материал в производството';
 			} 
 			
 			// Ако не е ресурс, дебитираме общата сметка за разходи '61102. Други разходи (общо)'
 			if(empty($debitArr)){
 				$debitArr = array('61102');
-				$reason = 'Бездетайлно влагане на артикул в производството';
+				$reason = 'Бездетайлно влагане на материал в производството';
 			}
 			
 			$entries[] = array('debit' => $debitArr,
 							   'credit' => array(321,
 									array('store_Stores', $rec->storeId),
-									array($dRec->classId, $dRec->productId),
+									array('cat_Products', $dRec->productId),
 									'quantity' => $dRec->quantity),
 							   'reason' => $reason);
 		}

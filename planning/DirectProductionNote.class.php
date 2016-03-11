@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_DirectProductionNote' - Документ за бързо производство
+ * Клас 'planning_DirectProductionNote' - Документ за производство
  *
  * 
  *
@@ -10,30 +10,30 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_DirectProductionNote extends deals_ManifactureMaster
+class planning_DirectProductionNote extends planning_ProductionDocument
 {
 	
 	
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за бързо производство';
+	public $title = 'Протоколи за производство';
 	
 	
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Mpd';
+	public $abbr = 'Mpn';
 	
 	
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_DirectProductionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
 	
 	
 	/**
@@ -42,7 +42,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
 	/**
@@ -90,7 +90,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за бързо производство';
+	public $singleTitle = 'Протокол за производство';
 	
 	
 	/**
@@ -133,9 +133,9 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Опашка със заданията на които ще инвалидираме, кешираната информация
+	 * Полета, които ще се показват в листов изглед
 	 */
-	protected $invalidateJobsCache = array();
+	public $listFields = 'tools=Пулт, valior, title=Документ, inputStoreId, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
@@ -144,12 +144,14 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		
 		$this->setField('deadline', 'input=none');
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,after=storeId');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
+		$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
-		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,mandatory,after=jobQuantity');
+		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
+		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
+		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId');
 		
 		$this->setDbIndex('productId');
 	}
@@ -164,21 +166,40 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
+		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
-		$form->setReadOnly('productId', $originRec->productId);
+		$form->setDefault('productId', $originRec->productId);
+		$form->setReadOnly('productId');
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($originRec->productId, 'measureId'));
 		$form->setField('quantity', "unit={$shortUom}");
-		
-		$quantity = $originRec->quantity - $originRec->quantityProduced;
 		$form->setDefault('jobQuantity', $originRec->quantity);
 		
-		if($quantity > 0){
-			$form->setDefault('quantity', $quantity);
+		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
+		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
+		if($quantityToStore > 0){
+			$form->setDefault('quantity', $quantityToStore);
 		}
 		
-		$bomRec = cat_Products::getLastActiveBom($originRec->productId);
+		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
+		if(!$bomRec){
+			$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'sales');
+		}
+		
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 */
+	public static function on_AfterInputEditForm($mvc, &$form)
+	{
+		if($form->isSubmitted()){
+			if(isset($form->rec->inputStoreId)){
+				$form->setWarning('inputStoreId', 'Избраните суровини и материали, ще се вложат директно от склада');
+			}
 		}
 	}
 	
@@ -191,6 +212,16 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
+		
+		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
+		if(isset($rec->inputStoreId)){
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+		}
+		
+		if(!empty($rec->batch)){
+			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
+			$row->batch = cls::get('type_RichText')->toVerbal($batch);
+		}
 	}
 	
 	
@@ -209,7 +240,8 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 					
 					// Ориджина трябва да е задание за производство
 					$originDoc = doc_Containers::getDocument($rec->originId);
-					if(!($originDoc->getInstance() instanceof planning_Jobs)){
+					
+					if(!$originDoc->isInstanceOf('planning_Jobs')){
 						$requiredRoles = 'no_one';
 					} else {
 						
@@ -217,6 +249,14 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 						$state = $originDoc->fetchField('state');
 						if($state == 'rejected' || $state == 'draft'){
 							$requiredRoles = 'no_one';
+						} else {
+							
+							// Ако артикула от заданието не е производим не можем да добавяме документ
+							$productId = $originDoc->fetchField('productId');
+							$pInfo = cat_Products::getProductInfo($productId);
+							if(!isset($pInfo->meta['canManifacture'])){
+								$requiredRoles = 'no_one';
+							}
 						}
 					}
 				}
@@ -235,36 +275,206 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
+	 * Намира количествата за влагане от задачите
+	 * 
+	 * @param stdClass $rec
+	 * @return array $res
 	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
+	protected function getDefaultDetails($rec)
 	{
-		$rec = &$form->rec;
-		if($form->isSubmitted()){
+		$res = array();
+		
+		// Намираме детайлите от задачите и рецеоптите
+		$bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
+		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
+		
+		// Ако има рецепта
+		if($bomId){
 			
-			// Ако могат да се генерират детайли от артикула да се
-			$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+			// И тя има етапи
+			$bomQuery = cat_BomDetails::getQuery();
+			$bomQuery->where("#bomId = {$bomId}");
+			$bomQuery->where("#type = 'stage'");
+			$stages = array();
+			while($bRec = $bomQuery->fetch()){
+				$stages[$bRec->resourceId] = $bRec->resourceId;
+			}
 			
-			if($details === FALSE){
-				$form->setWarning('productId', 'Не може да се генерира списък с материалите за влагане от рецептата, защото ресурс от нея не е обвързан с артикул');
+			// Махаме от артикулите от задачите, тези които са етапи в рецептата, защото
+			// реално те няма да се влагат от склада а се произвеждат на място
+			if(count($stages)){
+				foreach ($taskDetails as $i => $det){
+					if(in_array($det->productId, $stages)){
+						unset($taskDetails[$i]);
+					}
+				}
 			}
 		}
+		
+		// За всеки артикул от рецептата добавяме го
+		foreach ($bomDetails as $index => $bRec){
+			$obj = clone $bRec;
+			$obj->quantityFromTasks = $taskDetails[$index]->quantityFromTasks;
+			
+			$res[$index] = $obj;
+		}
+		
+		// За всеки артикул от задачата добавяме го
+		foreach ($taskDetails as $index => $tRec){
+			$obj = clone $tRec;
+			if(!isset($res[$index])){
+				$res[$index] = $obj;
+			}
+			$res[$index]->quantityFromBom = $bomDetails[$index]->quantityFromBom;
+		}
+		
+		// За всеки детайл намираме дефолтното к-во ако има такова от рецепта, взимаме него иначе от задачите
+		foreach ($res as &$detail){
+			$detail->quantity = (isset($detail->quantityFromBom)) ? $detail->quantityFromBom : $detail->quantityFromTasks;
+		}
+		
+		// Връщаме намерените дефолтни детайли
+		return $res;
 	}
 	
 	
+	/**
+	 * Намира количествата за влагане от задачите
+	 * 
+	 * @param stdClass $rec
+	 * @return array $details
+	 */
+	protected function getDefaultDetailsFromTasks($rec)
+	{
+		$details = array();
+		$originRec = doc_Containers::getDocument($rec->originId)->rec();
+		
+		// Намираме всички непроизводствени действия от задачи
+		$aQuery = planning_TaskActions::getQuery();
+		$aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
+		$aQuery->where("#taskState != 'rejected'");
+		$aQuery->where("#type != 'product'");
+		$aQuery->where("#jobId = {$originRec->id}");
+		
+		// Сумираме ги по тип и ид на продукт
+		$aQuery->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$aQuery->groupBy("productId,type");
+		
+		// Събираме ги в масив
+		while($aRec = $aQuery->fetch()){
+			$obj = new stdClass();
+			$obj->productId = $aRec->productId;
+			$obj->type = ($aRec->type == 'input') ? 'input' : 'pop';
+			$obj->quantityInPack = 1;
+			$obj->quantityFromTasks = $aRec->sumQuantity;
+			$obj->packagingId = cat_Products::fetchField($obj->productId, 'measureId');
+			$obj->measureId = $obj->packagingId;
+			
+			$index = $obj->productId . "|" . $obj->type;
+			$details[$index] = $obj;
+		}
+		
+		// Връщаме намерените детайли
+		return $details;
+	}
+	
+	
+	/**
+	 * Връща дефолт детайлите на документа, които съотвестват на ресурсите
+	 * в последната активна рецепта за артикула
+	 * 
+	 * @param stdClass $rec   - запис
+	 * @return array $details - масив с дефолтните детайли
+	 */
+	protected function getDefaultDetailsFromBom($rec, &$bomId)
+	{
+		$details = array();
+		$originRec = doc_Containers::getDocument($rec->originId)->rec();
+		
+		// Ако артикула има активна рецепта
+		$bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
+		if(!$bomId){
+			$bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
+		}
+		
+		// Ако ням рецепта, не могат да се определят дефолт детайли за влагане
+		if(!$bomId) return $details;
+		
+		// К-ко е произведено до сега и колко ще произвеждаме
+		$quantityProduced = $originRec->quantityProduced;
+		$quantityToProduce = $rec->quantity + $quantityProduced;
+		
+		// Извличаме информацията за ресурсите в рецептата за двете количества
+		$bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+		$bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
+		
+		// За всеки ресурс
+		foreach($bomInfo2['resources'] as $index => $resource){
+			
+			// Задаваме данните на ресурса
+			$dRec = new stdClass();
+			$dRec->productId      = $resource->productId;
+			$dRec->type           = $resource->type;
+			$dRec->packagingId    = $resource->packagingId;
+			$dRec->quantityInPack = $resource->quantityInPack;
+			
+			// Дефолтното к-вво ще е разликата между к-та за произведеното до сега и за произведеното в момента
+			$dRec->quantityFromBom  = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+			
+			$pInfo = cat_Products::getProductInfo($resource->productId);
+			$dRec->measureId = $pInfo->productRec->measureId;
+			$quantities = array();
+			
+			if(isset($rec->inputStoreId)){
+				$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
+				foreach ($convertableProducts as $prodId => $prodName){
+					$quantities[$prodId] = store_Products::fetchField("#storeId = '{$rec->inputStoreId}' AND #productId = {$prodId}", 'quantity');
+				}
+			}
+		
+			// Ако има такива
+			if(count($quantities)){
+			
+				// Намираме този с най-голямо количество в избрания склад
+				arsort($quantities);
+				$productId = key($quantities);
+				
+				// Заместваме оригиналния артикул с него
+				$dRec->productId = $productId;
+				$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
+				$dRec->quantityInPack = 1;
+				$dRec->measureId = $dRec->packagingId;
+				
+				$quantity = $dRec->quantityFromBom;
+				if($convAmount = cat_UoM::convertValue($dRec->quantityFromBom, $pInfo->productRec->measureId, $dRec->measureId)){
+					$quantity = $convAmount;
+				}
+					
+				$dRec->quantityFromBom = $quantity;
+			}
+			
+			$index = $dRec->productId . "|" . $dRec->type;
+			$details[$index] = $dRec;
+		}
+		
+		// Връщаме генерираните детайли
+		return $details;
+	}
+
+
 	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		// Ако могат да се генерират детайли от артикула да се
-		$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+		// Ако записа е клониран не правим нищо
+		if($rec->_isClone === TRUE) return;
 		
+		// Ако могат да се генерират детайли от артикула да се
+		$details = $mvc->getDefaultDetails($rec);
+	
 		if($details !== FALSE){
-			
+				
 			// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
 			if(count($details)){
 				foreach ($details as $dRec){
@@ -273,90 +483,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * Връща дефолт детайлите на документа, които съотвестват на ресурсите
-	 * в последната активна рецепта за артикула
-	 * 
-	 * @param int $productId       - ид на артикул
-	 * @param int $storeId         - ид на склад
-	 * @param double $prodQuantity - количество за произвеждане
-	 * @param double $jobQuantity  - количество от заданието
-	 * @return array $details      - масив с дефолтните детайли
-	 */
-	protected function getDefaultDetails($productId, $storeId, $prodQuantity, $jobQuantity)
-	{
-		$details = array();
-		
-		// Ако артикула има активна рецепта
-		$bomId = cat_Products::getLastActiveBom($productId)->id;
-		
-		// Ако ням рецепта, не могат да се определят дефолт детайли за влагане
-		if(!$bomId) return $details;
-		
-		// Извличаме информацията за ресурсите в рецептата
-		$bomInfo = cat_Boms::getResourceInfo($bomId);
-		$productManId = cat_Products::getClassId();
-		
-		// За всеки ресурс
-		foreach($bomInfo['resources'] as $resource){
-			
-			// Задаваме данните на ресурса
-			$dRec = new stdClass();
-			$dRec->resourceId = $resource->resourceId;
-			$dRec->type = $resource->type;
-			$dRec->quantityInPack = 1;
-			
-			// Мярката е мярката на ресурса
-			$dRec->measureId = planning_Resources::fetchField($resource->resourceId, 'measureId');
-			$type = planning_Resources::fetchField($resource->resourceId, 'type');
-			
-			// Изчисляваме к-то според наличните данни
-			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
-			
-			// Намираме всички артикули материали свързани с този ресурс
-			$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($resource->resourceId, $productManId, 'material');
-			
-			// Извличаме наличното количество в избрания клас за всеки от ресурсите
-			$allProducts = $resProducts = array();
-			if(count($materialsArr)){
-				foreach ($materialsArr as $objRec){
-					$quantity = store_Products::fetchField("#classId = {$objRec->classId} AND #productId = {$objRec->objectId} AND #storeId = {$storeId}", 'quantity');
-					$resProducts[$objRec->objectId] = (isset($quantity)) ? $quantity : 0;
-					$allProducts[$objRec->objectId] = $objRec;
-				}
-			}
-			
-			// Намираме този с най-голямо налично количество
-			$productId = NULL;
-			if(count($resProducts)) {
-				$productId = array_search(max($resProducts), $resProducts);
-			}
-			
-			if($type == 'material' && !$productId){
-				
-				// Ако има ресурс материал и не може да му се определи артикул, не продължаваме
-				return FALSE;
-			}
-			
-			// Избираме него към ресурса
-			if($productId){
-				$dRec->classId = $productManId;
-				$dRec->productId = $productId;
-				$dRec->measureId = cat_Products::fetchField($productId, 'measureId');
-				
-				// К-то на ресурса го умножаваме по конверсията на артикула към ресурса
-				$dRec->quantity *= $allProducts[$productId]->conversionRate;
-			}
-			
-			// Добавяме детайла
-			$details[] = $dRec;
-		}
-		
-		// Връщаме генерираните детайли
-		return $details;
 	}
 	
 	
@@ -372,7 +498,81 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		// При активиране/оттегляне
 		if($rec->state == 'active' || $rec->state == 'rejected'){
 			$origin = doc_Containers::getDocument($rec->originId);
+			
 			planning_Jobs::updateProducedQuantity($origin->that);
 		}
+	}
+
+
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		$rec = $data->rec;
+	
+		if($rec->state == 'active'){
+			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
+				$bomUrl = array($mvc, 'createBom', $data->rec->id);
+				$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+			}
+		}
+	}
+	
+	
+	/**
+	 * Екшън създаващ нова рецепта по протокола
+	 */
+	public function act_CreateBom()
+	{
+		cat_Boms::requireRightFor('add');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetch($id));
+		
+		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId));
+		
+		// Подготвяме детайлите на рецептата
+		$details = array();
+		$dQuery = planning_DirectProductNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$id}");
+		while ($dRec = $dQuery->fetch()){
+			$nRec = new stdClass();
+			$nRec->resourceId     = $dRec->productId;
+			$nRec->type           = $dRec->type;
+			$nRec->propQuantity   = $dRec->quantity;
+			$nRec->packagingId    = $dRec->packagingId;
+			$nRec->quantityInPack = $dRec->quantityInPack;
+			
+			$details[] = $nRec;
+		}
+		
+		// Създаваме новата рецепта
+		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $details, NULL, $rec->expenses);
+		
+		// Записваме, че потребителя е разглеждал този списък
+		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
+		
+		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
+	}
+	
+	
+	/**
+	 * Документа винаги може да се активира, дори и да няма детайли
+	 */
+	public static function canActivate($rec)
+	{
+		$rec = static::fetchRec($rec);
+		
+		if(empty($rec->inputStoreId)){
+			
+			return TRUE;
+		} elseif(isset($rec->id)) {
+			if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'")){
+				
+				return TRUE;
+			}
+		}
+		
+		return FALSE;
 	}
 }

@@ -34,7 +34,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected,  plg_SaveAndNew, 
                     trz_Wrapper';
     
     
@@ -100,7 +100,7 @@ class trz_SalaryIndicators extends core_Manager
     	$this->FLD('date',    'date', 'caption=Дата,mandatory,width=100%');
     	$this->FLD('docId',    'int', 'caption=Документ->№,mandatory,width=100%');
     	$this->FLD('docClass',    'key(mvc=core_Classes, select=name)', 'caption=Документ->Клас,mandatory,width=100%');
-    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Лице,mandatory,width=100%');
+    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Име,mandatory,width=100%');
     	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Служител->Отдел,mandatory,width=100%');
     	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Служител->Длъжност,mandatory,width=100%');
     	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Име,mandatory,width=100%');
@@ -219,6 +219,7 @@ class trz_SalaryIndicators extends core_Manager
      * имащи интерфейс trz_SalaryIndicatorsSourceIntf
      * 
      * @param date $date
+     * @return array $indicators
      */
     public static function fetchIndicators($date)
     {
@@ -266,6 +267,7 @@ class trz_SalaryIndicators extends core_Manager
     	// За всеки един елемент от масива
     	foreach ($indicators as $indicator)
     	{
+    		$rec = new stdClass();
     		$rec->date = $date;
 	    	$rec->docId = $indicator->docId;
 	    	$rec->docClass = $indicator->docClass;
@@ -282,7 +284,7 @@ class trz_SalaryIndicators extends core_Manager
 	    	// в противен слувай го ъпдейтваме
        		if($mvc->isUnique($rec, $fields, $exRec)){
     			self::save($rec);
-    		}else { 
+    		} else { 
             	$rec->id = $exRec->id;
             	self::save($rec);
             }

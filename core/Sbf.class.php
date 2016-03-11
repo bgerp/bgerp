@@ -121,7 +121,7 @@ class core_Sbf extends core_Mvc
                     if(core_Sbf::saveFile($content, $sbfPath, TRUE)) {
                         
                         // Записваме в лога, всеки път след като създадам файл в sbf
-                        // core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'", 5);
+                        // self::logInfo("Генериране на файл в 'sbf' за '{$rPath}'", NULL, 5);
                         
                         // Пътя до файла
                         $sbfArr = pathinfo($sbfPath);
@@ -130,10 +130,10 @@ class core_Sbf extends core_Mvc
                      } else {
                         
                          // Записваме в лога
-                        // core_Logs::add(get_called_class(), NULL, "Файла не може да се запише в '{$sbfPath}'.");
+                         // self::logWarning("Файла не може да се запише в '{$sbfPath}'.");
                     }  
                 } else {
-                    debug::log("Липсващ файл: $rPath");
+                    self::logWarning("Липсващ файл: $rPath");
                     $ext = str::getFileExt($rPath);
                     if(in_array($ext, array('jpg', 'jpeg', 'png', 'bmp'))) {
                         $rPath = 'img/1x1.gif';
@@ -166,7 +166,7 @@ class core_Sbf extends core_Mvc
     public static function serveStaticFile($name)
     {
         $file = getFullPath($name);
- 
+        
         // Грешка. Файла липсва
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             
@@ -202,11 +202,17 @@ class core_Sbf extends core_Mvc
                 'jpeg' => 'image/jpeg',
                 'jpg'  => 'image/jpeg',
                 'gif'  => 'image/gif',
-                'ico'  => 'image/vnd.microsoft.icon'
+                'ico'  => 'image/vnd.microsoft.icon',
+                
+                // Икони
+                'ttf' => 'application/x-font-ttf',
+                'eot' => 'application/vnd.ms-fontobject',
+                'woff' => 'application/octet-stream',
+                'woff2' => 'application/octet-stream',
             );
-
+            
             $ctype = $mimeTypes[$fileExt];
-
+            
             if (!$ctype) {
                 if (isDebug()) {
                     error_log("Warning: Unsuported file extention: {$file}");
@@ -248,7 +254,7 @@ class core_Sbf extends core_Mvc
 
 
 /*
- Имаме заявка за sbf($филе)
+ Имаме заявка за sbf($file)
 
  1. Определяме новото име на филе, в зависимост от датата на последното модифициране
 */

@@ -51,7 +51,7 @@ class docoffice_Office
             // Нулираме брояча за конвертиранията
             static::emptyConvertCount();
             
-            core_Logs::log(OFFICE_PACKET_PATH . tr('| е стартиран на порт|*') . ": {$port}");
+            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е стартиран на порт ' . $port, NULL, 'info');
             
             // Отключваме процеса
             static::unlockOffice();
@@ -60,7 +60,7 @@ class docoffice_Office
         } else {
             
             // Ако има грешка при стартирането
-            core_Logs::log(tr('|Грешка при стартирането на |*') . OFFICE_PACKET_PATH);
+            log_System::add('docoffice_Office', "Грешка при стартирането на " . OFFICE_PACKET_PATH, NULL, 'info');
         }
         
         return FALSE;
@@ -129,13 +129,13 @@ class docoffice_Office
             // Отключваме процеса
             static::unlockOffice();
             
-            core_Logs::Log(OFFICE_PACKET_PATH . tr('| е спрян.|*'));
+            log_System::add('docoffice_Office', OFFICE_PACKET_PATH . ' е спрян', NULL, 'info');
             
             return TRUE;
         } else {
             
             // Ако има грешка при спирането
-            core_Logs::Log(tr('|Грешка при спирането на |*') . OFFICE_PACKET_PATH);
+            log_System::add('docoffice_Office', "Грешка при спирането на " . OFFICE_PACKET_PATH, NULL, 'warning');
         }
         
         return FALSE;
@@ -154,7 +154,7 @@ class docoffice_Office
         $baseName = basename(OFFICE_PACKET_PATH);
         $baseName = escapeshellarg($baseName);
         // Намираме process id' то на офис пакета
-        $sh = "ps ux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
+        $sh = "ps -aux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
         $pid = exec($sh);
         
         // Отключваме процеса

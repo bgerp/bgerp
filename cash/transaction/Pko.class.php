@@ -19,14 +19,6 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 	
 	
 	/**
-	 * В какво състояние да е документа след финализирането на транзакцията
-	 *
-	 * @var string
-	 */
-	protected $finalizedState = 'closed';
-	
-	
-    /**
      * 
      * @var cash_Pko
      */
@@ -69,32 +61,32 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$dealInfo = $origin->getAggregateDealInfo();
-    	$amount = $rec->rate * $rec->amount;
-    	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
     	$sign = ($reverse) ? -1 : 1;
+    	 
+    	$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+    	if($rec->currencyId == $baseCurrencyId){
+    		$amount = $rec->amount;
+    	} elseif($rec->dealCurrencyId == $baseCurrencyId){
+    		$amount = $rec->amountDeal;
+    	} else {
+    		$amount = $rec->amount * $rec->rate;
+    	}
     	
-    	// Кредита е винаги във валутата на пораждащия документ,
-    	$creditCurrency = currency_Currencies::getIdByCode($dealInfo->get('currency'));
-    	$creditQuantity = $amount / $dealInfo->get('rate');
-    	
-    	// Дебитираме касата
-    	$debitArr = array($rec->debitAccount,
-    						array('cash_Cases', $rec->peroCase),
-    						array('currency_Currencies', $rec->currencyId),
-    						'quantity' => $sign * $rec->amount,);
-    	
-    	// Кредитираме разчетната сметка
-    	$creditArr = array($rec->creditAccount,
-    							array($rec->contragentClassId, $rec->contragentId),
-    							array($origin->className, $origin->that),
-    							array('currency_Currencies', $creditCurrency),
-    							'quantity' => $sign * $creditQuantity);
-    	
-    	$entry = array('amount' => $sign * $amount, 'debit' => $debitArr, 'credit' => $creditArr,);
-    	
-    	return array($entry);
+    	$entry = array('amount' => $sign * $amount,
+    			'debit' => array($rec->debitAccount,
+			    					array('cash_Cases', $rec->peroCase),
+			    					array('currency_Currencies', $rec->currencyId),
+			    					'quantity' => $sign * $rec->amount),
+    			
+    			'credit' => array($rec->creditAccount,
+				    			array($rec->contragentClassId, $rec->contragentId),
+				    			array($origin->className, $origin->that),
+				    			array('currency_Currencies', $rec->dealCurrencyId),
+				    			'quantity' => $sign * $rec->amountDeal),);
+    	$entry = array($entry);
+    	 
+    	return $entry;
     }
     
     

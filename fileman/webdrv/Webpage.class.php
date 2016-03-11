@@ -95,6 +95,8 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
         
+        $content = i18n_Charset::convertToUtf8($content, array(), TRUE);
+        
         // Инстанция на richtext типа
         $richText = cls::get('type_Richtext');
 

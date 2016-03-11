@@ -26,6 +26,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Име на документа в бързия бутон за добавяне в папката
+     */
+    public $buttonInFolderTitle = 'Трансфер';
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'St';
@@ -34,15 +40,21 @@ class store_Transfers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer,batch_MovementSourceIntf=batch_movements_Transfer';
     
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
+    
+    /**
+     * Детайли за клониране
+     */
+    public $cloneDetailes = 'store_TransfersDetails';
+    
     
     /**
      * Дали може да бъде само в началото на нишка
@@ -111,6 +123,14 @@ class store_Transfers extends core_Master
     
 
     /**
+     * Кой е главния детайл
+     *
+     * @var string - име на клас
+     */
+    public $mainDetail = 'store_TransfersDetails';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Междускладов трансфер';
@@ -126,12 +146,6 @@ class store_Transfers extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "4.5|Логистика";
-
-
-    /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
     
     
     /**
@@ -144,6 +158,12 @@ class store_Transfers extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Как се казва полето в което е избран склада
+     */
+    public $storeFieldName = 'fromStore';
     
     
     /**
@@ -164,50 +184,29 @@ class store_Transfers extends core_Master
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 
             'caption=Статус, input=none'
         );
-    }
-
-
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-	
-	
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(count($mvc->updated)){
-        	foreach ($mvc->updated as $id) {
-	        	$mvc->updateMaster($id);
-	        }
-        }
     }
     
     
 	/**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    public function updateMaster($id)
+    public function updateMaster_($id)
     {
     	$rec = $this->fetch($id);
-    	$dQuery = $this->store_TransfersDetails->getQuery();
+    	$dQuery = store_TransfersDetails::getQuery();
     	$dQuery->where("#transferId = {$id}");
     	$measures = $this->getMeasures($dQuery->fetchAll());
     	
     	$rec->weight = $measures->weight;
     	$rec->volume = $measures->volume;
     	
-    	$this->save($rec);
+    	return $this->save($rec);
     }
     
     
@@ -258,7 +257,6 @@ class store_Transfers extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getLink($rec->id, 0);
     		
     		$attr = array();
@@ -357,12 +355,10 @@ class store_Transfers extends core_Master
     	$dQuery->EXT('state', 'store_Transfers', 'externalKey=transferId');
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
-    		$sProd = store_Products::fetch($dRec->productId);
-    		$ProductMan = cls::get($sProd->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $ProductMan)){
-    			$res[] = (object)array('class' => $ProductMan, 'id' => $sProd->productId);
-    		}
+    		$cid = cat_Products::fetchField($dRec->newProductId, 'containerId');
+    		$res[$cid] = $cid;
     	}
+    	
     	return $res;
     }
     

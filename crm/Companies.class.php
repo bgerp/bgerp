@@ -2,18 +2,17 @@
 
 
 /**
- * Фирми
- *
  * Мениджър на фирмите
- *
- *
+ * 
+ * 
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
- * @todo:     Да се документира този клас
+ * 
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Companies extends core_Master
 {
@@ -69,25 +68,25 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Полета за експорт
+     */
+    var $exportableCsvFields = 'name,country,pCode,place,address,email,tel,fax,website,vatId,info,uicId';
+    
+    
+    /**
      * Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
+    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export';
     
     
     /**
      * Полетата, които ще видим в таблицата
      */
-    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'id';
-    
+    var $listFields = 'nameList=Фирма,phonesBox=Комуникации,addressBox=Адрес,name=';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -266,11 +265,11 @@ class crm_Companies extends core_Master
         $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData');
-        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
+        $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
                 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\')', 'caption=Групи->Групи,remember,silent');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')', 'caption=Групи->Групи,remember,silent,export=Csv');
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -284,7 +283,7 @@ class crm_Companies extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
@@ -294,6 +293,8 @@ class crm_Companies extends core_Master
         
         // Задаваме стойността по подразбиране
         $data->listFilter->setDefault('users', $default);
+        
+        $options = array();
         
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
@@ -374,6 +375,28 @@ class crm_Companies extends core_Master
     }
     
     
+    
+    /**
+     * Изпълнява се след подготовката на редовете за листовия изглед
+     */
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if(is_array($data->recs)) {
+            $cnt = array();
+            foreach($data->recs as $rec) {
+                $cnt[str::utf2ascii(trim($rec->name))]++;
+            }
+            foreach($data->recs as $rec) {
+                if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
+                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                }
+            }
+
+        }
+    }
+        
+
+    
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
      *
@@ -381,7 +404,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             if($groupId = $data->listFilter->rec->groupId) {
@@ -400,7 +423,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
     	$conf = core_Packs::getConfig('crm');
     	
@@ -424,7 +447,7 @@ class crm_Companies extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -504,6 +527,12 @@ class crm_Companies extends core_Master
             	$Vats = cls::get('drdata_Vats');
             	$rec->vatId = $Vats->canonize($rec->vatId);
             }
+            
+            if(!empty($rec->uicId)){
+            	if(!static::checkUicId($rec->uicId, $rec->country)){
+            		$form->setWarning('uicId', 'Невалиден ЕИК');
+            	}
+            }
         }
     }
     
@@ -515,7 +544,7 @@ class crm_Companies extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
+    protected static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
@@ -536,8 +565,6 @@ class crm_Companies extends core_Master
     }
     
     
-    
-    
     /**
      * Промяна на данните от таблицата
      *
@@ -545,12 +572,9 @@ class crm_Companies extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
-        
-        // $row->nameTitle = mb_strtoupper($rec->name);
-        // $row->nameLower = mb_strtolower($rec->name);
         
         if($fields['-single']) {
             // Fancy ефект за картинката
@@ -563,6 +587,13 @@ class crm_Companies extends core_Master
                 $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
             } elseif(!Mode::is('screenMode', 'narrow')) {
                 $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
+            }
+            
+            if(!empty($rec->uicId)){
+            	if(!static::checkUicId($rec->uicId, $rec->country)){
+            		$row->uicId = "<span class='red'>{$row->uicId}</span>";
+            		$row->uicId = ht::createHint($row->uicId, 'Невалиден ЕИК', 'error');
+            	}
             }
         }
         
@@ -608,9 +639,10 @@ class crm_Companies extends core_Master
         	$country = $currentCountry;
         }
                 
-       	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<div class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
-        "</span><div class='custom-rowtools'>". $row->id . ' </div>'. $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
+
+        $row->id = $mvc->getVerbal($rec, 'id');  
+        
         
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
@@ -620,10 +652,12 @@ class crm_Companies extends core_Master
         $vat = $vatType->toVerbal($rec->vatId);
         $row->vat = $vat;
         
-        $row->titleNumber = "<div class='number-block' style='display:inline'>{$currentId}</div>";
+        $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
-        if ($rec->vatId) {
-        	unset($row->uicId);
+        if ($rec->vatId && $rec->uicId) {
+        	if("BG{$rec->uicId}" == $rec->vatId){
+        		unset($row->uicId);
+        	}
         }
     }
     
@@ -631,11 +665,10 @@ class crm_Companies extends core_Master
     /**
      * След всеки запис (@see core_Mvc::save_())
      */
-    static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
+    protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->groupList) {
-            $mvc->updateGroupsCnt = TRUE;
-        }
+        $mvc->updateGroupsCnt = TRUE;
+        
         $mvc->updatedRecs[$id] = $rec;
         
         /**
@@ -651,11 +684,11 @@ class crm_Companies extends core_Master
     /**
      * Подготвяме опциите на тип key
      *
-     * @param std Class $mvc
+     * @param crm_Companies $mvc
      * @param array $options
-     * @param std Class $typeKey
+     * @param type_Key $typeKey
      */    
-    static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
+    protected static function on_BeforePrepareKeyOptions($mvc, $options, $typeKey)
     {
        if ($typeKey->params['select'] == 'name') {
 	       $query = $mvc->getQuery();
@@ -711,7 +744,7 @@ class crm_Companies extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    static function on_Shutdown($mvc)
+    public static function on_Shutdown($mvc)
     {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
@@ -732,7 +765,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param core_Query $query
      */
-    static function on_AfterDelete($mvc, &$res, $query)
+    protected static function on_AfterDelete($mvc, &$res, $query)
     {
         $mvc->updateGroupsCnt = TRUE;
         
@@ -746,7 +779,7 @@ class crm_Companies extends core_Master
     /**
      * Обновява информацията за количеството на визитките в групите
      */
-    function updateGroupsCnt()
+    public function updateGroupsCnt()
     {
         $query = $this->getQuery();
         
@@ -782,7 +815,7 @@ class crm_Companies extends core_Master
     /**
      * @todo Чака за документация...
      */
-    static function updateRoutingRules($rec)
+    public static function updateRoutingRules($rec)
     {
         if ($rec->state == 'rejected') {
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
@@ -806,8 +839,8 @@ class crm_Companies extends core_Master
      */
     public static function createRoutingRules($emails, $objectId)
     {
-        // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
-        $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
+        // Приоритетът на всички правила, генериране след запис на визитка е среден и нарастващ с времето
+        $priority = email_Router::dateToPriority(dt::now(), 'mid', 'asc');
 
         // Нормализираме параметъра $emails - да стане масив от валидни имейл адреси
         if (!is_array($emails)) {
@@ -847,7 +880,7 @@ class crm_Companies extends core_Master
     /**
      * Връща информацията, която има за нашата фирма
      */
-    static function fetchOurCompany()
+    public static function fetchOurCompany()
     {
         $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
         $rec->classId = core_Classes::getId('crm_Companies');
@@ -863,7 +896,7 @@ class crm_Companies extends core_Master
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
         if(Request::get('Full')) {
             
@@ -885,7 +918,7 @@ class crm_Companies extends core_Master
     /**
      * Изпълнява се след инсталацията
      */
-    static function loadData()
+    public static function loadData()
     {
         $html = '';
         if (!static::fetch(crm_Setup::BGERP_OWN_COMPANY_ID)) {
@@ -946,7 +979,7 @@ class crm_Companies extends core_Master
      * @param int $id - id' то на записа
      * @return boolean TRUE/FALSE
      */
-    static function shouldChargeVat($id)
+    public static function shouldChargeVat($id)
     {
         $rec = static::fetch($id);
        
@@ -1029,7 +1062,7 @@ class crm_Companies extends core_Master
     /**
      * Връща заглавието на папката
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         // Конфигурационните данните
     	$conf = core_Packs::getConfig('crm');
@@ -1077,7 +1110,7 @@ class crm_Companies extends core_Master
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = NULL;
@@ -1107,7 +1140,7 @@ class crm_Companies extends core_Master
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
         // @todo!
     }
@@ -1124,7 +1157,7 @@ class crm_Companies extends core_Master
      *
      * return object
      */
-    static function getContragentData($id)
+    public static function getContragentData($id)
     {
         //Вземаме данните от визитката
         $company = crm_Companies::fetch($id);
@@ -1178,7 +1211,7 @@ class crm_Companies extends core_Master
     /**
      * Създава папка на фирма по указаните данни
      */
-    static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
+    public static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {
         $rec = new stdClass();
         $rec->name = $company;
@@ -1218,7 +1251,7 @@ class crm_Companies extends core_Master
      * @param core_Query $query - Заявката към системата
      * @param int $userId - Потребителя, за който ще се отнася
      */
-    static function applyAccessQuery(&$query, $userId = NULL)
+    public static function applyAccessQuery(&$query, $userId = NULL)
     {
         // Ако няма зададен потребител
         if (!$userId) {
@@ -1270,7 +1303,7 @@ class crm_Companies extends core_Master
      * 
      * @return integet|boolean $fodlerId - id на папката
      */
-    static function getFolderFromEmail($email)
+    public static function getFolderFromEmail($email)
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
@@ -1304,7 +1337,7 @@ class crm_Companies extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Никой да не може да изтрива
         if ($action == 'delete') {
@@ -1318,7 +1351,7 @@ class crm_Companies extends core_Master
      * 
      * @param std_Object &$contrData - Обект от който ще се премахва
      */
-    static function removeOwnCompanyData(&$contrData)
+    public static function removeOwnCompanyData(&$contrData)
     {
         // Записи за нашата компания
         $ownCompany = static::fetchOwnCompany();
@@ -1540,7 +1573,7 @@ class crm_Companies extends core_Master
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
     		if(haveRole('powerUser')){
-    			core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
+    			core_Statuses::newStatus("|Фирмата е включена в група |* '{$groupName}'");
     		}
     		
     		return static::save($rec, 'groupList');
@@ -1576,12 +1609,173 @@ class crm_Companies extends core_Master
     		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	if(count($meta)){
-    		foreach ($meta as &$m){
-    			$m = TRUE;
-    		}
+    	return $meta;
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     * 
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	 
+    	$rec = $this->fetch($id);
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
+    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	
+    	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
+    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    		$res[] = 'findeals_Deals';
     	}
     	
-    	return $meta;
+    	// Ако е в група на клиент, показваме бутона за продажба
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$res[] = 'sales_Sales';
+    	}
+    	 
+    	// Ако е в група на достачик, показваме бутона за покупка
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$res[] = 'purchase_Purchases';
+    	}
+    	 
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща мета дефолт параметрите със техните дефолт стойностти, които да се добавят във формата на
+     * универсален артикул, създаден в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $params - масив с дефолтни параметри И техните стойности
+     * 				<ид_параметър> => <дефолтна_стойност>
+     */
+    public function getDefaultProductParams($id)
+    {
+    	return array();
+    }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $fields
+     */
+    public static function on_AfterPrepareImportFields($mvc, &$fields)
+    {
+        $Dfields = $mvc->selectFields();
+        
+        $fields = array();
+        
+        foreach($Dfields as $name => $fld){
+            if($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC') {
+                                
+                $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
+                if ($name == 'groupList') {
+                    $fields[$name]['notColumn'] = TRUE;
+                    $fields[$name]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')';
+                }
+            }
+        }
+        
+        unset($fields['shared']);
+        unset($fields['access']);
+        unset($fields['inCharge']);
+    }
+    
+    
+    /**
+     * След подготовка на полетата за импортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ограничаваме данните, които ще се експортират от фирмите, до които нямаме достъп
+        $query = $mvc->getQuery();
+        
+        $mvc->restrictAccess($query, NULL, FALSE);
+        
+        $restRecs = $query->fetchAll();
+        
+        foreach ((array)$recs as $key => $rec) {
+            if (isset($restRecs[$key])) continue;
+            
+            $nRec = new stdClass();
+            $nRec->id = $rec->id;
+            $nRec->name = $rec->name;
+            $nRec->country = $rec->country;
+            $nRec->pCode = $rec->pCode;
+            $nRec->place = $rec->place;
+            
+            $recs[$key] = $nRec;
+        }
+    }
+    
+    
+    /**
+     * След подготовка на записите за експортиране
+     * 
+     * @param crm_Companies $mvc
+     * @param object $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // id на държавата
+        if (isset($rec->country)) {
+            $rec->country = drdata_Countries::getIdByName($rec->country);
+        }
+        
+        // Проверка дали има дублиращи се записи
+        $query = $mvc->getQuery();
+        if ($name = trim($rec->name)) {
+            $query->where(array("#name = '[#1#]'", $name));
+        }
+        
+        if ($vatId = trim($rec->vatId)) {
+            $query->orWhere(array("#name = '[#1#]'", $vatId));
+        }
+        
+        $query->orderBy('#vatId', 'DESC');
+        $query->orderBy('#state', 'ASC');
+        
+        $query->limit(1);
+        $query->show('id');
+        
+        if ($oRec = $query->fetch()) {
+            $rec->id = $oRec->id;
+        }
+    }
+    
+    
+    /**
+     * Проверява дали подадения национален номер е валиден
+     * В случая че държавата е България или няма държава, проверяваме
+     * дали е валиден ЕИК номер. Във всички други случаи приемаме че е валиден
+     * 
+     * @param string $uicNo - националния номер на контрагента
+     * @param string $countryId - id на държавата, NULL за България
+     * @return boolean - валиден ли е националния номер
+     */
+    public static function checkUicId($uicNo, $countryId = NULL)
+    {
+		expect($uicNo);
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	
+    	// Ако няма държава или държавате е България, провряваме дали е валиден ЕИК номер
+    	if(empty($countryId) || $countryId == $bgId){
+    		return drdata_Vats::isBulstat($uicNo);
+    	}
+		
+    	// Ако се стигне до тук, винаги номера е валиден
+    	return TRUE;
     }
 }

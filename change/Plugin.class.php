@@ -26,7 +26,7 @@ class change_Plugin extends core_Plugin
         if (!$mvc->fields['version']) {
             
             // Добавяме
-            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,width=100%');
+            $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%');
         }
         
         // Ако няма добавено поле за подверсия
@@ -35,16 +35,31 @@ class change_Plugin extends core_Plugin
             // Добавяме
             $mvc->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @return array
+     */
+    public static function getDateAndVersionRow($inOne = TRUE)
+    {
+        if ($inOne) {
+            $rowRes = array('versionAndDate' => array('name' => tr("Версия"), 'val' => "<!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#][#LastVersion#]/[#LastVersionDate#]<!--ET_END REMOVE_BLOCK--><!--ET_BEGIN REMOVE_BLOCK-->[#REMOVE_BLOCK#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_BEGIN FirstSelectedVersion--><!--ET_BEGIN FirstSelectedVersionDate-->/[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]/<!--ET_END LastSelectedVersion--><!--ET_BEGIN LastSelectedVersionDate-->[#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END REMOVE_BLOCK-->"));
+        } else {
+            $rowRes = array('date' => array('name' => tr("Дата"), 'val' => "[#LastVersionDate#]<!--ET_BEGIN DATE_REMOVE-->[#DATE_REMOVE#]<!--ET_BEGIN FirstSelectedVersionDate-->[#FirstSelectedVersionDate#]<!--ET_END FirstSelectedVersionDate--><!--ET_BEGIN LastSelectedVersionDate--> / [#LastSelectedVersionDate#]<!--ET_END LastSelectedVersionDate--><!--ET_END DATE_REMOVE-->"),
+            				   'version' => array('name' => tr("Версия"), 'val' =>"[#LastVersion#]<!--ET_BEGIN VERSIONREMOVE-->[#VERSIONREMOVE#]<!--ET_BEGIN FirstSelectedVersion-->[#FirstSelectedVersion#]<!--ET_END FirstSelectedVersion--><!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion--><!--ET_END VERSIONREMOVE-->"));
+        }
         
-//        $mvc->loadList = arr::make($mvc->loadList, TRUE);
-//        $mvc->loadList['plg_Modified'] = 'plg_Modified';
+        return $rowRes;
     }
     
     
     /**
      * Добавя бутони за контиране или сторниране към единичния изглед на документа
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Ако има права за промяна
         if ($mvc->haveRightFor('changerec', $data->rec)) {
@@ -56,7 +71,7 @@ class change_Plugin extends core_Plugin
             );
             
             // Добавяме бутона за промяна
-            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'20', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа'));    
+            $data->toolbar->addBtn('Промяна', $changeUrl, array('id'=>'conto','order'=>'19', 'ef_icon'=>'img/16/to_do_list.png', 'title'=>'Промяна на документа', 'row' => 2));    
         }
     }
     
@@ -212,7 +227,7 @@ class change_Plugin extends core_Plugin
             }
             
             // Редиректваме
-            return redirect($retUrl);
+            redirect($retUrl);
         }
         
         // Ако няма грешки
@@ -310,16 +325,20 @@ class change_Plugin extends core_Plugin
     /**
      * 
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterPrepareSingle($mvc, $res, $data)
     {
+        if (!isset($res)) {
+            $res = $data;
+        }
+        
         // id на класа
         $classId = core_Classes::getId($mvc);
         
         // Масив с най - новата и най - старата версия
-        $selVerArr = change_Log::getFirstAndLastVersion($classId, $data->rec->id);
+        $selVerArr = change_Log::getFirstAndLastVersion($classId, $res->rec->id);
         
         // Последна версия
-        $lastVersion = change_Log::getLastVersionIdFromDoc($classId, $data->rec->id);
+        $lastVersion = change_Log::getLastVersionIdFromDoc($classId, $res->rec->id);
         
         // Вземаме формата
         $form = $mvc->getForm();
@@ -335,13 +354,13 @@ class change_Plugin extends core_Plugin
                 $lastArr = array();
                 
                 // Вземаме стойността за съответното поле, за първата версия
-                $firstArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['first'], $allowedFieldsArr);
+                $firstArr = change_Log::getVerbalValue($classId, $res->rec->id, $selVerArr['first'], $allowedFieldsArr);
                 
                 // Ако има последна версия
                 if ($selVerArr['last']) {
                     
                     // Стринга на последната версия
-                    $lastVersionStr = change_Log::getLastVersionIdFromDoc($mvc, $data->rec->id);
+                    $lastVersionStr = change_Log::getLastVersionIdFromDoc($mvc, $res->rec->id);
                     
                     // Ако последната версия е последния вариант
                     if ($selVerArr['last'] == $lastVersionStr) {
@@ -350,12 +369,12 @@ class change_Plugin extends core_Plugin
                         foreach ($allowedFieldsArr as $allowedField) {
                             
                             // Добавяме в масива
-                            $lastArr[$allowedField] = $data->row->$allowedField;
+                            $lastArr[$allowedField] = $res->row->$allowedField;
                         }
                     } else {
                         
                         // Вземаме стойността за съответното поле, за последната версия
-                        $lastArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['last'], $allowedFieldsArr);
+                        $lastArr = change_Log::getVerbalValue($classId, $res->rec->id, $selVerArr['last'], $allowedFieldsArr);
                     }
                     
                 } else {
@@ -374,7 +393,7 @@ class change_Plugin extends core_Plugin
                     if ($noLast) {
                         
                         // Задаваме първата версия
-                        $data->row->$allowedField = $first;
+                        $res->row->$allowedField = $first;
                     } else {
                         
                         // Вземаме последната версия
@@ -399,7 +418,7 @@ class change_Plugin extends core_Plugin
                             }
                         }
                         
-                        $data->row->$allowedField = $newFieldVal;
+                        $res->row->$allowedField = $newFieldVal;
                     }
                 }
             }
@@ -408,56 +427,75 @@ class change_Plugin extends core_Plugin
         // Вербално представяне на избраните версии
         $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first']);
         $lastVerDocArr = change_Log::getVersionAndDateFromKey($mvc, $lastVersion);
+        $isLastVer = (boolean)($lastVersionStr && ($selVerArr['last'] == $lastVersion));
+        
+        if (!$isLastVer) {
+            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
+            $lastCreatedOn = $lastSelVerArr['createdOn'];
+        } else {
+            $lastCreatedOn = $lastVerDocArr['createdOn'];
+        }
+        
+        $dateMask = 'd-m-y';
+        
+        // Ако се сравняват две версии от един и същи ден, да се показва и датата
+        if ($lastCreatedOn) {
+            
+            $lastCreatedOnDate = dt::mysql2verbal($lastCreatedOn, $dateMask);
+            $firstCreatedOnDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
+            
+            if ($firstCreatedOnDate == $lastCreatedOnDate) {
+                $dateMask = 'd-m-y H:m:s';
+            }
+        }
         
         // Ако има избрана версия
         if ($selVerArr['first']) {
             
             // Добавяме в променлива
-            $data->row->LastSavedVersion = $lastVerDocArr['versionStr'];
+            $res->row->LastSavedVersion = $lastVerDocArr['versionStr'];
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
-                $data->row->LastSavedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+                $res->row->LastSavedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         } else {
             
             // Добавяме в друга променлива
-            $data->row->LastVersion = $lastVerDocArr['versionStr'];
+            $res->row->LastVersion = $lastVerDocArr['versionStr'];
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
-                $data->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+                $res->row->LastVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         }
         
         // Първата избрана версия
-        $data->row->FirstSelectedVersion = $firstSelVerArr['versionStr'];
+        $res->row->FirstSelectedVersion = $firstSelVerArr['versionStr'];
         
         // Ако е върната дата
         if ($firstSelVerArr['createdOn']) {
-            $data->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], 'd-m-y');
+            $res->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
         }
         
         // Ако последната версия е последния вариант
-        if ($lastVersionStr && ($selVerArr['last'] == $lastVersion)) {
+        if ($isLastVer) {
             
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $lastVerDocArr['versionStr'];
+            $res->row->LastSelectedVersion = $lastVerDocArr['versionStr'];
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
-                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], 'd-m-y');
+                $res->row->LastSelectedVersionDate = dt::mysql2verbal($lastVerDocArr['createdOn'], $dateMask);
             }
         } else {
             
-            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
-            
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $lastSelVerArr['versionStr'];
+            $res->row->LastSelectedVersion = $lastSelVerArr['versionStr'];
             
             // Ако е върната дата
             if ($lastSelVerArr['createdOn']) {
-                $data->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], 'd-m-y');
+                $res->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], $dateMask);
             }
         }
     }
@@ -552,18 +590,15 @@ class change_Plugin extends core_Plugin
      * Прихваща извикването на GetChangeLink.
      * Създава линк, който води до промяната на записа
      * 
-     * @param object $mvc
-     * @param string $res
+     * @param core_Mvc $mvc
+     * @param core_Et $res
      * @param integer $id
      * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
-    function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
+    public static function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
-        // Ако нямаме права да редактираме, да не се показва линка
-        if (!$mvc->haveRightFor('changerec', $id)) return ;
-        
         // URL' то за промяна
-        $changeUrl = array($mvc, 'changefields', $id, 'ret_url' => TRUE);
+        $changeUrl = $mvc->getChangeUrl($id);
         
         // Иконата за промяна
         $editSbf = sbf("img/16/edit.png");
@@ -580,8 +615,21 @@ class change_Plugin extends core_Plugin
         } else {
             
             // Ако не е подадено заглавиет, създаваме линк с иконата
-            $res = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+            $res = ht::createLink('<img src=' . $editSbf . ' width="16" height="16">', $changeUrl);
         }
+    }
+    
+    
+    /**
+     * Връща URL за промяна на полетата
+     * 
+     * @param core_Mvc $mvc
+     * @param array $res
+     * @param integer $id
+     */
+    public static function on_AfterGetChangeUrl(&$mvc, &$res, $id)
+    {
+        $res = array($mvc, 'changeFields', $id, 'ret_url' => TRUE);
     }
     
     
@@ -611,14 +659,12 @@ class change_Plugin extends core_Plugin
      * @param boolean $res
      * @param string $state
      */
-    function on_AfterCanChangeRec($mvc, &$res, $rec)
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
-        $res = TRUE;
-        
         // Чернова и затворени документи не могат да се променят
-        if ($rec->state == 'draft' || $rec->state == 'closed') {
+        if ($res !== FALSE && $rec->state != 'draft' && $rec->state != 'closed') {
             
-            $res = FALSE;
+            $res = TRUE;
         } 
     }
 }

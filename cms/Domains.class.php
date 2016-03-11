@@ -190,7 +190,7 @@ class cms_Domains extends core_Embedder
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
- 
+
         return $domainRecs;
     }
 
@@ -201,6 +201,13 @@ class cms_Domains extends core_Embedder
     public static function getPublicDomain($part = NULL, $lang = NULL)
     {   
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
+
+        $domainId = cms_Domains::getCurrent('id', FALSE);
+
+        if($domainId && (!isset($domainRec) || ($domainRec->id != $domainId))) {
+            self::setPublicDomain($domainId);
+            $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
+        }
         
         // Вземаме домейна от текущото URL
         $domain = strtolower(trim($_SERVER['SERVER_NAME']));
@@ -215,18 +222,22 @@ class cms_Domains extends core_Embedder
             if(!$lang || !$cmsLangs[$lang]) {
                 $lang = self::detectLang($cmsLangs);
             }
-
+            
             // Определяме домейна, който отговаря на езика
+            $domainRecsCnt = count($domainRecs);
             foreach($domainRecs as $dRec) {
-                if($dRec->lang == $lang || !$domainRec) {
+                if($dRec->lang == $lang || !$domainRec ||  ($domainRecsCnt == 1)) {
                     $domainRec = $dRec;
                 }
             }
-
-            // Задаваме действителния домейн, на който е намерен този
-            $domainRec->actualDomain = $domain;
-
-            Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            
+            if ($domainRec) {
+                
+                // Задаваме действителния домейн, на който е намерен този
+                $domainRec->actualDomain = $domain;
+        
+                Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            }
         }
               
         if($part) {
@@ -267,6 +278,26 @@ class cms_Domains extends core_Embedder
         }
   
         return $cmsLangs;
+    }
+    
+    
+    /**
+     * Подготвя поле за въвеждане на домейн
+     */
+    public static function setFormField($form, $field = 'domainId')
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch("#state = 'active'")) {
+            if(self::haveRightfor('select', $rec) || $rec->id == $form->rec->{$field}) {
+                $opt[$rec->id] = self::getRecTitle($rec);
+            }
+        }
+        expect($form instanceof core_Form);
+        $form->setOptions($field, $opt);
+        if(!$form->rec->{$field}) {
+            $form->rec->{$field} = self::getCurrent();
+        }
+
     }
 
  
@@ -316,11 +347,11 @@ class cms_Domains extends core_Embedder
                 foreach($langsInCountry as $lg) {
                     $langArr[$lg]++;
                 }
-            } else {
-                setIfNot($langArr['en'], 0.01);
-            }
+            } 
         }
-        
+
+        setIfNot($langArr['en'], 0.01);
+
         if($langArr['en']) {
             $langArr['en'] *= 0.99;
         }
@@ -350,8 +381,9 @@ class cms_Domains extends core_Embedder
     public static function getCmsSkin()
     {
         $dRec = self::getPublicDomain();
-
-        $driver = self::getDriver($dRec->id);
+		if($dRec){
+			$driver = self::getDriver($dRec->id);
+		}
 
         return $driver;
     }
@@ -417,7 +449,7 @@ class cms_Domains extends core_Embedder
      * Подготвя формата
      * - Прави списъка с езиците
      */
-    public static function on_AfterPrepareeditform($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $langQuery = drdata_Languages::getQuery();
         $langOpt = array();

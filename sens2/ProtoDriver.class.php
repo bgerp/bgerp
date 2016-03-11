@@ -56,7 +56,7 @@ class sens2_ProtoDriver
 
         if(is_array($this->outputs)) {
             foreach($this->outputs as $name => $params) {
-                $res[$name] = array('caption' => $params['caption'], 'uom' => $params['uom']);
+                $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
             }
         }
 
@@ -102,8 +102,9 @@ class sens2_ProtoDriver
      *
      * @return bool
      */
-    function setOuts($outs)
+    function writeOutputs($outputs, $config, &$persistentState)
     {
+        return array();
     }
     
 }

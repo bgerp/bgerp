@@ -11,7 +11,7 @@ defIfNot('EXPERT_SAVE_STATE_IN_CACHE', TRUE);
 /**
  * Дефинира колко минути е 'живо' състоянието
  */
-defIfNot('EXPERT_STATE_LIFETIME', 45);
+defIfNot('EXPERT_STATE_LIFETIME', 145);
 
 
 /**
@@ -761,7 +761,7 @@ class expert_Expert extends core_FieldSet {
                 
                 $js = $res->msg->getArray('JS');
                 
-                if(count($js)) {
+                if (!empty($js)) {
                     foreach($js as $file) {
                         if(!$used[$file]) {
                             $res->scripts[] = sbf($file, '', TRUE);
@@ -782,8 +782,6 @@ class expert_Expert extends core_FieldSet {
             $res = json_encode($res);
             
             header('Content-type: text/json');
-            
-            core_Logs::add('expert_Expert', NULL, $res);
             
             echo $res;
             

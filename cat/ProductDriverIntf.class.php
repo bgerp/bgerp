@@ -7,11 +7,11 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_ProductDriverIntf extends core_InnerObjectIntf
+class cat_ProductDriverIntf extends embed_DriverIntf
 {
 	
 	
@@ -25,52 +25,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 * Инстанция на класа имплементиращ интерфейса
 	 */
 	public $class;
-	
-	
-	/**
-	 * Вътрешната форма
-	 *
-	 * @param mixed $innerForm
-	 */
-	protected $innerForm;
-	
-	
-	/**
-	 * Вътрешното състояние
-	 *
-	 * @param mixed $innerState
-	 */
-	protected $innerState;
-	
-	
-	/**
-	 * В кой документ е инстанциран драйвера
-	 *
-	 * @param core_ObjectReference
-	 */
-	public $EmbedderRec;
-	
-	
-	/**
-	 * Връща информацията за продукта от драйвера
-	 *
-	 * @param stdClass $innerState
-	 * @param int $packagingId
-	 * @return stdClass $res
-	 */
-	public function getProductInfo($innerState, $packagingId = NULL)
-	{
-		return $this->class->getProductInfo($innerState, $packagingId);
-	}
-	
-	
-	/**
-	 * Кои опаковки поддържа продукта
-	 */
-	public function getPacks($innerState)
-	{
-		return $this->class->getPacks($innerState);
-	}
 	
 	
 	/**
@@ -104,81 +58,49 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Коя е основната мярка на драйвера
-	 */
-	public function getDriverUom($params = array())
-	{
-		return $this->class->getDriverUom($params);
-	}
-	
-	
-	/**
-	 * Задава параметрите на обекта
+	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @param mixed $params
+	 * @param string $measureName - име на мярка
+	 * @return FALSE|int - ид на мярката
 	 */
-	public function setDriverParams($params)
+	public function getDefaultUom($measureName = NULL)
 	{
-		return $this->class->setDriverParams($params);
+		return $this->class->getDefaultUom($measureName);
 	}
 	
 	
 	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
+	 * Връща стойността на параметъра с това име, или
+	 * всички параметри с техните стойностти
+	 * 
+	 * @param string $classId - ид на ембедъра
+	 * @param string $id   - ид на записа
+	 * @param string $name - име на параметъра, или NULL ако искаме всички
+	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams()
+	public function getParams($classId, $id, $name = NULL)
 	{
-		return $this->class->getParams();
-	}
-	
-	
-	/**
-	 * Връща параметрите на драйвера
-	 */
-	public function getDriverParams()
-	{
-		return $this->class->getDriverParams();
-	}
-	
-	
-	/**
-	 * Връща хендлъра на изображението представящо артикула, ако има такова
-	 *
-	 * @param mixed $id - ид или запис
-	 * @return fileman_FileType $hnd - файлов хендлър на изображението
-	 */
-	public static function getProductImage($id)
-	{
-		return $this->class->getProductImage($id);
+		return $this->class->getParams($classId, $id, $name);
 	}
 	
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
-	 * 
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 *
+	 * @param stdClass $data
+	 * @return void
 	 */
-	public function prepareProductDescription($documentType = 'public')
+	public function prepareProductDescription(&$data)
 	{
-		return $this->class->prepareProductDescription($documentType);
+		return $this->class->prepareProductDescription($data);
 	}
 	
 	
 	/**
 	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET
 	 */
 	public function renderProductDescription($data)
 	{
@@ -191,6 +113,112 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 */
 	public function getJobFolderName()
 	{
-		return $this->getJobFolderName();
+		return $this->class->getJobFolderName();
+	}
+	
+	
+	/**
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
+     *
+     * @param double $quantity - к-во
+     * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+     * 				    -> title        - дефолт име на задачата
+     * 					-> driverClass  - драйвър на задача
+     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input      - материали за влагане
+     * 						 - array production - артикули за произвеждане
+     * 						 - array waste      - отпадъци
+     */
+	public function getDefaultProductionTasks($quantity)
+	{
+		return $this->class->getDefaultProductionTasks($quantity);
+	}
+	
+	
+	/**
+	 * Връща иконата на драйвера
+	 *
+	 * @return string - пътя към иконата
+	 */
+	public function getIcon()
+	{
+		return $this->class->getIcon();
+	}
+	
+	
+	/**
+	 * Рендиране на описанието на драйвера в еденичния изглед на артикула
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	public function renderSingleDescription($data)
+	{
+		return $this->class->renderSingleDescription($data);
+	}
+	
+	
+	/**
+	 * Връща дефолтното име на артикула
+	 * 
+	 * @param stdClass $rec
+	 * @return NULL|string
+	 */
+	public function getProductTitle($rec)
+	{
+		return $this->class->getProductTitle($rec);
+	}
+	
+	
+	/**
+	 * Връща данни за дефолтната рецепта за артикула
+	 *
+	 * @param stdClass $rec - запис
+	 * @return FALSE|array
+	 * 			['quantity'] - К-во за което е рецептата
+	 * 			['expenses'] - % режийни разходи
+	 * 			['materials'] array
+	 * 				 ['code']         string  - Код на материала
+	 * 				 ['baseQuantity'] double  - Начално количество на вложения материал
+	 * 				 ['propQuantity'] double  - Пропорционално количество на вложения материал
+	 * 				 ['waste']        boolean - Дали материала е отпадък
+	 * 				 ['stageName']    string  - Име на производствения етап
+	 *
+	 */
+	public function getDefaultBom($rec)
+	{
+		return $this->class->getDefaultBom($rec);
+	}
+	
+	
+	/**
+	 * Връща цената за посочения продукт към посочения клиент на посочената дата
+	 *
+	 * @param mixed $customerClass - клас на контрагента
+	 * @param int $customerId - ид на контрагента
+	 * @param int $productId - ид на артикула
+	 * @param int $packagingId - ид на опаковка
+	 * @param double $quantity - количество
+	 * @param datetime $datetime - дата
+	 * @param double $rate  - валутен курс
+	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+	 * @return double|NULL $price  - цена
+	 */
+	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	{
+		return $this->class->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+	}
+	
+	
+	/**
+	 * Връща дефолтната дефиниция за партида на артикула
+	 * Клас имплементиращ интерфейса 'batch_BatchTypeIntf'
+	 * 
+	 * @param mixed $id - ид или запис на артикул
+	 * @return NULL|core_BaseClass - клас за дефиниция на партида
+	 */
+	public function getDefaultBatchDef($id)
+	{
+		return $this->class->getDefaultBatchDef($id);
 	}
 }

@@ -23,6 +23,11 @@ defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
 defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
 
 
+/**
+ * Думи, срещани в спам моментари
+ */
+defIfNot('BLOGM_SPAM_WORDS', 'sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы');
+
 
 /**
   * class blogm_Setup
@@ -79,6 +84,8 @@ class blogm_Setup extends core_ProtoSetup
 			'BLOGM_MAX_COMMENT_DAYS' => array ('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
 
             'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
+
+            'BLOGM_SPAM_WORDS' => array('text', 'caption=Определяне на SPAM рейтинг на коментар->Думи'),
 	
 	);
 	
@@ -91,6 +98,7 @@ class blogm_Setup extends core_ProtoSetup
 				'blogm_Categories',
 				'blogm_Comments',
 				'blogm_Links',
+                'migrate::commentsSpamRate',
 		);
 	
 		
@@ -137,7 +145,30 @@ class blogm_Setup extends core_ProtoSetup
 
 		// Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('blogm_DefaultTheme');
+
+        // Публикуване на чакащите блог статии по крон
+        $rec = new stdClass();
+        $rec->systemId = 'PublishPendingBlogArt';
+        $rec->description = 'Публикуване на чакащите блог статии';
+        $rec->controller = 'blogm_Articles';
+        $rec->action = 'PublicPending';
+        $rec->period = 5;
+        $rec->offset = 3;
+        $html .= core_Cron::addOnce($rec);
         
+        
+        // Изтриване на СПАМ коментари
+        $rec = new stdClass();
+        $rec->systemId = 'Delete SPAM comments';
+        $rec->description = 'Изтриване на спам коментарите';
+        $rec->controller = 'blogm_Comments';
+        $rec->action = 'deleteSPAM';
+        $rec->period = 24;
+        $rec->offset = rand(1, 23);
+        $rec->delay = 0;
+        $rec->timeLimit = 50;
+        $html .= core_Cron::addOnce($rec);
+
 		return $html;
 	}
 
@@ -152,4 +183,16 @@ class blogm_Setup extends core_ProtoSetup
 
 		return $res;
 	}
+
+
+    /**
+     * Миграция за спам-рейтинг
+     */
+    function commentsSpamRate()
+    {
+        $query = blogm_Comments::getQuery();
+        while($rec = $query->fetch("#state != 'active'")) {
+            blogm_Comments::save($rec);
+        }
+    }
 }

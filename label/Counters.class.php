@@ -18,7 +18,7 @@ class label_Counters extends core_Master
     /**
      * Плейсхолдер за брояча
      */
-    static $counterPlace = '%';
+    public static $counterPlace = '%';
     
     
     /**
@@ -156,8 +156,10 @@ class label_Counters extends core_Master
         // Флага, указващ дали има други стойности за брояча
         $haveCounter = FALSE;
         
+        $maxVal = label_CounterItems::getMax($counterId);
+        
         // Ако няма запис
-        if ($maxVal = label_CounterItems::getMax($counterId)) {
+        if (isset($maxVal)) {
             
             // Добавяме стъпката
             $maxVal += $cRec->step;
@@ -262,7 +264,7 @@ class label_Counters extends core_Master
             }
             
             // Очакваме да няма грешка
-            expect($updated);
+            expect(isset($updated));
             
             // Заместваме в стринга
             $str = str_replace(self::$counterPlace, $counter, $str);

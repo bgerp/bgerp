@@ -5,13 +5,6 @@
 				<div class="small">
                     <table class='top-table' style='width:100%'>
                         <tr>
-                            <td colspan='2'>
-                                <b>
-                                    <!--ET_BEGIN subject-->[#subject#]<!--ET_END subject-->
-                                </b>
-                            </td>
-                        </tr>
-                        <tr>
                             <td class='vtop'>
                                 <table class='top-table'>
                                     <!--ET_BEGIN handle-->          
@@ -68,28 +61,13 @@
                                         <td><b>[#emailCc#]</b></td>
                                     </tr>
                                     <!--ET_END emailCc-->
-                                    <!--ET_BEGIN tel-->          
-                                    <tr>
-                                        <td class='aright'>|Тел.|*:</td>
-                                        <td>[#tel#]</td>
-                                    </tr>
-                                    <!--ET_END tel-->
+                                  
                                     <!--ET_BEGIN fax-->          
                                     <tr>
                                         <td class='aright'>|Факс|*:</td>
                                         <td>[#fax#]</td>
                                     </tr>
                                     <!--ET_END fax-->
-                                    <!--ET_BEGIN address-->          
-                                    <tr>
-                                        <td class='aright vtop'>|Адрес|*:</td>
-                                        <td>
-                                            [#address#]
-                                            <div>[#pcode#] [#place#]</div>
-                                            <div>[#country#]</div>
-                                        </td>
-                                    </tr>
-                                    <!--ET_END address-->
                                 </table>
                             </td>
                         </tr>
@@ -101,9 +79,28 @@
     </div>
     <div style='clear: both;'></div>
     <!--ET_BEGIN body--> 
-    <div style='padding:10px;'>
+    <div style='padding:6px 10px 10px;'>
+    <!--ET_BEGIN subject--><h3 class='richtext-title'>[#subject#]</h3><!--ET_END subject-->
         <div>[#body#]</div>
     </div>
+    
+    <!--ET_BEGIN bottomAntetka-->
+    [#bottomAntetka#]
+    
+    <div class='bottom-antetka'>
+	    <!--ET_BEGIN notifyForAnsw-->
+	    	[#notifyForAnsw#]
+	        <div>|Ако не се получи отговор до|* [#notifyDate#] |ще бъде известен|* [#notifyUser#]
+	        	[#removeNotify#]
+	        </div>
+	    <!--ET_END notifyForAnsw-->
+	    
+	    <!--ET_BEGIN sendLater-->
+	    	[#sendLater#]
+	    <!--ET_END sendLater-->
+    </div>
+    <!--ET_END bottomAntetka-->
+    
     <!--ET_END body--> 
     <div style='clear: both;'></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

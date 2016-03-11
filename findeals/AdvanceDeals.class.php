@@ -45,7 +45,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank';
     
     
     /**
@@ -135,12 +135,18 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Позволени операции на последващите платежни документи
      */
-    protected $allowedPaymentOperations = array(
+    public $allowedPaymentOperations = array(
     		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
     		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
     		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),
     		'creditDealBank'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '503'),
 	);
+    
+    
+    /**
+     * Сметки с какви интерфейси да се показват за избор
+     */
+    protected $accountListInterfaces = 'crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
     
     
     /**
@@ -151,18 +157,6 @@ class findeals_AdvanceDeals extends findeals_Deals
     public static function getAllowedFolders()
     {
     	return array('crm_PersonAccRegIntf');
-    }
-    
-    
-    /**
-     * След дефиниране на полетата на модела
-     *
-     * @param core_Mvc $mvc
-     */
-    public static function on_AfterDescription(core_Master &$mvc)
-    {
-    	// Ограничаваме избора на възможните сметки
-    	$mvc->setFieldTypeParams('accountId', array('regInterfaces' => 'crm_PersonAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf'));
     }
     
     

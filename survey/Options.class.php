@@ -37,7 +37,7 @@ class survey_Options extends core_Manager {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'survey,ceo';
+	var $canList = 'admin';
 	
 	
     /**

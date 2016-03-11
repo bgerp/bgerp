@@ -41,16 +41,17 @@ class acc_type_Account extends type_Key
      */
     public function prepareOptions()
     {
-        if (isset($this->options)) {
-            
-            return $this->options;
-        }
-        $mvc = cls::get($this->params['mvc']);
+    	if(isset($this->options)) {
+    		
+    		return $this->options;
+    	}
+    	
+    	$mvc = cls::get($this->params['mvc']);
         $root = $this->params['root'];
         $select = $this->params['select'];
         $regInterfaces = $this->params['regInterfaces'];
        
-        $options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+        $options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
         
         // Ако има зададени интерфейси на аналитичностите
         if($regInterfaces){

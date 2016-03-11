@@ -25,9 +25,15 @@ class type_Keylist extends core_Type {
     /**
      * MySQL тип на полето в базата данни
      */
-    var $dbFieldType = 'text';
+    public $dbFieldType = 'text';
     
-    
+
+    /**
+     * Тук записваме само числа
+     */
+    public $collation = 'ascii_bin';
+
+
 	/**
      * Конструктор. Дава възможност за инициализация
      */
@@ -55,8 +61,12 @@ class type_Keylist extends core_Type {
         foreach($vals as $v) {
             if($v) {
                 $name = $this->getVerbal($v);
-                if((!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                    $name = ht::createLink($name, array($mvc, 'Single', $v));
+                if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                	if($this->params['makeLinks'] === 'short'){
+                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v));
+                	} else {
+                		$name = ht::createLink($name, array($mvc, 'Single', $v));
+                	}
                 }
                 $res .= ($res ? ", " : '') . $name;
             }
@@ -126,7 +136,7 @@ class type_Keylist extends core_Type {
         }
         
         // Ако няма списък с предложения - установяваме го
-        if(!$this->suggestions) {
+        if(!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
         
@@ -202,7 +212,7 @@ class type_Keylist extends core_Type {
                     
                     $addKeylistWide = TRUE;
                     
-                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div>". $plusImg . $minusImg . $v->title . $checkImg  . $uncheckImg."</div></td></tr>" .
+                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group noSelect'><div>" . $checkImg  . $uncheckImg . "<span class='invertTitle'>". $v->title . "</span>" .  $plusImg . $minusImg . "</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
                   
                     $groupOpen = 1;
@@ -230,6 +240,8 @@ class type_Keylist extends core_Type {
                     } else {
                     	$title = "";
                     }
+                    
+                    $v = type_Varchar::escape($v);
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {
@@ -256,7 +268,17 @@ class type_Keylist extends core_Type {
             	$html .= "</tr></table></td>";
             } 
         } else {
-            $html = '<tr><td></td></tr>';
+            $mvc = cls::get($this->params['mvc']);
+            $msg = tr('Липсва избор за');
+            $title = tr($mvc->title);
+            if($mvc->haveRightFor('list')) {
+                $url = array($mvc, 'list');
+                $title = ht::createLink($title, $url, FALSE, 'style=font-weight:bold;');
+            }
+
+            $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
+
+            $html = "<span class='{$cssClass}'>{$msg} {$title}</div>";
         }
         
         if ($addKeylistWide) {
@@ -267,6 +289,7 @@ class type_Keylist extends core_Type {
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::run($tpl, "keylistActions();", TRUE);
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);
+
         return $tpl;
     }
 
@@ -276,7 +299,7 @@ class type_Keylist extends core_Type {
      */
     function getSuggestions()
     {
-        if(!$this->suggestions) {
+        if(!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
 
@@ -301,7 +324,11 @@ class type_Keylist extends core_Type {
                 $query->orderBy("#{$groupBy}")
                 ->show($groupBy);
             }
-                
+
+            if($where = $this->params['where']) {
+                $query->where("{$where}");
+            }
+               
             if($select != "*") {
                 $query->show($select)
                 ->show('id')
@@ -433,7 +460,7 @@ class type_Keylist extends core_Type {
             {
                 if(empty($id) && empty($val)) continue;
                 
-                if(!ctype_digit(trim($id))) {
+                if(!is_numeric(trim($id))) {
                     throw new core_exception_Expect("Некоректен списък '{$id}' => '{$val}', '{$res}'");
                 }
                 
@@ -646,5 +673,18 @@ class type_Keylist extends core_Type {
         $arr['add'] = array_diff($lReposArr, $fReposArr);
         
         return $arr;
+    }
+
+
+    /**
+     * Нормализира записа на keylist
+     */
+    static function normalize($list)
+    {
+        $arr = explode('|', trim($list, '|'));
+        asort($arr);
+        $list = '|' . implode('|', $arr) . '|';
+
+        return $list;
     }
 }

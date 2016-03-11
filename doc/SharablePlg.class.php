@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Плъгин за проследяване и показване на историята на споделянията на документ
  *
@@ -12,6 +13,8 @@
  */
 class doc_SharablePlg extends core_Plugin
 {
+    
+    
     /**
      * След дефиниране на полетата на модела - добавя поле за споделените потребители.
      * 
@@ -32,8 +35,10 @@ class doc_SharablePlg extends core_Plugin
             // на първо виждане от потребителя
             $mvc->FLD('sharedViews', 'blob', 'caption=Споделяне->Виждания,input=none');
         }
+        
+        // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
+        setIfNot($mvc->autoShareOriginShared, TRUE);
     }
-
     
     
     /**
@@ -104,7 +109,7 @@ class doc_SharablePlg extends core_Plugin
             }
         }
     }
-
+    
     
     /**
      * След рендиране на документ отбелязва акта на виждането му от тек. потребител
@@ -117,7 +122,7 @@ class doc_SharablePlg extends core_Plugin
     {
         static::markViewed($mvc, $data);
     }
-
+    
     
     /**
      * Помощен метод: маркиране на споделен док. като видян от тек. потребител
@@ -150,8 +155,17 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
+            $rec->modifiedOn = dt::verbal2mysql();
             if ($mvc->save_($rec)) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
+                if($rec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $rec->containerId;
+                    $cRec->modifiedOn = $rec->modifiedOn;
+                    $cRec->modifiedBy = $userId;
+                    $dCon = cls::get("doc_Containers");
+                    $dCon->save_($cRec);
+                }
             }
         }
     }
@@ -191,8 +205,6 @@ class doc_SharablePlg extends core_Plugin
         $html = array();
         
         foreach ($sharedWith as $userId => $seenDate) {
-            $userRec = core_Users::fetch($userId);
-          
             $nick = crm_Profiles::createLink($userId);
             
             if (!empty($seenDate)) {
@@ -234,6 +246,99 @@ class doc_SharablePlg extends core_Plugin
             
             // Да има само 2 колони
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
+        }
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     * 
+     * @param core_MVc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+        $mvcClassId = core_Classes::getId($mvc);
+        foreach ($recsArr as $rec) {
+            if ($mvcClassId != $rec->docClass) continue;
+            $mRec = $mvc->fetch($rec->docId);
+            
+            if (!$mRec->threadId || !$mRec->containerId) continue;
+            
+            $cRec = doc_Containers::fetch($mRec->containerId);
+            
+            // Всички споделени и абонирани потребители
+            $sharedArr = doc_ThreadUsers::getShared($mRec->threadId);
+            $subscribedArr = doc_ThreadUsers::getSubscribed($mRec->threadId);
+            $subscribedArr += $sharedArr;
+            
+            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени');
+            
+            break;
+        }
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterInputChanges в change_Plugin
+     * 
+     * @param core_MVc $mvc
+     * @param object $oldRec - Стария запис
+     * @param object $newRec - Новия запис
+     */
+    function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    {
+        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
+    }
+    
+    
+    /**
+     * Връща споделените потребители по подразбиране.
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param integer $originId
+     */
+    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
+    {
+        $res = arr::make($res, TRUE);
+        
+        if (!$originId) return ;
+        
+        if (!$mvc->autoShareOriginShared) return ;
+        
+        $document = doc_Containers::getDocument($originId);
+        $dRec = $document->fetch();
+        
+        $createdBy = NULL;
+        
+        if ($dRec->createdBy > 0) {
+            $createdBy = $dRec->createdBy;
+        } elseif ($dRec->modifiedBy > 0) {
+            $createdBy = $dRec->modifiedBy;
+        }
+        
+        // Ако създадетеля на оригиналния документ е текущия
+        if (isset($createdBy)) {
+            $currUserId = core_Users::getCurrent();
+            if ($createdBy == $currUserId) {
+                if ($dRec->sharedUsers) {
+                    $sharedArr = type_Keylist::toArray($dRec->sharedUsers);
+                    unset($sharedArr[$currUserId]);
+                    $res += $sharedArr;
+                }
+        
+                // Предотвратяване на евентуално зацикляне
+                static $originArr = array();
+                
+                if ($dRec->originId && !$originArr[$dRec->originId]) {
+                    $originArr[$dRec->originId] = TRUE;
+                    $sharedArr = $mvc->getDefaultShared($dRec, $dRec->originId);
+                    $res += $sharedArr;
+                }
+            }
         }
     }
 }

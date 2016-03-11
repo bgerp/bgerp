@@ -24,30 +24,12 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
      */
     public $class;
     
-
-    /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
-    
     
     /**
      * Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      * Създава транзакция която се записва в Журнала, при контирането
      *
-     * Ако избраната валута е в основна валута
-     *
      * Dt: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     * Ct: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     *
-     * Ако е в друга валута различна от основната
-     *
-     * Dt: 503. Разплащателни сметки             (Банкова сметка, Валута)
-     * Ct: 481. Разчети по курсови разлики         (Валута)
-     *
-     * Dt: 481. Разчети по курсови разлики         (Валута)
      * Ct: 503. Разплащателни сметки             (Банкова сметка, Валута)
      */
     public function getTransaction($id)
@@ -58,28 +40,15 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     	$cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
     	$dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
     
-    	$toBank = array('503',
-    			array('bank_OwnAccounts', $rec->peroTo),
-    			array('currency_Currencies', $dOwnAcc->currencyId),
-    			'quantity' => $rec->debitQuantity);
-    
-    	$fromBank = array('503',
-    			array('bank_OwnAccounts', $rec->peroFrom),
-    			array('currency_Currencies', $cOwnAcc->currencyId),
-    			'quantity' => $rec->creditQuantity);
-    
-    	if($cOwnAcc->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
-    		$entry = array('amount' => $rec->debitQuantity * $rec->debitPrice, 'debit' => $toBank, 'credit' => $fromBank);
-    		$entry = array($entry);
-    	} else {
-    		$entry = array();
-    		$entry[] = array('amount' => $rec->debitQuantity,
-    				'debit' => $toBank,
-    				'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
-    		$entry[] = array('amount' => $rec->debitQuantity,
-    				'debit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity),
-    				'credit' => $fromBank);
-    	}
+    	$entry = array('debit' => array('503',
+					    			array('bank_OwnAccounts', $rec->peroTo),
+					    			array('currency_Currencies', $dOwnAcc->currencyId),
+					    			'quantity' => $rec->debitQuantity), 
+    				   'credit' => array('503',
+					    			array('bank_OwnAccounts', $rec->peroFrom),
+					    			array('currency_Currencies', $cOwnAcc->currencyId),
+					    			'quantity' => $rec->creditQuantity));
+    	$entry = array($entry);
     
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(

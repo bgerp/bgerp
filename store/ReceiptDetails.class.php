@@ -13,6 +13,8 @@
  */
 class store_ReceiptDetails extends deals_DeliveryDocumentDetail
 {
+    
+    
     /**
      * Заглавие
      */
@@ -34,7 +36,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
+    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy';
     
     
@@ -71,7 +73,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount, weight, volume, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume, quantityInPack';
     
         
     /**
@@ -99,7 +101,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка,after=productId,silent,removeAndRefreshForm=packPrice|discount|uomId');
+        $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -109,13 +111,13 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
     	$property .= ',canStore';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	
     	return $products;
     }
@@ -138,11 +140,14 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+    	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     
-    			$row->productId = cls::get($rec->classId)->getProductDescShort($rec->productId);
+    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short');
+    			batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
+    			
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}
@@ -156,7 +161,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cls::get($rec->classId)->getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cls::get($rec->classId)->getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
     }
 }

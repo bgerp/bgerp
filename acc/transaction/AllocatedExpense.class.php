@@ -54,11 +54,16 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 		$firstDocOriginId = $firstDoc->fetchField('containerId');
 		$correspondingDoc = doc_Containers::getDocument($rec->correspondingDealOriginId);
 		
+		// Ако кореспондиращата сделка е същата сделка
 		if($firstDocOriginId == $rec->correspondingDealOriginId){
 			$entries = $this->getSameDealEntries($rec, $total, $firstDoc, $correspondingDoc);
-		} elseif($correspondingDoc->getInstance() instanceof findeals_Deals){
+		
+			// Ако кореспондиращата сделка е финансова сделка
+		} elseif($correspondingDoc->isInstanceOf('findeals_Deals')){
 			$entries = $this->getFindealsEntries($rec, $total, $firstDoc, $correspondingDoc);
-		} elseif($correspondingDoc->getInstance() instanceof purchase_Purchases) {
+		
+			// Ако кореспондиращата сделка е покупка
+		} elseif($correspondingDoc->isInstanceOf('purchase_Purchases')) {
 			$entries = $this->getPurchaseEntries($rec, $total, $firstDoc, $correspondingDoc);
 		}
 		
@@ -81,7 +86,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 		$vatType = $firstDoc->fetchField('chargeVat');
 		
 		// Ако е към продажба
-		if($firstDoc->getInstance() instanceof sales_Sales){
+		if($firstDoc->isInstanceOf('sales_Sales')){
 			$debitArr = array('411', array($contragentClassId, $contragentId),
 									  array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
 									  array('currency_Currencies', $currencyId),
@@ -116,7 +121,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			}
 			
 			// Ако е към покупка
-		} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
+		} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
 			
 			$creditArr = array('401', array($contragentClassId, $contragentId),
 									  array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
@@ -182,7 +187,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 				'quantity' => 0);
 		
 		// Ако е към продажба
-		if($firstDoc->getInstance() instanceof sales_Sales){
+		if($firstDoc->isInstanceOf('sales_Sales')){
 			$vatAmount = 0;
 			foreach ($rec->productsData as $prod){
 				$pInfo = cat_Products::getProductInfo($prod->productId);
@@ -204,7 +209,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			}
 			
 			// Ако е към покупка
-		} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
+		} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
@@ -241,7 +246,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 		$currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
 		
 		// Ако е към продажба
-		if($firstDoc->getInstance() instanceof sales_Sales){
+		if($firstDoc->isInstanceOf('sales_Sales')){
 			foreach ($rec->productsData as $prod){
 				$pInfo = cat_Products::getProductInfo($prod->productId);
 				$debitAcc = (isset($pInfo->meta['canStore'])) ? '701' : '703';
@@ -262,7 +267,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			}
 			
 			// Ако е към покупка
-		} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
+		} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
 			
 			foreach ($rec->productsData as $prod){
 				foreach ($prod->inStores as $storeId => $storeQuantity){

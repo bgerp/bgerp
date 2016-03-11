@@ -88,9 +88,9 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
 
 
 /**
- * Парола за криптиране на архива
+ * Поддиректория където ще се архивират файловете от fileman-a
  */
-defIfNot('BACKUP_PASS_OFFSET', 'secret');
+defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
 
 
 /**
@@ -184,10 +184,20 @@ class backup_Setup extends core_ProtoSetup
      */
     function install()
     {
+
         $html = parent::install();
         
         // Отключваме процеса, ако не е бил легално отключен
         backup_Start::unLock();
+        
+        $cfgRes = $this->checkConfig();
+
+        // Имаме грешка в конфигурацията - не добавяме задачите на крона
+        if (!is_null($cfgRes)) {
+            
+            return $html;
+        }
+        
         
         // Залагаме в cron
         $rec = new stdClass();
@@ -197,8 +207,8 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'full';
         $rec->period = BACKUP_FULL_PERIOD;
         $rec->offset = BACKUP_FULL_OFFSET;
-        $rec->delay = 40;
-        $rec->timeLimit = 50;
+        $rec->delay = 7;
+        $rec->timeLimit = 2400;
         $html .= core_Cron::addOnce($rec);
         
         $rec = new stdClass();
@@ -208,7 +218,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'binlog';
         $rec->period = BACKUP_BINLOG_PERIOD;
         $rec->offset = BACKUP_BINLOG_OFFSET;
-        $rec->delay = 45;
+        $rec->delay = 9;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
         
@@ -219,7 +229,7 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'clean';
         $rec->period = BACKUP_CLEAN_PERIOD;
         $rec->offset = BACKUP_CLEAN_OFFSET;
-        $rec->delay = 50;
+        $rec->delay = 15;
         $rec->timeLimit = 50;
         $html .= core_Cron::addOnce($rec);
         
@@ -230,11 +240,81 @@ class backup_Setup extends core_ProtoSetup
         $rec->action = 'fileman';
         $rec->period = BACKUP_FILEMAN_PERIOD;
         $rec->offset = BACKUP_FILEMAN_OFFSET;
-        $rec->delay = 51;
-        $rec->timeLimit = 50;
+        $rec->delay = 5;
+        $rec->timeLimit = 70;
         $html .= core_Cron::addOnce($rec);
         
         return $html;
+    }
+    
+
+    /**
+     * Проверява дали MySql-а е конфигуриран за binlog логове
+     *
+     * @return NULL|string
+     */
+    public function checkConfig()
+    {
+
+        $conf = core_Packs::getConfig('backup');
+
+        $storage = core_Cls::get("backup_" . $conf->BACKUP_STORAGE_TYPE);
+        
+        // Проверяваме дали имаме права за писане в сториджа
+        $touchFile = tempnam(EF_TEMP_PATH, "bgERP");
+        file_put_contents($touchFile, "1");
+        
+        if (@$storage->putFile($touchFile) && @$storage->removeFile($touchFile)) {
+            unlink($touchFile);
+        } else {
+            unlink($touchFile);
+            return "|*<li class='debug-error'>|Няма права за писане в |*" . $conf->BACKUP_LOCAL_PATH . "</li>";
+        }
+        
+        // проверка дали всичко е наред с mysqldump-a
+        $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
+                . $conf->BACKUP_MYSQL_HOST . " -u"
+                        . $conf->BACKUP_MYSQL_USER_NAME . " -p"
+                                . $conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
+        exec($cmd, $output ,  $returnVar);
+        
+        if ($returnVar !== 0) {
+
+            return "|*<li class='debug-error'>|mysqldump грешка при свързване|*!</li>";
+        }
+        
+        // Проверка дали gzip е наличен
+        exec("gzip --version", $output,  $returnVar);
+        if ($returnVar !== 0) {
+
+            return "<li class='debug-error'>липсва gzip!</li>";
+        }
+        
+        // Проверка дали tar е наличен
+        exec("tar --version", $output,  $returnVar);
+        if ($returnVar !== 0) {
+        
+            return "<li class='debug-error'>липсва tar!</li>";
+        }
+        
+        // Проверка дали МySql сървъра е настроен за binlog
+        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        // Премахваме всички табулации, нови редове и шпации - log_bin ON
+        $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
+        if ($res != 'log_binon') {
+    
+            return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
+        }
+    
+        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        // Премахваме всички табулации, нови редове и шпации - server_id 1
+        $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
+        if ($res != 'server_id1') {
+
+            return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
+        }
+        
+        return NULL;
     }
     
     

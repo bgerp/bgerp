@@ -27,7 +27,13 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за влагане';
+	public $title = 'Протоколи за влагане в производство';
+	
+	
+	/**
+	 * Име на документа в бързия бутон за добавяне в папката
+	 */
+	public $buttonInFolderTitle = 'Влагане';
 	
 	
 	/**
@@ -39,14 +45,14 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ConsumptionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ConsumptionNote,batch_MovementSourceIntf=batch_movements_ProductionDocument';
 	
 	
 	/**
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
 	/**
@@ -88,7 +94,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за влагане';
+	public $singleTitle = 'Протокол за влагане в производство';
 	
 	
 	/**
@@ -148,23 +154,20 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Влагане по ресурси->Избор,notNull,default=yes,maxRadio=2,before=note');
+		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 	
 	
 	/**
-	 * Обновява записа, за да се преизчисли полето 'isContable' (@see acc_plg_Contable)
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public function act_Resave()
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$this->requireRightFor('edit');
-		expect($id = Request::get('id', 'int'));
-		expect($rec = $this->fetchRec($id));
-		
-		$this->requireRightFor('edit', $rec);
-		
-		$this->save($rec);
-		
-		redirect(array($this, 'single', $id));
+		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Материалите ще бъдат вкарани в производството по артикули' : 'Материалите ще бъдат вложени в производството сумарно';
+		$row->useResourceAccounts = tr($row->useResourceAccounts);
 	}
 }

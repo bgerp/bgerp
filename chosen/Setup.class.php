@@ -49,7 +49,7 @@ class chosen_Setup extends core_ProtoSetup {
     /**
      * Описание на модула
      */
-    var $info = "Удобно избиране от множества";
+    var $info = "Удобно избиране от множества. По-стара алтернатива на Select2";
     
     
     /**

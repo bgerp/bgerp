@@ -30,7 +30,7 @@ class fileman_OCRIntf
     /**
      * Екшъна за извличане на текст чрез OCR
      */
-    function acr_getTextByOcr()
+    function act_getTextByOcr()
     {
         
         return $this->class->acr_getTextByOcr();

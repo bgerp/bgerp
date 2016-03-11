@@ -52,7 +52,7 @@ class drdata_IP {
         $ipn = ($ips[3] + $ips[2] * 256 + $ips[1] * 256 * 256 + $ips[0] * 256 * 256 * 256);
         $dbRes = $db->query("SELECT c FROM ip2country WHERE l<$ipn AND h>$ipn");
         
-        if ($db->numRows()>0) {
+        if ($db->numRows($dbRes)>0) {
             $r = $db->fetchObject($dbRes);
             $db->freeResult($dbRes);
             $c = $r->c;
@@ -71,7 +71,7 @@ class drdata_IP {
     /**
      * @todo Чака за документация...
      */
-    function drdata_IP()
+    function __construct()
     {
         $this->countries["AD"] = array("Andorra", "AN", "AD", "AND", "20", "Andorra la Vella", "Europe", "Euro", "EUR", "67627");
         $this->countries["AE"] = array("United Arab Emirates", "AE", "AE", "ARE", "784", "Abu Dhabi", "Middle East", "UAE Dirham", "AED", "2407460");

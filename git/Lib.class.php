@@ -113,7 +113,7 @@ class git_Lib
     {
         $repoName = basename($repoPath);
         
-        $currBranch = self::currentBranch($repoPath, &$log);
+        $currBranch = self::currentBranch($repoPath, $log);
         
         $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . $currBranch . " 2>&1";
 
@@ -210,7 +210,7 @@ class git_Lib
     {
         $repoName = basename($repoPath);
         
-        $currBranch = self::currentBranch($repoPath, &$log);
+        $currBranch = self::currentBranch($repoPath, $log);
         
         $commandPush = " --git-dir=\"{$repoPath}/.git\" push origin {$currBranch}";
         if(!self::cmdExec($commandPush, $log)) return FALSE;

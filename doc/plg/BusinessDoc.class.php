@@ -49,6 +49,9 @@ class doc_plg_BusinessDoc extends core_Plugin
             return;
         }
         
+        // Ако нямаме сесия - да създадем 
+        requireRole('user');
+        
         if (!$mvc->haveRightFor($action)) {
             // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
             return;
@@ -84,11 +87,11 @@ class doc_plg_BusinessDoc extends core_Plugin
         // Ако няма поне едно поле key във формата
         if(!count($form->selectFields("#key"))){ 
         	
-        	return Redirect(array($mvc, 'list'), FALSE, 'Не може да се добави документ в папка, защото възможните списъци за избор са празни');
+        	redirect(array($mvc, 'list'), FALSE, '|Не може да се добави документ в папка, защото възможните списъци за избор са празни');
         }
         
         $form->title = 'Избор на папка';
-        $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/move.png, title=Продължи нататък');
+        $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Продължи нататък');
         $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         $form = $form->renderHtml();
@@ -143,7 +146,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     	$coversArr = array();
     	foreach ($interfaces as $index => $int){
     		
-    		// Ако иднекса е число, приемаме че е зададен интерфейс, иначе приемаме че е име на клас
+    		// Ако иднекса е число приемаме, че е зададен интерфейс иначе приемаме, че е име на клас
     		if(is_numeric($index)){
     			$coversArr +=  core_Classes::getOptionsByInterface($int);
     		} else {
@@ -165,11 +168,8 @@ class doc_plg_BusinessDoc extends core_Plugin
      */
 	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
-    	core_Debug::$isLogging = FALSE;
-    	
-    	
     	foreach ($coversArr as $coverId){
-    		
+    		 
     		// Подадената корица, трябва да е съществуващ 
     		// клас и да може да бъде корица на папка
     		if(cls::load($coverId, TRUE)){
@@ -179,31 +179,23 @@ class doc_plg_BusinessDoc extends core_Plugin
     				$Class = cls::get($coverId);
     				list($pName, $coverName) = explode('_', $coverId);
     				$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-    				 
-    				$options = $mvc->getCoverOptions($Class);
+    			    
+                    $coverClassId = core_Classes::getId($coverId);
+                    $query = doc_Folders::getQuery();
+                    $query->where("#coverClass = {$coverClassId} AND #state != 'rejected'");
+                    $mvc->RestrictQueryOnlyFolderForDocuments($query);
+                    $query->orderBy('#modifiedOn', 'DESC');
     				$newOptions = array();
-    				if(count($options)){
-    			
-    					$optionList = implode(", ", array_keys($options));
-    			
-    					// Показват се само обектите до които има достъп потребителя
-    					$query = $Class::getQuery();
-    			
-    					$query->where("#id IN ({$optionList})");
-    					$query->show('inCharge,access,shared');
-    					while($rec = $query->fetch()){
-    						if(doc_Folders::haveRightToObject($rec)){
-    							$newOptions[$rec->id] = $options[$rec->id];
-    						}
-    					}
-    			
-    					if ($newOptions) {
-    						 
-    						// Ако има достъпни корици, слагат се като опции
-    						$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
-    						$form->setOptions($coverName, $newOptions);
-    					}
-    				}
+                    
+                    while($rec = $query->fetch()) {
+                        $newOptions[$rec->coverId] = $rec->title;
+                    }
+
+    		        if ($newOptions) {
+    				    // Ако има достъпни корици, слагат се като опции
+    				    $form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
+    				    $form->setOptions($coverName, $newOptions);
+    			    }
     				 
     				if(!count($newOptions)){
     					// Ако няма нито една достъпна корица, полето става readOnly
@@ -214,8 +206,6 @@ class doc_plg_BusinessDoc extends core_Plugin
     			}
     		}
     	}
-    	
-	    core_Debug::$isLogging = TRUE;
     }
     
     
@@ -251,7 +241,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     	// Ако има избран повече от един обект, се показва грешка
     	if(count($errFields)){
     		array_unshift($errFields, $selectedField);
-    		$form->setError(implode(',', $errFields), 'Трябва да е избрана една папка');
+    		$form->setError(implode(',', $errFields), 'Попълнете само едно от посочените полета');
     		return;
     	}
     	
@@ -265,7 +255,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     			}
     		}
     	}
-    	
+   
     	// При избран точно един обект се форсира неговата папка и се връща
     	return $params;
     }

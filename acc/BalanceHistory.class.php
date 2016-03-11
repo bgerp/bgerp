@@ -101,6 +101,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Подготовка на историята
         $this->prepareHistory($data);
+        $data->layoutClass = 'singleView';
         
         // Подготовка на странициране и вербалното представяне
         $this->prepareRows($data);
@@ -109,6 +110,9 @@ class acc_BalanceHistory extends core_Manager
         $tpl = $this->renderHistory($data);
         $tpl->removeBlock('toDate');
         $tpl = $this->renderWrapping($tpl);
+        
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logRead("Разглеждане на хронология на сметка");
         
         // Връщаме шаблона
         return $tpl;
@@ -120,8 +124,6 @@ class acc_BalanceHistory extends core_Manager
      */
     public function prepareRows(&$data)
     {
-    	$data->allRecs = $data->recs;
-    	
     	// Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
         
@@ -232,7 +234,7 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Взима балансовите периоди
      */
-    public function getBalancePeriods()
+    public static function getBalancePeriods()
     {
         // За начална и крайна дата, слагаме по подразбиране, датите на периодите
         // за които има изчислени оборотни ведомости
@@ -240,23 +242,39 @@ class acc_BalanceHistory extends core_Manager
         $balanceQuery->where("#periodId IS NOT NULL");
         $balanceQuery->orderBy("#fromDate", "DESC");
         
-        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-        $optionsFrom = $optionsTo = array();
-        $optionsFrom[dt::today()] = 'Днес';
-        $optionsFrom[$yesterday] = 'Вчера';
-        $optionsFrom[$daybefore] = 'Завчера';
-        $optionsTo[dt::today()] = 'Днес';
-        $optionsTo[$yesterday] = 'Вчера';
-        $optionsTo[$daybefore] = 'Завчера';
+        Mode::push('text', 'plain');
+        $today = dt::mysql2verbal(dt::addDays(0), 'd.m.Y');
+        $yesterday = dt::mysql2verbal(dt::addDays(-1), 'd.m.Y');
+        $daybefore = dt::mysql2verbal(dt::addDays(-2), 'd.m.Y');
+        $options = array();
+        
+
+        // Какви париоди трябва да можем да избираме:
+        // Днес
+        // Вчера
+        // Тази седмици
+        // Предишната седмица
+        // Последните 7 дни
+        // Последните 14 дни
+        // Последните 30 дни
+        // От текущия месец - 6 месеца назад
+        // Тази година
+        // Миналата година
+
+        $options[$today . '|' .$today] = 'Днес';
+        $options[$yesterday . '|' . $yesterday] = 'Вчера';
+        $options[$daybefore . '|' . $daybefore] = 'Завчера';
+        
+     
         
         while($bRec = $balanceQuery->fetch()){
             $bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
-            $optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
-            $optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
+            $options[$bRow->fromDate . '|' . $bRow->toDate] = $bRow->periodId;
         }
         
-        return (object)array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
+        Mode::pop('text');
+        
+        return $options;
     }
     
     
@@ -271,25 +289,31 @@ class acc_BalanceHistory extends core_Manager
         $filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $filter->class = 'simpleForm';
         
-        $filter->FNC('fromDate', 'date', 'caption=От,input');
-        $filter->FNC('toDate', 'date', 'caption=До,input');
+        self::addPeriodFields($filter);
+
         $filter->FNC('accNum', 'int', 'input=hidden');
-        $filter->FNC('ent1Id', 'int', 'input=hidden');
-        $filter->FNC('ent2Id', 'int', 'input=hidden');
-        $filter->FNC('ent3Id', 'int', 'input=hidden');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
-        $filter->showFields = 'fromDate,toDate,isGrouped';
+        $filter->showFields = 'selectPeriod,toDate,fromDate,isGrouped';
+        $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
+        
+        foreach (array(3, 2, 1) as $i){
+        	$ent = $data->rec->{"ent{$i}Id"};
+        	if(isset($ent)){
+        		$listRec = $data->accountInfo->groups[$i]->rec;
+        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll)", "input,caption={$listRec->name}");
+        		$filter->showFields = "ent{$i}Id,{$filter->showFields}";
+        	} else {
+        		$filter->FNC("ent{$i}Id", 'int', 'input=hidden');
+        	}
+        }
         
         $filter->setDefault('isGrouped', 'yes');
         $filter->setDefault('accNum', $data->rec->accountNum);
         $filter->setDefault('ent1Id', $data->rec->ent1Id);
         $filter->setDefault('ent2Id', $data->rec->ent2Id);
         $filter->setDefault('ent3Id', $data->rec->ent3Id);
-        
-        $op = $this->getBalancePeriods();
-        
-        $filter->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
-        $filter->setSuggestions('toDate', array('' => '') + $op->toOptions);
+                
+
         $filter->setDefault('fromDate', $data->fromDate);
         $filter->setDefault('toDate', $data->toDate);
         
@@ -318,7 +342,20 @@ class acc_BalanceHistory extends core_Manager
         }
     }
     
+
+    /**
+     * Добавя към филтъра полета за избор на период
+     */
+    public static  function addPeriodFields($filter, $fromDate='fromDate', $toDate='toDate')
+    {
+        $filter->FLD('selectPeriod', 'autofillMenu', 'input,placeholder=Край,caption=Период');
+        $filter->FLD($toDate, 'date(width=6)', 'caption=-,input,inlineTo=selectPeriod,placeholder=Край');
+        $filter->FLD($fromDate, 'date(width=6)', 'inlineTo=selectPeriod,input,placeholder=Начало', array('caption' => ' '));
+        $toDateField = $filter->getField('selectPeriod');
+        $toDateField->type->setMenu(self::getBalancePeriods(), "{$fromDate}|{$toDate}");
+    }
     
+
     /**
      * Подготовка на историята за перара
      *
@@ -384,6 +421,8 @@ class acc_BalanceHistory extends core_Manager
             'blQuantity' => $rec->baseQuantity,
             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
        
+        $data->allRecs = $data->recs;
+        
         if($data->orderField){
         	arr::order($data->recs, $data->orderField, strtoupper($data->orderBy));
         }
@@ -459,7 +498,7 @@ class acc_BalanceHistory extends core_Manager
     private function prepareMiddleBalance(&$data)
     {
         $recs = $data->allRecs;
-        
+       
         // Ако в формата има грешки,
         if(!empty($data->listFilter)){
         	if($data->listFilter->gotErrors()) return;
@@ -537,12 +576,19 @@ class acc_BalanceHistory extends core_Manager
     {
         // Взимаме шаблона за историята
         $tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
+        if(isset($data->layoutClass)){
+        	$tpl->replace($data->layoutClass, 'singleClass');
+        }
         
         if($data->toolbar){
             $tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
         } else {
             $tpl->replace($data->row->fromDate, 'fromDate');
             $tpl->replace($data->row->toDate, 'toDate');
+        }
+        
+        if($data->isReport !== TRUE){
+        	unset($data->row->ent1Id,$data->row->ent2Id,$data->row->ent3Id);
         }
         
         // Проверка дали всички к-ва равнят на сумите

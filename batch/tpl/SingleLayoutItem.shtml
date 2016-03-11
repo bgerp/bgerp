@@ -1,0 +1,30 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <h2>|Партида|*</h2>
+    <div class='scrolling-holder'>
+        <table class="styled-table">
+            <tr>
+                <td class="title-style">|Артикул|*</td>
+                <td>[#productId#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Партиден №|*</td>
+                <td>[#batch#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Склад|*</td>
+                <td>[#storeId#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Количество|*</td>
+                <td>[#quantity#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Състояние|*</td>
+                <td>[#state#]</td>
+            </tr>
+        </table>
+        
+        [#batch_Movements#]
+    </div>
+</div>

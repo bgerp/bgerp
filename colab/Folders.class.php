@@ -79,7 +79,25 @@ class colab_Folders extends core_Manager
 	function act_Default()
 	{
 		// Редиректваме
-		return Redirect(array($this, 'list'));
+		return new Redirect(array($this, 'list'));
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @see core_Manager::act_List()
+	 */
+	function act_List()
+	{
+	    if (core_Users::isPowerUser()) {
+	        if (doc_Folders::haveRightFor('list')) {
+	            
+	            return new Redirect(array('doc_Folders', 'list'));
+	        }
+	    }
+	    
+	    return parent::act_List();
 	}
 	
 	
@@ -126,7 +144,7 @@ class colab_Folders extends core_Manager
 	function getQuery_($params = array())
 	{
 		$res = $this->Folders->getQuery($params);
-		$sharedFolders = self::getSharedFolders($cu);
+		$sharedFolders = self::getSharedFolders();
 		
 		$res->in('id', $sharedFolders);
 		
@@ -167,6 +185,9 @@ class colab_Folders extends core_Manager
 		}
 		
 		$sharedFolders = array();
+		
+		if (!$cu) return $sharedFolders;
+		
 		$sharedQuery = colab_FolderToPartners::getQuery();
 		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
 		$sharedQuery->where("#contractorId = {$cu}");

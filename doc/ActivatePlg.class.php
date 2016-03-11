@@ -61,6 +61,7 @@ class doc_ActivatePlg extends core_Plugin
     	if($rec->_isActivated) {
     		unset($rec->_isActivated);
     		$mvc->invoke('AfterActivation', array($rec));
+    		$mvc->logWrite('Активиране', $rec->id);
     	}
     }
     

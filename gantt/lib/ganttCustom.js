@@ -325,7 +325,7 @@ function ganttRender(elem,ganttData) {
 						}
 						
 						//по-късите задачи да излизат по-отгоре
-						var zIndex = parseInt(100000000 - widthTask);
+						var zIndex = parseInt(1000 - widthTask);
 						
 						if(zIndex < 0){
 							zIndex = 1;

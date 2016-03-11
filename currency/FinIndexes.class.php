@@ -79,9 +79,9 @@ class currency_FinIndexes extends core_Manager {
      */
     function act_LoadEuriborCsv()
     {
+        $res = '';
         // Зареждаме файлове за обработка
-        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . date('Y') . ".csv");
-        
+        $csvFiles = array("http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EURIBOR_" . date('Y') . ".csv");
         foreach ($csvFiles as $csvFile) {
             $indexName = 'EURIBOR';
             
@@ -222,10 +222,12 @@ class currency_FinIndexes extends core_Manager {
                     }
                 }
                 
-                $res = "Създадени са {$createdRecs} нови индекса.</li>";
+                $res .= "Създадени са {$createdRecs} нови индекса.</li>";
             } else {
+                $errStr = "Не може да бъде отворен файла '{$csvFile}'";
+                self::logErr($errStr);
+                $res .= "<li style='color:red'> {$errStr}";
                 
-                $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
             }
         }
         
@@ -240,9 +242,10 @@ class currency_FinIndexes extends core_Manager {
      */
     function act_LoadEoniaCsv()
     {
+        $res = '';
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EONIA_2012.csv");
-        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EONIA_" . date('Y') . ".csv");
+        $csvFiles = array("http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EONIA_" . date('Y') . ".csv");
         
         foreach ($csvFiles as $csvFile) {
             $indexName = 'EONIA';
@@ -288,10 +291,11 @@ class currency_FinIndexes extends core_Manager {
                     }
                 }
                 
-                $res = "Създадени са {$createdRecs} нови индекса.</li>";
+                $res .= "Създадени са {$createdRecs} нови индекса.</li>";
             } else {
-                
-                $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+                $errStr = "Не може да бъде отворен файла '{$csvFile}'";
+                self::logErr($errStr);
+                $res .= "<li style='color:red'> {$errStr}";
             }
         }
         
@@ -306,6 +310,7 @@ class currency_FinIndexes extends core_Manager {
      */
     function act_LoadSofibidSofiborCsv()
     {
+        $res = '';
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/Sofibor_Sofibid.csv");
         $csvFiles = array("http://www.bnb.bg/FinancialMarkets/FMSofibidAndSofibor/index.htm?download=csv&period&search=");
@@ -468,10 +473,11 @@ class currency_FinIndexes extends core_Manager {
                     // ENDOF Sofibor                        
                 }
                 
-                $res = "Създадени са {$createdRecs} нови индекса.</li>";
+                $res .= "Създадени са {$createdRecs} нови индекса.</li>";
             } else {
-                
-                $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+                $errStr = "Не може да бъде отворен файла '{$csvFile}'";
+                self::logErr($errStr);
+                $res .= "<li style='color:red'> {$errStr}";
             }
         }
         

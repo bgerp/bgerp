@@ -19,7 +19,7 @@ class fconv_Script
     /**
      * @param array files - Масив за входните файлове
      */
-    var $files = array();
+    public $files = array();
     
     
     /**
@@ -31,25 +31,25 @@ class fconv_Script
     /**
      * @param array programs - Масив за изпълнимите команди
      */
-    var $programs = array();
+    public $programs = array();
     
     
     /**
      * @param array params - Масив за параметрите на скрипта
      */
-    var $params = array();
+    public $params = array();
     
     
     /**
      * @param string script - Текст на скрипта
      */
-    var  $script;
+    public  $script;
     
     
     /**
      * Инициализиране на уникално id
      */
-    function fconv_Script($tempDir = NULL)
+    function __construct($tempDir = NULL)
     {
         $conf = core_Packs::getConfig('fconv');
         $this->tempPath = $conf->FCONV_TEMP_PATH . "/";
@@ -104,7 +104,7 @@ class fconv_Script
             
             // Ако не е валиден файл, изписваме съобщение за грешка в лога
             if (!$isValid) {
-                core_Logs::log("fconv_Script: Файлът не съществува: '{$file}'" );
+                log_System::add('fconv_Script', "Файлът не съществува: '{$file}'", NULL, 'err');
             }
         }
     }
@@ -175,6 +175,11 @@ class fconv_Script
                 
                 $cmdLine = implode(' ', $timeLimitArr) . ' ' . $cmdLine;
             }
+        }
+        
+        // Възможност за логване на грешките при изпълняване на скрипт
+        if ($params['errFilePath']) {
+            $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
         $this->script .= $this->nl($cmdLine);
@@ -313,7 +318,7 @@ class fconv_Script
             $shell = $shellName;    
         }
         
-        core_Manager::log("Стартиран скрипт: " . $this->script);
+        log_System::add('fconv_Script', "Стартиран скрипт: " . $this->script);
         
         pclose(popen($shell, "r"));
     }

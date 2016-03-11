@@ -65,11 +65,13 @@ class plg_AlignDecimals extends core_Plugin
                 
                 // Втори пас по стойностите - преформатиране според определената в $digits
                 // дължина на дробната част
-                $field->type->params['decimals'] = $optDecimals;
-                
-                foreach ($recs as $i=>$rec) {
-                    $rows[$i]->{$name} = $field->type->toVerbal($rec->{$name});
-                }
+                $type = clone($field->type);
+                $type->params['decimals'] = $optDecimals;
+                unset($type->params['smartRound']);
+              
+                foreach ($recs as $i=>$rec) { 
+                    $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name}), $type->toVerbal($rec->{$name}), $rows[$i]->{$name});
+                } 
             }
         }
     }

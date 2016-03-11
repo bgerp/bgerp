@@ -28,7 +28,7 @@ class recently_Values extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $loadList = 'plg_Created,plg_RowTools,recently_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,recently_Wrapper';
     
     
     /**
@@ -37,22 +37,18 @@ class recently_Values extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име');
-        $this->FLD('value', 'varchar(128)', 'caption=Стойност');
+        $this->FLD('value', 'varchar', 'caption=Стойност');
         
         $this->setDbUnique('name,value,createdBy');
     }
     
     
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * След подготовката на заглавието на формата
      */
-    static function on_AfterPrepareEditForm($invoker, $data)
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        if (Request::get('id', 'int')) {
-            $data->form->title = 'Редактиране на опция';
-        } else {
-            $data->form->title = 'Добавяне на опция';
-        }
+    	$data->form->title = (isset($data->form->rec->id)) ? 'Редактиране на опция' : 'Добавяне на опция';
     }
     
     
@@ -96,7 +92,9 @@ class recently_Values extends core_Manager
     function add($name, $value)
     {
         $cu = core_Users::getCurrent();
-        $value = str::convertToFixedKey($value, 64);
+        $value = mb_substr($value, 0, 255);
+        $name = str::convertToFixedKey($name, 64);
+
         $rec = $this->fetch(array(
                 "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = {$cu}",
                 $name,

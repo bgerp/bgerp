@@ -24,7 +24,7 @@ class crm_Profiles extends core_Master
     /**
      * 
      */
-	var $details = 'Personalization=crm_Personalization';
+	var $details = 'AuthorizationsList=remote_Authorizations,Personalization=crm_Personalization';
 
 	
     /**
@@ -70,7 +70,7 @@ class crm_Profiles extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -104,9 +104,33 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Кой може да види действията на потребителя
+     */
+    var $canViewlogact = 'powerUser';
+    
+    
+    /**
      * Поле за търсене
      */
     var $searchFields = 'userId, personId';
+    
+ 
+    /**
+     * 
+     */
+    public $canReject = 'admin';
+    
+    
+    /**
+     * 
+     */
+    public $canRestore = 'manager, admin';
+    
+    
+    /**
+     * 
+     */
+    public $canDelete = 'no_one';
     
     
     /**
@@ -114,9 +138,11 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
-        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
-        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
+        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
+        $this->XPR('lastTime',  'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)', 'input=none,smartCenter');
+
         $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
@@ -127,15 +153,82 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Възстановяване на оттеглен обект
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        // Полето state е EXT поле към core_Users
+        // Затова променяме състоянието там
+        
+        $res = FALSE;
+        $rec = $mvc->fetchRec($id);
+        
+        if (!isset($rec->id) || $rec->state != 'rejected') {
+            
+            return;
+        }
+        
+        $coreUsers = cls::get('core_Users');
+        $uRec = $coreUsers->fetch($rec->userId);
+        $coreUsers->logInAct('Възстановяване', $uRec);
+        
+        $res = $coreUsers->restore($rec->userId);
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Оттегляне на запис
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        // Полето state е EXT поле към core_Users
+        // Затова променяме състоянието там
+        
+        $res = FALSE;
+        $rec = $mvc->fetchRec($id);
+        
+        if (!isset($rec->id) || $rec->state == 'rejected') {
+            
+            return;
+        }
+        
+        $coreUsers = cls::get('core_Users');
+        $uRec = $coreUsers->fetch($rec->userId);
+        
+        $res = $coreUsers->reject($rec->userId);
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * След подготовка на тулбара за единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        // Премахваме edit бутона
-        $data->toolbar->removeBtn('btnEdit');
-        
-        // Премахваме бутона за изтриване
-        $data->toolbar->removeBtn('btnDelete');
+        // Подготвяме табовете за логове
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'log-tabs'));
+    	$url = getCurrentUrl();
+    	
+		$url['logTab'] = 'login';
+		$url['#'] = 'profileLoginLog';
+		$tabs->TAB('login', 'Логин' , $url);
+		
+		$url['logTab'] = 'action';
+		$url['#'] = 'profileActionLog';
+		$tabs->TAB('action', 'Действия' , $url);
+	
+		$data->tabs = $tabs;
     }
     
     
@@ -173,6 +266,20 @@ class crm_Profiles extends core_Master
                     // Добавяме бутон към сингъла на лицето
                     $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson', 'ef_icon = img/16/vcard.png');    
                 }
+            }
+        }
+        
+        // Ако потребителя е контрактор и текущия е супер потребите
+        // Показваме папките, в които е споделен
+        if (core_Users::isContractor($data->rec->userId) && core_Users::isPowerUser()) {
+            $data->ColabFolders = new stdClass();
+            $data->ColabFolders->rowsArr = array();
+            $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+            
+            $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+            foreach ($sharedFolders as $folderId) {
+                $params['folderId'] = $folderId;
+                $data->ColabFolders->rowsArr[] = (object) (array('folderName' => doc_Folders::getVerbalLink($params)));
             }
         }
         
@@ -225,11 +332,16 @@ class crm_Profiles extends core_Master
                 unset($data->User->row->state);
             }
             
+            $reqTab = Request::get('logTab');
+		    $data->LogTab = ($reqTab) ? $reqTab : 'login';
+            
             // Ако има права за виждане на IP-то на последно логване
             if ($mvc->haveRightFor('viewip', $data->rec)) {
                 
                 // Ако има права за виждане на записите от лога
-                if (core_LoginLog::haveRightFor('viewlog')) {
+                if (($data->LogTab == 'login') && core_LoginLog::haveRightFor('viewlog')) {
+                    
+                    $data->HaveRightForLog = TRUE;
                     
                     // Създаваме обекта
                     $data->LoginLog = new stdClass();
@@ -275,6 +387,39 @@ class crm_Profiles extends core_Master
             } else {
                 unset($data->User->row->lastLoginIp);
             }
+            
+            // Рендираме екшън лога на потребителя
+            if (($data->LogTab == 'action') && $mvc->haveRightFor('viewlogact', $data->rec)) {
+                
+                $data->HaveRightForLog = TRUE;
+                
+                $data->ActionLog = new stdClass();
+                
+                $userLogAct = log_Data::getLogsForUser($data->rec->userId, 20);
+                
+                $data->ActionLog->rowsArr = $userLogAct['rows'];
+                $data->ActionLog->pager = $userLogAct['pager'];
+                
+                // Ако има роля admin
+                if (log_Data::haveRightFor('list')) {
+                    
+                    // id на потребитяля за търсене
+                    $userTeams = type_User::getUserFromTeams($data->rec->userId);
+                    reset($userTeams);
+                    $userId = key($userTeams);
+                    
+                    $attr = array();
+                    $attr['class'] = 'linkWithIcon';
+    		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+    		        $attr['title'] = tr('Екшън лог на потребителя');
+                    
+                    // URL за промяна
+                    $loginLogUrl = array('log_Data', 'list', 'users' => $userId, 'ret_url' => TRUE);
+                    
+                    // Създаме линка
+                    $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $loginLogUrl, FALSE, $attr);  
+                }
+            }
         }
         
         // Бутон за персонализиране
@@ -283,6 +428,7 @@ class crm_Profiles extends core_Master
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
+        
     }
     
     
@@ -320,23 +466,65 @@ class crm_Profiles extends core_Master
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
         
-        if ($data->LoginLog && $data->LoginLog->rowsArr) {
-            // Вземаме шаблона за потребителя
-            $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
+        // Показваме достъпните папки на колабораторите
+        if ($data->ColabFolders && $data->ColabFolders->rowsArr) {
+            $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
             
-            $logBlockTpl = $lTpl->getBlock('log');
-            
-            foreach ((array)$data->LoginLog->rowsArr as $rows) {
-                $logBlockTpl->placeObject($rows);
-                $logBlockTpl->append2Master();
+            $folderBlockTpl = $colabTpl->getBlock('folders');
+            foreach ((array)$data->ColabFolders->rowsArr as $rows) {
+                
+                $folderBlockTpl->placeObject($rows);
+                $folderBlockTpl->append2Master();
             }
             
-            // Заместваме данните
-            $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
-            
-            // Заместваме в шаблона
-            $tpl->prepend($lTpl, 'loginLog');
+            $tpl->prepend($colabTpl, 'colabFolders');
         }
+        
+        if ($data->LoginLog) {
+            if ($data->LoginLog->rowsArr) {
+                // Вземаме шаблона за потребителя
+                $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
+                
+                $logBlockTpl = $lTpl->getBlock('log');
+                
+                foreach ((array)$data->LoginLog->rowsArr as $rows) {
+                    $logBlockTpl->placeObject($rows);
+                    $logBlockTpl->append2Master();
+                }
+                
+                // Заместваме данните
+                $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+            } else {
+                $lTpl = new ET(tr('Няма данни'));
+            }
+        }
+        
+        if ($data->ActionLog) {
+            if ($data->ActionLog->rowsArr) {
+                $lTpl = getTplFromFile('crm/tpl/SingleProfileActionLogLayout.shtml');
+            
+                $logBlockTpl = $lTpl->getBlock('log');
+                
+                foreach ((array)$data->ActionLog->rowsArr as $rows) {
+                    $logBlockTpl->placeObject($rows);
+                    $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                    $logBlockTpl->append2Master();
+                }
+                
+                $lTpl->append($data->ActionLog->pager->getHtml(), 'pager');
+                $lTpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
+            } else {
+                $lTpl = new ET(tr('Няма данни'));
+            }
+        }
+        
+        if (isset($data->tabs) && $data->HaveRightForLog) {
+    		if (!$lTpl) {
+                $lTpl = new ET(tr('Липсва информация'));
+    		}
+    		$tabHtml = $data->tabs->renderHtml($lTpl, $data->LogTab);
+    		$tpl->replace($tabHtml, 'logTabs');
+    	}
     }
     
     
@@ -357,11 +545,11 @@ class crm_Profiles extends core_Master
         if ($form->isSubmitted()) {
            $this->validateChangePasswordForm($form);
            if(!$form->gotErrors()){
-			
+			    
         		// Записваме данните
          		if (core_Users::setPassword($form->rec->passNewHash))  {
 	                // Правим запис в лога
-	                static::log('change_password');
+	                self::logWrite('Смяна на парола', $form->rec->id);
 	                
 //             		if (EF_USSERS_EMAIL_AS_NICK) {
 //             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));
@@ -372,7 +560,7 @@ class crm_Profiles extends core_Master
 //	                core_LoginLog::add('pass_change', $userId);
 	                
 	                // Редиректваме към предварително установения адрес
-	                return new Redirect(getRetUrl(), "Паролата е сменена успешно");
+	                return new Redirect(getRetUrl(), "|Паролата е променена успешно");
             	}
 			}
         }
@@ -474,9 +662,9 @@ class crm_Profiles extends core_Master
     
 
     /**
-     *
+     * Подготвя списък с потребители, които нямат профили
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    static function prepareUnusedUserOptions($data)
     {
         $usersQuery = core_Users::getQuery();
 
@@ -487,7 +675,7 @@ class crm_Profiles extends core_Master
         $used = array();
 
         while($rec = $query->fetch()) {
-            if($rec->id != $data->form->rec->id) {
+            if(!isset($data->form->rec->id) || $rec->id != $data->form->rec->id) {
                 $used[$rec->userId] = TRUE;
             }
         }
@@ -497,7 +685,19 @@ class crm_Profiles extends core_Master
                 $opt[$uRec->id] = $uRec->nick;
             }
         }
-        
+
+        return $opt;
+    }
+
+
+    /**
+     * Подготвя формата за асоцииране на потребител с профил
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+
+        $opt = self::prepareUnusedUserOptions($data);
+
         $data->form->setOptions('userId', $opt);
         
         $addUserUrl = array(
@@ -596,6 +796,9 @@ class crm_Profiles extends core_Master
             );
             $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
             $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+            if(isset($user->country)) {
+                $person->country = drdata_Countries::getIdByName($user->country);
+            }
             $mustSave = TRUE;
         }
         
@@ -736,53 +939,79 @@ class crm_Profiles extends core_Master
      */
     public static function createLink($userId = NULL, $title = NULL, $warning = FALSE, $attr = array())
     {   
-        if(!$userId) {
-            $userId = core_Users::getCurrent();
+        static $cacheArr = array();
+        
+        if(!isset($userId)) {
+            $userId =  core_Users::getCurrent();
         }
         
-        $userRec = core_Users::fetch($userId);
+        $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
         
-        if(!$title) {
-            $title = self::getUserTitle($userRec->nick);
-        }
+        $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr); 
+        
+        if (!$cacheArr[$key]) {
 
-        $link = $title;
+            $userRec = core_Users::fetch($userId);
+            
+            if(!$userRec) {
+                $userRec = core_Users::fetch(0);
+            }
+
+            if(!$title) {
+                $title = self::getUserTitle($userRec->nick);
+            }
+            
+            $link = $title;
+            
+            $url  = array();
+    	    $attr['class'] .= ' profile';
+
+    		$profileId = self::getProfileId($userId);
+    		if ($profileId) {
+    			
+    			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
+    				$url  = static::getUrl($userId);
+    			} 
+    			
+    			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor', 'none') as $role) {
+                    if($role == 'none') {
+                        $attr['style'] .= ";color:#333;"; break;
+                    }
+    				if (core_Users::haveRole($role, $userId)) {
+    					$attr['class'] .= " {$role}"; break;
+    				}
+    			}
+    			
+                if (core_Users::haveRole('no_one', $userId)) {
+                    $attr['style'] .= " text-decoration: underline red;"; 
+                }
+    
+    			if ($userRec->lastActivityTime) {
+    				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
+    			}
+    			
+    			if(($before !== NULL) && $before < 5*60) {
+    				$attr['class'] .= ' active';
+    			} elseif(!$before || $before > 60*60) {
+    				$attr['class'] .= ' inactive';
+    			}
+    			
+    			if($userRec->state != 'active') {
+    				$attr['class'] .= ' state-' . $userRec->state;
+    			}
+    			
+    			$attr['title'] = $userRec->names;
+    			
+    			$link = ht::createLink($title, $url, $warning, $attr);
+    		} else {
+                $attr['style'] .= ';color:#999 !important;';
+                $link = ht::createLink($userRec->nick, NULL, NULL, $attr);
+            }
+    		
+    		$cacheArr[$key] = $link;
+        }
         
-        $url  = array();
-		$profileId = self::getProfileId($userId);
-		if($profileId){
-			
-			if(crm_Profiles::haveRightFor('single', $profileId)){
-				$url  = static::getUrl($userId);
-			} 
-			
-			$attr['class'] .= ' profile';
-			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
-				if (core_Users::haveRole($role, $userId)) {
-					$attr['class'] .= " {$role}"; break;
-				}
-			}
-			
-			if ($userRec->lastActivityTime) {
-				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
-			}
-			
-			if(($before !== NULL) && $before < 5*60) {
-				$attr['class'] .= ' active';
-			} elseif(!$before || $before > 60*60) {
-				$attr['class'] .= ' inactive';
-			}
-			
-			if($userRec->state != 'active') {
-				$attr['class'] .= ' state-' . $userRec->state;
-			}
-			
-			$attr['title'] = $userRec->names;
-			
-			$link = ht::createLink($title, $url, $warning, $attr);
-		}
-        
-        return $link;
+        return $cacheArr[$key];
     }
     
 
@@ -799,6 +1028,55 @@ class crm_Profiles extends core_Master
 
         return $title;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        
+        return self::getVerbal($id, 'userId');
+    }
+
+
+    /**
+     * След подготовката на листовия тулбар
+     * 
+     * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
+     * 
+     * @param crm_Profiles $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar(crm_Profiles $mvc, $data)
+    {
+        $toolbar = $data->toolbar;
+ 
+        $toolbar->removeBtn('btnAdd');
+        
+        
+        if ($mvc->haveRightFor('add')) {
+           if(count(self::prepareUnusedUserOptions($data))) {
+                $toolbar->addBtn('Асоцииране', array(
+                        $mvc,
+                        'add'
+                    ),
+                    'id=btnAdd', 'ef_icon = img/16/link.png,title=Асоцииране на визитка с потребител');
+            }
+        $toolbar->addBtn('Нов потребител', array(
+                        'core_Users',
+                        'add',
+                        'ret_url' => TRUE,
+                    ),
+                    'id=new', 'ef_icon=img/16/star_2.png,title=Добавяне на нов потребител');
+
+
+        }
+    }
+
 
 
     /**
@@ -867,7 +1145,7 @@ class crm_Profiles extends core_Master
     	 
     	$data->listFilter->showFields = 'search';
         
-        $data->query->orderBy("lastLoginTime", "DESC");
+        $data->query->orderBy("lastTime", "DESC");
     }
     
     
@@ -882,21 +1160,18 @@ class crm_Profiles extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        // Ако редактираме или добавяме
-        if ($action == 'edit' || $action == 'add') {
-            
-            // Ако текущия потребител не е userId
-            if ($rec->userId != core_Users::getCurrent()) {
-                
-                // Изискваме роля admin
-                $requiredRoles = 'admin';
-            }
-        }
-        
         // Текущия потребител може да си види IP-то, admin и ceo могат на всичките
         if ($action == 'viewip') {
             if ($rec && ($rec->userId != $userId)) {
                 if (!haveRole('ceo, admin')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+        
+        if ($action == 'viewlogact') {
+            if ($rec) {
+                if (!log_Data::canViewUserLog($rec->userId, $userId)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -934,6 +1209,8 @@ class crm_Profiles extends core_Master
         $currUserId = core_Users::getCurrent();
         
         if ($currUserId == $userOrRole) return TRUE;
+
+        if(core_Users::fetch($userOrRole)->state == 'rejected') return FALSE;
         
         if (haveRole('admin, ceo', $currUserId)) return TRUE;
         
@@ -987,7 +1264,7 @@ class crm_Profiles extends core_Master
         // Ако сме в мобилен режим, да не е хинт
         $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
         if($paramType == 'unit') {
-            $defaultStr = "|<br>|По подразбиране|*: ";
+            $defaultStr = "|*<br>|По подразбиране|*: ";
         } else {
             $defaultStr = 'По подразбиране|*: ';
         }
@@ -1102,4 +1379,24 @@ class crm_Profiles extends core_Master
             }
         }
     }
+	
+	
+	/**
+	 * Изпълнява се след закачане на детайлите
+	 * 
+	 * @param crm_Profiles $mvc
+	 * @param NULL|array $res
+	 * @param NULL|array $details
+	 */
+	public static function on_BeforeAttachDetails(crm_Profiles $mvc, &$res, &$details)
+	{
+	    $details = arr::make($details, TRUE);
+	    $mvc->details = arr::make($mvc->details, TRUE);
+	    
+	    if (!core_Packs::isInstalled('remote')) {
+	        $remotePackKey = 'AuthorizationsList';
+	        unset($details[$remotePackKey]);
+	        unset($mvc->details[$remotePackKey]);
+	    }
+	}
 }

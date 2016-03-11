@@ -31,13 +31,19 @@ class bank_Accounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected';
+    var $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'iban,bic,bank';
     
     
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'tools=Пулт, iban, contragent=Контрагент, currencyId';
+    var $listFields = 'iban, contragent=Контрагент, currencyId';
     
     
     /**
@@ -101,10 +107,10 @@ class bank_Accounts extends core_Master {
     {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
         // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
-        $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory');
+        $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,removeAndRefreshForm=bic|bank|currencyId,silent');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
@@ -116,19 +122,29 @@ class bank_Accounts extends core_Master {
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$contragentName = cls::get($rec->contragentCls)->getTitleById($rec->contragentId);
+    	
+    	$res = " " . $res . " " . plg_Search::normalizeText($contragentName);
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
+        
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
         $contragentRec   = $Contragents->fetch($rec->contragentId);
-        $contragentTitle = $Contragents->getTitleById($contragentRec->id);
+        $data->Contragent = $Contragents;
         
-        if($rec->id) {
-            $data->form->title = 'Редактиране на банкова сметка на |*' . $contragentTitle;
-        } else {
+        if(!$rec->id) {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
@@ -140,13 +156,40 @@ class bank_Accounts extends core_Master {
                 $defaultCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
                 $data->form->setDefault('currencyId', $defaultCurrencyId);
             }
-            
-            $data->form->title = 'Нова банкова сметка на |*' . $contragentTitle;
         }
         
         if($iban = Request::get('iban')) {
             $data->form->setDefault('iban', $iban);
         }
+        
+        // Ако има въведен iban
+        if(isset($rec->iban)){
+        	
+        	// и той е валиден
+        	if(!$data->form->gotErrors()){
+        		
+        		// по дефолт извличаме името на банката и bic-а ако можем
+        		$data->form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
+        		$data->form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
+        	}
+        }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$url = $data->Contragent->getSingleUrlArray($data->form->rec->contragentId);
+    	$title = $data->Contragent->getTitleById($data->form->rec->contragentId);
+    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->Contragent->singleIcon, 'class' => 'linkInTitle'));
+    	
+    	if($data->form->rec->id) {
+    		$data->form->title = "Редактиране на банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	} else {
+    		$data->form->title = "Нова банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	}
     }
     
     
@@ -164,7 +207,7 @@ class bank_Accounts extends core_Master {
         }
     }
     
-    
+        
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
      */
@@ -173,7 +216,7 @@ class bank_Accounts extends core_Master {
         // ако формата е събмитната, и банката и бика не са попълнени,  
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
         // ако те се разминават с тези в системата
-        if($form->isSubmitted()){
+        if($form->isSubmitted()){  
             if($form->rec->iban{0} != '#') {
                 $bank = bglocal_Banks::getBankName($form->rec->iban);
             }
@@ -182,7 +225,7 @@ class bank_Accounts extends core_Master {
                 $form->rec->bank = $bank;
             } else {
                 if($bank && $form->rec->bank != $bank){
-                    $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте че искате да продължите?");
+                    $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
             
@@ -192,13 +235,13 @@ class bank_Accounts extends core_Master {
                 $form->rec->bic = $bic;
             } else {
                 if($bank && $form->rec->bic != $bic){
-                    $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте |*\"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC |*\"<b>{$bic}</b>\". |Сигурни ли сте че искате да продължите?");
+                    $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте |*\"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC |*\"<b>{$bic}</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
         }
     }
-    
-    
+ 
+
     /**
      * Връща иконата за сметката
      */
@@ -242,10 +285,32 @@ class bank_Accounts extends core_Master {
         $query = $this->getQuery();
         $query->where("#contragentCls = {$data->contragentCls} AND #contragentId = {$data->masterId}");
         
+        $data->isOurCompany = FALSE;
+        $ourCompany = crm_Companies::fetchOurCompany();
+        if($data->contragentCls == crm_Companies::getClassId() && $data->masterId == $ourCompany->id){
+        	$data->isOurCompany = TRUE;
+        }
+        
         while($rec = $query->fetch()) {
+        	
+        	// Ако е наша банкова сметка и е отттеглена, пропускаме я
+        	if($data->isOurCompany === TRUE){
+        		$rec->ourAccount = TRUE;
+        		$state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
+        		if($state == 'rejected') continue;
+        	}
+        	
             $data->recs[$rec->id] = $rec;
-            
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
+            
+            // Ако сметката е на нашата фирма, подменяме линка да сочи към изгледа на нашата сметка
+            if($data->isOurCompany === TRUE){
+            	$iban = $this->getVerbal($rec, 'iban');
+            	$aId = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'id');
+            	if(bank_OwnAccounts::haveRightFor('single', $aId)){
+            		$row->iban = ht::createLink($iban, array('bank_OwnAccounts', 'single', $aId), FALSE, 'title=Към нашата банкова сметка,ef_icon=img/16/own-bank.png');
+            	}
+            }
         }
         
         $data->TabCaption = 'Банка';
@@ -262,9 +327,8 @@ class bank_Accounts extends core_Master {
         $tpl->append(tr('Банкови сметки'), 'title');
         
         if(count($data->rows)) {
-            
             foreach($data->rows as $id => $row) {
-                
+            	core_RowToolbar::createIfNotExists($row->_rowTools);
                 $rec = $data->recs[$id];
                 
                 $cCodeRec = currency_Currencies::fetch($rec->currencyId);
@@ -280,8 +344,7 @@ class bank_Accounts extends core_Master {
                 }
                 
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
-                
-                $tpl->append("{$row->title} {$row->tools}", 'content');
+                $tpl->append("{$row->title} " . $row->_rowTools->renderHtml(), 'content');
                 
                 $tpl->append("</div>", 'content');
             }
@@ -291,13 +354,40 @@ class bank_Accounts extends core_Master {
         
         if(!Mode::is('printing')) {
             if($data->masterMvc->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')) {
-                $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16'  height='16'>";
-                $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'title');
+            	
+                // Ако контрагента е 'моята фирма' редирект към създаване на наша сметка, иначе към създаване на обикновена
+            	if($data->isOurCompany === TRUE){
+            		$url = array('bank_OwnAccounts', 'add', 'ret_url' => TRUE, 'fromOurCompany' => TRUE);
+            		$title = 'Добавяне на нова наша банкова сметка';
+            	} else {
+            		$url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
+            		$title = 'Добавяне на нова банкова сметка';
+            	}
+            	
+            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr($title)), 'title');
             }
         }
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    {
+    	if($rec->ourAccount === TRUE){
+    		$retUrl = $editUrl['ret_url'];
+    		$ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'id');
+    		$editUrl = array('bank_OwnAccounts', 'edit', $ownAccountId, 'fromOurCompany' => TRUE);
+    		$editUrl['ret_url'] = $retUrl;
+    	}
     }
     
     
@@ -343,7 +433,17 @@ class bank_Accounts extends core_Master {
         $query->where("#contragentId = {$contragentId}");
         $query->where("#contragentCls = {$Contragent->getClassId()}");
         
+        $myCompany = crm_Companies::fetchOwnCompany();
+        $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId()) ? TRUE : FALSE;
+        
         while($rec = $query->fetch()) {
+        	
+        	// Ако е наша банкова сметка и е отттеглена, пропускаме я
+        	if($isOurCompany === TRUE){
+        		$state = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'state');
+        		if($state == 'rejected') continue;
+        	}
+        	
             $iban = $rec->iban;
             $key = ($intKeys) ? $rec->id : $rec->iban;
             $suggestions[$key] = $iban;
@@ -375,5 +475,18 @@ class bank_Accounts extends core_Master {
                     'bank'          => bglocal_Banks::getBankName($iban),
                     'bic'           => bglocal_Banks::getBankBic($iban)));
         }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->setField('contragentCls', 'input=none');
+    	$data->listFilter->setField('contragentId', 'input=none');
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }

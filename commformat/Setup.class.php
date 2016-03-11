@@ -43,7 +43,7 @@ class commformat_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Форматиране на ICQ, Skype, tel. и други форми за комуникация";
+    var $info = "Форматиране на телефонни номера, ICQ, Skype и др. в документите";
     
     
     /**

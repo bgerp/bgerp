@@ -57,6 +57,8 @@ class select2_PluginSmartSelect extends core_Plugin
      */
     function on_AfterCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
     {
+        if ($invoker->params['isReadOnly']) return ;
+        
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');

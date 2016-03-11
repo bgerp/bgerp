@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Клас 'cat_products_Params'
+ * Клас 'cat_products_Params' - продуктови параметри
  *
  *
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -38,13 +38,13 @@ class cat_products_Params extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'paramId, paramValue, tools=Пулт';
+    var $listFields = 'productId=Продукт №, paramId, paramValue';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
     
     
     /**
@@ -66,19 +66,25 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да добавя
      */
     var $canAdd = 'ceo,cat';
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да листва
+     */
+    var $canList = 'ceo,cat';
+    
+    
+    /**
+     * Кой може да редактира
      */
     var $canEdit = 'ceo,cat';
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да изтрива
      */
     var $canDelete = 'ceo,cat';
     
@@ -86,7 +92,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, productId, paramId, classId';
+    var $fetchFieldsBeforeDelete = 'id, productId, paramId';
     
     
     /**
@@ -97,7 +103,7 @@ class cat_products_Params extends doc_Detail
     	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
     	$this->FLD('productId', 'int', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
+        $this->FLD('paramValue', 'varchar(255)', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
     }
@@ -123,15 +129,14 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($paramRec = cat_Params::fetch($rec->paramId)){
-	    	if($paramRec->type != 'enum'){
-	           $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
-	           $row->paramValue = $Type->toVerbal($rec->paramValue);
-	        }
-	        
-	        if($paramRec->type != 'percent'){
-	           $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
-	        }
+    	$paramRec = cat_Params::fetch($rec->paramId);
+    	
+    	if($ParamType = cat_Params::getTypeInstance($paramRec)){
+    		$row->paramValue = $ParamType->toVerbal(trim($rec->paramValue));
+    	}
+    	
+    	if(!empty($paramRec->suffix)){
+    		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
     	}
     }
     
@@ -142,13 +147,11 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
-        $masterTitle = cls::get($form->rec->classId)->getTitleById($form->rec->productId);
         
     	if(!$form->rec->id){
-    		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
-			$options = self::getRemainingOptions($productId, $form->rec->classId, $form->rec->id);
+			$options = self::getRemainingOptions($form->rec->classId, $productId, $form->rec->id);
 			expect(count($options));
 	        
 	        if(!$data->form->rec->id){
@@ -156,14 +159,24 @@ class cat_products_Params extends doc_Detail
 	        }
 	        $form->setOptions('paramId', $options);
     	} else {
-    		$form->title = "Редактиране на параметър към|* <b>{$masterTitle}</b>";
     		$form->setReadOnly('paramId');
     	}
     	
         if($form->rec->paramId){
-        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($form->rec->paramId, 'cat_Params');
-        } else {
-        	$form->setField('paramValue', 'input=hidden');
+        	if($Driver = cat_Params::getDriver($form->rec->paramId)){
+        		$form->setField('paramValue', 'input');
+        		$pRec = cat_Params::fetch($form->rec->paramId);
+        		if($Type = $Driver->getType($pRec)){
+        			$form->setFieldType('paramValue', $Type);
+        			
+        			if(!empty($pRec->suffix)){
+        				$suffix = cat_Params::getVerbal($pRec, 'suffix');
+        				$form->setField('paramValue', "unit={$suffix}");
+        			}
+        		}
+        	} else {
+        		$form->setError('paramId', 'Има проблем при зареждането на типа');
+        	}
         }
     }
 
@@ -174,7 +187,7 @@ class cat_products_Params extends doc_Detail
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    public static function getRemainingOptions($productId, $classId, $id = NULL)
+    public static function getRemainingOptions($classId, $productId, $id = NULL)
     {
         $options = cat_Params::makeArray4Select();
         
@@ -185,7 +198,7 @@ class cat_products_Params extends doc_Detail
                 $query->where("#id != {$id}");
             }
 			
-            while($rec = $query->fetch("#productId = {$productId} AND #classId = {$classId}")) {
+            while($rec = $query->fetch("#productId = {$productId} AND #classId = '{$classId}'")) {
                unset($options[$rec->paramId]);
             }
         } else {
@@ -198,14 +211,16 @@ class cat_products_Params extends doc_Detail
     
     /**
      * Връща стойноста на даден параметър за даден продукт по негово sysId
+     * 
+     * @param string $classId - ид на ембедъра
      * @param int $productId - ид на продукт
      * @param int $sysId - sysId на параметъра
      * @return varchar $value - стойността на параметъра
      */
-    public static function fetchParamValue($productId, $classId, $sysId)
+    public static function fetchParamValue($classId, $productId, $sysId)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
-     		$paramValue = static::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId= {$classId}", 'paramValue');
+     		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я
      		if($paramValue) return $paramValue;
@@ -214,7 +229,7 @@ class cat_products_Params extends doc_Detail
      		return cat_Params::getDefault($paramId);
      	}
      	
-     	return NULL;
+     	return FALSE;
     }
     
     
@@ -225,21 +240,25 @@ class cat_products_Params extends doc_Detail
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $tpl->replace(get_called_class(), 'DetailName');
-        $tpl->append(tr('Параметри'), 'TITLE');
         
         if($data->noChange !== TRUE){
-        	$tpl->append($data->changeBtn, 'TITLE');
+        	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
         foreach((array)$data->params as $row) {
-        	if($data->noChange === TRUE){
-        		unset($row->tools);
+        	core_RowToolbar::createIfNotExists($row->_rowTools);
+        	if($data->noChange !== TRUE){
+        		$row->tools = $row->_rowTools->renderHtml();
         	}
         	
             $block = clone $tpl->getBlock('param');
             $block->placeObject($row);
             $block->removeBlocks();
             $block->append2Master();
+        }
+        
+        if(!$data->params){
+        	$tpl->append("<i>" . tr('Няма') . "</i>", 'NO_ROWS');
         }
         
         return $tpl;
@@ -252,25 +271,24 @@ class cat_products_Params extends doc_Detail
     public static function prepareParams(&$data)
     {
         $query = self::getQuery();
-        $query->where("#classId = {$data->masterClassId} AND #productId = {$data->masterId}");
-    	
+        $query->where("#productId = {$data->masterId}");
+        $query->where("#classId = {$data->masterClassId}");
+        
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-    	if($data->prepareForPublicDocument === TRUE){
+    	if($data->documentType === 'public'){
     		$query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
     		$query->where("#showInPublicDocuments = 'yes'");
     	}
         
-        $Cls = cls::get(get_called_class());
-        
     	while($rec = $query->fetch()){
-    		$data->params[$rec->id] = $Cls->recToVerbal($rec);
+    		$data->params[$rec->id] = static::recToVerbal($rec);
     		
-    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
     			unset($data->params[$rec->id]->tools);
     		}
     	}
       	
-        if(self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+        if(self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
             $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
         }
     }
@@ -283,11 +301,11 @@ class cat_products_Params extends doc_Detail
     {
         if($requiredRoles == 'no_one') return;
     	
-        if (($action == 'add' || $action == 'delete') && isset($rec->productId) && isset($rec->classId)) {
-        	$pRec = cls::get($rec->classId)->fetch($rec->productId);
+        if (($action == 'add' || $action == 'delete') && isset($rec->productId)) {
+        	$pRec = cat_Products::fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId))) {
+        	if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
                 $requiredRoles = 'no_one';
             } elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
             	
@@ -314,7 +332,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderParams($data)
     {
-        if($data->addUrl) {
+        if($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
         }
 
@@ -329,8 +347,9 @@ class cat_products_Params extends doc_Detail
     {
     	$features = array();
     	$query = self::getQuery();
+    	$classId = cls::get($classId)->getClassId();
     	
-    	$query->where("#productId = '{$objectId}' AND #classId = {$classId}");
+    	$query->where("#productId = '{$objectId}'");
     	$query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
     	$query->where("#isFeature = 'yes'");
     	
@@ -349,7 +368,7 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
-    		acc_Features::syncFeatures($rec->classId, $rec->productId);
+    		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
     	}
     }
     
@@ -361,7 +380,7 @@ class cat_products_Params extends doc_Detail
     {
         foreach ($query->getDeletedRecs() as $rec) {
         	if(cat_Params::fetchField("#id = '{$rec->paramId}'", 'isFeature') == 'yes'){
-        		acc_Features::syncFeatures($rec->classId, $rec->productId);
+        		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
         	}
         }
     }

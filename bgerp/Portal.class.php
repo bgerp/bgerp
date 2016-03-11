@@ -59,7 +59,7 @@ class bgerp_Portal extends core_Manager
     		if(core_Users::isContractor()){
         		
     			// Редирект към профила на партньора
-    			redirect(array('colab_Profiles', 'single'));
+    			return new Redirect(array('colab_Profiles', 'single'));
         	}
         }
     	
@@ -145,6 +145,8 @@ class bgerp_Portal extends core_Manager
         $tpl->push('js/PortalSearch.js', 'JS');
         jquery_Jquery::run($tpl, "portalSearch();");
         
+        bgerp_LastTouch::set('portal');
+
         return $tpl;
     }
     
@@ -201,4 +203,5 @@ class bgerp_Portal extends core_Manager
         $html .= "</datalist>\n";
         $form->layout->append(new ET($html), 'DATA_LIST');
     }
+
 }

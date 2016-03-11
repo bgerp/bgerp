@@ -20,7 +20,7 @@ class cams_Cameras extends core_Master
     /**
      * Зареждане на използваните мениджъри
      */
-    var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools, cams_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools2, cams_Wrapper, plg_State2';
     
     
     /**
@@ -32,7 +32,7 @@ class cams_Cameras extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, thumb=Изглед, caption=Камера, state';
+    var $listFields = 'thumb=Изглед, caption=Камера, state';
     
     
     /**
@@ -64,7 +64,13 @@ class cams_Cameras extends core_Master
      */
     var $canRead = 'ceo,cams, admin';
     
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/web_camera.png';
+
+
     /**
      * Описание на модела
      */
@@ -86,12 +92,16 @@ class cams_Cameras extends core_Master
      */
     function act_ShowImage()
     {
-        $id = Request::get('id', 'int');
+//    	$this->haveRightFor('single');
+        
+    	$id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
         
-        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+//        $this->haveRightFor('single', $rec);
         
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+
         $img = $driver->getPicture();
         
         if(!$img) {
@@ -176,8 +186,12 @@ class cams_Cameras extends core_Master
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET('[#1#]<br>', $row->title);
         $row->caption->append("<small><i>{$row->driver}</i></small>&nbsp;");
-        $row->caption->append(ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id)));
-        
+
+        if($mvc->haveRightFor('edit', $rec)) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Настройки', array($mvc, 'Settings', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/testing.png');
+        }
+
         if($driver->havePtzControl()) {
             $form = cls::get('core_form');
             $form->setAction(array(cls::get(get_called_class()), 'applyPtzCmd'));

@@ -23,6 +23,14 @@ class cash_ExchangeDocument extends core_Master
    
     
     /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     public $title = "Касови обмени на валути";
@@ -142,7 +150,7 @@ class cash_ExchangeDocument extends core_Master
         $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Към->Сума');
        	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
-       	$this->FLD('rate', 'double(smartRound)', 'input=none');
+       	$this->FLD('rate', 'double(decimals=5)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -170,9 +178,9 @@ class cash_ExchangeDocument extends core_Master
             return;
         }
         
-        if($folderId = Request::get('folderId')){
+        if($folderId = Request::get('folderId', 'int')){
 	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
-	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
+	        	return redirect(array('cash_Cases', 'list'), FALSE, "|Документът не може да се създаде в папката на неактивна каса");
 	        }
         }
     }
@@ -219,12 +227,17 @@ class cash_ExchangeDocument extends core_Master
 		    $cCode = currency_Currencies::getCodeById($rec->creditCurrency);
 		    $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
 		    $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    currency_CurrencyRates::checkRateAndRedirect($cRate);
 		    $rec->creditPrice = $cRate;
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		   
-		    if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
-		    	$form->setWarning('rate', $msg);
+		    $fromCode = currency_Currencies::getCodeById($rec->creditCurrency);
+		    $toCode = currency_Currencies::getCodeById($rec->debitCurrency);
+		    
+		    // Проверка на сумите
+		    if($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $fromCode, $toCode)){
+		    	$form->setError('debitQuantity', $msg);
 		    }
 		    
 		    // Каква е равностойноста на обменената сума в основната валута за периода
@@ -249,9 +262,6 @@ class cash_ExchangeDocument extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}	
     	
     	if($fields['-single']) {
 		    

@@ -83,7 +83,6 @@ class core_Html
     {
         $tpl = new ET();
 
-        $suffix = '_comboSelect';
 
         // За съвместимост с IE
         $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
@@ -96,14 +95,18 @@ class core_Html
         $attr['class'] .= ' combo';
         $attr['value'] = $value;
         $id = $attr['id'];
+        
+        $suffix = '_cs';
+        list($l, $r) = explode('[', $id);
+        $selectId = $l . $suffix . $r;
 
         if ($attr['ajaxAutoRefreshOptions']) {
-            $attr['onkeydown'] = "focusSelect(event, '{$id}{$suffix}');";
+            $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
             $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
             if($attr['onchange']) {
-                $attr['onchange'] = "if(isOptionExists('" . $id . $suffix . "', this.value)) {" . $attr['onchange'] . "} ";
+                $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . "} ";
             }
-            $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$id}{$suffix}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
+            $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
             unset($attr['ajaxAutoRefreshOptions']);
         }
 
@@ -113,12 +116,12 @@ class core_Html
         
         unset($attr['autocomplete'], $attr['type']);
 
-        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$suffix}');";
+        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
 
-        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$suffix}');})", 'JQRUN');
+        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$selectId}');})", 'JQRUN');
 
-        $attr['id'] = $attr['id'] . $suffix;
-        $name = $attr['name'] = $attr['name'] . $suffix;
+        $attr['id'] = $selectId;
+        $name = $attr['name'] = $selectId;
 
         // Долното кара да не работи селекта в firefox-mobile
         //$attr['tabindex'] = "-1";
@@ -128,6 +131,62 @@ class core_Html
         $tpl->prepend(self::createSelect($name, $options, $value, $attr));
 
         return $tpl;
+    }
+
+
+    /**
+     * Прави групиране на опциите, като за групи използва предната част, преди разделителя
+     */
+    static function groupOptions($options, $div = '»')
+    {        
+        if(count($options) > 1){
+        	$groups = $newOptions = array();
+        	
+        	// За всяка опция
+            $defaultGroup = '';
+        	foreach ($options as $index => $opt){
+                if(is_object($opt)) {
+                    if($opt->group) {
+                        $defaultGroup = trim($opt->title);
+                        continue;
+                    }
+                    $title = $opt->title;
+                } else {
+                    $title = $opt;
+                }
+         			
+                // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
+        	    list($group, $caption) = explode($div, $title);
+        			
+                if(!$caption) {
+                    $caption = $group;
+                    $group = $defaultGroup;
+                } elseif(!$group) {
+                    $group = $lastGroup;
+                }
+    
+                $groups[$lastGroup = trim($group)][$index] = trim($caption);
+        	}
+        	 //bp($groups);
+        	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
+        	if(count($groups)){
+        		
+        		foreach($groups as $group => $optArr) {
+        		    // Добавяме името като OPTGROUP
+                    if($group) {
+                        $newOptions[$group] = (object)array(
+                                    'title' => $group,
+                                    'group' => TRUE,
+                            );
+                    }
+                    $newOptions += $optArr;
+                }
+
+                $options = $newOptions;
+        	}
+        }
+
+        return $options;
     }
 
 
@@ -188,7 +247,9 @@ class core_Html
                 }
 
                 if ($attr['value'] == $selected) {
-                    $attr['selected'] = 'selected';
+                    if($selected != NULL || $attr['value'] === '' || $attr['value'] === NULL) {
+                        $attr['selected'] = 'selected';
+                    }
                 }
 
                 // Хак за добавяне на плейс-холдер
@@ -491,8 +552,18 @@ class core_Html
             $attr['style'] .= 'color:#888;';
         }
 
+        // Добавяме икона на бутона, ако има
+        if($img = $attr['ef_icon']) {
+            if (!Mode::is('screenMode', 'narrow') ) { 
+                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
+                $attr['class'] .= ' linkWithIcon';  
+            }
+            unset($attr['ef_icon']);
+        }
+
+
         // Ако нямаме JavaScript правим хипервръзка
-        if (!Mode::is('javascript', 'yes')) {
+        if ( Mode::is('javascript', 'no') ) {
             
             $attr['href'] = $url;
 
@@ -524,6 +595,7 @@ class core_Html
         
         // Ако имаме грешка - показваме я и не продължаваме
         if ($attr['error']) {
+        	$attr['error'] = tr($attr['error']);
         	$attr['onclick'] = " alert('{$attr['error']}'); return false; ";
             unset($attr['error']);
         }
@@ -531,14 +603,6 @@ class core_Html
         $attr['type'] = 'button';
         $attr['value'] = $title;
         
-        // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
-            unset($attr['ef_icon']);
-        }
 
         return self::createElement('input', $attr);
     }
@@ -703,6 +767,21 @@ class core_Html
 
             unset($attr['ef_icon']);
         }
+        
+        // Оцветяваме линка в зависимост от особеностите му
+        if(!$attr['disabled']) {
+            if($warning){
+                $attr['style'] .= 'color:#772200 !important;';
+            } elseif (strpos($url, '://')) {
+                if(!strpos($attr['class'], 'out')) {
+                    $attr['class'] .= ' out';
+                }
+            } elseif($attr['target'] == '_blank') { 
+                $attr['style'] .= 'color:#008800 !important;';
+            }
+        } else {
+            $attr['style'] .= 'color:#999 !important;';
+        }
 
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
@@ -716,7 +795,7 @@ class core_Html
 	static function createLinkRef($title, $url = FALSE, $warning = FALSE, $attr = array())
 	{
 		// Ако има зададена иконка в линка, слагаме я преди заглавието
-		if(isset($attr['ef_icon'])){
+		if(is_array($attr) && isset($attr['ef_icon'])){
 			$icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], '')));
 			$title = "{$icon} {$title}";
 			unset($attr['ef_icon']);
@@ -788,6 +867,35 @@ class core_Html
         return $layout;
     }
 
+    
+    /**
+     * Създава лейаут, по зададени блокове, като плейсхолдери
+     * 
+     * @param mixed $body                       - тяло
+     * @param title $hint                       - текст на хинта
+     * @param notice|warning|error|string $icon - име на иконката
+     * @return core_ET $element                 - шаблон с хинта
+     */
+    public static function createHint($body, $hint, $icon = 'notice')
+    {
+    	if(empty($hint)) return $body;
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
+    	
+    	$hint = strip_tags(tr($hint));
+ 
+    	$iconPath = ($icon == 'notice') ? 'img/Help-icon-small.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
+    	expect(is_string($iconPath), $iconPath);
+    	
+    	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
+    	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
+        
+        $element->append($body, 'body');
+        $element->append($hint, 'hint');
+        $element->append($iconHtml, 'icon');
+               
+    	return $element;
+    }
+    
     
     /**
      * Прави html представяне на структурата на обекта, масива или променливата

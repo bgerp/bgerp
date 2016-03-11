@@ -57,7 +57,7 @@ class type_Class  extends type_Key {
         	foreach ($this->options as $index => $opt){
         		if(!is_object($opt)){
         			
-        			// Ако в името на класа има '->' то приемаме че стринга преди знака е името на групата
+        			// Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
         			$optArr = explode('»', $opt);
         			
         			// Ако стринга е разделен на точно две части (име на група и име на клас)
@@ -65,10 +65,10 @@ class type_Class  extends type_Key {
         				
         				// Добавяме името като OPTGROUP
         				$newOptions[$optArr[0]] = (object)array(
-        						'title' => $optArr[0],
+        						'title' => trim($optArr[0]),
         						'group' => TRUE,
         				);
-        				$newOptions[$index] = $optArr[1];
+        				$newOptions[$index] = trim($optArr[1]);
         			} else {
         				
         				// Ако няма група запомняме го като такъв
@@ -165,6 +165,22 @@ class type_Class  extends type_Key {
         }
         
         return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $key
+     * 
+     * @return mixed
+     */
+    public function prepareKey($key)
+    {
+        // Позволените са латински букви, цифри и _ - \W
+        $key = preg_replace('/[^A-Z0-9\_]/i', '', $key);
+        
+        return $key;
     }
     
     

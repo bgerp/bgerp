@@ -85,7 +85,5 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
-
-        $this->setDbUnique('invoiceId, productId, packagingId');
     }
 }

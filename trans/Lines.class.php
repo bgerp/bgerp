@@ -39,9 +39,16 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing,
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_BusinessDoc';
 
+    
+    
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'ceo, trans';
+    
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
@@ -238,10 +245,10 @@ class trans_Lines extends core_Master
     	}
     	
     	$this->save($rec);
-    	$msg = ($rec->state == 'active') ? tr('Линията е отворена успешно') : tr('Линията е затворена успешно');
+    	$msg = ($rec->state == 'active') ? '|Линията е отворена успешно' : '|Линията е затворена успешно';
     	
     	
-    	return Redirect(array($this, 'single', $rec->id), FALSE, $msg);
+    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     
@@ -281,7 +288,6 @@ class trans_Lines extends core_Master
     	}
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
-    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
     
@@ -306,6 +312,7 @@ class trans_Lines extends core_Master
     
 	/**
      * В кои корици може да се вкарва документа
+     * 
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
@@ -356,27 +363,7 @@ class trans_Lines extends core_Master
     {
     	$tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-    
-    
-	/**
-     * Връща само активните транспортни линии
-     */
-    static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
-    {
-    	$options = array();
-    	$query = static::getQuery();
-    	if(strlen($where)){
-    		$query->where = $where;
-    	}
-    	$query->where("state = 'active'");
-    	
-    	while($rec = $query->fetch()){
-    		$options[$rec->id] = static::getTitleById($rec->id);
-    	}
-    	
-    	return $options;
-    }
-    
+        
     
     /**
      * Дали има свързано подотчетно лице към линията
@@ -479,7 +466,7 @@ class trans_Lines extends core_Master
         $rec->controller  = "trans_Lines";
         $rec->action      = "CreateNewLines";
         $rec->period      = $period;
-        $rec->offset 	  = mt_rand(0,60);
+        $rec->offset 	  = mt_rand(0, $period - 1);
         $rec->delay 	  = 0;
         $rec->timeLimit   = 100;
         $res .= core_Cron::addOnce($rec);

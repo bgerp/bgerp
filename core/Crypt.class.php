@@ -213,9 +213,17 @@ class core_Crypt extends core_BaseClass
         
         // Ако нямаме разделител - връщаме грешка
         if ($divPos === FALSE) {
-            $res = FALSE;
             
-            return;
+            // Установяваме стринга-разделител
+            // За стари криптирания в 32 битови ОС
+            $div = self::getDivStr($key, FALSE);
+            $divPos = strpos($res, $div);
+            
+            if ($divPos === FALSE) {
+                $res = FALSE;
+            
+                return;
+            }
         }
         
         // Резултата е равен на частта след разделителя
@@ -233,10 +241,16 @@ class core_Crypt extends core_BaseClass
     /**
      * Определя разделителя между хедър-а на кодираната част и данните
      */
-    static function getDivStr($key)
+    static function getDivStr($key, $sprint = TRUE)
     {
         $crc32 = crc32($key);
-        $div .= chr($crc32 % 256);
+        
+        if ($sprint) {
+            // Фикс - за да са еднакви в 32 и 64 битови ОС-та
+            $crc32 = sprintf("%u", $crc32);
+        }
+        
+        $div = chr($crc32 % 256);
         $crc32 = $crc32 / 256;
         $div .= chr($crc32 % 256);
         $crc32 = $crc32 / 256;
@@ -273,9 +287,13 @@ class core_Crypt extends core_BaseClass
     /**
      * Кодира променливи, масиви и обекти
      */
-    static function encodeVar($var, $code = EF_CRYPT_CODE)
+    static function encodeVar($var, $code = EF_CRYPT_CODE, $flat = 'serialize')
     {
-        $var = serialize($var);
+        if($flat == 'json') {
+            $var = json_encode($var);
+        } else {
+            $var = serialize($var);
+        }
         $var = gzcompress($var);
         $var = self::encodeStr($var, $code . 'encodeVar');
         $var = base64_encode($var);
@@ -287,7 +305,7 @@ class core_Crypt extends core_BaseClass
     /**
      * Декодира променливи, масиви и обекти
      */
-    static function decodeVar($var, $code = EF_CRYPT_CODE)
+    static function decodeVar($var, $code = EF_CRYPT_CODE, $flat = 'serialize')
     {
         $var = base64_decode($var);
         
@@ -304,7 +322,12 @@ class core_Crypt extends core_BaseClass
         if (!$var)
         return FALSE;
         
-        $var = unserialize($var);
+        if($flat == 'json') {
+            $var = json_decode($var, TRUE);
+        } else {
+            $var = unserialize($var);
+        }
+
         
         return $var;
     }

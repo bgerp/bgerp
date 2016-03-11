@@ -28,7 +28,7 @@ class trans_Vehicles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected, plg_State';
+    public $loadList = 'plg_RowTools2, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
     
     
     /**
@@ -64,7 +64,7 @@ class trans_Vehicles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,name,number,createdOn,createdBy';
+    public $listFields = 'id,name,number,createdOn,createdBy';
     
     
     /**

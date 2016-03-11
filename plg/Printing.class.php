@@ -9,7 +9,7 @@
  * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -19,9 +19,9 @@ class plg_Printing extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * Конструктор
      */
-    function plg_Printing()
+    public function __construct()
     {
         $Plugins = &cls::get('core_Plugins');
         
@@ -33,7 +33,7 @@ class plg_Printing extends core_Plugin
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Бутон за отпечатване
         $url = getCurrentUrl();
@@ -52,7 +52,7 @@ class plg_Printing extends core_Plugin
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         // Текущото URL
     	$currUrl = getCurrentUrl();
@@ -99,7 +99,7 @@ class plg_Printing extends core_Plugin
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, &$res, $act)
+    public static function on_BeforeAction($mvc, &$res, $act)
     {
         if(Request::get('Printing')) {
             Mode::set('wrapper', 'page_Print');
@@ -111,7 +111,7 @@ class plg_Printing extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderWrapping($mvc, &$res, $tpl)
+    public static function on_BeforeRenderWrapping($mvc, &$res, $tpl)
     {
         if(Request::get('Printing')) {
             
@@ -129,7 +129,7 @@ class plg_Printing extends core_Plugin
     /**
      * Предотвратява рендирането на тулбарове
      */
-    function on_BeforeRenderHtml($mvc, &$res)
+    public static function on_BeforeRenderHtml($mvc, &$res)
     {
         if(Request::get('Printing')) {
             
@@ -143,7 +143,7 @@ class plg_Printing extends core_Plugin
     /**
      * Добавя ваички командни параметри от GET заявката
      */
-    function addCmdParams(&$url)
+    static function addCmdParams(&$url)
     {
         $cUrl = getCurrentUrl();
 
@@ -155,5 +155,4 @@ class plg_Printing extends core_Plugin
             }
         }
     }
-
 }

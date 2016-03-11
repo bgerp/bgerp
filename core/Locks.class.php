@@ -218,7 +218,8 @@ class core_Locks extends core_Manager
         while($maxTrays > 0) {
             
             sleep(1);
-            
+            Debug::log('Sleep {$rec->delay} sec. in' . __CLASS__);
+
             if(static::get($objectId, $maxDuration, 0)) {
                 
                 return TRUE;

@@ -17,6 +17,17 @@
  */
 class doc_DocumentPlg extends core_Plugin
 {
+    
+    
+    /**
+     * Плъгини, които да се закачат
+     */
+    public $loadInMvc = 'doc_LikesPlg';
+    
+    
+    /**
+     * Състояния
+     */
     static $stateArr = array(
         'draft'    => 'Чернова',
         'pending'  => 'Чакащо',
@@ -87,14 +98,18 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Print'] = 'doclog_Documents';
             $mvc->details['Changed'] = 'doclog_Documents';
             $mvc->details['Used'] = 'doclog_Documents';
+            $mvc->details['History'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
         
-        // Дали мжое да се редактират активирани документи
+        // Дали можое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        setIfNot($mvc->canExportdoc, 'powerUser');
+        
+        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -126,6 +141,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
+        $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
     }
     
     
@@ -147,6 +163,8 @@ class doc_DocumentPlg extends core_Plugin
                 )
             );
         }
+        
+        $data->tabTopParam = "TabTop{$data->rec->containerId}";
     }
     
     
@@ -161,7 +179,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                'id=btnDelete,class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=Оттегляне на документа',  'ef_icon = img/16/reject.png');
+                "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr("Оттегляне на документа"),  'ef_icon = img/16/reject.png');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -171,7 +189,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
+                "id=btnRestore{$data->rec->containerId},warning=Наистина ли желаете да възстановите документа?,order=32,title=" . tr("Възстановяване на документа"), 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -189,7 +207,7 @@ class doc_DocumentPlg extends core_Plugin
                 			'originId' => $data->rec->containerId,
                 			'ret_url'=>$retUrl
                 	),
-                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
                 }
             }
         } else {
@@ -220,7 +238,7 @@ class doc_DocumentPlg extends core_Plugin
                     			'clone' => 'clone',
                     			'ret_url'=>$retUrl
                     	),
-                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');
+                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=' . tr('Клониране на документа'));
                     } 
                 }
             }
@@ -231,6 +249,9 @@ class doc_DocumentPlg extends core_Plugin
         	// По подразбиране бутона всички се показва на втория ред на тулбара
         	setIfNot($mvc->allBtnToolbarRow, 2);
         	
+        	$title = $mvc->getTitle();
+        	$title = tr($title);
+        	$title = mb_strtolower($title);
         	
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
@@ -238,23 +259,23 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title);    
 
         }
         
-        // TODO ще е по друг начин
-        if ($mvc->haveRightFor('single', $data->rec->id) || doc_Threads::haveRightFor('single', $data->rec->threadId)) {
-            $threadRec = doc_Threads::fetch($data->rec->threadId);
+        if ($mvc->haveRightFor('single', $data->rec) && !core_Users::isContractor()) {
+            $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
             
-            // Първия документ в нишката да не може да се скрива ръчно
-            if ($data->rec->containerId != $threadRec->firstContainerId) {
-                $data->toolbar->addBtn('Скриване', array(
-                    			'doc_Containers',
-                    			'hideDocumentInThread',
-                                $data->rec->containerId
-                    	),
-                    			'order=39, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
+            if ($historyCnt) {
+                $data->toolbar->addBtn("История|* ({$historyCnt})", doclog_Documents::getLinkToSingle($data->rec->containerId, doclog_Documents::ACTION_HISTORY),
+                "id=btnHistory{$data->rec->containerId}, row=2, order=19.5,title=" . tr('История на документа'),  'ef_icon = img/16/book_open.png');
             }
+        }
+        
+        if ($mvc->haveRightFor('exportdoc', $data->rec)) {
+            Request::setProtected(array('classId', 'docId'));
+            $data->toolbar->addBtn("Сваляне", array('bgerp_E', 'export', 'classId' => $mvc->getClassId(), 'docId' => $data->rec->id),
+                            "id=btnDownloadDoc{$data->rec->containerId}, row=2, order=19.6,title=" . tr('Сваляне на документа'),  'ef_icon = img/16/down16.png');
         }
     }
     
@@ -270,11 +291,18 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             if(isset($data->rejQuery)) {
                 $data->rejectedCnt = $data->rejQuery->count();
-                
+
                 if($data->rejectedCnt) {
+                    $data->rejQuery->orderBy('#modifiedOn', 'DESC');
+                    $data->rejQuery->limit(1);
+                    $lastRec = $data->rejQuery->fetch();
+                    $color = dt::getColorByTime($lastRec->modifiedOn);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
-                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', 'ef_icon = img/16/bin_closed.png' );
+                    if(isset($data->pager->pageVar)) {
+                        unset($curUrl[$data->pager->pageVar]);
+                    }
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, "id=binBtn,class=btn-bin fright,order=50,row=2", "ef_icon = img/16/bin_closed.png,style=color:#{$color};" );
                 }
             }
         }
@@ -304,8 +332,6 @@ class doc_DocumentPlg extends core_Plugin
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
-        //$fields = arr::make($fields);
-        
         if($fields['-single']) {
             if(!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
@@ -319,6 +345,28 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
                 $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
+            
+            if (Mode::is('screenMode', 'narrow')) {
+                unset($row->state);
+            }
+        }
+        
+        if($fields['-list']){
+            if($rec->folderId) {
+        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            }
+        }
+        
+        if($invoker->hasPlugin('plg_RowTools2')){
+        	if(doc_Folders::haveRightFor('single', $rec->folderId)) {
+        		core_RowToolbar::createIfNotExists($row->_rowTools);
+        		
+        		$folderRec = doc_Folders::fetch($rec->folderId, 'title,openThreadsCnt');
+        		$folderTitle = doc_Folders::getVerbal($folderRec, 'title');
+        		$icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
+        		
+        		$row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
+        	}
         }
     }
     
@@ -357,7 +405,6 @@ class doc_DocumentPlg extends core_Plugin
             if(!isset($rec->folderId) || !isset($rec->threadId)) {
                 $mvc->route($rec);
             }
-            
             // ... този документ няма ключ към контейнер, тогава 
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
@@ -392,14 +439,17 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
+        $fields = arr::make($fields, TRUE);
         try {
             
             // Опитваме се да запишем файловете от документа в модела
             doc_Files::saveFile($mvc, $rec);    
         } catch (core_exception_Expect $e) {
             
+            reportException($e);
+            
             // Ако възникне грешка при записването
-            doc_Files::log("Грешка при записване на файла с id={$id}");
+            $mvc->logErr("Грешка при записване на файла", $id);
         }
         
         // Изтрива от кеша html представянето на документа
@@ -424,23 +474,27 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = FALSE;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
-        if($rec->state == 'active' || $rec->state == 'rejected'){
-        	$usedDocuments = $mvc->getUsedDocs($rec->id);
-	    	if(count($usedDocuments)){
-	    		$Log = cls::get('doclog_Documents');
-	    		foreach($usedDocuments as $used){
-	    			if($rec->state == 'rejected'){
-	    				$Log::cancelUsed($used->class, $used->id, $mvc, $rec->id);
-	    			} else {
-	    				$Log::used($used->class, $used->id, $mvc, $rec->id);
-	    			}
-	    		}
-	    	}
+        if($rec->state == 'active' || $rec->state == 'rejected' && !Mode::is('MassImporting')){
+            
+            $usedDocuments = $mvc->getUsedDocs($rec->id);
+            foreach((array)$usedDocuments as $usedCid){
+                $uDoc = doc_Containers::getDocument($usedCid);
+                
+                if($rec->state == 'rejected'){
+                    doclog_Used::remove($containerId, $usedCid);
+                    $msg = 'Премахнато използване';
+                } else {
+                    doclog_Used::add($containerId, $usedCid);
+                    $msg = 'Използване на документа';
+                }
+                
+                $uDoc->instance->logRead($msg, $uDoc->that);
+            }
         }
     }
     
@@ -582,8 +636,8 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     // Ако в момента не се скрива или показва - показва документа
-                    if (!Request::get('showOrHide')) {
-                        doc_Containers::showOrHideDocument($rec->containerId, FALSE, TRUE);
+                    if (!Request::get('showOrHide') && !Request::get('afterReject')) {
+                        doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -605,13 +659,12 @@ class doc_DocumentPlg extends core_Plugin
                         // Добавяме нова котва към детайлите на таба
                         $url['#'] = 'detailTabs';
                     }
-                    
+                   
                     // Ако има подаден горен таб
-                    if ($tab1 = Request::get('TabTop')) {
+                    if ($tab1 = Request::get("TabTop{$rec->containerId}")) {
                     	
                     	// Добавяме таба
-                    	$url['TabTop'] = $tab1;
-                    	$url['#'] = 'detailTabsTop';
+                    	$url["TabTop{$rec->containerId}"] = $tab1;
                     }
                    
                     // Ако има страница на документа
@@ -624,6 +677,7 @@ class doc_DocumentPlg extends core_Plugin
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
                     }
+                    
                     $res = new Redirect($url);
                     
                     return FALSE;
@@ -657,7 +711,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-            
+           
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
                 // Оттегляме документа + нишката, ако се налага
                 if ($mvc->reject($rec)) {
@@ -667,16 +721,30 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         $bSuccess = doc_Threads::rejectThread($rec->threadId);
                     }
+                    doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
+                    $mvc->logInAct('Оттегляне', $rec);
                 }
             }
-                
+            
+            // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+            doc_Threads::save($threadRec, 'shared');
+           
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-                $res = array($mvc, 'single', $id);
+            	if($mvc->haveRightFor('single', $rec)){
+            		$res = array($mvc, 'single', $id);
+            	} else {
+            		$res = array('bgerp_Portal', 'show');
+            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            	}
             }
             
+            $res['afterReject'] = 1;
+            
             $res = new Redirect($res); //'OK';
-                
+
             return FALSE;
         }
         
@@ -694,8 +762,10 @@ class doc_DocumentPlg extends core_Plugin
                     if ($tRec->firstContainerId == $rec->containerId) {
                         doc_Threads::restoreThread($rec->threadId);
                     }
+                    
+                    $mvc->logInAct('Възстановяване', $rec);
                 }
-            }             
+            }
             
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
@@ -731,6 +801,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = 'rejected';
         
         $res = static::updateDocumentState($mvc, $rec);
+          doc_Threads::setModification($rec->threadId);
     }
     
     
@@ -755,6 +826,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec->state = $rec->brState;
         
         $res = static::updateDocumentState($mvc, $rec);
+        doc_Threads::setModification($rec->threadId);
     }
 
 
@@ -786,8 +858,6 @@ class doc_DocumentPlg extends core_Plugin
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
-        
-        $mvc->log($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
@@ -857,16 +927,21 @@ class doc_DocumentPlg extends core_Plugin
             $row->title = "#{$handle}";
         }
 
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
-            $url =  array();
-        }
-        
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
         $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
         
         if ($rec->state == 'rejected') {
-            $attr['class'] .= ' state-rejected';
+        	$attr['class'] .= ' state-rejected';
+        }
+        
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
+            $url =  array();
+        } else {
+        	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+        		$url =  array();
+        		unset($attr['class'], $attr['style']);
+        	}
         }
 
         $link = ht::createLink("{$row->title}", $url, NULL, $attr);
@@ -982,8 +1057,8 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId && $rec->folderId) {
-        	expect(doc_Folders::haveRightToFolder($rec->folderId));
+        if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
+        	error('403 Недостъпен ресурс');
         }
         
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
@@ -1065,6 +1140,26 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        if ($rec->originId) {
+            
+            $cid = $rec->originId;
+        } elseif ($rec->threadId) {
+            
+            // Ако добавяме коментар в нишката
+            $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+        }
+        
+        if (!$data->form->rec->id) {
+            // Споделените потребители по подразбиране
+            $defaultShared = $mvc->getDefaultShared($rec, $cid);
+            
+            if ($defaultShared) {
+                unset($defaultShared[-1]);
+                unset($defaultShared[0]);
+                $data->form->setDefault('sharedUsers', $defaultShared);
+            }
+        }
     }
 
     
@@ -1090,11 +1185,14 @@ class doc_DocumentPlg extends core_Plugin
 
     
     /**
-     *
+     * След подготовката на заглавието на формата
      */
-    static function on_AfterInputEditForm($mvc, $form)
-    {   
-        //Добавяме текст по подразбиране за титлата на формата
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	//Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle));
@@ -1103,7 +1201,7 @@ class doc_DocumentPlg extends core_Plugin
         		$title .= ' |в|* ' . $t;
         	}
         }
-        
+     
         $rec = $form->rec;
         
         $in = ' |в|* ';
@@ -1125,23 +1223,85 @@ class doc_DocumentPlg extends core_Plugin
         
         if($rec->threadId) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
+            setIfNot($data->singleTitle, $mvc->singleTitle);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
                 list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title = tr(mb_strtolower($mvc->singleTitle)) . $in . $t;
+                $title = tr(mb_strtolower($data->singleTitle)) . $in . $t;
             }
         }
        
         $form->title .= $title;
+    }
+    
+    
+    /**
+     *
+     */
+    static function on_AfterInputEditForm($mvc, $form)
+    {  
+        $rec = &$form->rec;
         
-    	if($form->isSubmitted()){
+        // Ако има полета за редуциране на текста
+        if ($form->isSubmitted() || $form->gotErrors())  {
+            $fieldsForReduce = $mvc->selectFields("#reduceText");
+            
+            if ($fieldsForReduce) {
+                
+                foreach ($fieldsForReduce as $name => $type) {
+                    $form->rec->{$name} = self::reduceString($form->rec->{$name});
+                }
+            }
+        }
+    	if ($form->isSubmitted()) {
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){
 		        unset($rec->threadId);
 		    }
         }
-     }
+    }
     
-     
+    
+    /**
+     * Замества повтарящите се стрингове с точки
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    protected static function reduceString($str)
+    {
+        $reduceArr = type_Set::toArray(doc_Setup::get('STRING_FOR_REDUCE'));
+        
+        foreach ($reduceArr as $rStr) {
+            
+            if (!($rStr = trim($rStr))) continue;
+            
+            $rStr = preg_quote($rStr, '/');
+            
+            $pattern .= ($pattern) ? '|' . $rStr : $rStr;
+        }
+        
+        if ($pattern) {
+            $str = preg_replace_callback("/(?'first'({$pattern})\:\s*)(?'others'(\k'first')+)(?'last'(\k'first'))/iu", array(get_called_class(), 'reduceMatches'), $str);
+        }
+        
+        return $str;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param array $matches
+     */
+    protected static function reduceMatches($matches)
+    {
+        $second = str_ireplace($matches['first'], '.', $matches['others']);
+        
+        return trim($matches['first']) . ' ' . $second . ' ' . $matches['last'];
+    }
+    
+    
     /**
      * Рендиране на документи за вътрешно представяне
      */
@@ -1152,6 +1312,8 @@ class doc_DocumentPlg extends core_Plugin
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
         Mode::push('text', $mode);
+        
+        Mode::push('inlineDocument', TRUE);
         
         if (!Mode::is('text', 'html')) {
             
@@ -1184,6 +1346,8 @@ class doc_DocumentPlg extends core_Plugin
                 core_Users::exitSudo();
             }
             
+            reportException($e);
+            
             expect(FALSE, $e);
         }
         
@@ -1193,6 +1357,8 @@ class doc_DocumentPlg extends core_Plugin
             // Възстановяване на текущия потребител
             core_Users::exitSudo();
         }
+        
+        Mode::pop('inlineDocument');
         
         // Връщаме старата стойност на 'text'
         Mode::pop('text');
@@ -1265,7 +1431,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      * Забранява изтриването на вече използвани сметки
      *
-     * @param core_Mvc $mvc
+     * @param core_Manager $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass|NULL $rec
@@ -1283,6 +1449,8 @@ class doc_DocumentPlg extends core_Plugin
                 if($mvc->canAddToThread($rec->threadId) === FALSE){
     	            
                     // Никой не може да добавя
+    				$requiredRoles = 'no_one';
+    			} elseif(!doc_Threads::haveRightFor('single', $rec->threadId)){
     				$requiredRoles = 'no_one';
     			} else{
     				
@@ -1346,7 +1514,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
                    
                 	// Ако е инсталиран пакета 'colab'
-                	if(core_Packs::isInstalled('colab')){
+                	if(core_Packs::isInstalled('colab') && $oRec->threadId){
                 		
                 		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
         				// е споделена с партньора)
@@ -1367,6 +1535,7 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
+                
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
@@ -1436,6 +1605,13 @@ class doc_DocumentPlg extends core_Plugin
             if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Проверка, дали има права за експорт на документа
+        if ($action == 'exportdoc') {
+            if ($rec->state == 'rejected' || $rec->state == 'draft' || !$mvc->haveRightFor('single', $rec) || !$mvc->getExportFormats()) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2176,8 +2352,18 @@ class doc_DocumentPlg extends core_Plugin
     	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
     	if(count($docs)){
 	    	foreach ($docs as $doc){
-	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+	    	    if (isset($doc['rec']->containerId)) {
+	    	        $res[$doc['rec']->containerId] = $doc['rec']->containerId;
+	    	    }
 	    	}
+    	}
+    	
+        // Ако ориджина е от друг тред, добавяме и него
+    	if(isset($rec->originId)){
+    	    $cRec = doc_Containers::fetch($rec->originId);
+    	    if($cRec->threadId != $rec->threadId) {
+    	        $res[$rec->originId] = $rec->originId;
+    	    }
     	}
     }
     
@@ -2195,15 +2381,17 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Дефолт метод филтриращ опциите от корици на папка в които
-     * може да се постави даден документ
-     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     * Дефолт метод филтриращ заявка към doc_Folders
+     * Добавя условия в заявката, така, че да останат само тези папки, 
+     * в които може да бъде добавен документ от типа на $mvc
+     * 
+     * @param core_Mvc   $mvc     Мениджър на документи
+     * @param void       $res     Резултат - не се използва
+     * @param core_Query $query   Заявка към doc_Folders
      */
-    function on_AfterGetCoverOptions($mvc, &$res, $coverClass)
+    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
     {
-    	if(empty($res)){
-    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected'");
-    	}
+    	$query = doc_Folders::restrictAccess($query);
     }
     
     
@@ -2256,45 +2444,6 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
-     */
-    function on_AfterSetupMVC($mvc, &$res)
-    {
-    	$plugins = $mvc->getPlugins();
-    	
-    	// Ако мениджъра има закачен 'plg_Search'
-    	if(isset($plugins['plg_Search'])){
-    		$i = 0;
-    		$query = $mvc->getQuery();
-    		$query->show('searchKeywords');
-    		
-    		// Извличаме всички записи
-    		while($rec = $query->fetch()){
-    			
-    			// Хендлъра на документа
-    			$handle = $mvc->getHandle($rec->id);
-    			$handle = plg_Search::normalizeText($handle);
-    			
-    			// Ако хендлъра не е включен към ключовите думи, се добавят
-	    		if (strpos($rec->searchKeywords, $handle) === false) {
-	    			$rec->searchKeywords .= " " . $handle;
-	    			try{
-	    				$mvc->save_($rec, 'searchKeywords');
-	    				$i++;
-	    			}catch(core_exception_Expect $e) {
-            			continue;
-            		}
-				}
-    		}
-    		
-	    	if($i) {
-	            $res .= "<li style='color:green;'>Добавени са хендлърите към ключовите думи за {$i} записа.</li>";
-	        }
-    	}
-    }
-    
-    
-    /**
      * Добавя в условието да се извличат всички документи, които са начало на нишка,
      * не са отхвърлени и са от съответната папка
      * Извиква се при извикване на GetSameFirstDocumentsQuery
@@ -2322,7 +2471,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add')
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields')
             || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';
@@ -2354,5 +2503,536 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $id = $mvc->save($rec);
+    }
+    
+    
+    /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        // Ако не е оставено време за кеширане - не генерираме ключ
+        if(!doc_Setup::get('CACHE_LIFETIME') > 0) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа има отворена история - не се кешира
+        if($cRec->id == Request::get('Cid')) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако модела не допуска кеширане - ключ не се генерира
+        if($mvc->preventCache) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
+        if($cRec->state == 'draft' && dt::addSecs(10*60, $cRec->modifiedOn) > dt::now()) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Потребител
+        $userId = core_Users::getCurrent();
+        
+        // Последно модифициране
+        $modifiedOn = $cRec->modifiedOn;
+        
+        // Контейнер
+        $containerId = $cRec->id;
+        
+        // Положение на пейджърите
+        $pageVar = core_Pager::getPageVar($mvc->className, $id);
+        $pages =  serialize(Request::getVarsStartingWith($pageVar));
+        
+        // Режим на екрана
+        $screenMode = Mode::get('screenMode');
+
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+        
+        // Отворен таб на историята
+        $tab = Request::get('Tab');
+
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab;
+        
+        // Добавка за да работи сортирането на детайли
+        $dHnd = $mvc->getHandle($id);
+        if(Request::get('docId') == $dHnd) {
+           $cacheStr .= Request::get('Sort');
+        }
+
+        if ($res) {
+            $cacheStr .= $res;
+        }
+        
+        $res = md5($cacheStr);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param string|NULL $res
+     * @param integer $id
+     * @param boolean|NULL $escape
+     */
+    public function on_BeforeGetTitleForId($mvc, &$res, $id, $escape=TRUE)
+    {
+        if (!$id) return ;
+        
+        try {
+            $row = $mvc->getDocumentRow($id);
+            
+            $res = str::limitLen($row->title, 35);
+            
+            return FALSE;
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
+    }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	if(!$res){
+    		if(is_object($rec)){
+    			$rec->modifiedOn = dt::now();
+    			$mvc->save_($rec, 'modifiedOn');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява modified стойностите
+     * 
+     * @param core_Master $mvc
+     * @param boolean|NULL $res
+     * @param integer $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec) {
+            $mvc->save($rec, 'modifiedOn, modifiedBy');
+        }
+    }
+    
+    
+    /**
+     * Интерфейсен метод, който връща антетката на документите
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = getTplFromFile('/doc/tpl/LetterHeadTpl.shtml');
+        
+        $headerRes = $mvc->getFieldForLetterHead($rec, $row);
+        
+        $hideArr = array();
+        
+        // Ако няма избрана версия, да се скрива антетката във външната част
+        $hideArr = $mvc->getHideArrForLetterHead($rec, $row);
+        
+        $tableRows = $mvc->prepareHeaderLines($headerRes, $hideArr);
+        
+        $res->replace($tableRows, 'TableRow');
+        
+        $res->placeObject($row);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetHideArrForLetterHead($mvc, &$res, $rec, $row)
+    {
+        $res = arr::make($res);
+        
+        // Ако няма избрана версия, да не се показва във вътрешната част
+        if (!$row->FirstSelectedVersion) {
+            $res['internal']['versionAndDate'] = TRUE;
+            $res['internal']['date'] = TRUE;
+            $res['internal']['version'] = TRUE;
+        }
+        
+        // Ако има само една версия или няма версии, да не се показват версиите във външната част
+        if (!(isset($row->FirstSelectedVersion)) || $row->LastVersion == '0.1') {
+            $res['external']['versionAndDate'] = TRUE;
+            $res['external']['date'] = TRUE;
+            $res['external']['version'] = TRUE;
+            
+        }
+        
+        $res['internal']['ident'] = TRUE;
+        $res['internal']['createdBy'] = TRUE;
+        $res['internal']['createdOn'] = TRUE;
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        if (!$mvc->showLetterHead) return ;
+        
+        $resArr = arr::make($resArr);
+        $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
+        $title = tr($title);
+        $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
+        
+        // Полета, които ще се показват
+        $resArr += change_Plugin::getDateAndVersionRow();
+        
+        $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
+        $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+    }
+    
+    
+    /**
+     * Получава масив със стойности, които да ги показва в таблица.
+     * В зависимост от режима, определя как да са подредени и връща редовете и колоните на таблицата
+     * 
+     * @param core_Master $mvc
+     * @param NULL|core_ET $res
+     * @param array $headerArr - двумерен масив с ключ името на полето
+     * и стойност 'name' - име на полето и 'val' - стойност
+     * @param array $hideInInternal - кои полета да се скриват, при вътрешно показване
+     * Отговаря на ключа на $headerArr
+     */
+    public static function on_AfterPrepareHeaderLines($mvc, &$res, $headerArr, $hideArr = array())
+    {
+        if (!$headerArr) return ;
+        
+        // Когато режима не се показва за външно сервиране, не се принтира и не се генерира PDF
+        $isInternal = (boolean) !Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf');
+        
+        $isNarrow = Mode::is('screenMode', 'narrow') && !Mode::is('printing');
+        
+        $showHeaderArr = array();
+        
+        // Добавяме полетата, които ще се показват в съответния режим
+        foreach ((array)$headerArr as $key => $value) {
+            if ($isInternal && (($hideArr['internal'][$key]) || $hideArr['internal']['*'])) continue;
+            
+            if (!$isInternal && (($hideArr['external'][$key]) || $hideArr['external']['*'])) continue;
+            
+            $showHeaderArr[$key] = $value;
+        }
+        
+        if ($isNarrow) {
+            $res = new ET('');
+        } else {
+            
+            $limitForSecondRow = $mvc->headerLinesLimit ? $mvc->headerLinesLimit : 5;
+            $haveSecondRow = FALSE;
+            
+            // Ако бройката е под ограничението, няма да има втори ред
+            $noSecondRow = FALSE;
+            if (count($showHeaderArr) < $limitForSecondRow) {
+                $noSecondRow = TRUE;
+            }
+            
+            // Определяме, кои полета ще са на втори ред или дали ще има такива
+            $secondRowArr = array();
+            $cnt = 0;
+            foreach ($showHeaderArr as $key => &$hArr) {
+                
+                if ($noSecondRow) {
+                    unset($hArr['row']);
+                    continue;
+                }
+                
+                if ($hArr['row'] != 2) {
+                    // Ако не е зададено да е втори ред - добавяме, ако сме надвишили лимита
+                    $cnt++;
+                    if ($cnt <= $limitForSecondRow) continue;
+                    
+                    $hArr['row'] = 2;
+                }
+                
+                $haveSecondRow = TRUE;
+                
+                if ($hArr['row'] == 2) {
+                    $secondRowArr[$key] = $hArr;
+                }
+            }
+            
+            // Ако имаме само един кандидат за втория ред, да не се показва сам
+            if ((count($secondRowArr) == 1)) {
+                $key = key($secondRowArr);
+                unset($showHeaderArr[$key]['row']);
+                $haveSecondRow = FALSE;
+            }
+            
+            $first = '_FIRST_TR';
+            $second = '_SECOND_TR';
+            $res = new ET("<tr>[#{$first}#]</tr><tr>[#{$second}#]</tr>");
+            
+            if ($haveSecondRow) {
+                $firstSecondRow = '_FIRST_TR_SECOND_ROW';
+                $secondSecondRow = '_SECOND_TR_SECOND_ROW';
+                
+                $res->append(new ET("<tr>[#{$firstSecondRow}#]</tr><tr>[#{$secondSecondRow}#]</tr>"));
+            }
+        }
+        
+        $haveVal = FALSE;
+        
+        $collspan = 0;
+        $firstRowCnt = 0;
+        $secondRowCnt = count($secondRowArr);
+        $showCnt = count($showHeaderArr);
+        
+        if (!$isNarrow && $haveSecondRow) {
+            $firstRowCnt = $showCnt - $secondRowCnt;
+            $collspan = $firstRowCnt - $secondRowCnt;
+        }
+        
+        $row1Cnt = 0;
+        $row2Cnt = 0;
+        $i = 0;
+        $addedColspan = FALSE;
+        foreach ((array)$showHeaderArr as $key => $value) {
+            
+            $colspanPlace = '_colspan_' . $i++;
+            
+            $haveVal = TRUE;
+            
+            $colon = $isNarrow ? ':' : '';
+            
+            $val = new ET("<td class='antetkaCell' [#{$colspanPlace}#]><b>{$value['val']}</b></td>");
+            
+            if ($isNarrow) {
+                $name = new ET("<td class='aright nowrap' style='width: 1%;'>{$value['name']}{$colon}</td>");
+                $res->append("<tr>");
+                $res->append($name);
+                $res->append($val);
+                $res->append("</tr>");
+            } else {
+                $name = new ET("<td class='aleft' style='border-bottom: 1px solid #ddd; [#_styleTop_#]' [#{$colspanPlace}#]>{$value['name']}{$colon}</td>");
+                
+                if (!$addedColspan) {
+                    if ($value['row']) {
+                        $row2Cnt++;
+                    } else {
+                        $row1Cnt++;
+                    }
+                }
+                
+                $collspanStr = '';
+                
+                if ($collspan > 0) {
+                    // Последният елемент на втората таблица ще има
+                    if (($row2Cnt == $secondRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . ($collspan + 1);
+                        $addedColspan = TRUE;
+                    }
+                } elseif ($collspan < 0) {
+                    // Последния елемент на първата таблица ще има
+                    if (($row1Cnt == $firstRowCnt) && (!$addedColspan)) {
+                        $collspanStr = 'colspan=' . (($collspan * -1) + 1);
+                        $addedColspan = TRUE;
+                    }
+                }
+                
+                $name->replace($collspanStr, $colspanPlace);
+                $val->replace($collspanStr, $colspanPlace);
+                
+                if ($haveSecondRow && $value['row'] == 2) {
+                    $name->replace('border-top: 5px solid #ddd;', '_styleTop_');
+                    $res->append($name, $firstSecondRow);
+                    $res->append($val, $secondSecondRow);
+                } else {
+                    $res->append($name, $first);
+                    $res->append($val, $second);
+                }
+            }
+        }
+        
+        if (!$haveVal) {
+            $res = NULL;
+        }
+    }
+    
+    
+    /**
+     * Връща споделените потребители по подразбиране.
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer $cid
+     */
+    function on_AfterGetDefaultShared($mvc, &$res, $rec, $originId = NULL)
+    {
+        $res = arr::make($res, TRUE);
+        
+        if (!$originId) return ;
+        
+        if (!$mvc->autoShareOriginCreator) return ;
+        
+        $document = doc_Containers::getDocument($originId);
+        $dRec = $document->fetch();
+        
+        $createdBy = NULL;
+        
+        if ($dRec->createdBy > 0) {
+            $createdBy = $dRec->createdBy;
+        } elseif ($dRec->modifiedBy > 0) {
+            $createdBy = $dRec->modifiedBy;
+        }
+        
+        if (isset($createdBy)) {
+            if ($createdBy != core_Users::getCurrent()) {
+                $res[$createdBy] = $createdBy;
+            }
+        }
+    }
+    
+    
+    /**
+     * Намираме потребители, които да се нотифицират допълнително за документа
+     * Извън споделени/абонирани в нишката
+     * 
+     * @param core_Manager $mvc
+     * @param NULL|array $res
+     * @param stdObject $rec
+     */
+    function on_AfterGetUsersArrForNotifyInDoc($mvc, &$res, $rec)
+    {
+        $res = arr::make($res);
+    }
+    
+    
+    /**
+     * Поддържа точна информацията за записите в детайла
+     * 
+     * @param core_Manager $mvc
+     * @param integer $id
+     * @param core_Manager $detailMvc
+     */
+    static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+        // Обновява modified полетата
+        $mvc->touchRec($id);
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @param core_Manager $mvc
+     * @param boolean $res
+     * @param object $rec
+     * 
+     * @see change_Plugin
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Чернова и затворени документи не могат да се променят
+        if (!$mvc->haveRightFor('single', $rec->id)) {
+            
+            $res = FALSE;
+        } 
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * 
+     * @param array $res
+     */
+    public static function on_AfterGetExportFormats($mvc, &$res)
+    {
+        $res = arr::make($res);
+
+        $res['pdf'] = 'PDF формат';
+        $res['html'] = 'HTML формат';
+    }
+    
+    
+    /**
+     * Връща хеш стойността за документа
+     * Дефолтна реализация на интерфейсен метод
+     * 
+     * @see doc_DocumentIntf
+     * 
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param integer $id
+     */
+    function on_AfterGetDocContentHash($mvc, &$res, $id)
+    {
+        static $hashArr = array();
+        
+        if (!$id) return ;
+        
+        if (!isset($hashArr[$id])) {
+            $rec = $mvc->fetchRec($id);
+            
+            $hashArr[$id] = md5($res . '|' . $rec->title . '|' . $res->subject . '|' . $rec->body . '|' . $rec->textPart);
+        }
+        
+        $res = $hashArr[$id];
+    }
+
+
+    /**
+     * Преди рендиране на сингъла
+     */
+    public static function on_BeforeRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    
+    		// Оставяме състоянието да се показва само ако не е оттеглено
+    		if($data->rec->state != 'rejected'){
+    			unset($data->row->state);
+    		}
+    	}
     }
 }

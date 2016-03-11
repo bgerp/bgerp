@@ -81,6 +81,8 @@ class abbyyocr_Setup extends core_ProtoSetup
         // Вземаме конфига
     	$conf = core_Packs::getConfig('fileman');
     	
+    	$data = array();
+    	
     	// Ако текущия клас е избран по подразбиране
     	if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter')) {
     	    
@@ -100,7 +102,7 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Проверява дали програмата е инсталирана в сървъра
      * 
-     * @return boolean
+     * @return NULL|string
      */
     function checkConfig()
     {

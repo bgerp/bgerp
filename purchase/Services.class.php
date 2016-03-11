@@ -36,9 +36,8 @@ class purchase_Services extends deals_ServiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
-                    plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,
-                    plg_LastUsedKeys, plg_Search';
+                    acc_plg_DocumentSummary,
+					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search';
 
     
     /**
@@ -175,7 +174,13 @@ class purchase_Services extends deals_ServiceMaster
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги с цени', 
     					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-    	
+    	$tplArr[] = array('name' => 'Acceptance protocol',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Acceptance protocol with prices',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	 
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     

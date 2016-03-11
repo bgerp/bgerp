@@ -132,6 +132,10 @@ class core_Packs extends core_Manager
         
         $res = $this->setupPack($pack, 0, TRUE, TRUE, $haveRoleDebug);
         
+        $pack = strtolower($pack);
+        $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
+        $this->logWrite('Инсталиране на пакета', $rec->id);
+        
         if ($haveRoleDebug) {
             
             return $this->renderWrapping($res);
@@ -228,6 +232,10 @@ class core_Packs extends core_Manager
         if (!$retUrl) {
             $retUrl = array($this);
         }
+        
+        $pack = strtolower($pack);
+        $rec = $this->fetch(array("LOWER(#name) = '[#1#]'", $pack));
+        $this->logWrite('Деинсталиране на пакета', $rec->id);
         
         return new Redirect($retUrl, $res);
     }
@@ -483,7 +491,7 @@ class core_Packs extends core_Manager
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Свалане на най-новия код и инициализиране на системата, class=system-update-btn');
+        $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
     }
     
     
@@ -600,15 +608,13 @@ class core_Packs extends core_Manager
             if ($conf->getConstCnt()) {
         
                 $cls = $rec->name . "_Setup";
-                $warn = '';
+                $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
                 if (cls::load($cls, TRUE)) {
                     $setup = cls::get($cls);
-                    if(method_exists($setup, 'checkConfig') && $setup->checkConfig()) {
-                        $warn = "<span  style='color:yellow; background-color:red; padding-left:3px; padding-right:3px; margin-right:5px;'>!</span>";
+                    if(method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+                        $row->config = ht::createHint($row->config, $errMsg, 'error');
                     }
                 } 
-    
-                $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
             }
         }
         
@@ -658,6 +664,8 @@ class core_Packs extends core_Manager
      */
     function act_Setup()
     {
+        $this->logWrite('Сетъп на системата');
+        
         if (isDebug()) {
             return $this->firstSetup(array('Index'));
         }
@@ -745,7 +753,7 @@ class core_Packs extends core_Manager
                 return "<h4>Невъзможност да се инсталира <span class=\"debug-error\">{$pack}</span>. " .
             		"Липсва <span class=\"debug-error\">Setup</span> клас.</h4>";
             } else {
-                return "<span class='debug-error'>Грешка при инсталиране на пеката '{$pack}'.</span>";
+                return "<span class='debug-error'>Грешка при инсталиране на пакета '{$pack}'.</span>";
             }
         }
         
@@ -844,7 +852,9 @@ class core_Packs extends core_Manager
         }
         
         if (method_exists($setup, 'checkConfig')) {
-            $res .= $setup->checkConfig();
+            if ($checkRes = $setup->checkConfig()) {
+                $res .= "<li style='color: red;'>" . $checkRes . '</li>';
+            }
         }
         
         $res .= "</ul>";
@@ -879,7 +889,10 @@ class core_Packs extends core_Manager
     function act_systemUpdate()
     {
 		requireRole('admin');
-		self::systemUpdate();
+		
+		self::logRead('Обновяване на системата');
+		
+		return self::systemUpdate();
     }
 
     
@@ -891,7 +904,7 @@ class core_Packs extends core_Manager
 		$SetupKey = setupKey();
 		//$SetupKey = md5(BGERP_SETUP_KEY . round(time()/10));
 		
-		redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
+		return new Redirect(array("core_Packs", "systemUpdate", SetupKey=>$SetupKey, "step"=>2, "bgerp"=>1));
 	}    
 
 
@@ -1067,8 +1080,9 @@ class core_Packs extends core_Manager
             }
 
             $form->FNC($field, $type, $params);
-            
-            if ($data[$field] && (!defined($field) || ($data[$field] != constant($field)))) { 
+          
+            if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) && 
+                (!defined($field) || ($data[$field] != constant($field)))) { 
                 $form->setDefault($field, $data[$field]);
             } elseif(defined($field)) {
                 $form->setDefault($field, constant($field));
@@ -1097,7 +1111,7 @@ class core_Packs extends core_Manager
                     $fType = $form->getFieldType($field, FALSE);
                     
                     // Да може да се зададе автоматичната стойност
-                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum)) 
+                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type)) 
                         && ($fType->params['allowEmpty']) && ($form->rec->{$field} === NULL))  {
                         
                         $data[$field] = NULL;
@@ -1108,27 +1122,36 @@ class core_Packs extends core_Manager
                     $data[$field] = '';
                 }
             }
-            
+      
             $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
-            $this->log($data->cmd, $rec->id, "Промяна на конфигурацията на пакет {$packName}");
+            $this->logWrite("Промяна на конфигурацията на пакет", $rec->id);
             
-            return new Redirect($retUrl);
+            $msg = '';
+            
+            // Ако е инсталиран, обновяваме пакета
+            if (self::isInstalled($packName)) {
+                $msg = self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
+            }
+            
+            return new Redirect($retUrl, $msg);
         }
         
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
 
         // Добавяне на допълнителни системни действия
         if (count($setup->systemActions)) {
-            foreach ($setup->systemActions as $name => $url) {
-                $form->toolbar->addBtn($name, $url);
+            foreach ($setup->systemActions as $sysActArr) {
+                
+                $form->toolbar->addBtn($sysActArr['title'], $sysActArr['url'], $sysActArr['params']);
             }
         }
         
         $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
+            $errMsg = tr($errMsg);
             $form->info = "<div style='padding:10px;border:dotted 1px red;background-color:#ffff66;color:red;'>{$errMsg}</div>";
         }
         
@@ -1162,7 +1185,7 @@ class core_Packs extends core_Manager
                 $exData[$key] = $value;
     		}
     	}
-    	
+ 
     	$rec->configData = serialize($exData);
     	
     	return self::save($rec);   	

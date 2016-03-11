@@ -370,6 +370,8 @@ div.folder-cover {
     margin-top: 20px; }
   div.folder-cover .top-tab-content {
     padding: 5px 10px 10px 10px; }
+  div.folder-cover .tab-control .detail-info {
+    font-size: 0.9em; }
 
 .noheader .listTable {
   width: 100%;
@@ -388,8 +390,9 @@ div.folder-cover {
   margin-left: 0;
   margin-top: 8px;
   max-width: 720px;
+  min-width: 280px;
   font-size: 0.9em;
-  padding: 10px 10px 12px 10px; }
+  padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
   .narrow .folder-cover .detail-info {
@@ -442,12 +445,22 @@ div.folder-cover {
       position: relative;
       top: -4px;
       display: inline-block; }
-  .fieldset-holder tr.row-added {
-    background-color: #e6ffe0; }
-  .fieldset-holder tr.row-removed {
-    background-color: #cce3fe; }
   .fieldset-holder tr.group-by-field-row {
     background-color: #f1f1f1; }
+
+tr.row-added {
+  background-color: #e6ffe0; }
+
+tr.row-removed {
+  background-color: #cce3fe; }
+
+  .wide .user-profile .listTopContainer {
+    min-width: 0; }
+
+.wide .user-profile .listBlock {
+  display: block; }
+  .wide .user-profile .listBlock .listRows > table.listTable {
+    width: 100%; }
 
 /*
  * потребителски профил
@@ -498,6 +511,8 @@ div.folder-cover {
     color: white;
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
+    .user-profile .user-title .linkWithIcon {
+      color: white !important; }
   .user-profile .profile-image > a,
   .user-profile .profile-image div {
     position: absolute;
@@ -535,6 +550,19 @@ div.folder-cover {
   .user-profile .detail-info.portal .dt {
     width: 1%;
     min-width: 85px; }
+
+  #profileLoginLog.groupList table td,
+  #profileActionLog.groupList table td {
+    padding: 3px;
+    border-top: 1px dashed #bbbbbb; }
+    #profileLoginLog.groupList table td:first-child,
+    #profileActionLog.groupList table td:first-child {
+      width: 1%;
+      white-space: nowrap;
+      padding: 3px 20px; }
+  #profileLoginLog.groupList table tr:first-child td,
+  #profileActionLog.groupList table tr:first-child td {
+    border-top: none; }
 
 .narrow .user-profile {
   margin-top: 7px;
@@ -578,6 +606,140 @@ div.productImage {
 .narrow div.productImage {
   padding: 10px 8px 8px 0;
   float: left; }
+
+.productPreview {
+  height: auto;
+  width: auto;
+  max-height: 500px;
+  max-width: 300px; }
+
+.productPreviewHolder {
+  float: right; }
+
+.narrow .productPreviewHolder {
+  clear: both;
+  float: none;
+  display: block; }
+  .narrow .productPreviewHolder .productPreview {
+    max-height: 300px;
+    max-width: 200px; }
+
+  .products-table .productPreview,
+  .jobTable .productPreview,
+  .general-product-description .productPreview,
+  .sales_SalesDetails .productPreview,
+  .store_ShipmentOrderDetails .productPreview {
+    max-width: 120px;
+    max-height: 240px; }
+  .products-table .groupList .small-padding .productGroupInfo,
+  .jobTable .groupList .small-padding .productGroupInfo,
+  .general-product-description .groupList .small-padding .productGroupInfo,
+  .sales_SalesDetails .groupList .small-padding .productGroupInfo,
+  .store_ShipmentOrderDetails .groupList .small-padding .productGroupInfo {
+    padding-top: 5px !important; }
+  .products-table .colorBox,
+  .jobTable .colorBox,
+  .general-product-description .colorBox,
+  .sales_SalesDetails .colorBox,
+  .store_ShipmentOrderDetails .colorBox {
+    width: 12px;
+    height: 12px;
+    margin-bottom: 0;
+    position: relative;
+    top: -1px; }
+
+  .product-component-title td {
+    border-top: 1px solid #dddddd;
+    padding: 5px 0;
+    vertical-align: middle !important; }
+  .product-component-title:first-child td {
+    border-top: none; }
+  .product-component-title .anchor-arrow {
+    margin-top: -3px; }
+
+.groupList .small-padding .productGroupInfo {
+  padding-top: 10px !important;
+  text-decoration: underline;
+  padding-left: 0; }
+
+.colorName {
+  position: relative;
+  top: -2px; }
+
+.colorBox {
+  border: solid 1px #333333;
+  margin: 0px 2px 2px 5px;
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  position: relative;
+  top: 2px; }
+
+.product-component-stage {
+  background-color: #eeeeee;
+  padding: 5px;
+  border: 1px solid #cccccc; }
+
+  .detail-info .general-product-description .richtext,
+  .detail-info .general-product-description .groupList {
+    margin: 0 0 2px;
+    font-size: 0.9em;
+    color: #222222; }
+
+  .products-table a.fancybox img,
+  .jobTable a.fancybox img,
+  .general-product-description a.fancybox img,
+  .sales_SalesDetails .productImage a.fancybox img {
+    max-width: 120px;
+    max-height: 60px;
+    width: auto;
+    height: auto; }
+
+.component-title {
+  padding: 5px 0;
+  font-style: italic; }
+
+.componentCode {
+  margin: 0 10px 0 5px;
+  display: inline-block; }
+
+.product-component-list td {
+  border-left: none !important;
+  border-right: none !important; }
+
+.product-component-list .componentTitle {
+  font-weight: bold; }
+
+  .product-component-list .level0.product-component-title td {
+    padding: 7px 0;
+    background: rgba(230, 230, 230, 0.5); }
+
+  .product-component-list .level1.product-component-title td {
+    padding: 6px 0; }
+
+.product-component-list .level2.product-component-title {
+  color: #333333; }
+  .product-component-list .level2.product-component-title td {
+    padding: 5px 0; }
+
+.product-component-list .level3.product-component-title {
+  color: #444444; }
+  .product-component-list .level3.product-component-title td {
+    padding: 4px 0; }
+
+.product-component-list .level4.product-component-title {
+  color: #555555; }
+  .product-component-list .level4.product-component-title td {
+    padding: 3px 0; }
+
+.product-component-list .level5.product-component-title {
+  color: #666666;
+  font-size: 0.9em; }
+  .product-component-list .level5.product-component-title td {
+    padding: 2px 0; }
+
+.display-table .product-component-holder {
+  margin-left: 10px; }
 
 /*
  * край на стилове за cat
@@ -698,8 +860,7 @@ div.acc-detail {
   float: none; }
 
 .accCell {
-  padding-left: 10px !important;
-  width: 130px; }
+  padding-left: 15px !important; }
 
 .itemClass {
   min-width: 210px; }
@@ -721,7 +882,7 @@ div.acc-detail {
     padding: 10px;
     display: none;
     position: absolute;
-    z-index: 20;
+    z-index: 1001;
     bottom: 15px;
     left: 20px;
     background: #ffffee;
@@ -786,7 +947,8 @@ div.acc-detail {
   .detail-info.portal {
     padding-top: 5px;
     margin-top: 10px;
-    background-color: transparent; }
+    background-color: transparent;
+    box-shadow: none; }
     .detail-info.portal p {
       margin: 0; }
     .detail-info.portal table.listTable th {
@@ -824,10 +986,6 @@ div.acc-detail {
         .detail-info.acc-summary table.listTable tr:first-child th:nth-child(2) {
           text-align: left;
           padding-left: 10px; }
-        .detail-info.acc-summary table.listTable tr:first-child th:nth-last-child(1),
-        .detail-info.acc-summary table.listTable tr:first-child th:nth-last-child(2) {
-          text-align: right;
-          padding-right: 4px; }
     .detail-info.acc-summary .feather-title {
       text-align: left;
       float: left;
@@ -856,6 +1014,17 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
+  .portal .state-closed {
+    background-color: transparent; }
+  .portal.planning,
+  .portal.detail-info {
+    margin-bottom: 5px; }
+    .portal.planning .state-closed,
+    .portal.detail-info .state-closed {
+      background-color: #dddddd; }
+      .portal.planning .state-closed:hover,
+      .portal.detail-info .state-closed:hover {
+        background-color: #d0d0d0; }
   .portal .legend {
     position: absolute;
     top: -16px;
@@ -898,6 +1067,14 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
 
+.portal.planning table.listTable th {
+  border: 1px solid #cccccc;
+  display: table-cell; }
+  .portal.planning table.listTable th:first-child {
+    border-left: none; }
+  .portal.planning table.listTable th:last-child {
+    border-right: none; }
+
 .narrow .portal .listRows {
   font-size: 0.9em; }
 
@@ -913,6 +1090,14 @@ td.portal-date {
 
 .shortTable .listTable {
   width: 1%; }
+
+.wide .half-block {
+  padding-right: 20px; }
+  .wide .half-block.large {
+    width: 70%; }
+
+.narrow .half-block {
+  display: block; }
 
 /*
  * край на портал
@@ -1035,6 +1220,8 @@ td.portal-date {
     background-color: #e0e0e0; }
   .document .no-border-bottom {
     border-bottom: none !important; }
+  .document .no-border td {
+    border: none !important; }
   .document.print-letter {
     page-break-after: always;
     max-width: 840px;
@@ -1051,24 +1238,104 @@ td.portal-date {
     text-align: right;
     display: inline-block;
     white-space: nowrap; }
+  .document .tab-control .detail-info {
+    font-size: 0.9em; }
 
 .small-padding td {
   padding: 3px !important; }
 
-.document-settings {
+.groupList .small-padding td {
+  padding: 2px 3px 0 !important; }
+
+.document-settings,
+.document-settings-left {
   display: inline-block;
   height: 16px;
   float: right; }
   .document-settings span,
-  .document-settings a {
+  .document-settings a,
+  .document-settings-left span,
+  .document-settings-left a {
     margin-bottom: 0; }
+  .document-settings .additionalInfo,
+  .document-settings-left .additionalInfo {
+    left: auto;
+    right: -4px; }
+  .document-settings .pluginCountButtonNub,
+  .document-settings-left .pluginCountButtonNub {
+    height: 0;
+    left: 0px;
+    position: relative;
+    top: -14px;
+    width: 5px;
+    z-index: 2;
+    display: inline-block; }
+    .document-settings .pluginCountButtonNub s,
+    .document-settings .pluginCountButtonNub i,
+    .document-settings-left .pluginCountButtonNub s,
+    .document-settings-left .pluginCountButtonNub i {
+      border-color: transparent #9197a3;
+      border-style: solid;
+      border-width: 4px 5px 4px 0;
+      display: block;
+      position: relative;
+      top: 1px; }
+    .document-settings .pluginCountButtonNub i,
+    .document-settings-left .pluginCountButtonNub i {
+      border-right-color: white;
+      left: 2px;
+      top: -7px; }
+  .document-settings .docSettingsCnt,
+  .document-settings-left .docSettingsCnt {
+    background: white;
+    border: 1px solid #9197a3;
+    border-radius: 2px;
+    color: #4e5665;
+    display: inline-block;
+    font-size: 0.7em;
+    height: auto;
+    line-height: 14px;
+    margin-left: 0px;
+    min-width: 10px;
+    padding: 0 2px;
+    position: relative;
+    top: -5px;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer; }
+  .document-settings .linkWithIcon,
+  .document-settings-left .linkWithIcon {
+    padding-left: 0px !important;
+    opacity: 0.8;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    margin-left: 5px;
+    margin-right: 1px; }
+    .document-settings .linkWithIcon.liked:hover,
+    .document-settings-left .linkWithIcon.liked:hover {
+      background-image: url(../img/16/redheart-broke.png) !important; }
+    .document-settings .linkWithIcon.disliked:not(.disable):hover,
+    .document-settings-left .linkWithIcon.disliked:not(.disable):hover {
+      background-image: url(../img/16/redheart.png) !important; }
+    .document-settings .linkWithIcon.disliked.disable,
+    .document-settings-left .linkWithIcon.disliked.disable {
+      cursor: default; }
+
+.document-settings-left,
+.document-title-group {
+  float: left;
+  display: inline-block; }
 
 .docBgIcon {
   position: relative; }
 
+.narrow .docBgIcon {
+  font-size: 0.9em; }
+
 .narrow .document-settings {
   position: absolute;
-  right: -3px;
+  right: 2px;
   top: 50%;
   margin-top: -10px; }
 
@@ -1098,6 +1365,9 @@ td.portal-date {
 
 .centered {
   text-align: center; }
+
+.lighterBold {
+  color: #666666; }
 
 .selectRows .listTable > tbody > tr > td:first-child {
   text-align: center; }
@@ -1146,17 +1416,15 @@ td.rowtools-column {
   padding-left: 10px !important; }
 
 .articleCell {
-  min-width: 220px;
+  min-width: 200px;
   max-width: 270px; }
-
-.no-border > tbody > tr > td {
-  border: none !important; }
 
 .wide .document table.listTable {
   margin-bottom: 0; }
 
-.wide .singleView .listTable {
-  width: 100%; }
+.wide .singleView div:not(".folder-cover") .listTable {
+  min-width: 800px;
+  width: 1%; }
 
 pre.document {
   white-space: pre-line; }
@@ -1182,6 +1450,9 @@ pre.document {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8, endColorstr=#40C8C8C8);
   zoom: 1;
   background: rgba(200, 200, 200, 0.3); }
+
+.antetkaCell {
+  max-width: 400px; }
 
 .threadSubTitle {
   font-size: 0.75em;
@@ -1233,7 +1504,8 @@ pre.document {
   padding: 1px !important; }
 
 .footer-notes > tbody > tr > td {
-  border: 1px solid #bbbbbb; }
+  border: 1px solid #bbbbbb;
+  vertical-align: top !important; }
 
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
@@ -1247,7 +1519,7 @@ pre.document {
   border-bottom: 3px solid #dddddd; }
 
 .signature-table {
-  margin-top: 5px; }
+  margin-top: 20px; }
   .signature-table td {
     border: none !important; }
 
@@ -1272,6 +1544,11 @@ pre.document {
 
 .shipment-table tr td {
   padding: 1px 3px !important; }
+
+.half-col {
+  display: inline-block;
+  width: 49%;
+  float: left; }
 
 .narrow .document .half_block {
   width: 100% !important;
@@ -1306,6 +1583,15 @@ pre.document {
 
 .full-width {
   width: 100%; }
+
+.full-width-holder {
+  width: 100%; }
+  .full-width-holder table {
+    width: 100%; }
+
+.history-reason {
+  font-size: 0.9em;
+  color: #666666; }
 
 /*
  * край на стилове за документи
@@ -1658,6 +1944,10 @@ ul.history {
       background-color: #005500; }
     ul.history .action.used b {
       background-color: #ff9999; }
+    ul.history .action.act b {
+      background-color: #aaaaaa; }
+    ul.history .action.export b {
+      background-color: #3377ff; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {
@@ -1690,6 +1980,8 @@ div.sharing-history {
   font-size: 0.9em;
   clear: both;
   padding-right: 120px; }
+  div.sharing-history .timespan {
+    font-size: 0.9em; }
 
 div.change-log {
   border: none;
@@ -1813,7 +2105,7 @@ span.sharing-history-title {
 #cmsMenu a {
   font-size: 1.12em;
   padding: 4px;
-  margin: 2px 20px 2px 15px;
+  margin: 2px 20px 2px 10px;
   line-height: normal;
   white-space: nowrap;
   display: block;
@@ -1881,6 +2173,15 @@ span.sharing-history-title {
 
 .wide #login-form .formTable {
   margin: 0; }
+
+.narrow #login-form .button {
+  margin-top: 7px; }
+
+.drawing {
+  float: right;
+  max-width: 400px; }
+  .drawing img {
+    max-width: 400px; }
 
 /*
  * стилове за външната част при потребител контрактор
@@ -2469,8 +2770,9 @@ span.sharing-history-title {
 .overflow-scroll {
   width: 100% !important;
   overflow-x: auto !important;
+  overflow-y: hidden !important;
   _overflow: auto !important;
-  margin-bottom: 3px;
+  margin-bottom: 0;
   display: block; }
   .narrow-scroll .scrolling-holder .folder-cover,
   .overflow-scroll .folder-cover {
@@ -2489,6 +2791,16 @@ span.sharing-history-title {
   .narrow-scroll .scrolling-holder > .antetka,
   .overflow-scroll > .antetka {
     margin-top: 0; }
+
+.planning_drivers_ProductionTaskDetails .listRowsDetail {
+  width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  _overflow: auto !important;
+  margin-bottom: 0;
+  display: block; }
+  .planning_drivers_ProductionTaskDetails .listRowsDetail td {
+    max-width: none !important; }
 
 .document .scrolling-holder {
   margin-bottom: 0; }
@@ -2586,6 +2898,19 @@ span.sharing-history-title {
 .singleView p {
   margin-bottom: 10px;
   line-height: 120%; }
+
+  .rowtoolsGroup.modal-toolbar.iw-contextMenu {
+    padding: 4px 5px 8px 5px;
+    max-width: 160px; }
+  .rowtoolsGroup a {
+    text-align: left;
+    display: block;
+    font-size: 0.95em;
+    padding: 3px 0;
+    color: #333333 !important; }
+    .rowtoolsGroup a:hover {
+      color: black !important;
+      background-color: #e1e1e1; }
 
 table.styled-table tr:hover td {
   background-color: #ffffcc !important; }
@@ -2717,6 +3042,12 @@ div.location.public {
   width: 100%;
   max-width: 400px; }
 
+.productCell {
+  max-width: none !important; }
+
+.wide .inline-form {
+  display: inline-block; }
+
 /*
  * шаблон за журнал
  */
@@ -2733,9 +3064,9 @@ div.location.public {
   display: inline-block;
   width: auto !important; }
 
-.core_Logs table.listTable > tbody > tr > td:last-child {
+.log_System table.listTable > tbody > tr > td:last-child {
   max-width: 600px; }
-  .core_Logs table.listTable > tbody > tr > td:last-child table td {
+  .log_System table.listTable > tbody > tr > td:last-child table td {
     word-break: break-all; }
 
 .cCode {
@@ -2759,6 +3090,12 @@ div.location.public {
   max-width: 600px; }
   .email-class h3 {
     margin: 10px 0 12px; }
+
+.state-error-email {
+  background-color: #f3bbaf; }
+
+.state-blocked-email {
+  background-color: #f1cba6; }
 
 /*
  * край на email
@@ -3222,7 +3559,7 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  .wide .listBlock .listRows > table.listTable {
+  .wide not('.user-profile') .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
 @media handheld,
@@ -3258,7 +3595,15 @@ only screen and (max-width: 1200px) {
   .wide #all,
   .wide #cmsTop,
   .wide #cmsTop img {
-    border-radius: 0; } }
+    border-radius: 0; }
+
+  .drawing {
+    max-width: 350px; } }
+
+@media handheld,
+only screen and (max-width: 1100px) {
+  .drawing {
+    max-width: 270px; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
@@ -3266,7 +3611,11 @@ only screen and (max-width: 1024px) {
     max-width: 52.5em; }
 
   .wide .app-name {
-    font-size: 6.4em; } }
+    font-size: 6.4em; }
+
+  .drawing {
+    max-width: 500px;
+    float: none; } }
 
 /*
  * Mobile
@@ -3736,6 +4085,18 @@ only screen and (max-width: 320px) {
     display: block !important; }
   .external .footerDocTable {
     display: table !important; }
+  .external .no-print {
+    display: none; }
+  .external .row-negative {
+    color: black; }
+  .external .portal.planning {
+    border: none;
+    padding: 0; }
+  .external .listTable td {
+    vertical-align: top !important; }
+
+.wide .external .vertical .formTable {
+  box-shadow: none !important; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3756,6 +4117,9 @@ only screen and (max-width: 320px) {
   .no-print {
     display: none; }
 
+  .sidemenu {
+    display: none; }
+
   .blankImage img,
   .qrcode img {
     height: auto; }
@@ -3767,9 +4131,6 @@ only screen and (max-width: 320px) {
   .qrcode img {
     max-width: 87px;
     max-height: 87px; }
-
-  .antetka {
-    width: 98% !important; }
 
   .richtext-message {
     padding-left: 10px; }
@@ -3879,7 +4240,9 @@ only screen and (max-width: 320px) {
       page-break-after: avoid; }
 
   .footer-notes,
-  .print-block {
+  .print-block,
+  .footerDocTable,
+  .footerDocBlock {
     page-break-inside: avoid; }
 
   #statuses,
@@ -3915,7 +4278,23 @@ only screen and (max-width: 320px) {
     display: table-row !important; }
 
   .footerDocTable {
-    display: table !important; } }
+    display: table !important; }
+
+  table.listTable > tbody > tr > td {
+    vertical-align: top; }
+
+  .richtext a {
+    text-decoration: underline; }
+
+  .row-negative {
+    color: black; }
+
+  .groupTitle {
+    white-space: nowrap; }
+
+  .portal.planning {
+    border: none;
+    padding: 0; } }
 
   .printing .specialLink {
     font-weight: bold; }
@@ -3963,6 +4342,19 @@ only screen and (max-width: 320px) {
   .printing .innerTable td {
     vertical-align: top; }
   .printing .antetka {
+    margin: 5px 0;
+    border: none;
+    padding: 0;
+    width: 100%; }
+    .printing .antetka .top-table {
+      border-collapse: collapse; }
+      .printing .antetka .top-table td {
+        border: 1px solid #cccccc;
+        padding: 3px; }
+  .printing .jobTable td {
+    vertical-align: top !important; }
+  .printing .portal.planning {
+    padding: 0;
     border: none; }
   .printing .linkWithIcon {
     background-image: none !important;
@@ -4117,6 +4509,35 @@ only screen and (max-width: 320px) {
   border: solid 1px #cccccc;
   background-color: #eeeeee; }
 
+  .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-warning td {
+    background-color: #fae3ca !important; }
+  .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-debug td {
+    background-color: #eeeeee !important; }
+  .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-notice td {
+    background-color: #dff4fa !important; }
+  .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err td {
+    background-color: #fad0d1 !important; }
+
+.logs-type-warning {
+  background-color: #fae3ca; }
+
+.logs-type-login {
+  background-color: #dbffdc; }
+
+.logs-type-debug {
+  background-color: #eeeeee; }
+
+.logs-type-notice,
+.logs-type-write {
+  background-color: #dff4fa; }
+
+.logs-type-err {
+  background-color: #fad0d1; }
+
+.logs-type-info,
+.logs-type-read {
+  background-color: #fffef4; }
+
 /*
  * Стилове за езика във външната част
  */
@@ -4214,6 +4635,56 @@ only screen and (max-width: 320px) {
   background-color: #ffff99;
   display: table;
   color: black; }
+
+.narrow div.tab-control div.tab-row .tab {
+  font-size: 0.7em;
+  padding: 3px 2px; }
+  .narrow div.tab-control div.tab-row .tab.selected {
+    padding: 3px 2px 4px; }
+    .narrow div.tab-control div.tab-row .tab.selected .tooltip-button img {
+      width: 10px;
+      height: 10px; }
+
+.tooltip {
+  text-align: center;
+  color: white;
+  background: rgba(30, 30, 30, 0.9);
+  border-radius: 5px;
+  position: absolute;
+  z-index: 100;
+  padding: 10px;
+  font-size: 0.9em; }
+
+.narrow .tooltip {
+  padding: 5px;
+  font-size: 0.8em; }
+
+.tooltip:after /* triangle decoration */ {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid rgba(30, 30, 30, 0.9);
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  margin-left: -10px; }
+
+.tooltip.top:after {
+  border-top-color: transparent;
+  border-bottom: 10px solid rgba(30, 30, 30, 0.9);
+  top: -20px;
+  bottom: auto; }
+
+.tooltip.left:after {
+  left: 10px;
+  margin: 0; }
+
+.tooltip.right:after {
+  right: 10px;
+  left: auto;
+  margin: 0; }
 
 /*
  * край на стилове за външната част при потребител контрактор

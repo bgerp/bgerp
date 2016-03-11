@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Покупки
@@ -18,9 +18,6 @@ class purchase_Purchases extends deals_DealMaster
 {
     
     
-	const AGGREGATOR_TYPE = 'purchase';
-	
-	
     /**
      * Заглавие
      */
@@ -30,15 +27,15 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal, deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-				        plg_ExportCsv, cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search';
+				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
+				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search, doc_plg_Close';
     
     
     /**
@@ -63,6 +60,12 @@ class purchase_Purchases extends deals_DealMaster
      * Кой може да го активира?
      */
     public $canConto = 'ceo,purchase,acc';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,purchase';
     
     
     /**
@@ -188,6 +191,14 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Какво движение на партида поражда документа в склада
+     * 
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
@@ -262,6 +273,22 @@ class purchase_Purchases extends deals_DealMaster
         	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
         	$form->setDefault('activityCenterId', $defCenter);
         }
+        
+        $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
+        if($hideRate == 'yes'){
+        	$form->setField('currencyRate', 'input');
+        }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->activityCenterId)){
+    		$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
+    	}
     }
     
     
@@ -376,8 +403,6 @@ class purchase_Purchases extends deals_DealMaster
     	$rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
         
-        $result->setIfNot('dealType', self::AGGREGATOR_TYPE);
-        
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
@@ -385,12 +410,11 @@ class purchase_Purchases extends deals_DealMaster
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
-        if($rec->paymentMethodId){
-        	if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		// Колко е очакваното авансово плащане
-        		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
-        		$downPayment = round($paymentRec->downpayment * $rec->amountDeal, 4);
-        	}
+        $downPayment = NULL;
+        if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+        	
+        	// Колко е очакваното авансово плащане
+        	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
         }
         
         // Кои са позволените операции за последващите платежни документи
@@ -413,67 +437,94 @@ class purchase_Purchases extends deals_DealMaster
         $result->setIfNot('activityCenterId', $rec->activityCenterId);
         
         purchase_transaction_Purchase::clearCache();
+        $entries = purchase_transaction_Purchase::getEntries($rec->id);
+        
+        $deliveredAmount = purchase_transaction_Purchase::getDeliveryAmount($entries);
+        $paidAmount = purchase_transaction_Purchase::getPaidAmount($entries, $rec);
+        
         $result->set('agreedDownpayment', $downPayment);
-        $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($rec->id));
-        $result->set('amountPaid', purchase_transaction_Purchase::getPaidAmount($rec->id));
-        $result->set('deliveryAmount', purchase_transaction_Purchase::getDeliveryAmount($rec->id));
-        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($rec->id));
+        $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($entries));
+        $result->set('amountPaid', $paidAmount);
+        $result->set('deliveryAmount', $deliveredAmount);
+        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries));
+        
+        // Опитваме се да намерим очакваното плащане
+        $expectedPayment = NULL;
+        if($deliveredAmount > $paidAmount){
+        	
+        	// Ако доставеното > платено това е разликата
+        	$expectedPayment = $deliveredAmount - $paidAmount;
+        } else {
+        	
+        	// В краен случай това е очаквания аванс от метода на плащане
+        	$expectedPayment = $downPayment;
+        }
+        
+        // Ако има очаквано плащане, записваме го
+        if($expectedPayment){
+        	if(empty($deliveredAmount)){
+        		$expectedPayment = $expectedPayment - $paidAmount;
+        	}
+        	 
+        	if($expectedPayment > 0){
+        		$result->set('expectedPayment', $expectedPayment);
+        	}
+        }
         
         $agreedDp = $result->get('agreedDownpayment');
         $actualDp = $result->get('downpayment');
-        if($agreedDp && ($actualDp < $agreedDp)){
-        	$result->set('defaultCaseOperation', 'case2supplierAdvance');
-        	$result->set('defaultBankOperation', 'bank2supplierAdvance');
-        } else {
-        	$result->set('defaultCaseOperation', 'case2supplier');
-        	$result->set('defaultBankOperation', 'bank2supplier');
+        
+        // Дефолтните платежни операции са плащания към доставчик
+        $result->set('defaultCaseOperation', 'case2supplier');
+        $result->set('defaultBankOperation', 'bank2supplier');
+        
+        // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
+        // очакваме още да се плаща по аванаса
+        if($agreedDp){
+        	if(empty($actualDp) || $actualDp < $agreedDp * 0.8){
+        		$result->set('defaultCaseOperation', 'case2supplierAdvance');
+        		$result->set('defaultBankOperation', 'bank2supplierAdvance');
+        	}
         }
         
         if (isset($actions['ship'])) {
             $result->setIfNot('shippedValior', $rec->valior);
         }
         
+        $agreed = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
+            	$p->{$fld} = $dRec->{$fld};
+            }
             
-            $p->classId           = $dRec->classId;
-            $p->productId         = $dRec->productId;
-            $p->packagingId       = $dRec->packagingId;
-            $p->discount          = $dRec->discount;
-            $p->quantity          = $dRec->quantity;
-            $p->quantityDelivered = $dRec->quantityDelivered;
-            $p->price             = $dRec->price;
-            $p->uomId             = $dRec->uomId;
-            $p->notes			  = $dRec->notes;
+            $info = cat_Products::getProductInfo($p->productId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
             
-            $ProductMan = cls::get($p->classId);
-            $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
-            $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
-            $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
+            $agreed[] = $p;
             
-            $result->push('products', $p);
-            
-        	if (!empty($p->packagingId)) {
-        		$push = TRUE;
-            	$index = $p->classId . "|" . $p->productId;
-            	$shipped = $result->get('shippedPacks');
+        	$push = TRUE;
+            $index = $p->productId;
+            $shipped = $result->get('shippedPacks');
             	
-            	$inPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
-            	if($shipped && isset($shipped[$index])){
-            		if($shipped[$index]->inPack < $inPack){
-            			$push = FALSE;
-            		}
+            $inPack = $p->quantityInPack;
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $inPack){
+            		$push = FALSE;
             	}
+            }
             	
-            	if($push){
-            		$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
-            		$result->push('shippedPacks', $arr, $index);
-            	}
+            if($push){
+            	$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
+            	$result->push('shippedPacks', $arr, $index);
             }
         }
         
+        $agreed = deals_Helper::normalizeProducts(array($agreed));
+        $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($rec->id));
+        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries));
     }
     
     
@@ -568,5 +619,23 @@ class purchase_Purchases extends deals_DealMaster
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+    	// Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
+    	core_Lg::pop();
+    	$statisticTpl = getTplFromFile('purchase/tpl/PurchaseStatisticLayout.shtml');
+    	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
+    	
+    	// Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
+    	$data->row->paymentState = $mvc->getVerbal($data->rec, 'paymentState');
+    	
+    	// Отново вкарваме езика на шаблона в сесията
+    	core_Lg::push($data->rec->tplLang);
     }
 }

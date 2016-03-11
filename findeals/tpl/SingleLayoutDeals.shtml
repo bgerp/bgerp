@@ -1,16 +1,19 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <div class='display-table'>
         	[#TABS#]
         	<!--ET_BEGIN DEAL_HISTORY-->
         	[#DEAL_HISTORY#]
         	<!--ET_END DEAL_HISTORY-->
+        	
+        	<!--ET_BEGIN DEAL_REPORT-->
+            <div class="scrolling-holder" style='padding-bottom:10px'>
+            [#DEAL_REPORT#]
+            </div>
+            <div style='padding-bottom:10px'>
+            [#TABEXP#]
+            </div>
+            <!--ET_END DEAL_REPORT-->
         	
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
@@ -56,6 +59,10 @@
 		        <tr>
 		            <td>|Сметка|*</td>
 		            <td>[#accountId#]</td>
+		        </tr>
+		        <tr>
+		            <td>|Курс|*</td>
+		            <td>[#currencyRate#]</td>
 		        </tr>
 		        <!--ET_BEGIN description-->
 		        <tr>

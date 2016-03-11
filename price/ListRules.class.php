@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys, plg_SaveAndNew';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_SaveAndNew';
                     
  
     /**
@@ -68,19 +68,19 @@ class price_ListRules extends core_Detail
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo,price';
+    var $canRead = 'ceo,priceMaster';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'ceo,price';
+    var $canEdit = 'ceo,priceMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,price';
+    var $canAdd = 'ceo,priceMaster';
     
     
     /**
@@ -105,7 +105,7 @@ class price_ListRules extends core_Detail
         
         // Цена за продукт 
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
-        $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory');
+        $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory,silent');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС,noChange'); 
         
@@ -159,64 +159,48 @@ class price_ListRules extends core_Detail
     /**
      * Връща цената за посочения продукт
      */
-    static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
+    public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {  
         // Проверка, дали цената я няма в кеша
     	$price = price_History::getPrice($listId, $datetime, $productId);
     	
         if(isset($price)) return $price;
-
+        
         price_ListToCustomers::canonizeTime($datetime);
 
         $datetime = price_History::canonizeTime($datetime);
         
-        // В коя ценова група се е намирал продукта към посочената дата?
-        $productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
-
-        if(!$productGroup) return;
- 
+        if($listId != self::PRICE_LIST_COST){
+        	
+        	// В коя ценова група се е намирал продукта към посочената дата?
+        	$productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
+        	if(!$productGroup) return;
+        }
+       
         $query = self::getQuery();
         
         // Общи ограничения
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
 
-        // Конкретни ограничения
-        $query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
+        if($productGroup){
+        	// Конкретни ограничения
+        	$query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
+        } else {
+        	// Конкретни ограничения
+        	$query->where("#productId = {$productId}");
+        }
         
         // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");
         $query->limit(1);
-
+		
         $rec = $query->fetch();
  
         if($rec) {
             if($rec->type == 'value') {
                 
-                $price = $rec->price;
-
-                $listRec = price_Lists::fetch($listId);
-                list($date, $time) = explode(' ', $datetime);
-
-                // В каква цена е този ценоразпис?
-                $currency = $rec->currency;
-
-                if(!$currency) {
-                    $currency = $listRec->currency; 
-                }
-
-                if(!$currency) {
-                    $currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
-                }
-               
-                // Конвертираме в базова валута
-                $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
-
-                // Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
-                if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
-                    // TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
-                    $vat = cat_Products::getVat($productId, $date);
-                    $price = $price / (1 + $vat);
-                }
+            	$vat = cat_Products::getVat($productId, $datetime);
+            	$price = self::normalizePrice($rec, $vat, $datetime);
 
 			} else {
                 expect($parent = price_Lists::fetchField($listId, 'parent'));
@@ -245,14 +229,56 @@ class price_ListRules extends core_Detail
         }
         
         $listRec = price_Lists::fetch($listId);
-        	
-        // По дефолт правим някакво машинно закръгляне
-        $price = round($price, 8);
         
-        // Записваме току-що изчислената цена в историята;
-        price_History::setPrice($price, $listId, $datetime, $productId);
+        if(isset($price)){
+        	
+        	// По дефолт правим някакво машинно закръгляне
+        	$price = round($price, 8);
+        	
+        	// Записваме току-що изчислената цена в историята;
+        	price_History::setPrice($price, $listId, $datetime, $productId);
+        }
 
         return $price;
+    }
+    
+    
+    /**
+     * Обръща цената от записа в основна валута без ддс
+     * 
+     * @param stdClass $rec
+     * @param double $vat
+     * @param datetime $datetime
+     * @return double $price
+     */
+    public static function normalizePrice($rec, $vat, $datetime)
+    {
+    	$price = $rec->price;
+    	
+    	$listRec = price_Lists::fetch($rec->listId);
+    	list($date, $time) = explode(' ', $datetime);
+    	
+    	// В каква цена е този ценоразпис?
+    	$currency = $rec->currency;
+    	
+    	if(!$currency) {
+    		$currency = $listRec->currency;
+    	}
+    	
+    	if(!$currency) {
+    		$currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
+    	}
+    	
+    	// Конвертираме в базова валута
+    	$price = currency_CurrencyRates::convertAmount($price, $date, $currency);
+    	
+    	// Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
+    	if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
+    		// TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
+    		$price = $price / (1 + $vat);
+    	}
+    	
+    	return $price;
     }
     
     
@@ -274,11 +300,13 @@ class price_ListRules extends core_Detail
 		    $parentTitle = $parentRec->title;
         }
 		
-        $availableProducts = price_GroupOfProducts::getAllProducts();
+        $availableProducts = price_GroupOfProducts::getAllProducts(NULL, FALSE);
         if(count($availableProducts)){
-        	$form->setOptions('productId', $availableProducts);
+        	$options = cat_Products::getByProperty('canSell');
+        	$newOptions = array_intersect_key($options, $availableProducts);
+        	$form->setOptions('productId', $newOptions);
         } else {
-        	$form->getFieldType('productId')->options = array('' => '');
+        	$form->setReadOnly('productId');
         }
         
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
@@ -292,9 +320,9 @@ class price_ListRules extends core_Detail
             $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
- 	
- 	$masterTitle = type_Users::escape($masterTitle);
- 		
+        
+        $masterTitle = price_Lists::getVerbal($masterRec, 'title');
+ 	    
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,price,currency,vat,targetPrice', 'input=none');
@@ -319,7 +347,7 @@ class price_ListRules extends core_Detail
                 break;
         }
 
-        $form->title = $title;
+        $data->formTitle = $title;
 
         if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
@@ -327,6 +355,15 @@ class price_ListRules extends core_Detail
         }
     }
 
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
+    }
+    
     
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
@@ -338,6 +375,10 @@ class price_ListRules extends core_Detail
     		$msg = 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!';
     		$data->form->toolbar->setWarning('save', $msg);
     		$data->form->toolbar->setWarning('saveAndNew', $msg);
+    	}
+    	
+    	if(isset($rec->productId)){
+    		$data->form->toolbar->removeBtn('saveAndNew');
     	}
     }
     
@@ -466,6 +507,11 @@ class price_ListRules extends core_Detail
         		$requiredRoles = 'no_one';
         	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
+        	} else {
+        		$isPublic = cat_products::fetchField($rec->productId, 'isPublic');
+        		if($isPublic == 'no'){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
     }
@@ -632,15 +678,18 @@ class price_ListRules extends core_Detail
 	public function preparePriceList($data)
 	{
 		$pRec = $data->masterData->rec;
+		
+		if($pRec->isPublic == 'no'){
+			$data->dontRender = TRUE;
+		}
+		
 		$listId = static::PRICE_LIST_COST;
 		$data->priceLists = new stdClass();
 		
 		// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
-		if(price_GroupOfProducts::getGroup($pRec->id, dt::now())){
-			if($this->haveRightFor('add', (object)array('productId' => $pRec->id))){
-				$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 
-												  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => array('cat_Products', 'single', $pRec->id));
-			}
+		if($this->haveRightFor('add', (object)array('productId' => $pRec->id))){
+			$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 
+											  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => TRUE);
 		}
 		
 		$query = static::getQuery();
@@ -659,12 +708,14 @@ class price_ListRules extends core_Detail
 	 */
 	public function renderPriceList($data)
 	{
+		if($data->dontRender === TRUE) return;
+		
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
 		
 		$title = 'Себестойности';
-		if($data->priceLists->addUrl){
+		if($data->priceLists->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
 			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->priceLists->addUrl, FALSE, 'title=Добавяне на нова себестойност');
 		}
 		
@@ -672,5 +723,30 @@ class price_ListRules extends core_Detail
         $wrapTpl->append($tpl, 'CONTENT');
 		
 		return $wrapTpl;
+	}
+	
+	
+	/**
+	 * Създава запис на себестойност на артикул
+	 * 
+	 * @param int    $productId    - ид на продукт
+	 * @param double $primeCost    - себестойност
+	 * @param date   $validFrom    - от кога е валидна
+	 * @param string $currencyCode - код на валута
+	 * @param yes|no $vat          - с ДДС или без
+	 * @return int				   - ид на създадения запис
+	 */
+	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode, $vat = 'no')
+	{
+		$obj = (object)array('productId' => $productId,
+				             'type'      => 'value',
+				             'validFrom' => $validFrom,
+							 'listId'    => price_ListRules::PRICE_LIST_COST,
+							 'price'     => $primeCost,
+							 'vat'       => $vat,
+							 'createdBy' => -1,
+							 'currency'  => $currencyCode);
+		
+		return self::save($obj);
 	}
 }

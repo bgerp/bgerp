@@ -4,10 +4,10 @@
 /**
  * Клас 'plg_Clone' - Плъгин за клониране в листов и сингъл излгед
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,7 +18,7 @@ class plg_Clone extends core_Plugin
 	/**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$invoker)
+    public static function on_AfterDescription(&$invoker)
     {
         // Правата по подразбиране за екшъните
         setIfNot($invoker->canClonesysdata, 'admin, ceo');
@@ -30,7 +30,7 @@ class plg_Clone extends core_Plugin
     /**
      * Преди да се изпълни екшъна
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$res, $action)
     { 
         // Ако ще клонираме полетата
         if ($action != 'clonefields') return ;
@@ -69,9 +69,12 @@ class plg_Clone extends core_Plugin
             $nRec = new stdClass();
             $nRec = clone $form->rec;
             unset($nRec->id);
-            
+         
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
+            
+            // Маркираме записа като клониран
+            $nRec->_isClone = TRUE;
             
             // Да няма дублиране на уникални полета
             if(!$mvc->isUnique($nRec, $fields)) {
@@ -81,7 +84,8 @@ class plg_Clone extends core_Plugin
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
-            // Ако няма проблем пи записа
+        	
+            // Ако няма проблем при записа
             if ($mvc->save($nRec)) {
                 
             	// Инвокваме фунцкцията, ако някой иска да променя нещо
@@ -98,6 +102,9 @@ class plg_Clone extends core_Plugin
                     $redirectUrl = array($mvc, 'list');
                 }
                 
+                $mvc->logWrite('Клониране', $rec->id);
+                $mvc->logWrite('Създаване с клониране', $nRec->id);
+                
                 // За да се редиректне към съответната страница
                 $res = new Redirect($redirectUrl);
                 
@@ -105,7 +112,7 @@ class plg_Clone extends core_Plugin
             } else {
                 
                 // Показваме съобщение за грешка
-                core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+                core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
             }
         }
         
@@ -183,15 +190,6 @@ class plg_Clone extends core_Plugin
                     }
                 }
             }
-//            
-//            // Ако ще се клонират данни на потребителя
-//            if ($action == 'cloneuserdata') {
-//                
-//                // Трябва да има права за добавяне за да може да клонира
-//                if (!$mvc->haveRightFor('add', $rec)) {
-//                    $requiredRoles = 'no_one';
-//                }
-//            }
         }
     }
     
@@ -199,16 +197,16 @@ class plg_Clone extends core_Plugin
     /**
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         // Ако е наследник на master, да не се показва бутона за клониране в листовия изглед, а само в сингъла
         if ($mvc instanceof core_Master) return ;
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
         // Ако листваме
-        if(!arr::haveSection($fields, '-list')) return;
+        if (!arr::haveSection($fields, '-list')) return;
         
         // Ако нямаме права за клониране, да не се показва линка
         if (!$mvc->haveRightFor('clonerec', $rec)) return ;
@@ -241,7 +239,7 @@ class plg_Clone extends core_Plugin
      * @param core_ET $res
      * @param object $rec
      */
-    function on_AfterGetCloneLink($mvc, &$res, $rec)
+    public static function on_AfterGetCloneLink($mvc, &$res, $rec)
     {
         // URL' то за клониране
         $cloneUrl = array($mvc, 'cloneFields', $rec->id, 'ret_url' => TRUE);
@@ -250,7 +248,7 @@ class plg_Clone extends core_Plugin
         $cloneSbf = sbf("img/16/clone.png");
         
         // Ако не е подадено заглавиет, създаваме линк с иконата
-        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=Копиране');
+        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=' . tr('Клониране'));
     }
     
     
@@ -260,14 +258,18 @@ class plg_Clone extends core_Plugin
      * @param core_Master $mvc
      * @param object $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {   
         // Ако имаме права за клониране, да се показва бутона
         if ($mvc->haveRightFor('clonerec', $data->rec)) {
             
+            $singleTitle = tr($mvc->singleTitle);
+            
+            $singleTitle = mb_strtolower($singleTitle);
+            
             // Добавяме бутон за клониране в сингъл изгледа
-            $title = tr('Клониране на' . ' ' . mb_strtolower($mvc->singleTitle));
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=40");
+            $title = tr('|Клониране на|*' . ' ' . $singleTitle);
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=19.1");
         }
     }
     
@@ -286,23 +288,46 @@ class plg_Clone extends core_Plugin
     		
     		$details = arr::make($mvc->cloneDetailes, TRUE);
     		if(count($details)){
+    			$notClones = FALSE;
     			
     			// За всеки от тях
     			foreach ($details as $det){
     				$Detail = cls::get($det);
     				if(!isset($Detail->masterKey)) continue;
     				
-    				// Клонираме записа и го свързваме към новия запис
-    				$query = $Detail->getQuery();
-    				$query->where("#{$Detail->masterKey} = {$rec->id}");
-    				
-    				while($dRec = $query->fetch()){
-    					$dRec->{$Detail->masterKey} = $nRec->id;
-    					unset($dRec->id);
+    				if(method_exists($Detail, 'cloneDetails')){
+    					$Detail->cloneDetails($rec->id, $nRec->id);
+    				} else {
+
+    					// Клонираме записа и го свързваме към новия запис
+    					$query = $Detail->getQuery();
+    					$query->where("#{$Detail->masterKey} = {$rec->id}");
+    					$query->orderBy('id', "ASC");
+    					$details = $query->fetchAll();
     					
-    					$Detail->invoke('BeforeSaveClonedDetail', array($dRec));
-    					$Detail->save($dRec);
+    					if(is_array($details)){
+    						foreach($details as $dRec){
+    							$oldRec = clone $dRec;
+    							$dRec->{$Detail->masterKey} = $nRec->id;
+    							unset($dRec->id);
+    								
+    							$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
+    								
+    							if($Detail->isUnique($dRec, $fields)){
+    									
+    								// Записваме клонирания детайл
+    								$Detail->save($dRec);
+    							} else {
+    								$notClones = TRUE;
+    							}
+    						}
+    					}
     				}
+    			}
+    			
+    			// Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
+    			if($notClones) {
+    				core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
     			}
     		}
     	}

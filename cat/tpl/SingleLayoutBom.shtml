@@ -1,26 +1,18 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
-    <div>[#productId#]</div>
-    
-     <!--ET_BEGIN expenses-->
-    <div>|Режийни разходи|*: [#expenses#]</div>
-     <!--ET_END expenses-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
+    <!--ET_BEGIN primeCost-->
+    	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#primeCost#]</div>
+    <!--ET_END primeCost-->
    
-    <div class = 'fieldset-holder' style='margin-top:10px'>
-        <div class="scrolling-holder">
-            [#cat_BomDetails#]
-        </div>
-    </div>
-    <div class="scrolling-holder">
-        [#DETAILS#]
-    </div>
+    <!--ET_BEGIN expenses-->
+    	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: <b>[#expenses#]</b></div>
+    <!--ET_END expenses-->
+     
+	<div class="scrolling-holder" style='margin:10px 0'>
+	    [#cat_BomDetails#]
+	</div>
     <!--ET_BEGIN notes-->
-    <div>|Забележки|*:</div>
-    <div>[#notes#]</div>
+	    <div class='quiet'>|Забележки|*:</div>
+	    <div>[#notes#]</div>
     <!--ET_END notes-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -31,13 +31,13 @@ class crm_Locations extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search';
+    var $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, title, contragent=Контрагент, type";
+    var $listFields = "title, contragent=Контрагент, type";
 
 
     /**
@@ -49,7 +49,7 @@ class crm_Locations extends core_Master {
     /**
      *  Поле за rowTools
      */
-    var $rowToolsField = 'tools';
+    //var $rowToolsField = 'tools';
     
     
     /**
@@ -185,12 +185,24 @@ class crm_Locations extends core_Master {
         $data->form->setDefault('pCode', $contragentRec->pCode);
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
-        
-        if($rec->id) {
-            $data->form->title = 'Редактиране на локация на |*' . $contragentTitle;
-        } else {
-            $data->form->title = 'Нова локация на |*' . $contragentTitle;
-        }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = &$data->form->rec;
+    	$url = cls::get($rec->contragentCls)->getSingleUrlArray($data->form->rec->contragentId);
+    	$title = cls::get($rec->contragentCls)->getTitleById($data->form->rec->contragentId);
+    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => cls::get($rec->contragentCls)->singleIcon, 'class' => 'linkInTitle'));
+    	 
+    	if($data->form->rec->id) {
+    		$data->form->title = "Редактиране на локация на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	} else {
+    		$data->form->title = "Нова локация на|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	}
     }
     
     
@@ -341,7 +353,7 @@ class crm_Locations extends core_Master {
     	// Форсираме папката на контрагента
     	$folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId);
     	
-    	redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
+    	return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
     }
     
     
@@ -355,11 +367,13 @@ class crm_Locations extends core_Master {
         $tpl->append(tr('Локации'), 'title');
         
         if(count($data->rows)) {
-            
             foreach($data->rows as $id => $row) {
+            	core_RowToolbar::createIfNotExists($row->_rowTools);
             	$block = new ET("<div>[#title#], [#type#]<!--ET_BEGIN tel-->, " . tr('тел') . ": [#tel#]<!--ET_END tel--><!--ET_BEGIN email-->, " . tr('имейл') . ": [#email#]<!--ET_END email--> [#tools#]</div>");
             	$block->placeObject($row);
+            	$block->append($row->_rowTools->renderHtml(), 'tools');
             	$block->removeBlocks();
+            	
                 $tpl->append($block, 'content');
             }
         } else {
@@ -532,7 +546,7 @@ class crm_Locations extends core_Master {
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    protected static function on_Shutdown($mvc)
+    static function on_Shutdown($mvc)
     {
         if(!empty($mvc->updatedRecs)) {
             foreach((array)$mvc->updatedRecs as $id => $rec) {
@@ -634,7 +648,7 @@ class crm_Locations extends core_Master {
         				// Създаваме търговския маршрут към новосъздадената локация
         				$routeId = sales_Routes::save((object)array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeat' => $rec->repeat));
         			
-        				return redirect(array('crm_Locations', 'single', $locationId), FALSE, 'Успешно е създаден търговския обект');
+        				return new Redirect(array('crm_Locations', 'single', $locationId), '|Успешно е създаден търговския обект');
         			} else {
         				$form->setError('name', 'Има проблем при записа на локация');
         			}

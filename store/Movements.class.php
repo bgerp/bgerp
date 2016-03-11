@@ -26,7 +26,7 @@ class store_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RefreshRows, plg_State';
+    var $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RefreshRows, plg_State';
     
     
     /**
@@ -86,7 +86,7 @@ class store_Movements extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,palletId, positionView=Местене, workerId, state, tools=Пулт';
+    var $listFields = 'id,palletId, positionView=Местене, workerId, state';
     
     
     /**
@@ -262,7 +262,7 @@ class store_Movements extends core_Manager
         
         switch ($do) {
             case 'palletUp' :
-                $form->title = "|КАЧВАНЕ|* <b>|от пода|*</b> |на палет с|* ID=<b>{$palletId}</b>";
+                $data->formTitle = "|КАЧВАНЕ|* <b>|от пода|*</b> |на палет с|* ID=<b>{$palletId}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 // Как да се постави палета
@@ -290,7 +290,7 @@ class store_Movements extends core_Manager
                 $position = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);
                 
-                $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
+                $data->formTitle = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
                                 <br/>|от пoзиция|* <b>{$position}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
@@ -330,7 +330,7 @@ class store_Movements extends core_Manager
                     unset($ppRackId2RackNumResult);
                 }
                 
-                $form->title = "|ПРЕМЕСТВАНЕ от палет място|* <b>{$position}</b> |на палет с|* ID=<b>{$palletId}</b>
+                $data->formTitle = "|ПРЕМЕСТВАНЕ от палет място|* <b>{$position}</b> |на палет с|* ID=<b>{$palletId}</b>
                                 <br/>|към друго палет място в склада|*";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
@@ -352,6 +352,15 @@ class store_Movements extends core_Manager
                 $form->setHidden('do', 'palletMove');
                 break;
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$data->form->title = $data->formTitle;
     }
     
     
@@ -503,7 +512,7 @@ class store_Movements extends core_Manager
             $recPallets->position = $rec->positionNew;
             store_Pallets::save($recPallets);
             
-            return redirect(array('store_Pallets'));
+            redirect(array('store_Pallets'));
         }
     }
     
@@ -523,7 +532,7 @@ class store_Movements extends core_Manager
             $recPallets->state = 'pending';
             store_Pallets::save($recPallets);
             
-            return redirect(array('store_Pallets'));
+            redirect(array('store_Pallets'));
         }
     }
     
@@ -614,7 +623,7 @@ class store_Movements extends core_Manager
         $data->listFilter->FNC('stateFilter', 'enum(pending, active, closed,)', 'caption=Състояние');
         $data->listFilter->setDefault('stateFilter', '');
         $data->listFilter->FNC('palletIdFilter', 'key(mvc=store_Pallets, select=id, allowEmpty=true)', 'caption=Палет');
-        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=productId, allowEmpty=true)', 'caption=Продукт');
         
         $data->listFilter->showFields = 'stateFilter, palletIdFilter, productIdFilter';
         

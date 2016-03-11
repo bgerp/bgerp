@@ -54,11 +54,10 @@ class backup_Start extends core_Manager
             return;
         }
         
-        self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
+        self::$lockFileName = EF_TEMP_PATH . '/backupLock' . substr(md5(EF_USERS_PASS_SALT . EF_SALT), 0, 5) . '.tmp';
         self::$conf = core_Packs::getConfig('backup');
         $now = date("Y_m_d_H_i");
         self::$backupFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".full.gz";
-        self::$binLogFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".binlog.gz";
         self::$metaFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_META";
         self::$confFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_conf.tar.gz";
         self::$storage = core_Cls::get("backup_" . self::$conf->BACKUP_STORAGE_TYPE);
@@ -72,33 +71,9 @@ class backup_Start extends core_Manager
     private static function full()
     {
         if (!self::lock()) {
-            core_Logs::add("Backup", "", "Full Backup не може да вземе Lock!");
+            self::logWarning("Full Backup не може да вземе Lock!");
             
-            exit(1);
-        }
-        
-        // проверка дали всичко е наред с mysqldump-a
-        $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
-        . self::$conf->BACKUP_MYSQL_HOST . " -u"
-        . self::$conf->BACKUP_MYSQL_USER_NAME . " -p"
-        . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
-        exec($cmd, $output ,  $returnVar);
-        
-        if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "FULL Backup mysqldump ERROR!" . $output[0]);
-            self::unLock();
-            
-            exit(1);
-        }
-        
-        // проверка дали gzip е наличен
-        exec("gzip --help", $output,  $returnVar);
-        
-        if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "gzip NOT found");
-            self::unLock();
-            
-            exit(1);
+            shutdown();
         }
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
@@ -107,10 +82,10 @@ class backup_Start extends core_Manager
             , $output, $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "ГРЕШКА full Backup: {$returnVar}");
+            self::logErr("Грешка при FullBackup");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // Сваляме мета файла с описанията за бекъпите
@@ -123,10 +98,10 @@ class backup_Start extends core_Manager
         }
         
         if (!is_array($metaArr)) {
-            core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            self::logErr("Лоша информация в метафайла!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // Ако има дефинирана парола криптираме файловете с данните
@@ -135,21 +110,23 @@ class backup_Start extends core_Manager
         }
         
         // Добавяме нов запис за пълния бекъп
-        $metaArr[][0] = self::$backupFileName;
+        $metaArr['backup'][][0] = self::$backupFileName;
+        // Махаме бинлоговете
+        unset($metaArr['logNames']);
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
         // Качваме бекъп-а
-        self::$storage->putFile(self::$backupFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$backupFileName);
         
         // Качваме и мета файла
-        self::$storage->putFile(self::$metaFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
         
         // Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$backupFileName);
         unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
         self::saveConf();
         
-        core_Logs::add("Backup", "", "FULL Backup OK!");
+        self::logInfo("FULL Backup OK!");
         self::unLock();
         
         return "FULL Backup OK!";
@@ -166,10 +143,10 @@ class backup_Start extends core_Manager
         // 1. сваля се метафайла
         if (!self::$storage->getFile(self::$metaFileName)) {
             // Ако го няма - пропускаме - не е минал пълен бекъп
-            core_Logs::add("Backup", "", "ГРЕШКА при сваляне на МЕТА-а!");
+            self::logErr("ГРЕШКА при сваляне на метафайла!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         } else {
             $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
         }
@@ -184,18 +161,18 @@ class backup_Start extends core_Manager
     private static function binLog()
     {
         if (!self::lock()) {
-            core_Logs::add("Backup", "", "Warning: BinLog не може да вземе Lock.");
+            self::logWarning("BinLog не може да вземе Lock.");
             
-            exit(1);
+            shutdown();
         }
         
         $metaArr = self::getMETA();
-        
+
         if (!is_array($metaArr)) {
-            core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            self::logErr("Лоша информация в метафайла!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // Взима бинарния лог
@@ -205,49 +182,60 @@ class backup_Start extends core_Manager
                 'dbName'=>'information_schema')
         );
         
-        // 2. взимаме името на текущия лог
-        $db->query("SHOW MASTER STATUS");
-        $resArr = $db->fetchArray();
-        
-        // $resArr['file'] e името на текущия бинлог
-        
+        // 2. взима списъка с имената на бинлоговете
+        $dbRes = $db->query("SHOW MASTER LOGS");
+        while ($logName = $db->fetchArray($dbRes)) {
+            $resArr['logNames'][] = $logName['Log_name']; 
+        }
+
+        // Log_name e колоната с имената
         // 3. флъшваме лог-а
         $db->query("FLUSH LOGS");
-        
-        // 4. взимаме съдържанието на binlog-a в temp-a и го компресираме
-        exec("mysqlbinlog --read-from-remote-server -u"
-            . self::$conf->BACKUP_MYSQL_USER_NAME
-            . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$resArr['file']} -h"
-            . self::$conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName, $output, $returnVar);
-        
-        if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "ГРЕШКА при mysqlbinlog!");
-            self::unLock();
+
+        $ungetedBinLogs = array_diff((array)$resArr['logNames'], (array)$metaArr['logNames']);
+
+        // 4. взимаме съдържанието на binlogo-вете в temp-a, компресираме го и го качваме в сториджа
+        foreach ($ungetedBinLogs as $binLogFileName) {
             
-            exit(1);
+            $binLogFileNameGz = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $binLogFileName . ".gz";
+            
+            $cmdBinLog = "mysqlbinlog --read-from-remote-server -u"
+                . self::$conf->BACKUP_MYSQL_USER_NAME
+                . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$binLogFileName} -h"
+                . self::$conf->BACKUP_MYSQL_HOST . " | gzip -9 > " . EF_TEMP_PATH . "/" . $binLogFileNameGz;
+    
+            exec($cmdBinLog, $output, $returnVar);
+            
+            if ($returnVar !== 0) {
+                self::logErr("ГРЕШКА при mysqlbinlog!");
+                self::unLock();
+                
+                shutdown();
+            }
+            
+            // 5. Ако има дефинирана парола криптираме файловете с данните
+            if (self::$conf->BACKUP_CRYPT == 'yes') {
+                $binLogFileNameGz = self::crypt($binLogFileNameGz);
+            }
+            
+            // 6. добавя се инфо за бинлога
+            $maxKey = max(array_keys($metaArr['backup']));
+            $metaArr['backup'][$maxKey][] = $binLogFileNameGz;
+            $metaArr['logNames'][] = $binLogFileName;
+            file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
+            
+            // 7. Качва се binlog-a с подходящо име
+            self::$storage->putFile(EF_TEMP_PATH . "/" . $binLogFileNameGz);
+            
+            // 8. Качва се и мета файла
+            self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
+            
+            // 9. Изтриваме бекъп-а от temp-a и metata
+            unlink(EF_TEMP_PATH . "/" . $binLogFileNameGz);
+            unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
         }
         
-        // 5. Ако има дефинирана парола криптираме файловете с данните
-        if (self::$conf->BACKUP_CRYPT == 'yes') {
-            self::$binLogFileName = self::crypt(self::$binLogFileName);
-        }
-        
-        // 6. добавя се инфо за бинлога
-        $maxKey = max(array_keys($metaArr));
-        $metaArr[$maxKey][] = self::$binLogFileName;
-        file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
-        
-        // 7. Качва се binloga с подходящо име
-        self::$storage->putFile(self::$binLogFileName);
-        
-        // 8. Качва се и мета файла
-        self::$storage->putFile(self::$metaFileName);
-        
-        // 9. Изтриваме бекъп-а от temp-a и metata
-        unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
-        unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
-        
-        core_Logs::add("Backup", "", "binLog Backup OK!");
+        self::logInfo("binLog Backup OK!");
         self::unLock();
         
         return "binLog Backup OK!";
@@ -260,29 +248,30 @@ class backup_Start extends core_Manager
     private static function clean()
     {
         if (!self::lock()) {
-            core_Logs::add("Backup", "", "Warning: clean не може да вземе Lock.");
+            self::logWarning("Clean не може да вземе Lock.");
             
-            exit(1);
+            shutdown();
         }
         
         // Взимаме мета данните
         $metaArr = self::getMETA();
-        
-        if (count($metaArr) > self::$conf->BACKUP_CLEAN_KEEP) {
+
+        if (count($metaArr['backup']) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
-            $garbage = array_slice($metaArr, 0, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP);
-            $keeped  = array_slice($metaArr, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr));
+            $garbage = array_slice($metaArr['backup'], 0, count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
+            $keeped['backup']  = array_slice($metaArr['backup'], count($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr['backup']));
+            $keeped['logNames'] = $metaArr['logNames'];
             file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($keeped));
             
             // Качваме МЕТАТ-а в сториджа
-            self::$storage->putFile(self::$metaFileName);
+            self::$storage->putFile(EF_TEMP_PATH . "/" . self::$metaFileName);
             
             // Отключваме бекъп-а, защото изтриването на файлове може да е бавна операция
             self::unLock();
         } else {
             // Нямаме работа по изтриване
             self::unLock();
-            core_Logs::add("Backup", '', 'info: clean - нищо за изтриване.');
+            self::logInfo("Нищо за изтриване.");
             
             return;
         }
@@ -291,11 +280,11 @@ class backup_Start extends core_Manager
         $cnt = 0;
         
         foreach ($garbage as $backups)
-        foreach ($backups as $fileName) {
-            self::$storage->removeFile($fileName);
-            $cnt++;
-        }
-        core_Logs::add("Backup", '', 'info: clean - успешно изтрити: ' . $cnt . " файла");
+            foreach ($backups as $fileName) {
+                self::$storage->removeFile($fileName);
+                $cnt++;
+            }
+        self::logInfo("Успешно изтрити {$cnt} файла.");
         
         return;
     }
@@ -315,7 +304,6 @@ class backup_Start extends core_Manager
         $confFiles = array();
         $confFiles[] = " " . dirname($traceArr[$maxKey]['file']) . '/index.cfg.php';
         $confFiles[] = " " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
-        $confFiles[] = " " . EF_CONF_PATH . '/' . '_common.cfg.php';
         
         $cmd = "tar cfvz " . EF_TEMP_PATH . "/" . self::$confFileName;
         
@@ -326,9 +314,9 @@ class backup_Start extends core_Manager
         exec($cmd, $output, $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "error: tar gzip configuration!");
+            self::logErr("Лоша tar и/или gzip конфигурация!");
             
-            exit(1);
+            shutdown();
         }
         
         // Ако има дефинирана парола криптираме файловете с данните
@@ -336,7 +324,7 @@ class backup_Start extends core_Manager
             self::$confFileName = self::crypt(self::$confFileName);
         }
         
-        self::$storage->putFile(self::$confFileName);
+        self::$storage->putFile(EF_TEMP_PATH . "/" . self::$confFileName);
         
         @unlink(EF_TEMP_PATH . "/" . self::$confFileName);
         
@@ -363,10 +351,10 @@ class backup_Start extends core_Manager
         
         if ($returnVar !== 0) {
             $err = implode(",", $output);
-            core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
+            self::logErr("ГРЕШКА при криптиране!: {$err}");
             self::unLock();
             
-            exit(1);
+            shutdown();
         } else {
             // Разкарваме некриптирания файл
             @unlink(EF_TEMP_PATH . "/" . $fileName);
@@ -383,19 +371,18 @@ class backup_Start extends core_Manager
      */
     private static function saveFileMan()
     {
-        $unArchived = fileman_Data::getUnArchived();
-        
+        $unArchived = fileman_Data::getUnArchived(100);
+
         foreach ($unArchived as $fileObj) {
-            if (@copy($fileObj->path, EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj))) {
-                if (self::$storage->putFile(fileman_Data::getFileName($fileObj))) {
-                    fileman_Data::setArchived($fileObj->id);
-                    @unlink(EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj));
-                }
+            if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
+                fileman_Data::setArchived($fileObj->id);
+            } else {
+                self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
             }
         }
     }
     
-    
+
     /**
      * Вдига семафор за стартиран бекъп
      * Връща false ако семафора е вече вдигнат

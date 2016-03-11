@@ -143,9 +143,6 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             $resObj->arg = array('id' => $divId, 'html' => $status, 'replace' => TRUE);
             
             $res = array($resObj);
-            
-            // Добавяме в лога
-            core_Logs::add($mvc, NULL, 'AJAX refresh list: ' . $mvc->title, self::$logKeepDays);
         }
         
         return FALSE;

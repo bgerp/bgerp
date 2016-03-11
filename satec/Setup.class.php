@@ -2,7 +2,7 @@
 
 
 /**
- * class teracom_Setup
+ * class satec_Setup
  *
  * Драйвери за електромер SATEC - Израел 
  *

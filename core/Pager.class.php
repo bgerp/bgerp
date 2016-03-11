@@ -86,7 +86,6 @@ class core_Pager extends core_BaseClass
         parent::init($params);
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
-        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($this->pagesAround, 1);
         } else {
@@ -100,7 +99,8 @@ class core_Pager extends core_BaseClass
      * Изчислява индексите на първия и последния елемент от текущата страница и общия брой страници
      */
     function calc()
-    {
+    {   
+        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
         $this->rangeStart = NULL;
         $this->rangeEnd = NULL;
         $this->pagesCount = NULL;
@@ -195,12 +195,92 @@ class core_Pager extends core_BaseClass
     function setLimit(&$query)
     {
         $q = clone ($query);
-        $this->itemsCount = $q->count();
-        $this->calc();
         
-        if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-            $query->limit($this->rangeEnd - $this->rangeStart);
-            $query->startFrom($this->rangeStart);
+        $wh = $q->getWhereAndHaving();
+        $wh = $wh->w . ' ' . $wh->h;
+        $this->itemsCount = PHP_INT_MAX;
+        $this->calc();
+
+        if((!Request::get('V') && !strpos($wh, "`doc_containers`.`search_keywords`)") && $this->rangeStart < 10000) || Request::get('V') == 1) {
+            $qCnt = clone ($query);
+            $qCnt->orderBy = array();
+
+            $qCnt->show('id');
+            $this->itemsCount = $qCnt->count();
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit($this->rangeEnd - $this->rangeStart);
+                $q->startFrom($this->rangeStart);
+                $q->show('id');
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+
+            if(count($ids)) {
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
+            } 
+        } elseif((!Request::get('V')) || Request::get('V') == 2) {
+            $q->show('id');
+            $q->addOption('SQL_CALC_FOUND_ROWS');
+
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit(floor(1.5*($this->rangeEnd - $this->rangeStart) + 0.6));
+                $q->startFrom($this->rangeStart); 
+                $q->select();
+                while($rec = $q->fetch()) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+            if(count($ids)) {
+                $dbRes = $q->mvc->db->query("SELECT FOUND_ROWS()");
+                $cntArr = $q->mvc->db->fetchArray($dbRes);
+                $this->itemsCount  = array_shift($cntArr);
+                $this->calc();
+
+                $ids = array_slice($ids, 0, $this->rangeEnd-$this->rangeStart);
+
+                $ids = implode(',', $ids);
+
+                $query->where("#id IN ($ids)");
+            } else {
+                $this->itemsCount = 0;
+                $this->calc();
+                $query->limit(0);
+            }
+        } elseif(Request::get('V') == 3) {
+            $q = clone ($query);
+
+            $this->itemsCount = 100000000;
+            $this->calc();
+            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
+                $q->limit(1000);
+                $q->startFrom($this->rangeStart); 
+                $cnt = $this->rangeStart + $q->select();
+                $i = 0;
+                while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
+                    $ids[] = $rec->id;
+                }
+            }
+            
+            $this->itemsCount  = $cnt;  
+            $this->calc();
+            
+            if(count($ids)) {
+                $ids = implode(',', $ids);
+                $query->where("#id IN ($ids)");
+            } else {
+                $query->limit(0);
+            }
         }
     }
 
@@ -210,7 +290,7 @@ class core_Pager extends core_BaseClass
      */
     function getPrevNext($nextTitle, $prevTitle)
     {
-        $link = getCurrentUrl();
+        $link = self::getUrl();
 
         $p = $this->getPage();
         $cnt = $this->getPagesCount();
@@ -230,14 +310,14 @@ class core_Pager extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Рендира HTML кода на пейджъра
      */
     function getHtml($link = NULL)
-    {
+    { 
         if ($this->url) {
             $link = $this->url;
-        } else {
-            $link = toUrl(getCurrentUrl());
+        } else { 
+            $link = toUrl(self::getUrl());
         }
         
         $start = $this->getPage() - $this->pagesAround;
@@ -294,6 +374,20 @@ class core_Pager extends core_BaseClass
 
 
     /**
+     * Връща текущото URL
+     */
+    function getUrl()
+    {  
+        $url = getCurrentUrl(); 
+        if(is_array($this->addToUrl)) { 
+            $url = $url + $this->addToUrl; 
+        }
+
+        return $url;
+    }
+
+
+    /**
      * Проверява дали текущия резултат трябва да се показва
      */
     public function isOnPage()
@@ -314,5 +408,35 @@ class core_Pager extends core_BaseClass
         }
 
         return TRUE;
+    }
+
+
+    /**
+     * Задава стойността на контролната променлива за пейджъра
+     */
+    function setPageVar($masterClass = NULL, $id = NULL, $detailClass = NULL)
+    {
+        $this->pageVar =  self::getPageVar($masterClass, $id, $detailClass);
+    }
+
+
+    /**
+     * Връща името на променливата използвана за отбелязване на текущата страница
+     */
+    static function getPageVar($masterClass = NULL, $id = NULL, $detailClass = NULL)
+    {
+        $pageVar = 'P';
+
+        if($masterClass) {
+            $pageVar .= "_{$masterClass}";
+        }
+        if($id) {
+            $pageVar .= "_{$id}";
+        }
+        if($detailClass) {
+            $pageVar .= "_{$detailClass}";
+        }
+
+        return $pageVar;
     }
 }

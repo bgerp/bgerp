@@ -72,6 +72,12 @@ defIfNot('FILEMAN_GHOSTSCRIPT_PATH', 'gs');
 
 
 /**
+ * Път до програмата Inkscape
+ */
+defIfNot('FILEMAN_INKSCAPE_PATH', defined('INKSCAPE_PATH') ? INKSCAPE_PATH : 'inkscape');
+
+
+/**
  * След колко време да се изтрие от индекса, записа (грешката) за съответния тип на файла
  */
 defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
@@ -199,7 +205,7 @@ class fileman_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "fileman_FileInfoReport";
+    var $defClasses = "fileman_reports_FileInfo";
          
     
     /**
@@ -337,7 +343,7 @@ class fileman_Setup extends core_ProtoSetup
     {
         // Вземаме конфига
         $confWebkit = core_Packs::getConfig('fileman');
-        
+       
         // Опитваме се да вземем версията на ghostscript
         exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
         

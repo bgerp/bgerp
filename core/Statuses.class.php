@@ -41,7 +41,7 @@ class core_Statuses extends core_BaseClass
         if ($addeded === -1) {
             
             // Записваме в лога
-            core_Logs::log('Няма функция за добавяне на статус съобщения');
+            log_System::add('core_Statuses', 'Няма функция за добавяне на статус съобщения', NULL, 'err');
             
             return FALSE;
         }
@@ -69,7 +69,7 @@ class core_Statuses extends core_BaseClass
         if ($subscribed === -1) {
             
             // Записваме в лога
-            core_Logs::log('Няма функция за абониране на статус съобщения');
+            log_System::add('core_Statuses', 'Няма функция за абониране на статус съобщения', NULL, 'err');
             
             return FALSE;
         }

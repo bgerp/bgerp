@@ -32,7 +32,7 @@ class catering_Companies extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,  plg_RowTools, plg_State,
+    public $loadList = 'plg_Created,  plg_RowTools2, plg_State,
                              plg_Printing, catering_Wrapper, plg_Sorting,
                              CrmCompanies=crm_Companies';
     

@@ -106,7 +106,8 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function description()
     {
-        $this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка,mandatory');
+        $this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка');
+        $this->FLD('valior', 'date', 'input=hidden');
         
         // Класа на документа, който се затваря
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf)', 'input=none');
@@ -115,7 +116,7 @@ abstract class deals_ClosedDeals extends core_Master
         $this->FLD('docId', 'class(interface=doc_DocumentIntf)', 'input=none');
         $this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Сума');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,input=none');
-        $this->FLD('rate', 'double', 'caption=Плащане->Курс,input=none');
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,input=none');
         
         // От кой клас наследник на deals_ClosedDeals идва записа
         $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
@@ -241,6 +242,20 @@ abstract class deals_ClosedDeals extends core_Master
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	$form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор в нишката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterInputEditForm($mvc, &$form)
@@ -250,6 +265,16 @@ abstract class deals_ClosedDeals extends core_Master
         $rec->docId = $firstDoc->that;
         $rec->docClassId = $firstDoc->getInstance()->getClassId();
         $rec->classId = $mvc->getClassId();
+        
+        if($form->isSubmitted()){
+        	if(isset($rec->valiorStrategy)){
+        		if($rec->valiorStrategy == 'createdOn'){
+        			$rec->valior = dt::today();
+        		} elseif($rec->valiorStrategy == 'auto'){
+        			$rec->valior = NULL;
+        		}
+        	}
+        }
     }
     
     
@@ -313,7 +338,9 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass = cls::get($rec->docClassId);
             $firstRec = $DocClass->fetch($rec->docId);
             $firstRec->state = 'closed';
-            $DocClass->save($firstRec);
+            $firstRec->closedOn = $mvc->getValiorDate($rec);
+            $firstRec->modifiedOn = dt::now();
+            $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
             
             if(empty($saveFileds)){
                 $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
@@ -338,7 +365,8 @@ abstract class deals_ClosedDeals extends core_Master
             // Обновяваме състоянието на сделката, само ако не е оттеглена
             if($firstRec->state != 'rejected'){
                 $firstRec->state = 'active';
-                $DocClass->save($firstRec);
+                $firstRec->modifiedOn = dt::now();
+                $DocClass->save($firstRec, 'modifiedOn,state');
             }
         }
         
@@ -379,6 +407,12 @@ abstract class deals_ClosedDeals extends core_Master
         
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
+        
+        if(!isset($rec->valior)){
+        	$rec->valior = cls::get(get_called_class())->getValiorDate($rec);
+        	$row->valior = cls::get(get_called_class())->getFieldType('valior')->toVerbal($rec->valior);
+        	$row->valior = ht::createHint($row->valior, 'Най-големият вальор в нишката на сделката');
+        }
         
         return $row;
     }
@@ -515,6 +549,13 @@ abstract class deals_ClosedDeals extends core_Master
     public function getClosedItemsInTransaction_($id)
     {
         $rec = $this->fetchRec($id);
+        
+        // Ако приключващия документ, приключва към друга сделка, то позволяваме
+        // да може да се контира дори ако има затворени пера
+        if(!empty($rec->closeWith)){
+        	return array();
+        }
+       
         $closedItems = NULL;
         
         // Намираме приключените пера от транзакцията
@@ -525,7 +566,7 @@ abstract class deals_ClosedDeals extends core_Master
         }
         
         // От списъка с приключените пера, премахваме това на приключения документ, така че да може
-        // приключването да се оттегля/възстановява въпреки че има в нея приключено перо
+        // приключването да се оттегля/възстановява въпреки, че има в нея приключено перо
         $dealItemId = acc_Items::fetchItem($rec->docClassId, $rec->docId)->id;
         unset($closedItems[$dealItemId]);
         
@@ -584,38 +625,54 @@ abstract class deals_ClosedDeals extends core_Master
     
     
     /**
+     * Намиране на най-големия вальор в треда на приключващия документ
+     * 
+     * @param stdClass $rec
+     * @return date
+     */
+    public function getBiggestValiorInThread($rec)
+    {
+    	$dates = array();
+    	$rec = $this->fetchRec($rec);
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	
+    	if($firstDoc->haveInterface('acc_TransactionSourceIntf')){
+    		$dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
+    	}
+    	
+    	// Обхождаме всички документи в нишката и им извличаме вальорите
+    	$desc = $firstDoc->getDescendants();
+    	
+    	if(count($desc)){
+    		foreach ($desc as $doc){
+    			if($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')){
+    				if($doc->that != $rec->id && $doc->getClassId() != $rec->classId){
+    					$dates[] = $doc->fetchField($doc->getInstance()->valiorFld);
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Сортираме вальорите по възходящ ред
+    	usort($dates, function($a, $b) {
+    		return ($a < $b) ? 1 : -1;
+    	});
+    	
+    	// Намираме най-голямата дата от намерените
+    	$date = $dates[0];
+    	
+    	return $date;
+    }
+    
+    
+    /**
      * Какъв да е вальора на контировката. Взима за дата на вальора, датата на вальора на последния
-     * контиран документ в нишката (без текущия)
+     * контиран документ в нишката (без текущия), ако е в затворен период взима първата дата на първия отворен период след него
      */
     public function getValiorDate($rec)
     {
-        $dates = array();
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        
-        if($firstDoc->haveInterface('acc_TransactionSourceIntf')){
-            $dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
-        }
-        
-        // Обхождаме всички документи в нишката и им извличаме вальорите
-        $desc = $firstDoc->getDescendants();
-        
-        if(count($desc)){
-            foreach ($desc as $doc){
-                if($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')){
-                    if($doc->that != $rec->id && $doc->getClassId() != $rec->classId){
-                        $dates[] = $doc->fetchField($doc->getInstance()->valiorFld);
-                    }
-                }
-            }
-        }
-        
-        // Сортираме вальорите по възходящ ред
-        usort($dates, function($a, $b) {
-                return ($a < $b) ? 1 : -1;
-            });
-        
-        // Намираме най-голямата дата от намерените
-        $date = $dates[0];
+    	// Намираме най-голямата дата от намерените
+        $date = $this->getBiggestValiorInThread($rec);
         
         // Ако периода на избраната дата е затворен, вальора става датата на документа
         $pRec = acc_Periods::fetchByDate($date);

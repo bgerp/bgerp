@@ -36,7 +36,7 @@
     position: absolute;
     right: 18px;
     top: 2;
-    z-index: 200;
+    z-index: 10;
 }
 
 .select2-selection__clear:hover {
@@ -145,4 +145,25 @@ span.all-users{
 .modern-theme .select2-selection:focus{
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08), 0 0 8px rgba(102, 175, 233, 0.5) !important;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08), 0 0 8px rgba(102, 175, 233, 0.5) !important;
+}
+
+.color-preview {
+    padding: 6px;
+    vertical-align: bottom;
+    display: inline-block;
+    height: 6px;
+    border: 1px solid #000;
+}
+
+.narrow .color-preview {
+	height: 3px;
+	vertical-align: top;
+	position: relarive;
+	top:3px;
+}
+
+@-moz-document url-prefix() { 
+	.narrow .color-preview {
+		vertical-align: -2px;
+	}
 }

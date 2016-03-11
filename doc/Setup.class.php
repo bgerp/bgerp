@@ -79,6 +79,18 @@ defIfNot('DOC_HIDE_TEXT_AFTER_LENGTH', 20000);
 
 
 /**
+ * Колко секунди в кеша максимално да живеят документите
+ */
+defIfNot('DOC_CACHE_LIFETIME', 5*60);
+
+
+/**
+ * Стрингове, които да се замества с точка при повторение
+ */
+defIfNot('DOC_STRING_FOR_REDUCE', 'За,Отн,Относно,回复,转发,SV,VS,VS,VL,RE,FW,FRW,TR,AW,WG,ΑΠ,ΣΧΕΤ,ΠΡΘ,R,RIF,I,SV,FS,SV,VB,RE,RV,RES,ENC,Odp,PD,YNT,İLT');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -117,6 +129,15 @@ class doc_Setup extends core_ProtoSetup
      */
     var $info = "Документи и папки";
     
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+        array('title' => 'Ключови думи', 'url' => array ('doc_Containers', 'repairKeywords', 'ret_url' => TRUE), 'params' => array('title' => 'Индексиране на съдържанието за търсене в текстовете'))
+    );
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -133,10 +154,11 @@ class doc_Setup extends core_ProtoSetup
         'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се поправят състоянията на документите->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
     
-        'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи->В началото на нишката, customizeBy=user'),
-        'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи->В края на нишката, customizeBy=user'),
-        'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи->По-нови от, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
         'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
+        'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
     );
 
     
@@ -146,7 +168,6 @@ class doc_Setup extends core_ProtoSetup
         'doc_Folders',
         'doc_Threads',
         'doc_Containers',
-        'doc_Search',
         'doc_Folders',
         'doc_Comments',
         'doc_Notes',
@@ -154,20 +175,17 @@ class doc_Setup extends core_ProtoSetup
         'doc_ThreadUsers',
         'doc_Files',
     	'doc_TplManager',
+    	'doc_HiddenContainers',
+    	'doc_DocumentCache',
+    	'doc_Likes',
         'migrate::repairAllBrokenRelations'
     );
-    
-    
-    /**
-     * Дефиниции на класове с интерфейси
-     */
-    var $classes = 'doc_DocsReport';
 
     
     /**
      * Дефинирани класове, които имат интерфейси
     */
-    var $defClasses = 'doc_DocsReport';
+    var $defClasses = 'doc_reports_Docs';
         
     
     /**

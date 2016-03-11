@@ -15,8 +15,6 @@
 class findeals_Deals extends deals_DealBase
 {
 	
-	const AGGREGATOR_TYPE = 'deal';
-	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -45,7 +43,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
     
     
     /**
@@ -64,6 +62,12 @@ class findeals_Deals extends deals_DealBase
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,findeals';
+    
+    
+    /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,findeals';
     
     
     /**
@@ -159,7 +163,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Позволени операции на последващите платежни документи
      */
-    protected $allowedPaymentOperations = array(
+    public  $allowedPaymentOperations = array(
     		'debitDealCase'      => array('title' => 'Приход по финансова сделка', 'debit' => '501', 'credit' => '*'),
     		'debitDealBank'      => array('title' => 'Приход по финансова сделка', 'debit' => '503', 'credit' => '*'),
     		'creditDealCase'     => array('title' => 'Разход по финансова сделка', 'debit' => '*', 'credit' => '501'),
@@ -182,17 +186,23 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Сметки с какви интерфейси да се показват за избор
+     */
+    protected $accountListInterfaces = 'crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf)', 'caption=Сметка,mandatory,silent');
+    	$this->FLD('accountId', "acc_type_Account", 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
-    	$this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс');
+    	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс');
     	
     	$this->FLD('companyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Втори контрагент->Фирма,input');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Втори контрагент->Лице,input');
@@ -208,6 +218,19 @@ class findeals_Deals extends deals_DealBase
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$form->setOptions('accountId', acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces));
     }
     
     
@@ -263,7 +286,7 @@ class findeals_Deals extends deals_DealBase
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
-    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
     	
     	acc_type_Account::filterSuggestions('crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
     	
@@ -310,7 +333,7 @@ class findeals_Deals extends deals_DealBase
     		if(!$rec->currencyRate){
     			
     			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
+    			$rec->currencyRate = currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL);
     			if(!$rec->currencyRate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
@@ -344,10 +367,6 @@ class findeals_Deals extends deals_DealBase
     			$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
     			$row->accountId = ht::createLink($row->accountId, $accUrl);
     		}
-    	}
-    	
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -590,8 +609,6 @@ class findeals_Deals extends deals_DealBase
     public function pushDealInfo($id, &$result)
     {
     	$rec = self::fetchRec($id);
-    	
-    	$result->set('dealType', self::AGGREGATOR_TYPE);
     	
     	$result->set('allowedPaymentOperations', $this->getPaymentOperations($id));
     	$result->set('allowedShipmentOperations', $this->getShipmentOperations($id));
@@ -838,31 +855,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    
-    	// Ако папката е на контрагент
-    	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
-    		$debitGroupId = crm_Groups::fetchField("#sysId = 'debitors'");
-    		$creditGroupId = crm_Groups::fetchField("#sysId = 'creditors'");
-    		
-    		// и той е в група 'дебитори' или 'кредитори'
-    		if(keylist::isIn($debitGroupId, $groupList) || keylist::isIn($creditGroupId, $groupList)){
-    
-    			return TRUE;
-    		}
-    	}
-    
-    	// Ако не е контрагент или не е в група 'дебитори' или 'кредитори' не слагаме бутон
-    	return FALSE;
-    }
-    
-    
-    /**
      * Кои сделки ще могатд а се приключат с документа
      * 
      * @param findeals_Deals $mvc
@@ -879,6 +871,55 @@ class findeals_Deals extends deals_DealBase
     		if($accId != $rec->accountId){
     			unset($res[$id]);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Кои са документите в нишката
+    	$descendents = $mvc->getDescendants($rec->id);
+    	$documentsInClosedPeriod = array();
+    	
+    	// Ако има наследници
+    	if(is_array($descendents)){
+    		foreach ($descendents as $desc){
+    			
+    			// Които са контиращи документи
+    			if($desc->haveInterface('acc_TransactionSourceIntf') && $desc->fetchField('state') == 'active'){
+    				$date = $desc->getValiorValue();
+    				$pRec = acc_Periods::fetchByDate($date);
+    				
+    				// И вальора им е в приключен период
+    				if($pRec->state == 'closed'){
+    					$handle = $desc->getHandle();
+    					
+    					// Запомняме ги
+    					$documentsInClosedPeriod[$handle] = "#" . $handle;
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Ако са намерени документи в нишката контирани в приключен счетоводен период, 
+    	// спираме оттеглянето и показваме съобщение за грешка
+    	if(count($documentsInClosedPeriod)){
+    		$msg = "Финансовата сделка не може да бъде оттеглена, защото ";
+    		$msg .= (count($documentsInClosedPeriod) == 1) ? 'документа' : 'следните документи';
+    		$msg .= "|* " . implode(', ', $documentsInClosedPeriod);
+    		$are = (count($documentsInClosedPeriod) == 1) ? 'е контиран' : 'са контирани';
+    		$msg .= " |в нишката {$are} в затворен счетоводен период|*";
+    		$msg = tr($msg);
+    		
+    		core_Statuses::newStatus($msg, 'error');
+    		
+    		// Връщаме FALSE за да се стопира оттеглянето на документа
+    		return FALSE;
     	}
     }
 }

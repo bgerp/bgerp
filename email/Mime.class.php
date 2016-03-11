@@ -89,7 +89,7 @@ class email_Mime extends core_BaseClass
      * ->type
      * ->param
      */
-    var $files = array();
+    public $files = array();
     
     
     /**
@@ -1192,6 +1192,30 @@ class email_Mime extends core_BaseClass
             $res = rtrim($res, ', ');
         }
         
+        return $res;
+    }
+
+
+    /**
+     * Връща вербално представяне на хедърите на съобщението
+     *
+     * @return string
+     */
+    public function getHeadersVerbal()
+    {
+        $headers = $this->getHeadersStr();
+        $headers = $this->parseHeaders($headers);
+        $res = '';
+        if(is_array($headers)) {
+            foreach($headers as $h => $c) {
+                $a = implode('; ', $c);
+                $h = str_replace(' ', '-', ucwords(str_replace('-', ' ', $h)));
+                $a = type_Varchar::escape($a);
+                $res .= "<div><b>{$h}</b>: {$a}</div>";
+            }
+        }
+ 
+
         return $res;
     }
 }

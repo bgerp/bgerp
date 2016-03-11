@@ -1,6 +1,20 @@
 <?php
+
+
+/**
+ * Мениджър на съдебни регистрации
+ *
+ * @category  bgerp
+ * @package   crm
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2015 Experta OOD
+ * @license   GPL 3
+ * @since     0.12
+ */
 class crm_ext_CourtReg extends core_Detail
 {
+	
+	
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -14,9 +28,15 @@ class crm_ext_CourtReg extends core_Detail
 
     
     /**
+     * Единично заглавие
+     */
+    var $singleTitle = 'Съдебна регистрация';
+    
+    
+    /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'crm_Wrapper,plg_RowTools';
+    var $loadList = 'crm_Wrapper,plg_RowTools2';
     
     
     /**

@@ -406,6 +406,10 @@ class callcenter_Talks extends core_Master
     {
         $conf = core_Packs::getConfig('callcenter');
         
+        $url = toUrl(getCurrentUrl());
+        
+        self::logDebug('CALL BEGIN: ' . $url);
+        
         // Масив с грешките
         $errArr = array();
         
@@ -592,6 +596,10 @@ class callcenter_Talks extends core_Master
     function act_RegisterEndCall()
     {
         $conf = core_Packs::getConfig('callcenter');
+        
+        $url = toUrl(getCurrentUrl());
+        
+        self::logDebug('CALL END: ' . $url);
         
         // Масив с грешките
         $errArr = array();
@@ -1124,7 +1132,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме грешката
-            static::log($err, $id);
+            self::logErr($err, $err);
         }
     }
     
@@ -1144,8 +1152,10 @@ class callcenter_Talks extends core_Master
         // Ако не отговаря на посочения от нас
         if ($protectKey != $conf->CALLCENTER_PROTECT_KEY) {
             
+            $errMsg = 'Невалиден публичен ключ за обаждането';
+            
             // Записваме в лога
-            static::log('Невалиден публичен ключ за обаждането: ' . $protectKey);
+            self::logErr($errMsg . ': ' . $protectKey);
             
             // Връщаме
             return FALSE;
@@ -1164,7 +1174,7 @@ class callcenter_Talks extends core_Master
             if (!$allowedIpArr[$ip]) {
                 
                 // Записваме в лога
-                static::log('Недопустим IP адрес: ' . $ip);
+                self::logErr('Недопустим IP адрес в конфигурацията');
                 
                 return FALSE;
             }
@@ -1301,6 +1311,10 @@ class callcenter_Talks extends core_Master
             // Ограничаваме дължината, за да може да се побере в полето, което е 255
             $namesStr = str::limitLen($namesStr, 200);
             
+            if (!$namesStr) {
+                $namesStr = '"|Скрит номер|*"';
+            }
+            
             // Добавяме номерата/имената към съобщението
             $message = $message . ' ' . $namesStr;
             
@@ -1411,10 +1425,15 @@ class callcenter_Talks extends core_Master
                 // Търсим във външните и вътрешните номера
                 $data->query->where(array("#externalNum LIKE '%[#1#]'", $number));
                 $data->query->orWhere(array("#internalNum LIKE '%[#1#]'", $number));
+                
+                if (!Request::get('usersSearch')) {
+                    $userSearchType = $data->listFilter->getFieldType('usersSearch');
+                    $filter->usersSearch = $userSearchType->fitInDomain('all_users');
+                }
             }
             
             // Ако филтъра е по потребители
-            if($filter->usersSearch) {
+            if ($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
     			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
@@ -1822,7 +1841,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме
-            static::save($rec);
+            static::save($rec, 'dialStatus');
             
             // Добавяме нотификация
             static::addNotification($rec);
@@ -2035,11 +2054,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме абсолютния линк
-        $url = toUrl($urlArr, 'absolute');
-        
-        // Фикс за Reload
-        // TODO може да се премахне
-        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
+        $url = toUrl($urlArr, 'absolute-force');
         
         $url = escapeshellarg($url);
         
@@ -2064,11 +2079,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Вземаме абсолютния линк
-        $url = toUrl($urlArr, 'absolute');
-        
-        // Фикс за Reload
-        // TODO може да се премахне
-        $url = str_ireplace('reload.bgerp.com/callcenter_Talks/', 'reload1.bgerp.com/callcenter_Talks/', $url);
+        $url = toUrl($urlArr, 'absolute-force');
         
         $url = escapeshellarg($url);
         

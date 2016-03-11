@@ -14,6 +14,16 @@
  */
 class crm_ProfilesPlg extends core_Plugin
 {
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdObject $row
+     * @param stdObject $rec
+     * @param array $fields
+     */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {   
         // В случаите, когато генерираме html за цел, различна от нормалното 
@@ -22,11 +32,17 @@ class crm_ProfilesPlg extends core_Plugin
 
             return;
         }
-         
+        
+        expect(is_array($fields));
+        $fieldsCnt = count($fields);
+        
         // Показваме никовете, като линкове, само при лист и сингъл изглед
-        if($fields['-list'] || $fields['-single'] || !count($fields)) {
+        if($fields['-list'] || $fields['-single'] || !$fieldsCnt) {
             $fieldsArr = $mvc->selectFields();
             foreach($fieldsArr as $name => $field) {
+                
+                if ($fieldsCnt && !$fields[$name]) continue;
+                
                 $type = $field->type;
 
                 // Ако е от type_Key

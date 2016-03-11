@@ -63,7 +63,13 @@ class cal_Reminders extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'description';
-
+    
+    
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'powerUser';
+    
     
     /**
      * Поле в което да се показва иконата за единичен изглед
@@ -161,6 +167,12 @@ class cal_Reminders extends core_Master
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -175,7 +187,7 @@ class cal_Reminders extends core_Master
         $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,mandatory,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
         
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
@@ -184,7 +196,7 @@ class cal_Reminders extends core_Master
         						   replicate=Копие на темата)', 'caption=Действие, mandatory,maxRadio=5,columns=1,notNull,value=notify,changable');
         
         // Начало на напомнянето
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Време->Начало, silent,changable');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
         
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
@@ -207,7 +219,7 @@ class cal_Reminders extends core_Master
         $this->FLD('weekDayNames', 'varchar(12)', 'caption=Име на деня,notNull,input=none');
         
         // Кога е следващото стартирване на напомнянето?
-        $this->FLD('nextStartTime', 'datetime', 'caption=Следващо напомняне,input=none');
+        $this->FLD('nextStartTime', 'datetime(format=smartTime)', 'caption=Следващо напомняне,input=none');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -294,18 +306,33 @@ class cal_Reminders extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {  
     	if ($form->isSubmitted()) {
-        	if($form->rec->timeStart < $now){
-        		// Добавяме съобщение за грешка
-                $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
-        	}
+    	    
+            $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
+            
+            if (empty($sharedUsersArr)) {
+                $form->setError('sharedUsers', 'Трябва да има поне един споделен');
+            }
+            
+    	    $now = dt::now();
+    	    
+    	    if (isset($form->rec->timeStart)) {
+        	    if ($form->rec->timeStart < $now){
+            		// Добавяме съобщение за грешка
+                    $form->setError('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
+            	}
+    	    } else {
+    	        if (!$form->rec->id) {
+    	            $form->rec->timeStart = $now;
+    	        }
+    	    }
         	
-    		if($form->rec->id){
+    		if ($form->rec->id){
     			
     			$exState = self::fetchField($form->rec->id, 'state');
     			
     			if($form->rec->timeStart < $now && ($form->rec->state != $exState && $form->rec->state != 'rejected')){
     				// Добавяме съобщение за грешка
-                	$form->setError('timeStart', tr("Не може да се направи напомняне в миналото"). dt::mysql2verbal($now, 'smartTime'));
+                	$form->setError('timeStart', "Не може да се направи напомняне в миналото|* ". dt::mysql2verbal($now, 'smartTime'));
     			}
     		}
     		
@@ -325,12 +352,14 @@ class cal_Reminders extends core_Master
     {
     	$now = dt::now(); 
     	
-    	if($rec->id){
-    		$exState = self::fetchField($rec->id, 'state');
-    		$timeStart = $rec->timeStart;
-    		if(!$timeStart){
-    			$timeStart = self::fetchField($rec->id, 'timeStart');
-    		} 
+    	if ($rec->id) {
+    		if (!$rec->timeStart) {
+    			$rec->timeStart = self::fetchField($rec->id, 'timeStart');
+    		}
+    		
+    		if (!$rec->timeStart) {
+    		    $rec->timeStart = dt::now();
+    		}
     	}
     }
 
@@ -466,17 +495,8 @@ class cal_Reminders extends core_Master
 	    	$data->row->repetitionTypeMonth = '';
     	}
     }
-
-
-    /**
-     * След рендиране на единичния изглед
-     */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        $tpl->removeBlock('shareLog');
-    }
-
-
+    
+    
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if ($data->recs) {
@@ -541,8 +561,6 @@ class cal_Reminders extends core_Master
     	if ($newRec->notifySent === 'yes') {
     		$newRec->notifySent = 'no';
     	}
-    	
-        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
  
     
@@ -584,12 +602,10 @@ class cal_Reminders extends core_Master
      */
     function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
-        $res = TRUE;
-        
         // Чернова документи не могат да се променят
-        if ($rec->state == 'draft') {
+        if ($res !== FALSE && $rec->state != 'draft') {
             
-            $res = FALSE;
+            $res = TRUE;
         } 
     }
     
@@ -619,11 +635,8 @@ class cal_Reminders extends core_Master
         
        	cal_Reminders::save($recUpd);
        
-        // Добавяме съобщение в статуса
-        status_Messages::newStatus(tr("Успешно спряхте напомнянето"));
-        
         // Редиректваме
-        return redirect($link);
+        return new Redirect($link, "|Успешно спряхте напомнянето");
     }
 
 
@@ -907,14 +920,14 @@ class cal_Reminders extends core_Master
 					$rec->monthsWeek = $monthsWeek;
 					$rec->weekDayNames = $weekDayNames[$data[wday]];
 					
-					$nextStartTime = date("Y-m-d {$data[hours]}:{$data[minutes]}:{$data[seconds]}", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+					$nextStartTime = date("Y-m-d {$data[hours]}:{$data[minutes]}:{$data[seconds]}", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
 					        		
 					if(dt::mysql2timestamp($nextStartTime) < $nowTs) continue;
 					
 					if($rec->timePreviously !== NULL){
-						$nextStartTimeD = date("d", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
-						$nextStartTimeM = date("m", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
-						$nextStartTimeG = date("Y", dt::firstDayOfMounthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+						$nextStartTimeD = date("d", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+						$nextStartTimeM = date("m", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
+						$nextStartTimeG = date("Y", dt::firstDayOfMonthTms($nextStartTimeMonth, $data[year], $nextStartTimeName));
 				    	$nextStartTime = date("Y-m-d H:i:s", mktime($data[hours], $data[minutes], $data[seconds] - $rec->timePreviously, $nextStartTimeM, $nextStartTimeD, $nextStartTimeG));
 				    	
 				    	return $nextStartTime;
@@ -965,6 +978,36 @@ class cal_Reminders extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calReminders', 'Прикачени файлове в напомнянията', NULL, '104857600', 'user', 'user');
     }
-
-       
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        $allFieldsArr = array('priority' => 'Приоритет',
+        						'timeStart' => 'Начало',
+        						'action' => 'Действие',
+        						'timePreviously' => 'Предварително',
+        						'nextStartTime' => 'Следващо напомняне',
+        						'rem' => 'Напомняне',
+        						'repetitionTypeMonth' => 'Съблюдаване на',
+                            );
+        foreach ($allFieldsArr as $fieldName => $val) {
+            if ($row->{$fieldName}) {
+                $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
+            }
+        }
+        
+        if ($row->repetitionEach){
+            $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
+        }
+    }
 }

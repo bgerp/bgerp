@@ -9,7 +9,7 @@
  * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -27,10 +27,10 @@ class plg_RowTools extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
         if(!arr::haveSection($fields, '-list')) return;
         
@@ -62,11 +62,15 @@ class plg_RowTools extends core_Plugin
             $retUrl = TRUE;
         }
         
+        $singleTitle = $mvc->singleTitle;
+        $singleTitle = tr($singleTitle);
+        $singleTitle = mb_strtolower($singleTitle);
+        
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
             $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 
-            $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id},title=Редактиране на " . mb_strtolower($mvc->singleTitle));
+            $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id},title=" . tr("Редактиране на") . ' ' . $singleTitle);
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
@@ -79,7 +83,7 @@ class plg_RowTools extends core_Plugin
         	);
         	
         	$deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id},title=Изтриване на " . mb_strtolower($mvc->singleTitle));
+                tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id},title=" . tr("Изтриване на") . ' ' . $singleTitle);
         } else {
         	$loadList = arr::make($mvc->loadList);
         	if(in_array('plg_Rejected', $loadList)){
@@ -89,9 +93,9 @@ class plg_RowTools extends core_Plugin
 			            $mvc,
 			            'reject',
 			            'id' => $rec->id,
-			            'ret_url' => TRUE);
+			            'ret_url' => $retUrl);
 			         $deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=Оттегляне на " . mb_strtolower($mvc->singleTitle));
+                		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=" . tr("Оттегляне на") . ' ' . $singleTitle);
         			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
         			$restoreImg = "<img src=" . sbf('img/16/restore.png') . " alt=\"" . tr('Възстановяване') . "\">";
@@ -100,23 +104,30 @@ class plg_RowTools extends core_Plugin
 			            $mvc,
 			            'restore',
 			            'id' => $rec->id,
-			            'ret_url' => TRUE);
+			            'ret_url' => $retUrl);
 			            
 			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
-                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},title=Възстановяване на " . mb_strtolower($mvc->singleTitle));
+                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},title=" . tr("Възстановяване на") . ' ' . $singleTitle);
         		}
+        	}
+        }
+        
+        if($mvc->hasPlugin('change_Plugin')){
+        	if ($mvc->haveRightFor('changerec', $rec)) {
+        		$changeLink = $mvc->getChangeLink($rec->id);
         	}
         }
         
         $tpl = new ET(static::$rowToolsTpl);
         $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
         
-        if ($singleLink || $editLink || $deleteLink || $restoreLink) {
+        if ($singleLink || $editLink || $deleteLink || $restoreLink || $changeLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
             $tpl->append($deleteLink, 'TOOLS');
             $tpl->append($restoreLink, 'TOOLS');
+            $tpl->append($changeLink, 'TOOLS');
         }
         $row->{$field} = $tpl;
         
@@ -131,7 +142,7 @@ class plg_RowTools extends core_Plugin
      * Метод по подразбиране
      * Връща иконата на документа
      */
-    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    public static function on_AfterGetIcon($mvc, &$res, $id = NULL)
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
@@ -192,10 +203,11 @@ class plg_RowTools extends core_Plugin
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listFields = arr::make($data->listFields, TRUE);
-        
+        $data->listFields =  arr::make($data->listFields, TRUE);
+
+         
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
@@ -205,7 +217,9 @@ class plg_RowTools extends core_Plugin
             foreach($data->rows as $row) {
                 
                 // Ако в някой от полетата има промяна по шаблона
-                if ($rowToolsTpl->content != $row->{$field}->content) return ;
+                if(isset($row->{$field})){
+                	if ($rowToolsTpl->content != $row->{$field}->content) return;
+                }
             }
         }
         

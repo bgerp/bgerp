@@ -33,7 +33,7 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_NoChange, plg_Search';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, price_Wrapper, plg_NoChange, plg_Search';
                     
     
     /**
@@ -63,31 +63,31 @@ class price_Lists extends core_Master
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'price,ceo';
+    var $canEdit = 'priceMaster,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'sales,price,ceo';
+    var $canAdd = 'sales,priceMaster,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'price,ceo';
+    var $canList = 'priceMaster,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'price,ceo';
+	var $canSingle = 'priceMaster,ceo';
 	
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'price,ceo';
+    var $canDelete = 'priceMaster,ceo';
  
      
     /**  
@@ -248,7 +248,7 @@ class price_Lists extends core_Master
     {
     	if($form->isSubmitted()){
     		if(($form->rec->id) && isset($form->rec->discountCompared) && $form->rec->discountCompared == $form->rec->id){
-    			$form->setError('discountCompared', 'Неможе да изберете същата политика');
+    			$form->setError('discountCompared', 'Не може да изберете същата политика');
     		}
     	}
     }

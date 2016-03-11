@@ -1,11 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>|Заповед|* <b>[#ident#]</b> ([#state#])</div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 class="centered">|З А П О В Е Д|* </h3>
     <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
     <p class="centered">|Относно|*: |разрешение за ползване на|* <b>[#isPaid#]</b> |годишен отпуск|*</p>
@@ -24,9 +17,4 @@
             <td></td>
         </tr>
     </table>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

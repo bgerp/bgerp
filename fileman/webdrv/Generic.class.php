@@ -34,6 +34,12 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Суфикса за файла с грешките
+     */
+    protected static $errLogFileExt = '_err.log';
+    
+    
+    /**
      * Кой може да разглежда драйвер
      */
     protected $canView = 'every_one';
@@ -79,6 +85,20 @@ class fileman_webdrv_Generic extends core_Manager
         static::getMetaData($fRec);
         
         return ;
+    }
+    
+        
+    /**
+     * Връща името на файла за грешките
+     * 
+     * @param string $outFilePath
+     * 
+     * @return string
+     */
+    public static function getErrLogFilePath($outFilePath)
+    {
+        
+        return $outFilePath . self::$errLogFileExt;
     }
     
     
@@ -651,7 +671,7 @@ class fileman_webdrv_Generic extends core_Manager
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
@@ -1358,5 +1378,37 @@ class fileman_webdrv_Generic extends core_Manager
         $arr['height'] = $thumbHeight;
         
         return $arr;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на типа на подададения стринг
+     * 
+     * @param string $str
+     * @param string $type
+     * 
+     * @return string
+     */
+    protected static function getFileTypeFromStr($str, $type = 'auto')
+    {
+        if ($type == 'auto') {
+            $len = strlen($str);
+            if (($len == FILEMAN_HANDLER_LEN) && (strpos($str, '/') === FALSE)) {
+                $fileType = 'handler';
+                $fRec = fileman_Files::fetchByFh($str);
+        
+                expect($fRec);
+            } elseif ($len > 512) {
+                $fileType = 'string';
+            } else {
+                $fileType = 'path';
+            }
+        } else {
+            $fileType = $type;
+        }
+        
+        expect(in_array($fileType, array('handler', 'string', 'path')));
+        
+        return $fileType;
     }
 }

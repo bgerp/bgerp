@@ -93,7 +93,7 @@ class core_Mode
         static::set($name, $value);
         
         // Запис в сесията, ако потребителския агент не е бот
-        if(!logs_Browsers::detectBot()) {
+        if(!log_Browsers::detectBot()) {
             $pMode = core_Session::get(EF_MODE_SESSION_VAR);
             $pMode[$name] = $value;
             core_Session::set(EF_MODE_SESSION_VAR, $pMode);

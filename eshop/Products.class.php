@@ -30,15 +30,15 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'marketing_InquirySourceIntf';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    
+    
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'cms_SourceIntf';
     
     
     /**
@@ -148,10 +148,12 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams,silent');
-        $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
-        $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
-
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto,silent');
+        $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
+        $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
+        $this->FLD('quantityCount', 'enum(0=Без количество,1=1 количество,2=2 количества,3=3 количества)', 'caption=Запитване->Брой количества');
+        
 		$this->setDbUnique('code');
     }
 
@@ -175,21 +177,26 @@ class eshop_Products extends core_Master
         }
  
         if($rec->coMoq) {
-            $title = tr('Минимално Количество за Поръчка');
-            $row->coMoq = "<span title=\"{$title}\">" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
+        	$row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
         }
 
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
+            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg');
             	$lg = cms_Content::getLang();
-            	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	if(cls::load($rec->coDriver, TRUE)){
+            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	}
             }
         }
 
         if($fields['-list']) {
             $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
+        }
+        
+        if(!cls::load($rec->coDriver, TRUE)){
+        	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
         }
     }
 
@@ -222,7 +229,11 @@ class eshop_Products extends core_Master
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            $img = new thumb_Img($pRec->image, 120, 120);
+            $image = $pRec->image;
+            $tact = abs(crc32($pRec->id . round(time()/(24*60*60+537)))) % 3;
+            if($tact == 2 && $pRec->image2) $image = $pRec->image2;
+            if($tact == 1 && $pRec->image1) $image = $pRec->image1;
+            $img = new thumb_Img($image, 120, 120);
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
             if(self::haveRightFor('edit', $pRec)) {
                 $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE);
@@ -243,10 +254,12 @@ class eshop_Products extends core_Master
     {
         $layout = new ET();
 
-        foreach($data->groups as $gData) {
-            if(!count($gData->recs)) continue;
-            $layout->append("<h2>" . eshop_Groups::getVerbal($gData->groupRec, 'name') . "</h2>");
-            $layout->append(self::renderGroupList($gData));
+        if(is_array($data->groups)){
+        	foreach($data->groups as $gData) {
+        		if(!count($gData->recs)) continue;
+        		$layout->append("<h2>" . eshop_Groups::getVerbal($gData->groupRec, 'name') . "</h2>");
+        		$layout->append(self::renderGroupList($gData));
+        	}
         }
 
         return $layout;
@@ -260,16 +273,15 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {   
-        $layout = new ET();
+        $layout = new ET("");
 
         if(is_array($data->rows)) {
             $editSbf = sbf("img/16/edit.png", '');
             $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
             foreach($data->rows as $id => $row) {
-                
                 $rec = $data->recs[$id];
 
-                $pTpl = new ET(getFileContent('eshop/tpl/ProductListGroup.shtml'));
+                $pTpl = getTplFromFile('eshop/tpl/ProductListGroup.shtml');
 
                 if($rec->editUrl) {
                     $row->editLink = ht::createLink($editImg, $rec->editUrl);
@@ -295,19 +307,28 @@ class eshop_Products extends core_Master
 
 
     /**
-     *
+     * Показва единичен изглед за продукт във външната част
      */
     function act_Show()
     {
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
+
+        if(!$data->productId) {
+            $opt = cms_Content::getMenuOpt('eshop_Groups');
+            if(count($opt)) {
+                return new Redirect(array('cms_Content', 'Show', key($opt)));
+            } else {
+                return new Redirect(array('cms_Content', 'Show'));
+            }
+        }
+
         $data->rec = self::fetch($data->productId);
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
         
         cms_Content::setCurrent($data->groups->rec->menuId);
-        
 
         $this->prepareProduct($data);
 
@@ -347,24 +368,24 @@ class eshop_Products extends core_Master
 
         $data->row = $this->recToVerbal($data->rec);
         if($data->rec->image) {
-            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(120, 120), array(600, 600), $data->row->name); 
+            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(160, 160), array(800, 800), $data->row->name); 
         }
         
 
         if($data->rec->image2) {
-            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(120, 120), array(600, 600), $data->row->name . ' 2'); 
+            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(160, 160), array(800, 800), $data->row->name . ' 2'); 
         }
 
         if($data->rec->image3) {
-            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(120, 120), array(600, 600), $data->row->name3 . ' 3'); 
+            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(160, 160), array(800, 800), $data->row->name3 . ' 3'); 
         }
 
         if($data->rec->image4) {
-            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(120, 120), array(600, 600), $data->row->name4 . ' 4'); 
+            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(160, 160), array(800, 800), $data->row->name4 . ' 4'); 
         }
 
         if($data->rec->image5) {
-            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(120, 120), array(600, 600), $data->row->name5 . ' 5'); 
+            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(160, 160), array(800, 6800), $data->row->name5 . ' 5'); 
         }
 
         if(self::haveRightFor('edit', $data->rec)) {
@@ -380,11 +401,11 @@ class eshop_Products extends core_Master
 
 
     /**
-     *
+     * Рендира продукта
      */
     public function renderProduct($data)
     {
-        $tpl = new ET(getFileContent("eshop/tpl/ProductShow.shtml"));
+        $tpl = getTplFromFile("eshop/tpl/ProductShow.shtml");
         
         if($data->row->editLink) { 
             $data->row->name .= '&nbsp;' . $data->row->editLink;
@@ -447,44 +468,6 @@ class eshop_Products extends core_Master
         return $url;
     }
 
-
-    
-	/**
-     * Връща кустомизиращите параметри за запитването
-     * 
-     * @param int $id - ид на документ
-     * @return array - масив със стойности
-     */
-    public function getCustomizationParams($id)
-    {
-        $rec = $this->fetch($id);
-    	$newArr = array();
-    	
-    	$paramsArr = explode(PHP_EOL, $rec->coParams);
-    	if(count($paramsArr)){
-    		foreach ($paramsArr as $str){
-    			if($str == "") continue;
-    			
-    			$arr = explode('=', $str);
-    			if(trim($arr[0]) !== '' && trim($arr[1]) !== ''){
-    				if(trim($arr[1]) === '') continue;
-    				$newArr[trim($arr[0])] = trim($arr[1]);
-    			}
-    		}
-    	}
-    	
-    	if(empty($newArr['title'])){
-    		$newArr['title'] = $this->getVerbal($rec, 'name');
-    		$newArr['title'] .= ($rec->code) ? " (" . $this->getVerbal($rec, 'code'). ")" : "";
-    	}
-    	
-    	if(isset($newArr['measureId'])){
-    		$newArr['measureId'] = cat_UoM::fetchBySinonim($newArr['measureId'])->id;
-    	}
-    	
-    	return $newArr;
-    }
-
     
     /**
      * Титлата за листовия изглед
@@ -507,8 +490,12 @@ class eshop_Products extends core_Master
     	$form = &$data->form;
     	
     	if($form->rec->coDriver){
-    		$params = "measureId =" . PHP_EOL . "moq =" . PHP_EOL . "quantities =";
-    		$form->setDefault('coParams', $params);
+    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    		 
+    		if(count($protoProducts)){
+    			$form->setField('proto', 'input');
+    			$form->setSuggestions('proto', $protoProducts);
+    		}
     	}
     }
 }

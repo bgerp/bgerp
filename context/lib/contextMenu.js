@@ -313,6 +313,7 @@
                 va, ha,
                 left = 0,
                 top = 0,
+                bottom = 'auto',
                 bottomMenu,
                 rightMenu,
                 verAdjust = va = parseInt(option.verAdjust),
@@ -333,6 +334,8 @@
                 menuHeight = Math.min(menuHeight, cHeight);
                 menuWidth = Math.min(menuWidth, cWidth);
                 menuWidth = menuWidth + 20;
+            } else {
+                menuHeight = parseInt(el.attr('data-height'), 10);
             }
 
             if (option.displayAround == 'cursor') {
@@ -376,73 +379,87 @@
                     triggerTop = cntWin ? trigger.offset().top - cObj.scrollTop() : trigger.offset().top - cTop,
                     leftShift = triggerWidth;
 
-                left = triggerLeft;
-                top = triggerTop + triggerHeight;
+                if(option.sizeStyle == 'context'){
+                    left = 0;
 
-
-                bottomMenu = top + menuHeight;
-                rightMenu = left + menuWidth;
-                //max height and width of context menu
-                if (bottomMenu > cHeight) {
-                    if ((top - menuHeight) < 0) {
-                        if ((bottomMenu - cHeight) < (menuHeight - top)) {
-                            top = cHeight - menuHeight;
-                            va = -1 * va;
-                        } else {
-                            top = 0;
-                            va = 0;
-                        }
+                    var temp = triggerTop +  cTop +  menuHeight + triggerHeight ;
+                    if( temp > $(window).height()) {
+                        bottom = triggerHeight - 1;
+                        top = 'auto';
+                        left = 0;
                     } else {
-                        top = top - menuHeight - triggerHeight;
-                        va = -1 * va;
+                        top = parseInt(triggerHeight) + 2;
+                        left = 0 ;
                     }
-                }
-                if (rightMenu > cWidth) {
-                    if ((left - menuWidth) < 0) {
-                        if ((rightMenu - cWidth) < (menuWidth - left)) {
-                            left = cWidth - menuWidth;
+                } else {
+                    left = triggerLeft;
+                    top = triggerTop + triggerHeight;
+
+
+                    bottomMenu = top + menuHeight;
+                    rightMenu = left + menuWidth;
+                    //max height and width of context menu
+                    if (bottomMenu > cHeight) {
+                        if ((top - menuHeight) < 0) {
+                            if ((bottomMenu - cHeight) < (menuHeight - top)) {
+                                top = cHeight - menuHeight;
+                                va = -1 * va;
+                            } else {
+                                top = 0;
+                                va = 0;
+                            }
+                        } else {
+                            top = top - menuHeight - triggerHeight;
+                            va = -1 * va;
+                        }
+                    }
+                    if (rightMenu > cWidth) {
+                        if ((left - menuWidth) < 0) {
+                            if ((rightMenu - cWidth) < (menuWidth - left)) {
+                                left = cWidth - menuWidth;
+                                ha = -1 * ha;
+                                leftShift = -triggerWidth;
+                            } else {
+                                left = 0;
+                                ha = 0;
+                                leftShift = 0;
+                            }
+                        } else {
+                            left = left - menuWidth - triggerWidth;
                             ha = -1 * ha;
                             leftShift = -triggerWidth;
-                        } else {
-                            left = 0;
-                            ha = 0;
-                            leftShift = 0;
                         }
-                    } else {
-                        left = left - menuWidth - triggerWidth;
-                        ha = -1 * ha;
-                        leftShift = -triggerWidth;
+                    }
+                    //test end
+                    if (option.position == 'top') {
+                        menuHeight = Math.min(menuData.menuHeight, triggerTop);
+                        top = triggerTop - menuHeight;
+                        va = verAdjust;
+                        left = left - leftShift + triggerWidth;
+                    } else if (option.position == 'left') {
+                        menuWidth = Math.min(menuData.menuWidth, triggerLeft);
+                        left = triggerLeft - menuWidth + triggerWidth - 4;
+                        ha = horAdjust;
+                    } else if (option.position == 'bottom') {
+                        menuHeight = Math.min(menuData.menuHeight, (cHeight - triggerTop - triggerHeight));
+                        top = triggerTop + triggerHeight;
+                        va = verAdjust;
+                        left = left - leftShift + triggerWidth;
+                    } else if (option.position == 'right') {
+                        menuWidth = Math.min(menuData.menuWidth, (cWidth - triggerLeft - triggerWidth));
+                        left = triggerLeft + triggerWidth;
+                        ha = horAdjust;
                     }
                 }
-                //test end
-                if (option.position == 'top') {
-                    menuHeight = Math.min(menuData.menuHeight, triggerTop);
-                    top = triggerTop - menuHeight;
-                    va = verAdjust;
-                    left = left - leftShift + triggerWidth;
-                } else if (option.position == 'left') {
-                    menuWidth = Math.min(menuData.menuWidth, triggerLeft);
-                    left = triggerLeft - menuWidth + triggerWidth - 4;
-                    ha = horAdjust;
-                } else if (option.position == 'bottom') {
-                    menuHeight = Math.min(menuData.menuHeight, (cHeight - triggerTop - triggerHeight));
-                    top = triggerTop + triggerHeight;
-                    va = verAdjust;
-                    left = left - leftShift + triggerWidth;
-                } else if (option.position == 'right') {
-                    menuWidth = Math.min(menuData.menuWidth, (cWidth - triggerLeft - triggerWidth));
-                    left = triggerLeft + triggerWidth;
-                    ha = horAdjust;
-                }
             }
+
             //to draw contextMenu
             var outerLeftRight = menu.outerWidth(true) - menu.width(),
                 outerTopBottom = menu.outerHeight(true) - menu.height();
 
-
             //applying css property
             var cssObj = {
-                'position': (cntWin || btChck) ? 'fixed' : 'absolute',
+                'position': (option.sizeStyle == 'auto') ? 'fixed' : 'absolute',
                 'display': 'inline-block',
                 'height': '',
                 'width': '',
@@ -472,8 +489,9 @@
                     top = top - (cTop - oParPos.top);
                 }
             }
-            cssObj.left = left + ha + 'px';
-            cssObj.top = top + va + 'px';
+            cssObj.left = left;
+            cssObj.top = top ;
+            cssObj.bottom = bottom;
 
             menu.css(cssObj);
 

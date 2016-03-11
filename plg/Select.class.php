@@ -36,7 +36,7 @@ class plg_Select extends core_Plugin
     function on_AfterPrepareListFields($mvc, &$res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
         
         $data->listFields = arr::combine(array("_checkboxes" =>
                 "|*<input type='checkbox' onclick=\"return toggleAllCheckboxes();\" name='toggle'  class='checkbox'>"), $data->listFields);
@@ -53,7 +53,7 @@ class plg_Select extends core_Plugin
     function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
         
         if(!count($data->rows)) {
             unset($data->listFields['_checkboxes']);
@@ -76,6 +76,8 @@ class plg_Select extends core_Plugin
      */
     function on_BeforeRenderListTable($mvc, &$res, $data) 
     {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
+        
     	if(!$data->listClass) {
     		$data->listClass = "listRows selectRows";
     	} else {
@@ -98,7 +100,7 @@ class plg_Select extends core_Plugin
             $row = Request::get('R');
                         
             if(!count($row)) {
-                $res = new Redirect(getRetUrl(), 'Моля, изберете поне един ред');
+                $res = new Redirect(getRetUrl(), '|Моля, изберете поне един ред');
                 
                 return FALSE;
             }
@@ -124,7 +126,7 @@ class plg_Select extends core_Plugin
             
             if(!count($actArr)) {
                 
-                $res = new Redirect(getRetUrl(), 'За избраните редове не са достъпни никакви операции');
+                $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
                 return FALSE;
             }
@@ -162,7 +164,9 @@ class plg_Select extends core_Plugin
 
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
-
+            
+            $processed = 0;
+            
             foreach($selArr as $id) {
                 if($mvc->haveRightFor($act, $id)) {
                     Request::push(array('id' => $id, 'Selected' => FALSE, 'Cf' => core_Request::getSessHash($id)));
@@ -175,11 +179,11 @@ class plg_Select extends core_Plugin
             $caption = tr(mb_strtolower(ltrim($actArr[$act], '*')));
 
             if($processed == 1) {
-                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |запис"));
+                $res = new Redirect(getRetUrl(), "|Беше направено|* {$caption} |на|* {$processed} |запис");
             } elseif ($processed > 1) {
-                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |записа"));
+                $res = new Redirect(getRetUrl(), "|Беше направено|* {$caption} |на|* {$processed} |записа");
             } else {
-                $res = new Redirect(getRetUrl(), tr("|Не беше направено|* {$caption} |на нито един запис"));
+                $res = new Redirect(getRetUrl(), "|Не беше направено|* {$caption} |на нито един запис");
             }
 
             return FALSE;
@@ -209,7 +213,7 @@ class plg_Select extends core_Plugin
     function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
         
         // Ако няма никакви редове не правим нищо
         if(!count($data->rows)) return;
@@ -225,6 +229,8 @@ class plg_Select extends core_Plugin
 	 */
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
+	    if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
+	    
         if(count($data->rows)) {
 	        $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected', array('order' => 11, 'title'=>'Действия с избраните редове'));
         }
@@ -236,10 +242,9 @@ class plg_Select extends core_Plugin
      */
     function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
-        if(!count($data->rows)) return;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
         
-        // Ако се намираме в режим "печат", не показваме бутони
-        if(Mode::is('printing')) return;
+        if(!count($data->rows)) return;
         
         // Ако няма никакви редове не правим нищо
         if(!count($data->rows)) return;

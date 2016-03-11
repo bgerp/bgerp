@@ -144,23 +144,24 @@ class acc_Periods extends core_Manager
     	if($mvc->haveRightFor('close', $rec)) {
     		
     		// Проверяваме имали записи в баланса за този период
-        	$accId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id');
-        	if(acc_BalanceDetails::fetchField("#balanceId = {$accId}")){
+        	if($accId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
+        		if(acc_BalanceDetails::fetchField("#balanceId = {$accId}")){
         		
-        		// Проверяваме имали контиран приключващ документ за периода
-        		if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
-        			
-        			// Ако има, периода може да се приключи
-        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			// Проверяваме имали контиран приключващ документ за периода
+        			if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
+        				 
+        				// Ако има, периода може да се приключи
+        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			} else {
+        				 
+        				// Ако няма не може докато не бъде контиран такъв
+        				$row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+        			}
         		} else {
-        			
-        			// Ако няма не може докато не бъде контиран такъв
-        			$row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
-        		}
-        	} else {
         		
-        		// Ако няма записи, то периода може спокойно да се приключи
-        		$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			// Ако няма записи, то периода може спокойно да се приключи
+        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        		}
         	}
         }
         
@@ -470,16 +471,19 @@ class acc_Periods extends core_Manager
         
         $this->save($rec);
         
-        $res = "Затворен е период |*<span style=\"color:red;\">{$rec->title}</span>";
+        $res = "|Затворен е период|* <span style=\"color:red;\">{$rec->title}</span>";
         
         // Отваря следващия период. Създава го, ако не съществува
         $this->forcePeriod(dt::addDays(1, $rec->end));
         
         $activeRec = $this->forceActive();
         
-        $res .= "<br>Активен е период |* <span style=\"color:red;\">{$activeRec->title}</span>";
+        $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
         
-        $res = new Redirect(array('acc_Periods'), tr($res));
+        $res = new Redirect(array('acc_Periods'), $res);
+        
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logWrite("Затваряне на период", $id);
         
         return $res;
     }
@@ -510,14 +514,44 @@ class acc_Periods extends core_Manager
         $activeRec = $this->forceActive();
         
         $query = $this->getQuery();
-        $query->where("#end > '{$activeRec->end}'");
-        $query->where("#end <= '{$curPerEnd}'");
+        $query->where("#end > '{$activeRec->end}' AND #end <= '{$curPerEnd}'");
+       
+        // Ако сме достигнали указания ден за активиране на следващия бъдещ период
+        $daysBefore = acc_Setup::get('DAYS_BEFORE_MAKE_PERIOD_PENDING');
+        
+        if($daysBefore){
+
+        	if(dt::now() >= dt::addSecs(-1 * $daysBefore, $curPerEnd)){
+        		 
+        		// Опитваме се да намерим пърия бъдещ период с начало, ден след края на предходния
+        		$nQuery = acc_Periods::getQuery();
+        		$nQuery->where("#state = 'draft'");
+        		$nQuery->orderBy('id', 'ASC');
+        		 
+        		$nextDay = dt::addDays(1, $curPerEnd);
+        		$nextDay = dt::verbal2mysql($nextDay, FALSE);
+        		$draftId = NULL;
+        		while($draftRec = $nQuery->fetch()){
+        	
+        			if($draftRec->start == $nextDay){
+        				$draftId = $draftRec->id;
+        				break;
+        			}
+        		}
+        		 
+        		// Ако е намерен такъв период, добавяме го в заявката, така че да стане чакащ
+        		if(isset($draftId)){
+        			$query->orWhere("#id = {$draftId}");
+        		}
+        	}
+        }
         
         while($rec = $query->fetch()){
             $rec->state = 'pending';
             $this->save($rec);
         }
     }
+    
     
     /**
      * Създава бъдещи (3 месеца напред) счетоводни периоди

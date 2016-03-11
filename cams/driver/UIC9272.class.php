@@ -39,7 +39,7 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
      */
     function prepareSettingsForm($form)
     {
-        $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
+        $form->FNC('ip', 'ip',
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
         $form->FNC('codec', 'enum(h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
         $form->FNC('width', 'int(min=320,max=1600)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
@@ -47,7 +47,7 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
         $form->FNC('FPS', 'int(min=1,max=30)', 'caption=Скорост,hint=Скорост на записа (fps),input');
         // ALC-9272 codec = h264; ALC-9453 = mpeg4
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
-        $form->FNC('password', 'password(64,autocomplete=off)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
+        $form->FNC('password', 'password(show)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за RTSP потока,input');

@@ -1,44 +1,33 @@
 [#SingleToolbar#]
 <div class='document'>
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>|Списък за масово разпращане|* - <b>[#ident#]</b></div>
-    </div>
-    <div class='scrolling-holder'>
-        <div class='antetka small'>
-                    <table class='top-table'>
-                        <!--ET_BEGIN title-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Заглавие|*:</td>
-                            <td><b>[#title#]</b></td>
-                        </tr>
-                        <!--ET_END title-->
-                        <!--ET_BEGIN keyField-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Ключово поле|*:</td>
-                            <td><b>[#keyField#]</b></td>
-                        </tr>
-                        <!--ET_END keyField-->
-                        <!--ET_BEGIN allFields-->          
-                        <tr>
-                            <td  class='aright' style='white-space: nowrap;'>|Всички полета|*:</td>
-                            <td>[#allFields#]</td>
-                        </tr>
-                        <!--ET_END allFields-->
-                        <!--ET_BEGIN lastUsedOn-->          
-                        <tr>
-                            <td class='aright' style='white-space: nowrap;'>|Последна употреба|*:</td>
-                            <td>[#lastUsedOn#]</td>
-                        </tr>
-                        <!--ET_END lastUsedOn-->
-                        <!--ET_BEGIN createdOn-->          
-                        <tr>
-                            <td class='aright' style='white-space: nowrap;'>|Създаване|*:</td>
-                            <td>[#createdBy#], [#createdOn#]</td>
-                        </tr>
-                        <!--ET_END createdOn-->
-                    </table>
-            <div style='clear: both;'></div>
+    <!--ET_BEGIN blank-->
+        [#blank#]
+    <!--ET_END blank-->
+    
+    <!--ET_BEGIN header-->
+        <div class='header [#STATE_CLASS#] no-print'>
+            <div class='docBgIcon' style='[#iconStyle#]'>
+                <div class='document-title-group'>|Списък за масово разпращане|* <b>[#ident#]</b><!--ET_BEGIN state--> ([#state#])<!--ET_END state--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
+                </div>
+                <!--ET_BEGIN DocumentSettingsLeft-->
+                    <div class='document-settings-left'>
+                        [#DocumentSettingsLeft#]
+                    </div>
+                <!--ET_END DocumentSettingsLeft-->
+                
+                <!--ET_BEGIN DocumentSettings-->
+                    <div class='document-settings'>
+                        [#DocumentSettings#]
+                    </div>
+                <!--ET_END DocumentSettings-->
+                <div class='clearfix21'></div>
+            </div>
         </div>
+    <!--ET_END header-->
+    
+    <div class='scrolling-holder'>
+    	[#LetterHead#]
+    	
         <div style='clear: both;'></div>
         <div class='clear_l f_left block_subtitle mt_50px'>
         </div>

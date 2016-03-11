@@ -18,12 +18,6 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * Опашка от записи за записване в on_Shutdown
-	 */
-	protected $updated = array();
-	
-	
-	/**
 	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
 	 */
 	public $rowToolsField = 'tools';
@@ -42,7 +36,7 @@ abstract class deals_ServiceMaster extends core_Master
 	{
 		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
-		$mvc->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
+		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
 		$mvc->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
 		
 		$mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
@@ -62,29 +56,21 @@ abstract class deals_ServiceMaster extends core_Master
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
+				'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 		$mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
 	}
-
-
-	/**
-	 * След промяна в детайлите на обект от този клас
-	 */
-	public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-	{
-		// Запомняне кои документи трябва да се обновят
-		$mvc->updated[$id] = $id;
-	}
 	
 	
 	/**
-	 * Обновява информацията на документа
-	 * @param int $id - ид на документа
+	 * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		 
@@ -101,20 +87,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec->amountDelivered = $amount * $rec->currencyRate;
 		$rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-		$this->save($rec);
-	}
-	
-	
-	/**
-	 * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		if(count($mvc->updated)){
-			foreach ($mvc->updated as $id) {
-				$mvc->updateMaster($id);
-			}
-		}
+		
+		return $this->save($rec);
 	}
 
 
@@ -131,29 +105,30 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		$aggregatedDealInfo = $origin->getAggregateDealInfo();
 		$agreedProducts = $aggregatedDealInfo->get('products');
-	
+		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
+		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		
 		if(count($agreedProducts)){
-			foreach ($agreedProducts as $product) {
-				$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
-				 
-				// Колко остава за експедиране от продукта
-				$toShip = $product->quantity - $product->quantityDelivered;
-				 
+			foreach ($agreedProducts as $index => $product) {
+				$info = cat_Products::getProductInfo($product->productId);
+				
+				$toShip = $normalizedProducts[$index]->quantity;
+    			$price = $normalizedProducts[$index]->price;
+    			$discount = $normalizedProducts[$index]->discount;
+				
 				// Пропускат се експедираните и складируемите артикули
 				if (isset($info->meta['canStore']) || ($toShip <= 0)) continue;
 				 
 				$shipProduct = new stdClass();
 				$shipProduct->shipmentId  = $rec->id;
-				$shipProduct->classId     = $product->classId;
 				$shipProduct->productId   = $product->productId;
 				$shipProduct->packagingId = $product->packagingId;
 				$shipProduct->quantity    = $toShip;
-				$shipProduct->price       = $product->price;
-				$shipProduct->uomId       = $product->uomId;
-				$shipProduct->discount    = $product->discount;
+				$shipProduct->price       = $price;
+				$shipProduct->discount    = $discount;
 				$shipProduct->notes       = $product->notes;
-				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
-				 
+				$shipProduct->quantityInPack = $product->quantityInPack;
+				
 				$Detail = $mvc->mainDetail;
 				$mvc->$Detail->save($shipProduct);
 			}
@@ -181,7 +156,7 @@ abstract class deals_ServiceMaster extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
@@ -195,8 +170,10 @@ abstract class deals_ServiceMaster extends core_Master
 		$ownCompanyData = crm_Companies::fetchOwnCompany();
 		$Companies = cls::get('crm_Companies');
 		$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
-	
+		$row->MyCompany = transliterate(tr($row->MyCompany));
+		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
+		$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+		
 		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
 		if($uic != $ownCompanyData->vatNo){
 			$row->MyCompanyVatNo = $ownCompanyData->vatNo;
@@ -207,7 +184,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$ContragentClass = cls::get($rec->contragentClassId);
 		$cData = $ContragentClass->getContragentData($rec->contragentId);
 		$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
+		$row->contragentAddress  = core_Lg::transliterate($row->contragentAddress);
 	}
 
 
@@ -253,7 +231,6 @@ abstract class deals_ServiceMaster extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->amountDeliveredVat || $rec->amountDelivered){
     			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
@@ -265,7 +242,30 @@ abstract class deals_ServiceMaster extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
+    		core_Lg::push($rec->tplLang);
     		$mvc->prepareHeaderInfo($row, $rec);
+    		
+    		if($rec->locationId){
+    			$row->locationId = crm_Locations::getHyperlink($rec->locationId);
+    			 
+    			$contLocationAddress = crm_Locations::getAddress($rec->locationId);
+    			if($contLocationAddress != ''){
+    				$row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
+    			}
+    			 
+    			if($gln = crm_Locations::fetchField($rec->locationId, 'gln')){
+    				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
+    				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
+    			}
+    		}
+    		
+    		core_Lg::pop();
+    		
+    		if($rec->isReverse == 'yes'){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$row->operationSysId = tr('Отказ от услуга');
+    			}
+    		}
     	}
     }
 
@@ -311,20 +311,7 @@ abstract class deals_ServiceMaster extends core_Master
      */
     public function getUsedDocs_($id)
     {
-    	$res = array();
-    	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->EXT('state', $this->className, 'externalKey=shipmentId');
-    	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-    	$dQuery->groupBy('productId,classId');
-    	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-    		}
-    	}
-    	
-    	return $res;
+    	return deals_Helper::getUsedDocs($this, $id);
     }
 
     /**
@@ -348,11 +335,12 @@ abstract class deals_ServiceMaster extends core_Master
     
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
-    		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
-    
-    		$aggregator->push('shippedPacks', $p);
+    		$p->inPack      = $dRec->quantityInPack;
+    		$index = $dRec->productId;
+    		
+    		$aggregator->push('shippedPacks', $p, $index);
     	}
     }
     
@@ -386,7 +374,7 @@ abstract class deals_ServiceMaster extends core_Master
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите
-	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
 	        	// и ги нормализираме
 	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
 	        }

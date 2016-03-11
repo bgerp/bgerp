@@ -24,8 +24,8 @@ class plg_Modified extends core_Plugin
     function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
-        $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
-        $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
+        $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,forceField');
+        $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none,forceField');
     }
     
     
@@ -48,7 +48,7 @@ class plg_Modified extends core_Plugin
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
         if($rec->modifiedBy == -1) {
-            $row->modifiedBy = '@sys';
+            $row->modifiedBy = '@system';
         } elseif($rec->modifiedBy == 0) {
             $row->modifiedBy = '@anonym';
         } else {
@@ -80,5 +80,4 @@ class plg_Modified extends core_Plugin
             $res .= "<li style='color:green'>Обновено времето за модифициране на $modRecs запис(а)</li>";
         }
     }
-
 }

@@ -139,7 +139,7 @@ class doc_Notes extends core_Master
 	/**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'user';
+    var $canChangerec = 'powerUser';
     
     
     /**
@@ -155,12 +155,24 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'subject, body, sharedUsers';
+    
+    
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,changable');
-        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory,changable');
+        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory');
     }
     
     
@@ -210,5 +222,65 @@ class doc_Notes extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param doc_Notes $mvc
+     * @param object $res
+     * @param object $data
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        if ($data->row->LastVersion != '0.1') {
+            $data->row->currentVersionInHeader = $data->row->LastSelectedVersion ? $data->row->LastSelectedVersion : $data->row->FirstSelectedVersion;
+            $data->row->currentVersionInHeader = $data->row->currentVersionInHeader ? $data->row->currentVersionInHeader : $data->row->LastVersion;
+        }
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+        
+        $resArr['handle'] =  array('name' => 'Ref №', 'val' =>"[#handle#]");
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function getHideArrForLetterHead($rec, $row)
+    {
+        $hideArr = array();
+        
+        // Ако има само една версия, тогава да не се показва във вътрешната част
+        if($row->LastVersion == '0.1') {
+            $hideArr['internal']['versionAndDate'] = TRUE;
+            $hideArr['internal']['date'] = TRUE;
+            $hideArr['internal']['version'] = TRUE;
+            $hideArr['internal']['handle'] = TRUE;
+        }
+        
+        $hideArr['internal']['ident'] = TRUE;
+        $hideArr['internal']['createdBy'] = TRUE;
+        $hideArr['internal']['createdOn'] = TRUE;
+        
+        return $hideArr;
     }
 }

@@ -32,10 +32,15 @@ class type_Enum extends core_Type {
         
         if(!isset($this->options[$value])) return "{$value}?";
         
-        if(is_object($this->options[$value])) {
-            $res = tr($this->options[$value]->title);
+        $options = $this->options;
+        if(($div = $this->params['groupByDiv'])) {
+            $options = ht::groupOptions($this->options, $div);
+        }
+
+        if(is_object($options[$value])) {
+            $res = tr($options[$value]->title);
         } else {
-            $res = tr($this->options[$value]);
+            $res = tr($options[$value]);
         }
 
         return $res;
@@ -53,6 +58,11 @@ class type_Enum extends core_Type {
             return FALSE;
         }
         
+        if($value === '') {
+
+            return NULL;
+        }
+        
         return $value;
     }
     
@@ -64,7 +74,14 @@ class type_Enum extends core_Type {
     {
         // TODO: да се махне хака със <style>
         if(count($this->options)) {
-            foreach($this->options as $id => $title) {
+            $options = $this->options;
+            if($div = $this->params['groupByDiv']) {
+                $options = ht::groupOptions($this->options, $div);
+            }
+
+            $arr = array();
+
+            foreach($options as $id => $title) {
                 if(is_object($title)) {
                     $arr[$id] = $title;
                     $arr[$id]->title = html_entity_decode(tr($arr[$id]->title));
@@ -81,8 +98,8 @@ class type_Enum extends core_Type {
             }
         }
         
-        parent::setFieldWidth($attr);
-  
+        parent::setFieldWidth($attr, NULL, $arr);
+ 
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],

@@ -38,4 +38,18 @@ class bgerp_Index extends core_Manager
             return Request::forward(array('Ctr' => 'cms_Content', 'Act' => 'Show'));
         }
     }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        
+        return ht::createLink(get_called_class(), array());
+    }
 }

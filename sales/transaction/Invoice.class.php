@@ -16,6 +16,8 @@
  */
 class sales_transaction_Invoice extends acc_DocumentTransactionSource
 {
+    
+    
     /**
      * 
      * @var sales_Invoices

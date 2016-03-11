@@ -38,10 +38,21 @@ class doc_plg_Close extends core_Plugin
     	if($mvc->haveRightFor('close', $data->rec)){
     		$singleTitle = mb_strtolower($mvc->singleTitle);
     		
+            if($mvc->hasPlugin('doc_FolderPlg')) {
+                $activeMsg = 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея?';
+                $closeMsg = 'Сигурни ли сте, че искате да закриете тази папка и да не може да се добавят документи в нея?';
+            } else {
+                $activeMsg = 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея?';
+                $closeMsg = 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея?';
+            }
+
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnActivate,row=2,ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle},warning=Сигурнили сте че искате да активирате");
+    			$data->toolbar->addBtn("Откриване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnActivate,row=2,ef_icon = img/16/lock_unlock.png,title=Откриване на {$singleTitle}");
+    			$data->toolbar->setWarning('btnActivate', $activeMsg);
+    		
     		} elseif($data->rec->state == 'active'){
-    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "id=btnClose,row=2,ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle},warning=Сигурнили сте че искате да затворите");
+    			$data->toolbar->addBtn("Закриване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "order=39,id=btnClose,row=2,ef_icon = img/16/lock.png,title=Закриване на {$singleTitle}");
+    			$data->toolbar->setWarning('btnClose', $closeMsg);
     		}
     	}
     }
@@ -105,11 +116,15 @@ class doc_plg_Close extends core_Plugin
     	$mvc->requireRightFor('close', $rec);
     	 
     	$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	$action = ($state == 'closed') ? 'Приключване' : 'Активиране';
+    	
+    	$rec->brState = $rec->state;
     	$rec->exState = $rec->state;
     	$rec->state = $state;
     	
-    	$mvc->save($rec, 'state');
-    	 
-    	return Redirect(array($mvc, 'single', $rec->id));
+    	$mvc->save($rec);
+    	$mvc->logWrite($action, $rec->id);
+    	
+    	redirect(array($mvc, 'single', $rec->id));
     }
 }

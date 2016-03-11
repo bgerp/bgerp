@@ -129,13 +129,13 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,typeId,numId,dateId,personId=Имена,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'id,dateId,title=Документ,personId=Имена,typeId,numId,positionId=Позиция,startFrom,endOn';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'typeId';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -210,6 +210,14 @@ class hr_EmployeeContracts extends core_Master
             // Премахваме бутона за коментар
             $data->toolbar->removeBtn('Коментар');
         }
+        
+        if(planning_HumanResources::haveRightFor('add', (object)array('contractId' => $data->rec->id))){
+        	$data->toolbar->addBtn('Ресурс', array('planning_HumanResources', 'add', 'contractId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');
+        }
+        
+        if($hRecId = planning_HumanResources::fetchField("#contractId = {$data->rec->id}", 'id')){
+        	$data->toolbar->addBtn('Ресурс', array('planning_HumanResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на ресурс');
+        }
     }
     
     
@@ -272,7 +280,7 @@ class hr_EmployeeContracts extends core_Master
             
             self::save($rec, 'sharedUsers');
             
-            return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+            redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
         }
     }
     
@@ -316,11 +324,14 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->personId = ht::createLink($row->personId, array('crm_Persons', 'Single', $rec->personId));
-        
+        $row->personId = crm_Persons::getHyperLink($rec->personId, TRUE);
         $row->positionId = ht::createLink($row->positionId, array('hr_Departments', 'Single', $rec->departmentId, 'Tab' => 'Positions'));
+    
+        if(isset($fields['-list'])){
+        	$row->title = $mvc->getLink($rec->id, 0);
+        }
     }
     
     
@@ -337,7 +348,7 @@ class hr_EmployeeContracts extends core_Master
     	if($queryWorkingCycle->fetch("#schedule") == FALSE){
     	
     		// Ако няма, изискваме от потребителя да въведе
-    		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
+    		redirect(array('hr_Departments', 'list'), FALSE,  "|Не сте въвели работни графици");
     	}
     	
         $row = $data->row;
@@ -349,21 +360,35 @@ class hr_EmployeeContracts extends core_Master
         //tuk
         //$row->num = $data->rec->id;
         
-        $row->employeeRec         = crm_Persons::fetch($rec->personId);
-        $row->employeeRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->personId}");
+        $employeeRec = crm_Persons::fetch($rec->personId);
         
-        if(!$row->employeeRec->egn) {
-            unset($row->employeeRec->egn);
+        foreach($employeeRec as $fld => $value) {
+        	$row->{"employeeRec_{$fld}"} = $value;
+        }
+
+        $row->employeeRec_idCard = crm_ext_IdCards::fetch("#personId = '{$rec->personId}'");
+        
+        if(!$employeeRec->egn) {
+            unset($row->employeeRec_egn);
+        }
+       
+        $employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
+        
+        foreach($employerRec as $fld => $value) {
+        	$row->{"employerRec_{$fld}"} = $value;
         }
         
-        $row->employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
+        $managerRec = crm_Persons::fetch($rec->managerId);
         
-        $row->managerRec = crm_Persons::fetch($rec->managerId);
-        $row->managerRec->idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
-        $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$row->employerRec->id}");
+        foreach($managerRec as $fld => $value) {
+        	$row->{"managerRec_{$fld}"} = $value;
+        }
         
-        if(!$row->managerRec->egn) {
-            unset($row->managerRec->egn);
+        $row->managerRec_idCard = crm_ext_IdCards::fetch("#personId = {$rec->managerId}");
+        $row->employersRec = crm_ext_CourtReg::fetch("#companyId = {$employerRec->id}");
+
+        if(!$managerRec->egn) {
+            unset($row->managerRec_egn);
         }
         
         // Взимаме данните за Длъжността
@@ -409,14 +434,14 @@ class hr_EmployeeContracts extends core_Master
         
         // Национална класификация на професиите и длъжностите
         $row->professionsRec = new stdClass();
-        $row->professionsRec->nkpd = bglocal_NKPD::getTitleById($nkpd);
+        $row->professionsRec_nkpd = bglocal_NKPD::getTitleById($nkpd);
         
         // Национална класификация на икономическите дейности 
         $row->departmentRec = new stdClass();
-        $row->departmentRec->nkid = $department->nkid;
+        $row->departmentRec_nkid = $department->nkid;
         
         // Вид на структурата
-        $row->departmentRec->type = $department->type;
+        $row->departmentRec_type = $department->type;
         
         // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);
@@ -427,15 +452,15 @@ class hr_EmployeeContracts extends core_Master
         if($houres % 2 !== 0){
             $min = round(($houres - round($houres)) * 60);
             
-            $row->shiftRec->weekhours =  round($houres) . " часа" . " и " . $min . " мин.";
+            $row->shiftRec_weekhours =  round($houres) . " часа" . " и " . $min . " мин.";
         } else {
             // да добавя и минитуте
-            $row->shiftRec->weekhours =  $houres . " часа";
+            $row->shiftRec_weekhours =  $houres . " часа";
         }
         
         // Продължителността на договора
         $row->term = (int)$rec->term;
-        
+
         $res = $data;
     }
     
@@ -556,7 +581,7 @@ class hr_EmployeeContracts extends core_Master
         
         ");
         
-        $res->replace($mvc->renderSingleLayout($data), 'blank');
+        //$res->replace($mvc->renderSingleLayout($data), 'blank');
         
         $res->replace($contract, 'contract');
         
@@ -577,7 +602,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
+            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели позиция");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него
@@ -588,7 +613,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
         
         	// Ако няма, изискваме от потребителя да въведе
-        	return  Redirect(array('hr_WorkingCycles', 'list'), NULL,  "Не сте въвели работни графици");
+        	redirect(array('hr_WorkingCycles', 'list'), FALSE, "|Не сте въвели работни графици");
         }
     }
     
@@ -613,7 +638,7 @@ class hr_EmployeeContracts extends core_Master
         if($queryWorkingCycle->fetch("#schedule") == FALSE){
 
         	// Ако няма, изискваме от потребителя да въведе
-        	return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
+        	redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели работни графици");
         }
     }
     
@@ -695,7 +720,7 @@ class hr_EmployeeContracts extends core_Master
         }
         
         if(count($options) == 0) {
-            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за управител. Моля добавете !');
+            redirect(array('crm_Persons', 'list'), FALSE, '|Няма лица в група "Управители" за управител|*. |Моля добавете!');
         }
         
         return $options;
@@ -728,7 +753,7 @@ class hr_EmployeeContracts extends core_Master
         $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
         
         if (!$duration) {
-        	return Redirect(array('hr_WorkingCycles', 'list'), NULL, 'Не сте въвели продължителност на графика!');
+        	redirect(array('hr_WorkingCycles', 'list'), FALSE, '|Не сте въвели продължителност на графика!');
         }
         
        
@@ -821,13 +846,6 @@ class hr_EmployeeContracts extends core_Master
             return TRUE;
         }
         
-        /*$personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);*/
-        
         return FALSE;
     }
     
@@ -840,7 +858,7 @@ class hr_EmployeeContracts extends core_Master
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-        $row->title = tr('Трудов договор на|* ') . $this->getVerbal($rec, 'personId');
+        $row->title = $this->getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -893,4 +911,16 @@ class hr_EmployeeContracts extends core_Master
     	return $nextNum;
     }
     
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	$title = tr('Трудов договор на|* ') . $me->getVerbal($rec, 'personId');
+    	
+    	return $title;
+    }
 }

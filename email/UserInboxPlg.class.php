@@ -178,7 +178,7 @@ class email_UserInboxPlg extends core_Plugin
         if (empty($data->form->rec->id)) {
             $personId  = Request::get('personId', 'int');
             if (!empty($personId) && $personRec = crm_Persons::fetch($personId)) {
-                
+              
                 $emails = type_Emails::toArray($personRec->email, type_Emails::VALID);
                 $email  = $nick = '';
                 if (!empty($emails[0])) {
@@ -188,18 +188,27 @@ class email_UserInboxPlg extends core_Plugin
                 
                 $data->form->setDefault('names', $personRec->name);
                 $data->form->setDefault('email', $email);
-                $data->form->setDefault('email', $email);
+
+                Request::push(array('names' => $personRec->name, 'email' => $personRec->email));
                 $data->form->setField('names', 'input=hidden');
-                
-                $name = crm_Persons::getVerbal($personRec, 'name');
-                
-                $data->form->title = 'Създаване на потребител за|* ' . $name;
-                
-                $data->form->FNC('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,caption=Визитка');
+                $data->personRec = $personRec;
+             
+                $data->form->FNC('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,caption=Визитка,forceField');
                 $data->form->setDefault('personId', $personId);
             }
-            
         }
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	if(isset($data->personRec)){
+    		$name = crm_Persons::getVerbal($data->personRec, 'name');
+    		$data->form->title = 'Създаване на потребител за|* ' . $name;
+    	}
     }
     
     

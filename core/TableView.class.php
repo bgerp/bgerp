@@ -54,11 +54,55 @@ class core_TableView extends core_BaseClass
     
     
     /**
+     * Филтрира връща колоните, които трябва да се показват
+     * 
+     * @param array $rows         - записи
+     * @param mixed $fields       - масив или списък с колони, които ще се филтрират
+     * @param mixed $filterFields - масив или списък с имена на колони, които могат да се скриват
+     * @return array $fields      - масив с филтрираните колони
+     */
+    public static function filterEmptyColumns($rows, $fields, $filterFields = '*')
+    {
+    	// Имали колони в които ако няма данни да не се показват ?
+    	$fields = arr::make($fields, TRUE);
+    	if($filterFields == '*'){
+    		$filterFields = $fields;
+    	}
+    	
+    	$hideColumns = arr::make($filterFields, TRUE);
+    	
+    	// За всяка колона, която може да се скрива
+    	foreach ($hideColumns as $name => $column){
+    		$hide = TRUE;
+    		
+    		// Ако има поне един запис със стойност за нея, не я скриваме
+    		if(is_array($rows)){
+    			foreach ($rows as $id => $row){
+    				if(!empty($row->{$name})){
+    					$hide = FALSE;
+    					break;
+    				} 
+    			}
+    		}
+    		
+    		// Ако не е намерен поне един запис със стойност за колоната, скриваме я
+    		if($hide === TRUE){
+    			unset($fields[$name]);
+    		}
+    	}
+    	
+    	// Връщаме колоните, които ще се показват
+    	return $fields;
+    }
+    
+    
+    /**
      * Връща шаблон за таблицата
      */
     function get($rows, $fields)
     {
-        $fields = arr::make($fields, TRUE);
+    	$fields = arr::make($fields, TRUE);
+    	
         $header = array();
         $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
         $addRows = "";
@@ -66,6 +110,8 @@ class core_TableView extends core_BaseClass
         $maxColHeaders = 1;
         
         $i = 0;
+        
+        $fieldList = array();
         
         if (count($fields)) {
             foreach ($fields as $name => $dummy) {
@@ -114,7 +160,12 @@ class core_TableView extends core_BaseClass
                     $class = '';
 
                     if (is_object($this->mvc->fields[$place]->type)) {
-                        $class = $this->mvc->fields[$place]->type->getTdClass();
+                        $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
+                        if($this->mvc->fields[$place]->smartCenter) {
+                            $tdClass = '';
+                        }
+                    } else {
+                        $tdClass = '';
                     }
                     
                     if($this->mvc->fields[$place]->tdClass) {
@@ -156,12 +207,20 @@ class core_TableView extends core_BaseClass
                             }
                             $header[$i][$last + 1]->name = $name;
                             $header[$i][$last + 1]->rowspan = $rowspan;
+                            $header[$i][$last + 1]->tdClass = $tdClass;
                         }
                     }
                     
                     // Шаблон за реда
-                    $row .= "<td{$attr}>[#{$place}#]</td>";
                     
+                   if($this->mvc->fields[$place]->smartCenter){
+                       static $dataCol;
+                       $dataCol++;
+                       $row .= "<td{$attr}><span class='maxwidth' data-col='{$dataCol}'>[#{$place}#]</span></td>";
+                   }  else {
+                       $row .= "<td{$attr}>[#{$place}#]</td>";
+                   }
+                   
                     $colspan++;
                 } else {
                     // Допълнителни цели редове, ако колоната няма заглавие
@@ -174,13 +233,22 @@ class core_TableView extends core_BaseClass
         
         if (count($header)) {
             foreach ($header as $i => $headerRow) {
-                if ($i == count($header)) {
+                if ($i == count($header)-1) {
                     $lastRowStart = $curTH;     // Започва последният хедър
+                    $lastRowFlag = TRUE;
                 }
-                
+               
+                $headerRowCnt = count($headerRow);
+                $j = 0;
                 foreach ($headerRow as $h) {
                     $attr = array();
-                    
+ 
+                    if($lastRowFlag) {
+                        if($h->tdClass) {
+                            $attr['class'] = $h->tdClass;;
+                        }
+                    }
+
                     if ($h->rowspan > 1) {
                         $attr['rowspan'] = $h->rowspan;
                     }
@@ -188,8 +256,8 @@ class core_TableView extends core_BaseClass
                     if ($h->colspan > 1) {
                         $attr['colspan'] = $h->colspan;
                     }
-                    $th = ht::createElement('th', $attr, $h->name);
-                    
+                    $th = ht::createElement('th', $attr, $h->name);  
+             
                     $hr[$i] .= $th->getContent();
                     
                     $curTH++;

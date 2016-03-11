@@ -55,10 +55,30 @@ class gdocs_Plugin extends core_Plugin
     {
         $url = $params['url'];
         
+        if ($editPos = strripos($url, '/edit')) {
+            $editLen = 5;
+            $url = trim($url);
+            $replaceEdit = FALSE;
+            if (($editPos + $editLen) == strlen($url)) {
+                $replaceEdit = TRUE;
+            } else {
+                $afterEdit = $url{$editLen+$editPos};
+                if ($afterEdit == '?' || $afterEdit == '/') {
+                    $replaceEdit = TRUE;
+                }
+            }
+            
+            if ($replaceEdit) {
+                if (stripos($url, '/presentation/')) {
+                    $url = substr_replace($url, '/pub', $editPos, $editLen);
+                }
+            }
+        }
+        
         // Ако е презентация, трябва да се промени линка
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
-        } elseif (strpos($url, '/file/')) {
+        } elseif (strpos($url, '/drawings/') || strpos($url, '/file/') || ($isForm = strpos($url, '/forms/'))) {
             
             $urlArr = parse_url($url);
             
@@ -68,15 +88,20 @@ class gdocs_Plugin extends core_Plugin
             
             $lastKey = key($lastElementOfArray);
             
+            $lastKeyName = $isForm ? 'viewform' : 'preview';
+            
             if (($lastKey == 4) && (
                     ($urlPathArr[$lastKey] == 'preview') || 
                     ($urlPathArr[$lastKey] == 'edit') || 
                     ($urlPathArr[$lastKey] == 'view') || 
+                    ($urlPathArr[$lastKey] == 'viewform') || 
+                    ($urlPathArr[$lastKey] == 'prefill') || 
+                    ($urlPathArr[$lastKey] == 'pub') || 
                     ($urlPathArr[$lastKey] == 'share'))
                 ) {
-                $urlPathArr[$lastKey] = 'preview';
+                $urlPathArr[$lastKey] = $lastKeyName;
             } else {
-                $urlPathArr[] = 'preview';
+                $urlPathArr[] = $lastKeyName;
             }
             
             $urlArr['path'] = implode('/', $urlPathArr);

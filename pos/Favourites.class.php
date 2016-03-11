@@ -25,14 +25,13 @@ class pos_Favourites extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Sorting,
-    				 plg_Printing, pos_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools2, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
 
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
+    var $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
     
     
     /**
@@ -72,9 +71,9 @@ class pos_Favourites extends core_Manager {
     
     
     /**
-     * Кой може да го отхвърли?
+     * Кой може да го изтрие?
      */
-    var $canReject = 'ceo, pos';
+    var $canDelete = 'ceo, pos';
     
 	
 	/**
@@ -83,7 +82,7 @@ class pos_Favourites extends core_Manager {
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory, silent,refreshForm');
-    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Опаковка,mandatory');
     	$this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
     	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
@@ -98,9 +97,8 @@ class pos_Favourites extends core_Manager {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$ProductMan = cls::get('cat_Products');
     	
-    	$form->setOptions('productId', array('' => '') + $ProductMan->getByProperty('canSell'));
+    	$form->setOptions('productId', array('' => '') + cat_Products::getByProperty('canSell'));
     }
     
     
@@ -110,32 +108,11 @@ class pos_Favourites extends core_Manager {
     protected static function on_AfterInputEditForm($mvc, $form)
     {
     	if(isset($form->rec->productId)){
-    		$ProductMan = cls::get('cat_Products');
     		
-    		$packs = $ProductMan->getPacks($form->rec->productId);
-    		if(isset($form->rec->packagingId) && !isset($packs[$form->rec->packagingId])){
-    			$packs[$form->rec->packagingId] = cat_Packagings::getTitleById($form->rec->packagingId, FALSE);
-    		}
-    		if(count($packs)){
-    			$form->setOptions('packagingId', $packs);
-    		} else {
-    			$form->setReadOnly('packagingId');
-    		}
-    	
-    		// Само при рефреш слагаме основната опаковка за дефолт
-    		if($form->cmd == 'refresh'){
-    			$baseInfo = $ProductMan->getBasePackInfo($form->rec->productId);
-    	
-    			if($baseInfo->classId == 'cat_Packagings'){
-    				$form->rec->packagingId = $baseInfo->id;
-    			}
-    		}
-    	}
-    	
-    	if($form->isSubmitted()) {
-    		if(!$productInfo = cat_Products::getProductInfo($form->rec->productId, $form->rec->packagingId)) {
-    			$form->setError('productId', 'Избрания продукт не поддържа посочената опаковка');
-    		}
+    		$packs = cat_Products::getPacks($form->rec->productId);
+    		$form->setOptions('packagingId', $packs);
+    	} else {
+    		$form->setReadOnly('packagingId');
     	}
     }
     
@@ -187,16 +164,17 @@ class pos_Favourites extends core_Manager {
     	
 	    if($cache){
 	    	$date = dt::verbal2mysql();
-	    	foreach($cache as $obj){
+	    	foreach($cache as &$obj){
 	    		
 	    		// За всеки обект от кеша, изчисляваме актуалната му цена
 	    		$price = price_ListRules::getPrice($posRec->policyId, $obj->productId, $obj->packagingId, $date);
+	    		
 	    		$vat = cat_Products::getVat($obj->productId, $date);
 	    		$obj->price = $double->toVerbal($price * (1 + $vat));
 	    	}
-	    }
-	    
-    	return $cache;
+	   }
+	   
+       return $cache;
     }
     
     
@@ -220,19 +198,17 @@ class pos_Favourites extends core_Manager {
     public function prepareProductObject($rec)
     {
     	// Информацията за продукта с неговата опаковка
-    	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
+    	$info = cat_Products::getProductInfo($rec->productId);
     	$productRec = $info->productRec;
-    	$packRec = $info->packagingRec;
+    	
     	$arr['name'] = $productRec->name;
     	$arr['catId'] = $rec->catId;
         $obj = new stdClass();
-    	$obj->quantity = ($packRec) ? $packRec->quantity : 1;
+    	$obj->quantity = (isset($info->packagings[$rec->packagingId])) ? $info->packagings[$rec->packagingId]->quantity : 1;
     	
-    	if(empty($rec->image)){
-    		$rec->image = cat_Products::getProductImage($rec->productId);
+    	if($rec->image){
+    		$arr['image'] = $rec->image;
     	}
-    	
-    	$arr['image'] = $rec->image;
     	
     	return (object)$arr;
     }
@@ -321,16 +297,12 @@ class pos_Favourites extends core_Manager {
     	
     	// До името на продукта показваме неговата основна мярка и ако
     	// има зададена опаковка - колко броя в опаковката има.
-    	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
+    	$info = cat_Products::getProductInfo($rec->productId);
+    	$quantity = $info->packagings[$rec->packagingId]->quantity;
+    	$row->pack = $mvc->getFieldType('packagingId')->toVerbal($rec->packagingId);
     	
-    	if($info->packagingRec) {
-    		$measureRow = cat_UoM::getShortName($info->productRec->measureId);
-    		$packName = cat_Packagings::getTitleById($rec->packagingId);
-    		$quantity = $info->packagingRec->quantity;
-    		$row->pack = "{$quantity} {$measureRow} " . tr('в') . " {$packName}";
-    	} else {
-    		$row->pack = cat_UoM::getTitleById($info->productRec->measureId);
-    	}
+    	// Показваме подробната информация за опаковката при нужда
+    	deals_Helper::getPackInfo($row->pack, $rec->productId, $rec->packagingId, $quantity);
     	
     	if(!$rec->pointId) {
     		$row->pointId = tr('Всички');

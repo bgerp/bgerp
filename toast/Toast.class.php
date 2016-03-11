@@ -94,6 +94,10 @@ class toast_Toast extends core_Plugin
             $toastObj->arg = $statusData;
             
             $resStatus[] = $toastObj;
+            
+            if ($soundNotifObj = $mvc->getSoundNotifications($val['type'])) {
+                $resStatus[] = $soundNotifObj;
+            }
         }
         
         return FALSE;

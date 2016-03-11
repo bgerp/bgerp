@@ -9,6 +9,16 @@
 	
 		<table class='report-info'>
 			<tr>
+				<td>|Създаване на|*: </td>
+				<td></td>
+				<td><b>[#createdOn#]</b></td>
+			</tr>
+			<tr>
+				<td>|Създаване от|*: </td>
+				<td></td>
+				<td><b>[#createdBy#]</b></td>
+			</tr>
+			<tr>
 				<td>|Касиер|*: </td>
 				<td></td>
 				<td><b>[#cashier#]</b></td>
@@ -36,6 +46,15 @@
 				<td><b>[#transferedIn#]</b></td>
 			</tr>
 			<!--ET_END transferedIn-->
+			
+			<!--ET_BEGIN inReport-->
+			<tr>
+				<td>|Приключено с|*:</td>
+				<td></td>
+				<td><b>[#inReport#]</b></td>
+			</tr>
+			<!--ET_END inReport-->
+			
 			<tr>
 				<td>|Продадено|*:</td>
 				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>

@@ -32,7 +32,7 @@ class bank_CashWithdrawOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_DocumentSummary, doc_ActivatePlg,
-         plg_Sorting, doc_DocumentPlg, plg_Printing,  plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues, doc_EmailCreatePlg';
+         plg_Sorting, doc_DocumentPlg, plg_Printing,  plg_Search, doc_plg_MultiPrint, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
     /**
@@ -285,15 +285,15 @@ class bank_CashWithdrawOrders extends core_Master
     public static function canAddToThread($threadId)
     {
         // Ако няма ориджин в урл-то, документа не може да се добави към нишката
-        $originId = Request::get('originId');
-        
+        $originId = Request::get('originId', 'int');
+       
         if(empty($originId)) return FALSE;
         
         // Към кой документ се създава бланката
         $origin = doc_Containers::getDocument($originId);
         
         // Може да се добавя само към Разходен банков ордер
-        if(!($origin->getInstance() instanceof bank_SpendingDocuments || $origin->getInstance() instanceof bank_InternalMoneyTransfer)) return FALSE;
+        if(!($origin->isInstanceOf('bank_SpendingDocuments') || $origin->isInstanceOf('bank_InternalMoneyTransfer'))) return FALSE;
         
         return TRUE;
     }

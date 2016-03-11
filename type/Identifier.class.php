@@ -47,6 +47,8 @@ class type_Identifier extends type_Varchar {
      */
     function isValid($value)
     {
+        $value = str_replace(' ', '_', $value);
+
         //Проверяваме за грешки
         $res = parent::isValid($value);
         
@@ -55,10 +57,21 @@ class type_Identifier extends type_Varchar {
         
         $pattern = "/^[a-zA-Z_]{1}[a-zA-Z0-9_]*$/i";
         
-        if(!preg_match($pattern, $value)) {
+        if($this->params['utf8']) {
+            $pattern = "/^[\p{L}a-zA-Z_]{1}[\p{L}a-zA-Z0-9_]*$/iu";
+        }
+
+        if($this->params['allowed']) {
+            $pattern = str_replace('_]', preg_quote($this->params['allowed']) . '_]', $pattern);
+        }
+       
+        if($value && !preg_match($pattern, $value)) {
             
             $res['error'] = 'Некоректен идентификатор|* ' . parent::escape($value);
-        }
+        } 
+
+        $res['value'] = $value;
+
         
         return $res;
     }

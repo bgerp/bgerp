@@ -30,7 +30,7 @@ class hr_Professions extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper,  plg_Printing,
                         plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
     
     

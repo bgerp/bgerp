@@ -196,8 +196,6 @@ class doc_Folders extends core_Master
 			$data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
 		}
 		
-		// Ограничения при показване на папките
-		static::restrictAccess($data->query);
 		switch($data->listFilter->rec->order) {
 			case 'last' :
 				$data->query->orderBy('#last', 'DESC');
@@ -334,10 +332,6 @@ class doc_Folders extends core_Master
 				$attr['style'] .= 'color:#777;';
 				$row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
 			}
-			
-			if($rec->inCharge){
-				$row->inCharge = crm_Profiles::createLink($rec->inCharge);
-			}
 		} else {
 			$row->type = "<span class='red'>" . tr('Проблем при показването') . "</span>";
 		}
@@ -431,35 +425,16 @@ class doc_Folders extends core_Master
                             
                         $priority = 'normal';
                         
-                        // По подразбиране ще се нотифицира собствника и споделените в папката
-                        $notifyArr = array();
-                        $notifyArr[$userId] = $userId;
-                        $notifyArr += keylist::toArray($rec->shared);
+                        $notifyArr = $mvc->getUsersArrForNotify($rec);
                         
-                        $key = doc_Folders::getSettingsKey($rec->id);
-                        $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
-                        
-                        // В зависимост от избраната персонална настройка добавяме/премахваме от масива
-                        foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
-                            
-                            if ($folOpening['folOpenings'] == 'no') {
-                                unset($notifyArr[$userId]);
-                            } else if ($folOpening['folOpenings'] == 'yes') {
-                                $notifyArr[$userId] = $userId;
-                            }
+                        // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
+                        $isRejected = core_Users::checkUsersIsRejected($notifyArr);
+                        if ($isRejected) {
+                            $notifyArr += core_Users::getByRole('admin');
                         }
-                        
-                        $currUserId = core_Users::getCurrent();
-                        $haveDebug = haveRole('debug', $currUserId);
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                         foreach((array)$notifyArr as $nUserId) {
-                            
-                            // Ако текущия потребител, е някой от системните, няма да се нотифицира
-                            if ($nUserId < 1) continue; 
-                            
-                            // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
-                            if (!$haveDebug && ($currUserId == $nUserId)) continue;
                             
                             if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
                             
@@ -473,6 +448,53 @@ class doc_Folders extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща масив с потребители, които ще се нотифицират за действия в папката
+     * 
+     * @param stdObject $rec
+     * 
+     * @return array
+     */
+    public static function getUsersArrForNotify($rec)
+    {
+        $resArr = array();
+        
+        if ($resArr[$rec->id]) $resArr[$rec->id];
+        
+        $notifyArr = array();
+        $notifyArr[$rec->inCharge] = $rec->inCharge;
+        $notifyArr += keylist::toArray($rec->shared);
+        
+        $key = doc_Folders::getSettingsKey($rec->id);
+        $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+        
+        // В зависимост от избраната персонална настройка добавяме/премахваме от масива
+        foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
+            
+            if ($folOpening['folOpenings'] == 'no') {
+                unset($notifyArr[$userId]);
+            } else if ($folOpening['folOpenings'] == 'yes') {
+                $notifyArr[$userId] = $userId;
+            }
+        }
+        
+        $currUserId = core_Users::getCurrent();
+        
+        // Ако няма права за дебъг, няма да се нотифицира текущия потребител
+        if (!haveRole('debug', $currUserId)) {
+            unset($notifyArr[$currUserId]);
+        }
+        
+        // Премахваме анонимния и системния потребител
+        unset($notifyArr[0]);
+        unset($notifyArr[-1]);
+        
+        $resArr[$rec->id] = $notifyArr;
+        
+        return $resArr[$rec->id];
     }
     
     
@@ -641,80 +663,22 @@ class doc_Folders extends core_Master
      * @param int $userId key(mvc=core_Users)
      * @param boolean $fullAccess - Възможно най - много права за папката
      */
-    static function restrictAccess(&$query, $userId = NULL, $fullAccess=TRUE)
+    static function restrictAccess_(&$query, $userId = NULL, $viewAccess = TRUE)
     {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-            
-            if (!isset($userId)) {
-                $userId = 0;
-            }
-        }
-        
-        $teammates = keylist::toArray(core_Users::getTeammates($userId));
-        $managers  = core_Users::getByRole('manager');
-        $ceos = core_Users::getByRole('ceo');
-        
-        // Подчинените в екипа (използва се само за мениджъри)
-        $subordinates = array_diff($teammates, $managers);
-        $subordinates = array_diff($subordinates, $ceos);
-        
-        foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
-            if (${$v}) {
-                ${$v} = implode(',', ${$v});
-            } else {
-                ${$v} = FALSE;
-            }
-        }
-        
-        $conditions = array(
-            "#folderShared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
-            "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
-        );
-        
-        // Всеки (освен конракторите) имат достъп до публичните папки
-        if (!core_Users::isContractor()) {
-            $conditions[] = "#folderAccess = 'public'";
-        }
-        
-        if ($teammates) {
-            // Всеки има достъп до екипните папки, за които отговаря негов съекипник
-            $conditions[] = "#folderAccess = 'team' AND #folderInCharge IN ({$teammates})";
-        }
-        
-        switch (true) {
-            case core_Users::haveRole('ceo') :
-                // CEO вижда всичко с изключение на private и secret папките на другите CEO
-                if ($ceos) {
-                    $conditions[] = "#folderInCharge NOT IN ({$ceos})";
-                }
-                
-                // CEO да може да вижда private папките на друг `ceo`
-                if ($fullAccess) {
-                    $conditions[] = "#folderAccess != 'secret'";
-                }
-                
-            break;
-            case core_Users::haveRole('manager') :
-                // Manager вижда private папките на подчинените в екипите си
-                if ($subordinates) {
-                    $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
-                }
-            break;
-        }
-        
         if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
-            $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
-            $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
-            $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
-        } else {
-            $query->XPR('folderAccess', 'varchar', '#access');
-            $query->XPR('folderInCharge', 'varchar', '#inCharge');
-            $query->XPR('folderShared', 'varchar', '#shared');
+            if (!$query->fields['folderAccess']) {
+                $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
+            }
+            
+            if (!$query->fields['folderInCharge']) {
+                $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
+            }
+            
+            if (!$query->fields['folderShared']) {
+                $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
+            }
         }
-        
-        $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
     
     
@@ -838,6 +802,12 @@ class doc_Folders extends core_Master
         $rec = static::fetch($params['folderId']);
             
         $haveRight = static::haveRightFor('single', $rec);
+        
+        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+            if (core_Users::isContractor() && core_Packs::isInstalled('colab')) {
+                $haveRight = colab_Folders::haveRightFor('single', $rec);
+            }
+        }
         
         // Проверяваме дали има права
         if (!$rec || (!($haveRight) && $rec->access != 'private')) return FALSE;
@@ -991,52 +961,57 @@ class doc_Folders extends core_Master
         $query->orWhere("#coverId IS NULL");
         $query->orWhere("#title IS NULL");
         
+        $query->limit(500);
+
         while($rec = $query->fetch()) {
-            
-            // Ако има папка без собственик
-            if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
-                $resArr['inCharge']++;
-                $rec->inCharge = $currUser;
-                self::save($rec);
-            }
-            
-            // Ако липсва coverClass, да е на несортираните
-            if (!isset($rec->coverClass)) {
-                $resArr['coverClass']++;
-                $rec->coverClass = $unsortedFolderId;
-                self::save($rec);
-            }
-            
-            // Ако няма coverId
-            if (!isset($rec->coverId)) {
-                $resArr['coverId']++;
-                
-                // Ако не е несортирани
-                if ($rec->coverClass != $unsortedFolderId) {
-                    $resArr['coverClass']++;
-                    $rec->coverClass = $unsortedFolderId;
-                    self::save($rec);
+            try {
+                // Ако има папка без собственик
+                if(!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
+                    $resArr['inCharge']++;
+                    $rec->inCharge = $currUser;
+                    self::save($rec, 'inCharge');
                 }
                 
-                // Създаваме документ и използваме id-то за coverId
-                $unRec = new stdClass();
-                $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
-                $unRec->inCharge = $currUser;
-                $unRec->folderId = $rec->id;
-                $rec->coverId = $unsortedFolders::save($unRec);
-                self::save($rec);
+                // Ако липсва coverClass, да е на несортираните
+                if (!isset($rec->coverClass)) {
+                    $resArr['coverClass']++;
+                    $rec->coverClass = $unsortedFolderId;
+                    self::save($rec, 'coverClass');
+                }
+                
+                // Ако няма coverId
+                if (!isset($rec->coverId)) {
+                    $resArr['coverId']++;
+                    
+                    // Ако не е несортирани
+                    if ($rec->coverClass != $unsortedFolderId) {
+                        $resArr['coverClass']++;
+                        $rec->coverClass = $unsortedFolderId;
+                        self::save($rec, 'coverClass');
+                    }
+                    
+                    // Създаваме документ и използваме id-то за coverId
+                    $unRec = new stdClass();
+                    $unRec->name = "LaF " . $rec->title . ' ' . $unsortedFolders::count();
+                    $unRec->inCharge = $currUser;
+                    $unRec->folderId = $rec->id;
+                    $rec->coverId = $unsortedFolders::save($unRec);
+                    self::save($rec, 'coverId');
+                }
+                
+                // Ако няма заглвиет, използваме заглавието от документа
+                if (!isset($rec->title)) {
+                    $resArr['title']++;
+                    $coverMvc = cls::get($rec->coverClass);
+                    $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
+                    self::save($rec, 'title');
+                }
+                
+                // Обновяваме папката
+                self::updateFolderByContent($rec->id);
+            } catch (Exception $e) {
+                reportException($e);
             }
-            
-            // Ако няма заглвиет, използваме заглавието от документа
-            if (!isset($rec->title)) {
-                $resArr['title']++;
-                $coverMvc = cls::get($rec->coverClass);
-                $rec->title = $coverMvc->getFolderTitle($rec->coverId, FALSE);
-                self::save($rec);
-            }
-            
-            // Обновяваме папката
-            self::updateFolderByContent($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
@@ -1239,10 +1214,11 @@ class doc_Folders extends core_Master
         $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
-        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
+        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени теми->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
-        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
+        $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на темите->Правило, input=input');
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From`->Имейл, input=input');
+        $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {
@@ -1261,6 +1237,7 @@ class doc_Folders extends core_Master
         $form->setDefault('folOpenings', 'default');
         $form->setDefault('perPage', 'default');
         $form->setDefault('ordering', 'default');
+        $form->setDefault('personalEmailIncoming', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';

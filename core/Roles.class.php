@@ -48,13 +48,18 @@ class core_Roles extends core_Manager
      */
     var $recalcRoles = FALSE;
     
+
+    /**
+     * Кой може да редактира системните роли
+     */
+    var $canEditsysdata = 'no_one';
     
+
     /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
 	
-
     /**
      * Наследените роли, преди да редактираме формата
      */
@@ -79,7 +84,7 @@ class core_Roles extends core_Manager
     function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
-        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\')', 'caption=Наследяване,notNull');
+        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\')', 'caption=Наследяване,notNull,');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
         
@@ -498,31 +503,10 @@ class core_Roles extends core_Manager
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        
-        if (!$this->fetch("#role = 'admin'")) {
-            $rec = new stdClass();
-            $rec->role = 'admin';
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля 'admin'";
-        }
-        
-        if (!$this->fetch("#role = 'debug'")) {
-            $rec = new stdClass();
-            $rec->role = 'debug';
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля 'debug'";
-        }
-        
-        if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
-            $rec = new stdClass();
-            $rec->role = EF_ROLES_DEFAULT;
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля '" . EF_ROLES_DEFAULT . "'";
-        }
-        
+        self::addOnce('admin', NULL, 'system');
+        self::addOnce('debug', NULL, 'system');
+        self::addOnce(EF_ROLES_DEFAULT, NULL, 'system');
+        self::addOnce('every_one', NULL, 'system');
     }
     
     

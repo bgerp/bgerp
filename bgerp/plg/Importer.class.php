@@ -87,14 +87,14 @@ class bgerp_plg_Importer extends core_Plugin
             $feedback = $mvc::import($rec);
             
             // Правим запис в лога
-            $mvc->log($data->cmd, $feedback);
+            $mvc->logWrite($data->cmd, $feedback);
             
             // Подготвяме адреса, към който трябва да редиректнем,
             // при успешно записване на данните от формата
             $mvc->prepareRetUrl($data);
             
             // Редиректваме към предварително установения адрес
-            $tpl = new Redirect($data->retUrl, $feedback);
+            $tpl = new Redirect($data->retUrl, '|' . $feedback);
             
             return FALSE;
         } else {

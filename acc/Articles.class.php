@@ -37,9 +37,16 @@ class acc_Articles extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing, doc_plg_HidePrices,
+    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary, bgerp_plg_Blank, plg_Search';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'acc_ArticleDetails';
     
     
     /**
@@ -149,10 +156,11 @@ class acc_Articles extends core_Master
      */
     var $newBtnGroup = "6.1|Счетоводни";
     
+    
     /**
-     * Документи заопашени за обновяване
+     * Да се правили проверка дали документа може да се контира в нишката
      */
-    protected $updated = array();
+    var $checkIfCanContoInThread = FALSE;
     
     
     /**
@@ -255,36 +263,12 @@ class acc_Articles extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-        // Запомняне кои документи трябва да се обновят
-        if(!empty($id)){
-            $mvc->updated[$id] = $id;
-        }
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(count($mvc->updated)){
-            foreach ($mvc->updated as $id) {
-                $mvc->updateAmount($id);
-            }
-        }
-    }
-    
-    
-    /**
-     * Преизчислява дебитното и кредитното салдо на статия
+     * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    private function updateAmount($id, $modified = TRUE)
+    public function updateMaster_($id, $modified = TRUE)
     {
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));
@@ -302,10 +286,12 @@ class acc_Articles extends core_Master
         }
         
         if($modified){
-            acc_Articles::save($rec);
+            $id = $this->save($rec);
         } else {
-            acc_Articles::save_($rec);
+            $id = $this->save_($rec);
         }
+        
+        return $id;
     }
     
     
@@ -373,7 +359,12 @@ class acc_Articles extends core_Master
         expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
         expect($result = static::createReverseArticle($journlRec));
         
-        return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
+        if (!Request::get('ajax_mode')) {
+        	// Записваме, че потребителя е разглеждал този списък
+        	$this->logWrite('Създаване на обратен мемориален ордер', $result[1]);
+        }
+        
+        return new Redirect(array('acc_Articles', 'single', $result[1]), "|Създаден е успешно обратен мемориален ордер");
     }
     
     
@@ -457,7 +448,7 @@ class acc_Articles extends core_Master
     public static function on_AfterJournalUpdated($mvc, $id, $journalId)
     {
         // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
-        
+       
         // Всички детайли на МО
         $rec = $mvc->fetchRec($id);
         $dQuery = acc_ArticleDetails::getQuery();
@@ -467,10 +458,16 @@ class acc_Articles extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalId}");
         $jRecs = $jQuery->fetchAll();
-        
+
+        $count = 0;
         while($dRec = $dQuery->fetch()){
+        	$count++;
+        	$jCount = 0;
+        	
             foreach ($jRecs as $jRec){
-                if($dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
+            	$jCount++;
+            	
+                if($count === $jCount && $dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&
                     $dRec->creditAccId == $jRec->creditAccId && $dRec->creditEnt1 == $jRec->creditItem1 && $dRec->creditEnt2 == $jRec->creditItem2 && $dRec->creditEnt3 == $jRec->creditItem3){
                     if(!is_null($jRec->debitPrice)){
                         $dRec->debitPrice = $jRec->debitPrice;
@@ -489,6 +486,16 @@ class acc_Articles extends core_Master
             acc_ArticleDetails::save($dRec);
         }
         
-        $mvc->updateAmount($id, TRUE);
+        $mvc->updateMaster($id, TRUE);
+    }
+    
+    
+    /**
+     * След подготовка на полетата
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	$baseCode = acc_Periods::getBaseCurrencyCode();
+    	$data->listFields['totalAmount'] .= "|* ({$baseCode})";
     }
 }

@@ -70,7 +70,7 @@
     left:  200px;
 }
 
-.narrow .sidemenu-push-toright#main-container > .tab-control > .tab-row{
+.narrow .sidemenu-push-toright#main-container:not(.unbeddedHeader) > .tab-control > .tab-row{
     left:  170px;
 }
 
@@ -78,10 +78,22 @@
     right:  200px;
 }
 
-.narrow .sidemenu-push-toleft#main-container > .tab-control >.tab-row{
+.narrow .sidemenu-push-toleft#main-container:not(.unbeddedHeader) > .tab-control >.tab-row{
     right:  170px;
 }
-
+.narrow .unbeddedHeader#main-container {
+	top: 0 !important;
+	padding: 0;
+	.clearfix {
+		min-height: 0 !important;
+	}
+	#framecontentTop, > .tab-control > .tab-row{
+		position: static;
+		top:0;
+		bottom:0;
+		margin: 0;
+	}
+}
 .sidemenu-push-toright {
     margin-left: 200px;
 }
@@ -110,11 +122,11 @@
     display: block;
 }
 
-.narrow .sidemenu-push-toleft #framecontentTop{
+.narrow  .sidemenu-push-toleft:not(.unbeddedHeader) #framecontentTop{
     right:  170px;
 }
 
-.narrow .sidemenu-push-toright #framecontentTop{
+.narrow .sidemenu-push-toright:not(.unbeddedHeader) #framecontentTop{
     left: 170px;
 }
 
@@ -190,6 +202,38 @@ body {
 	}
 }
 
+.jobTaskDetails.portal {
+    border: none;
+    margin-bottom: 0;
+}
+
+.planning.portal, .jobTaskDetails.portal {
+    padding: 0;
+    border: none;
+ 	.tab-control.alphabet{
+ 		border: none;
+ 	}
+    .legend {
+        margin: 0;
+    }
+    .listTable {
+   		border: 1px solid #cccccc;
+    }
+    td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    .rowtools-column {
+        padding-left: 15px;
+    }
+    .overflow-scroll {
+        margin: 0;
+    }
+    .listToolbar {
+    	border: none;
+    }
+}
+
 .narrow .portal {
     margin-top: -10px;
     margin-left: 2px;
@@ -208,7 +252,7 @@ body {
     right: 0;
     width: 100%;
     display: table;
-    z-index: 11;
+    z-index: 1001;
 }
 
 #framecontentBottom {
@@ -228,7 +272,7 @@ body {
 }
 
 .narrow #packWrapper {
-    padding: 15px 15px 10px;
+    padding: 20px 15px 10px;
 }
 
 /* позиция на табовете */
@@ -240,13 +284,20 @@ body {
     left: 0;
     right: 0;
     top: 45px;
-    z-index: 9;
+    z-index: 1000;
     padding: 0 15px;
 }
 
 .narrow #main-container > .tab-control > .tab-row {
     top: 44px;
-	padding: 0 13px;
+    padding: 3px 13px 1px;
+    .row-holder {
+    	width: 1000px;
+    	a {
+    		float: left;
+    		display: block;
+    	}
+    }
 }
 
 .userInfo{
@@ -300,21 +351,43 @@ body {
 }
 
 .sideBarTitle {
-    text-align: center;
     color: #fffb99;
-    a {
-        position: relative;
-        top: 2px;
-    }
 }
 
 .bookmarkText {
-    margin: 0 8px;
-    font-size: 0.95em;
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+.inner-fav-panel {
+    position: relative;
 }
 
 .narrow .bookmarkText {
-    margin: 0 4px;
+    margin-right: 4px;
+    font-size: 1.05em;
+}
+
+.bookmarkLink {
+    display: inline-block;
+    float: right;
+    top: 10px;
+    margin-left: 15px;
+    opacity: 0.8;
+    transition: opacity 0.5s;
+    img {
+        border-radius: 5px;
+    }
+    &:hover {
+        opacity: 1
+    }
+}
+.narrow .bookmarkLink {
+	margin-left: 10px;
+	img {
+	   width: 18px;
+	   height: 18px;
+	}
 }
 
 .narrow .sidebar-row {
@@ -345,17 +418,20 @@ body {
             color: #FFF612;
             display: block;
             font-size: 0.97em;
+            &.bookmark-external-url.out {
+	            color: #fefdd6;
+	            &:visited {
+	               color: #febb44;
+	            }
+	        }
             &:hover{
                 color: #fefdd6;
             }
         }
-
+       
     }
 }
 
-a.bookmark-external-url {
-    color: #0066ff;
-}
 .bookmark-wrong-url {
     color: #b11;
 }
@@ -491,6 +567,9 @@ a.bookmark-external-url {
     &.search-options {
         img {
             opacity: 0.6;
+            width: 20px;
+            height: 20px;
+            padding: 4px;
         }
         &:hover img {
             opacity: 0.9;
@@ -498,6 +577,7 @@ a.bookmark-external-url {
         .menu-holder {
             left: -2px;
             input {
+                box-sizing: border-box;
                 width: 100%;
                 margin-bottom: 5px;
             }
@@ -517,8 +597,10 @@ a.bookmark-external-url {
     border-radius: 6px;
     border: 1px solid #ccc;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    a {
+    a:not(.profile) {
         color: #333 !important;
+	}
+	a{
         display: block;
         padding: 3px 20px 3px 25px;
         clear: both;
@@ -590,7 +672,7 @@ a.bookmark-external-url {
 	border: none;
 }
 
-#main-container > div.tab-control > div.tab-row > .tab {
+#main-container > div.tab-control > div.tab-row > .row-holder .tab {
     font-family: arial;
     display: inline-block;
     height: 18px;
@@ -618,17 +700,37 @@ a.bookmark-external-url {
         color: white;
     }
 }
-.narrow #main-container > div.tab-control > div.tab-row > .tab {
-	border: none;
-	margin: 5px 2px 3px;
-    padding: 0 !important;
-    border-radius: 3px;
-    font-size: 0.8em;
-    a, span {
-        margin: 0px 2px 3px;
-        display: block;
-        line-height: normal;
+
+.narrow #main-container > div.tab-control > div.tab-row {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	.row-holder {
+		text-align: justify; /* 3 */
+		white-space: nowrap;
+		height: 28px;
+	}
+	.tab {
+		border: none;
+		margin: 5px 2px 5px;
+		padding: 0 !important;
+		border-radius: 3px;
+		font-size: 0.8em;
+		height: auto;
+		a, span {
+			margin: 0px 2px 3px;
+			padding-top: 1px;
+			display: block;
+		}
     }
+}
+
+.narrow div.alphabet div.tab-row .tab{
+    min-height: 15px;
+    line-height: 15px;
+}
+
+.narrow .tab-title {
+	display: inline-block !important;
 }
 
 .headerInfo{
@@ -668,25 +770,27 @@ a.bookmark-external-url {
     display: inline-block;
     position: relative;
     top: -10px;
-    margin-left: 4px;
+    margin-left: 1px;
 }
 
 
 .notificationsCnt a {
     display: block;
     color: white;
-    padding: 1px;
-    font-size: 0.7em;
-    border-radius: 3px;
+    padding: 2px 5px 1px 4px;
+    font-size: 0.75em;
+    border-radius: 10px;
 }
 
 .narrow .notificationsCnt a {
-    padding: 0 1px 1px;
+    padding: 0 4px;
 }
 
 .notificationsCnt a.haveNtf {
-    background-color: red;
-    border: solid 1px #c33 !important;
+  background-color: #edd;
+  border: 1px solid #d66 !important;
+  box-shadow: 0 1px 2px 0 #f99;
+  color: #e00;
 }
 
 .notificationsCnt a.noNtf {
@@ -744,8 +848,22 @@ a.button, input[type="button"], input[type="submit"], button {
     padding-left: 5px !important;
 }
 
+.narrow .dimension input.button {
+    border: none !important;
+}
+
 input.linkWithIcon, a.linkWithIcon {
     padding-left: 25px !important;
+}
+
+.small .linkWithIcon {
+	height: 16px !important;
+	line-height: 120%;
+	display: inline-block;
+}
+
+a.linkInTitle {
+    color: #222 !important;
 }
 
 .portal-filter .button, .portal-filter .button:focus {
@@ -872,12 +990,12 @@ form[method=post] input[type=button], form[method=post] a.button {
 }
 
 table.listTable > thead > tr > th {
-	border: 1px solid #d1d1d1;
+	border: 1px solid #ddd;
 	background-color: #eee;
 }
 
 table.listTable > tbody > tr > td {
-	border: 1px solid #d1d1d1;
+	border: 1px solid #ddd;
 }
 
 .accordian li.btns-title {
@@ -948,6 +1066,10 @@ div.richEdit div.richedit-toolbar {
 	display: block;
 }
 
+div.statuses-message {
+    margin: 30px auto 0px;
+}
+
 select.tab-control, select.tab-control option {
     font-size: 0.9em;
     padding-top: 0;
@@ -1008,5 +1130,13 @@ div.tab-control.deal-history-tab .tab-row .tab {
     #main-container > .tab-control > .tab-row {
         padding: 0 6px 1px !important;
         top: 44px;
+    }
+    .bookmarkLink {
+        &.addBookmarkLink {
+            right: 7px;
+        }
+        &.listBookmarkLink {
+            left: 7px;
+        }
     }
 }

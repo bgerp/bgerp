@@ -102,7 +102,7 @@ class support_Issues extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -122,7 +122,7 @@ class support_Issues extends core_Master
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
     				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc';
-
+    
     
     /**
      * Дали може да бъде само в началото на нишка
@@ -178,6 +178,18 @@ class support_Issues extends core_Master
     var $newBtnGroup = "10.1|Поддръжка";
 	
     
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'typeId, title, description, assign, componentId, priority, sharedUsers';
+    
+    
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -186,14 +198,14 @@ class support_Issues extends core_Master
         $this->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent');
         $this->FLD('title', 'varchar', "caption=Заглавие, mandatory, width=100%,silent");
         $this->FLD('description', 'richtext(rows=10,bucket=Support,shareUsersRoles=support,userRolesForShare=support)', "caption=Описание, mandatory");
-        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент, changable');
+        $this->FLD('componentId', "key(mvc=support_Components,select=name,allowEmpty)", 'caption=Компонент');
         
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
 
         // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none, changable');
+        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
@@ -270,7 +282,7 @@ class support_Issues extends core_Master
         $rec = &$form->rec;
         
         if(!haveRole('user')) {
-            $brid = logs_Browsers::getBrid(FALSE);
+            $brid = log_Browsers::getBrid(FALSE);
             if($brid) {
                 $query = $this->getQuery();
                 $query->limit = 1;
@@ -305,7 +317,7 @@ class support_Issues extends core_Master
             
             if(!haveRole('powerUser')) {
                 $rec->ip   = core_Users::getRealIpAddr();
-                $rec->brid = logs_Browsers::getBrid();
+                $rec->brid = log_Browsers::getBrid();
             }
     		
     		if(empty($rec->folderId)){
@@ -324,10 +336,10 @@ class support_Issues extends core_Master
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
     			if(!$cu){
     				$userData = array('name' => $rec->name, 'email' => $rec->email);
-    				logs_Browsers::setVars($userData);
+    				log_Browsers::setVars($userData);
     			}
     			
-    			status_Messages::newStatus(tr('Благодарим Ви за сигнала'), 'success');
+    			status_Messages::newStatus('|Благодарим Ви за сигнала', 'success');
     			
     			return followRetUrl();
     		}
@@ -347,6 +359,33 @@ class support_Issues extends core_Master
 		}
 		
     	return $tpl;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param stdObject $rec
+     */
+    public static function prepareBodyAndSubject($rec)
+    {
+        if ($rec->id) return ;
+        
+        if (!$rec->threadId) return ;
+        
+        $clsId = core_Classes::getId(get_called_class());
+        
+        if (!$clsId) return ;
+        
+        $cid = doc_Containers::fetchField("#threadId = {$rec->threadId} AND #docClass = {$clsId}");
+        
+        //Добавяме в полето Относно отговор на съобщението
+        $oDoc = doc_Containers::getDocument($cid);
+        $oRow = $oDoc->getDocumentRow();
+        $for = tr('|За|*: ');
+        $rec->subject = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        
+        $rec->body = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
     }
     
     
@@ -395,7 +434,7 @@ class support_Issues extends core_Master
      */
     static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array()) 
     {
-        $row->brid = logs_Browsers::getLink($rec->brid);
+        $row->brid = log_Browsers::getLink($rec->brid);
     }
     
     
@@ -563,7 +602,7 @@ class support_Issues extends core_Master
         if (!$components) {
             
             // Добавяме съобщение за грешка
-            status_Messages::newStatus(tr('Няма въведен компонент на системата.'));
+            status_Messages::newStatus('|Няма въведен компонент на системата');
             
             // Ако има права за добавяне на компонент
             if (support_Components::haveRightFor('add')) {
@@ -577,11 +616,13 @@ class support_Issues extends core_Master
             }
             
             // Препащаме
-            return redirect($redirectArr);
+            redirect($redirectArr);
         }
         
         // Премахваме повтарящите се
         $components = array_unique($components);
+        
+        asort($components);
         
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
@@ -619,6 +660,27 @@ class support_Issues extends core_Master
             
             if ($sysRec->defaultType) {
                 $data->form->setDefault('typeId', $defTypeId);
+            }
+        }
+        
+        if (!$data->form->rec->id) {
+            Request::setProtected('srcId, srcClass');
+            
+            $data->form->FNC('SrcId', 'int', 'input=hidden');
+            $data->form->FNC('SrcClass', 'varchar', 'input=hidden');
+            
+            if ($srcId = Request::get('srcId', 'int')) {
+                if ($srcClass = Request::get('srcClass')) {
+                    if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
+                        $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
+                        
+                        $defaults = (array) $srcInst->getDefaultIssueRec($srcId);
+                        $data->form->setDefaults($defaults);
+                        
+                        $data->form->setDefault('SrcId', $srcId);
+                        $data->form->setDefault('SrcClass', $srcClass);
+                    }
+                }
             }
         }
     }
@@ -928,7 +990,7 @@ class support_Issues extends core_Master
                     'threadId' => $data->rec->threadId,
                     'originId' => $data->rec->containerId,
                     'ret_url'=> TRUE
-                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession();');
+                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
     }
     
@@ -959,17 +1021,6 @@ class support_Issues extends core_Master
         return $contrData;
     }
     
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	
-    	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
-    	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
-    }
-    
 
     /**
      * Извиква се след успешен запис в модела
@@ -982,6 +1033,41 @@ class support_Issues extends core_Master
     {
         if ($rec->componentId) {
             support_Components::markAsUsed($rec->componentId);
+        }
+        
+        if ($rec->SrcId && $rec->SrcClass && cls::haveInterface('support_IssueCreateIntf', $rec->SrcClass)) {
+            $srcInst = cls::getInterface('support_IssueCreateIntf', $rec->SrcClass);
+            $srcInst->afterCreateIssue($rec->SrcId, $rec);
+        }
+    }
+    
+    
+    /**
+     * Добавя допълнителни полетата в антетката
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        if ($row->systemId) {
+            $resArr['systemId'] =  array('name' => tr('Система'), 'val' =>"[#systemId#]");
+        }
+        
+        if ($row->componentId) {
+            $resArr['componentId'] =  array('name' => tr('Компонент'), 'val' =>"[#componentId#]");
+        }
+        
+        $resArr['typeId'] =  array('name' => tr('Тип'), 'val' =>"[#typeId#]");
+        
+        if ($row->priority) {
+            $resArr['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
+        }
+        
+        if ($row->assign) {
+            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " <i>[#assign#]</i> " . tr('от') . " <i>[#assignedBy#]</i> " . tr('в') . " [#assignedOn#]");
         }
     }
 }

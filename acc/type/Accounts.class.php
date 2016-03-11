@@ -51,7 +51,7 @@ class acc_type_Accounts extends type_Keylist
         $select = $this->params['select'];
         $regInterfaces = $this->params['regInterfaces'];
         
-        $suggestions = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+        $suggestions = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
         
         // Ако има зададени интерфейси на аналитичностите
         if($regInterfaces){

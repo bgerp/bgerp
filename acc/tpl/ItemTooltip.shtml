@@ -16,6 +16,13 @@
 </tr>
 <!--ET_END title-->
 
+<!--ET_BEGIN lists-->
+<tr>
+	<td class='quiet aright'>|Номенклатури|*: </td>
+	<td>[#lists#]</td>
+</tr>
+<!--ET_END lists-->
+
 <!--ET_BEGIN createdOn-->
 <tr>
 <td class='quiet aright'>|Създаване|*:</td>
@@ -40,4 +47,12 @@
 <td class='quiet aright'>|Обект|*:</td>
 <td>[#link#]</td>
 </tr>
+
+<!--ET_BEGIN features-->
+<tr>
+<td class='quiet aright' style='vertical-align:top;'>|Свойства|*:</td>
+<td><small>[#features#]</small></td>
+</tr>
+<!--ET_END features-->
+
 </table>

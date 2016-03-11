@@ -145,7 +145,7 @@ defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
 /**
  * Дали да може да се ресетват пароли от логин формата
  */
-defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'no');
+defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'yes');
 
 
 
@@ -246,7 +246,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Packs',
         'core_Cron',
         'core_CallOnTime',
-        'core_Logs',
+        'log_System',
         'core_Lg',
         'core_Roles',
         'core_Users',
@@ -299,6 +299,18 @@ class core_Setup extends core_ProtoSetup {
                 }
             }
         }
+
+        // Иконата
+        $dest = EF_INDEX_PATH . '/favicon.ico';
+        if(!file_exists($dest)) {
+            $src = getFullPath('img/favicon.ico');
+            if(copy($src, $dest)) {
+                $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+            } else {
+                $html .= "<li  class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+            }
+        }
+
         
         // Изтриване на старите файлове от sbf директорията
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2*30*24*60*60, "#^_[a-z0-9\-\/_]+#i");
@@ -328,6 +340,19 @@ class core_Setup extends core_ProtoSetup {
         $rec->offset = mt_rand(0,40);
         $rec->delay = 0;
         $rec->timeLimit = 200;
+        $html .= core_Cron::addOnce($rec);
+        
+        
+        // Нагласяване на Крон оптимизира таблиците
+        $rec = new stdClass();
+        $rec->systemId = 'OptimizeTables';
+        $rec->description = 'Оптимизиране на таблиците';
+        $rec->controller = 'core_Mvc';
+        $rec->action = 'OptimizeTables';
+        $rec->period = 22*60;
+        $rec->offset = mt_rand(0, 4*60);
+        $rec->delay = 0;
+        $rec->timeLimit = 300;
         $html .= core_Cron::addOnce($rec);
         
         $html .= core_Classes::add('core_page_Internal');        

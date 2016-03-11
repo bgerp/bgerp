@@ -17,6 +17,13 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Процент на съвпадание в имената на имейлите, които липсват
+     * На всеки 4 един трябва да съвпада
+     */
+    static $closestEmailPercent = 75;
+    
+    
+    /**
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
@@ -52,6 +59,12 @@ class email_Inboxes extends core_Master
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, email, manager';
+    
+    
+    /**
+     * Кои документи да се добавят като бързи бутони в папката на корицата
+     */
+    public $defaultDefaultDocuments  = 'email_Outgoings';
     
     
     /**
@@ -145,6 +158,7 @@ class email_Inboxes extends core_Master
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
         $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
+        $this->FLD("notifyForEmail", "enum(yes=Винаги,no=Стандартно за системата)", 'caption=Нотификация за получен имейл->Избор, notNull');
         
         $this->setDbUnique('email');
     }
@@ -242,13 +256,13 @@ class email_Inboxes extends core_Master
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
         }
         
-        if (!$allAccounts) {
+        if (empty($allAccounts)) {
             if (email_Accounts::haveRightFor('add')) {
                 
-                return redirect(array('email_Accounts', 'add'), FALSE, 'Моля добавете активна кутия.');
+                redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активен акаунт');
             } else {
                 
-                return redirect(array($mvc), FALSE, 'Няма активна кутия, която да се използва');
+                redirect(array($mvc), FALSE, '|Няма активна кутия, която да се използва');
             }
         }
         
@@ -399,10 +413,73 @@ class email_Inboxes extends core_Master
             }            
         }
         
+        if ($bestEmail = self::getClosest($emailsArr)) {
+            
+            return $bestEmail;
+        }
+        
         // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
         return $accRec->email;
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param array $emailsArr
+     * 
+     * @return NULL|string
+     */
+    public static function getClosest($emailsArr)
+    {
+        $md = md5(serialize($emailsArr));
+        
+        static $checkedEmailsArr = array();
+        static $ourEmailsArr = array();
+        static $bestEmailArr = array();
+        static $bestPercentArr = array();
+        
+        // Всички наши имейли
+        if (!$ourEmailsArr) {
+            
+            $allEmailsArr = self::getAllEmailsArr();
+            
+            foreach ((array)$allEmailsArr as $email) {
+                list($emailL, $domain) = explode('@', $email);
+                $domain = strtolower($domain);
+                $ourEmailsArr[$domain][$emailL] = $emailL;
+            }
+        }
+        
+        if (!$bestEmailArr[$md] && !$bestPercentArr[$md]) {
+            // Проверяваме в подадените имейли за съвпадание
+            foreach ((array)$emailsArr as $email) {
+                
+                if (isset($checkedEmailsArr[$email])) continue;
+                
+                $email = trim($email);
+                list($emailL, $domain) = explode('@', $email);
+                
+                $domain = strtolower($domain);
+                
+                $p = 0;
+                
+                $closestEmail = str::getClosestWord($ourEmailsArr[$domain], $emailL, $p, TRUE);
+                
+                if ($p >= self::$closestEmailPercent && ($p >= $bestPercentArr[$md])) {
+                    $bestPercentArr[$md] = $p;
+                    $bestEmailArr[$md] = $closestEmail . '@' . $domain;
+                }
+                
+                $checkedEmailsArr[$email] = $email;
+            }
+        }
+        
+        if ($bestEmailArr[$md] && $bestPercentArr[$md]) {
+            
+            return $bestEmailArr[$md];
+        }
+    }
     
     /**
      * При създаването на вербалния ред, добавя линк и икона в заглавието на сметката
@@ -447,7 +524,7 @@ class email_Inboxes extends core_Master
     
     /**
      * Форсира папката, с име този имейл. Ако папката липсва, но това е валиден 
-     * имайл на PowerUser 
+     * имeйл на PowerUser 
      *
      * @param string $email
      * @return int key(mvc=doc_Folders)
@@ -569,14 +646,177 @@ class email_Inboxes extends core_Master
         $email = mb_strtolower($email);
         
         //Намираме записа за съответния имейл
-        $rec = email_Inboxes::fetch("#email='{$email}'");
+        $rec = email_Inboxes::fetch(array("#email = '[#1#]'", $email));
         
         //Връщаме inCharge id' то
         return $rec->inCharge;
     }
-   
+    
+    
+    /**
+     * Връща масив с ключ имейлите и стойността за това поле в модела
+     * Може да се премахнат зададените типове от акаунтите
+     * 
+     * @param array $emailsArr
+     * @param string $field
+     * @param boolean $removeCommonAndCorporate
+     * 
+     * @return array
+     */
+    public static function getEmailsRecField($emailsArr, $field = 'id', $removeAccType = array('common', 'corporate'))
+    {
+        static $resArr = array();
+        
+        $removeAccType = arr::make($removeAccType);
+        
+        $hash = md5(implode('|', $emailsArr) . '||' . $field . '||' . implode('|', $removeAccType));
+        
+        if (isset($resArr[$hash])) return $resArr[$hash];
+        
+        $resArr[$hash] = array();
+    
+        // Премахваме зададените акаунти от имейлите
+        if ($removeAccType) {
+		    $emailArrForRemove = email_Accounts::getEmailsByType($removeAccType);
+		    
+		    if ($emailArrForRemove) {
+		        $emailsArr = array_diff((array)$emailsArr, (array)$emailArrForRemove);
+		    }
+        }
+        
+        if (!$emailsArr) return $resArr[$hash];
+        
+        $query = self::getQuery();
+        $query->orWhereArr('email', $emailsArr);
+        
+        while ($rec = $query->fetch()) {
+            
+            $resArr[$hash][$rec->email] = $rec->{$field};
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
+     * Връща масив с id-та, на които текущия потребител е отговорник (или споделен)
+     * 
+     * @param NULL|integer $userId
+     * @param boolean $checkShared
+     * 
+     * @return array
+     */
+    public static function getUserInboxesIds($userId = NULL, $checkShared = FALSE)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $query = self::getQuery();
+        $query->where(array("#inCharge = '[#1#]'", $userId));
+        
+        if ($checkShared) {
+            $query->orWhere(array("#shared LIKE '%|{$userId}|%'"));
+        }
+        
+        $resArr = array();
+        
+        while($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->id;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Намира всички потребители, които са `inCharge` на подадените масиви
+     * 
+     * @param array $idsArr
+     * @param boolean $addShared
+     * @param boolean $onlyWithNotify
+     * 
+     * @return array
+     */
+    public static function getInChargeForInboxes($idsArr, $addShared = FALSE, $onlyWithNotify = TRUE)
+    {
+        static $resArr = array();
+        
+        $hash = md5(implode('|', $idsArr) . '||' . $addShared . '||' . $onlyWithNotify);
+        
+        if (isset($resArr[$hash])) return $resArr[$hash];
+        
+        $resArr[$hash] = array();
+        
+        if (!$idsArr || empty($idsArr)) return $resArr[$hash]; 
+        
+        $query = self::getQuery();
+        $query->orWhereArr('id', $idsArr);
+        
+        if ($onlyWithNotify) {
+            $query->where("#notifyForEmail != 'no'");
+        }
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$hash][$rec->inCharge] = $rec->inCharge;
+            
+            if ($addShared && $rec->shared) {
+                $resArr[$hash] += type_Keylist::toArray($rec->shared);
+            }
+        }
+        
+        return $resArr[$hash];
+    }
+    
+    
+    /**
+     * Намира всички потребители, които са `inCharge` на подадените масиви
+     * 
+     * @param array $emailsArr
+     * @param boolean $removeCommonAndCorporate
+     * 
+     * @return array
+     */
+    public static function getInChargeForEmails($emailsArr, $removeAccType = array('common', 'corporate'))
+    {
+        static $usersArr = array();
+        
+        $removeAccType = arr::make($removeAccType);
+        
+        if(!is_array($emailsArr) || !count($emailsArr)) {
 
+            return array();
+        }
 
+        $hash = md5(implode('|', $emailsArr) . '||' . implode('|', $removeAccType));
+        
+        if (isset($usersArr[$hash])) return $usersArr[$hash];
+        
+        $usersArr[$hash] = array();
+        
+        // Премахваме корпоративния и общите акаунти
+        if ($removeAccType) {
+		    $emailArrForRemove = email_Accounts::getEmailsByType($removeAccType);
+		    
+		    if ($emailArrForRemove) {
+		        $emailsArr = array_diff((array)$emailsArr, (array)$emailArrForRemove);
+		    }
+        }
+        
+        if (!$emailsArr) return $usersArr[$hash];
+        
+        $query = self::getQuery();
+        $query->orWhereArr('email', $emailsArr);
+        
+        while ($rec = $query->fetch()) {
+            
+            $usersArr[$hash][$rec->inCharge] = $rec->inCharge;
+        }
+        
+        return $usersArr[$hash];
+    }
+    
+    
     /**
      *  Един документ ги изпращаме от:
      *
@@ -617,6 +857,15 @@ class email_Inboxes extends core_Master
     {
         // Ако има права за добавяне редиректва към добавана на кутия
         if (self::haveRightFor('add')) {
+            $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
+            
+            if (empty($allAccounts)) {
+                if (email_Accounts::haveRightFor('add')) {
+            
+                    redirect(array('email_Accounts', 'add'), FALSE, '|Моля добавете активен акаунт');
+                }
+            }
+            
             redirect(array('email_Inboxes', 'add', 'ret_url' => TRUE), FALSE, '|Трябва да добавите кутия за изпращане на имейл');
         } else {
             
@@ -760,6 +1009,40 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Връща масив с всички имейл кутии
+     * 
+     * @param boolean $removeRejected
+     * 
+     * @return array
+     */
+    public static function getAllEmailsArr($removeRejected = FALSE)
+    {
+        $cacheType = 'emailInboxes';
+        $cacheHandle = 'allEmails' . $removeRejected;
+        $keepMinutes = 1000;
+        $depends = array('email_Inboxes', 'email_Accounts');
+        
+        if (!$allEmailsArr = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
+            // Извличаме всички имейли
+            $query = static::getQuery();
+            
+            if ($removeRejected) {
+                $query->where("#state != 'rejected'");
+            }
+            
+            $allEmailsArr = array();
+            while ($rec = $query->fetch()) {
+                $allEmailsArr[] = $rec->email;
+            }
+            
+            core_Cache::set($cacheType, $cacheHandle, $allEmailsArr, $keepMinutes, $depends);
+        }
+        
+        return $allEmailsArr;
+    }
+    
+    
+    /**
      * Премахва всички наши имейли от подададения масив с имейли
      * 
      * @param array $emailsArr - Масив с имейли
@@ -768,29 +1051,7 @@ class email_Inboxes extends core_Master
      */
     static function removeOurEmails($emailsArr)
     {
-        // Данни за кеширане
-        $cacheType = 'ourEmails';
-        $cacheHandle = 'allEmails';
-        $keepMinutes = 1000;
-        $depends = array('email_Inboxes', 'email_Accounts');
-        
-        // Ако няма в кеша или е променен
-        if (!$emailForRemove = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
-            
-            //Масив с имейли за премахване
-            $emailForRemove = array();
-            
-            // Извличаме всички имейли
-            $query = static::getQuery();
-            while ($rec = $query->fetch()) {
-                
-                // Записваме имейлите в масив
-                $emailForRemove[] = $rec->email;
-            }
-            
-            // Записваме в кеша
-            core_Cache::set($cacheType, $cacheHandle, $emailForRemove, $keepMinutes, $depends);
-        }
+        $emailForRemove = self::getAllEmailsArr(TRUE);
         
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);

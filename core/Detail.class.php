@@ -45,6 +45,14 @@ class core_Detail extends core_Manager
         if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
             $mvc->Master = cls::get($mvc->masterClass);
         }
+        
+        // Проверяваме дали мастър ключа има индекс за търсене
+        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($mvc->masterKey))));
+        if(!isset($mvc->dbIndexes[$indexName])){
+        	
+        	// Ако мастър ключа не е индексиран, добавяме го като индекс
+        	$mvc->setDbIndex($mvc->masterKey);
+        }
     }
     
     
@@ -73,12 +81,17 @@ class core_Detail extends core_Manager
         // Подготвяме заявката за резюме/обощение
         $this->prepareListSummary($data);
         
-        // Името на променливата за страниране на детайл
-        $data->pageVar = 'P_' . $this->className . $data->masterId;
-        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
+        // Името на променливата за страниране на детайл
+        if(is_object($data->pager)) {
+            $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
+            if(cls::existsMethod($data->masterMvc, 'getHandle')) {
+                $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
+            }
+        }
+
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
@@ -180,13 +193,15 @@ class core_Detail extends core_Manager
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
         }
-
+		
         if ($this->haveRightFor('add', $rec) && $data->masterId) {
+        	$topTabParam = $data->masterData->tabTopParam;
+        	
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add',
                     $masterKey => $data->masterId,
-                    'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey}, 'Tab' => Request::get('Tab'))
+                    'ret_url' => array($data->masterMvc, 'single', $rec->{$masterKey}, 'Tab' => Request::get('Tab'), $topTabParam => Request::get($topTabParam))
                 ),
                 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }
@@ -226,19 +241,35 @@ class core_Detail extends core_Manager
  
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
-        $title = $data->masterMvc->getTitleById($data->masterId);
-        if ($data->singleTitle) {
-            $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
-       
-        }
- 
-        $data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-        $data->form->title .= "|* <b style='color:#ffffcc;'>" . str::limitLen($title, 32) . "</b>";
- 
+        
         return $data;
     }
     
 
+    /**
+     * Подготвя заглавието на формата
+     */
+    function prepareEditTitle_($data)
+    {
+    	$title = $data->masterMvc->getTitleById($data->masterId);
+    	$title = str::limitLen($title, 32);
+    	
+    	$url = $data->masterMvc->getSingleUrlArray($data->masterId);
+    	
+    	if(count($url)) {
+    		$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
+    	}
+    	
+    	if ($data->singleTitle) {
+    		$single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
+    		 
+    	}
+    	
+    	$data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
+    	$data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    }
+    
+    
     /**
      * Дефолт функция за определяне мастера, спрямо дадения запис
      */
@@ -311,6 +342,39 @@ class core_Detail extends core_Manager
     }
     
     
+    
+    /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'write')
+    {
+        $masterKey = $this->masterKey;
+        $masters = $this->getMasters($rec);
+        
+        $newMsg = $msg . ' на детайл';
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            if ($type == 'write') {
+                $masterInstance->logWrite($newMsg, $masterId);
+            } else {
+                $masterInstance->logRead($newMsg, $masterId);
+            }
+        }
+        
+        parent::logInAct($msg, $rec, $type);
+    }
+    
+    
     /**
      * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
@@ -320,12 +384,41 @@ class core_Detail extends core_Manager
             foreach($query->getDeletedRecs() as $rec) {
                 $masters = $mvc->getMasters($rec);
                 
-                foreach ($masters as $masterKey=>$masterInstance) {
+                foreach ($masters as $masterKey => $masterInstance) {
                     $masterId = $rec->{$masterKey};
                     $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
                 }
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @see core_Manager::act_Delete()
+     */
+    function act_Delete()
+    {
+        $id = Request::get('id', 'int');
+        
+        $rec = $this->fetch($id);
+        
+        $masterKey = $this->masterKey;
+        
+        $masters = $this->getMasters($rec);
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if ($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            $masterInstance->logInfo('Изтриване на детайл', $masterId);
+        }
+        
+        return parent::act_Delete();
     }
     
     
@@ -342,5 +435,31 @@ class core_Detail extends core_Manager
     public function getMasters_($rec)
     {
         return isset($this->Master) ? array($this->masterKey => $this->Master) : array();
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $rec = $inst->fetch($objId);
+            
+            $masterKey = $inst->masterKey;
+            
+            $masterId = $rec->{$masterKey};
+            
+            return $inst->Master->getLinkForObject($masterId);
+        }
+        
+        return parent::getLinkForObject($objId);
     }
 }

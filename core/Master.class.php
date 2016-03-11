@@ -30,11 +30,53 @@ class core_Master extends core_Manager
     
     
     /**
+     * Опашка на записите чакащи ъпдейт
+     */
+    protected $updateQueue = array();
+    
+    
+    /**
      * Изпълнява се след конструирането на мениджъра
      */
     static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->attachDetails($mvc->details);
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleForId($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $linkArr = array();
+        
+        if (self::haveRightFor('single', $objId)) {
+            if ($objId) {
+                $linkArr = array(get_called_class(), 'single', $objId);
+            } else {
+                if (self::haveRightFor('list')) {
+                    $linkArr = array(get_called_class(), 'list');
+                }
+            }
+        }
+        
+        $link = ht::createLink($title, $linkArr);
+        
+        return $link;
     }
     
     
@@ -56,6 +98,8 @@ class core_Master extends core_Manager
             
         }
         
+        $data->details = arr::make($this->details);
+        
         expect($data->rec);
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
@@ -70,8 +114,15 @@ class core_Master extends core_Manager
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
         
-        // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
+        if (!Request::get('ajax_mode')) {
+            if (Mode::is('printing')) {
+                $this->logRead('Отпечатване', $id);
+            } elseif(Mode::is('pdf')) {
+                $this->logRead('PDF', $id);
+            } else {
+                $this->logRead('Виждане', $id);
+            }
+        }
         
         return $tpl;
     }
@@ -82,6 +133,12 @@ class core_Master extends core_Manager
      */
     function prepareSingle_($data)
     {
+		setIfNot($data->tabTopParam, 'TabTop');
+		
+    	if(empty($data->details) && isset($this->details)){
+    		$data->details = arr::make($this->details);
+    	}
+    	
         // Подготвяме полетата за показване
         $this->prepareSingleFields($data);
         
@@ -102,12 +159,12 @@ class core_Master extends core_Manager
         $this->prepareSingleToolbar($data);
         
         // Подготвяме детайлите
-        if(count($this->details)) {
+        if(count($data->details)) {
 
             // Добавяме текущ таб, ако го има в заявката
             $data->Tab = Request::get('Tab');
 
-            foreach($this->details as $var => $class) {
+            foreach($data->details as $var => $class) {
                 $this->loadSingle($var, $class);
                 
                 if($var == $class) {
@@ -148,7 +205,7 @@ class core_Master extends core_Manager
             }
             
             // Добавяме в лога
-            static::log("Преизчисляване на полетата на мастера", $data->rec->id, 1);
+            self::logWrite("Преизчисляване на полетата на мастера", $data->rec->id, 7);
         }
         
         return $data;
@@ -259,8 +316,8 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if(count($this->details) && $data->noDetails !== TRUE) {
-            foreach($this->details as $var => $class) {
+        if(count($data->details) && $data->noDetails !== TRUE) {
+            foreach($data->details as $var => $class) {
                 $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
                 // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
@@ -279,7 +336,7 @@ class core_Master extends core_Manager
 
                 foreach($detailInline as $var => $order) {
                     
-                    $class = $this->details[$var];
+                    $class = $data->details[$var];
 
                     if($var == $class) {
                         $method = 'renderDetail';
@@ -300,9 +357,9 @@ class core_Master extends core_Manager
                 
                 asort($detailTabbed);
               	$tabArray = array();
-
+              	
               	// Подготвяме горни и долни табове
-              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => 'TabTop'));
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam, 'hideSelectedTabOnPrinting' => TRUE));
               	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
               	
                 foreach($detailTabbed as $var => $order) {
@@ -319,7 +376,7 @@ class core_Master extends core_Manager
                 	}
 
                     $url[$tab->getUrlParam()] = $var;
-                    $url['#'] = ($data->{$var}->Tab == 'top') ? 'detailTabsTop' : 'detailTabs';
+                    $url['#'] = ($data->{$var}->Tab == 'top') ? "detail{$data->tabTopParam}" : 'detailTabs';
                     $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
 				}
                 
@@ -333,13 +390,14 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
-					$method = ($selected ==  $this->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
-					
-					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
-					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
-						
-					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
-					$detailsTpl->append($tabHtml);
+					$method = ($selectedTop ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+					if ($this->{$selectedTop} && is_callable(array($this->{$selectedTop}, $method))) {
+					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
+    					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
+    					
+    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detail{$data->tabTopParam}'></a>[#1#]</div>", $tabHtml);
+    					$detailsTpl->append($tabHtml);
+					}
 				}
 				
 				// Проверяваме имали избран детайл от долния таб
@@ -352,18 +410,23 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
-					$method = ($selected ==  $this->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
-					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+					$method = ($selectedBottom ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
 					
-					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
-					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
-						$tabHtml = $selectedHtml;
-					} else {
-						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+					if ($this->{$selectedBottom} && is_callable(array($this->{$selectedBottom}, $method))) {
+    					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+    					
+    					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
+    					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
+    						$tabHtml = $selectedHtml;
+    					} else {
+    						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+    					}
+    					
+    					if($tabHtml){
+    						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+    						$detailsTpl->append($tabHtml);
+    					}
 					}
-						
-					$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-					$detailsTpl->append($tabHtml);
 				}
                
 				// Добавяме табовете
@@ -394,15 +457,37 @@ class core_Master extends core_Manager
             $layoutText = $this->singleLayoutTpl;
         } else {
             if(count($data->singleFields)) {
+                $lastGroup = '';
                 foreach($data->singleFields as $field => $caption) {
-                    $fieldsHtml .= "\n<!--ET_BEGIN {$field}--><tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr><!--ET_END {$field}-->";
+                    if(strpos($caption, '->')) {
+                        list($group, $caption) = explode('->', $caption);
+                        $group = tr($group);
+                        $fieldsHtml .= "\n<!--ET_BEGIN {$field}-->";
+                        if($group != $lastGroup) {
+                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>{$group}</td></tr>\n";
+                        }
+                        $lastGroup = $group;
+                    } else {
+                        $lastGroup = '';
+                    }
+                    
+                    $caption = tr($caption);
+
+                    $unit = $this->fields[$field]->unit;
+                    if($unit) $unit = ' ' . tr($unit);
+                    
+                    if($field->inlineTo) {
+                        $fieldsHtml = str_replace("[#{$field->inlineTo}_inline#]", " {$caption} [#{$field}#]{$unit}", $fieldsHtml);
+                    } else {
+                        $fieldsHtml .= "\n<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}[#{$field}_inline#]</td></tr><!--ET_END {$field}-->";
+                    }
                 }
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
             $layoutText = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-            "\n<table class='listTable'>{$fieldsHtml}\n</table>\n" .
+            "\n<table class='listTable' style='border:none;'>{$fieldsHtml}\n</table>\n" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>";
         }
         
@@ -577,12 +662,15 @@ class core_Master extends core_Manager
     	$title = $me->getTitleById($id);
     
     	$attr = array();
-    	if($icon === TRUE) {
-    		$attr['ef_icon'] = $me->singleIcon;
-    	} elseif($icon) {
-    		$attr['ef_icon'] = $icon;
+    	
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if($icon === TRUE) {
+    			$attr['ef_icon'] = $me->singleIcon;
+    		} elseif($icon) {
+    			$attr['ef_icon'] = $icon;
+    		}
+    		$attr['class'] = 'specialLink';
     	}
-    	$attr['class'] = 'specialLink';
     	
     	if(!$id) {
     		return "<span style='color:red;'>&nbsp;- - -</span>";
@@ -591,8 +679,16 @@ class core_Master extends core_Manager
     	// Правим линк към единичния изглед на обекта, ако няма права за него
     	// Ако няма права не се показва като линк
     	$url = $me->getSingleUrlArray($id);
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    		$url = array();
+    	}
+    	
     	if($short === TRUE){
-    		$title = ht::createLinkRef($title, $url, NULL, $attr);
+    		
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$title = ht::createLinkRef($title, $url, NULL, $attr);
+    		}
+    		
     	} else {
     		$title = ht::createLink($title, $url, NULL, $attr);
     	}
@@ -633,5 +729,43 @@ class core_Master extends core_Manager
     	} 
     	
     	return $url;
+    }
+    
+
+    /**
+     * След промяна в детайлите на обект от този клас
+     */
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+    	if(isset($id)){
+    		
+    		// Запомняне кои документи трябва да се обновят
+    		$mvc->updateQueue[$id] = $id;
+    	}
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->updateQueue)){
+    		
+    		foreach ($mvc->updateQueue as $id) {
+    			$mvc->updateMaster($id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    function updateMaster_($id)
+    {
     }
 }

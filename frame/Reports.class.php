@@ -23,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
                       
     
     /**
@@ -35,7 +35,7 @@ class frame_Reports extends core_Embedder
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf,email_DocumentIntf';
    
     
     /**
@@ -84,6 +84,12 @@ class frame_Reports extends core_Embedder
 	 * Кой може да добавя?
 	 */
 	public $canAdd = 'powerUser';
+	
+	
+	/**
+	 * Кой може да добавя?
+	 */
+	public $canExport = 'powerUser';
 	
 	
     /**
@@ -147,6 +153,12 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Колко време да се пази кешираното състояние при чернова
+     */
+    const KEEP_INNER_STATE_IN_DRAFT = 86400;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -166,6 +178,24 @@ class frame_Reports extends core_Embedder
 
     
     /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	// При чернова винаги подготвяме вътрешното състояние
+    	if($rec->state == 'draft' && $rec->id){
+    		if(!$rec->data){
+    			$Driver = frame_Reports::getDriver($rec);
+    			$rec->data = $Driver->prepareInnerState();
+    		}
+    	}
+    }
+    
+    
+    /**
      *  Обработки по вербалното представяне на данните
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -176,11 +206,21 @@ class frame_Reports extends core_Embedder
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
-               
-            	$Source = $mvc->getDriver($rec);
-            	$rec->data = $Source->prepareInnerState();
+            	
+            	// Ако сме минали зададеното време за обновяване на кеша на данните при чернова
+                if(dt::addSecs(self::KEEP_INNER_STATE_IN_DRAFT, $rec->modifiedOn) < dt::now()){
+                	
+                	// Обновяваме записа, така че на ново да се извлече вътрешното състояние
+                	unset($rec->data);
+                	$mvc->save($rec);
+               }
             }
-            
+
+            $now = dt::now();
+            if($rec->earlyActivationOn < $now) {
+            	unset($row->earlyActivationOn);
+            }
+           
             if($rec->state == 'active' || $rec->state == 'rejected'){
             	unset($row->earlyActivationOn);
             }
@@ -197,8 +237,11 @@ class frame_Reports extends core_Embedder
     		
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
-    		$rec->earlyActivationOn = $Source->getEarlyActivation();
+
+            $rec->earlyActivationOn = $Source->getEarlyActivation();
+
     		$rec->state = 'draft';
+    		
     		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
@@ -286,6 +329,20 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+    	$handle = static::getHandle($id);
+    	$tpl = new ET(tr('Моля запознайте се с нашата справка ') . ': #[#handle#]');
+    	$tpl->append($handle, 'handle');
+    
+    	return $tpl->getContent();
+    }
+    
+    
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)
@@ -353,7 +410,7 @@ class frame_Reports extends core_Embedder
     	$this->activate($rec);
     	
     	// Редирект
-    	redirect(array($this, 'single', $id), 'Документа е активиран успешно');
+    	return new Redirect(array($this, 'single', $id), '|Документа е активиран успешно');
     }
     
     
@@ -408,7 +465,7 @@ class frame_Reports extends core_Embedder
     	$rec->state = ($when < $rec->earlyActivationOn) ? 'pending' : 'active';
     	$this->save($rec, 'state');
     	 
-    	// Ако сме го активирали, генерираме събитие че е бил активиран
+    	// Ако сме го активирали, генерираме събитие, че е бил активиран
     	if($rec->state == 'active'){
     		$this->invoke('AfterActivation', array($rec));
     	}
@@ -431,7 +488,7 @@ class frame_Reports extends core_Embedder
     		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
     }
-    
+
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -465,9 +522,18 @@ class frame_Reports extends core_Embedder
 
     	// Ако отчета е активен, може да се експортва
     	if($action == 'export' && isset($rec)){
-    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
-    		if($state != 'active'){
-    			$requiredRoles = 'no_one';
+    		
+    		$canExport = FALSE;
+    		
+    		if ($rec->state !== 'active') {
+    		    $requiredRoles = 'no_one';
+    		} else {
+    		    $Driver = $mvc->getDriver($rec);
+    		    
+    		    if(!$Driver->canSelectInnerObject()){
+    		    
+    		        $requiredRoles = 'no_one';
+    		    }
     		}
     	}
     	

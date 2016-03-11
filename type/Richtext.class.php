@@ -181,7 +181,6 @@ class type_Richtext extends type_Blob
             $res = $this->toHtml($value);
         }
         
-
         return $res;
     }
     
@@ -222,7 +221,7 @@ class type_Richtext extends type_Blob
         if(!$textMode) {
             $textMode = 'html';
         }
-                
+        
         // Място, където съхраняваме нещата за субституция
         $this->_htmlBoard = array();
         
@@ -286,7 +285,6 @@ class type_Richtext extends type_Blob
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
 
-        
         // Вземаме шаблона за намиране на текста, който ще се болдва
         $patternBold = static::getRichTextPatternForBold();
         
@@ -300,9 +298,15 @@ class type_Richtext extends type_Blob
         // Заменя текстово описаните таблици с вертикални черти с HTML таблици 
         $html = $this->replaceTables($html);
         
+        //Ако няма параметър noTrim, тогава тримваме стойността
+        if (!$this->params['noTrim']) {
+            
+            //Тримвано стойността
+            $html = trim($html);
+        }
+        
         // Заменя таговете с HTML такива
         $html = $this->replaceTags($html);   
-        
 
         // Обработваме елементите [color=????]  
         $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
@@ -368,7 +372,7 @@ class type_Richtext extends type_Blob
             $html = str_replace('<nbsp>', '&nbsp;', $html);
             Debug::stopTimer('RichtextReplaceIntervals');
         }
-
+        
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
@@ -590,18 +594,18 @@ class type_Richtext extends type_Blob
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", $nbspUtf8, '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', 
             
-        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[s]', '[/s]',); 
+        '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]', '[s]', '[/s]', '[small]', '[/small]'); 
          
         $textMode = Mode::get('text');
         
         if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span style="color: #666; text-decoration: line-through">', '</span>');
+            $to = array("\n", "\n", "\n", "<br>\n", "<nbsp><nbsp><nbsp><nbsp>", '<nbsp>', '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-message richtext-info">', '</div>' , '<div class="richtext-message richtext-tip">', '</div>' , '<div class="richtext-message richtext-success">', '</div>', '<div class="richtext-message richtext-warning">', '</div>', '<div class="richtext-message richtext-question">', '</div>', '<div class="richtext-message richtext-error">', '</div>', '<div class="richtext-message richtext-text">', '</div>', '<span class="strike-text">', '</span>', '<small>', '</small>');
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif(Mode::is('ClearFormat')) {
-           $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
+           $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", '', '');
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         } else {
-            $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
+            $to   = array("\n",   "\n",   "\n",  "\n", "    ", $nbspUtf8, '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n", '', '');
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
 
@@ -624,9 +628,13 @@ class type_Richtext extends type_Blob
      * Обработва [html] ... [/html]
      */
     function _catchHtml($match)
-    {
+    {  
         if(Mode::is('text', 'plain')) {
-            $res = html2text_Converter::toRichText($match[1]);
+            if(Mode::is('htmlEntity', 'none')) {
+                $res = strip_tags($match[1]);
+            } else {
+                $res = html2text_Converter::toRichText($match[1]);
+            }
         } else {
             $place = $this->getPlace();
             $this->_htmlBoard[$place] = $match[1];
@@ -956,8 +964,13 @@ class type_Richtext extends type_Blob
      */
     public function internalLink_($url, $title, $place, $rest)
     {
+        if (!trim($title)) {
+            $urlArr = @parse_url($url);
+            $title = $urlArr['host'];
+        }
+        
         $link = "<a href=\"[#{$place}#]\">{$title}</a>";
-
+        
         return $link;
     }
 
@@ -1236,7 +1249,7 @@ class type_Richtext extends type_Blob
         foreach($lines as $l) {
             if($l{0} == '|') {
                 if(!$table) {
-                    $out .= "\n<table class='inlineRichTable listTable'>";
+                    $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = TRUE;
                 }
                 $l = trim($l, " \t");
@@ -1244,7 +1257,7 @@ class type_Richtext extends type_Blob
                 $out .= "<tr><td>" . str_replace('|', '</td><td>', $l) . "</td></tr>";
             } else {
                 if($table) {
-                    $out .= "</table>";
+                    $out .= "</table></div>";
                     $table = FALSE;
                 }
                 
@@ -1301,7 +1314,7 @@ class type_Richtext extends type_Blob
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='" . tr('Червени букви') .  "' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:green' title='" . tr('Зелени букви') .  "' onclick=\"s('[color=green]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
     		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:#888' title='" . tr('Сиви букви') .  "' onclick=\"s('[color=#888]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
-    		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; text-decoration: line-through; color:#666' title='" . tr('Сиви задраскани букви ') .  "' onclick=\"s('[s]', '[/s]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+    		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; text-decoration: line-through; color:#666' title='" . tr('Сиви задраскани букви ') .  "' onclick=\"s('[s]', '[/s]', document.getElementById('{$formId}'))\">S</a>", 'TBL_GROUP2');
     		$toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
@@ -1335,7 +1348,7 @@ class type_Richtext extends type_Blob
         	$toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15'></a>", 'TBL_GROUP2');
             $toolbarArr->add("<span id='{$attr['id']}-group7' class='richtext-emoticons7 richtext-holder-group {$emot7}'>", 'TBL_GROUP2');
-            $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></span><input type='button' id='getTableInfo' onclick=\"crateRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </span>", 'TBL_GROUP2');
+            $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></span><input type='button' id='getTableInfo' onclick=\"createRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
@@ -1480,14 +1493,21 @@ class type_Richtext extends type_Blob
             $lastPart = implode('#', $explodeArr);
         }
         
+        $haveLastPart = FALSE;
+        
         if($lastPart{0} == '?') {
+           $haveLastPart = TRUE;
            $lastPart = ltrim($lastPart, '?');
            $lastPart = str_replace('&amp;', '&', $lastPart);
            parse_str($lastPart, $params);
-           if ($anchor) {
-               $params['#'] = $anchor;
-           }
-           unset($restArr[count($restArr)-1]);
+        }
+        
+        if ($anchor) {
+           $params['#'] = $anchor;
+        }
+        
+        if ($haveLastPart || $anchor) {
+            unset($restArr[count($restArr)-1]);
         }
         
         setIfNot($params['Ctr'], $restArr[0]);
@@ -1573,5 +1593,35 @@ class type_Richtext extends type_Blob
         }
         
         return $str;
+    }
+    
+    
+    /**
+     * Връща масив със всички предложения за този списък
+     */
+    public function getSuggestions()
+    {
+        if(!$this->suggestions) {
+            $this->prepareSuggestions();
+        }
+
+        return $this->suggestions;
+    }
+    
+    
+    /**
+     * Подготвя предложенията за списъка
+     */
+    private function prepareSuggestions()
+    {
+        $this->suggestions = arr::make($this->suggestions);
+        
+        if ($this->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this)) === FALSE) return ;
+        
+        // Добавяме 
+        $suggestionsStr = str_replace('|', ',', $this->params['suggestions']);
+        $this->suggestions = arr::make($suggestionsStr, TRUE);
+        
+        $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
     }
 }

@@ -36,7 +36,7 @@ class core_Request
      * Масив с имена на променливи, които ще се предават/получават от клиента
      * чрез защита, непозволяваща тяхното манипулиране
      */
-    static $protected;
+    static $protected = array();
     
     
     /**
@@ -164,7 +164,23 @@ class core_Request
      */
     static function setProtected($protArr)
     {
-        self::$protected = arr::make($protArr, TRUE);
+        self::$protected += arr::make($protArr, TRUE);
+    }
+    
+    
+    /**
+     * Премахва защитени полета от урл-то
+     * 
+     * @param mixed $protArr - масив с полета за премахване
+     * @return void
+     */
+    static function removeProtected($protArr)
+    {
+    	$protArr = arr::make($protArr, TRUE);
+    	
+    	foreach ($protArr as $value){
+    		unset(self::$protected[$value]);
+    	}
     }
     
     
@@ -233,17 +249,42 @@ class core_Request
     
     
     /**
+     * Връща масив от стойностите на променливите, чието име започва с $nameStart
+     */
+    static function getVarsStartingWith($nameStart)
+    {
+        $res = array();
+
+        foreach (self::$vars as $key => $arr) {
+            foreach($arr as $name => $val) {
+                if (strpos($name, $nameStart) === 0) {
+                    if(!isset($res[$name])) {
+                        $res[$name] = $val;
+                    }
+                }
+            }
+        }
+        
+        return $res;
+    }
+  
+    
+    /**
      * Връща масив с всички парамeтри в рекуеста,
      * като по - началните в стека с по - голямо предимство
      * 
      * @return array
      */
-    static function getParams()
+    static function getParams($push = '')
     {
         $paramsArr = array();
         
-        foreach ((array)self::$vars as $dummy=> $arr) {
+        foreach ((array)self::$vars as $dummy => $arr) {
             
+            if($push && ("{$push}" != "{$dummy}")) { 
+                continue;
+            }
+ 
             foreach ((array)$arr as $name=>$val) {
                 
                 // Ако преди не е сетната стойността и не е игнорирана, тогава я добавяме в масива
@@ -266,7 +307,7 @@ class core_Request
         if ($name) {
             $element[$name] = $array;
         } else {
-            $element[] = $array;
+            $element[count(self::$vars)] = $array;
         }
         
         if ($unShift) {
@@ -329,6 +370,9 @@ class core_Request
         if(isset($vars[2]) && !isset($vars['id'])) {
             $vars['id'] = $vars[2];
         }
+        
+        $point = self::get('Ctr') . "::" . self::get('Act') . "::" . self::get('id');
+        Debug::log("Forward => " . $point);
 
         try {
             // Ако не е бил сетнат
@@ -394,6 +438,8 @@ class core_Request
             $Request->pop($varsName);
         }
         
+        Debug::log("Forward <= " . $point);
+
         return $content;
     }
 }

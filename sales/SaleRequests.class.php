@@ -125,7 +125,7 @@ class sales_SaleRequests extends core_Master
 		$this->FLD('others', 'text(rows=4)', 'caption=Условия');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,fromOffer');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,fromOffer,oldFieldName=paymentCurrencyId');
-        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,fromOffer,oldFieldName=rate');
+        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,fromOffer,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat,fromOffer');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,fromOffer');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,fromOffer');
@@ -147,7 +147,7 @@ class sales_SaleRequests extends core_Master
     	 
     	// Опитваме се да намерим съществуваща чернова продажба
     	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
-    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    		return new Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
     	}
     	 
     	// Ако няма създаваме нова
@@ -175,7 +175,7 @@ class sales_SaleRequests extends core_Master
     	}
     	 
     	// Редирект към новата продажба
-    	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от заявка'));
+    	return new Redirect(array('sales_Sales', 'single', $sId), '|Успешно е създадена продажба от заявка');
     }
     
     
@@ -288,7 +288,6 @@ class sales_SaleRequests extends core_Master
     		$id = $row->id;
     		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
-    	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	
 	    	if($rec->state == 'draft'){
 	    		$img = "<img src=" . sbf('img/16/edit-icon.png') . "/>";
@@ -349,7 +348,7 @@ class sales_SaleRequests extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if ($data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'order=22,ef_icon = img/16/cart_go.png,title=Създаване на нова продажба по заявката');
+    		$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $data->rec->id, 'ret_url' => TRUE), array('warning' => "Сигурни ли сте че искате да създадете продажба?", 'order' => "22",'ef_icon' => "img/16/cart_go.png",'title' => "Създаване на нова продажба по заявката"));
     	}
     	
     	if($data->rec->state == 'draft') {

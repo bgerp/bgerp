@@ -43,33 +43,6 @@ class bgerp_L extends core_Manager
     
     
     /**
-     * Описание на модела
-     */
-    function description()
-    {
-        $this->FLD('mid', 'varchar(' . self::MID_LEN . ')', 'caption=Манипулатор,notNull');
-        $this->FLD('action', 'enum( activate=Активиране,
-                                    email=Имейл,
-                                    fax=Факс,
-                                    pdf=PDF експорт,
-                                    print=Печат,
-                                    _see=Виждане,
-                                    _receive=Получаване,
-                                    _show=Показване,
-                                    _return=Връщане
-                                    )', 'caption=Действие,notNull');
-        $this->FLD('refId', 'key(mvc=bgerp_L,select=res)', 'caption=Към');
-        $this->FLD('res', 'key(mvc=bgerp_LRes,select=title)', 'caption=Ресурс');
-        $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Контейнер,notNull,value=0');
-        $this->FLD('tid', 'key(mvc=doc_Thread)', 'caption=Нишка,notNull');
-        
-        $this->setDbUnique('mid');
-        $this->setDbIndex('tid');
-        $this->setDbUnique('action,cid,res,createdBy');
-    }
-    
-    
-    /**
      * Добавя запис в документния лог, за действие направено от потребител на системата
      */
     function add($action, $tid, $cid = 0, $res = NULL, $refId = NULL)
@@ -164,6 +137,10 @@ class bgerp_L extends core_Manager
                 
                 // Ако е изпратен
                 if ($action->action == doclog_Documents::ACTION_SEND) {
+                    
+                    if ($action && $action->data->to) {
+                        log_Browsers::setVars(array('email' => $action->data->to));
+                    }
                     
                     $activatedBy = $action->createdBy;
                     
@@ -273,7 +250,14 @@ class bgerp_L extends core_Manager
         $ip = core_Users::getRealIpAddr();
         
         // При отваряне на имейла от получателя, отбелязваме като видян.
-        if ($mid) doclog_Documents::received($mid, NULL, $ip);
+        if ($mid) {
+            doclog_Documents::received($mid, NULL, $ip);
+            $action = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
+            
+            if ($action && $action->data->to) {
+                log_Browsers::setVars(array('email' => $action->data->to));
+            }
+        }
         
         $docUrl = static::getDocLink($cid, $mid);
         
@@ -294,7 +278,7 @@ class bgerp_L extends core_Manager
      */
     static function getDocLink($cid, $mid)
     {
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain');
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf');
         $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, TRUE, array('m'));
         
         return $url;

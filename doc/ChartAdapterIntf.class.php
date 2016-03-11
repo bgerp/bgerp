@@ -5,7 +5,7 @@
  *
  *
  * @category  bgerp
- * @package   docschartadapter
+ * @package   doc
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -16,10 +16,12 @@ class doc_ChartAdapterIntf
 
     /**
      * Подготвя диаграмата
+     * @param array $data - данните, които ще се използват за изчертаване
+     * @param string $chartType - тип на диаграмата: pie, bar, line
      */
-    public function  prepare($data, $options)
+    public function  prepare($data, $chartType)
     {
-        $this->class->prepare($data, $options);
+        
+        return $this->class->prepare($data, $chartType);
     }
-	
 }

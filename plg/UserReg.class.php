@@ -192,7 +192,9 @@ class plg_UserReg extends core_Plugin
                     core_LoginLog::add('user_reg', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec);
+                    if($this->sendActivationLetter($rec) == FALSE) {
+                        redirect(array('Index'), FALSE, "За съжеление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор", 'error');
+                    }
                     
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_REG_MSG);
@@ -201,7 +203,7 @@ class plg_UserReg extends core_Plugin
                     $conf = core_Packs::getConfig('core');
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
-                    redirect(array('Index'), TRUE, $msg->getContent());
+                    redirect(array('Index'), FALSE, '|' . $msg->getContent());
                 }
             }
             
@@ -237,16 +239,16 @@ class plg_UserReg extends core_Plugin
             $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
             
             if (!$userId || (!$rec = $mvc->fetch($userId))) {
-                redirect(array('Index'), FALSE, 'Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
+                redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
             }
             
             // Проверка дали състоянието съответства на действието
             if ($rec->state != 'draft' && $act == 'activate') {
-                redirect(array('Index'), FALSE, 'Този акаунт е вече активиран.', 'error');
+                redirect(array('Index'), FALSE, '|Този акаунт е вече активиран.', 'error');
             }
             
             if ($rec->state == 'draft' && $act == 'changePass') {
-                redirect(array('Index'), FALSE, 'Този акаунт все още не е активиран.', 'error');
+                redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.', 'error');
             }
             
             $form = cls::get('core_Form');
@@ -335,7 +337,7 @@ class plg_UserReg extends core_Plugin
                     core_Users::addRole($userId, 9);
                     core_Users::addRole($userId, 10);
                     
-                    return redirect(array('core_Users','login'));
+                    redirect(array('core_Users','login'));
                 }
             }
             
@@ -370,6 +372,8 @@ class plg_UserReg extends core_Plugin
                 
                 if (!$id) {
                     sleep(2);
+                    Debug::log('Sleep 2 sec. in' . __CLASS__);
+
                     $form->setError('email', 'Няма регистриран потребител с този имейл');
                 } else {
                     
@@ -378,7 +382,9 @@ class plg_UserReg extends core_Plugin
                     core_LoginLog::add('pass_reset', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass');
+                    if($this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass') == FALSE) {
+                        redirect(array('Index'), FALSE, "За съжеление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор", 'error');
+                    }
                     
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
@@ -388,7 +394,7 @@ class plg_UserReg extends core_Plugin
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
                     
                     // Редиректване с показване на съобщение
-                    redirect(array('Index'), TRUE, $msg->getContent());
+                    redirect(array('Index'), TRUE, '|' . $msg->getContent());
                 }
             }
             
@@ -466,7 +472,15 @@ class plg_UserReg extends core_Plugin
     {
         $h = core_Cache::set('UserReg', str::getRand(), $rec->id, USERS_DRAFT_MAX_DAYS * 60 * 24);
         
-        $PML = cls::get('phpmailer_Instance');
+        // Търсим корпоративна сметка, ако има такава
+        $corpAcc = email_Accounts::getCorporateAcc();
+        
+        if ($corpAcc) {
+            $PML = email_Accounts::getPML($corpAcc->email);
+        } else {
+            $PML = cls::get('phpmailer_Instance', array('emailTo' =>$rec->email));
+        }
+
         
         $rec1 = clone ($rec);
         
@@ -488,6 +502,8 @@ class plg_UserReg extends core_Plugin
         
         $PML->AddAddress($rec->email);
         
-        $PML->Send();
+        $res = $PML->Send();
+
+        return $res;
     }
 }

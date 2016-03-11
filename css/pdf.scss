@@ -32,3 +32,19 @@ code, kbd, pre, samp {
 .footerDocTable {
     display: table !important;
 }
+.footer-notes{
+    page-break-inside: auto;
+}
+
+thead { 
+	display: table-header-group;
+}
+
+.versionNumber {
+	margin-left: 5px;
+}
+
+.staticFormView .formFieldValue {
+	border: solid 1px #bbbbbb;
+}
+}

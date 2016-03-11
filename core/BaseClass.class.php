@@ -69,7 +69,7 @@ class core_BaseClass
     /**
      * Конструктор. Дава възможност за инициализация
      */
-    function core_BaseClass($params = NULL)
+    function __construct($params = NULL)
     {
         if(isset($params)) {
             $this->init($params);
@@ -129,6 +129,12 @@ class core_BaseClass
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
         if (!isset($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = &cls::get($class);
+            
+            // Ако има плъгини закачени за плъгина
+            if (isset($this->_plugins[$name]->loadInMvc)) {
+                $this->load($this->_plugins[$name]->loadInMvc);
+            }
+            
             $this->_listenerCache = array();
         }
     }
@@ -180,7 +186,7 @@ class core_BaseClass
     {
         $method = 'on_' . $event;
         
-        // Ако нямаме - генерираме кеша с обработвачите
+         // Ако нямаме - генерираме кеша с обработвачите
         if(!isset($this->_listenerCache[$method])) {
             
             $this->_listenerCache[$method] = array();
@@ -290,7 +296,9 @@ class core_BaseClass
             error('404 Липсваща страница', array("Липсващ метод: {$method} на " . cls::getClassName($this)));
         }
         
-        return $this->{$method}();
+        $res = $this->{$method}();
+        
+        return $res;
     }
     
     
@@ -341,5 +349,35 @@ class core_BaseClass
     public function getPlugins()
     {
     	return $this->_plugins;
+    }
+    
+    
+    /**
+     * Дали класа има закачен плъгин
+     * 
+     * @param string $name - име на плъгин за който проверяваме
+     * @return boolean
+     */
+    public function hasPlugin($name)
+    {
+    	$res = isset($this->_plugins[$name]);
+    	
+    	return $res;
+    }
+
+
+    /**
+     * Създава инстанция на себе си в посочената променлива
+     */
+    public static function createIfNotExists(&$var)
+    {
+        $me = get_called_class();
+
+        if(isset($var)) {
+            expect($var instanceOf $me);
+            return;
+        }
+
+        $var = cls::get($me);
     }
 }

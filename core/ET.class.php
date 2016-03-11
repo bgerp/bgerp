@@ -81,7 +81,7 @@ class core_ET extends core_BaseClass
     /**
      * Конструктор на шаблона
      */
-    function core_ET($content = "")
+    function __construct($content = "")
     {
         if ($content instanceof core_ET) {
             $this->content = $content->content;
@@ -210,7 +210,8 @@ class core_ET extends core_BaseClass
      */
     public function removeBlock($blockName)
     {
-    	expect($mp = $this->getMarkerPos($blockName));
+    	$mp = $this->getMarkerPos($blockName);
+    	if(!$mp) return;
     	
     	$contentBeforeBlock = substr($this->content, 0, $mp->beginStart);
         $contentAfterBlock = substr($this->content, $mp->endStop);
@@ -278,8 +279,6 @@ class core_ET extends core_BaseClass
             foreach($this->removablePlaces as $p) {
                 $place = $this->toPlace($p);
                 $this->content = str_replace($place, '', $this->content);
-                
-                // Debug::log('Изтрит плейсхолдър: ' . $place);
             }
         }
         
@@ -433,11 +432,16 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Връща масив със стойността на чакащия плейсхолдер
+     * 
+     * @param string $place
+     * @param string $mode
+     * 
+     * @return array
      */
     function getArray($place, $mode = 'push')
     {
-        $res = NULL;
+        $res = array();
 
         if (count($this->pending)) {
             foreach ($this->pending as $sub) {

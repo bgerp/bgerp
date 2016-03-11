@@ -18,4 +18,10 @@ function chosenrefresh() {
 		$("form select[name='"+name+"']").val('');
 		$('select[name="'+name+'"]').trigger('liszt:updated');
 	});
+	
+	$(document.body).on('change', ".filterBalanceId", function(){
+		var bId = $(this).val();
+		$('#groupForm').attr('action', bId);
+		$("#groupForm").submit();
+	});
 }

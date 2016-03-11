@@ -8,14 +8,14 @@
  *
  * За Обобщението: Показва в малка таблица над списъчния изглед обобщена
  * информация за намерените резултати като брой и други.
- * За да се посочи в модела че на дадено поле трябва да се извади
+ * За да се посочи в модела, че на дадено поле трябва да се извади
  * обобщаваща информация е нужно да се дефинира параметър "summary="
  *
  *
  * Възможни стойности на 'summary':
  * summary = amount - Служи за обобщение на числово поле което представлява
  * парична сума. Обощения резултат се показва в неговата равностойност
- * в основната валута за периода. По дефолт се приема че полето в което
+ * в основната валута за периода. По дефолт се приема, че полето в което
  * е описано в коя валута е сумата е 'currencyId'. Ако полето се казва
  * другояче се дефинира константата 'filterCurrencyField' със стойност
  * името на полето съдържащо валутата.
@@ -25,7 +25,7 @@
  *
  * За Филтър формата:
  * Създава филтър форма която филтрира документите по зададен времеви период
- * и пълнотекстото поле (@see plg_Search). По дефолт приема че полето
+ * и пълнотекстото поле (@see plg_Search). По дефолт приема, че полето
  * по която дата ще се търси е "valior". За документи където полето
  * се казва по друг начин се дефинира константата 'filterDateField' която
  * показва по кое поле ще се филтрира
@@ -111,8 +111,29 @@ class acc_plg_DocumentSummary extends core_Plugin
         $rolesForTeams = implode('|', $rolesForTeams);
        
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm');
-            $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm,remember');
+            $cKey = $mvc->className . core_Users::getCurrent();
+            
+            $haveUsers = FALSE;
+            
+            if($lastUsers = core_Cache::get('userFilter',  $cKey)) {
+                $type = $data->listFilter->getField('users')->type;
+                $type->prepareOptions();
+                foreach($type->options as $key => $optObj) {
+                    if($lastUsers == $optObj->keylist || $key == $lastUsers) {
+                        $lastUsers = $optObj->keylist;
+                        $haveUsers = TRUE;
+                        break;
+                    }
+                }
+            }
+            
+            if (!$haveUsers) {
+                $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            } else {
+                $data->listFilter->setDefault('users', $lastUsers); 
+            }
+            
             $data->listFilter->showFields .= ',users';
         }
         
@@ -121,12 +142,26 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         // Ако формата за търсене е изпратена
         if($filter = $data->listFilter->rec) {
+            
+            // Записваме в кеша последно избраните потребители
+            if($usedUsers = $filter->users) {
+                if(($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
+                    $usedUsers = $requestUsers;
+                }
+                core_Cache::set('userFilter',  $cKey, $usedUsers, 24*60*100);
+            }
         	
             // Филтрираме по потребители
             if($filter->users && $isDocument){
-                
             	$userIds = keylist::toArray($filter->users);
-            	$data->query->where("#{$mvc->filterFieldUsers} IN (" . implode(',',  $userIds) . ")", $or);
+                $userArr = implode(',',  $userIds);
+            	
+            	$data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
+            	
+            	// Ако полето за филтриране по потребител нее създателя, добавяме и към него
+            	if($mvc->filterFieldUsers != 'createdBy'){
+            		$data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
+            	}
             }
             
             $dateRange = array();
@@ -224,7 +259,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      * Подготвя обощаващата информация
      *
      * @param core_Mvc $mvc - Класа към който е прикачен плъгина
-     * @param array $fld - Поле от модела имащо атрибут "summary"
+     * @param array $fieldsArr - Поле от модела имащо атрибут "summary"
      * @param stdClass $rec - Запис от модела
      * @param array $res - Масив в който ще върнем резултатите
      * @param string $currencyCode - основната валута за периода
@@ -247,16 +282,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             switch($fld->summary) {
                 case "amount" :
-                    if($currencyId = $rec->{$mvc->filterCurrencyField}){
-                        (is_numeric($currencyId)) ? $code = currency_Currencies::getCodeById($currencyId) : $code = $currencyId;
-                        $baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
-                    } else {
-                        
-                        // Ако няма стойнсот за валутата по обобщение се приема
-                        // че сумата е в основната валута за периода
-                        $baseAmount = $rec->{$fld->name};
-                    }
-                    
+                	$baseAmount = $rec->{$fld->name};
+                	if($mvc->amountIsInNotInBaseCurrency === TRUE && isset($rec->rate)){
+                		$baseAmount *= $rec->rate;
+                	}
+                	
                     $res[$fld->name]->amount += $baseAmount;
                     $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
                     break;

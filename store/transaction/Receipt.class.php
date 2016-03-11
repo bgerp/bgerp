@@ -113,13 +113,14 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $sign = ($reverse) ? -1 : 1;
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
-        $currencyRate = $this->getCurrencyRate($rec);
+        $currencyRate = $rec->currencyRate;
+        currency_CurrencyRates::checkRateAndRedirect($currencyRate);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
@@ -129,7 +130,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         	$debit = array(
                   $debitAccId, 
                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
-                       array($detailRec->classId, $detailRec->productId),  // Перо 2 - Артикул
+                       array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
                   'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
             );
         	
@@ -147,6 +148,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         }
         
     	if($this->class->_total->vat){
+    		$vat = $this->class->_total->vat;
         	$vatAmount = $this->class->_total->vat * $currencyRate;
         	$entries[] = array(
                 'amount' => $sign * $vatAmount, // В основна валута
@@ -155,8 +157,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                     $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array($origin->className, $origin->that),			// Перо 2 - Сделка
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 3 - Валута
-                    'quantity' => $sign * $vatAmount, // "брой пари" във валутата на продажбата
+                        array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                    'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
                 ),
                 
                 'debit' => array(
@@ -167,18 +169,6 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         }
         
         return $entries;
-    }
-    
-    
-    /**
-     * Курс на валутата на покупката към базовата валута за периода, в който попада продажбата
-     * 
-     * @param stdClass $rec запис на покупка
-     * @return float
-     */
-    protected function getCurrencyRate($rec)
-    {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     }
     
     

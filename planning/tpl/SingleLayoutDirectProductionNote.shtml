@@ -1,14 +1,5 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
-    <table class='no-border' style='width:100%;'>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <table style='width:100%;'>
         <tbody>
             <tr>
                 <td>
@@ -18,32 +9,34 @@
                                 <tbody>
                                     <tr>
                                        <td class="cell centered" rowspan='4' style='width:30%;'>
-                                            <div class="document-title">|ПРОТОКОЛ ЗА БЪРЗО ПРОИЗВОДСТВО|*</div>
+                                            <div class="document-title">|протокол за производство|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
                                             </div>
                                             <!--ET_BEGIN state-->
-                                            <br>
-                                            <div class="[#STATE_CLASS#]">[#state#]</div>
-                                            <br>
+                                            <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                         <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
+                                         <td class="cell custom-header-bg" style='width:35%;'><b>|За произвеждане|*</b></td>
                                     </tr>
                                     <tr>
-                                        <td class="cell">
+                                       <td><span class='quiet'>|Артикул|*</span>: <b>[#productId#]</b><br>
+                                    	   <span class='quiet'>|К-во|*</span>: <b>[#quantity#]</b> 
+                                    	   <!--ET_BEGIN expenses--><br> <span class='quiet'>|Режийни разходи|*</span> <b>[#expenses#]</b> <!--ET_END expenses-->
+                                    	   <!--ET_BEGIN batch--><div><span class='quiet'>|Партида|*</span>: <b>[#batch#]</b></div><!--ET_END batch-->
+                                    </td>
+                                    </tr>
+                                    <tr>
+                                    <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
+                                    </tr>
+                                    <tr>
+                                    <td class="cell">
                                             <b>[#storeId#]</b>
                                             <!--ET_BEGIN storeLocation-->
                                             <br>[#storeLocation#]
                                             <!--ET_END storeLocation-->
                                         </td>
-                                    </tr>
-                                    <tr>
-                                    <td class="cell custom-header-bg" style='width:35%;'><b>|За произвеждане|*</b></td>
-                                    </tr>
-                                    <tr>
-                                    <td>|Артикул|*: [#productId#] <br> |К-во|*: [#quantity#] <!--ET_BEGIN expenses--><br> |Режийни разходи|* [#expenses#]<!--ET_END expenses--></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -56,7 +49,7 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                            <!--ET_BEGIN note-->
+                                        	<!--ET_BEGIN note-->
                                             <hr>
                                             [#note#]
                                             <!--ET_END note-->
@@ -73,7 +66,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                                    <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
                                                 </tr>
                                             </table>
                                         </td>
@@ -82,13 +75,8 @@
                             </table>
                         </div>
                     </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
                 </td>
             </tr>
         </tbody>
     </table>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

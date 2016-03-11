@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -57,6 +57,9 @@ class cash_Setup extends core_ProtoSetup
         	'cash_Rko',
         	'cash_InternalMoneyTransfer',
         	'cash_ExchangeDocument',
+    		'migrate::updateDocumentStates',
+    		'migrate::updateDocuments'
+    		
         );
 
         
@@ -77,7 +80,7 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cash_CashReportImpl";
+    var $defClasses = "cash_reports_CashImpl";
     
     
     /**
@@ -113,5 +116,70 @@ class cash_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на старите документи
+     */
+    function updateDocumentStates()
+    {
+    	$documents = array('cash_Pko', 'cash_Rko', 'cash_InternalMoneyTransfer', 'cash_ExchangeDocument');
+    	core_App::setTimeLimit(150);
+    	
+    	foreach ($documents as $doc){
+    		try{
+    			$Doc = cls::get($doc);
+    			$Doc->setupMvc();
+    			
+    			$query = $Doc->getQuery();
+    			$query->where("#state = 'closed'");
+    			$query->show('state');
+    			
+    			while($rec = $query->fetch()){
+    				$rec->state = 'active';
+    				$Doc->save_($rec, 'state');
+    			}
+    		} catch(core_exception_Expect $e){
+    			
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на документите
+     */
+    public function updateDocuments()
+    {
+    	core_App::setTimeLimit(300);
+    	
+    	$array = array('cash_Pko', 'cash_Rko');
+    	
+    	foreach ($array as $doc){
+    		$Doc = cls::get($doc);
+    		$Doc->setupMvc();
+    		
+    		$query = $Doc->getQuery();
+    		$query->where('#amountDeal IS NULL');
+    		while($rec = $query->fetch()){
+    			
+    			try{
+    				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    				$firstDocRec = $firstDoc->fetch();
+    				$dealCurrencyId = currency_Currencies::getIdByCode($firstDocRec->currencyId);
+    				$dealRate = $firstDocRec->currencyRate;
+    				 
+    				$dealAmount = ($rec->amount * $rec->rate) / $dealRate;
+    				 
+    				$rec->amountDeal = $dealAmount;
+    				$rec->dealCurrencyId = $dealCurrencyId;
+    				 
+    				$Doc->save_($rec, 'amountDeal,dealCurrencyId');
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    		}
+    	}
     }
 }

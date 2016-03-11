@@ -83,6 +83,8 @@ class core_Classes extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->query->orderBy('name');
+        
     	$data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'placeholder=Интерфейс');
     	$data->listFilter->showFields = 'search,interface';
     	$data->listFilter->view = 'horizontal';
@@ -119,7 +121,7 @@ class core_Classes extends core_Manager
                 }
             }
         }
-        
+      
         $rec = new stdClass();
         
         $rec->interfaces = core_Interfaces::getKeylist($class);
@@ -337,7 +339,11 @@ class core_Classes extends core_Manager
     {
     	if($fields['-list']){
     		if($rec->state == 'active'){
-    			$row->interfaces = $mvc->getVerbalInterfaces($rec);
+                try {
+    			    $row->interfaces = $mvc->getVerbalInterfaces($rec);
+                } catch(core_exception_Expect $e) {
+                    $row->interfaces = "<span style='color:red;'>Error</span>";
+                }
     		}
     	}
     }

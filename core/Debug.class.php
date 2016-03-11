@@ -48,6 +48,11 @@ class core_Debug
     
 
     /**
+     * Дали се рапортуват грешки на отдалечен компютър
+     */
+    static $isErrorReporting = TRUE;
+
+    /**
      * Кеш - дали се намираме в DEBUG режим
      */
     static $isDebug;
@@ -154,7 +159,8 @@ class core_Debug
             $html .= core_Html::mixedToHtml($_COOKIE) . "</li>";
                         
             foreach (self::$debugTime as $rec) {
-                $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start ), 5) . ": " . htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
+                $rec->name = core_ET::escape($rec->name);
+                $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start ), 5) . ": " . @htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
             }
             
             $html .= "\n</ul></div>";
@@ -267,7 +273,7 @@ class core_Debug
                 $file = self::getEditLink($frame['file']);
                 $file =  $file . ' : ' . $line;
                 if($rUrl = self::getGithubSourceUrl($frame['file'], $frame['line'])) {
-                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png'));
+                    $githubLink = sprintf('<a target="_blank" class="octocat" href="%s" title="Отвори в GitHub"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png', '"', TRUE));
                 } 
             } else {
                 $githubLink = '';
@@ -365,6 +371,8 @@ class core_Debug
      */
     public static function getCodeAround($file, $line, $range = 4)
     {
+        if(strpos($file, "eval()'d") !== FALSE) return;
+
         $source = file_get_contents($file);
 
         $lines = explode("\n", $source);
@@ -379,7 +387,8 @@ class core_Debug
             if($i+1 == $line) {
                 $style = " style='background-color:#ff9;'";
             }
-            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". str_replace('<', '&lt;', rtrim($lines[$i])) . "</span>\n";
+            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". 
+                str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
             $code .= $l;
         }
          
@@ -472,7 +481,7 @@ class core_Debug
             $breakLine = $state['breakLine'];
         }
 
-        if(isset($breakFile) && isset($breakLine)) {
+        if(isset($breakFile) && isset($breakLine)) { 
             $data['code'] = self::getCodeAround($breakFile, $breakLine);
         }
         
@@ -513,7 +522,7 @@ class core_Debug
             $data['header'] = $state['header'];
         } else {
             $data['header'] = $state['errType'];
-            if($breakLine) {
+            if($breakLine && !strpos($fileHtml, "eval()'d code")) {
                 $data['header'] .= " на линия <i>{$lineHtml}</i>";
             }
             if($breakFile) {
@@ -537,7 +546,7 @@ class core_Debug
     /**
      * Рендира страница за грешка
      */
-    private  static function getErrorPage($state)
+    private  static function getErrorPage(&$state)
     { 
         $tpl = new core_NT(getFileContent('core/tpl/Error.shtml'));
         if(isset($state['errTitle']) && $state['errTitle'][0] == '@') {
@@ -634,12 +643,14 @@ class core_Debug
         }
         
         // Логваме на отдалечен сървър
-        if(defined('EF_REMOTE_ERROR_REPORT_URL')) {
+        if(defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting) {
             $url = EF_REMOTE_ERROR_REPORT_URL;
-            $data = array(  'debugPage' => gzcompress($debugPage), 
+            $data = array(  'data'   => gzcompress($debugPage), 
                             'domain' => $_SERVER['SERVER_NAME'], 
                             'errCtr' => $ctr, 
                             'errAct' => $act, 
+                            'dbName' => EF_DB_NAME,
+                            'title'  => ltrim($state['errTitle'], '@'),
                           );
 
             // use key 'http' even if you send the request to https://...
@@ -650,8 +661,8 @@ class core_Debug
                     'content' => http_build_query($data),
                 ),
             );
-            $context  = stream_context_create($options);
-            $result = file_get_contents($url, false, $context);
+            $context = stream_context_create($options);
+            $result  = @file_get_contents($url, FALSE, $context);
         }
     }
 
@@ -680,7 +691,6 @@ class core_Debug
         if(!($errno & CORE_ERROR_REPORTING_LEVEL) && !($errno & CORE_ERROR_LOGGING_LEVEL)) {
             return;
         }
-        
         // Когато сме в режим на маскиране на грешките (@) да не показваме съобщение
         if(CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0)  return;
         
@@ -704,10 +714,10 @@ class core_Debug
      */
     static function shutdownHandler()
     {
- 
+
         if ($error = error_get_last()) {
             
-            if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL) ) return;
+            if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL)) return;
             
 
             $errType = self::getErrorLevel($error['type']);
@@ -816,6 +826,14 @@ class core_Debug
      */
     private static function getEditLink($file, $line = NULL, $title = NULL)
     {  
+        if(strpos($file, "eval()'d code")) {
+            if(!$title) {
+                $title = $file;
+            }
+            list($file, $line) = explode('(', $file);
+            $line = (int) $line;
+        }
+
         if(!$title) {
             if(!$line) {
                 //$line = 1;
@@ -851,7 +869,7 @@ class core_Debug
      */
     public static function isDebug()
     {
-        
+ 
         // Връщаме кеширания резултат ако има такъв
         if(is_bool(self::$isDebug)) return self::$isDebug;
         

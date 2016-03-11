@@ -1,13 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <table class="innerTable border-table paddingCells">
             <tbody>
@@ -20,7 +11,7 @@
                             <span class="bigData">[#createdDate#]</span>
                         </div>
                         <!--ET_BEGIN stateText-->
-                        <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>
+                        <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                         <!--ET_END stateText-->
                         <!--ET_BEGIN originLink-->
                         <div>|към|* [#originLink#]</div>
@@ -120,27 +111,27 @@
                             <tr class='nowrap'>
                                 <td class='aright'>|Стойност|* :</td>
                                 <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
-                                <td class='aright' style='width:1%;'> <b>[#value#]</b></td>
+                                <td class='aright' style='width:1%;'> <b class="lighterBold">[#value#]</b></td>
                             </tr>
                             <!--ET_BEGIN discountValue-->
                             <tr class='nowrap'>
                                 <td class='aright'>|Отстъпка|* :</td>
                                 <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                                <td class='aright'><b>[#discountValue#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
                             </tr>
                             <!--ET_END discountValue-->
                             <!--ET_BEGIN neto-->
                             <tr class='nowrap'>
                                 <td class='aright'>|Нето|* :</td>
                                 <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                                <td class='aright'><b>[#neto#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#neto#]</b></td>
                             </tr>
                             <!--ET_END neto-->
                             <!--ET_BEGIN baseAmount-->
                             <tr class='nowrap'>
                                 <td class='aright'>|Данъчна основа|* :</td>
                                 <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                <td class='aright'><b>[#baseAmount#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#baseAmount#]</b></td>
                             </tr>
                             <!--ET_END baseAmount-->
                             <tr>
@@ -152,7 +143,7 @@
                             <tr class='nowrap'>
                                 <td class='aright'>|ДДС|* <b>[#vat#]</b> :</td>
                                 <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                                <td class='aright'><b>[#vatAmount#]</b></td>
+                                <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
                             </tr>
                             <!--ET_END vatAmount-->
                             <tr class='nowrap'>
@@ -174,9 +165,4 @@
             </tbody>
         </table>
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-    [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

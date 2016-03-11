@@ -1,36 +1,24 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
-    <table class='no-border' style='width:100%;'>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <table style='width:100%;'>
         <tbody>
             <tr>
                 <td>
                     <div class='scrolling-holder'>
                         <div class='display-table'>
-                            <table class="innerTable border-table paddingCells">
+                        	<table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
-                                        <td class="cell centered" rowspan='2' style='width:30%;'>
-                                            <div class="document-title">|ПРОТОКОЛ ЗА ПРОИЗВОДСТВО|*</div>
+                                       <td class="cell centered" rowspan='4' style='width:30%;'>
+                                            <div class="document-title">|протокол за групово производство|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
                                             </div>
                                             <!--ET_BEGIN state-->
-                                            <br>
-                                            <div class="[#STATE_CLASS#]">[#state#]</div>
-                                            <br>
+                                            <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Център на дейност|*</b></td>
+                                         <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
                                     </tr>
                                     <tr>
                                         <td class="cell">
@@ -39,11 +27,10 @@
                                             <br>[#storeLocation#]
                                             <!--ET_END storeLocation-->
                                         </td>
-                                        <td class="cell">
-                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
+                            
                             <div class="lines"></div>
                             <div class="details">
                                 [#planning_ProductionNoteDetails#]
@@ -60,12 +47,6 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
-                                                <!--ET_BEGIN baseCurrencyCode-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Валута|*:</td>
-                                                    <td>[#baseCurrencyCode#]</td>
-                                                </tr>
-                                                <!--ET_END baseCurrencyCode-->
                                             </table>
                                             <!--ET_BEGIN note-->
                                             <hr>
@@ -84,7 +65,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                                    <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
                                                 </tr>
                                             </table>
                                         </td>
@@ -93,13 +74,8 @@
                             </table>
                         </div>
                     </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
                 </td>
             </tr>
         </tbody>
     </table>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
