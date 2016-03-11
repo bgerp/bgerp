@@ -72,12 +72,6 @@ class acc_Limits extends core_Manager
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'powerUser';

@@ -359,6 +359,7 @@ class acc_ReportDetails extends core_Manager
                 if(count($arr['limits'])){
                 	$unset1 = $unset2 = $unset3 = TRUE;
                 	foreach ($arr['limits'] as $lRec){
+                		$lRec->_rowTools = $lRec->_rowTools->renderHtml();
                 		foreach (range(1, 3) as $i){
                 			if(isset($lRec->{"item{$i}"})){
                 				${"unset{$i}"} = FALSE;
@@ -373,7 +374,8 @@ class acc_ReportDetails extends core_Manager
                 	}
                 	
                 	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}</span>", 'LIMITS');
-                	$limitsHtml = $table->get($arr['limits'], array('tools' => 'Пулт') + $limitFields);
+                	$limitFields = array('_rowTools' => 'Пулт') + $limitFields;
+                	$limitsHtml = $table->get($arr['limits'], $limitFields);
                 	$tpl->append($limitsHtml, 'LIMITS');
                 	$limitCount++;
                 }
