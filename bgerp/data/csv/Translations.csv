@@ -797,7 +797,7 @@ en,Класове,Classes
 en,Клиент,Customer
 en,Клиенти,Customers
 en,Кликни за увел_6a353,Click for enlarging
-en,Клониране,Cloning
+en,Клониране,Clone
 en,Ключ,Key
 en,Ключови думи,Keywords
 en,Ключово поле,Key field
@@ -846,7 +846,7 @@ en,Корекции,Corrections
 en,Корекционна,Correctional
 en,Корекция на грешки от закръгления,Error correction rounding
 en,Корекция на грешки от закръгляне,Balance repairs from rounding
-en,Корекция,Correction
+en,Корекция,Correct
 en,Коригиращи дей_d8b4,Correcting actions
 en,Корпоративна,Corporate
 en,Кофа,Bucket
@@ -1092,7 +1092,7 @@ en,Невалидна дълж_838c,Invalid digits length
 en,Нед,Sun
 en,Недопустими символи в число/израз,Inadmissible symbols in number/expression
 en,Недоставени,Undelivered
-en,Незаскладено,Unstored
+en,Незаскладено,Not stored
 en,Неинсталирани,Non-installed
 en,Некоректен имейл,Incorrect email
 en,Некоректна сто_a431,Incorrect field value
@@ -1295,7 +1295,7 @@ en,ПБД,IBT
 en,ПКО,CCO
 en,ПОКУПКА,PURCHASE
 en,ПОЛ,URP
-en,Падеж,Maturity
+en,Падеж,Valior
 en,Пакет,Pack
 en,Пакети,Packs
 en,Палет,Pallet
@@ -1733,6 +1733,7 @@ en,Сгрешен домейн,Wrong domein
 en,Сд,Week
 en,Сделки за прод_1427c,Sales deals
 en,Сделки,Deals
+en,Себестойност,Prime cost
 en,Седмица,Week
 en,Секретар,Secretary
 en,Секретен,Secret
@@ -1959,7 +1960,7 @@ en,Титуляри,Holders
 en,Товарач,Loader
 en,Товарачи,Loaders
 en,Товарене,Loading
-en,Торта,Cake
+en,Торта,Pie
 en,Точка,Point
 en,Точки на Продажба,Points of Sale
 en,Точки на продажба,Points of sale
