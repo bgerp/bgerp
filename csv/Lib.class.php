@@ -242,7 +242,7 @@ class csv_Lib
         setIfNot($csvDelimiter, $params['delimiter'], csv_Setup::get('DELIMITER'));
         setIfNot($decPoint, $params['decPoint'], html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', TRUE)));
         setIfNot($dateFormat, $params['dateFormat'], core_Setup::get('EF_DATE_FORMAT', TRUE));
-        setIfNot($thousandsSep, $params['thousandsSep'], html_entity_decode(core_Setup::get('EF_NUMBER_THOUSANDS_SEP', TRUE)));
+        setIfNot($thousandsSep, $params['thousandsSep'], '');
         setIfNot($enclosure, $params['enclosure'], '"');
         setIfNot($decimals, $params['decimals'], 2);
         
