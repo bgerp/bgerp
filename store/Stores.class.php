@@ -145,6 +145,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Кой може да пише
      */
     public $canWrite = 'ceo,store';

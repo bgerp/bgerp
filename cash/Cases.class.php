@@ -183,6 +183,12 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
