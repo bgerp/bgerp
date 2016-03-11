@@ -267,7 +267,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	    // Кои полета ще се показват
 	    $f = new core_FieldSet;
 	    
-	    $f->FLD('date', 'varchar');
+	    $f->FLD('date', 'date');
 	    $f->FLD('valior', 'date');
 	    $f->FLD('docId', 'varchar');
 	    $f->FLD('reason','varchar');
@@ -314,8 +314,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	        ($this instanceof cash_reports_CashImpl) ||
 	        ($this instanceof acc_reports_MovementContractors) ||
 	        ($this instanceof acc_reports_TakingCustomers)) {
-	        
-	            $csv = csv_Lib::createCsv(array_reverse($this->innerState->recs, TRUE), $fields, $exportFields);
+	            $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
 	            
 	            return $csv;
 	    }
