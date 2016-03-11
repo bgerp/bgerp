@@ -803,7 +803,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 
                 foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1){
                     if(!is_null($rec->{$fld1})){ 
-                        $dataRecs[$id]->{$fld1} = html_entity_decode(strip_tags($dataRecs[$id]->{$fld1}));
+                        $dataRecs[$id]->{$fld1} = str_replace("&nbsp;", '', $dataRecs[$id]->{$fld1});
+                        $dataRecs[$id]->{$fld1} = trim(html_entity_decode(strip_tags($dataRecs[$id]->{$fld1})));
                     } 
                 }
             }
