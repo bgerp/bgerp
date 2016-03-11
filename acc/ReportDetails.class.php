@@ -267,21 +267,21 @@ class acc_ReportDetails extends core_Manager
     {
     	$tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
     	
+    	if(isset($data->balanceRec->periodId)){
+    		$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => tr("Обротна ведомост за|* \"{$link}\"")));
+    		}
+    		 
+    		$tpl->replace($link, 'periodId');
+    	}
+    	
     	// Ако баланса се преизчислява в момента, показваме подходящо съобщение
     	if($data->balanceIsRecalculating === TRUE){
     		$warning = "<span class='red'>" . tr('Баланса се преизчислява в момента|*! |Моля изчакайте|*.') . "</span>";
         	$tpl->append($warning, 'CONTENT');
         	
         	return $tpl;
-        }
-    	
-        if(isset($data->balanceRec->periodId)){
-        	$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
-        	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-        		$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => tr("Обротна ведомост за|* \"{$link}\"")));
-        	}
-        	
-        	$tpl->replace($link, 'periodId');
         }
         
         $limitTitle = tr("Лимити");
