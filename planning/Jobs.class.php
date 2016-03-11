@@ -856,7 +856,6 @@ class planning_Jobs extends core_Master
     {
     	unset($nRec->quantityProduced);
     	unset($nRec->history);
-    	unset($nRec->dueDate);
     }
     
     
