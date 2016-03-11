@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title Задача за производство
@@ -267,7 +267,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         
         $resArr['productId'] = array('name' => tr('Артикул'), 'val' =>"[#productId#]");
         
-        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("<span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
+        $resArr['plannedQuantity'] =  array('name' => tr('Количество'), 'val' => tr("|*<span style='font-weight:normal'>|Плануванo|*</span>: [#plannedQuantity#]
         		<!--ET_BEGIN totalQuantity--><br><span style='font-weight:normal'>|Произведено|*</span>: [#totalQuantity#]<!--ET_END totalQuantity-->"));
         
         $resArr['packagingId'] = array('name' => tr('Мярка'), 'val' =>"[#packagingId#]");
