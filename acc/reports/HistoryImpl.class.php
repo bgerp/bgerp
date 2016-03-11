@@ -316,6 +316,8 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	        ($this instanceof acc_reports_TakingCustomers)) {
 	        
 	            $csv = csv_Lib::createCsv(array_reverse($this->innerState->recs, TRUE), $fields, $exportFields);
+	            
+	            return $csv;
 	    }
 	    
 	    unset($this->innerState->allRecs['zero']);
