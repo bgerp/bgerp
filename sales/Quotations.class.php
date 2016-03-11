@@ -695,16 +695,6 @@ class sales_Quotations extends core_Master
     
     
 	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('doc_ContragentDataIntf');
-    }
-    
-    
-	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
     function loadSetupData()

@@ -150,17 +150,6 @@ class findeals_AdvanceDeals extends findeals_Deals
     
     
     /**
-     * В кои корици може да се вкарва документа
-     *
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf');
-    }
-    
-    
-    /**
      * Може ли документа да се добави в посочената папка?
      *
      * Документи-финансови сделки могат да се добавят само в папки с корица контрагент.
