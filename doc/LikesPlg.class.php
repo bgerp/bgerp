@@ -160,12 +160,13 @@ class doc_LikesPlg extends core_Plugin
                     // Показваме документа, ако е скрит
                     doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
                 }
-                
+               
                 // Връщаме документа
                 $res = doc_Containers::getDocumentForAjaxShow($rec->containerId);
+                
             }
         }
-        
+
         return FALSE;
     }
     
@@ -424,7 +425,9 @@ class doc_LikesPlg extends core_Plugin
                     $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
                     $row->DocumentSettingsLeft->append($likesLink);
                     jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'showTooltip');
+                    jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'smartCenter');
                 }
+                
             }
         }
     }

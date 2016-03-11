@@ -2090,12 +2090,12 @@ function smartCenter() {
         });
     	
         for (key in smartCenterWidth) {
-        	$("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] + 1 );
+        	$("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key] );
         }
         
         $("span.maxwidth:not('.notcentered')").css('display', "block");
         $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-        
+        $("span.maxwidth:not('.notcentered')").css('white-space', "nowrap");
 }
 
 

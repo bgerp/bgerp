@@ -570,7 +570,7 @@ class email_Accounts extends core_Master
             $params['SMTPAuth'] = FALSE;
         }
 
-        $params['XMailer'] = 'bgERP using PML';
+        $params['XMailer'] = 'bgERP email client';
 
         $pml = cls::get('phpmailer_Instance', $params);
 

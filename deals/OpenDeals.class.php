@@ -75,7 +75,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Сума->Доставено, summary = amount');
-    	$this->FLD('expectedPayment', 'double(decimals=2)', 'caption=Сума->ОчакванО плащане,oldFieldName=expectedDownpayment');
+    	$this->FLD('expectedPayment', 'double(decimals=2)', 'caption=Сума->Очаквано плащане,oldFieldName=expectedDownpayment');
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
@@ -106,22 +106,21 @@ class deals_OpenDeals extends core_Manager {
     {
     	
     	$data->listFilter->FNC('show', 'varchar', 'input=hidden');
-    	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
+    	$data->listFilter->FNC('sState', 'enum(pending=Чакащи,all=Всички)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
     	
     	$data->listFilter->showFields = 'search,from,to';
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
+    		$data->listFilter->setDefault('sState', 'pending');
     	}
     	$data->listFilter->input(NULL, 'silent');
         
     	$data->query->orderBy('state', "ASC");
 		$data->query->orderBy('id', "DESC");
 		
-		$data->listFilter->setDefault('sState', 'active');
-		
 		if(isset($data->listFilter->rec->sState) && $data->listFilter->rec->sState != 'all'){
-			$data->query->where("#state = '{$data->listFilter->rec->sState}'");
+			$data->query->where("#expectedPayment > 0");
 		}
 		
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
