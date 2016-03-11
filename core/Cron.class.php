@@ -320,13 +320,13 @@ class core_Cron extends core_Manager
         
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
-            $this->logThenStop("Процесът е заключен", $id, 'err');
+            $this->logThenStop("Процесът е заключен", $id, 'warning');
         }
         
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date("Y-m-d H:i:00", time());
         if ($nowMinute <= $rec->lastStart && !$forced) {
-            $this->logThenStop("Процесът е стартиран повторно по крон в една и съща минута", $id, 'err');
+            $this->logThenStop("Процесът е стартиран повторно по крон в една и съща минута", $id, 'warning');
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
