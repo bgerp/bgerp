@@ -632,9 +632,6 @@ class purchase_Purchases extends deals_DealMaster
     	$statisticTpl = getTplFromFile('purchase/tpl/PurchaseStatisticLayout.shtml');
     	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
     	
-    	// Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
-    	$data->row->paymentState = $mvc->getVerbal($data->rec, 'paymentState');
-    	
     	// Отново вкарваме езика на шаблона в сесията
     	core_Lg::push($data->rec->tplLang);
     }
