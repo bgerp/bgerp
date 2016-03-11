@@ -347,10 +347,10 @@ class sales_Invoices extends deals_InvoiceMaster
     			$closedDocuments .= " #{$handle}/{$date},";
     		}
     		$closedDocuments = trim($closedDocuments, ", ");
-    		$defInfo .= tr('|Съгласно договори|*: ') . $closedDocuments . PHP_EOL;
+    		$defInfo .= tr('|Съгласно сделки|*: ') . $closedDocuments . PHP_EOL;
     	} else {
     		$handle = sales_Sales::getHandle($firstRec->id);
-    		$defInfo .= tr("Съгласно договор") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
+    		$defInfo .= tr("Съгласно сделка") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
     	}
     	core_Lg::pop();
     	
