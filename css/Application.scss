@@ -1755,7 +1755,9 @@ pre.document {
         border-left: 1px solid #999 !important;
     }
 }
-
+.printVisible {
+	display: none;
+}
 .sign_names {
     display:inline-block;
     text-align: center;
@@ -4691,6 +4693,9 @@ body.narrow {
         border: none;
         padding: 0;
     }
+    .printVisible {
+	    display: block;
+	}
 }
 
 .printing {
