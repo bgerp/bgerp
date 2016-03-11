@@ -967,7 +967,7 @@ class crm_Profiles extends core_Master
     	    $attr['class'] .= ' profile';
 
     		$profileId = self::getProfileId($userId);
-    		if ($profileId && 0) {
+    		if ($profileId) {
     			
     			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
     				$url  = static::getUrl($userId);
