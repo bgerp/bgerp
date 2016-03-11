@@ -1657,8 +1657,6 @@ en,Разрешени,Allowed
 en,Разх. норми,Cons. norms
 en,Разходен банко_9860,Outgoing Bank Transfer
 en,Разходен касов_5ac8,Debit Cash Order
-en,Разходна норма,Consumption Norm
-en,Разходни Норми,Consumption norms
 en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
@@ -1699,8 +1697,8 @@ en,Ресурс,Resource
 en,Ресурси,Resources
 en,Реф.,Ref.
 en,Рефериране,Reference
-en,Рецепта,Recipe
-en,Рецепти,Recipes
+en,Рецепта,Bill of materials
+en,Рецепти,Bills of materials
 en,Решение по рег_047c8,Decision on registration
 en,Решение по рег_3e9cb,Decision on registration
 en,Решение по рег_db60e,Court registration No
