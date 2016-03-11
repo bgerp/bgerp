@@ -269,7 +269,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	 
     	if($rec->type == 'invoice' && $rec->state == 'active'){
     		if($mvc->haveRightFor('add', (object)array('type' => 'dc_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
-    			$data->toolbar->addBtn('Известие', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
+    			$data->toolbar->addBtn('Известие||D/C note', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
     		}
     	}
     }
