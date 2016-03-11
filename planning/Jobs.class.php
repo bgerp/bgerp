@@ -827,14 +827,18 @@ class planning_Jobs extends core_Master
     	$producedQuantity = 0;
     	
     	// Взимаме к-та на произведените артикули по заданието в протокола за производство
-    	$prodQuery = planning_ProductionNoteDetails::getQuery();
-    	$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
-    	$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-    	$prodQuery->where("#jobId = {$rec->id}");
-    	$prodQuery->where("#state = 'active'");
-    	$prodQuery->show('totalQuantity');
-    	
-    	$producedQuantity += $prodQuery->fetch()->totalQuantity;
+    	$db = new core_Db();
+    	if($db->tableExists("planning_production_note_details")){
+    		$prodQuery = planning_ProductionNoteDetails::getQuery();
+    		
+    		$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+    		$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+    		$prodQuery->where("#jobId = {$rec->id}");
+    		$prodQuery->where("#state = 'active'");
+    		$prodQuery->show('totalQuantity');
+    		
+    		$producedQuantity += $prodQuery->fetch()->totalQuantity;
+    	}
     	
     	// Взимаме к-та на произведените артикули по заданието в протокола за бързо производство
     	$directProdQuery = planning_DirectProductionNote::getQuery();
