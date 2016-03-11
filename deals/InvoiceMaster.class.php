@@ -652,6 +652,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	 
     	// Метод който да бъде прихванат от deals_plg_DpInvoice
     	$mvc->prepareDpInvoicePlg($data);
+    	
+    	if($form->rec->currencyId == acc_Periods::getBaseCurrencyCode($form->rec->date)){
+    		$form->setField('displayRate', 'input=hidden');
+    	}
     }
     
     
