@@ -1674,9 +1674,14 @@ pre.document {
 }
 
 .bigData {
-	font-family: "Courier New";
+	font-family: "Courier New",  Courier, monospace;
 	font-size: 1.1em; 
 	font-weight: bold;
+}
+
+.narrow .bigData {
+    font-family: Tahoma;
+    font-size: 0.9em; 
 }
 
 .quiet-small {
