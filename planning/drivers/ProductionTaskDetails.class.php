@@ -197,7 +197,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	}
     	 
     	$row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
-    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
+    	$row->modified .= " " . tr('от||by') . " " . crm_Profiles::createLink($rec->modifiedBy) . "</div>";
     	 
     	if(isset($rec->serial)){
     		$row->serial = "<b>{$row->serial}</b>";

@@ -75,7 +75,13 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public $tabTopClass = 'portal planning';
 	
+	
+	/**
+	 * Да не се кешира документа
+	 */
 	public $preventCache = TRUE;
+	
+	
 	/**
 	 * След рендиране на задачи към задание
 	 * 

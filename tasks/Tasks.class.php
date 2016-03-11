@@ -761,7 +761,7 @@ class tasks_Tasks extends embed_Manager
     		
     		$data->recs[$rec->id] = $rec;
     		$row = $Class->recToVerbal($rec);
-    		$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
+    		$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
     		$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
     		$data->rows[$rec->id] = $row;
     	}
