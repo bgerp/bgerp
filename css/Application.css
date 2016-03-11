@@ -1534,6 +1534,9 @@ pre.document {
   .document .special-borders  td.border-left {
     border-left: 1px solid #999999 !important; }
 
+.printVisible {
+  display: none; }
+
 .sign_names {
   display: inline-block;
   text-align: center;
@@ -4298,7 +4301,10 @@ only screen and (max-width: 320px) {
 
   .portal.planning {
     border: none;
-    padding: 0; } }
+    padding: 0; }
+
+  .printVisible {
+    display: block; } }
 
   .printing .specialLink {
     font-weight: bold; }
