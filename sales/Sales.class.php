@@ -360,6 +360,15 @@ class sales_Sales extends deals_DealMaster
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
         }
+        
+        // При нова продажба, ако отговорника на папката е има права 'sales',
+        // той да е дефолтен по подразбиране
+        if(!isset($form->rec->id)){
+        	$inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
+        	if(core_Users::haveRole('sales', $inCharge)){
+        		$form->rec->dealerId = $inCharge;
+        	}
+        }
     }
     
     
