@@ -768,21 +768,23 @@ class core_Html
             unset($attr['ef_icon']);
         }
         
-        // Оцветяваме линка в зависимост от особеностите му
-        if(!$attr['disabled']) {
-            if($warning){
-                $attr['style'] .= 'color:#772200 !important;';
-            } elseif (strpos($url, '://')) {
-                if(!strpos($attr['class'], 'out')) {
-                    $attr['class'] .= ' out';
-                }
-            } elseif($attr['target'] == '_blank') { 
-                $attr['style'] .= 'color:#008800 !important;';
-            }
-        } else {
-            $attr['style'] .= 'color:#999 !important;';
+        if ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf'))) {
+        	// Оцветяваме линка в зависимост от особеностите му
+        	if(!$attr['disabled']) {
+        		if($warning){
+        			$attr['style'] .= 'color:#772200 !important;';
+        		} elseif (strpos($url, '://')) {
+        			if(!strpos($attr['class'], 'out')) {
+        				$attr['class'] .= ' out';
+        			}
+        		} elseif($attr['target'] == '_blank') {
+        			$attr['style'] .= 'color:#008800 !important;';
+        		}
+        	} else {
+        		$attr['style'] .= 'color:#999 !important;';
+        	}
         }
-
+        
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
