@@ -53,6 +53,7 @@ class phpmailer_Instance extends core_BaseClass
                     $params['Host'] = $mxhosts[0];
                     $params['SMTPAuth'] = FALSE;
                     $params['SMTPSecure'] = FALSE;
+                    $params['XMailer'] = 'bgERP direct SMTP';
                 }
             }
             unset($params['emailTo']);

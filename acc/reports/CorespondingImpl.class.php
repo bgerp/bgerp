@@ -231,7 +231,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} elseif ($this->innerForm->compare == 'year') {
     		$data->toOld = date('Y-m-d',strtotime("-12 months", $from));
     		$data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
-    		bp($data->toOld, $data->fromOld , $from, $to);
+    		//bp($data->toOld, $data->fromOld , $from, $to);
     	}
 
     	$data->groupBy = array();
@@ -312,7 +312,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		foreach ($data->recs as &$rec1){
     			$fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
     			@$rec1->delta = round($rec1->{$fld} / $data->summary->${fld}, 5);
+    			@$rec1->delta = cls::get('type_Percent')->toVerbal($rec1->delta);
     		}
+
     	}
     	
     	// Ако не се групира по размерна сметка, не показваме количества
@@ -481,7 +483,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$row = new stdClass();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$Varchar = cls::get('type_Varchar');
-    	
+ 
     	// Вербалното представяне на перата
     	foreach (range(1, 6) as $i){
     		if(!empty($rec->{"item{$i}"})){
@@ -506,14 +508,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     	
-    	if (isset($rec->delta)) {
-    	   $row->delta = cls::get('type_Percent')->toVerbal($rec->delta);
+    	if (isset($rec->delta)) { 
+    	    $row->delta = $rec->delta;
     	}
     	
     	if (isset($rec->measure)) {
     	   $row->measure = $rec->measure;
     	}
-    	
+
     	// Връщаме подготвеното вербално рпедставяне
     	return $row;
     }
@@ -763,44 +765,60 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public function exportCsv()
     {
-    
-    	$conf = core_Packs::getConfig('core');
-    
-    	if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
-    		redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-    	}
-    
-    	$csv = "";
-    
-    	// генериран хедър
-    	$header = $this->generateHeader()->header;
-    	
-    	// Кешираме номерата на перата в отчета
-    	$iQuery = acc_Items::getQuery();
-    	$iQuery->show("num");
-    	
-    	while($iRec = $iQuery->fetch()){
-    		$mvc->cache[$iRec->id] = $iRec->num;
-    	}
-   
-    	arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
 
-    	if(count($this->innerState->recs)) { 
-    		foreach ($this->innerState->recs as $id => $rec) {
+        $conf = core_Packs::getConfig('core');
+        
+        if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+            redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+        }
+        
+        $exportFields = $this->innerState->listFields;
+        
+        $fields = $this->getFields();
+        
+        arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
+        
+        $rows = $this->prepareEmbeddedData()->rows; 
+        foreach($this->innerState->recs as $id => $rec) {
     
-    			$rCsv = $this->generateCsvRows($rec);
-    
-    			$csv .= $rCsv;
-    			$csv .=  "\n";
-    
-    		}
-    			
-    		$csv = $header . "\n" . $csv;
-    	}
+            $dataRecs[] = $this->getVerbalRec($rec, $data);
+            foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld){
+                if(!is_null($rec->{$fld})){
+                    $dataRecs[$id]->{$fld} = $rec->{$fld};
+                }
+            }
+            if(!is_null($rec->delta)){
+                $dataRecs[$id]->delta = str_replace("&nbsp;", '', $rec->delta);
+            }
+            
+            if(!is_null($rec->measure)){
+                $dataRecs[$id]->measure = $rows[$id]->measure;
+            }
+            
+            if(!is_null($rec->valior)){
+                $dataRecs[$id]->valior = $rec->valior;
+            }
+            
+            foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1){
+                if(!is_null($rec->{$fld1})){ 
+                    $dataRecs[$id]->{$fld1} = html_entity_decode(strip_tags($dataRecs[$id]->{$fld1}));
+                } 
+            }
+        }
+
+        foreach($exportFields as $caption => $name) {
+            if($caption == 'creditAmount') {
+                unset($exportFields[$caption]);
+                $exportFields['sum'] = 'Сума';
+            }
+   
+        }
+
+        $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
     	
     	return $csv;
     }
-    
+
     
     /**
      * Ще се експортирват полетата, които се
@@ -809,100 +827,25 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      * @return array
      * @todo да се замести в кода по-горе
      */
-    protected function getExportFields_()
+    protected function getFields_()
     {
+        // Кои полета ще се показват
+        $f = new core_FieldSet;
+        $f->FLD('debitQuantity', 'double');
+        $f->FLD('debitAmount', 'double');
+        $f->FLD('creditQuantity', 'double');
+        $f->FLD('creditAmount', 'double');
+        $f->FLD('blQuantity', 'double');
+        $f->FLD('blAmount', 'double');
+        $f->FLD('quantity', 'double');
+        $f->FLD('sum', 'double');
+        $f->FLD('valior', 'date');
+        $f->FLD('delta', 'varchar');
+        $f->FLD('measure', 'varchar');
 
-    	// Кои полета ще се показват
-    	$fields = arr::make("debitQuantity=Дебит - количество,debitAmount=Дебит - cума,creditQuantity=Кредит - количество,creditAmount=Кредит - сума,blQuantity=Остатък - количество,blAmount=Остатък - сума", TRUE);
-    	$newFields = array();
-    	
-    	if(count($this->innerState->groupBy)){
-    		foreach ($this->innerState->groupBy as $id => $grId){
-    			$newFields["item{$id}"] = acc_Lists::fetchField($grId, 'name');
-    		}
-    	}
-    	
-    	if(count($newFields)){
-    		$fields = $newFields + $fields;
-    	}
-    
-    	return $fields;
+        return $f;
     }
-    
-    
-    /**
-     * Ще направим заглавито на колонките
-     * според това дали ще има скрити полета
-     *
-     * @return stdClass
-     * @todo да се замени в кода по-горе
-     */
-    protected function generateHeader_()
-    {
-    
-    	$exportFields = $this->getExportFields();
-    	
-    	// Ако к-та и сумите са еднакви, не показваме количествата
-    	if($this->innerState->hasSameAmounts === TRUE){
-    		unset($exportFields['debitQuantity']);
-    		unset($exportFields['creditQuantity']);
-    		unset($exportFields['blQuantity']);
-    	}
-    	
-    	if($this->innerForm->side){
-    		if($this->innerForm->side == 'debit'){
-    			unset($exportFields['creditQuantity'], $exportFields['creditAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
-    		}elseif($this->innerForm->side == 'credit'){
-    			unset($exportFields['debitQuantity'], $exportFields['debitAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
-    		}
-    	}
-    	
-    
-    	foreach ($exportFields as $caption) {
-    		$header .= "," . $caption;
-    	}
-    		
-    	return (object) array('header' => $header);
-    }
-    
-    
-    /**
-     * Ще направим row-овете в CSV формат
-     *
-     * @return string $rCsv
-     */
-    protected function generateCsvRows_($rec)
-    {
-    
-    	$exportFields = $this->getExportFields();
-    	$rec = frame_CsvLib::prepareCsvRows($rec);
-    
-    	$rCsv = '';
-    
-    	foreach ($rec as $field => $value) {
-    		$rCsv = '';
-    
-    		foreach ($exportFields as $field => $caption) {
-    				
-    			if ($rec->{$field}) {
-    
-    				$value = $rec->{$field};
-    				$value = html2text_Converter::toRichText($value);
-    				// escape
-    				if (preg_match('/\\r|\\n|,|"/', $value)) {
-    					$value = '"' . str_replace('"', '""', $value) . '"';
-    				}
-    				$rCsv .= "," . $value;
-    
-    			} else {
-    				$rCsv .= "," . '';
-    			}
-    		}
-    	}
-    
-    	return $rCsv;
-    }
-    
+
     
     /**
      * Връща дефолт заглавието на репорта

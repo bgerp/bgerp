@@ -268,9 +268,33 @@ class sales_Services extends deals_ServiceMaster
     {
     	$rec = $data->rec;
     	
-    	if($rec->state == 'active' && $rec->isReverse == 'no'){
-    		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    			$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
+    	if($rec->isReverse == 'no'){
+    		
+    		// Към чернова може да се генерират проформи, а към контиран фактури
+    		if($rec->state == 'draft'){
+    			
+    			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(sales_Proformas::haveRightFor('single', $iRec)){
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към предавателния протокол,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/star_2.png');
+    				}
+    			}
+    		} elseif($rec->state == 'active'){
+    			
+    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(sales_Invoices::haveRightFor('single', $iRec)){
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към предавателния протокол,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към предавателния протокол,ef_icon=img/16/star_2.png');
+    				}
+    			}
     		}
     	}
     }

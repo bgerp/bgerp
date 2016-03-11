@@ -156,7 +156,7 @@ abstract class deals_ServiceMaster extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
@@ -170,8 +170,10 @@ abstract class deals_ServiceMaster extends core_Master
 		$ownCompanyData = crm_Companies::fetchOwnCompany();
 		$Companies = cls::get('crm_Companies');
 		$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
-	
+		$row->MyCompany = transliterate(tr($row->MyCompany));
+		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
+		$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+		
 		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
 		if($uic != $ownCompanyData->vatNo){
 			$row->MyCompanyVatNo = $ownCompanyData->vatNo;
@@ -182,7 +184,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$ContragentClass = cls::get($rec->contragentClassId);
 		$cData = $ContragentClass->getContragentData($rec->contragentId);
 		$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
+		$row->contragentAddress  = core_Lg::transliterate($row->contragentAddress);
 	}
 
 
@@ -239,7 +242,30 @@ abstract class deals_ServiceMaster extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
+    		core_Lg::push($rec->tplLang);
     		$mvc->prepareHeaderInfo($row, $rec);
+    		
+    		if($rec->locationId){
+    			$row->locationId = crm_Locations::getHyperlink($rec->locationId);
+    			 
+    			$contLocationAddress = crm_Locations::getAddress($rec->locationId);
+    			if($contLocationAddress != ''){
+    				$row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
+    			}
+    			 
+    			if($gln = crm_Locations::fetchField($rec->locationId, 'gln')){
+    				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
+    				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
+    			}
+    		}
+    		
+    		core_Lg::pop();
+    		
+    		if($rec->isReverse == 'yes'){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    				$row->operationSysId = tr('Отказ от услуга');
+    			}
+    		}
     	}
     }
 

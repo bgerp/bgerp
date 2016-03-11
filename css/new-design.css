@@ -528,7 +528,10 @@ body {
     margin-left: -1px;
     float: left; }
     .menu-options.search-options img {
-      opacity: 0.6; }
+      opacity: 0.6;
+      width: 20px;
+      height: 20px;
+      padding: 4px; }
     .menu-options.search-options:hover img {
       opacity: 0.9; }
     .menu-options.search-options .menu-holder {

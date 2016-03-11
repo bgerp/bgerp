@@ -89,7 +89,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         if($title) {
             $tpl->replace($title, 'CORE_APP_NAME');
         }
-// bp($this->innerForm);
+        
         if($this->innerForm->headerColor) {
             $css .= "\n    #all #cmsTop, #cmsTop img {background-color:{$this->innerForm->headerColor} !important;}";
         }
@@ -111,15 +111,17 @@ class cms_DefaultTheme extends core_ProtoInner {
         	}
         	$color = ltrim($this->innerForm->baseColor, "#");
         	
+        	$bordercolor = phpcolor_Adapter::changeColor($color,  'mix', 1, '333');
         	// ако не е зададен фон на страницата го изчисляваме
         	if(!$bgcolor) {
-        		$bordercolor = phpcolor_Adapter::changeColor($color, 'lighten', 40);
-        		$bgcolor = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
+        		$tempColor = phpcolor_Adapter::changeColor($color, 'lighten', 40);
+        		$bgcolor = phpcolor_Adapter::changeColor($tempColor, 'mix', 1, '#fff');
         	}
         	
         	// стилове за меню и футър
         	$css .= "\n    #cmsMenu {background-color:#{$color};}";
-        	$css .= "\n    #cmsBottom {background-color:#{$color};}";
+        	$css .= "\n    #cmsBottom {background-color:#{$color}; border-top:1px solid #{$bordercolor} !important;}";
+        	$css .= "\n     #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
         	
 
         	// в зависимост дали е светъл или тъмен, изчисляваме по различен начин
@@ -134,8 +136,9 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         	// цветове на формите в зависимост от основния цвят
         	$css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$color} !important; border: 1px solid #{$formcolor} !important}";
-        	$css .= "\n    .vertical .formTitle {background-color:#{$color} !important; border-color:#{$formcolor}}";
+        	$css .= "\n    .vertical .formTitle {background-color:#{$color} !important; border-color:#{$bordercolor}}";
         	$css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
+        	
         	
     	}
 
@@ -172,12 +175,15 @@ class cms_DefaultTheme extends core_ProtoInner {
                 // цвят на буквите от страничното меню
                 $fontcolor = phpcolor_Adapter::changeColor($color, 'darken', 1);
     		}
-
+    		
     		// ако след изчисленията не сме получили цвят за фон, пробваме да го изчислим по друг начин
     		if ($bgcolorActive == 'ffffff'){
-    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
+    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 20);
                 if($bgcolorActive == 'ffffff') {
-                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 20);
+                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 70);
+                    if($bgcolorActive == 'ffffff') {
+                    	$bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 30);
+                    }
                 }
     		}
     		

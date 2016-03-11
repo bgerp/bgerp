@@ -13,7 +13,7 @@
                         <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
-                    <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>
+                    <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                     <!--ET_END state-->
                 </td>
                 <td class='custom-header-bg' width='38%'><b>Supplier</b></td>
@@ -127,6 +127,9 @@
                             <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime--><li>Delivery time up to [#deliveryTermTime#] after starting the order</li><!--ET_END deliveryTermTime--> 
+                        	<!--ET_BEGIN commonConditionQuote-->
+	                    	<li>[#commonConditionQuote#]</li>
+	                    	<!--ET_END commonConditionQuote-->
                         </ol>
                     </div>
                 </td>

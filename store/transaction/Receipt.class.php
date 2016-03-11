@@ -113,7 +113,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $sign = ($reverse) ? -1 : 1;
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
-        $currencyRate = $this->getCurrencyRate($rec);
+        $currencyRate = $rec->currencyRate;
         currency_CurrencyRates::checkRateAndRedirect($currencyRate);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
@@ -169,18 +169,6 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         }
         
         return $entries;
-    }
-    
-    
-    /**
-     * Курс на валутата на покупката към базовата валута за периода, в който попада продажбата
-     * 
-     * @param stdClass $rec запис на покупка
-     * @return float
-     */
-    protected function getCurrencyRate($rec)
-    {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     }
     
     

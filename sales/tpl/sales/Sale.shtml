@@ -18,7 +18,7 @@
                         
                     </div>
                     <!--ET_BEGIN state-->
-                    <div class="[#STATE_CLASS#]" style='margin: 10px 0;'>[#state#]</div>
+                    <div class="[#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                     <!--ET_END state-->
                 </td>
                 <td class='custom-header-bg' style='width:38%;'><b>|Доставчик|*</b>
@@ -135,6 +135,9 @@
                             <li>|Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                             <!--ET_END deliveryBlock-->
                             <!--ET_BEGIN deliveryTermTime--><li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li><!--ET_END deliveryTermTime--> 
+                        	<!--ET_BEGIN commonConditionQuote-->
+	                    	<li>[#commonConditionQuote#]</li>
+	                    	<!--ET_END commonConditionQuote-->
                         </ol>
                     </div>
                 </td>

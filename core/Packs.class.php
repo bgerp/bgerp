@@ -491,7 +491,7 @@ class core_Packs extends core_Manager
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Свалане на най-новия код и инициализиране на системата, class=system-update-btn');
+        $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Сваляне на най-новия код и инициализиране на системата, class=system-update-btn');
     }
     
     

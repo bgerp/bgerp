@@ -210,7 +210,8 @@ class core_ET extends core_BaseClass
      */
     public function removeBlock($blockName)
     {
-    	expect($mp = $this->getMarkerPos($blockName));
+    	$mp = $this->getMarkerPos($blockName);
+    	if(!$mp) return;
     	
     	$contentBeforeBlock = substr($this->content, 0, $mp->beginStart);
         $contentAfterBlock = substr($this->content, $mp->endStop);

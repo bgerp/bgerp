@@ -282,7 +282,7 @@ abstract class store_DocumentMaster extends core_Master
 	   	 
 	   	$rec = &$data->rec;
 	   	if(empty($data->noTotal)){
-	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, FALSE, $rec->tplLang);
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
 	   	}
    }
@@ -350,6 +350,12 @@ abstract class store_DocumentMaster extends core_Master
 	   		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
 	   		
 	   		core_Lg::pop();
+	   		
+	   		if($rec->isReverse == 'yes'){
+	   			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+	   				$row->operationSysId = tr('Връщане на стока');
+	   			}
+	   		}
 	   	}
    }
 

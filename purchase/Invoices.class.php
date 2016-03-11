@@ -366,30 +366,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * След създаване
-     */
-    public static function on_AfterCreate($mvc, $rec)
-    {
-		$origin = $mvc->getOrigin($rec);
-    	if($origin->isInstanceOf('findeals_AdvanceReports')){
-    		$aQuery = findeals_AdvanceReportDetails::getQuery();
-    		$aQuery->where("#reportId = {$origin->that}");
-    		while($aRec = $aQuery->fetch()){
-    			$dRec = new stdClass();
-    			$dRec->productId      = $aRec->productId;
-    			$dRec->packagingId    = cat_Products::fetchField($dRec->productId, 'measureId');
-    			$dRec->quantityInPack = 1;
-    			$dRec->quantity       = $aRec->quantity;
-    			$dRec->price          = $aRec->amount / $dRec->quantity;
-    			$dRec->invoiceId      = $rec->id;
-    			 
-    			purchase_InvoiceDetails::save($dRec);
-    		}
-    	}
-    }
-    
-    
-    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
