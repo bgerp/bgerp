@@ -207,7 +207,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		
 		// Записваме операцията в регистъра
 		$taskOrigin = doc_Containers::getDocument($rec->originId);
-		planning_TaskActions::add($rec->id, $rec->productId, 'product', $taskOrigin->that, $rec->totalQuantity);
+		$quantity = $rec->totalQuantity * $rec->quantityInPack;
+		
+		planning_TaskActions::add($rec->id, $rec->productId, 'product', $taskOrigin->that, $quantity);
 	}
 
 
