@@ -31,7 +31,7 @@ class batch_Movements extends core_Detail {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'quantity, operation, date, document=Документ,createdOn=Създаване';
+    public $listFields = 'quantity, operation, date, document=Документ,createdOn=Създаване||Created';
     
     
     /**

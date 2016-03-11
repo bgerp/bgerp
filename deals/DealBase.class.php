@@ -800,4 +800,13 @@ abstract class deals_DealBase extends core_Master
     	
     	$data->DealHistory = $history;
     }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
 }

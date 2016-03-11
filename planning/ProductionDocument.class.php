@@ -75,26 +75,29 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 		
 		// Ако има намерен документ
 		if($fRec = $dQuery->fetch()){
-			
 			return planning_DirectProductionNote::getHandle($fRec->id);
 		}
 		
-		// Проверяваме към протоколите за производство
-		$dQuery = planning_ProductionNoteDetails::getQuery();
-		$dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
-		$dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
-		$dQuery->where("#state = 'active'");
-		$dQuery->where("#jobId = {$jobId}");
-		if($mvc instanceof planning_ProductionNotes){
-			$dQuery->where("#id != {$rec->id}");
-		}
-		
-		// Ако протокола е по-нов и има детайл към същото задание
-		$dQuery->orderBy('id', 'DESC');
-		while($dRec = $dQuery->fetch()){
-			$cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
-			if($cCreatedOn > $rec->createdOn){
-				return planning_ProductionNotes::getHandle($dRec->noteId);
+		$db = new core_Db();
+		if($db->tableExists("planning_production_note_details")){
+			
+			// Проверяваме към протоколите за производство
+			$dQuery = planning_ProductionNoteDetails::getQuery();
+			$dQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+			$dQuery->EXT('containerId', 'planning_ProductionNotes', 'externalName=containerId,externalKey=noteId');
+			$dQuery->where("#state = 'active'");
+			$dQuery->where("#jobId = {$jobId}");
+			if($mvc instanceof planning_ProductionNotes){
+				$dQuery->where("#id != {$rec->id}");
+			}
+			
+			// Ако протокола е по-нов и има детайл към същото задание
+			$dQuery->orderBy('id', 'DESC');
+			while($dRec = $dQuery->fetch()){
+				$cCreatedOn = doc_Containers::fetchField($dRec->containerId, 'createdOn');
+				if($cCreatedOn > $rec->createdOn){
+					return planning_ProductionNotes::getHandle($dRec->noteId);
+				}
 			}
 		}
 		

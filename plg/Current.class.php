@@ -200,12 +200,11 @@ class plg_Current extends core_Plugin
         	
         	// Ако записа е текущия обект, маркираме го като избран
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
-            //$row->currentPlg =  ht::createLink($row->currentPlg, array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()));
             $row->ROW_ATTR['class'] .= ' state-active';
         } elseif($mvc->haveRightFor('select', $rec)) {
         	
         	// Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
-            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), NULL, NULL, 'ef_icon = img/16/key.png, title=Предпочитание за текущ');
+            $row->currentPlg = ht::createBtn('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), NULL, NULL, 'ef_icon = img/16/key.png, title=Предпочитание за текущ');
             $row->ROW_ATTR['class'] .= ' state-closed';
         } else {
         	

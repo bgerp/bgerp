@@ -43,7 +43,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
     
     
     /**
@@ -565,17 +565,6 @@ class findeals_Deals extends deals_DealBase
     	}
     	
     	$data->query->where("#dealManId = {$mvc->getClassId()}");
-    }
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * 
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('doc_ContragentDataIntf');
     }
     
     

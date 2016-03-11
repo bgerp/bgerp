@@ -132,9 +132,9 @@ en,Акаунти,Accounts
 en,Активен до,Active until
 en,Активен,Active
 en,Активиран,Active
-en,Активиране,Activation
+en,Активиране,Activate
 en,Активирани,Activated
-en,Активирано,Acivated
+en,Активирано,Activated
 en,Активна,Active
 en,Активни и прик_c056d,Active and closed
 en,Активни+Чакащи,Active+Waiting
@@ -347,7 +347,7 @@ en,Възможни стойн_abd9,Possible values
 en,Възможно е дуб_6e72b,Possible duplication with the following person
 en,Възможно е дуб_8f991,It is possible to duplicate with the following company
 en,Възникна грешк_d1cf,There was an error processing the data file
-en,Възстановяване,Recovery
+en,Възстановяване,Restore
 en,Външен,External
 en,Външна,External
 en,Външни документи,Incoming documents
@@ -564,7 +564,7 @@ en,Елемент от менюто,Menu element
 en,Елементи на ме_1d410,Menu Items
 en,Етикет,Label
 en,Етикети,Labels
-en,Етикетиране,Labelling
+en,Етикетиране,Label
 en,Желаете ли да блокирате изпращането на информационни имейли към адрес,Do you want to block the sending of information emails to the address
 en,Желаете ли и ос_bcb3,Would you like and the other
 en,Живот,Lifetime
@@ -643,7 +643,7 @@ en,Зелен фон,Green background
 en,Зелени букви,Green letters
 en,Знаци,Chars
 en,Зони,Zones
-en,Игнорирай пред_32cc,Ignore the warning
+en,Игнорирай пред_32cc,Ignore warning
 en,Игнориране,Ignore
 en,Избери,Choose
 en,Избор на документ,Select document
@@ -797,7 +797,7 @@ en,Класове,Classes
 en,Клиент,Customer
 en,Клиенти,Customers
 en,Кликни за увел_6a353,Click for enlarging
-en,Клониране,Cloning
+en,Клониране,Clone
 en,Ключ,Key
 en,Ключови думи,Keywords
 en,Ключово поле,Key field
@@ -829,7 +829,7 @@ en,Контакти,Contacts
 en,Контактни данни, Contact info
 en,Контейнер,Container
 en,Контиран,Posted
-en,Контиране,Posting
+en,Контиране,Post
 en,Контрагент,Partner
 en,Контрагенти,Partners
 en,Контролер,Controller
@@ -1092,7 +1092,7 @@ en,Невалидна дълж_838c,Invalid digits length
 en,Нед,Sun
 en,Недопустими символи в число/израз,Inadmissible symbols in number/expression
 en,Недоставени,Undelivered
-en,Незаскладено,Unstored
+en,Незаскладено,Not stored
 en,Неинсталирани,Non-installed
 en,Некоректен имейл,Incorrect email
 en,Некоректна сто_a431,Incorrect field value
@@ -1295,7 +1295,7 @@ en,ПБД,IBT
 en,ПКО,CCO
 en,ПОКУПКА,PURCHASE
 en,ПОЛ,URP
-en,Падеж,Maturity
+en,Падеж,Due date
 en,Пакет,Pack
 en,Пакети,Packs
 en,Палет,Pallet
@@ -1318,6 +1318,7 @@ en,Партида,Batch
 en,Партиди,Batches
 en,Пасивна,Passive
 en,Пера в номенкл_8048c,List items in the nomenclature
+en,Перо,List item
 en,Пера,List items
 en,Период,Period
 en,Периоди,Periods
@@ -1339,6 +1340,7 @@ en,Писмо,Letter
 en,Планиране » За_9a037,Planning » Assignments per sales
 en,Планиране » По_6b082,Planning » Purchases of goods
 en,Планиране » По_e8813,Planning » Purchases of materials
+en,Планувано,Планувано
 en,Плащане по банков път,Bank payment
 en,Плащане в брой,Cash payment
 en,Плащане с прихващане,Offsetting payment
@@ -1601,9 +1603,11 @@ en,Просрочено,Overdue
 en,Протокол за отговорно пазене,Consignment Protocols
 en,Протокол за пр_2df4e,Protocol for changing LTA
 en,Протокол,Protocol
-en,Протоколи за в_19dc8,Protocols for use in manufacturing
+en,Протокол за производство,Production note
+en,Протокол за влагане в производство,Consumption note
+en,Протоколи за в_19dc8,Production notes
 en,Протоколи за в_b4591,Protocols for return of manufacturing
-en,Протоколи за г_e1584,Protocols for group manufacturing
+en,Протоколи за г_e1584,Group production notes
 en,Протоколи за извършени услуги,Protocols for services
 en,Протоколи за о_8f834,Protocols for safekeeping
 en,Протоколи за п_a57f6,Manufacturing protocols
@@ -1624,6 +1628,7 @@ en,Публични статии,Public Articles
 en,Публично съдържание,Public content
 en,Публичност,Publicity
 en,Пулт,Tools
+en,Пускане,Release
 en,Пускане в експ_8dd6f,Commissioning of LTA
 en,Първи документ,First document
 en,Първи документ_e7b9,First document in the thread
@@ -1657,8 +1662,6 @@ en,Разрешени,Allowed
 en,Разх. норми,Cons. norms
 en,Разходен банко_9860,Outgoing Bank Transfer
 en,Разходен касов_5ac8,Debit Cash Order
-en,Разходна норма,Consumption Norm
-en,Разходни Норми,Consumption norms
 en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
@@ -1699,8 +1702,8 @@ en,Ресурс,Resource
 en,Ресурси,Resources
 en,Реф.,Ref.
 en,Рефериране,Reference
-en,Рецепта,Recipe
-en,Рецепти,Recipes
+en,Рецепта,Bill of materials
+en,Рецепти,Bills of materials
 en,Решение по рег_047c8,Decision on registration
 en,Решение по рег_3e9cb,Decision on registration
 en,Решение по рег_db60e,Court registration No
@@ -1735,6 +1738,7 @@ en,Сгрешен домейн,Wrong domein
 en,Сд,Week
 en,Сделки за прод_1427c,Sales deals
 en,Сделки,Deals
+en,Себестойност,Prime cost
 en,Седмица,Week
 en,Секретар,Secretary
 en,Секретен,Secret
@@ -1879,10 +1883,12 @@ en,Събития за сед_bd9fe,Events for the week
 en,Събития,Events
 en,Съблюдаване на,Compliance
 en,Съблюдаване,Observation
-en,Събудено,Awoken
+en,Събудено,Awakened
+en,Събуждане,Awake
+en,Събуждане на,Awake
 en,Съвет,Advice
-en,Съгласно договор,According to contract
-en,Съгласно договори,According to contracts
+en,Съгласно сделка,According to deal
+en,Съгласно сделки,According to deals
 en,Съдебна регист_99ba,Court Registration
 en,Съдилища,Courts
 en,Съдилище,Court
@@ -1961,7 +1967,7 @@ en,Титуляри,Holders
 en,Товарач,Loader
 en,Товарачи,Loaders
 en,Товарене,Loading
-en,Торта,Cake
+en,Торта,Pie
 en,Точка,Point
 en,Точки на Продажба,Points of Sale
 en,Точки на продажба,Points of sale

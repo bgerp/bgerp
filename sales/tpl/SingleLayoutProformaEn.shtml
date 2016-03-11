@@ -9,7 +9,7 @@
                                 <tr>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Buyer</b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%;'>
-                                        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>PRO FORMA INVOICE</span></div>
+                                        <div class='document-title'>PRO FORMA INVOICE</div>
                                         <div class='invInfo'>Number</div>
                                         <div class="bigData">[#number#]</div>
                                         <div class='invInfo'>Date</div>
@@ -109,9 +109,10 @@
 					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
-                                        <!--ET_BEGIN dueDate-->
-                                        <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
+                                        <!--ET_BEGIN DUE_BLOCK-->
+                                           [#DUE_BLOCK#]
+                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
+                                        <!--ET_END DUE_BLOCK--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
@@ -125,10 +126,8 @@
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN deadlineForBalancePayment-->
                                         <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
-                                        <hr>
                                         <!--ET_END deadlineForBalancePayment-->
                                         <!--ET_BEGIN accountId-->
-                                        
                                         <div>
                                             <span class='quiet'>Bank Account:</span> [#accountId#]
                                             <div class="smallData">
@@ -143,11 +142,11 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
-                                        <hr>
                                         <!--ET_END paymentBlock-->
 
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
+                                        <hr class='printVisible'>
                                         <div class='custom-bg-block'><b>Delivery</b></div>
                                         <!--ET_BEGIN deliveryId-->
                                         [#deliveryId#]
@@ -156,12 +155,14 @@
                                         [#deliveryPlaceId#]
                                         <!--ET_END deliveryPlaceId-->
                                         <!--ET_END deliveryInfo-->
+                                        
                                         <!--ET_BEGIN additionalInfo-->
-                                        <div>Notes</div>
+                                        <hr class='printVisible'>
+                                        <div class='custom-bg-block'><b>Notes</b></div>
                                         <div>[#additionalInfo#]</div>
-                                        <hr>
+                                        
                                         <!--ET_END additionalInfo-->
-
+                                        <hr>
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
                                                 <td class='centered'>Prepared By:</td>

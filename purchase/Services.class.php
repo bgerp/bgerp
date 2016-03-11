@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -154,6 +154,19 @@ class purchase_Services extends deals_ServiceMaster
     }
      
      
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if($rec->activityCenterId){
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
+    		}
+    	}
+    }
+    
+    
 	/**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */

@@ -45,7 +45,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank';
     
     
     /**
@@ -147,17 +147,6 @@ class findeals_AdvanceDeals extends findeals_Deals
      * Сметки с какви интерфейси да се показват за избор
      */
     protected $accountListInterfaces = 'crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     *
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_PersonAccRegIntf');
-    }
     
     
     /**
