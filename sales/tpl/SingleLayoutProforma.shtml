@@ -9,7 +9,7 @@
                                 <tr>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Получател</b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%;'>
-                                        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>ПРОФОРМА ФАКТУРА</span></div>
+                                        <div class='document-title'>ПРОФОРМА ФАКТУРА</div>
                                         <div class='invInfo'>|Номер|*</div>
                                         <div class="bigData">[#number#]</div>
                                         <div class='invInfo'>|Дата|*</div>
@@ -95,6 +95,7 @@
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
                                         <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
+                                        <hr class='printVisible'>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
@@ -125,7 +126,6 @@
                                         </div>
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN accountId-->
-                                        <hr>
                                         <div>
                                             <span class='quiet'>Банкова с-ка:</span> [#accountId#]
                                             <div class="smallData">
@@ -140,11 +140,11 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
-                                        <hr>
                                         <!--ET_END paymentBlock-->
 
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
+                                        <hr class='printVisible'>
                                         <div class='custom-bg-block'><b>Доставка</b></div>
                                         <!--ET_BEGIN deliveryId-->
                                         [#deliveryId#]
@@ -152,13 +152,13 @@
                                         <!--ET_BEGIN deliveryPlaceId-->
                                         [#deliveryPlaceId#]
                                         <!--ET_END deliveryPlaceId-->
-                                        <hr>
+                                        
                                         <!--ET_END deliveryInfo-->
                                         <!--ET_BEGIN additionalInfo-->
-                                       
-                                        <div>Бележки</div>
+                                        <hr class='printVisible'>
+                                        <div class='custom-bg-block'><b>Бележки</b></div>
                                         <div>[#additionalInfo#]</div>
-                                         <hr>
+                                        <hr>
                                         <!--ET_END additionalInfo-->
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>

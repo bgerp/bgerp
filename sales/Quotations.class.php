@@ -46,7 +46,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues';
        
     
     /**
@@ -695,16 +695,6 @@ class sales_Quotations extends core_Master
     
     
 	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('doc_ContragentDataIntf');
-    }
-    
-    
-	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
     function loadSetupData()
@@ -996,5 +986,14 @@ class sales_Quotations extends core_Master
     	if($rec->reff === ''){
     		$rec->reff = NULL;
     	}
+    }
+    
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
     }
 }

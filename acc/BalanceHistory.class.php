@@ -452,7 +452,7 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Подготовка на вербалното представяне на един ред от историята
      */
-    private function getVerbalHistoryRow($rec)
+    public function getVerbalHistoryRow($rec)
     {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
