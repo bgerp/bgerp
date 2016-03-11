@@ -9,7 +9,7 @@
                                 <tr>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Получател</b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%;'>
-                                        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>ПРОФОРМА ФАКТУРА</span></div>
+                                        <div class='document-title'>ПРОФОРМА ФАКТУРА</div>
                                         <div class='invInfo'>|Номер|*</div>
                                         <div class="bigData">[#number#]</div>
                                         <div class='invInfo'>|Дата|*</div>

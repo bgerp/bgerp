@@ -9,7 +9,7 @@
                                 <tr>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Buyer</b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%;'>
-                                        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>PRO FORMA INVOICE</span></div>
+                                        <div class='document-title'>PRO FORMA INVOICE</div>
                                         <div class='invInfo'>Number</div>
                                         <div class="bigData">[#number#]</div>
                                         <div class='invInfo'>Date</div>
@@ -109,9 +109,10 @@
 					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
-                                        <!--ET_BEGIN dueDate-->
-                                        <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
+                                        <!--ET_BEGIN DUE_BLOCK-->
+                                           [#DUE_BLOCK#]
+                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
+                                        <!--ET_END DUE_BLOCK--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
