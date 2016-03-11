@@ -212,6 +212,8 @@ class store_Stores extends core_Master
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
     	$this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
+    
+    	$this->setDbUnique('name');
     }
     
     
