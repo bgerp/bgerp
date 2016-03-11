@@ -382,15 +382,17 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $fields = $this->getFields();
 
         $dataRecs = array();
-        foreach ($this->innarState->recs as $id => $rec) {
-            $dataRecs[] = $this->getVerbal($rec);
-            
-            if(!is_null($rec->id)) {
-                $dataRecs[id]->id = trim(html_entity_decode(strip_tags($dataRecs[id]->id)));
+        if (is_array($this->innarState->recs)) {
+            foreach ($this->innarState->recs as $id => $rec) {
+                $dataRecs[] = $this->getVerbal($rec);
+                
+                if(!is_null($rec->id)) {
+                    $dataRecs[id]->id = trim(html_entity_decode(strip_tags($dataRecs[id]->id)));
+                }
             }
+            
+            $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
         }
-        
-        $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
          
         return $csv;
     }
