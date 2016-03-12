@@ -166,7 +166,7 @@ class help_Info extends core_Master
         }
         
         $csv = csv_Lib::createCsv($recs, $mvc, array('class', 'action', 'lg', 'text'), 'columns=none');
-        $csv = str_replace("\n\r", "\n", $csv);
+        $csv = str_replace(array("\n\r", "\r\n"), array("\n", "\n"), $csv);
         
         $file = "help/data/HelpInfo.csv";
         $path = getFullPath($file);
