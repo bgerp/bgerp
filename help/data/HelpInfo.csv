@@ -318,10 +318,10 @@ marketing_Inquiries2,edit,bg,Това е форма за редактиране/
 pos_Points,list,bg,Тук се съдържа списък на всички Точки на продажба (POS). За повече информация прочетете: [link=http://www.bgerp.com/Bg/%D0%A2%D0%BE%D1%87%D0%BA%D0%B8-%D0%9D%D0%B0-%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B1%D0%B0/]Търговия » POS[/link]
 pos_Points,edit,bg,Това е форма за редактиране/добавяне на Точка на продажба (POS). За повече информация прочетете: [link=http://www.bgerp.com/Bg/%D0%A2%D0%BE%D1%87%D0%BA%D0%B8-%D0%9D%D0%B0-%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B1%D0%B0/]Търговия » POS[/link]
 pos_Points,single,bg,Това е общ изглед на Точката на продажба (POS). За повече информация прочетете: [link=http://www.bgerp.com/Bg/%D0%A2%D0%BE%D1%87%D0%BA%D0%B8-%D0%9D%D0%B0-%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B1%D0%B0/]Търговия » POS[/link]
-pos_Receipts,list,bg,Тук се съдържа списък на всички бележки за продажба. За повече информация прочетете: [link=http://www.bgerp.com/Bg/POS-prodajbi/]POS Проодажби[/link]
+pos_Receipts,list,bg,Тук се съдържа списък на всички бележки за продажба. За повече информация прочетете: [link=http://www.bgerp.com/Bg/POS-prodajbi/]POS Продажби[/link]
 pos_Receipts,terminal,bg,Тук се извършва POS продажба. За повече информация прочетете: [link=http://www.bgerp.com/Bg/POS-prodajbi/]POS Проодажби[/link]
 pos_Receipts,single,bg,Това е общ изглед на бележката за продажба. За повече информация прочетете: [link=http://www.bgerp.com/Bg/POS-prodajbi/]POS Проодажби[/link]
-pos_Reports,list,bg,"Тук се съдържа списък на всички отчети за POS продажби. За повече информация прочетете: [link=http://www.bgerp.com/Bg/POS-prodajbi/]POS Проодажби[/link]
+pos_Reports,list,bg,"Тук се съдържа списък на всички отчети за POS продажби. За повече информация прочетете: [link=http://www.bgerp.com/Bg/POS-prodajbi/]POS Продажби[/link]
 [color=#932C2C]Документ ""Отчет за POS продажби"" се създава от меню ""POS-Точки на продажба-корицата на точката за продажба""[/color]"
 pos_Stocks,list,bg,Тук се съдържа списък на всички складови наличности. За повече информация прочетете: [link=http://www.bgerp.com/Bg/%D0%A2%D0%BE%D1%87%D0%BA%D0%B8-%D0%9D%D0%B0-%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B1%D0%B0/]Търговия » POS[/link]
 pos_Favourites,list,bg,Тук се съдържа списък на всички продукти за бързи бутони. За повече информация прочетете: [link=http://www.bgerp.com/Bg/%D0%A2%D0%BE%D1%87%D0%BA%D0%B8-%D0%9D%D0%B0-%D0%9F%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B1%D0%B0/]Търговия » POS[/link]
