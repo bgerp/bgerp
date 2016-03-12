@@ -557,8 +557,8 @@ class thumb_Img
             } elseif($this->sourceType == 'gdRes') {
                 $newGdRes = $gdRes;
             }
-
-            if($newGdRes) { 
+            
+            if($newGdRes) {
                 switch($this->getThumbFormat()) {
                     case 'jpg':
                         imagejpeg($newGdRes, $path, $this->quality);
@@ -688,7 +688,11 @@ class thumb_Img
         // Само на gif и png изображенията запазваме прозрачността
         if ($format == 'gif' || $format == 'png') {
             
-            $transparentIndex = imagecolortransparent($im);
+            $transparentIndex = -1;
+            
+            if ($format == 'gif') {
+                $transparentIndex = imagecolortransparent($im);
+            }
             
             if ($transparentIndex >= 0) {
                 imagepalettecopy($im, $newImg);

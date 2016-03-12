@@ -48,7 +48,7 @@ class thumb_M extends core_Mvc
         } else {
 
             self::addTypeHeader($ext);
-
+            
             return new Redirect($this->thumb->getUrl('forced'));
         }
     }
