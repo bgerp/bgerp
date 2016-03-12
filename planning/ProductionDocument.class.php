@@ -79,7 +79,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 		}
 		
 		$db = new core_Db();
-		if($db->tableExists("planning_production_note_details")){
+		if ($db->tableExists("planning_production_note_details") && ($db->tableExists("planning_production_note"))) {
 			
 			// Проверяваме към протоколите за производство
 			$dQuery = planning_ProductionNoteDetails::getQuery();

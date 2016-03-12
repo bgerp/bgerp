@@ -828,7 +828,8 @@ class planning_Jobs extends core_Master
     	
     	// Взимаме к-та на произведените артикули по заданието в протокола за производство
     	$db = new core_Db();
-    	if($db->tableExists("planning_production_note_details")){
+    	
+    	if ($db->tableExists("planning_production_note_details") && ($db->tableExists("planning_production_note"))) {
     		$prodQuery = planning_ProductionNoteDetails::getQuery();
     		
     		$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
