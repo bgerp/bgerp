@@ -1674,9 +1674,14 @@ pre.document {
 }
 
 .bigData {
-	font-family: "Courier New";
-	font-size: 1em; 
+	font-family: "Courier New",  Courier, monospace;
+	font-size: 1.1em; 
 	font-weight: bold;
+}
+
+.narrow .bigData {
+    font-family: Verdana;
+    font-size: 0.9em; 
 }
 
 .quiet-small {
@@ -1750,7 +1755,9 @@ pre.document {
         border-left: 1px solid #999 !important;
     }
 }
-
+.printVisible {
+	display: none;
+}
 .sign_names {
     display:inline-block;
     text-align: center;
@@ -4686,6 +4693,9 @@ body.narrow {
         border: none;
         padding: 0;
     }
+    .printVisible {
+	    display: block;
+	}
 }
 
 .printing {
@@ -5124,7 +5134,7 @@ body.narrow {
     background: rgba(30,30,30,0.9);
     border-radius: 5px;
     position: absolute;
-    z-index: 100;
+    z-index: 9999;
     padding: 10px;
     font-size: 0.9em;
 }

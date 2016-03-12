@@ -349,8 +349,14 @@ class doc_reports_Docs extends frame_BaseDriver
     {
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
-    
-        $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
+        
+        $dataRec = array();
+        foreach ($this->prepareEmbeddedData()->rows as $id => $row) {
+            $dataRec[$id] = $row;
+            $dataRec[$id]->createdBy = html_entity_decode(strip_tags($row->createdBy));
+        }
+
+        $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
          
         return $csv;
     }

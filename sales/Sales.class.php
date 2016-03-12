@@ -47,7 +47,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
     /**
@@ -360,6 +360,15 @@ class sales_Sales extends deals_DealMaster
         if($hideRate == 'yes'){
         	$form->setField('currencyRate', 'input');
         }
+        
+        // При нова продажба, ако отговорника на папката е има права 'sales',
+        // той да е дефолтен по подразбиране
+        if(!isset($form->rec->id)){
+        	$inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
+        	if(core_Users::haveRole('sales', $inCharge)){
+        		$form->rec->dealerId = $inCharge;
+        	}
+        }
     }
     
     
@@ -389,7 +398,6 @@ class sales_Sales extends deals_DealMaster
     		
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
-    			
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Пр. услуги', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Продажба на услуги,order=9.22');
 	        }
@@ -759,9 +767,6 @@ class sales_Sales extends deals_DealMaster
     	$statisticTpl = getTplFromFile('sales/tpl/SaleStatisticLayout.shtml');
     	$tpl->replace($statisticTpl, 'STATISTIC_BAR');
     	
-    	// Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
-    	$data->row->paymentState = $mvc->getVerbal($data->rec, 'paymentState');
-    	
     	// Отново вкарваме езика на шаблона в сесията
     	core_Lg::push($data->rec->tplLang);
     }
@@ -788,35 +793,23 @@ class sales_Sales extends deals_DealMaster
     	$unique = Request::get('unique', 'int');
     	
     	$tpl = new ET("[#link#]");
-    	 
     	$row = new stdClass();
     	
-    	if (substr(strstr($id, "job="),1)) { 
+    	if (substr(strstr($id, "job="), 1)) { 
     		
-    		$jobId = substr(strstr($id, "="),1);
-    		
+    		$jobId = substr(strstr($id, "="), 1);
     		$rec = planning_Jobs::fetchRec($jobId);
-    		
     		$row = planning_Jobs::recToVerbal($rec);
-    		
     		$row->link = planning_Jobs::getLink($rec->id, 0);
     		
     		$tpl->placeObject($row);
-    		
-    		
     	} else {
-    		
-    		$saleId = substr(strstr($id, "="),1);
-    		
+    		$saleId = substr(strstr($id, "="), 1);
 	    	$rec = $this->fetchRec($saleId);
-	    	
 	    	$row = $this->recToVerbal($rec);
-	    	
 	    	$row->link = self::getLink($rec->id, 0);
-	    	
 	    	$tpl->placeObject($row);
     	}
-    	
 
     	if (Request::get('ajax_mode')) {
     		$resObj = new stdClass();
@@ -831,7 +824,7 @@ class sales_Sales extends deals_DealMaster
   
     
     /**
-     *  Намира последната покупна цена на артикулите
+     *  Намира последната продажна цена на артикулите
      */
     public static function getLastProductPrices($contragentClass, $contragentId)
     {
@@ -1015,7 +1008,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($rec->bankAccountId)){
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     			$row->bankAccountId = bank_Accounts::getHyperlink($rec->bankAccountId);
     		}
     	}

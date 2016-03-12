@@ -204,7 +204,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			
 			// Ако има проблем с партидите, показваме грешката и маркираме реда
 			if($msg = self::getBatchRecInvalidMessage($mvc, $rec)){
-				$row->{$mvc->productFieldName} = ht::createHint($row->{$mvc->productFieldName}, tr($msg), 'error');
+				$row->{$mvc->productFieldName} = ht::createHint($row->{$mvc->productFieldName}, tr($msg), 'warning');
 			}
 		}
 	}

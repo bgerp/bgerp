@@ -768,21 +768,23 @@ class core_Html
             unset($attr['ef_icon']);
         }
         
-        // Оцветяваме линка в зависимост от особеностите му
-        if(!$attr['disabled']) {
-            if($warning){
-                $attr['style'] .= 'color:#772200 !important;';
-            } elseif (strpos($url, '://')) {
-                if(!strpos($attr['class'], 'out')) {
-                    $attr['class'] .= ' out';
-                }
-            } elseif($attr['target'] == '_blank') { 
-                $attr['style'] .= 'color:#008800 !important;';
-            }
-        } else {
-            $attr['style'] .= 'color:#999 !important;';
+        if ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf'))) {
+        	// Оцветяваме линка в зависимост от особеностите му
+        	if(!$attr['disabled']) {
+        		if($warning){
+        			$attr['style'] .= 'color:#772200 !important;';
+        		} elseif (strpos($url, '://')) {
+        			if(!strpos($attr['class'], 'out')) {
+        				$attr['class'] .= ' out';
+        			}
+        		} elseif($attr['target'] == '_blank') {
+        			$attr['style'] .= 'color:#008800 !important;';
+        		}
+        	} else {
+        		$attr['style'] .= 'color:#999 !important;';
+        	}
         }
-
+        
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
@@ -874,9 +876,10 @@ class core_Html
      * @param mixed $body                       - тяло
      * @param title $hint                       - текст на хинта
      * @param notice|warning|error|string $icon - име на иконката
+     * @param boolean $appendToEnd              - дали хинта да се добави в края на стринга
      * @return core_ET $element                 - шаблон с хинта
      */
-    public static function createHint($body, $hint, $icon = 'notice')
+    public static function createHint($body, $hint, $icon = 'notice', $appendToEnd = TRUE)
     {
     	if(empty($hint)) return $body;
     	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return $body;
@@ -887,8 +890,14 @@ class core_Html
     	expect(is_string($iconPath), $iconPath);
     	
     	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
-    	$element = new core_ET("<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]");
-        
+    	
+    	if($appendToEnd === TRUE){
+    		$elementTpl = "[#body#] <span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+    	} else {
+    		$elementTpl = "<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+    	}
+    	
+    	$element = new core_ET($elementTpl);
         $element->append($body, 'body');
         $element->append($hint, 'hint');
         $element->append($iconHtml, 'icon');

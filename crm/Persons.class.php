@@ -488,7 +488,11 @@ class crm_Persons extends core_Master
         if($form->isSubmitted()) {
 
             // Проверяваме да няма дублиране на записи
-            static::checkSimilarWarning($mvc, $form);
+            $resStr = static::getSimilarWarningStr($form->rec, $fields);
+            
+            if ($resStr) {
+                $form->setWarning($fields, $resStr);
+            }
 
             if($rec->place) {
                 $rec->place = bglocal_Address::canonizePlace($rec->place);
@@ -1897,7 +1901,11 @@ class crm_Persons extends core_Master
             $class = cls::get('crm_Persons');
             
             // Проверявяме да няма дублирани полета
-            static::checkSimilarWarning($class, $form);
+            $resStr = static::getSimilarWarningStr($form->rec, $fields);
+            
+            if ($resStr) {
+                $form->setWarning($fields, $resStr);
+            }
         }
         
         // Ако формата е субмитнара успешно
@@ -2199,59 +2207,152 @@ class crm_Persons extends core_Master
     
     /**
      * Проверява дали полето име и полето ЕГН се дублират. Ако се дублират сетваме грешка.
+     * 
+     * @param stdObject $rec
+     * @param string $fields
+     * 
+     * @return string
      */
-    protected static function checkSimilarWarning($mvc, &$form)
+    public static function getSimilarWarningStr($rec, &$fields = '')
     {
-        $rec = $form->rec;
+        $resStr = '';
         
-        // Правим проверка за дублиране с друг запис
-        if(!$rec->id) {
-            $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
-
-            $query = $mvc->getQuery();
-            
-            $similars = array();
-            
-            while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
-                $similars[$similarRec->id] = $similarRec;
-                $similarName = TRUE;
-            }
-
-            $egnNumb = preg_replace("/[^0-9]/", "", $rec->egn);
-
-            if($egnNumb) {
-                $query = $mvc->getQuery();
-
-                while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", $egnNumb))) {
-                    $similars[$similarRec->id] = $similarRec;
+        if ($rec->id) return $resStr;
+        
+        $similarsArr = self::getSimilarRecs($rec, $fields);
+        
+        if (!empty($similarsArr)) {
+            $similarPersons = '';
+            foreach($similarsArr as $similarRec) {
+                
+                $class = '';
+                
+                if ($similarRec->state == 'rejected') {
+                    $class = "class='state-rejected'";
+                } elseif ($similarRec->state == 'closed') {
+                    $class = "class='state-closed'";
                 }
-                $similarEgn = TRUE;
-            }
-
-            if(count($similars)) {
-                foreach($similars as $similarRec) {
-                    $similarPersons .= "<li>";
-                    $similarPersons .= ht::createLink($mvc->getVerbal($similarRec, 'name'), array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
-
-                    if($similarRec->egn) {
-                        $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'egn');
-                    } elseif($birthday = $mvc->getverbal($similarRec, 'birthday')) {
+                
+                $similarPersons .= "<li {$class}>";
+                
+                $singleUrl = array();
+                $otherParamArr = array();
+                
+                if ($haveRightForSingle = self::haveRightFor('single', $similarRec->id)) {
+                    $singleUrl = array(get_called_class(), 'single', $similarRec->id);
+                    $otherParamArr['target'] = '_blank';
+                }
+                
+                $similarPersons .= ht::createLink(self::getVerbal($similarRec, 'name'), $singleUrl, NULL, $otherParamArr);
+                
+                if ($haveRightForSingle) {
+                    if ($similarRec->egn) {
+                        $similarPersons .= ", " . self::getVerbal($similarRec, 'egn');
+                    } elseif($birthday = self::getverbal($similarRec, 'birthday')) {
                         $similarPersons .= ", " . $birthday;
                     }
-
-                    if(trim($similarRec->place)) {
-                        $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'place');
-                    }
-                    $similarPersons .= "</li>";
                 }
-
-                $fields = ($similarEgn && $similarName) ? "name,egn" : ($similarName ? "name" : "egn");
-
-                $sledniteLica = (count($similars) == 1) ? "следното лице" : "следните лица";
-
-                $form->setWarning($fields, "Възможно е дублиране със {$sledniteLica}|*: <ul>{$similarPersons}</ul>");
+				
+                if (trim($similarRec->place)) {
+                    $similarPersons .= ", " . self::getVerbal($similarRec, 'place');
+                }
+                
+                if (!$haveRightForSingle) {
+                    $similarPersons .= ' - ' . crm_Profiles::createLink($similarRec->inCharge);
+                }
+                
+                $similarPersons .= "</li>";
+            }
+			
+            $sledniteLica = (count($similarsArr) == 1) ? "следното лице" : "следните лица";
+            
+            $resStr = "Възможно е дублиране със {$sledniteLica}|*: <ul>{$similarPersons}</ul>";
+        }
+        
+        return $resStr;
+    }
+    
+    
+    /**
+     * Връща масив с възможните съвпадения
+     * 
+     * @param stdObject $rec
+     * @param string $fields
+     * 
+     * @return array
+     */
+    protected static function getSimilarRecs($rec, &$fields = '')
+    {
+        $similarsArr = array();
+        
+        $similarName = $similarEgn = FALSE;
+        
+        if ($rec->id) return $similarsArr;
+        
+        $fieldsArr = array();
+        
+        // Правим проверка за дублиране с друг запис
+        $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
+        
+        $oQuery = self::getQuery();
+        self::restrictAccess($oQuery);
+        
+        $nQuery = clone $oQuery;
+        
+        $nQuery->where(array("#searchKeywords LIKE '% [#1#] %'", $nameL));
+        if ($rec->country) {
+            $nQuery->where(array("#country = '[#1#]'", $rec->country));
+        }
+        
+        while($similarRec = $nQuery->fetch()) {
+            $similarsArr[$similarRec->id] = $similarRec;
+            $fieldsArr['name'] = 'name';
+        }
+        
+        if ($rec->egn) {
+            $egnNumb = preg_replace("/[^0-9]/", "", $rec->egn);
+            
+            if($egnNumb) {
+                $eQuery = clone $oQuery;
+                $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
+            
+                while($similarRec = $eQuery->fetch) {
+                    $similarsArr[$similarRec->id] = $similarRec;
+                }
+                $fieldsArr['egn'] = 'egn';
             }
         }
+
+
+        if ($rec->email || $rec->buzEmail) {
+            
+            $emailArr = type_Emails::toArray($rec->email . ', ' . $rec->buzEmail);
+            
+            if (!empty($emailArr)) {
+                $eQuery = clone $oQuery;
+        
+                $toPrev = FALSE;
+                foreach ($emailArr as $email) {
+                    $eQuery->where(array("#email LIKE '%[#1#]%'", $email), $toPrev);
+                    $eQuery->orWhere(array("#buzEmail LIKE '%[#1#]%'", $email));
+                    
+                    $toPrev = TRUE;
+                }
+                
+                while($similarRec = $eQuery->fetch()) {
+                    $similarsArr[$similarRec->id] = $similarRec;
+                    if ($rec->buzEmail) {
+                        $fieldsArr['buzEmail'] = 'buzEmail';
+                    } else {
+                        $fieldsArr['email'] = 'email';
+                    }
+                }
+            }
+        }
+        
+        $fields = implode(',', $fieldsArr);
+        
+        return $similarsArr;
     }
     
     

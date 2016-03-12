@@ -125,7 +125,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'dueDate, title=Документ, quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'dueDate, title=Документ, quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy,createdOn,createdBy';
     
     
     /**
@@ -471,7 +471,9 @@ class planning_Jobs extends core_Master
     	}
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    		$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		if(isset($rec->dueDate)){
+    			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    		}
     	}
     }
     
@@ -774,7 +776,7 @@ class planning_Jobs extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,dueDate=Падеж,title=Документ,saleId=Към продажба,quantity=Количество,quantityProduced=Произведено,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,dueDate=Падеж,title=Документ,saleId=Към продажба,quantity=Количество,quantityProduced=Произведено,createdBy=Oт||By,createdOn=На');
     	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);
@@ -825,14 +827,19 @@ class planning_Jobs extends core_Master
     	$producedQuantity = 0;
     	
     	// Взимаме к-та на произведените артикули по заданието в протокола за производство
-    	$prodQuery = planning_ProductionNoteDetails::getQuery();
-    	$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
-    	$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-    	$prodQuery->where("#jobId = {$rec->id}");
-    	$prodQuery->where("#state = 'active'");
-    	$prodQuery->show('totalQuantity');
+    	$db = new core_Db();
     	
-    	$producedQuantity += $prodQuery->fetch()->totalQuantity;
+    	if ($db->tableExists("planning_production_note_details") && ($db->tableExists("planning_production_note"))) {
+    		$prodQuery = planning_ProductionNoteDetails::getQuery();
+    		
+    		$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+    		$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+    		$prodQuery->where("#jobId = {$rec->id}");
+    		$prodQuery->where("#state = 'active'");
+    		$prodQuery->show('totalQuantity');
+    		
+    		$producedQuantity += $prodQuery->fetch()->totalQuantity;
+    	}
     	
     	// Взимаме к-та на произведените артикули по заданието в протокола за бързо производство
     	$directProdQuery = planning_DirectProductionNote::getQuery();
@@ -856,7 +863,6 @@ class planning_Jobs extends core_Master
     {
     	unset($nRec->quantityProduced);
     	unset($nRec->history);
-    	unset($nRec->dueDate);
     }
     
     

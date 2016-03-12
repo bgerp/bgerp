@@ -442,8 +442,10 @@ class batch_Items extends core_Master {
     	
     	// Подготвяме таблицата за рендиране
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet));
-    	$fields = arr::make("batch=Партида,storeId=Склад,quantity=К-во", TRUE);
-    	$fields = array('icon' => ' ') + $fields;
+    	$fields = arr::make("batch=Партида,storeId=Склад,quantity=Количество", TRUE);
+    	if(count($data->rows)){
+    		$fields = array('icon' => ' ') + $fields;
+    	}
     	
     	// Ако е филтрирано по склад, скриваме колонката на склада
     	if(isset($data->storeId)){

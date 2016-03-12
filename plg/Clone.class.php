@@ -76,6 +76,8 @@ class plg_Clone extends core_Plugin
             // Маркираме записа като клониран
             $nRec->_isClone = TRUE;
             
+            $fields = array();
+            
             // Да няма дублиране на уникални полета
             if(!$mvc->isUnique($nRec, $fields)) {
                 $data->form->setError($fields, "Вече съществува запис със същите данни");
@@ -120,7 +122,7 @@ class plg_Clone extends core_Plugin
         $retUrl = getRetUrl();
         
         // Ако не зададено
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             
             // Ако има сингъл
             if ($mvc instanceof core_Master) {

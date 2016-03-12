@@ -231,9 +231,14 @@ class cat_reports_SalesArticle extends frame_BaseDriver
 
         if(is_array($rows)) {
             foreach ($rows as $id => $row) { 
-                if (!$pager->isOnPage()) continue;
+                $cu = getCurrentUrl();
+                if ($cu['Act'] == 'export') {
+                    $data->rows[$id] = $row;
+                } else {
+                    if (!$pager->isOnPage()) continue;
 
-                $data->rows[$id] = $row;
+                    $data->rows[$id] = $row;
+                }
             }
         }
     }
@@ -400,6 +405,8 @@ class cat_reports_SalesArticle extends frame_BaseDriver
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
 
+        $dataRec = array();
+    
         $csv = csv_Lib::createCsv($this->prepareEmbeddedData()->rows, $fields, $exportFields);
          
         return $csv;
