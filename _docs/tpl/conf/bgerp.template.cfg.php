@@ -101,6 +101,10 @@
  # defIfNot('EF_CTR_NAME', 'FIXED_CONTROLER');
 
 
+/**
+* URL за отдалечено репортване на грешки
+*/
+DEFINE('EF_REMOTE_ERROR_REPORT_URL','http://experta.bg/ci_Errors/add/apiKey/rmon123/');
 
 
 /*****************************************************************************

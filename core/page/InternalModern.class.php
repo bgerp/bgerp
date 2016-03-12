@@ -308,7 +308,7 @@ class core_page_InternalModern extends core_page_Active
         
         if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
         	
-        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал", 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал към разработчиците на bgERP", 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
         	
         	$email = email_Inboxes::getUserEmail();
         	if(!$email) {
