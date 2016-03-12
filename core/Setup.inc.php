@@ -752,8 +752,8 @@ if($step == 3) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
                     $log[] = "inf: Паролата на root на mysql-a е сменена";
-                    if (function_exists('opcache_invalidate')) {
-                        opcache_invalidate("bgerp.inc.php", TRUE);
+                    if (function_exists('opcache_reset')) {
+                        opcache_reset();
                     }
                 } else {
                     $log[] = "wrn: Паролата на root на mysql-a не е сменена - използвате шаблонна парола, която се разпространява с имиджите на bgERP";
