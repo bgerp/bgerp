@@ -1303,8 +1303,11 @@ class blast_Emails extends core_Master
         $perOptArr = array();
         
         if (isset($perSrcObjId) && $form->cmd != 'refresh') {
-            // Очакваме да може да персонализира
-            expect($perClsInst->canUsePersonalization($perSrcObjId));
+            
+            // Очакваме да може да персонализира, ако не се редактира записа
+            if (!$form->rec->id) {
+                expect($perClsInst->canUsePersonalization($perSrcObjId));
+            }
             
             // Заглавието за персонализация
             $perTitle = $perClsInst->getPersonalizationTitle($perSrcObjId, FALSE);
