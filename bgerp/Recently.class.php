@@ -318,7 +318,7 @@ class bgerp_Recently extends core_Manager
             $Recently->prepareListRows($data);
             
             // Подготвяме заглавието на таблицата
-            $data->title = tr("Последно");
+            $data->title = tr("Последно||Recently");
             
             // Подготвяме лентата с инструменти
             $Recently->prepareListToolbar($data);
