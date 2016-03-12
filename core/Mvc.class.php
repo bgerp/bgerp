@@ -1046,7 +1046,7 @@ class core_Mvc extends core_FieldSet
                         }
 
                         $act = 'Обновен';
-                        $cssClass = 'debug-error';
+                        $cssClass = 'debug-update';
                     } else {
                         $act = 'Добавен';
                         $cssClass = 'debug-new';
