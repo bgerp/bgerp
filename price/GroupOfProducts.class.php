@@ -418,7 +418,7 @@ class price_GroupOfProducts extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $data->listFields = $this->listFields;
         
-        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване от', 'createdOn' => 'Създаване на');
+        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdOn' => 'Created on', 'createdBy' => 'Created by');
         $details = $table->get($data->rows, $data->listFields);
         
         $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
@@ -454,10 +454,6 @@ class price_GroupOfProducts extends core_Detail
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
         expect($data->masterMvc instanceof core_Master);
-        
-         
-        // Подготвяме полетата за показване
-        $data->listFields = arr::make('productId=Продукт,validFrom=В сила от,createdBy=Създадено->От,createdOn=Създадено->На');
         
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);

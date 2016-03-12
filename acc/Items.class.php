@@ -195,7 +195,7 @@ class acc_Items extends core_Manager
     {
         if($part == 'titleLink'){
         	
-        	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+        	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')){
         		
         		// Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
         		$mvc->unique ++;

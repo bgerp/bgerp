@@ -1472,9 +1472,13 @@ pre.document {
   font-size: 1em; }
 
 .bigData {
-  font-family: "Courier New";
-  font-size: 1em;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1.1em;
   font-weight: bold; }
+
+.narrow .bigData {
+  font-family: Verdana;
+  font-size: 0.9em; }
 
 .quiet-small {
   color: #999999;
@@ -1529,6 +1533,9 @@ pre.document {
     border-right: 1px solid #999999 !important; }
   .document .special-borders  td.border-left {
     border-left: 1px solid #999999 !important; }
+
+.printVisible {
+  display: none; }
 
 .sign_names {
   display: inline-block;
@@ -4294,7 +4301,10 @@ only screen and (max-width: 320px) {
 
   .portal.planning {
     border: none;
-    padding: 0; } }
+    padding: 0; }
+
+  .printVisible {
+    display: block; } }
 
   .printing .specialLink {
     font-weight: bold; }
@@ -4651,7 +4661,7 @@ only screen and (max-width: 320px) {
   background: rgba(30, 30, 30, 0.9);
   border-radius: 5px;
   position: absolute;
-  z-index: 100;
+  z-index: 9999;
   padding: 10px;
   font-size: 0.9em; }
 

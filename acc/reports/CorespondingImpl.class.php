@@ -779,44 +779,52 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
         
         $rows = $this->prepareEmbeddedData()->rows; 
-        foreach($this->innerState->recs as $id => $rec) {
-    
-            $dataRecs[] = $this->getVerbalRec($rec, $data);
-            foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld){
-                if(!is_null($rec->{$fld})){
-                    $dataRecs[$id]->{$fld} = $rec->{$fld};
+        
+        if (count($this->innerState->recs)) {
+            foreach($this->innerState->recs as $id => $rec) {
+        
+                $dataRecs[] = $this->getVerbalRec($rec, $data);
+                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld){
+                    if(!is_null($rec->{$fld})){
+                        $dataRecs[$id]->{$fld} = $rec->{$fld};
+                    }
+                }
+                if(!is_null($rec->delta)){
+                    $dataRecs[$id]->delta = str_replace("&nbsp;", '', $rec->delta);
+                }
+                
+                if(!is_null($rec->measure)){
+                    $dataRecs[$id]->measure = $rows[$id]->measure;
+                }
+                
+                if(!is_null($rec->valior)){
+                    $dataRecs[$id]->valior = $rec->valior;
+                }
+                
+                foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1){
+                    if(!is_null($rec->{$fld1})){ 
+                        $dataRecs[$id]->{$fld1} = str_replace("&nbsp;", '', $dataRecs[$id]->{$fld1});
+                        $dataRecs[$id]->{$fld1} = trim(html_entity_decode(strip_tags($dataRecs[$id]->{$fld1})));
+                    } 
                 }
             }
-            if(!is_null($rec->delta)){
-                $dataRecs[$id]->delta = str_replace("&nbsp;", '', $rec->delta);
+    
+            foreach($exportFields as $caption => $name) {
+                if($caption == 'creditAmount') {
+                    unset($exportFields[$caption]);
+                    $exportFields['sum'] = 'Сума';
+                }
+                
+                if($caption == 'blAmountCompare') {
+                    unset($exportFields[$caption]);
+                }
+       
             }
-            
-            if(!is_null($rec->measure)){
-                $dataRecs[$id]->measure = $rows[$id]->measure;
-            }
-            
-            if(!is_null($rec->valior)){
-                $dataRecs[$id]->valior = $rec->valior;
-            }
-            
-            foreach (array('item1', 'item2', 'item3', 'item4', 'item5', 'item6') as $fld1){
-                if(!is_null($rec->{$fld1})){ 
-                    $dataRecs[$id]->{$fld1} = html_entity_decode(strip_tags($dataRecs[$id]->{$fld1}));
-                } 
-            }
-        }
-
-        foreach($exportFields as $caption => $name) {
-            if($caption == 'creditAmount') {
-                unset($exportFields[$caption]);
-                $exportFields['sum'] = 'Сума';
-            }
-   
-        }
-
-        $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
-    	
-    	return $csv;
+    
+            $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
+        	
+        	return $csv;
+        } 
     }
 
     

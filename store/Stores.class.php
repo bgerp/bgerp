@@ -145,6 +145,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
+    
+    
+    /**
      * Кой може да пише
      */
     public $canWrite = 'ceo,store';
@@ -212,6 +218,8 @@ class store_Stores extends core_Master
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,notNull,default=active,input=none');
     	$this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
+    
+    	$this->setDbUnique('name');
     }
     
     

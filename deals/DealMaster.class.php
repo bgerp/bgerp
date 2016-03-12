@@ -581,16 +581,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('doc_ContragentDataIntf');
-    }
-    
-    
-	/**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото на имейл по подразбиране
      */
@@ -782,6 +772,9 @@ abstract class deals_DealMaster extends deals_DealBase
         	$row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . "</span>";
         }
         
+        // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
+        $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
+        
     	if($fields['-list']){
 	    	$row->paymentState = ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
     	}
@@ -852,7 +845,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			$actions = type_Set::toArray($rec->contoActions);
-			
+
 			core_Lg::push($rec->tplLang);
 			
 			$mvc->prepareHeaderInfo($row, $rec);

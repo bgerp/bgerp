@@ -299,25 +299,49 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	        redirect(array($this), FALSE, "|Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
 	    }
 
-	    $exportFields = $this->getExportFields();
+	    $exportFields = $this->prepareEmbeddedData()->listFields;
+	   
+	    if(!isset($exportFields)) {
+	        $exportFields = $this->getExportFields();
+	    } 
 	    
 	    $fields = $this->getFields();
 	    
-	    $dataRec = array();
-	    foreach ($this->prepareEmbeddedData()->rows as $id => $row) {
+	    $dataRec = array(); 
+
+	    if (($this instanceof acc_reports_PeriodHistoryImpl) || 
+	        ($this instanceof bank_reports_AccountImpl) ||
+	        ($this instanceof cash_reports_CashImpl) ||
+	        ($this instanceof acc_reports_MovementContractors) ||
+	        ($this instanceof acc_reports_TakingCustomers)) {
+	            $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
+	            
+	            return $csv;
+	    }
+	    
+	    unset($this->innerState->allRecs['zero']);
+	    unset($this->innerState->allRecs['last']);
+	    
+	    foreach ($this->innerState->allRecs as $id => $rec) {
+	       
+	        $dataRec[] = cls::get('acc_BalanceHistory')->getVerbalHistoryRow($rec);
+
 	        foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-	            if(!is_null($row->$fld)){ 
-	                $row->$fld = $this->innerState->recs[$id][$fld];
-	            }
-	            $dataRec[$id] = $row;
+	            if(!is_null($dataRec[$id]->$fld)){ 
+	               $dataRec[$id]->$fld = $rec[$fld];
+	           }
 	        }
 	        
-	        if (!is_null($row->docId)) {
-	            $dataRec[$id]->docId = html_entity_decode(strip_tags($row->docId));
+	        if (!is_null($dataRec[$id]->docId)) {
+	            $dataRec[$id]->docId = html_entity_decode(strip_tags($dataRec[$id]->docId));
 	        }
-	        
-	        if (!is_null($row->reason)) {
-	            $dataRec[$id]->reason = html_entity_decode(strip_tags($row->reason));
+	         
+	        if (!is_null($dataRec[$id]->date)) {
+	            $dataRec[$id]->date = html_entity_decode(strip_tags($dataRec[$id]->date));
+	        }
+	         
+	        if (!is_null($dataRec[$id]->reason)) {
+	            $dataRec[$id]->reason = html_entity_decode(strip_tags($dataRec[$id]->reason));
 	        }
 	    }
 

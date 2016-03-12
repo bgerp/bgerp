@@ -848,6 +848,8 @@ class doc_Threads extends core_Manager
         $exp->functions['getpersonfolder'] = 'crm_Persons::getPersonFolder';
         $exp->functions['getcontragentdata'] = 'doc_Threads::getContragentData';
         $exp->functions['getquestionformoverest'] = 'doc_Threads::getQuestionForMoveRest';
+        $exp->functions['checksimilarcompany'] = 'doc_Threads::checkSimilarCompany';
+        $exp->functions['checksimilarperson'] = 'doc_Threads::checkSimilarPerson';
         $exp->functions['haveaccess'] = 'doc_Folders::haveRightToFolder';
         $exp->functions['checkmovetime'] = 'doc_Threads::checkExpectationMoveTime';
         
@@ -902,13 +904,15 @@ class doc_Threads extends core_Manager
         // Данъчен номер на фирмата
         $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
         
-        // Допълнителна информация
-        $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
+        // Проверка за съвпадащи лица или фирми
+        $exp->rule("#similarText", "checksimilarcompany(#dest, #company, #vatId, #country, #email)");
+        $exp->rule("#similarText", "checksimilarperson(#dest, #name, #country, #email)");
+        $exp->WARNING("=#similarText", '#similarText !== ""');
         
         $exp->question("#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId", tr("Моля, въведете контактните данни на фирмата") . ":", "#dest == 'newCompany'", 'title=' . tr('Преместване в папка на нова фирма'));
         
         $exp->question("#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website", tr("Моля, въведете контактните данни на лицето") . ":", "#dest == 'newPerson'", 'title=' . tr('Преместване в папка на ново лице'));
-
+        
         $exp->rule('#folderId', "getPersonFolder(#salutation, #name, #country, #pCode, #place, #address, #email, #tel, #website)", TRUE);
 
         $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
@@ -928,7 +932,7 @@ class doc_Threads extends core_Manager
         
         $exp->rule("#checkMoveTime", "checkmovetime(#threadId, #moveRest)");
         $exp->WARNING(tr("Операцията може да отнеме време!"), '#checkMoveTime === FALSE');
-        $exp->ERROR('Нишката не може да бъде преместена в избраната папка', 'canMoveToFolder(#threadId, #folderId)');
+        $exp->ERROR(tr('Нишката не може да бъде преместена в избраната папка'), 'canMoveToFolder(#threadId, #folderId)');
         
         $result = $exp->solve('#folderId,#moveRest,#checkMoveTime,#haveAccess');
         
@@ -1071,6 +1075,51 @@ class doc_Threads extends core_Manager
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Връща стринг с подобните фирми
+     * 
+     * @param string $dest
+     * @param string $name
+     * @param string $vatId
+     * @param string $country
+     * @param string $email
+     * 
+     * @return string
+     */
+    public static function checkSimilarCompany($dest, $name, $vatId, $country, $email)
+    {
+        $resStr = crm_Companies::getSimilarWarningStr((object) array('name' => $name, 'vatId' => $vatId, 'country' => $country, 'email' => $email));
+		
+        if ($resStr) {
+            $resStr = tr($resStr);
+        }
+        
+        return $resStr;
+    }
+    
+    
+    /**
+     * Връща стринг с подобните лица
+     * 
+     * @param string $dest
+     * @param string $name
+     * @param string $country
+     * @param string $email
+     * 
+     * @return string
+     */
+    public static function checkSimilarPerson($dest, $name, $country, $email)
+    {
+        $resStr = crm_Persons::getSimilarWarningStr((object) array('name' => $name, 'country' => $country, 'email' => $email));
+        
+        if ($resStr) {
+            $resStr = tr($resStr);
+        }
+        
+        return $resStr;
     }
     
     
