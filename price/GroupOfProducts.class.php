@@ -40,13 +40,7 @@ class price_GroupOfProducts extends core_Detail
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'groupId, productId, validFrom, createdBy, createdOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'validFrom';
-    
+        
     
     /**
      * Кой може да го промени?
@@ -418,7 +412,7 @@ class price_GroupOfProducts extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $data->listFields = $this->listFields;
         
-        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdOn' => 'Created on', 'createdBy' => 'Created by');
+        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdOn' => 'Създаване на||Created on', 'createdBy' => 'Създаване от||Created by');
         $details = $table->get($data->rows, $data->listFields);
         
         $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
@@ -454,6 +448,10 @@ class price_GroupOfProducts extends core_Detail
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
         expect($data->masterMvc instanceof core_Master);
+		
+
+		// Подготвяме полетата за показване 
+		$data->listFields = arr::make('productId=Продукт,validFrom=В сила от,createdBy=Създадено||Created->От||By,createdOn=Създадено||Created->На');
         
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
@@ -503,6 +501,7 @@ class price_GroupOfProducts extends core_Detail
                 }
             }
         }
+
     }
 
 
