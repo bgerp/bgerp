@@ -478,6 +478,9 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 // 6. Показване на прогрес барове
 // 7. Стартиране на инсталацията
 
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
 
 // Стъпка 1: Лиценз
 if($step == 1) {
@@ -582,9 +585,8 @@ if($step == 2) {
             }
             
             break;
-        }
+    }
         
-    
     $texts['body'] = linksToHtml($links);
             
     // Статистика за различните класове съобщения
@@ -728,6 +730,7 @@ if($step == 3) {
         );
         
     if (file_exists($paths['config'])) {
+        $resetCache = FALSE;
         $src = file_get_contents($paths['config']);
         // В конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
@@ -735,12 +738,13 @@ if($step == 3) {
                 $src .= "\n";
                 $src .= "// Добавено от setup.inc.php \n";
                 $src .= "DEFINE('" . $name . "', '{$value}');\n";
-                $constsLog .= $name . " ";
+                $constsLog .= ($constsLog) ? ', ' . $name : $name;
             }
             if (FALSE === @file_put_contents($paths['config'], $src)) {
                 $log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
             } else {
-                $log[] = "inf: Записани константи <b>{$constsLog}</b>";
+                $log[] = "new: Записани константи <b>{$constsLog}</b>";
+                $resetCache = TRUE;
             }
         }
         if (defined('EF_DB_USER') && defined('EF_DB_PASS') && is_writable($paths['config'])) {
@@ -751,13 +755,17 @@ if($step == 3) {
                 if ($returnVar == 0) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
-                    $log[] = "inf: Паролата на root на mysql-a е сменена";
-                    if (function_exists('opcache_reset')) {
-                        opcache_reset();
-                    }
+                    $log[] = "new: Паролата на root на mysql-a е сменена";
+                    $resetCache = TRUE;
                 } else {
                     $log[] = "wrn: Паролата на root на mysql-a не е сменена - използвате шаблонна парола, която се разпространява с имиджите на bgERP";
                 }
+            }
+        }
+        
+        if ($resetCache) {
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
             }
         }
     }

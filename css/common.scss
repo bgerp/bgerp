@@ -1332,6 +1332,11 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 	margin-bottom: 12px;
 	font-size: 1.2em;
 }
+
+.wide table.listAction {
+    min-width:760px;
+}
+
 /* край на стилове за елемента 'list Table' */
 
 
@@ -1737,6 +1742,10 @@ td.formElement {
     padding-bottom: 0;
     color: black;
     vertical-align: top;
+}
+
+.wide #packWrapper .vertical .formSection {
+	min-width: 34em;
 }
 
 .narrow .vertical .formSection {

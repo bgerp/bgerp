@@ -136,10 +136,10 @@ class currency_Currencies extends core_Master {
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование,width=100%,mandatory');
-        $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
+        $this->FLD('name', 'varchar(64)', 'caption=Наименование,mandatory');
+        $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,smartCenter');
         $this->FLD('lastUpdate', 'date', 'caption=Последно->Обновяване, input=none');
-        $this->FLD('lastRate', 'double(decimals=5)', 'caption=Последно->Курс, input=none');
+        $this->FLD('lastRate', 'double(decimals=5)', 'caption=Последно->Курс, input=none,smartCenter');
         
         $this->setDbUnique('code');
     }

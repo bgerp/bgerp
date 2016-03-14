@@ -766,6 +766,10 @@ class core_Manager extends core_Mvc
     {
         $table = cls::get('core_TableView', array('mvc' => $this));
         
+        if($data->action == 'list') {
+            $table->tableClass ='listTable listAction';
+        }
+
         // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         
