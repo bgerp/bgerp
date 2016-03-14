@@ -478,6 +478,9 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 // 6. Показване на прогрес барове
 // 7. Стартиране на инсталацията
 
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
 
 // Стъпка 1: Лиценз
 if($step == 1) {
@@ -584,10 +587,6 @@ if($step == 2) {
             break;
     }
         
-    if (function_exists('opcache_reset')) {
-        opcache_reset();
-    }
-    
     $texts['body'] = linksToHtml($links);
             
     // Статистика за различните класове съобщения
