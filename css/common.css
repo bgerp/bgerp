@@ -1261,6 +1261,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   margin-bottom: 12px;
   font-size: 1.2em; }
 
+.wide table.listAction {
+  min-width: 760px; }
+
 /*
  * край на стилове за елемента 'list Table'
  */
@@ -1608,7 +1611,7 @@ input:focus[type=button] {
   color: black;
   vertical-align: top; }
 
-.wide .vertical .formSection {
+.wide #packWrapper .vertical .formSection {
   min-width: 34em; }
 
 .narrow .vertical .formSection {
