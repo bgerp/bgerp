@@ -582,8 +582,11 @@ if($step == 2) {
             }
             
             break;
-        }
+    }
         
+    if (function_exists('opcache_reset')) {
+        opcache_reset();
+    }
     
     $texts['body'] = linksToHtml($links);
             
