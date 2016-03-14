@@ -739,7 +739,7 @@ if($step == 3) {
                 $src .= "\n";
                 $src .= "// Добавено от setup.inc.php \n";
                 $src .= "DEFINE('" . $name . "', '{$value}');\n";
-                $constsLog .= $name . " ";
+                $constsLog .= ($constsLog) ? ', ' . $name : $name;
             }
             if (FALSE === @file_put_contents($paths['config'], $src)) {
                 $log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
