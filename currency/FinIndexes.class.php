@@ -50,7 +50,7 @@ class currency_FinIndexes extends core_Manager {
      */
     function description()
     {
-        $this->FLD('indexName',  'varchar(64)', 'caption=Индекс,mandatory');
+        $this->FLD('indexName',  'varchar(64)', 'caption=Индекс,mandatory,smartCenter');
         $this->FLD('period',     'enum(ON=овърнайт,
                                        1W=1 седмица,
                                        2W=2 седмици,
@@ -66,9 +66,9 @@ class currency_FinIndexes extends core_Manager {
                                        9M=9 месеца,
                                        10M=10 месеца,
                                        11M=11 месеца,
-                                       12M=12 месеца)', 'caption=Срочност,mandatory');
-        $this->FLD('forDate',    'date',                'caption=За дата, mandatory');
-        $this->FLD('indexValue', 'double',              'caption=Стойност, mandatory');
+                                       12M=12 месеца)', 'caption=Срочност,mandatory,smartCenter');
+        $this->FLD('forDate',    'date',                'caption=За дата, mandatory,smartCenter');
+        $this->FLD('indexValue', 'double',              'caption=Стойност, mandatory,smartCenter');
     }
     
     

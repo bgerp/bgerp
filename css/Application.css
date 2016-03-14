@@ -1158,7 +1158,6 @@ td.portal-date {
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 20px;
-  float: left;
   line-height: 120%;
   margin-top: 10px; }
   .document .corrected {
@@ -1439,7 +1438,6 @@ pre.document {
   -webkit-box-shadow: none;
   box-shadow: none;
   padding: 0;
-  float: left;
   margin: 2px 0 0 0; }
 
 .antetka {

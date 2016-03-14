@@ -234,7 +234,7 @@ class cms_Articles extends core_Master
             $rec = self::fetch($id);
         }
        
-        if(is_object($rec) && $rec->state != 'active') { 
+        if(is_object($rec) && $rec->state != 'active' && !haveRole('admin,ceo,cms')) { 
             error("404 Липсваща страница");
         }
 
@@ -314,12 +314,15 @@ class cms_Articles extends core_Master
             vislog_History::add("Търсене в статиите: {$q}");
         }  
 
+        Mode::set('cmsNav', TRUE);
 
+        if(haveRole('admin,ceo,cms') && isset($rec->id)) {
+            $query->where("#state = 'active' OR #id = {$rec->id}");
+        } else {
+            $query->where("#state = 'active'");
+       }
 
-        while($rec1 = $query->fetch("#state = 'active'")) {
-            
-            // Ако статуса е затворен, да не се показва
-            if ($rec1->state == 'closed') continue;
+        while($rec1 = $query->fetch()) {
             
             $cnt++;
             
@@ -374,6 +377,10 @@ class cms_Articles extends core_Master
                 $l->editLink = $this->getChangeLink($rec1->id);
             }
 
+            if($rec1->state == 'closed') {
+                $l->closed = TRUE;
+            }
+
             $navData->links[] = $l;
         }
         
@@ -417,6 +424,8 @@ class cms_Articles extends core_Master
         // Страницата да се кешира в браузъра за 1 час
         Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
         
+        Mode::set('cmsNav', FALSE);
+
         return $content; 
     }
 
@@ -428,14 +437,19 @@ class cms_Articles extends core_Master
      * 
      */
     function renderNavigation_($data)
-    {
+    {   
         $navTpl = new ET();
 
         foreach($data->links as $l) {
             $selected = ($l->selected) ? $sel = 'sel_page' : '';
-            $navTpl->append("<div class='nav_item level{$l->level} $selected'>");
+            if($l->closed) {
+                $aAttr = array('style' => "color:#aaa !important;");
+            } else {
+                $aAttr = array();
+            }
+            $navTpl->append("<div class='nav_item level{$l->level} {$selected}'{$style}>");
             if($l->url) {
-                $navTpl->append(ht::createLink($l->title, $l->url));
+                $navTpl->append(ht::createLink($l->title, $l->url, NULL, $aAttr));
             } else {
                 $navTpl->append($l->title);
             }
@@ -466,7 +480,6 @@ class cms_Articles extends core_Master
             $searchForm->setHidden('menuId', $data->menuId);
             $navTpl->prepend($searchForm->renderHtml());
         }
-
 
         return $navTpl;
     }
@@ -527,7 +540,7 @@ class cms_Articles extends core_Master
         }
  
         if($action == 'show' && is_object($rec) && $rec->state != 'active') {
-            $roles = 'no_one';
+            $roles = 'admin,cms,ceo';
         }
     }
 
@@ -778,8 +791,31 @@ class cms_Articles extends core_Master
      */
     public static function getChangeUrl($id)
     {
-        $res = array(get_called_class(), 'changeFields', $id);
+        if(Mode::is('cmsNav')) {
+            $retUrl = toUrl(array(get_called_class(), 'Article', $id), 'local');
+        } else {
+            $retUrl = TRUE;
+        }
+        $res = array(get_called_class(), 'changeFields', $id, 'ret_url' => $retUrl);
         
         return $res;
     }
+
+
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Чернова и затворени документи не могат да се променят
+        if ($res !== FALSE && $rec->state != 'draft') {
+            
+            $res = TRUE;
+        } 
+    }
+
 }
