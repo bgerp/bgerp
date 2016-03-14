@@ -785,6 +785,11 @@ if($step == 3) {
 
     $texts['body'] =  logToHtml($log, $stat);
     
+    $sk = setupKey();
+    if (!strpos($nextUrl, $sk)) {
+        $nextUrl = addParams($selfUri, array('SetupKey' => $sk));
+    }
+    
     if($stat['err']) {
         $texts['body'] = "<ul class='msg stats'><li>" .
         "<a href='$selfUrl' class='err'>Отстранете грешките и опитайте пак...</a></li><ul><br>" .
