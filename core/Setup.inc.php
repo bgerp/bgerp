@@ -744,7 +744,7 @@ if($step == 3) {
             if (FALSE === @file_put_contents($paths['config'], $src)) {
                 $log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
             } else {
-                $log[] = "inf: Записани константи <b>{$constsLog}</b>";
+                $log[] = "new: Записани константи <b>{$constsLog}</b>";
                 $resetCache = TRUE;
             }
         }
@@ -756,7 +756,7 @@ if($step == 3) {
                 if ($returnVar == 0) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
-                    $log[] = "inf: Паролата на root на mysql-a е сменена";
+                    $log[] = "new: Паролата на root на mysql-a е сменена";
                     $resetCache = TRUE;
                 } else {
                     $log[] = "wrn: Паролата на root на mysql-a не е сменена - използвате шаблонна парола, която се разпространява с имиджите на bgERP";
