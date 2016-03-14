@@ -1744,6 +1744,10 @@ td.formElement {
     vertical-align: top;
 }
 
+.wide .vertical .formSection {
+	min-width: 34em;
+}
+
 .narrow .vertical .formSection {
 	padding: 3px;
 	background-image: none;
