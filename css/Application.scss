@@ -1307,7 +1307,6 @@ td.portal-date {
 	@include border-radius(5px);
 	padding: 10px;
 	margin-bottom: 20px;
-	float: left;
 	line-height: 120%;
 	margin-top: 10px;
 	.corrected {
@@ -1634,7 +1633,6 @@ pre.document {
 	background: transparent;
 	@include no-shadow();
 	padding: 0;
-	float: left;
 	margin: 2px 0 0 0;
 }
 
