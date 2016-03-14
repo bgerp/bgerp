@@ -728,6 +728,7 @@ if($step == 3) {
         );
         
     if (file_exists($paths['config'])) {
+        $resetCache = FALSE;
         $src = file_get_contents($paths['config']);
         // В конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
@@ -741,6 +742,7 @@ if($step == 3) {
                 $log[] = "err: Недостатъчни права за добавяне в <b>`" . $paths['config'] . "`</b>";
             } else {
                 $log[] = "inf: Записани константи <b>{$constsLog}</b>";
+                $resetCache = TRUE;
             }
         }
         if (defined('EF_DB_USER') && defined('EF_DB_PASS') && is_writable($paths['config'])) {
@@ -752,12 +754,16 @@ if($step == 3) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
                     $log[] = "inf: Паролата на root на mysql-a е сменена";
-                    if (function_exists('opcache_reset')) {
-                        opcache_reset();
-                    }
+                    $resetCache = TRUE;
                 } else {
                     $log[] = "wrn: Паролата на root на mysql-a не е сменена - използвате шаблонна парола, която се разпространява с имиджите на bgERP";
                 }
+            }
+        }
+        
+        if ($resetCache) {
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
             }
         }
     }
