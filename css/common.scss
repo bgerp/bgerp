@@ -1337,6 +1337,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     min-width:760px;
 }
 
+.wide .remote_Authorizations table.listAction {
+	min-width: 0;
+}
 /* край на стилове за елемента 'list Table' */
 
 
