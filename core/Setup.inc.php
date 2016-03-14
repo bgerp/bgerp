@@ -708,7 +708,7 @@ if($step == 3) {
     
     // Обща сол
     if(!defined('EF_SALT')) {
-        $consts['EF_SALT'] = getRandomString();
+        $efSaltGenerated = $consts['EF_SALT'] = getRandomString();
     }
     
     // Препоръчителна стойност между 200 и 500
@@ -1024,6 +1024,11 @@ if($step == 'start') {
 // Субституираме в лейаута
 foreach($texts as $place => $str) {
     $layout = str_replace("[#{$place}#]", $str, $layout);
+}
+
+if ($efSaltGenerated) {
+    $setKeyFortune = setupKey($efSaltGenerated);
+    $layout = str_replace($_GET['SetupKey'], $setKeyFortune, $layout);
 }
 
 echo $layout;

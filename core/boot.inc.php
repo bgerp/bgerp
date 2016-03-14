@@ -513,12 +513,16 @@ function getTplFromFile($file)
  *
  * @return string
  */
-function setupKey()
+function setupKey($efSalt = null)
 {
 	// Сетъп ключ, ако не е зададен
-	defIfNot('BGERP_SETUP_KEY', md5(EF_SALT . '*9fbaknc'));
-
+	$salt = ($efSalt)?($efSalt):(EF_SALT);
+	
+	$key = md5($salt . '*9fbaknc');
+	
+	defIfNot('BGERP_SETUP_KEY', $key);
+	
 	// Валидност средно 250 сек.
-	return md5(BGERP_SETUP_KEY . round(time()/1000));
+	return md5($key . round(time()/1000));
 }
  
