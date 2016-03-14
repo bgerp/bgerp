@@ -1701,7 +1701,7 @@ class doc_Threads extends core_Manager
     			// Проверяваме дали може да се зареди класа
     			if(cls::load($manager, TRUE)){
     				$Cls = cls::get($manager);
-    				expect(cls::haveInterface('doc_DocumentIntf', $Cls));
+    				expect(cls::haveInterface('doc_DocumentIntf', $Cls), $manager, $Cls);
     				
     				$res[$Cls->getClassId()] = $Cls->getClassId();
     			}
