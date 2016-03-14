@@ -1028,7 +1028,7 @@ foreach($texts as $place => $str) {
 
 if ($efSaltGenerated) {
     $setKeyFortune = setupKey($efSaltGenerated);
-    $layout = str_replace($_GET('SetupKey'), $setKeyFortune, $layout);
+    $layout = str_replace($_GET['SetupKey'], $setKeyFortune, $layout);
 }
 
 echo $layout;
