@@ -140,8 +140,8 @@ class csv_Lib
             $confHash = NULL;
         }
         
-        if(($confHash != $hash) || ($delete == 'everytime')) {
-            
+        if(($confHash != $hash) || ($delete === 'everytime')) {
+ 
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
             if($delete) {
                 $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
