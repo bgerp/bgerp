@@ -263,9 +263,9 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData()
+    function loadSetupData($itr = '')
     {
-    	$res = parent::loadSetupData();
+    	$res = parent::loadSetupData($itr);
     	
     	// Ако няма посочени от потребителя сметки за синхронизация
     	$config = core_Packs::getConfig('sales');

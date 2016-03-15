@@ -137,9 +137,9 @@ class store_Setup extends core_ProtoSetup
     }
     
 
-    function loadSetupData()
+    function loadSetupData($itr = '')
     {
-        $res = parent::loadSetupData();
+        $res = parent::loadSetupData($itr);
     	// Ако няма посочени от потребителя сметки за синхронизация
     	$config = core_Packs::getConfig('store');
     	if(strlen($config->STORE_ACC_ACCOUNTS) === 0){

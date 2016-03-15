@@ -140,8 +140,8 @@ class csv_Lib
             $confHash = NULL;
         }
         
-        if(($confHash != $hash) || ($delete == 'everytime')) {
-            
+        if(($confHash != $hash) || ($delete === 'everytime')) {
+ 
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
             if($delete) {
                 $mvc->db->query("TRUNCATE TABLE `{$mvc->dbTableName}`");
@@ -291,6 +291,8 @@ class csv_Lib
                 } elseif ($type instanceof fileman_FileType) {
                     $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
                 } elseif ($type instanceof type_Enum) {
+                    $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof fileman_FileSize) {
                     $value = $type->toVerbal($rec->{$name});
                 } else {
                     $value = $rec->{$name};
