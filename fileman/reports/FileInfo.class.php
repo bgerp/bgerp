@@ -246,9 +246,9 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $FileSize = cls::get('fileman_FileSize');
         
         $row = new stdClass();
- 
+
         if ($this->innerState->fRec->groupBy == 'files') {   
-            $fileRec = fileman_Files::fetch($key);
+            $fileRec = fileman_Files::fetch($rec['key']);
             $row->groupId = fileman::getLinkToSingle($fileRec->fileHnd);
             $row->createdBy = crm_Profiles::createLink($fileRec->createdBy);
             $row->createdOn = dt::mysql2verbal($fileRec->createdOn, 'smartTime');
@@ -256,9 +256,9 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         } elseif ($this->innerState->fRec->groupBy == 'users') {
             if (core_Users::fetchField($key, 'names') != FALSE) { 
                 $names = core_Users::fetchField($key, 'names');
-                $row->groupId = $names . ' ' . crm_Profiles::createLink($key);
+                $row->groupId = $names . ' ' . crm_Profiles::createLink($rec['key']);
             } else {
-                $row->groupId = ' ' . crm_Profiles::createLink($key);
+                $row->groupId = ' ' . crm_Profiles::createLink($rec['key']);
             }
         } else {
              $bucketRec = fileman_Buckets::fetch($key);
@@ -392,8 +392,9 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $dataRec = array();
 
         foreach($this->innerState->files as $id => $rec) {
-            $dataRec[] = $this->getVerbal($id,$rec); 
-            
+            $dataRec[$id] = $this->getVerbal($id,$rec); 
+            $fileRec = fileman_Files::fetch($rec['key']);
+           
             if (!is_null($dataRec[$id]->groupId)){
                 $dataRec[$id]->groupId = $rec['key'];
             }
@@ -405,8 +406,8 @@ class fileman_reports_FileInfo extends frame_BaseDriver
             if (!is_null($dataRec[$id]->createdOn)){
                 $dataRec[$id]->createdOn = html_entity_decode(strip_tags($dataRec[$id]->createdOn));
             }
-
-            foreach(array('len','cnt') as $fld) {
+            
+            foreach(array('len','cnt') as $fld) { 
                 $dataRec[$id]->{$fld} = $rec[$fld];
             }
         }
