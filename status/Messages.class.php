@@ -391,18 +391,24 @@ class status_Messages extends core_Manager
         // Текущото време
         $now = dt::verbal2mysql();
         
-        // Вземаме всички статус съобщения, на които име е свършил lifeTime
+        // Вземаме всички статус съобщения, които са изтекли
         $query = self::getQuery();
-        $query->where("ADDTIME(#createdOn, SEC_TO_TIME(#lifeTime)) < '{$now}'");
+        $query->where("DATE_ADD(#createdOn, INTERVAL #lifeTime SECOND) < '{$now}'");
+        
+        $cnt = 0;
         
         while ($rec = $query->fetch()) {
             
             // Изтриваме информцията за изтегляния
             status_Retrieving::removeRetrieving($rec->id);
             
+            $cnt++;
+            
             // Изтриваме записа
             self::delete($rec->id);
         }
+        
+        return $cnt;
     }
     
     
