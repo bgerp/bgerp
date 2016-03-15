@@ -358,39 +358,18 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Записите за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
-    
-        // Текста пред линковете
-        $linkText = tr("Линк|*: ");
         
-        // URL' то за генериране на линкове
-        $linkUrl = array('fileman_Download', 'GenerateLink', 'fh' => $fileHnd, 'ret_url' => array('fileman_Files', 'single', $fileHnd, 'currentTab' => 'info', '#' => 'fileDetail'));
-        
-        // Ако има активен линк за сваляне
-        if (($dRec = fileman_Download::fetch("#fileId = {$fRec->id}")) && (dt::mysql2timestamp($dRec->expireOn)>time())) {
+        // Линк за сваляне
+        $link = bgerp_F::getLink($fileHnd, $expireOn);
+        if ($link) {
+            $linkText = tr("Линк|*: ");
             
-            // Линк за сваляне
-            $link = fileman_Download::getSbfDownloadUrl($dRec, TRUE);
-
-            // До кога е активен линка
-            $expireOn = dt::mysql2Verbal($dRec->expireOn, 'smartTime');
+            $expireOn = dt::mysql2verbal($expireOn, 'smartTime');
             
-            // Датата, когато изтича да е линк, към генериране на линкове
-            $expireOnLink = ht::createLink($expireOn, $linkUrl);
+            $linkText .= tr("|*<span onmouseUp='selectInnerText(this);'>{$link}</span> <small>(|Изтича|*: {$expireOn})</small>");
             
-            // Линка, който ще се показва
-            $linkText .= tr("|*<span onmouseUp='selectInnerText(this);'>{$link}</span> <small>(|Изтича|*: {$expireOnLink})</small>");
-            
-        } else {
-            
-            // Създаваме линк, за генерира на линкове
-            $link = ht::createLink('[' . tr('Вземи') . ']', $linkUrl);
-            
-            // Добавяме към текста на линка
-            $linkText .= $link;
+            $linkText .= "\n";
         }
-        
-        // Добавяме към съдържанието
-        $linkText .= "\n";
         
         try {
 		    

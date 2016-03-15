@@ -494,7 +494,7 @@ class acc_Periods extends core_Manager
      * Ако няма дефинирани периоди дефинира период, чийто край е последния ден от предходния
      * месец със state='closed' и период, който е за текущия месец и е със state='active'
      */
-    function loadSetupData()
+    function loadSetupData2()
     {
         // Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
         $this->forcePeriod(dt::verbal2mysql());
