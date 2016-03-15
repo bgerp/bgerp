@@ -205,10 +205,10 @@ class bgerp_Setup extends core_ProtoSetup {
             core_Users::forceSystemUser();
             
             // Първа итерация за захранване с данни
-            $haveError = $this->loadSetupDataProc($packs);
+            $this->loadSetupDataProc($packs, $haveError, $html);
             
             // Втора итерация за захранване с данни
-            $haveError = arr::combine($haveError, $this->loadSetupDataProc($packs, '2'));
+            $this->loadSetupDataProc($packs, $haveError, $html, '2');
 
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
@@ -271,7 +271,7 @@ class bgerp_Setup extends core_ProtoSetup {
      *
      * @return array          Грешки
      */
-    function loadSetupDataProc($packs, $itr = '')
+    function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
     {
         // Кои пакети дотук сме засели с данни
         $isLoad = array();
@@ -306,7 +306,5 @@ class bgerp_Setup extends core_ProtoSetup {
                 }
             }
         }
-
-        return $haveError;
     }
 }
