@@ -292,6 +292,8 @@ class csv_Lib
                     $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
                 } elseif ($type instanceof type_Enum) {
                     $value = $type->toVerbal($rec->{$name});
+                } elseif ($type instanceof fileman_FileSize) {
+                    $value = $type->toVerbal($rec->{$name});
                 } else {
                     $value = $rec->{$name};
                 }
