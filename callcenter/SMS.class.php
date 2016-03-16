@@ -596,7 +596,7 @@ class callcenter_SMS extends core_Master
             
             $msg = self::getServiceStatus($sendedId);
             
-            return new Redirect($retUrl, '|' . $msg);
+            return new Redirect($retUrl, $msg);
         }
         
         // Добавяме бутоните на формата
