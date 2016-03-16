@@ -130,6 +130,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         }
 
         foreach($nArr as $number) {
+            $variants["{$countryCode}{$areaCode}{$number}"] = TRUE;
             $variants["00{$countryCode}_{$areaCode}_{$number}"] = TRUE;
             $variants["{$countryCode}_{$areaCode}_{$number}"] = TRUE;
             $variants["0{$areaCode}_{$number}"] = TRUE;

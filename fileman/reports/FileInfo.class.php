@@ -74,6 +74,8 @@ class fileman_reports_FileInfo extends frame_BaseDriver
     	if (haveRole('ceo, report, admin', $cu)) {
     		$form->setDefault('usersSearch', 'all_users');
     	}
+    	
+    	$form->setDefault('groupBy', 'users');
     }
     
     
@@ -146,7 +148,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
             } else {
                 $key = $rec->bucketId;
             }
-            
+            $data->files[$key]['groupId'] = $key;
             $data->files[$key]['cnt']++;
             $data->files[$key]['len'] += $rec->fileLen;
             $data->files[$key]['key'] = $key;
@@ -174,7 +176,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                         }
                         break;
             
-                    case 'len':
+                        case 'len':
                         if ($direction == 'a') {
                             usort($data->files, function($a, $b) {
                                  
@@ -187,24 +189,10 @@ class fileman_reports_FileInfo extends frame_BaseDriver
                             });
                         }
                         break;
-            
-                    case 'group':
-                        $val = mb_strtolower($keyId);
-                        break;
                 }
-                $order[$keyId] = $val;
             }
         }
-        
-        if (!empty($order)) {
-            if($direction == 'a') {
 
-            } else {
-                array_multisort($order, SORT_DESC, $data->files);
-                arsort($order);
-            }
-        }
-        
         return $data;
     }
     
@@ -222,7 +210,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
             $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
             $data->Pager = $pager;
             $data->Pager->itemsCount = count($data->files);
-             
+          
             // За всеки запис
             foreach ($data->files as $keyId => &$fArr){
                  
@@ -231,6 +219,21 @@ class fileman_reports_FileInfo extends frame_BaseDriver
 
                 // Вербално представяне на записа
                 $data->rows[] = $mvc->getVerbal($keyId, $fArr);
+            }
+        
+            if(strpos($data->fRec->sorting, "group") !== FALSE) { 
+                usort($data->rows, function($a, $b) { 
+                 
+                    return strcasecmp(mb_strtolower($a->groupId, 'UTF-8'), mb_strtolower($b->groupId, 'UTF-8'));
+                
+                });
+                
+                if(strpos($data->fRec->sorting, "group_z") !== FALSE) {
+                    for ($i = count($data->rows)-1; $i >= 0; $i--) {
+                        $a[] = $data->rows[$i];
+                    }
+                    $data->rows = $a;
+                }
             }
         }
     }
@@ -247,26 +250,27 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         
         $row = new stdClass();
 
-        if ($this->innerState->fRec->groupBy == 'files') {   
+        if ($this->innerForm->groupBy == 'files') {   
             $fileRec = fileman_Files::fetch($rec['key']);
             $row->groupId = fileman::getLinkToSingle($fileRec->fileHnd);
             $row->createdBy = crm_Profiles::createLink($fileRec->createdBy);
             $row->createdOn = dt::mysql2verbal($fileRec->createdOn, 'smartTime');
 
-        } elseif ($this->innerState->fRec->groupBy == 'users') {
-            if (core_Users::fetchField($key, 'names') != FALSE) { 
-                $names = core_Users::fetchField($key, 'names');
+        } elseif ($this->innerForm->groupBy == 'users') { 
+            if (core_Users::fetchField($rec['key'], 'names') !== FALSE ) { 
+                $names = core_Users::fetchField($rec['key'], 'names');
                 $row->groupId = $names . ' ' . crm_Profiles::createLink($rec['key']);
             } else {
                 $row->groupId = ' ' . crm_Profiles::createLink($rec['key']);
             }
         } else {
-             $bucketRec = fileman_Buckets::fetch($key);
+             $bucketRec = fileman_Buckets::fetch($rec['key']);
              $row->groupId = $bucketRec->name;
         }
         
         $row->cnt = $Int->toVerbal($rec['cnt']);
         $row->len = $FileSize->toVerbal($rec['len']);
+        $row->key = $rec['key'];
 
         return $row;
     }
@@ -367,8 +371,8 @@ class fileman_reports_FileInfo extends frame_BaseDriver
 
         } elseif ($this->innerState->fRec->groupBy == 'files') {
              $f->FLD('groupId', 'key(mvc=fileman_Files, select=name)');
-             $f->FLD('createdOn', 'varchar');
-             $f->FLD('createdBy', 'varchar');
+             $f->FLD('createdOn', 'datetime');
+             $f->FLD('createdBy', 'key(mvc=crm_Profiles,select=createdBy)');
 
         } else {
              $f->FLD('groupId', 'key(mvc=fileman_Buckets, select=name)');
@@ -389,31 +393,28 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $exportFields = $this->innerState->listFields;
         $fields = $this->getFields();
         
-        $dataRec = array();
+        $dataRec =  array();
 
         foreach($this->innerState->files as $id => $rec) {
-            $dataRec[$id] = $this->getVerbal($id,$rec); 
-            $fileRec = fileman_Files::fetch($rec['key']);
-           
-            if (!is_null($dataRec[$id]->groupId)){
-                $dataRec[$id]->groupId = $rec['key'];
+            $rowC = new stdClass();
+            foreach(array('len','cnt','createdOn', 'createdBy') as $fld) {
+                if (!is_null($rec[$fld])) {
+                    
+                    $rowC->{$fld} = $rec[$fld];
+                }
             }
-            
-            if (!is_null($dataRec[$id]->createdBy)){
-                $dataRec[$id]->createdBy = html_entity_decode(strip_tags($dataRec[$id]->createdBy->content));
-            }
-            
-            if (!is_null($dataRec[$id]->createdOn)){
-                $dataRec[$id]->createdOn = html_entity_decode(strip_tags($dataRec[$id]->createdOn));
-            }
-            
-            foreach(array('len','cnt') as $fld) { 
-                $dataRec[$id]->{$fld} = $rec[$fld];
-            }
+            $rowC->groupId = $rec['key'];
+            $dataRec[] = $rowC;         
         }
 
+       /* foreach($this->prepareEmbeddedData()->rows as $k=>$v) {
+            $a[$k] = $this->innerState->files[$v->key];
+            $a[$k]['groupId'] = $v->key;
+            unset($a[$k]['key']);
+        }*/
+
         $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
-         
+       
         return $csv;
     }
 

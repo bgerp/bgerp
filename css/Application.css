@@ -462,6 +462,9 @@ tr.row-removed {
   .wide .user-profile .listBlock .listRows > table.listTable {
     width: 100%; }
 
+.narrow .user-profile .listBlock .listRows > table.listTable {
+  width: 100%; }
+
 /*
  * потребителски профил
  */
@@ -534,9 +537,6 @@ tr.row-removed {
     .user-profile .profile-image div img {
       width: auto;
       height: 100px; }
-  .user-profile .linkWithIcon {
-    height: 19px;
-    padding-top: 1px; }
   .user-profile > .groupList {
     margin-left: 10px; }
   .user-profile .card-profile {
@@ -4693,6 +4693,9 @@ only screen and (max-width: 320px) {
   right: 10px;
   left: auto;
   margin: 0; }
+
+.narrow .elem-holder .endTooltip {
+  float: right; }
 
 /*
  * край на стилове за външната част при потребител контрактор
