@@ -1093,7 +1093,7 @@ a.profile {
   box-shadow: inset 0 0 3px #eca7a6; }
 
 .state-closed {
-  background-color: #dddddd; }
+  background-color: #f1f1f1; }
 
 .state-stopped,
 .state-blocked {
@@ -1242,7 +1242,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending {
     background-color: #e6b3ff; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed {
-    background-color: #d0d0d0; }
+    background-color: #e4e4e4; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked {
     background-color: #f5a300; }
