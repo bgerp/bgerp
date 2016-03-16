@@ -549,7 +549,11 @@ tr.row-removed {
         width: 100%;
     }
 }
-	
+
+.narrow .user-profile .listBlock .listRows > table.listTable{
+    width: 100%;
+}
+
 /*потребителски профил*/
 .user-profile {
 	max-width: 760px;
@@ -594,10 +598,6 @@ tr.row-removed {
 			width: auto;
 			height: 100px;
 		}
-	}
-	.linkWithIcon {
-		height: 19px;
-		padding-top: 1px;
 	}
 	> .groupList {
 		margin-left: 10px;
@@ -5177,6 +5177,9 @@ body.narrow {
     margin: 0;
 }
 
+.narrow .elem-holder .endTooltip {
+	float: right;
+}
 /* край на стилове за външната част при потребител контрактор */
 .cd-l1{
     color: green;

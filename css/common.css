@@ -1093,7 +1093,7 @@ a.profile {
   box-shadow: inset 0 0 3px #eca7a6; }
 
 .state-closed {
-  background-color: #dddddd; }
+  background-color: #f1f1f1; }
 
 .state-stopped,
 .state-blocked {
@@ -1172,7 +1172,7 @@ a.profile {
   background-color: #cc9933; }
 
 .state-wakeup {
-  background-color: #259641; }
+  background-color: #2baf4c; }
 
 .row-negative {
   color: #ff3333; }
@@ -1242,7 +1242,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending {
     background-color: #e6b3ff; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed {
-    background-color: #d0d0d0; }
+    background-color: #e4e4e4; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked {
     background-color: #f5a300; }
@@ -1255,7 +1255,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert {
     background-color: #a37a29; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup {
-    background-color: #208238; }
+    background-color: #269b43; }
 
 .listTitle {
   margin-bottom: 12px;

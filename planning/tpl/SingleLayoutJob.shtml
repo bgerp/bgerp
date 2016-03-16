@@ -83,11 +83,11 @@
                     <!--ET_END weight-->
                 </table>
 	       </td>
-	       <td>
+	       <td style='padding: 0'>
 	            <div class='vertical-scroll'>
 		       		<!--ET_BEGIN HISTORY_ROW-->
 		       		[#HISTORY_ROW#]
-		       		<div class='smaller [#stateclass#]'>
+		       		<div class='[#stateclass#]' style='font-size: 0.85em'>
 		       		<div>[#date#] : [#user#] -> [#action#]</div>
 		       		<!--ET_BEGIN hint--><div class='history-reason'>[#reason#]</div><!--ET_END hint-->
 		       		</div>
