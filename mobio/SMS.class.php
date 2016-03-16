@@ -119,7 +119,7 @@ class mobio_SMS extends core_Manager
                 $nRes['msg'] = "|Не може да се изпрати";
                 
                 if (isDebug()) {
-                    $nRes['msg'] .= "|*\n" . $resStr;
+                    $nRes['msg'] .= "|*.<br>" . $resStr;
                 }
                 
                 self::logErr("Грешка при изпращане на SMS: " . $resStr);
