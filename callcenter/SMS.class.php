@@ -594,6 +594,8 @@ class callcenter_SMS extends core_Master
             // Изпращаме SMS-a
             $sendedId = self::send($rec->mobileNum, $rec->text, $rec->sender, $rec->service, $rec->encoding);
             
+            self::logWrite('Изпратено съобщение', $sendedId);
+            
             $msg = self::getServiceStatus($sendedId);
             
             return new Redirect($retUrl, $msg);
