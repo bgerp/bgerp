@@ -140,8 +140,8 @@ class social_Sharings extends core_Master
                 ), 4) ;	
 			
 			// Търсим, дали има запис в модела, който отброява споделянията
-			$socCnt = social_SharingCnts::fetch(array("#networkId = '{$socialNetwork->id}' AND #url LIKE '%[#1#]'", self::getCanonicUrlPart($cntUrl)));
-			
+			$socCnt = social_SharingCnts::fetch(array("#networkId = '{$socialNetwork->id}' AND LOWER(#url) LIKE '%[#1#]'", self::getCanonicUrlPart($cntUrl)));
+
 			if($socCnt){
 				// Ако е намерен такъв запис, 
 				// взимаме броя на споделянията
@@ -202,13 +202,13 @@ class social_Sharings extends core_Master
     	$redUrl = str_replace("[#URL#]", $url, $rec->url);
         $redUrl = str_replace("[#TITLE#]", $title, $redUrl);
         $redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
-    	    	   	
     	// Записваме в историята, че сме направели споделяне
         if(core_Packs::fetch("#name = 'vislog'") &&
             vislog_History::add("Споделяне в " . $rec->name . " на " . $urlDecoded)) {
  
             if (Mode::is('javascript', 'yes') && !log_Browsers::detectBot()){
-	            // Увеличаване на брояча на споделянията
+ 
+                // Увеличаване на брояча на споделянията
 	    	    $rec->sharedCnt++;
 	            self::save($rec, 'sharedCnt');             
                   
