@@ -1172,7 +1172,7 @@ a.profile {
   background-color: #cc9933; }
 
 .state-wakeup {
-  background-color: #259641; }
+  background-color: #2baf4c; }
 
 .row-negative {
   color: #ff3333; }
@@ -1255,7 +1255,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert {
     background-color: #a37a29; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup {
-    background-color: #208238; }
+    background-color: #269b43; }
 
 .listTitle {
   margin-bottom: 12px;
