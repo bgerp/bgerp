@@ -462,6 +462,9 @@ tr.row-removed {
   .wide .user-profile .listBlock .listRows > table.listTable {
     width: 100%; }
 
+.narrow .user-profile .listBlock .listRows > table.listTable {
+  width: 100%; }
+
 /*
  * потребителски профил
  */

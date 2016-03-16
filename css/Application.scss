@@ -549,7 +549,11 @@ tr.row-removed {
         width: 100%;
     }
 }
-	
+
+.narrow .user-profile .listBlock .listRows > table.listTable{
+    width: 100%;
+}
+
 /*потребителски профил*/
 .user-profile {
 	max-width: 760px;
