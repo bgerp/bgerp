@@ -537,9 +537,6 @@ tr.row-removed {
     .user-profile .profile-image div img {
       width: auto;
       height: 100px; }
-  .user-profile .linkWithIcon {
-    height: 19px;
-    padding-top: 1px; }
   .user-profile > .groupList {
     margin-left: 10px; }
   .user-profile .card-profile {
