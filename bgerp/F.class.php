@@ -19,13 +19,50 @@ class bgerp_F extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Лог на файлове';
+    public $title = 'Лог на файлове';
     
     
     /**
      * Да не се кодират id-тата
      */
-    var $protectId = FALSE;
+    public $protectId = FALSE;
+    
+    
+    /**
+     * 
+     */
+    public $loadList = 'plg_Created';
+    
+    
+    /**
+     * 
+     */
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    public function description()
+    {
+        cls::get('fileman_Files');
+        
+        $this->FLD('fileHnd', 'varchar(' . strlen(FILEMAN_HANDLER_PTR) . ')','notNull, caption=Манипулатор, input=none');
+        $this->FLD('key', 'varchar(8)', 'notNull, caption=Ключ, input=none');
+        $this->FLD('validity', 'time(suggestions=1 ден|1 седмица|1 месец|1 година)', 'notNull, caption=Валидност, mandatory');
+    }
     
     
     /**
@@ -227,5 +264,161 @@ class bgerp_F extends core_Manager
         header("Content-Disposition: attachment; filename={$fName}");
         
         return Request::forward(array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => TRUE));
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $key
+     * 
+     * @return string
+     */
+    public static function getShortLink($key)
+    {
+        
+        return toUrl(array('F', 'G', $key), 'absolute');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $fileHnd
+     * @param string $expireOn
+     * 
+     * @return NULL|stdObject
+     */
+    public static function getLink($fileHnd, &$expireOn = '')
+    {
+        $query = self::getQuery();
+        $query->where(array("#fileHnd = '[#1#]'", $fileHnd));
+//         $query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
+        $query->XPR('expireOn', 'datetime', 'DATE_ADD(#createdOn, INTERVAL #validity SECOND)');
+        
+        $query->limit(1);
+        
+        $query->orderBy('expireOn', 'DESC');
+        
+        $rec = $query->fetch();
+        
+        if (!$rec) return ;
+        
+        $expireOn = $rec->expireOn;
+        
+        return self::getShortLink($rec->key);
+    }
+    
+    
+    /**
+     * Екшън за генериране на линк за сваляне на файл с валидност
+     */
+    function act_GetLink()
+    {
+        $fh = Request::get('fileHnd');
+        
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        expect($fRec);
+        
+        fileman_Files::requireRightFor('single', $fRec);
+        
+        $form = $this->getForm();
+        
+        $form->title = 'Генериране на линк за сваляне';
+        
+        $form->setDefault('validity', 86400 * 7);
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array('fileman_Files', 'single', $fh);
+        }
+        
+        $form->input();
+        
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            $rec->key = str::getRand('********');
+            $rec->fileHnd = $fh;
+            
+            fileman_Files::logWrite('Генериране на линк за сваляне', $fRec->id);
+            
+            self::save($rec);
+            
+            self::logWrite('Генериран линк', $rec->id);
+            
+            $form->info = "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . self::getShortLink($rec->key) . '</span>';
+            
+            $form->setField('validity', 'input=none');
+            	
+            $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close16.png, title=' . tr('Връщане към файла') . ', class=fright');
+            
+            $form->title = "Линк за сваляне активен|* " . $this->getVerbal($rec, 'validity');
+        } else {
+            $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title= ' . tr('Прекратяване на действията'));
+        }
+        
+        Mode::set('pageMenu', 'Система');
+        Mode::set('pageSubMenu', 'Файлове');
+        $fInst = cls::get('fileman_Files');
+        $fInst->currentTab = 'Файлове';
+        
+        return $fInst->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Екшън за сваляне на файла - с валидност
+     */
+    public function act_G()
+    {
+        $key = Request::get('id');
+        
+        expect($key);
+        
+        $rec = self::fetch(array("#key = '[#1#]'", $key));
+        
+        if (!$rec || (dt::addSecs($rec->validity, $rec->createdOn) < dt::now())) {
+            
+            return new Redirect(array('Index'), '|Изтекла или липсваща връзка', 'error');
+        }
+        
+        return Request::forward(array('fileman_Download', 'download', 'fh' => $rec->fileHnd, 'forceDownload' => TRUE));
+    }
+    
+    
+    /**
+     * Извиква се от крона. Премахва изтеклите връзки
+     */
+    function cron_removeOldDownloadLinks()
+    {
+        // Текущото време
+        $now = dt::verbal2mysql();
+        
+        // Изтриваме всички изтекли записи
+        $delCnt = self::delete("DATE_ADD(#createdOn, INTERVAL #validity SECOND) < '{$now}'");
+        
+        return $delCnt;
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'removeOldDownloadLinks';
+        $rec->description = 'Премахване на изтеклите линкове за сваляне';
+        $rec->controller = $mvc->className;
+        $rec->action = 'removeOldDownloadLinks';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 40;
+        $res .= core_Cron::addOnce($rec);
     }
 }

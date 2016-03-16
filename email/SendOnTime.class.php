@@ -302,7 +302,7 @@ class email_SendOnTime extends core_Manager
     {
         $query = self::getQuery();
         $now = dt::verbal2mysql();
-        $query->where("ADDTIME(#createdOn, SEC_TO_TIME(#delay)) <= '{$now}'");
+        $query->where("DATE_ADD(#createdOn, INTERVAL #delay SECOND) <= '{$now}'");
         $query->where("#state != 'closed'");
         
         $cnt = 0;

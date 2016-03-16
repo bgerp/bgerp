@@ -228,7 +228,7 @@ class core_Cron extends core_Manager
         $query = $this->getQuery();
         $query->where("#state = 'locked'");
         $now = dt::verbal2mysql();
-        $query->where("ADDTIME(#lastStart, SEC_TO_TIME(#timeLimit)) < '{$now}'");
+        $query->where("DATE_ADD(#lastStart, INTERVAL #timeLimit SECOND) < '{$now}'");
         
         while ($rec = $query->fetch()) {
             $rec->state = 'free';

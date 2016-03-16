@@ -91,7 +91,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
         
         if($this->innerForm->headerColor) {
-            $css .= "\n    #all #cmsTop, #cmsTop img {background-color:{$this->innerForm->headerColor} !important;}";
+            $css .= "\n    #all #cmsTop {background-color:{$this->innerForm->headerColor} !important;}";
         }
       
         // цвят на фона на страницата
