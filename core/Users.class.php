@@ -900,13 +900,15 @@ class core_Users extends core_Manager
             $res = (object) array(
                                 'id' => self::SYSTEM_USER,
                                 'nick' => '@system',
-                                'state' => 'active'
+                                'state' => 'active',
+                                'names' => tr('Системата')
                             );
         } elseif(($cond == self::ANONYMOUS_USER) && is_numeric($cond)) {
             $res = (object) array(
                                 'id' => self::ANONYMOUS_USER,
                                 'nick' => '@anonym',
-                                'state' => 'active'
+                                'state' => 'active',
+                                'names' => tr('Анонимен')
                             );
         } else {
             $res = parent::fetch($cond, $fields, $cache);
