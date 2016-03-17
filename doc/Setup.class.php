@@ -178,7 +178,8 @@ class doc_Setup extends core_ProtoSetup
     	'doc_HiddenContainers',
     	'doc_DocumentCache',
     	'doc_Likes',
-        'migrate::repairAllBrokenRelations'
+        'migrate::repairAllBrokenRelations',
+        'migrate::repairBrokenFolderId'
     );
 
     
@@ -341,5 +342,44 @@ class doc_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Поправка на развалените folderId в doc_Containers
+     * 
+     * @return integer
+     */
+    public static function repairBrokenFolderId()
+    {
+        $tQuery = doc_Threads::getQuery();
+        $query->where("#createdOn > '2016-03-09 09:00:00'");
+        $tQuery->EXT('cFolderId', 'doc_Containers', 'externalName=folderId');
+        $tQuery->EXT('cThreadId', 'doc_Containers', 'externalName=threadId, externalKey=firstContainerId');
+        
+        $tQuery->where("#cFolderId != #folderId");
+        
+        $cnt = 0;
+        
+        while ($tRec = $tQuery->fetch()) {
+            $cQuery = doc_Containers::getQuery();
+            
+            if (!$tRec->id || !$tRec->cFolderId) continue;
+            
+            $cQuery->where("#threadId = '{$tRec->id}'");
+            $cQuery->where("#folderId = '{$tRec->cFolderId}'");
+            
+            while ($cRec = $cQuery->fetch()) {
+                $before = $cRec->folderId;
+                $cRec->folderId = $tRec->folderId;
+                
+                doc_Containers::logInfo("Променено 'folderId' от {$before} на {$tRec->folderId}", $cRec->id);
+                
+                doc_Containers::save($cRec, 'folderId');
+                $cnt++;
+            }
+        }
+        
+        return $cnt;
     }
 }
