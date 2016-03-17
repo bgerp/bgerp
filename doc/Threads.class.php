@@ -1233,7 +1233,7 @@ class doc_Threads extends core_Manager
              */
             expect($rec->docId, $rec);
             $nRec = (object)array('id' => $rec->docId, 'folderId' => $destFolderId,);
-            $doc->getInstance()->save_($nRec,'id,folderId');
+            $doc->getInstance()->save($nRec,'id,folderId');
         }
         
         // Преместваме самата нишка
