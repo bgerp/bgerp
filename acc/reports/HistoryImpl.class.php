@@ -333,12 +333,12 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	        }
 	        
 	        if (!is_null($dataRec[$id]->docId)) {
-	            $dataRecs[$id]->docId = str_replace("&nbsp;", '', $dataRec[$id]->docId);
+	            //$dataRecs[$id]->docId = str_replace("&nbsp;", '', $dataRec[$id]->docId);
 	            $dataRecs[$id]->docId = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
 	        }
 	         
 	        if (!is_null($dataRec[$id]->reason)) {
-	            $dataRecs[$id]->reason = str_replace("&nbsp;", '', $dataRec[$id]->docId);
+	            //$dataRecs[$id]->reason = str_replace("&nbsp;", '', $dataRec[$id]->docId);
 	            $dataRecs[$id]->reason = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
 	        }
 	    }
