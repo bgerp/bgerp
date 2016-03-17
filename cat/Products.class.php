@@ -290,7 +290,7 @@ class cat_Products extends embed_Manager {
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
-        $this->FNC('price', 'double(decimals=2)', 'input=none,caption=Цена,smartCenter');
+        $this->FNC('price', 'double(smartRound,decimals=4)', 'input=none,caption=Цена,smartCenter');
 
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
