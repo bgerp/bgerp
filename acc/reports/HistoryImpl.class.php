@@ -326,22 +326,20 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	       
 	        $dataRec[] = cls::get('acc_BalanceHistory')->getVerbalHistoryRow($rec);
 
-	        foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+	        foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity','date', 'valior') as $fld){
 	            if(!is_null($dataRec[$id]->$fld)){ 
 	               $dataRec[$id]->$fld = $rec[$fld];
 	           }
 	        }
 	        
 	        if (!is_null($dataRec[$id]->docId)) {
-	            $dataRec[$id]->docId = html_entity_decode(strip_tags($dataRec[$id]->docId));
-	        }
-	         
-	        if (!is_null($dataRec[$id]->date)) {
-	            $dataRec[$id]->date = html_entity_decode(strip_tags($dataRec[$id]->date));
+	            $dataRecs[$id]->docId = str_replace("&nbsp;", '', $dataRec[$id]->docId);
+	            $dataRecs[$id]->docId = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
 	        }
 	         
 	        if (!is_null($dataRec[$id]->reason)) {
-	            $dataRec[$id]->reason = html_entity_decode(strip_tags($dataRec[$id]->reason));
+	            $dataRecs[$id]->reason = str_replace("&nbsp;", '', $dataRec[$id]->docId);
+	            $dataRecs[$id]->reason = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
 	        }
 	    }
 
