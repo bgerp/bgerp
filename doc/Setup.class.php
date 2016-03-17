@@ -353,7 +353,7 @@ class doc_Setup extends core_ProtoSetup
     public static function repairBrokenFolderId()
     {
         $tQuery = doc_Threads::getQuery();
-        $query->where("#createdOn > '2016-03-09 09:00:00'");
+        $tQuery->where("#createdOn > '2016-03-09 09:00:00'");
         $tQuery->EXT('cFolderId', 'doc_Containers', 'externalName=folderId');
         $tQuery->EXT('cThreadId', 'doc_Containers', 'externalName=threadId, externalKey=firstContainerId');
         
