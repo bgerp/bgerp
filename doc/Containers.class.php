@@ -593,6 +593,10 @@ class doc_Containers extends core_Manager
         	if(doc_Threads::haveRightFor('move', $data->threadRec)){
         		$data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png', 'title=Преместване на нишката в нова папка');
         	}
+        	
+        	if(doc_Threads::haveRightFor('single', $data->threadRec)){
+        	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
+        	}
         }
         
         // Ако има права за настройка на папката, добавяме бутона
