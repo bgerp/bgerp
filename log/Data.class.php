@@ -486,10 +486,6 @@ class log_Data extends core_Manager
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
-        $data->listFilter->fields['type']->caption = 'Тип';
-        $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
-        $data->listFilter->fields['type']->refreshForm = 'refreshForm';
-        
         $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител, silent, refreshForm');
         
         $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
@@ -503,7 +499,7 @@ class log_Data extends core_Manager
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);
         $data->listFilter->setDefault('users', $default);
         
-        $data->listFilter->showFields = 'users, message, class, object, type, ip, from, to';
+        $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -679,11 +675,6 @@ class log_Data extends core_Manager
         
         if ($rec->object) {
             $query->where(array("#objectId = '[#1#]'", $rec->object));
-        }
-        
-        // Филтрираме по тип
-        if (trim($rec->type)) {
-            $query->where(array("#type = '[#1#]'", $rec->type));
         }
     }
     
