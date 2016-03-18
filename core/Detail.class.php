@@ -453,8 +453,6 @@ class core_Detail extends core_Manager
         if (isset($objId) && ($masterKey = $inst->masterKey) && is_object($inst->Master)) {
             $rec = $inst->fetch($objId);
             
-            $masterKey = $inst->masterKey;
-            
             $masterId = $rec->{$masterKey};
             
             return $inst->Master->getLinkForObject($masterId);
