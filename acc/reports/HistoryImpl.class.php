@@ -88,13 +88,11 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
 		$op = acc_Periods::getPeriodOptions();
-		 
+		
 		$form->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
 		$form->setSuggestions('toDate', array('' => '') + $op->toOptions);
-		 
-		if($form instanceof core_Form){
-			$form->input();
-		}
+		
+		$this->inputForm($form);
 		
 		if(isset($form->rec->accountId)){
 			 
