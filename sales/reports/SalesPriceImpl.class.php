@@ -76,9 +76,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
 		
 		$form->setDefault('orderBy', 'ASC');
 		 
-		if($form instanceof core_Form){
-			$form->input();
-		}
+		$this->inputForm($form);
 		
 		$this->invoke('AfterPrepareEmbeddedForm', array($form));
 	}
