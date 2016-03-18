@@ -742,7 +742,7 @@ class crm_Companies extends core_Master
         	$country = $currentCountry;
         }
                 
-        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
 
         $row->id = $mvc->getVerbal($rec, 'id');  
         
