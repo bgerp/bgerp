@@ -322,27 +322,23 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	    unset($this->innerState->allRecs['zero']);
 	    unset($this->innerState->allRecs['last']);
 	    
-	    foreach ($this->innerState->allRecs as $id => $rec) {
+	    foreach ($this->innerState->allRecs as $id => &$rec) {
 	       
 	        $dataRec[] = cls::get('acc_BalanceHistory')->getVerbalHistoryRow($rec);
 
-	        foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+	        foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity','date', 'valior') as $fld){
 	            if(!is_null($dataRec[$id]->$fld)){ 
 	               $dataRec[$id]->$fld = $rec[$fld];
 	           }
 	        }
-	        
-	        if (!is_null($dataRec[$id]->docId)) {
-	            $dataRec[$id]->docId = html_entity_decode(strip_tags($dataRec[$id]->docId));
-	        }
-	         
-	        if (!is_null($dataRec[$id]->date)) {
-	            $dataRec[$id]->date = html_entity_decode(strip_tags($dataRec[$id]->date));
-	        }
-	         
-	        if (!is_null($dataRec[$id]->reason)) {
-	            $dataRec[$id]->reason = html_entity_decode(strip_tags($dataRec[$id]->reason));
-	        }
+
+    	    if (!is_null($dataRec[$id]->docId)) {
+    	       $dataRec[$id]->docId = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
+    	    }
+    	         
+    	    if (!is_null($dataRec[$id]->reason)) {
+    	       $dataRec[$id]->reason = trim(html_entity_decode(strip_tags($dataRec[$id]->docId)));
+    	    }
 	    }
 
 	    $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
