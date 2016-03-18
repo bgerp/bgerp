@@ -124,6 +124,12 @@ class clickatell_SMS extends core_Manager
                 // Сетваме променливите
                 $nRes['sendStatus'] = 'sendError';
                 $nRes['msg'] = "|Не може да се изпрати";
+                
+                if (isDebug()) {
+                    $nRes['msg'] .= "|*.<br>" . $retRes;
+                }
+                
+                self::logErr("Грешка при изпращане на SMS: " . $retRes);
             }
         } else {
             

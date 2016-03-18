@@ -10,7 +10,7 @@ defIfNot('NETFINITY_URL', 'http://api.smspro.bg/bsms/send?apikey=[#apikey#]&msis
 /**
  * Урл за изпращане на СМС-и
  */
-defIfNot('NETFINITY_APIKEY', 'XXX');
+defIfNot('NETFINITY_APIKEY', '');
 
 
 /**

@@ -1450,23 +1450,28 @@ class doclog_Documents extends core_Manager
             'threadId'    => $sendRec->threadId,
             'parentId'    => $sendRec->id
         );
-    
+        
         static::save($retRec);
-
-        $msg = tr("Върнато писмо|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
-    
-        // Нотификация за връщането на писмото до изпращача му
-        $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
-        bgerp_Notifications::add(
-            $msg, // съобщение
-            $linkArr, // URL
-            $sendRec->createdBy, // получател на нотификацията
-            'alert' // Важност (приоритет)
-        );
         
 		// Съобщение в лога
         $doc = doc_Containers::getDocument($sendRec->containerId);
-		$docInst = $doc->getInstance();
+        $docInst = $doc->getInstance();
+        
+        // Ако не е циркулярен имейл
+        if (!($docInst instanceof blast_Emails)) {
+            $msg = tr("Върнато писмо|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
+            
+            // Нотификация за връщането на писмото до изпращача му
+            $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
+            bgerp_Notifications::add(
+                            $msg, // съобщение
+                            $linkArr, // URL
+                            $sendRec->createdBy, // получател на нотификацията
+                            'alert' // Важност (приоритет)
+            );
+        }
+        
+		// Съобщение в лога
 		$docInst->logInfo("Върнато писмо", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
