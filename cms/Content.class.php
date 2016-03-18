@@ -287,7 +287,7 @@ class cms_Content extends core_Manager
      */
     static function getContentUrl($rec, $absolute = FALSE) 
     {
-        if($rec->source && cls::load($rec->source, TRUE)) {
+        if($rec->source && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
@@ -365,7 +365,7 @@ class cms_Content extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
         if($rec->source) {
-        	if(cls::load($rec->source, TRUE)){
+        	if(cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)){
         		$Source = cls::getInterface('cms_SourceIntf', $rec->source);
         		$workUrl = $Source->getWorkshopUrl($rec->id);
         		$row->source = ht::createLink($row->source, $workUrl);
@@ -527,7 +527,7 @@ class cms_Content extends core_Manager
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'delete' && isset($rec->id, $rec->source) ) {
-			if(cls::load($rec->source, TRUE)){
+			if(isset($rec->source) && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)){
 				$source = cls::get($rec->source);
 				if($source->getUrlByMenuId($rec->id) != '#') {
 					$res = 'no_one';

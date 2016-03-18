@@ -202,7 +202,7 @@ class cal_Reminders extends core_Master
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
         
         // Колко пъти ще се повтаря напомнянето? 
-        $this->FLD('repetitionEach', 'int(Min=0)',     'caption=Повторение->Всеки,changable');
+        $this->FLD('repetitionEach', 'int(Min=0)',     'caption=Повторение->Всеки,changable,autohide');
         
         // По какво ще се повтаря напомненето - дни, седмици, месеци, години
         $this->FLD('repetitionType', 'enum(   days=дена,
@@ -210,7 +210,7 @@ class cal_Reminders extends core_Master
 			                                  months=месецa,
 			                                  weekDay=месецa-ден от началото на седмицата,
 			                                  monthDay=месецa-ден от началото на месеца)',  
-           'caption=Повторение->Мярка, maxRadio=5,columns=1,notNull,value=days,changable');
+           'caption=Повторение->Мярка, maxRadio=5,columns=1,notNull,value=days,changable,autohide=any');
         
         // За кой път се среща деня
         $this->FLD('monthsWeek',    'varchar(12)', 'caption=Срещане,notNull,input=none');
@@ -255,31 +255,36 @@ class cal_Reminders extends core_Master
 		}
 
 		$data->form->setSuggestions('repetitionEach', static::$suggestions);
-        
-		if($data->form->rec->originId){
-			// Ако напомнянето е по  документ задача намираме кой е той
-    		$doc = doc_Containers::getDocument($data->form->rec->originId);
-    		$class = $doc->className;
-    		$dId = $doc->that;
-    		$rec = $class::fetch($dId);
-    		
-    		// Извличаме каквато информация можем от оригиналния документ
-    		if($rec->timeStart){
-    			$data->form->setDefault('title', tr("Начало на задача "). "\"".$rec->title. "\"");
-    		} elseif($rec->timeEnd){
-    			$data->form->setDefault('title', tr("Изтичаща задача "). "\"".$rec->title. "\"");
-    		}
-    		$data->form->setDefault('priority', $rec->priority);
-    		$data->form->setDefault('sharedUsers', $rec->sharedUsers);
-    		if($rec->timeStart){ 
-    			$data->form->setDefault('timeStart', $rec->timeStart);
-    		} elseif($rec->timeEnd) {
-    			$data->form->setDefault('timeStart', $rec->timeEnd);
-    		}
-    		$data->form->setDefault('timePreviously', tr("15 мин."));
-    	    $data->form->setDefault('repetitionEach', " ");
 
-		}
+        if ($data->form->rec->threadId) {
+            //Добавяме в полето Заглавие отговор на съобщението
+            $titleThread = doc_Threads::getTitleForId($data->form->rec->threadId);
+            $for = tr('|За|*: ');
+            $title = $for . html_entity_decode($titleThread, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+              
+            $todey = dt::today();
+            
+            $dayOfWeek = dt::mysql2verbal($todey, "w");
+            
+            for ($i = 0; $i <=5; $i++) {
+                $nextWorkDay = dt::addDays(1,$todey);
+                $nextDayOfWeek = dt::mysql2verbal($nextWorkDay, "w");
+                if ($dayOfWeek == $i && $nextDayOfWeek == $i) {
+                    $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
+                } else {
+                    if ($dayOfWeek == 6) {
+                        $nextWorkDay = dt::addDays(2,$todey);
+                        $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
+                    } else {
+                        $nextWorkDay = dt::addDays(3,$todey);
+                        $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
+                    }
+                }
+            }
+          
+            $data->form->setDefault('timeStart', $time);
+            $data->form->setDefault('title', $title);
+        }
         
 		if(Mode::is('screenMode', 'narrow')){
 			$data->form->fields[priority]->maxRadio = 2;
@@ -528,14 +533,14 @@ class cal_Reminders extends core_Master
 	                    $mvc,
 	                    'Stop',
 	                    $data->rec->id
-	                ),
+	               ),
 	                array('ef_icon'=>'img/16/gray-close.png',
 	                	'title'=>'Спиране на напомнянето'
 	                ));
 	                
 	                
 	     }
-	       
+
 	     if ($data->rec->state == 'closed' || $data->rec->state == 'active') {
 	     	$data->toolbar->removeBtn('btnActivate');
 	     }
@@ -583,7 +588,7 @@ class cal_Reminders extends core_Master
     		$oRec = $mvc->fetch($rec->id);
     	    		
     		if ($action == 'stop') {
-                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) { 
+                if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($rec->state !== 'active') { 
                     	$requiredRoles = 'no_one';
                     } 
@@ -638,7 +643,7 @@ class cal_Reminders extends core_Master
         // Редиректваме
         return new Redirect($link, "|Успешно спряхте напомнянето");
     }
-
+    
 
     /**
      * Връща приоритета на задачата за отразяване в календара

@@ -36,12 +36,6 @@ class eshop_Products extends core_Master
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'cms_SourceIntf';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name,groupId,state';
