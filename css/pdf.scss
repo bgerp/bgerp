@@ -36,8 +36,8 @@ code, kbd, pre, samp {
     page-break-inside: auto;
 }
 
-thead { 
-	display: table-header-group;
+thead {
+	display: table-row-group;
 }
 
 .versionNumber {
@@ -46,5 +46,4 @@ thead {
 
 .staticFormView .formFieldValue {
 	border: solid 1px #bbbbbb;
-}
 }
