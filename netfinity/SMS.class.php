@@ -2,16 +2,16 @@
 
 
 /**
- * Пращане на SMS' и от mobio
+ * Пращане на SMS'и от нетфинити
  *
  * @category  vendors
- * @package   mobio
+ * @package   netfinity
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mobio_SMS extends core_Manager
+class netfinity_SMS extends core_Manager
 {
     
 	
@@ -44,6 +44,7 @@ class mobio_SMS extends core_Manager
      */
     var $canList = 'no_one';
     
+    
     /**
      * Кой има право да го изтрие?
      */
@@ -59,8 +60,14 @@ class mobio_SMS extends core_Manager
 	/**
 	 * 
 	 */
-	var $title = 'Мобио';
-		
+	var $title = 'Нетфинити';
+	
+	
+	/**
+	 * 
+	 */
+	public $protectId = FALSE;
+	
 	
 	/**
      * Интерфейсен метод за изпращане на SMS' и
@@ -69,29 +76,34 @@ class mobio_SMS extends core_Manager
      * @param string $message - Текста на съобщението
      * @param string $sender - От кого се изпраща съобщението
      * 
-     * @return array $nRes - Mасив с информация, дали е получено
+     * @return array - Mасив с информация, дали е получено
      * $res['sendStatus'] string - Статус на изпращането - received, sended, receiveError, sendError, pending
      * $nRes['uid'] string - Уникалното id на съобщението
      * $nRes['msg'] - Статуса
      */
     function sendSMS($number, $message, $sender)
     {
-        // Конфигурацията на модула
-    	$conf = core_Packs::getConfig('mobio');
-    	
     	// Масива, който ще връщаме
         $nRes = array();
         
-        // Ако константата за УРЛ-то е зададена
-        if ($conf->MOBIO_URL != '') {
-            
+        $url = trim(netfinity_Setup::get('URL'));
+        
+        if ($url) {
             $number = self::prepareNumberStr($number);
             
+            $sender = trim($sender);
+            
+            if ($sender) {
+                $message = "<{$sender}> {$message}";
+            }
+            
             // Вземаме шаблона
-            $tpl = new ET($conf->MOBIO_URL);
+            $tpl = new ET($url);
+            
+            $msgId = dt::mysql2timestamp() . str::getRand('#');
             
             // Заместваме данните
-            $tpl->placeArray(array('FROM' => urlencode($sender), 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message)));
+            $tpl->placeArray(array('apikey' => urlencode(netfinity_Setup::get('APIKEY')), 'number' => urlencode($number), 'message' => urlencode($message), 'msgid' => urlencode($msgId)));
             
             // Вземаме съдържанието
             $url = $tpl->getContent();
@@ -103,7 +115,7 @@ class mobio_SMS extends core_Manager
             $resStr = file_get_contents($url, 0, $ctx);
             
             // Ако има грешка - веднага маркираме в SMS Мениджъра
-            $resArr = explode(':', $resStr);
+            $resArr = explode(' ', $resStr);
             
             // Ако няма грешки
             if ($resArr[0] == 'OK') {
@@ -135,7 +147,7 @@ class mobio_SMS extends core_Manager
             // Записваме в лога
             self::logAlert("Липсва константа за URL' то");
         }
-    	
+        
         return $nRes;
     }
     
@@ -150,11 +162,10 @@ class mobio_SMS extends core_Manager
      */
     function getParams()
     {
-        $conf = core_Packs::getConfig('mobio');
         $paramsArr = array();
-        $paramsArr['utf8'] = $conf->MOBIO_SUPPORT_UTF8;
-        $paramsArr['maxStrLen'] = $conf->MOBIO_MAX_STRING_LEN;
-        $paramsArr['allowedUserNames'] = arr::make($conf->MOBIO_ALLOWED_USER_NAMES, TRUE);
+        $paramsArr['utf8'] = netfinity_Setup::get('SUPPORT_UTF8');
+        $paramsArr['maxStrLen'] = netfinity_Setup::get('MAX_STRING_LEN');
+        $paramsArr['allowedUserNames'] = arr::make(netfinity_Setup::get('ALLOWED_USER_NAMES'), TRUE);
         
         return $paramsArr;
     }
@@ -199,25 +210,22 @@ class mobio_SMS extends core_Manager
     function act_Delivery()
     {
         // Вземаме променливите
-        $uid = Request::get('msgID', 'varchar');
-        $number = Request::get('tonum', 'varchar');
-        $code = Request::get('newstatus', 'varchar');
-        $time = Request::get('timestamp', 'varchar');
-        $timestamp = NULL;
+        $uid = Request::get('id', 'int');
+        $status = Request::get('status', 'varchar');
+        $timestamp = Request::get('ts', 'int');
+        $attempt = Request::get('attempt', 'int');
         
         // Ако не е получен успешно
-        if ((int)$code !== 1) {
+        if ($status == 'delivered_mobile') {
+            $status = 'received';
+        } elseif (($status == 'not_delivered_mobile') || ($status == 'not_delivered')) {
             $status = 'receiveError';
         } else {
-            $status = 'received';
+            $status = 'pending';
         }
         
         try {
             $classId = $this->getClassId();
-            
-            if ($time) {
-                $timestamp = dt::mysql2timestamp($time);
-            }
             
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);

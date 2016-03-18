@@ -2391,7 +2391,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
     {
-    	$query = doc_Folders::restrictAccess($query);
+    	$query = doc_Folders::restrictAccess($query, NULL, FALSE);
     }
     
     

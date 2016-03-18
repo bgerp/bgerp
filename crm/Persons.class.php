@@ -622,7 +622,7 @@ class crm_Persons extends core_Master
         $currentId = $mvc->getVerbal($rec, 'id');
 
 
-        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";

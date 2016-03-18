@@ -188,7 +188,7 @@ class remote_BgerpDriver extends core_Mvc
 
         remote_Authorizations::save($rec);
         
-        remote_Authorizations::logWrite('Изходящ оторизиране', $rec->id);
+        remote_Authorizations::logInfo('Изходящ оторизиране', $rec->id);
         
         return new Redirect($url);
     }
@@ -278,7 +278,7 @@ class remote_BgerpDriver extends core_Mvc
                 remote_Authorizations::save($rec);
             }
             
-            remote_Authorizations::logWrite('Успешна оторизация за следене на съобщения', $rec->id);
+            remote_Authorizations::logInfo('Успешна оторизация за следене на съобщения', $rec->id);
             
             return new Redirect(crm_Profiles::getUrl(core_Users::getCurrent()), 
                 "|Отдалечения потребител|* " . type_Varchar::escape($params['nick']) . " |е оторизиран да следи вашите съобщения");
@@ -313,7 +313,7 @@ class remote_BgerpDriver extends core_Mvc
 
         remote_Authorizations::save($rec);
         
-        remote_Authorizations::logWrite('Потвърдена ауторизация', $rec->id);
+        remote_Authorizations::logInfo('Потвърдена ауторизация', $rec->id);
         
         echo md5($rec->data->lKey . $rec->lKeyCC);
 
@@ -584,7 +584,7 @@ class remote_BgerpDriver extends core_Mvc
 
         echo $encodedRes;
         
-        remote_Authorizations::logRead('Вземане на данни', $authId);
+        remote_Authorizations::logInfo('Вземане на данни', $authId);
         
         shutdown();
     }

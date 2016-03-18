@@ -523,7 +523,7 @@ class blast_Emails extends core_Master
                     blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
-                    doclog_Documents::returned($body->__mid);
+                    $this->logWarning("Върнато писмо", $rec->id);
                 }
             }
             

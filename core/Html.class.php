@@ -892,9 +892,9 @@ class core_Html
     	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
     	
     	if($appendToEnd === TRUE){
-    		$elementTpl = "[#body#] <span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+    		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
     	} else {
-    		$elementTpl = "<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+    		$elementTpl = "<span class=''class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
     	}
     	
     	$element = new core_ET($elementTpl);
