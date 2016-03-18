@@ -453,6 +453,20 @@ class log_Data extends core_Manager
                         reportException($e);
                     }
                 }
+                
+                if ($clsInst instanceof core_Detail) {
+                    $singleTitle = '';
+                    if (is_object($clsInst->Master)) {
+                        $singleTitle = $clsInst->Master->singleTitle;
+                        $singleTitle = mb_strtolower($singleTitle);
+                    }
+                    
+                    if (!$singleTitle) {
+                        $singleTitle = 'детайл';
+                    }
+                    
+                    $action .= ' ' . tr('на') . ' ' . tr($singleTitle);
+                }
             }
             
             if (!$link) {
