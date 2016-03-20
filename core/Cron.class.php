@@ -281,7 +281,7 @@ class core_Cron extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Екшън за стартиране на единичен процес
      */
     function act_ProcessRun()
     {
