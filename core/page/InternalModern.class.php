@@ -72,7 +72,7 @@ class core_page_InternalModern extends core_page_Active
         $this->append("disableScale();", "START_SCRIPTS");
 
         // Акордеона в менюто
-        $this->append("runOnLoad(sidebarAccordeonActions);", "JQRUN");
+        jquery_Jquery::run($this, "sidebarAccordeonActions()");
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
@@ -176,9 +176,9 @@ class core_page_InternalModern extends core_page_Active
     	}
     	
         // Опаковките и главното съдържание заемат екрана до долу
-    	$tpl->append("runOnLoad( slidebars );", "JQRUN");
-    	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
-    	
+    	jquery_Jquery::run($tpl, "slidebars()");
+        jquery_Jquery::run($tpl, "scrollToHash()");
+     	
     	if(Mode::is('screenMode', 'narrow')){
         	$tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
     	}
