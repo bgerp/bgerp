@@ -34,4 +34,23 @@ class core_exception_Db extends core_exception_Expect
         return $res;
     }
 
+
+    /**
+     * Изключение за липсваща база данни ли е?
+     */
+    public function repairDublicatePrimaryKey($link)
+    {
+        if(isset($this->dump['mysqlErrCode']) && ($this->dump['mysqlErrCode'] ==  1062)) {
+            $parts = explode('`', $this->dump['query']);
+            $table = $parts[1];
+            $query = "SELECT max(id) as m FROM `{$table}`";
+            $dbRes = $link->query($query);  
+            $res = $dbRes->fetch_object();
+            $link->query("ALTER TABLE `{$table}` AUTO_INCREMENT = {$res->m}+10");
+        }
+
+        return $res;
+    }
+
+
 }

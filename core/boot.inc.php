@@ -114,7 +114,9 @@ try {
             // При празна база или грешка в базата редиректваме безусловно към сетъп-а
             redirect(array('Index', 'SetupKey' => setupKey()));
         }
-        
+
+        $e->repairDublicatePrimaryKey($link);
+
         // Дали да поставим връзка за обновяване
         $update = NULL;
         if(($e->isNotInitializedDB() || $e->isNotExistsDB()) && $link) {
