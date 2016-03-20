@@ -410,6 +410,7 @@ class core_Debug
             'bp:debug',
             'errorhandler:core_debug',
             'bp:',
+            'wp:',
             'trigger:core_error',
             'error:',
             'expect:'
@@ -432,7 +433,10 @@ class core_Debug
         return array($stack, $breakFile, $breakLine);
     }
 
-
+    
+    /**
+     * Рендира стека
+     */
     private static function renderStack($stack)
     {
         $result = '';
