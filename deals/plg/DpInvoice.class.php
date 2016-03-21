@@ -152,7 +152,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
     	
     	$dpAmount /= $rate;
-    	$dpAmount = round($dpAmount);
+    	$dpAmount = core_Math::roundNumber($dpAmount);
     	
     	// Ако държавата не е България не предлагаме начисляване на ДДС
     	if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
@@ -170,7 +170,7 @@ class deals_plg_DpInvoice extends core_Plugin
     				break;
     			case 'none';
     			if(isset($aggreedDp)){
-    				$aggreedDp = round($aggreedDp / $rate);
+    				$aggreedDp = core_Math::roundNumber($aggreedDp / $rate);
     				$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
     			}
     			break;
