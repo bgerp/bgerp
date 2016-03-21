@@ -591,8 +591,13 @@ class doc_FolderPlg extends core_Plugin
                 $conditions[] = "#folderAccess = 'private'";
             }
         }
-        
-        if ($teammates) {
+
+        if(core_Users::haveRole('ceo')) {
+            
+            // ceo има достъп до всички team папки, дори, когато са на друг ceo, който не е от неговия екип
+            $conditions[] = "#folderAccess = 'team'";
+        } elseif ($teammates) {
+
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник
             $conditions[] = "#folderAccess = 'team' AND #folderInCharge IN ({$teammates})";
         }
@@ -630,6 +635,8 @@ class doc_FolderPlg extends core_Plugin
             $query->XPR('folderShared', 'varchar', '#shared');
         }
         
+        core_Query::buildConditions($conditions, 'OR');
+
         $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
     
