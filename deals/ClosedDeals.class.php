@@ -265,16 +265,6 @@ abstract class deals_ClosedDeals extends core_Master
         $rec->docId = $firstDoc->that;
         $rec->docClassId = $firstDoc->getInstance()->getClassId();
         $rec->classId = $mvc->getClassId();
-        
-        if($form->isSubmitted()){
-        	if(isset($rec->valiorStrategy)){
-        		if($rec->valiorStrategy == 'createdOn'){
-        			$rec->valior = dt::today();
-        		} elseif($rec->valiorStrategy == 'auto'){
-        			$rec->valior = NULL;
-        		}
-        	}
-        }
     }
     
     
@@ -330,6 +320,7 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         // При активация на документа
+        $oldRec = clone $rec;
         $rec = $mvc->fetch($id);
         
         if($rec->state == 'active'){
@@ -346,6 +337,16 @@ abstract class deals_ClosedDeals extends core_Master
                 $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
             }
+        }
+      
+        if(isset($oldRec->valiorStrategy)){
+        	if($oldRec->valiorStrategy == 'createdOn'){
+        		$rec->valior = dt::verbal2mysql($oldRec->createdOn, FALSE);
+        	} elseif($oldRec->valiorStrategy == 'auto'){
+        		$rec->valior = NULL;
+        	}
+        	
+        	$mvc->save_($rec, 'valior');
         }
     }
     
