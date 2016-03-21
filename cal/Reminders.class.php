@@ -262,20 +262,19 @@ class cal_Reminders extends core_Master
             $for = tr('|За|*: ');
             $title = $for . html_entity_decode($titleThread, ENT_COMPAT | ENT_HTML401, 'UTF-8');
               
-            $todey = dt::today();
-            
+            $todey = dt::now();
+
             $dayOfWeek = dt::mysql2verbal($todey, "w");
-            
-            for ($i = 0; $i <=5; $i++) {
+            for ($i = 1; $i <5; $i++) {
                 $nextWorkDay = dt::addDays(1,$todey);
                 $nextDayOfWeek = dt::mysql2verbal($nextWorkDay, "w");
-                if ($dayOfWeek == $i && $nextDayOfWeek == $i) {
+                if ($dayOfWeek == $i && ($nextDayOfWeek >=1 && $nextDayOfWeek <=5)) {
                     $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
                 } else {
                     if ($dayOfWeek == 6) {
                         $nextWorkDay = dt::addDays(2,$todey);
                         $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
-                    } else {
+                    } elseif ($dayOfWeek == 5) {
                         $nextWorkDay = dt::addDays(3,$todey);
                         $time = strstr($nextWorkDay, " ", TRUE). " 8:00";
                     }
