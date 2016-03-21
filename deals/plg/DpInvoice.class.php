@@ -420,12 +420,14 @@ class deals_plg_DpInvoice extends core_Plugin
     	$conf = core_Packs::getConfig('acc');
     	
     	// Ако сумата и ддс-то е в границата на допустимото разминаваме, приравняваме ги на 0
-    	if($total->vat >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->vat <= $conf->ACC_MONEY_TOLERANCE){
-    		$total->vat = 0;
+    	$vatToCompare = $total->vat * $masterRec->rate;
+    	if($vatToCompare >= -1 * $conf->ACC_MONEY_TOLERANCE && $vatToCompare <= $conf->ACC_MONEY_TOLERANCE){
+    		//$total->vat = 0;
     	}
     	
-    	if($total->amount >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->amount <= $conf->ACC_MONEY_TOLERANCE){
-    		$total->amount = 0;
+    	$amountToCompare = $total->amount * $masterRec->rate;
+    	if($amountToCompare >= -1 * $conf->ACC_MONEY_TOLERANCE && $amountToCompare <= $conf->ACC_MONEY_TOLERANCE){
+    		//$total->amount = 0;
     	}
     }
 }
