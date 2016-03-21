@@ -273,7 +273,8 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	if(empty($rec->number)){
+    	$number = ($rec->number) ? $rec->number : $mvc->fetchField($rec->id, 'number');
+    	if(empty($number)){
     		$rec->number = $rec->id;
     		$mvc->save_($rec, 'number');
     	}
