@@ -31,7 +31,7 @@ class email_Receipts extends email_ServiceEmails
     /**
      * Масив с думи, които трябва да съществуват в стринга
      */
-    protected static $positiveWordsArr = array('delivered to the user', 'delivered to an external application');
+    protected static $positiveWordsArr = array('delivered to');
     
     
     /**
