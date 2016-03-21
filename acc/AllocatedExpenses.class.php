@@ -560,6 +560,8 @@ class acc_AllocatedExpenses extends core_Master
     			if(!isset($rec->amount)){
     				$chargeVat = $firstDocument->fetchField('chargeVat');
     				$rec->amount = $mvc->getDefaultAmountToAllocate($rec->correspondingDealOriginId, $chargeVat);
+    				$rec->amount /= $rec->rate;
+    				
     				if(empty($rec->amount)){
     					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
     				}
