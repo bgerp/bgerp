@@ -229,7 +229,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     public function getEarlyActivation()
     {
         $today = dt::today();
-    	$activateOn = "{$today} 13:59:59";
+    	$activateOn = "{$this->innerForm->to} 13:59:59";
 
         return $activateOn;
     }
