@@ -170,8 +170,9 @@ class deals_plg_DpInvoice extends core_Plugin
     				break;
     			case 'none';
     			if(isset($aggreedDp)){
-    				$aggreedDp = core_Math::roundNumber($aggreedDp / $rate);
-    				$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
+    				$sAmount = core_Math::roundNumber($aggreedDp / $rate);
+    				$suggestions = array('' => '', "{$sAmount}" => $sAmount);
+    				$form->setSuggestions('amountAccrued', $suggestions);
     			}
     			break;
     		}
@@ -224,7 +225,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    			$downpayment = $aggreedDp;
 	    		}
 	    		
-	    		$downpayment = round($downpayment / $rec->rate);
+	    		$downpayment = core_Math::roundNumber($downpayment / $rec->rate);
 	    		if($rec->dpAmount > $downpayment){
 	    			$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
 	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
