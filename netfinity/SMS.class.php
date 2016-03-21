@@ -214,7 +214,7 @@ class netfinity_SMS extends core_Manager
         // Вземаме променливите
         $uid = Request::get('id', 'int');
         $status = Request::get('status', 'varchar');
-        $timestamp = Request::get('ts', 'int');
+        $timestamp = Request::get('ts', 'varchar');
         $attempt = Request::get('attempt', 'int');
         
         // Ако не е получен успешно
@@ -229,11 +229,17 @@ class netfinity_SMS extends core_Manager
         try {
             $classId = $this->getClassId();
             
+            $timestamp = dt::mysql2timestamp($timestamp);
+            
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
             reportException($e);
             self::logErr("Възникна грешка при обновяване на състоянието с msgid: " . $uid . ' ' . $e->getMessage());
         }
+        
+		// Пращаме им очаквания отговор, без значение дали е възникнала грешка
+        echo "OK " . $uid;
+        shutdown();
     }
 }
