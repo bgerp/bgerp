@@ -274,8 +274,14 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	$number = ($rec->number) ? $rec->number : $mvc->fetchField($rec->id, 'number');
+    	
     	if(empty($number)){
-    		$rec->number = $rec->id;
+    		$query = $mvc->getQuery();
+    		$query->XPR('maxNumber', 'int', 'MAX(#number)');
+    		
+    		$number = $query->fetch()->maxNumber;
+    		$number += 1;
+    		$rec->number = $number;
     		$mvc->save_($rec, 'number');
     	}
     }
