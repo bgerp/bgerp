@@ -1381,15 +1381,23 @@ class email_Outgoings extends core_Master
             
             $mvc->singleTitle = "Факс";
             
-            if (email_FaxSent::haveRightFor('send')) {
-                $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => tr('Изпращане на имейла по факс')));
+            $btnParamsArr = array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => tr('Изпращане на имейла по факс'));
+            
+            if (!email_FaxSent::haveRightFor('send')) {
+                $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
             }
+            
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, $btnParamsArr);
         } else {
             
+            $btnParamsArr = array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => tr('Изпращане на имейла'));
+            
             $defaultBoxFromId = self::getDefaultInboxId($rec->folderId);
-            if (isset($defaultBoxFromId)) {
-                $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => tr('Изпращане на имейла')));
+            if (!isset($defaultBoxFromId)) {
+                $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
             }
+            
+            $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, $btnParamsArr);
         }
         
         $pContragentData = NULL;

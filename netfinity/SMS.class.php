@@ -100,7 +100,9 @@ class netfinity_SMS extends core_Manager
             // Вземаме шаблона
             $tpl = new ET($url);
             
-            $msgId = dt::mysql2timestamp() . str::getRand('#');
+            $msgId = dt::mysql2timestamp();
+            $msgId = substr($msgId, 3, 7);
+            $msgId = '1' . str::getRand('##') . $msgId;
             
             // Заместваме данните
             $tpl->placeArray(array('apikey' => urlencode(netfinity_Setup::get('APIKEY')), 'number' => urlencode($number), 'message' => urlencode($message), 'msgid' => urlencode($msgId)));
