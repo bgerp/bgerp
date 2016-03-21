@@ -1393,12 +1393,10 @@ class cat_Products extends embed_Manager {
      */
     private static function getDisplayName($rec)
     {
-    	$lg = core_Lg::getCurrent();
+    	// Ако в името имаме '||' го превеждаме
+    	if(strpos($rec->name, '||') !== FALSE) return tr($rec->name);
     	
-    	if($lg != 'bg'){
-    		if(!empty($rec->intName)) return $rec->intName;
-    	}
-    	
+    	// Иначе го връщаме такова, каквото е
     	return $rec->name;
     }
     
