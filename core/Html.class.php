@@ -118,7 +118,7 @@ class core_Html
 
         $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
 
-        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$selectId}');})", 'JQRUN');
+       	jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');");
 
         $attr['id'] = $selectId;
         $name = $attr['name'] = $selectId;

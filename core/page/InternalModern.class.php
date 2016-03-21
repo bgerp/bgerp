@@ -180,7 +180,7 @@ class core_page_InternalModern extends core_page_Active
         jquery_Jquery::run($tpl, "scrollToHash()");
      	
     	if(Mode::is('screenMode', 'narrow')){
-        	$tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+        	jquery_Jquery::run($tpl, "checkForElementWidthChange();");
     	}
     	
         // Добавяме кода, за определяне параметрите на браузъра

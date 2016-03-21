@@ -1405,7 +1405,8 @@ class blast_Emails extends core_Master
             $jsonData  = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
             
             $form->layout = new ET($data->form->renderLayout());
-            $form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . $jsonData . ")}); ", 'JQRUN', TRUE);
+            
+            jquery_Jquery::run($form->layout, "prepareLangBtn(" . $jsonData . ");");
         }
         
         try {

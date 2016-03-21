@@ -69,11 +69,11 @@ class core_page_Internal extends core_page_Active
         if(Mode::is('screenMode', 'wide')){
         	$this->append("scaleViewport();", "START_SCRIPTS");
         } else {
-        	$this->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+        	jquery_Jquery::run($this, "checkForElementWidthChange();");
         }
         
         // Опаковките и главното съдържание заемат екрана до долу
-        $this->append("runOnLoad(setMinHeight);", "JQRUN");
+        jquery_Jquery::run($this, "setMinHeight();");
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');

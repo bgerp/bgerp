@@ -1521,7 +1521,8 @@ class email_Outgoings extends core_Master
             
             $data->__bodyLgArr = array('hint' => $hintStr, 'lg' => $emailLg, 'data' => $bodyLangArr);
             $data->form->layout = new ET($data->form->renderLayout());
-            $data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
+            
+            jquery_Jquery::run($form->layout, "prepareLangBtn(" . json_encode($data->__bodyLgArr) . ");");
             
             core_Lg::pop();
             
