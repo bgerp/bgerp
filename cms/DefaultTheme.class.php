@@ -232,9 +232,8 @@ class cms_DefaultTheme extends core_ProtoInner {
                 $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
                 $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
                 $baner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
-                $baner->appendOnce("\n runOnLoad(function(){ $(function(){ $('.fadein img:gt(0)').hide(); setInterval(function(){ $('.fadein :first-child').css({position: 'absolute'})." .
-                    "fadeOut({$fadeTransition}).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');$('.fadein :first-child').css({position: 'relative'});}, {$fadeDelay});});});", 'SCRIPTS');
-                
+                jquery_Jquery::run($baner, "fadeImages({$fadeTransition}, {$fadeDelay});");
+             	
                 $this->haveOwnHeaderImages = TRUE;
 
                 return $baner;

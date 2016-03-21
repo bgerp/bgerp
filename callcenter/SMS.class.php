@@ -422,15 +422,16 @@ class callcenter_SMS extends core_Master
         // Сменяме статуса и времето на получаване
         $rec->status = $status;
         
+        $rec->receivedTime = NULL;
+        if (isset($receivedTimestamp)) {
+            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
+        }
+        
         // Ако няма време на получаване или е подадено време преди създаването му
-        if (!$receivedTimestamp || ($rec->createdOn > $receivedTimestamp)) {
+        if (!isset($rec->receivedTime) || ($rec->createdOn > $rec->receivedTime)) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
-        } else {
-            
-            // Преобразуваме времето
-            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
         }
         
         // Ъпдейтваме записите
@@ -543,6 +544,7 @@ class callcenter_SMS extends core_Master
                     
                     // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
+                    $rec->sender = str::utf2ascii($rec->sender);
                 }
                 
                 // Ако е зададен ascii
@@ -550,6 +552,7 @@ class callcenter_SMS extends core_Master
                     
                     // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
+                    $rec->sender = str::utf2ascii($rec->sender);
                 }
                 
                 // Ако е зададен максималната дължина

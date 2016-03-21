@@ -1378,10 +1378,26 @@ class email_Outgoings extends core_Master
         
         // Бутон за изпращане
         if ($faxTo || stripos($emailTo, '@fax.man') || (!$rec->email && $rec->fax) || stripos($rec->email, '@fax.man')) {
+            
             $mvc->singleTitle = "Факс";
-            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => tr('Изпращане на имейла по факс')));
+            
+            $btnParamsArr = array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => tr('Изпращане на имейла по факс'));
+            
+            if (!email_FaxSent::haveRightFor('send')) {
+                $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
+            }
+            
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, $btnParamsArr);
         } else {
-            $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => tr('Изпращане на имейла')));
+            
+            $btnParamsArr = array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => tr('Изпращане на имейла'));
+            
+            $defaultBoxFromId = self::getDefaultInboxId($rec->folderId);
+            if (!isset($defaultBoxFromId)) {
+                $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
+            }
+            
+            $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, $btnParamsArr);
         }
         
         $pContragentData = NULL;
@@ -1505,7 +1521,8 @@ class email_Outgoings extends core_Master
             
             $data->__bodyLgArr = array('hint' => $hintStr, 'lg' => $emailLg, 'data' => $bodyLangArr);
             $data->form->layout = new ET($data->form->renderLayout());
-            $data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
+            
+            jquery_Jquery::run($form->layout, "prepareLangBtn(" . json_encode($data->__bodyLgArr) . ");");
             
             core_Lg::pop();
             

@@ -356,6 +356,26 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Проверява дали не трябва да се спира процеса
+     * 
+     * @return boolean
+     */
+    protected static function checkTimelimit()
+    {
+        static $deadLine;
+        
+        if (!isset($deadLine)) {
+            $deadLine = time() + blast_Setup::get('EMAILS_CRON_TIME_LIMIT');
+            $deadLine -= 2;
+        }
+        
+        if ($deadLine > time()) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Проверява дали има имейли за изпращане, персонализира ги и ги изпраща
      * Вика се от `cron`
      */
@@ -374,6 +394,14 @@ class blast_Emails extends core_Master
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
+            
+            // Ако е свършило времето
+            if (!$this->checkTimelimit()) {
+                
+                $this->logWarning('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                
+                break;
+            }
             
             $now = dt::now();
             $nextStartTime = self::getNextStartTime($rec, $now);
@@ -406,7 +434,7 @@ class blast_Emails extends core_Master
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
             
             // Ако няма данни, затваряме 
-            if (!$dataArr) {
+            if (empty($dataArr)) {
                 $rec->state = 'closed';
                 $rec->progress = 1;
                 $this->save($rec, 'state, progress');
@@ -429,8 +457,21 @@ class blast_Emails extends core_Master
             // Ако няма полета за имейли, няма смисъл да се праща
             if (!$emailPlaceArr) continue;
             
+            $notSendDataArr = $dataArr;
+            
             // Обхождаме всички получени данни
             foreach ((array)$dataArr as $detId => $detArr) {
+                
+                // Ако е свършило времето
+                if (!$this->checkTimelimit()) {
+                    
+                    // Маркираме неизпратените имейли
+                    blast_EmailSend::removeMarkAsSent($notSendDataArr);
+                    
+                    $this->logWarning('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                    
+                    break;
+                }
                 
                 $toEmail = '';
                 
@@ -525,6 +566,8 @@ class blast_Emails extends core_Master
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
                     $this->logWarning("Върнато писмо", $rec->id);
                 }
+                
+                unset($notSendDataArr[$detId]);
             }
             
             $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
@@ -1405,7 +1448,8 @@ class blast_Emails extends core_Master
             $jsonData  = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
             
             $form->layout = new ET($data->form->renderLayout());
-            $form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . $jsonData . ")}); ", 'JQRUN', TRUE);
+            
+            jquery_Jquery::run($form->layout, "prepareLangBtn(" . $jsonData . ");");
         }
         
         try {

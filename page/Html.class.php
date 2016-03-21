@@ -113,7 +113,7 @@ class page_Html extends core_ET {
         // Вземане на времето на бездействие в съответния таб
         static::idleTimerJs($tpl);
         
-        $tpl->append("runOnLoad(scrollLongListTable);", "JQRUN");
+        jquery_Jquery::run($tpl, 'scrollLongListTable();');
       
         return $tpl;
     }
@@ -148,8 +148,8 @@ class page_Html extends core_ET {
      */
     static function saveSelTextJs(&$tpl)
     {
-        // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce("\n runOnLoad(function(){getEO().saveSelText();});", 'SCRIPTS');
+        // Скрипт, за вземане на инстанция на efae        
+        jquery_Jquery::run($tpl, "getEO().saveSelText();");
     }
     
     

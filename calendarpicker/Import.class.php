@@ -120,7 +120,7 @@ class calendarpicker_Import {
         
         $tpl = new ET();
         
-   	 	$tpl->append("\n runOnLoad(function(){initDateInput('{$options['inputField']}', {$jsOptions});});", 'JQRUN');
+        jquery_Jquery::run($tpl, "initDateInput('{$options['inputField']}', {$jsOptions});");
         
         return $tpl;
     }

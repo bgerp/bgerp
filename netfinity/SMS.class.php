@@ -100,7 +100,9 @@ class netfinity_SMS extends core_Manager
             // Вземаме шаблона
             $tpl = new ET($url);
             
-            $msgId = dt::mysql2timestamp() . str::getRand('#');
+            $msgId = dt::mysql2timestamp();
+            $msgId = substr($msgId, 3, 7);
+            $msgId = '1' . str::getRand('##') . $msgId;
             
             // Заместваме данните
             $tpl->placeArray(array('apikey' => urlencode(netfinity_Setup::get('APIKEY')), 'number' => urlencode($number), 'message' => urlencode($message), 'msgid' => urlencode($msgId)));
@@ -212,7 +214,7 @@ class netfinity_SMS extends core_Manager
         // Вземаме променливите
         $uid = Request::get('id', 'int');
         $status = Request::get('status', 'varchar');
-        $timestamp = Request::get('ts', 'int');
+        $timestamp = Request::get('ts', 'varchar');
         $attempt = Request::get('attempt', 'int');
         
         // Ако не е получен успешно
@@ -227,11 +229,17 @@ class netfinity_SMS extends core_Manager
         try {
             $classId = $this->getClassId();
             
+            $timestamp = dt::mysql2timestamp($timestamp);
+            
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
             reportException($e);
             self::logErr("Възникна грешка при обновяване на състоянието с msgid: " . $uid . ' ' . $e->getMessage());
         }
+        
+		// Пращаме им очаквания отговор, без значение дали е възникнала грешка
+        echo "OK " . $uid;
+        shutdown();
     }
 }
