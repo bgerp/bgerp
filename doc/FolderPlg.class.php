@@ -635,8 +635,6 @@ class doc_FolderPlg extends core_Plugin
             $query->XPR('folderShared', 'varchar', '#shared');
         }
         
-        core_Query::buildConditions($conditions, 'OR');
-
         $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
     
