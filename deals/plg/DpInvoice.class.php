@@ -160,7 +160,13 @@ class deals_plg_DpInvoice extends core_Plugin
     		switch($dpOperation){
     			case 'accrued':
     				if(isset($dpAmount)){
-    					$form->setDefault('amountAccrued', $dpAmount);
+    					$delivered = $form->dealInfo->get('deliveryAmount');
+    					if(!empty($delivered)){
+    						$dpOperation = 'none';
+    						$form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
+    					} else {
+    						$form->setDefault('amountAccrued', $dpAmount);
+    					}
     				}
     				break;
     			case 'deducted':
