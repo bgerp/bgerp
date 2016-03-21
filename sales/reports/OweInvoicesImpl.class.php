@@ -101,15 +101,12 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		if ($data->rec->contragentFolderId) {
 			$contragentCls = doc_Folders::fetchField("#id = {$data->rec->contragentFolderId}", 'coverClass');
 			$contragentId = doc_Folders::fetchField("#id = {$data->rec->contragentFolderId}", 'coverId');
-			$data->contragent->titleLink = cls::get($contragentCls)->getShortHyperLink($contragentId);
-		
 			// всичко за контрагента
 			$contragentRec = cls::get($contragentCls)->fetch($contragentId);
+			// записваме го в датата
+			$data->contragent = $contragentRec;
+			$data->contragent->titleLink = cls::get($contragentCls)->getShortHyperLink($contragentId);
 		}
-
-		// записваме го в датата
-		$data->contragent = $contragentRec;
-		
 		
 		// търсим всички продажби, които са на този книент и са активни
 		$querySales = sales_Sales::getQuery();
@@ -222,7 +219,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	if ($currRec->dueDate == NULL || $currRec->dueDate < dt::now()) { 
         		$data->sum->arrears += $currRec->amountRest;
         	}
-        	
         }
 
 		return $data;
@@ -248,13 +244,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		$Double->params['decimals'] = 2; 
 		
 		if(count($data->recs)){
-			// правим обобщения ред в разбираем за човека вид
-			$data->summary  = (object) array('currencyId' => $data->sum->currencyId,
-					'amountInv' =>$Double->toVerbal($data->sum->amountVat),
-					'amountToPaid' => $Double->toVerbal($data->sum->toPaid),
-					'amountArrears' => $Double->toVerbal($data->sum->arrears)
-			);
-	
+
 			foreach ($data->recs as $rec) {
 				if(!$pager->isOnPage()) continue;
 		
@@ -319,10 +309,18 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 
 				// добавяме нафактурираното към сумата на вече намерените 
 				$data->summary->amountInv += $data->sum->notInv;
-				$data->summary->amountInv = $Double->toVerbal($data->summary->amountInv);
+				//$data->summary->amountInv = $Double->toVerbal($data->summary->amountInv);
 				$data->summary->currencyId = $data->currencyId;
 			}
 		}
+		
+		// правим обобщения ред в разбираем за човека вид
+		$data->summary  = (object) array('currencyId' => $data->sum->currencyId,
+		    'amountInv' =>$Double->toVerbal($data->sum->amountVat),
+		    'amountToPaid' => $Double->toVerbal($data->sum->toPaid),
+		    'amountArrears' => $Double->toVerbal($data->sum->arrears)
+		);
+		
 
 		$res = $data;
 	}
