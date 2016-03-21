@@ -251,6 +251,9 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$tpl = new ET(tr("|*
                     <div class='groupList'>
                         <div class='richtext' style='margin-top: 5px; font-weight:bold;'>{$title}</div>
+                        <!--ET_BEGIN info-->
+                        <div style='margin-top:5px;'>[#info#]</div>
+                        <!--ET_END info-->
 						<table class = 'no-border small-padding' style='margin-bottom: 5px;'>
 							[#INFO#]
 						</table>
@@ -262,6 +265,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $form = cls::get('core_Form');
         $this->addFields($form);
 		$driverFields = $form->fields;
+		$tpl->replace($data->row->info, 'info');
 
 		if(is_array($driverFields)){
  

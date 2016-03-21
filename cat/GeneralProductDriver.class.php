@@ -29,13 +29,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		// Добавя полетата само ако ги няма във формата
-		if(!$fieldset->getField('info', FALSE)){
-			$fieldset->FLD('info', 'richtext(rows=4, bucket=Notes)', "caption=Описание,mandatory");
-		} else {
-			$fieldset->setField('info', 'input');
-		}
-		
 		if(!$fieldset->getField('photo', FALSE)){
 			$fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение");
 		} else {
@@ -302,22 +295,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		return $tpl;
-	}
-	
-	
-	/**
-	 * Добавя ключови думи за пълнотекстово търсене
-	 * 
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param stdClass $res
-	 * @param stdClass $rec
-	 */
-	public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
-	{
-		$RichText = cls::get('type_Richtext');
-		$info = strip_tags($RichText->toVerbal($rec->info));
-		$res .= " " . plg_Search::normalizeText($info);
 	}
 	
 	
