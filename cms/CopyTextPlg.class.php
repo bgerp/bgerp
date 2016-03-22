@@ -31,7 +31,7 @@ class cms_CopyTextPlg extends core_Plugin
 		$disableFor = $conf->CMS_COPY_DISABLE_FOR;
 	
 		// Ако потребителя има някоя от забранените роли, не се добавя линка при копиране
-	//	if(!haveRole($disableFor)){
+		if(!haveRole($disableFor)){
 			
 			$cUrl = cms_Content::getShortUrl();
 		 	
@@ -45,5 +45,5 @@ class cms_CopyTextPlg extends core_Plugin
              	jquery_Jquery::run($invoker, "document.oncopy = function(){addLinkOnCopy('{$textOnCopy}');}");
             }
 		}
-	//}
+	}
 }
