@@ -58,6 +58,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$fieldset->FLD("indTime", 'time', 'caption=Произвеждане->Време,smartCenter');
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$fieldset->FLD('quantityInPack', 'double(smartRound)', 'input=none');
+		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory,allowEmpty');
     }
 	
 	
@@ -385,7 +386,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     							$nRec->planedQuantity = $p->packQuantity * $rec->plannedQuantity * $rec->quantityInPack;
     							$nRec->productId      = $p->productId;
     							$nRec->type			  = $type;
-    							$nRec->storeId		  = $originRec->storeId;
+    							$nRec->storeId		  = $rec->storeId;
     							
     							planning_drivers_ProductionTaskProducts::save($nRec);
     						}
