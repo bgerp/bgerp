@@ -248,8 +248,8 @@ class deals_plg_DpInvoice extends core_Plugin
 	    				$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
 	    			}
 	    		} else {
-	    			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
-						$downpayment = round(($invoicedDp - $deductedDp) / $rec->rate);
+	    			if(abs($rec->dpAmount) > core_Math::roundNumber($invoicedDp - $deductedDp)){
+						$downpayment = core_Math::roundNumber(($invoicedDp - $deductedDp) / $rec->rate);
 						$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
 	    				$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
 					}
@@ -266,7 +266,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	}
 	    	
 	    	if(!is_null($rec->dpAmount)){
-	    		$rec->dpAmount = round(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate, 6);
+	    		$rec->dpAmount = core_Math::roundNumber(($rec->dpAmount - ($rec->dpAmount * $vat / (1 + $vat))) * $rec->rate);
 	    	}
 	    	
 	    	// Обновяваме данните на мастър-записа при редакция
