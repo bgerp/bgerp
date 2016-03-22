@@ -995,10 +995,11 @@ class fileman_Files2 extends core_Master
      * Обновява времето на последно използване на файла
      * 
      * @param string|stdObject $fh
+     * @param NULL|datetime $lastUse
      * 
      * @return boolean
      */
-    public static function updateLastUse($fh)
+    public static function updateLastUse($fh, $lastUse = NULL)
     {
         if (is_object($fh)) {
             $fRec = $fh;
@@ -1007,6 +1008,6 @@ class fileman_Files2 extends core_Master
         }
         
         // Обновяваме времето на последно използване на данните
-        return fileman_Data::updateLastUse($fRec->dataId);
+        return fileman_Data::updateLastUse($fRec->dataId, $lastUse);
     }
 }
