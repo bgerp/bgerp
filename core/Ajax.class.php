@@ -223,10 +223,8 @@ class core_Ajax extends core_Mvc
         $localUrl = urlencode($localUrl);
                 
         // Добавяме стринга, който субскрайбва съответното URL
-        jquery_Jquery::run($tpl, "getEfae().subscribe('{$name}', '{$localUrl}', {$interval});");
+        jquery_Jquery::run($tpl, "getEfae().subscribe('{$name}', '{$localUrl}', {$interval});", TRUE);
         
-        // Добавяме само веднъж
-        $tpl->appendOnce($subscribeStr, 'SCRIPTS');
     }
     
     
@@ -251,17 +249,17 @@ class core_Ajax extends core_Mvc
         $url = toUrl($url);
         
         // Добавяме URL-то за сваляне на ajax
-        jquery_Jquery::run($tpl, "getEfae().setUrl('{$url}');");
+        jquery_Jquery::run($tpl, "getEfae().setUrl('{$url}');", TRUE);
         
         // URL от който ще се вика айакса
         $parentUrl = toUrl(getCurrentUrl(), 'local');
         
         // Задаваме УРЛ-то
-        jquery_Jquery::run($tpl, "getEfae().setParentUrl('{$parentUrl}');");
+        jquery_Jquery::run($tpl, "getEfae().setParentUrl('{$parentUrl}');", TRUE);
         
         // Ако има hitId сетваме стойността на променливата
         if ($hitId = Request::get('hit_id')) {
-        	jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');");
+        	jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", TRUE);
         }
         
         // Стартираме извикването на `run` фунцкцията на efae

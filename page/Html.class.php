@@ -149,7 +149,7 @@ class page_Html extends core_ET {
     static function saveSelTextJs(&$tpl)
     {
         // Скрипт, за вземане на инстанция на efae        
-        jquery_Jquery::run($tpl, "getEO().saveSelText();");
+        jquery_Jquery::run($tpl, "getEO().saveSelText();", TRUE);
     }
     
     

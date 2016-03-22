@@ -261,7 +261,7 @@ class plg_Select extends core_Plugin
             $js .= "chRwCl('{$id}');";
         }
         
-        jquery_Jquery::run($tpl, "SetWithCheckedButton();");
+        jquery_Jquery::run($tpl, "SetWithCheckedButton();", TRUE);
     }
     
     

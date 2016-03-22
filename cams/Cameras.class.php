@@ -181,7 +181,7 @@ class cams_Cameras extends core_Master
                   }
                   ", 'SCRIPTS');
         
-       	jquery_Jquery::run($row->liveImg, "setTimeout('reloadImage(\'{$url}\')', 2000);");
+       	jquery_Jquery::run($row->liveImg, "setTimeout('reloadImage(\'{$url}\')', 2000);", TRUE);
         
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET('[#1#]<br>', $row->title);

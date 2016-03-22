@@ -761,7 +761,7 @@ class core_Form extends core_FieldSet
             	$fieldsLayout->append("</div>");
             } else {
             	if ($idForFocus) {
-            		jquery_Jquery::run($fieldsLayout, "$('#{$idForFocus}').focus();");
+            		jquery_Jquery::run($fieldsLayout, "$('#{$idForFocus}').focus();", TRUE);
             	}
             }
         }
