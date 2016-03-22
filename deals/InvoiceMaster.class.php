@@ -487,9 +487,8 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$Source = $mvc->getSourceOrigin($rec);
 	   	if(!$Source) return;
 
-	   	$sourceRec = $Source->fetch();
-	    $sourceRec->modifiedOn = dt::now();
-	   	$Source->getInstance()->save($sourceRec, 'modifiedOn');
+	   	// Инвалидираме кеша на документа
+	   	doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
 	  
 	   	if($rec->_isClone === TRUE) return;
 	   	

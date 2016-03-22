@@ -348,6 +348,8 @@ abstract class deals_ClosedDeals extends core_Master
         	
         	$mvc->save_($rec, 'valior');
         }
+        
+        doc_DocumentCache::threadCacheInvalidation($rec->threadId);
     }
     
     
