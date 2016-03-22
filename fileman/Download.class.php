@@ -236,6 +236,8 @@ class fileman_Download extends core_Manager {
         // Вземаме записа на манипулатора
         $fRec = $this->Files->fetchByFh($fh);
         
+        fileman::updateLastUse($fRec);
+        
         // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
         

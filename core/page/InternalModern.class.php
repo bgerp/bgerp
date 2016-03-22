@@ -125,7 +125,7 @@ class core_page_InternalModern extends core_page_Active
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}", 'alt' => 'pin'));
         $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
     	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}", 'alt' => 'unpin'));
-    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
+    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 28);
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
@@ -176,11 +176,13 @@ class core_page_InternalModern extends core_page_Active
     	}
     	
         // Опаковките и главното съдържание заемат екрана до долу
-    	jquery_Jquery::run($tpl, "slidebars()");
-        jquery_Jquery::run($tpl, "scrollToHash()");
+    	jquery_Jquery::run($tpl, "slidebars();");
+        jquery_Jquery::run($tpl, "scrollToHash();");
      	
     	if(Mode::is('screenMode', 'narrow')){
         	jquery_Jquery::run($tpl, "checkForElementWidthChange();");
+        	jquery_Jquery::run($tpl, "sumOfChildrenWidth();");
+        	jquery_Jquery::run($tpl, "removeNarrowScroll();");
     	}
     	
         // Добавяме кода, за определяне параметрите на браузъра
@@ -308,7 +310,7 @@ class core_page_InternalModern extends core_page_Active
         
         if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
         	
-        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал към разработчиците на bgERP", 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => tr("Изпращане на сигнал към разработчиците на bgERP"), 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
         	
         	$email = email_Inboxes::getUserEmail();
         	if(!$email) {
@@ -326,17 +328,17 @@ class core_page_InternalModern extends core_page_Active
         }
         
         // Създава линк за изход
-        $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Излизане от системата", 'ef_icon' => 'img/16/logout.png'));
+        $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => tr("Излизане от системата"), 'ef_icon' => 'img/16/logout.png'));
        	$tpl->replace($signOut, 'SIGN_OUT');
         
         // Създава линк за превключване между режимите
        	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Мобилен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
+       		$mode = ht::createLink(tr("Мобилен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => tr('Превключване на системата в мобилен режим')));
        	} else {
-       		$mode = ht::createLink(tr("Десктоп"), array('log_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
+       		$mode = ht::createLink(tr("Десктоп"), array('log_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => tr('Превключване на системата в десктоп режим')));
        	}
        	if(isDebug()) {
-       		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
+       		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => tr("Показване на debug информация"), 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
        	}
         // Смяна на езика
         $lgChange = self::getLgChange();

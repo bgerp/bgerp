@@ -135,7 +135,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, inputStoreId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
@@ -151,7 +151,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
-		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId');
 		
 		$this->setDbIndex('productId');
 	}
@@ -166,6 +165,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
+		
+		if(empty($form->rec->id)){
+			$form->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
+		}
 		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
 		$form->setDefault('productId', $originRec->productId);
@@ -192,19 +195,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
-	{
-		if($form->isSubmitted()){
-			if(isset($form->rec->inputStoreId)){
-				$form->setWarning('inputStoreId', 'Избраните суровини и материали, ще се вложат директно от склада');
-			}
-		}
-	}
-	
-	
-	/**
 	 * След преобразуване на записа в четим за хора вид
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -212,11 +202,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
-		
-		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
-		if(isset($rec->inputStoreId)){
-			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
-		}
 		
 		if(!empty($rec->batch)){
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
@@ -479,6 +464,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			if(count($details)){
 				foreach ($details as $dRec){
 					$dRec->noteId = $rec->id;
+					if(isset($rec->inputStoreId)){
+						$dRec->storeId = $rec->inputStoreId;
+					}
 					planning_DirectProductNoteDetails::save($dRec);
 				}
 			}

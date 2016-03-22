@@ -13,7 +13,7 @@ defIfNot('PLANNING_TASK_SERIAL_COUNTER', 1000);
  * @category  bgerp
  * @package   planning
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -79,6 +79,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_TaskSerials',
     		'migrate::updateTasks',
     		'migrate::updateNotes',
+    		'migrate::updateStoreIds',
         );
 
         
@@ -156,6 +157,33 @@ class planning_Setup extends core_ProtoSetup
     	while($rec = $query->fetch()){
     		$rec->inputStoreId = $rec->storeId;
     		cls::get('planning_DirectProductionNote')->save_($rec);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на протоколите за производство
+     */
+    function updateStoreIds()
+    {
+    	core_App::setTimeLimit(300);
+    	$Details = cls::get('planning_DirectProductNoteDetails');
+    	$Details->setupMvc();
+    	
+    	$query = planning_DirectProductNoteDetails::getQuery();
+    	$query->EXT('inputStoreId', 'planning_DirectProductionNote', 'externalName=inputStoreId,externalKey=noteId');
+    	$query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+    	$query->where("#inputStoreId IS NOT NULL");
+    	$query->where("#storeId IS NULL");
+    	$query->where("#canStore = 'yes'");
+    	
+    	while($dRec = $query->fetch()){
+    		$dRec->storeId = $dRec->inputStoreId;
+    		try{
+    			$Details->save_($dRec, 'storeId');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
     	}
     }
 }

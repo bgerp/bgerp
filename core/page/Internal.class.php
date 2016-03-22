@@ -191,6 +191,7 @@ class core_page_Internal extends core_page_Active
                     $notFirst = TRUE;
                 }
             }
+            jquery_Jquery::run($tpl, "removeNarrowScroll();");
         } else {
             // Ако сме в широк формат
             // Отпечатваме менютата
@@ -256,7 +257,7 @@ class core_page_Internal extends core_page_Active
             $tpl->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
             if($nick) {
-                $tpl->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));
+                $tpl->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => tr("Прекъсване на сесията"))));
                 $tpl->append('&nbsp;<small>|</small>');
             }
             
@@ -265,7 +266,7 @@ class core_page_Internal extends core_page_Active
             
             if($isGet) {
                 $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Тесен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
+                $tpl->append(ht::createLink(tr("Тесен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => tr("Превключване на системата в мобилен режим"))));
             
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());

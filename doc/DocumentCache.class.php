@@ -157,7 +157,7 @@ class doc_DocumentCache extends core_Master
 	{
 		$now = dt::now();
 		
-		// Вземам всички аписи които са над 4+ минути. За всеки един взимам броя на минутите които е над 4
+		// Вземам всички записи които са над 4+ минути. За всеки един взимам броя на минутите които е над 4
 		$query = $this->getQuery();
         
         // Изтриваме с по-голяма вероятност, записите, които са стоели по-дълго след края на кеша
@@ -167,5 +167,45 @@ class doc_DocumentCache extends core_Master
         if(round((time()/60) % 1000) == 500) {
 		    $this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");
         }
+	}
+	
+	
+	/**
+	 * Инвалидира кеша на документите в нишката
+	 * 
+	 * @param int $threadId - ид на нишка
+	 * @return int $res - броя на изтритите записи
+	 */
+	public static function threadCacheInvalidation($threadId)
+	{
+		expect($threadId);
+		
+		// Намираме контейнерите в нишката
+		$query = doc_Containers::getQuery();
+		$query->where("#threadId = {$threadId}");
+		$query->show('id');
+		
+		$res = 0;
+		
+		// За всеки инвалидираме му кеша
+		while($cRec = $query->fetch()){
+			$res += self::delete("#containerId = '{$cRec->id}'");
+		}
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Инвалидира кеша на посочения документ
+	 * 
+	 * @param int $containerId - ид на контейнер на документ
+	 * @return int - броя на изтритите записи
+	 */
+	public static function cacheInvalidation($containerId)
+	{
+		expect($containerId);
+		
+		return self::delete("#containerId = '{$containerId}'");
 	}
 }

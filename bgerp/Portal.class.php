@@ -146,7 +146,9 @@ class bgerp_Portal extends core_Manager
         jquery_Jquery::run($tpl, "portalSearch();");
         
         bgerp_LastTouch::set('portal');
-
+        
+        self::logRead('Разглеждане на портала');
+        
         return $tpl;
     }
     

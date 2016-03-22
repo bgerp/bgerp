@@ -989,4 +989,25 @@ class fileman_Files2 extends core_Master
     
         return $tempDir;
     }
+    
+    
+    /**
+     * Обновява времето на последно използване на файла
+     * 
+     * @param string|stdObject $fh
+     * @param NULL|datetime $lastUse
+     * 
+     * @return boolean
+     */
+    public static function updateLastUse($fh, $lastUse = NULL)
+    {
+        if (is_object($fh)) {
+            $fRec = $fh;
+        } else {
+            $fRec = fileman_Files::fetchByFh($fh);
+        }
+        
+        // Обновяваме времето на последно използване на данните
+        return fileman_Data::updateLastUse($fRec->dataId, $lastUse);
+    }
 }
