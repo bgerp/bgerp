@@ -19,7 +19,13 @@ class log_System extends core_Manager
     
     
     /**
-     * Максимален брой записи, които ще се извличат
+     * Максимален брой редове, които ще се извличат от error_log
+     */
+    static $phpErrMaxLinesLimit = 200;
+    
+    
+    /**
+     * Максимален брой записи, които ще се записват при всяк извикване
      */
     static $phpErrMaxLimit = 20;
     
@@ -349,30 +355,27 @@ class log_System extends core_Manager
         
         if (!$errLogPath) return "Не е дефиниран 'error_log'";
         
-        if (!is_file($errLogPath)) return "Няма създаден файл";
+        $resStr = 'Няма записи';
         
-        $content = file_get_contents($errLogPath);
+        $linesArr = core_Os::getLastLinesFromFile($errLogPath, self::$phpErrMaxLinesLimit, TRUE, $resStr);
         
-        if (!$content) return 'Няма съдържание';
-        
-        $contentArr = explode("\n", $content);
-        $contentArr = array_reverse($contentArr);
+        if (empty($linesArr)) return $resStr;
         
         $i = 0;
         
         $arrSave = array();
         $hashArr = array();
         
-        foreach ($contentArr as $errStr) {
-            $errStr = trim($errStr);
-            if (!strlen($errStr)) continue;
+        foreach ($linesArr as $resStr) {
+            $resStr = trim($resStr);
+            if (!strlen($resStr)) continue;
             
-            // Максимумалния лимит, който може да се извлече
+            // Максимумалния лимит, който ще се записва при извикване
             // Да не претовари сървъра, когато се пуска за първи път или след дълго време
             if ($i >= self::$phpErrMaxLimit) break;
             
             // Парсираме и записваме грешката
-            $errArr = self::parsePhpErr($errStr);
+            $errArr = self::parsePhpErr($resStr);
             
             $nErrStr = $errArr['type'] . ': ' . $errArr['err'];
             
@@ -422,6 +425,8 @@ class log_System extends core_Manager
         }
         
         if ($cnt > 0) return 'Записани грешки - ' . $cnt;
+        
+        return 'Няма нови грешки';
     }
     
     
@@ -506,7 +511,10 @@ class log_System extends core_Manager
         if (strpos($errStr, '[') === 0) {
             $timeEdnPos = strpos($errStr, '] ');
             $resArr['time'] = substr($errStr, 1, $timeEdnPos-1);
-            $resArr['time'] = dt::verbal2mysql($resArr['time']);
+            $resArr['time'] = strtotime($resArr['time']);
+            if ($resArr['time']) {
+                $resArr['time'] = dt::timestamp2Mysql($resArr['time']);
+            }
         }
         
         $errEndPos = strpos($errStr, ': ');
