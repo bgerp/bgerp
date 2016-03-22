@@ -383,7 +383,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Proformas::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode("&#9660;");
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
     					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
     				}
     			} else {
