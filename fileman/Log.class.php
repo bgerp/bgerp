@@ -120,9 +120,6 @@ class fileman_Log extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
-        // Ако системния потребител, връщаме
-        if ($userId < 1) return FALSE;
-        
         // Ако е подаден запис всмето манипулатор
         if (is_object($fileHnd)) {
             
@@ -135,6 +132,12 @@ class fileman_Log extends core_Manager
             // Вземаме записа
             $fRec = fileman_Files::fetchByFh($fileHnd);
         }
+        
+        // Обновяваме времето на последно използване на данните
+        fileman_Data::updateLastUse($fRec->dataId);
+
+        // Ако системния потребител, връщаме
+        if ($userId < 1) return FALSE;
         
         // Ако няма манипулатор на файла
         if (!$fRec->fileHnd) return FALSE;
