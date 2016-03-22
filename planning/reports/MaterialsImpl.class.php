@@ -383,16 +383,6 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 
         $dataRecs = array();
         if (is_array($this->innerState->recs)) {
-            /*foreach ($this->innerState->recs as $id => $rec) {
-                $dataRecs[$id] = $this->getVerbal($rec);
-                if(!is_null($rec->id)) {
-                    $string = strstr($dataRecs[$id]->id, "&nbsp", TRUE);
-                    $dataRecs[$id]->id = $string;
-                }
-                if(!is_null($rec->quantity)) {
-                    $dataRecs[$id]->quantity = $rec->quantity;
-                }
-            }*/
             
             $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
         }
