@@ -77,21 +77,28 @@ class fileman_Data extends core_Manager {
      * Обновява времето на последно използване
      * 
      * @param integer $id
+     * @param NULL|datetime $lastUse
      * 
-     * @return boolean
+     * @return boolean|NULL
      */
-    public static function updateLastUse($id)
+    public static function updateLastUse($id, $lastUse = NULL)
     {
         if (!$id) return FALSE;
         
         if (!($rec = self::fetch($id))) return FALSE;
         
-        $rec->lastUse = dt::now();
+        $lastUse = is_null($lastUse) ? dt::now() : $lastUse;
         
-        self::save($rec, 'lastUse');
-        
-        return TRUE;
+        if (!$rec->lastUse || ($lastUse > $rec->lastUse)) {
+            
+            $rec->lastUse = $lastUse;
+            
+            self::save($rec, 'lastUse');
+            
+            return TRUE;
+        }
     }
+    
     
     /**
      * Абсорбира данните от указания файл и
