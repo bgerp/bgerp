@@ -37,6 +37,12 @@ class fileman_Data extends core_Manager {
 	/**
 	 * 
 	 */
+	public $canWrite = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
     var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools2';
     
     
@@ -58,13 +64,34 @@ class fileman_Data extends core_Manager {
         // Връзки към файла
         $this->FLD("links", "int", 'caption=Връзки,notNull');
         
-        // 
-        $this->FLD('archived', 'datetime', 'caption=Архивиран ли е?,input=none');
+        $this->FLD('archived', 'datetime(format=smartTime)', 'caption=Архивиран ли е?,input=none');
+        
+        $this->FLD('lastUse', 'datetime(format=smartTime)', 'caption=Последно, input=none');
         
         $this->setDbUnique('fileLen,md5', 'DNA');
         
     }
     
+    
+    /**
+     * Обновява времето на последно използване
+     * 
+     * @param integer $id
+     * 
+     * @return boolean
+     */
+    public static function updateLastUse($id)
+    {
+        if (!$id) return FALSE;
+        
+        if (!($rec = self::fetch($id))) return FALSE;
+        
+        $rec->lastUse = dt::now();
+        
+        self::save($rec, 'lastUse');
+        
+        return TRUE;
+    }
     
     /**
      * Абсорбира данните от указания файл и
