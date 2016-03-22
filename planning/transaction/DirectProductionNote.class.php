@@ -111,7 +111,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$entries[] = $entry;
 			} else {
 				foreach ($dRecs as $dRec){
-					if(empty($rec->inputStoreId)) continue;
+					if(empty($dRec->storeId)) continue;
 				
 					// Влагаме артикула, само ако е складируем, ако не е
 					// се предполага ,че вече е вложен в незавършеното производство
@@ -123,7 +123,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 							
 						$entry = array('debit' => array('61101', array('cat_Products', $convInfo->productId),
 								'quantity' => $convInfo->quantity),
-								'credit' => array('321', array('store_Stores', $rec->inputStoreId),
+								'credit' => array('321', array('store_Stores', $dRec->storeId),
 										array('cat_Products', $dRec->productId),
 										'quantity' => $dRec->quantity),
 								'reason' => 'Влагане на материал в производството');

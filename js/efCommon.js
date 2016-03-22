@@ -2176,6 +2176,10 @@ function keylistActions(el) {
 	 });
 }
 
+
+/**
+ * Скролиране на табовете в мобилен
+ */
 function sumOfChildrenWidth() {
 	if($('body').hasClass('narrow')){
 		if ($('#main-container > div.tab-control > .tab-row .row-holder .tab').length){
@@ -4024,6 +4028,8 @@ function addBugReportInput(form, nameInput, value)
 	    }).appendTo(form);
 	}
 }
+
+
 function removeNarrowScroll() {
 	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
 		$('body').removeClass('narrow-scroll');
@@ -4285,12 +4291,6 @@ function test(){
 	alert();
 }
 
-runOnLoad(makeTooltipFromTitle);
 runOnLoad(maxSelectWidth);
-runOnLoad(smartCenter);
-runOnLoad(sumOfChildrenWidth);
-runOnLoad(editCopiedTextBeforePaste);
-runOnLoad(showTooltip);
-runOnLoad(removeNarrowScroll);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
