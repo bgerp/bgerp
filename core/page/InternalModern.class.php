@@ -176,11 +176,13 @@ class core_page_InternalModern extends core_page_Active
     	}
     	
         // Опаковките и главното съдържание заемат екрана до долу
-    	jquery_Jquery::run($tpl, "slidebars()");
-        jquery_Jquery::run($tpl, "scrollToHash()");
+    	jquery_Jquery::run($tpl, "slidebars();");
+        jquery_Jquery::run($tpl, "scrollToHash();");
      	
     	if(Mode::is('screenMode', 'narrow')){
         	jquery_Jquery::run($tpl, "checkForElementWidthChange();");
+        	jquery_Jquery::run($tpl, "sumOfChildrenWidth();");
+        	jquery_Jquery::run($tpl, "removeNarrowScroll();");
     	}
     	
         // Добавяме кода, за определяне параметрите на браузъра

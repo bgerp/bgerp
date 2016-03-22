@@ -114,7 +114,11 @@ class page_Html extends core_ET {
         static::idleTimerJs($tpl);
         
         jquery_Jquery::run($tpl, 'scrollLongListTable();');
-      
+        jquery_Jquery::run($tpl, 'editCopiedTextBeforePaste();');
+        jquery_Jquery::run($tpl, 'smartCenter();');
+        jquery_Jquery::run($tpl, 'showTooltip();');
+        jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
+              
         return $tpl;
     }
     
