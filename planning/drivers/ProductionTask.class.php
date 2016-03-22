@@ -157,7 +157,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$jobRec = $origin->fetch();
 			if($rec->productId == $jobRec->productId){
 				$toProduce = $jobRec->quantity - $jobRec->quantityProduced;
-				$form->setDefault('plannedQuantity', $toProduce);
+				if($toProduce > 0){
+					$form->setDefault('plannedQuantity', $toProduce);
+				}
 			}
 		}
 	}
