@@ -261,8 +261,6 @@ class log_System extends core_Manager
         $period = core_Cron::getPeriod(self::$notifySysId);
         $period += 59;
         
-        $from = dt::subtractSecs($period);
-        
         // Преобразуваме повтарящите се `warning` в `err`
         $wQuery = $this->getQuery();
         $time = dt::subtractSecs(log_Setup::get('WARNING_TO_ERR_PERIOD') + $period);
@@ -302,6 +300,8 @@ class log_System extends core_Manager
                 }
             }
         }
+        
+        $from = dt::subtractSecs($period);
         
         $query = $this->getQuery();
         $query->where("#createdOn >= '{$from}'");
