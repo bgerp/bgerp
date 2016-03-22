@@ -192,19 +192,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
-	{
-		if($form->isSubmitted()){
-			if(isset($form->rec->inputStoreId)){
-				$form->setWarning('inputStoreId', 'Избраните суровини и материали, ще се вложат директно от склада');
-			}
-		}
-	}
-	
-	
-	/**
 	 * След преобразуване на записа в четим за хора вид
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -213,10 +200,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
 		
-		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
 		if(isset($rec->inputStoreId)){
-			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, TRUE);
 		}
+		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 		
 		if(!empty($rec->batch)){
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
@@ -479,6 +466,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			if(count($details)){
 				foreach ($details as $dRec){
 					$dRec->noteId = $rec->id;
+					if(isset($rec->inputStoreId)){
+						$dRec->storeId = $rec->inputStoreId;
+					}
 					planning_DirectProductNoteDetails::save($dRec);
 				}
 			}
