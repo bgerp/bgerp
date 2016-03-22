@@ -486,7 +486,11 @@ abstract class deals_InvoiceMaster extends core_Master
    {
 	   	$Source = $mvc->getSourceOrigin($rec);
 	   	if(!$Source) return;
-		
+
+	   	$sourceRec = $Source->fetch();
+	    $sourceRec->modifiedOn = dt::now();
+	   	$Source->getInstance()->save($sourceRec, 'modifiedOn');
+	  
 	   	if($rec->_isClone === TRUE) return;
 	   	
 	   	// Само ако записа е след редакция
