@@ -125,7 +125,7 @@ class core_page_InternalModern extends core_page_Active
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}", 'alt' => 'pin'));
         $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
     	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}", 'alt' => 'unpin'));
-    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
+    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 28);
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
