@@ -150,17 +150,17 @@ class type_Richtext extends type_Blob
             $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
             
             // Добавяме функцията за апендване на цитата
-            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}', {$line});});", 'SCRIPTS');
+            jquery_Jquery::run($tpl, "appendQuote('{$attr['id']}', {$line});");
         }
         
-    	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "hideRichtextEditGroups();");
     	
-    	$tpl->append("\n runOnLoad(function(){getEO().saveSelTextInTextarea('{$attr['id']}');});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
     	
-    	$tpl->append("\n runOnLoad(function(){bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'))});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'));");
     	 
     	if(Mode::is('screenMode', 'wide')) {
-    		$tpl->append("\n runOnLoad(function(){setRicheditWidth('{$attr['id']}');});", 'SCRIPTS');
+    		jquery_Jquery::run($tpl, "setRicheditWidth('{$attr['id']}');");
     	}
     	
     	return $tpl;

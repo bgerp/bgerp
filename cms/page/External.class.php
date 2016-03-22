@@ -80,8 +80,8 @@ class cms_page_External extends core_page_Active
         }
     	
         // Скрипт за генериране на min-height, според устройството
-        $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
-              
+        jquery_Jquery::run($this, "setMinHeightExt();");
+        
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('log_Browsers');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');

@@ -1001,20 +1001,20 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 		});
 		
 		$arr = $this->preparePie($dArr, 12);
-		
+
 		$title = '';
 		foreach ($arr as $id => $recSort) {
 		    //$title = str::limitLen($recSort->title, 19);
 		    $title = $recSort->title;
 		    $info["{$title}"] = $recSort->value;
 		}
-	
+
     	$pie = array (
     				'legendTitle' => $this->getReportTitle(),
     				'suffix' => "лв.",
     				'info' => $info,
     	);
-   
+
     	$yFrom = date('Y', strtotime($data->rec->from));
     	$yTo = date('Y', strtotime($data->rec->to));
     	
@@ -1094,7 +1094,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    			$title .= $rec->{"item{$i}"} . "|";
 	    		}
 	    	}
-	
+
 	    	$newArr[$key] =
 	    			(object) array ('title' => substr($title, 0,strlen($title)-1),
 	    							'value' => $rec->value
@@ -1109,10 +1109,22 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	// е по-малко от общия брой елементи
     	// на подадения масив
     	if ($cntData <= $n) {
-    
+   
     		// връщаме направо масива
+    	    foreach($newArr as $id => $rec) {
+
+    	        // Вербалното представяне на перата
+    	        $t = explode("|", $rec->title);
+    	        $titleV = '';
+    	        for ($i=0; $i <= count($t) -1; $i++) {
+    	            $titleV .= acc_Items::getVerbal($t[$i], 'title'). "|";
+    	        }
+    	        $titleV = substr($titleV, 0,strlen($titleV)-1);
+    	    
+    	        $res[] = (object) array ('key' => $k, 'title' => $titleV, 'value' => $rec->value);
+    	    }
     
-    		return $newArr;
+    		return $res;
     
     		//в противен случай
     	} else {
@@ -1147,7 +1159,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		} else {
     			$res[] = (object) array ('key' => $n+1,'title' => "Други", 'value' => $sum);
     		}
-
     	}
 
     	return $res;

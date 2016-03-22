@@ -244,6 +244,26 @@ class blast_EmailSend extends core_Detail
     
     
     /**
+     * Премахва маркирането като изпратени
+     * 
+     * @param array $dataArr
+     */
+    public static function removeMarkAsSent($dataArr)
+    {
+        $dataArr = arr::make($dataArr);
+        
+        // Маркира всички подадени записи, като изпратени
+        foreach ((array)$dataArr as $id => $dummy) {
+            $nRec = new stdClass();
+            $nRec->id = $id;
+            $nRec->state = 'pending';
+            
+            self::save($nRec, NULL, 'UPDATE');
+        }
+    }
+    
+    
+    /**
      * Променя времето на изпращане и имейла
      *
      * @param array $idsArr

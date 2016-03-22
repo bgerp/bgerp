@@ -49,8 +49,8 @@ class cms_page_Contractor extends core_page_Active
         }
     	
         // Скрипт за генериране на min-height, според устройството
-        $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
-
+        jquery_Jquery::run($this, "setMinHeightExt();");
+        
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
 
