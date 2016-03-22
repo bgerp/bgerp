@@ -42,7 +42,7 @@ class location_Type extends type_Varchar {
     {
     	parent::init($params);
     
-    	setIfNot($this->params['regexp'], '/^(-?\d{1,2}\.\d{6}),(-?\d{1,2}\.\d{6})$/');
+    	setIfNot($this->params['regexp'], '/^(-?\d{1,2}\.?\d{0,6}),(-?\d{1,3}\.?\d{0,6})$/');
     }
     
     
@@ -89,7 +89,7 @@ class location_Type extends type_Varchar {
 		$tpl->append("</div>");
 		
 		if (!$stopGeolocation && $this->params['geolocation']) {
-		    $tpl->append("\n runOnLoad(function(){getEO().setPosition('{$attr['id']}');});", 'JQRUN');
+			jquery_Jquery::run($tpl, "getEO().setPosition('{$attr['id']}');");
 		}
 		
         return $tpl;

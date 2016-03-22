@@ -283,8 +283,7 @@ class cat_Products extends embed_Manager {
 		
         $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
-        $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
-        $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание,input=none');
+        $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
@@ -315,6 +314,16 @@ class cat_Products extends embed_Manager {
         $this->setDbIndex('canManifacture');
         
         $this->setDbUnique('code');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$info = strip_tags($mvc->getFieldType('info')->toVerbal($rec->info));
+    	$res .= " " . plg_Search::normalizeText($info);
     }
     
     
@@ -1384,12 +1393,10 @@ class cat_Products extends embed_Manager {
      */
     private static function getDisplayName($rec)
     {
-    	$lg = core_Lg::getCurrent();
+    	// Ако в името имаме '||' го превеждаме
+    	if(strpos($rec->name, '||') !== FALSE) return tr($rec->name);
     	
-    	if($lg != 'bg'){
-    		if(!empty($rec->intName)) return $rec->intName;
-    	}
-    	
+    	// Иначе го връщаме такова, каквото е
     	return $rec->name;
     }
     

@@ -152,7 +152,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
     	
     	$dpAmount /= $rate;
-    	$dpAmount = round($dpAmount);
+    	$dpAmount = core_Math::roundNumber($dpAmount);
     	
     	// Ако държавата не е България не предлагаме начисляване на ДДС
     	if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
@@ -160,7 +160,13 @@ class deals_plg_DpInvoice extends core_Plugin
     		switch($dpOperation){
     			case 'accrued':
     				if(isset($dpAmount)){
-    					$form->setDefault('amountAccrued', $dpAmount);
+    					$delivered = $form->dealInfo->get('deliveryAmount');
+    					if(!empty($delivered)){
+    						$dpOperation = 'none';
+    						$form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
+    					} else {
+    						$form->setDefault('amountAccrued', $dpAmount);
+    					}
     				}
     				break;
     			case 'deducted':
@@ -170,8 +176,9 @@ class deals_plg_DpInvoice extends core_Plugin
     				break;
     			case 'none';
     			if(isset($aggreedDp)){
-    				$aggreedDp = round($aggreedDp / $rate);
-    				$form->setSuggestions('amountAccrued', array('' => '', $aggreedDp => $aggreedDp));
+    				$sAmount = core_Math::roundNumber($aggreedDp / $rate);
+    				$suggestions = array('' => '', "{$sAmount}" => $sAmount);
+    				$form->setSuggestions('amountAccrued', $suggestions);
     			}
     			break;
     		}
@@ -224,7 +231,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    			$downpayment = $aggreedDp;
 	    		}
 	    		
-	    		$downpayment = round($downpayment / $rec->rate);
+	    		$downpayment = core_Math::roundNumber($downpayment / $rec->rate);
 	    		if($rec->dpAmount > $downpayment){
 	    			$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
 	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
@@ -420,12 +427,14 @@ class deals_plg_DpInvoice extends core_Plugin
     	$conf = core_Packs::getConfig('acc');
     	
     	// Ако сумата и ддс-то е в границата на допустимото разминаваме, приравняваме ги на 0
-    	if($total->vat >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->vat <= $conf->ACC_MONEY_TOLERANCE){
-    		$total->vat = 0;
+    	$vatToCompare = $total->vat * $masterRec->rate;
+    	if($vatToCompare >= -1 * $conf->ACC_MONEY_TOLERANCE && $vatToCompare <= $conf->ACC_MONEY_TOLERANCE){
+    		//$total->vat = 0;
     	}
     	
-    	if($total->amount >= -1 * $conf->ACC_MONEY_TOLERANCE && $total->amount <= $conf->ACC_MONEY_TOLERANCE){
-    		$total->amount = 0;
+    	$amountToCompare = $total->amount * $masterRec->rate;
+    	if($amountToCompare >= -1 * $conf->ACC_MONEY_TOLERANCE && $amountToCompare <= $conf->ACC_MONEY_TOLERANCE){
+    		//$total->amount = 0;
     	}
     }
 }

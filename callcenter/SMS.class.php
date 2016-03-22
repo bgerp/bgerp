@@ -544,6 +544,7 @@ class callcenter_SMS extends core_Master
                     
                     // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
+                    $rec->sender = str::utf2ascii($rec->sender);
                 }
                 
                 // Ако е зададен ascii
@@ -551,6 +552,7 @@ class callcenter_SMS extends core_Master
                     
                     // Преобразуваме в ASCII
                     $rec->text = str::utf2ascii($rec->text);
+                    $rec->sender = str::utf2ascii($rec->sender);
                 }
                 
                 // Ако е зададен максималната дължина

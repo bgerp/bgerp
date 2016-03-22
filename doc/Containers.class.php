@@ -399,7 +399,7 @@ class doc_Containers extends core_Manager
         $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
         bgerp_Notifications::clear($url);
         
-        $tpl->appendOnce("\n runOnLoad(function(){flashHashDoc(flashDocInterpolation);});", 'JQRUN');
+        jquery_Jquery::run($tpl, "flashHashDoc(flashDocInterpolation);", TRUE);
         
         if(Mode::is('screenMode', 'narrow')) {
         	jquery_Jquery::run($tpl, "setThreadElemWidth();");
