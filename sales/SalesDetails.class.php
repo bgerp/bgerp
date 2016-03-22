@@ -237,9 +237,10 @@ class sales_SalesDetails extends deals_DealDetail
     	}
     	
     	if(!empty($jobRec)){
-    		$row->quantity = $jobRec->quantity;
-    		$row->quantityFromTasks = planning_TaskActions::getQuantityForJob($jobRec->id, 'product');
-    		$row->quantityProduced = $jobRec->quantityProduced;
+    		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
+    		$row->quantity = $Double->toVerbal($jobRec->quantity);
+    		$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jobRec->id, 'product'));
+    		$row->quantityProduced = $Double->toVerbal($jobRec->quantityProduced);
     		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			$row->dueDate = cls::get('type_Date')->toVerbal($jobRec->dueDate);

@@ -101,7 +101,7 @@ class planning_Jobs extends core_Master
 	/**
 	 * Полета за търсене
 	 */
-	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, storeId, deliveryTermId';
+	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, deliveryTermId';
 	
 	
 	/**
@@ -125,7 +125,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'dueDate, title=Документ, quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy,createdOn,createdBy';
+    public $listFields = 'title=Документ, dueDate, quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy,createdOn,createdBy';
     
     
     /**
@@ -185,7 +185,6 @@ class planning_Jobs extends core_Master
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
-    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
     	
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
@@ -235,13 +234,11 @@ class planning_Jobs extends core_Master
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
-    		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
     		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
     		$form->setField('deliveryPlace', "caption={$caption}->Място,changable");
-    		$form->setField('storeId', "caption={$caption}->Склад");
     	} else {
     		
     		// Ако заданието не е към продажба, скриваме полетата от продажбата
@@ -249,8 +246,6 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
     	}
-    	
-    	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	
     	// При ново задание, ако текущия потребител има права го добавяме като споделен
     	if(haveRole('planning,ceo') && empty($rec->id)){
@@ -437,12 +432,6 @@ class planning_Jobs extends core_Master
     		
     		if($pBomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id){
     			$row->pBomId = cat_Boms::getLink($pBomId, 0);
-    		}
-    		
-    		if($rec->storeId){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    				$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
-    			}
     		}
     		
     		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
@@ -776,7 +765,7 @@ class planning_Jobs extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,dueDate=Падеж,title=Документ,saleId=Към продажба,quantity=Количество,quantityProduced=Произведено,createdBy=Oт||By,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,quantityProduced=Произведено,createdBy=Oт||By,createdOn=На');
     	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);

@@ -1320,6 +1320,8 @@ class fileman_Files extends core_Master
         //Намираме записа на файла
         $fRec = static::fetchByFh($fh);
         
+        fileman::updateLastUse($fRec);
+        
         //Проверяваме дали сме отркили записа
         if(!$fRec) {
             

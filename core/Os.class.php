@@ -379,5 +379,57 @@ class core_Os
         
         return $res;
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown $file
+     * @param number $limit
+     * @param string $trim
+     * 
+     * @return array
+     */
+    public static function getLastLinesFromFile($file, $limit = 0, $trim = TRUE, &$errStr = '')
+    {
+        $linesArr = array();
+        
+        if (!is_file($file)) {
+            
+            $errStr = 'Не е подаден валиден файл';
+            
+            return $linesArr;
+        }
+        
+        $fp = @fopen($file, "r");
+        
+        if (!$fp) {
+            
+            $errStr = 'Не може да се отвори файла';
+            
+            return $linesArr;
+        }
+        
+        $pos = 0;
+        $cnt = 0;
+        $fs = 0;
+        $linesArr = array();
+        while ($fs != -1) {
+            $fs = fseek($fp, $pos, SEEK_END);
+            $t = fgetc($fp);
+            $pos -= 1;
+            if ($t == "\n") {
+                $line = fgets($fp);
+                if (($line !== FALSE) && (!$trim || trim($line))) {
+                    $cnt++;
+                    $linesArr[] = $line;
+                }
+            }
+            
+            if ($cnt >= $limit) break;
+        }
+        @fclose($fp);
+        
+        return $linesArr;
+    }
 }

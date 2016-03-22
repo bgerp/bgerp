@@ -38,7 +38,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
     
     
     /**
@@ -68,13 +74,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num=№,productId=Материал, packagingId, packQuantity=Количества->Вложено, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количества->Вложено, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи,storeId';
     
 
     /**
      * Полета, които ще се скриват ако са празни
      */
-    public $hideListFieldsIfEmpty = 'quantityFromBom,quantityFromTasks';
+    public $hideListFieldsIfEmpty = 'quantityFromBom,quantityFromTasks,storeId';
     
     
     /**
@@ -98,6 +104,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
         $this->setField('quantity', 'caption=Количества->Вложено');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад,input=none,tdClass=small-field nowrap');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,type');
@@ -135,6 +142,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		unset($products[$data->masterRec->productId]);
     	}
     	$form->setOptions('productId', $products);
+    	
+    	if(isset($rec->productId)){
+    		$storable = cat_Products::fetchField($rec->productId, 'canStore');
+    		if($storable == 'yes'){
+    			$form->setField('storeId', 'input');
+    		}
+    	}
     }
     
     
@@ -148,8 +162,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$rec = &$form->rec;
     	
-    	if($rec->productId){
-    	
+    	if(isset($rec->productId)){
+    		
     		if($form->isSubmitted()){
     			
     			// Ако добавяме отпадък, искаме да има себестойност
@@ -176,6 +190,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	{
     		$rec = &$data->recs[$id];
     		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
+    		if(isset($rec->storeId)){
+    			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		}
+    		
     		if(isset($rec->quantityFromBom)){
     			$rec->quantityFromBom = $rec->quantityFromBom / $rec->quantityInPack;
     			$row->quantityFromBom = $mvc->getFieldType('quantityFromBom')->toVerbal($rec->quantityFromBom);
@@ -191,11 +209,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		} else {
     			
     			// Ако ще влагаме от склада, и артикула се влага като друг, показваме хинт с името му
-    			if(isset($data->masterData->rec->inputStoreId)){
+    			if(isset($rec->storeId)){
     				$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
     				if($convInfo->productId != $rec->productId){
     					$convertTitle = cat_Products::getTitleById($convInfo->productId);
-    					$row->productId = ht::createHint($row->productId, "Артикулът се влага като: {$convertTitle}");
+    					$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
     				}
     			}
     		}
@@ -223,14 +241,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			
     			// Разделяме записите според това дали са вложими или не
     			if($rec->type == 'input'){
-    				$row->num = $Int->toVerbal($countInputed);
+    				$num = $Int->toVerbal($countInputed);
     				$data->inputArr[$id] = $row;
     				$countInputed++;
     			} else {
-    				$row->num = $Int->toVerbal($countPoped);
+    				$num = $Int->toVerbal($countPoped);
     				$data->popArr[$id] = $row;
     				$countPoped++;
     			}
+    			
+    			$row->tools->append($num, 'TOOLS');
     		}
     	}
     }
@@ -251,8 +271,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Рендираме таблицата с вложените материали
-    	$misc = ($data->masterData->rec->inputStoreId) ? "|от склад|*: {$data->masterData->row->inputStoreId}" : "за изписване от незавършеното производство";
-    	$data->listFields['productId'] = 'Вложени артикули|* ' . "<small style='font-weight:normal'>( {$misc} )</small>";
+    	$data->listFields['productId'] = 'Вложени артикули|* ';
     	
     	$fieldset = clone $this;
     	$fieldset->FNC('num', 'int');

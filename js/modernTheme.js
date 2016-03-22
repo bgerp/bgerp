@@ -73,7 +73,6 @@ function setMaxWidth() {
 			$('#packWrapper, .listBlock').width(contentWidth);
 			$('.document').width(contentWidth-140);
 			$('.document').css('min-width', '40em');
-			$('.document .scrolling-holder').css('max-width', contentWidth-140);
 			$('.document .scrolling-holder').addClass('overflow-scroll');
 		}
 	}

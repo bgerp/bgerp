@@ -486,7 +486,10 @@ abstract class deals_InvoiceMaster extends core_Master
    {
 	   	$Source = $mvc->getSourceOrigin($rec);
 	   	if(!$Source) return;
-		
+
+	   	// Инвалидираме кеша на документа
+	   	doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
+	  
 	   	if($rec->_isClone === TRUE) return;
 	   	
 	   	// Само ако записа е след редакция
