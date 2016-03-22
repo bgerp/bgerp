@@ -133,35 +133,6 @@ class log_System extends core_Manager
         
         expect(is_string($className));
         
-        // Ако има предупреждения, които се повтарят за определн период от време, да стават на грешки
-        if ($type == 'warning') {
-            
-            $query = self::getQuery();
-            $time = dt::subtractSecs(log_Setup::get('WARNING_TO_ERR_PERIOD'));
-            $query->where("#type = 'warning'");
-            $query->where("#createdOn >= '{$time}'");
-            $query->where(array("#className = '[#1#]'", $className));
-            $query->where(array("#detail = '[#1#]'", $action));
-            $query->show('id');
-            
-            // Ако сме достигнали лимита за предупреждения, тогава трябва да стане грешка
-            if ($query->count() >= log_Setup::get('WARNING_TO_ERR_CNT')) {
-                
-                $queryErr = self::getQuery();
-                $queryErr->where("#type = 'err'");
-                $queryErr->where("#createdOn >= '{$time}'");
-                $queryErr->where(array("#className = '[#1#]'", $className));
-                $queryErr->where(array("#detail = '[#1#]'", $action));
-                $queryErr->show('id');
-                $queryErr->limit(1);
-                
-                // Ако вече е добавен грешка, да не се добавя пак
-                if (!$queryErr->count()) {
-                    $type = 'err';
-                }
-            }
-        }
-        
         $rec = new stdClass();
         $rec->className = $className;
         $rec->objectId = $objectId;
@@ -291,6 +262,46 @@ class log_System extends core_Manager
         $period += 59;
         
         $from = dt::subtractSecs($period);
+        
+        // Преобразуваме повтарящите се `warning` в `err`
+        $wQuery = $this->getQuery();
+        $time = dt::subtractSecs(log_Setup::get('WARNING_TO_ERR_PERIOD') + $period);
+        $wQuery->where("#createdOn >= '{$time}'");
+        $wQuery->where("#type = 'warning'");
+        $wQuery->orWhere("#type = 'err'");
+        $wQuery->orderBy('type', 'ASC');
+        $wQuery->orderBy('createdOn', 'DESC');
+        
+        $errArr = array();
+        $wArr = array();
+        while ($wRec = $wQuery->fetch()) {
+            $dHash = md5($wRec->detail);
+            
+            // Ако вече warning е променен на err - да не се променят другите подобни
+            if (isset($errArr[$dHash])) continue;
+            
+            if ($wRec->type == 'err') {
+                $errArr[$dHash] = TRUE;
+                
+                continue;
+            }
+            
+            if (!isset($wArr[$dHash])) {
+                $wArr[$dHash] = array();
+                $wArr[$dHash]['cnt'] = 1;
+                $wArr[$dHash]['rec'] = $wRec;
+            } else {
+                $wArr[$dHash]['cnt']++;
+                
+                // Ако сме достигнали лимита за предупреждения, тогава трябва да стане грешка
+                if ($wArr[$dHash]['cnt'] > log_Setup::get('WARNING_TO_ERR_CNT')) {
+                    $errArr[$dHash] = TRUE;
+                    $nRec = $wArr[$dHash]['rec'];
+                    $nRec->type = 'err';
+                    $this->save($nRec, 'type');
+                }
+            }
+        }
         
         $query = $this->getQuery();
         $query->where("#createdOn >= '{$from}'");
