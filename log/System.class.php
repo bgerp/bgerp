@@ -336,13 +336,13 @@ class log_System extends core_Manager
         // Пътя до файла с грешки
         $errLogPath = get_cfg_var("error_log");
         
-        if (!$errLogPath) return;
+        if (!$errLogPath) return "Не е дефиниран 'error_log'";
         
-        if (!is_file($errLogPath)) return;
+        if (!is_file($errLogPath)) return "Няма създаден файл";
         
         $content = file_get_contents($errLogPath);
         
-        if (!$content) return;
+        if (!$content) return 'Няма съдържание';
         
         $contentArr = explode("\n", $content);
         $contentArr = array_reverse($contentArr);
@@ -404,9 +404,13 @@ class log_System extends core_Manager
         
         // Първо да се записват най-старите записи, както са във файла
         $arrSave = array_reverse($arrSave);
+        
+        $cnt = 0;
         foreach ($arrSave as $rSave) {
-            self::save($rSave);
+            if (self::save($rSave)) $cnt++;
         }
+        
+        if ($cnt > 0) return 'Записани грешки - ' . $cnt;
     }
     
     
