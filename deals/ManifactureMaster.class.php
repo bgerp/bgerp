@@ -61,7 +61,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
 	        $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 	    }
 		
