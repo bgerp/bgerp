@@ -59,14 +59,18 @@ class avatar_Plugin extends core_Plugin
             $width = Mode::is('screenMode', 'narrow') ? 60 : 100;
         }
         
-        $url = self::getUrl($userId, $email, $width);
-        $urlX2 = self::getUrl($userId, $email, $width * 2);
-
         $attr = array();
         
         $attr['width'] = $width;
+        $url = self::getUrl($userId, $email, $width);
         $attr['src']   = $url;
-        $attr['srcset']   = "{$urlX2} x2";
+        
+        // За случаите, когато имаме дисплей с по-висока плътност
+        if(Mode::get('devicePixelRatio') > 1.5) {
+            $urlX2 = self::getUrl($userId, $email, $width * 2);
+            $attr['srcset']   = "{$urlX2} x2";
+        }
+
         $attr['alt']   = '';
         unset($attr['baseName']);
         

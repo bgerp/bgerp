@@ -1161,6 +1161,9 @@ div.acc-detail {
     			background-color: #d0d0d0;
     		}
     	}
+    	table.listTable th {
+    	   vertical-align: middle !important;
+    	}
     }
 	.legend {
 		position: absolute;
