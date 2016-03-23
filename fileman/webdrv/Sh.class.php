@@ -4,10 +4,10 @@
 /**
  * Драйвер за работа с .sh файлове.
  * 
- * @category  vendors
+ * @category  bgerp
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
