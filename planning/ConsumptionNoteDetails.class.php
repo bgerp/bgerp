@@ -131,7 +131,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     	
     		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
     		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
     		}
     	}
     }

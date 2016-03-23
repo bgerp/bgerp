@@ -43,32 +43,32 @@
                 <table>
                 	<tr>
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
-                        <td style='text-align: left'>[#dueDate#]</td>
+                        <td>[#dueDate#]</td>
                     </tr>
 		          <!--ET_BEGIN storeId-->
 	               <tr>
 	                   <td class='quiet' style='text-align: left'>|Склад|*:</td>
-	                   <td style='text-align: left'>[#storeId#]</td>
+	                   <td>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
 	                <!--ET_BEGIN tolerance-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Толеранс|*:</td>
-                        <td style='text-align: right'>[#tolerance#]</td>
+                        <td>[#tolerance#]</td>
                     </tr>
                     <!--ET_END tolerance-->
                     
                     <!--ET_BEGIN brutoWeight-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Бруто|*:</td>
-                        <td style='text-align: right'>[#brutoWeight#]</td>
+                        <td>[#brutoWeight#]</td>
                     </tr>
                     <!--ET_END brutoWeight-->
                     
                     <!--ET_BEGIN weight-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Ед. тегло|*:</td>
-                        <td style='text-align: right'>[#weight#]</td>
+                        <td>[#weight#]</td>
                     </tr>
                     <!--ET_END weight-->
 	               <!--ET_BEGIN RECEIPTS-->
@@ -76,13 +76,13 @@
                     <!--ET_BEGIN sBomId-->
                     <tr>
                     	<td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска рецепта|*:</td>
-                        <td style='text-align: left'>[#sBomId#]</td>
+                        <td>[#sBomId#]</td>
                     </tr>
                     <!--ET_END sBomId-->
                     <!--ET_BEGIN pBomId-->
                     <tr>
                         <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
-                        <td style='text-align: left'>[#pBomId#]</td>
+                        <td>[#pBomId#]</td>
                     </tr>
                     <!--ET_END pBomId-->
                     <!--ET_END RECEIPTS-->
