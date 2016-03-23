@@ -51,16 +51,18 @@ class batch_movements_ProductionDocument
 		
 		if($this->class instanceof planning_DirectProductionNote){
 			$dQuery->where("#type = 'input'");
-			$storeId = $rec->inputStoreId;
 		}
 		
-		$dQuery->show('productId,batch,quantity');
+		$dQuery->show('productId,batch,quantity,storeId');
 		$operation = ($this->class instanceof planning_ProductionNotes) ? 'in' : 'out';
 		
 		while($dRec = $dQuery->fetch()){
 			$batches = batch_Defs::getBatchArray($dRec->productId, $dRec->batch);
 			$quantity = (count($batches) == 1) ? $dRec->quantity : $dRec->quantity / count($batches);
-				
+			if($this->class instanceof planning_DirectProductionNote){
+				$storeId = $dRec->storeId;
+			}
+			
 			// Ако няма склад продължаваме
 			if(!$storeId) continue;
 			
