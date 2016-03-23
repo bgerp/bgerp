@@ -209,6 +209,18 @@ class thumb_Img
                     expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
         }
+ 
+        if($this->boxWidth && $this->boxHeight) {
+            
+            $this->boxWidth *= 2;
+            $this->boxHeight *= 2;
+
+            $this->copy = clone($this);
+            
+            $this->boxWidth /= 2;
+            $this->boxHeight /= 2;
+
+        }
     }
 
 
@@ -597,6 +609,12 @@ class thumb_Img
         $this->getSize();  
         setIfNot($attr['width'], $this->scaledWidth);
         setIfNot($attr['height'], $this->scaledHeight);
+     
+        if(Mode::get('devicePixelRatio') > 1.5 && $this->copy) { 
+            // За случаите, когато имаме дисплей с по-висока плътност
+            $urlX2 = $this->copy->getUrl();
+            $attr['srcset']   = "{$urlX2} x2";
+        }
         
         setIfNot($attr['alt'], $this->verbalName);
         

@@ -61,6 +61,32 @@ class avatar_Plugin extends core_Plugin
         
         $attr = array();
         
+        $attr['width'] = $width;
+        $url = self::getUrl($userId, $email, $width);
+        $attr['src']   = $url;
+        
+        // За случаите, когато имаме дисплей с по-висока плътност
+        if(Mode::get('devicePixelRatio') > 1.5) {
+            $urlX2 = self::getUrl($userId, $email, $width * 2);
+            $attr['srcset']   = "{$urlX2} x2";
+        }
+
+        $attr['alt']   = '';
+        unset($attr['baseName']);
+        
+        unset($attr['isAbsolute']);
+        
+        $img = ht::createElement('img', $attr);
+        
+        return $img;
+    }
+
+
+    /**
+     * Връща URL към аватара с посочените параметри
+     */
+    public static function  getUrl($userId, $email = NULL, $width = NULL)
+    {
         if($userId < 0) {
             // Ако става дума за системния потребител
             $imgUrl = sbf('img/100/system.png', '');
@@ -83,18 +109,10 @@ class avatar_Plugin extends core_Plugin
         if(!$imgUrl) {
             $imgUrl = sbf('img/100/noavatar.png', '');
         }
-        
-        $attr['width'] = $width;
-        $attr['src']   = $imgUrl;
-        $attr['alt']   = '';
-        unset($attr['baseName']);
-        
-        unset($attr['isAbsolute']);
-        
-        $img = ht::createElement('img', $attr);
-        
-        return $img;
+
+        return $imgUrl;
     }
+
     
     
     /**
