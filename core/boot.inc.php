@@ -115,7 +115,7 @@ try {
             redirect(array('Index', 'SetupKey' => setupKey()));
         }
 
-        $e->repairDublicatePrimaryKey($link);
+        $e->repairDuplicatePrimaryKey($link);
 
         // Дали да поставим връзка за обновяване
         $update = NULL;

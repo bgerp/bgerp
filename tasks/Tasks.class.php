@@ -799,7 +799,7 @@ class tasks_Tasks extends embed_Manager
     	// Ако няма намерени записи, не се рендира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = 'progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
     	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	

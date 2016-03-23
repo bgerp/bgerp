@@ -300,7 +300,7 @@ class fileman_Get extends core_Manager {
         if (!empty($err)) {
             $add = new ET("<div style='border:dotted 1px red; background-color:#ffc;'><ul>[#ERR#]</ul></div>");
         	
-            foreach($err as $e) {
+            foreach((array)$err as $e) {
                 $add->append("<li>" . tr($e), 'ERR');
                 fileman_Files::logWarning('Грешка при добавяне на файла от URL: ' . $e);
             }
