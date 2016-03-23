@@ -151,6 +151,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
+		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
 		
 		$this->setDbIndex('productId');
 	}
@@ -166,8 +167,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		$form = &$data->form;
 		
-		if(empty($form->rec->id)){
-			$form->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
+		if(isset($form->rec->id)){
+			$form->setField('inputStoreId', 'input=none');
 		}
 		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();

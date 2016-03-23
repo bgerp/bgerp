@@ -1,4 +1,36 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div class="scrolling-holder">
+    <div class="sale-summary">
+       <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+          <tr>
+             <td class = 'sum-th'>
+                 |Планирано|*
+             </td>
+             <td class = 'sum-th'>
+                 |Остатък|*
+             </td>
+             <td class = 'sum-th'>
+                 |Произведено|*
+             </td>
+            
+             <td class = 'sum-th'>
+                 |Заскладено|*
+             </td>
+             <td class = 'sum-th'>
+                 |Незаскладено|*
+             </td>
+          </tr>
+          <tr>
+              <td class = 'nowrap'>[#quantity#]</td>
+              <td class = 'nowrap'>[#quantityToProduce#]</td>
+              <td class = 'nowrap'>[#quantityFromTasks#] </td>
+              <td class = 'nowrap'>[#quantityProduced#]</td>
+              <td class = 'nowrap'>[#quantityNotStored#]</td>
+           </tr>
+       </table>
+    </div>
+</div>
+
 <div class='scrolling-holder'>
     <table class='jobTable' style='width: 100%'>
         <tr>
@@ -13,55 +45,13 @@
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
                         <td style='text-align: left'>[#dueDate#]</td>
                     </tr>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Планирано|*:</td>
-                        <td style='text-align: left'>[#quantity#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Остатък|*:</td>
-                        <td style='text-align: left'>[#quantityToProduce#]</td>
-                    </tr>
 		          <!--ET_BEGIN storeId-->
 	               <tr>
 	                   <td class='quiet' style='text-align: left'>|Склад|*:</td>
 	                   <td style='text-align: left'>[#storeId#]</td>
 	               </tr>
 	               <!--ET_END storeId-->
-	               <!--ET_BEGIN RECEIPTS-->
-	               [#RECEIPTS#]
-	               <tr>
-                    	<td class='quiet' colspan='2'>|Рецепти|*:</td>
-                   </tr>
-                    <!--ET_BEGIN sBomId-->
-                    <tr>
-                    	<td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска|*:</td>
-                        <td style='text-align: left'>[#sBomId#]</td>
-                    </tr>
-                    <!--ET_END sBomId-->
-                    <!--ET_BEGIN pBomId-->
-                    <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна|*:</td>
-                        <td style='text-align: left'>[#pBomId#]</td>
-                    </tr>
-                    <!--ET_END pBomId-->
-                    <!--ET_END RECEIPTS-->
-                </table>
-	       </td>
-	       <td>
-	           <table>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Произведено|*:</td>
-                        <td style='text-align: right'>[#quantityFromTasks#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Заскладено|*:</td>
-                        <td style='text-align: right'>[#quantityProduced#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet' style='text-align: left'>|Незаскладено|*:</td>
-                        <td style='text-align: right'>[#quantityNotStored#]</td>
-                    </tr>
-                    <!--ET_BEGIN tolerance-->
+	                <!--ET_BEGIN tolerance-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Толеранс|*:</td>
                         <td style='text-align: right'>[#tolerance#]</td>
@@ -81,6 +71,21 @@
                         <td style='text-align: right'>[#weight#]</td>
                     </tr>
                     <!--ET_END weight-->
+	               <!--ET_BEGIN RECEIPTS-->
+	               [#RECEIPTS#]
+                    <!--ET_BEGIN sBomId-->
+                    <tr>
+                    	<td class='quiet' style='text-align: left;white-space: nowrap;'>|Търговска рецепта|*:</td>
+                        <td style='text-align: left'>[#sBomId#]</td>
+                    </tr>
+                    <!--ET_END sBomId-->
+                    <!--ET_BEGIN pBomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Работна рецепта|*:</td>
+                        <td style='text-align: left'>[#pBomId#]</td>
+                    </tr>
+                    <!--ET_END pBomId-->
+                    <!--ET_END RECEIPTS-->
                 </table>
 	       </td>
 	       <td style='padding: 0'>
@@ -96,24 +101,24 @@
 	       </td>
 	  </tr>
 	  <tr>
-           <th colspan="3" class='job-head'>
+           <th colspan="2" class='job-head'>
            |Описание|*
            </th>
       </tr>
       <tr>
-           <td colspan="3">
+           <td colspan="2">
            [#origin#]
            </td>
       </tr>
       
       <!--ET_BEGIN notes-->
       <tr>
-           <th colspan="3" class='job-head'>
+           <th colspan="2" class='job-head'>
            |Забележка|*
            </th>
       </tr>
       <tr>
-           <td colspan="3">
+           <td colspan="2">
            [#notes#]
            </td>
       </tr>
@@ -122,12 +127,12 @@
       <!--ET_BEGIN SALE_INFO-->
       [#SALE_INFO#]
 	  <tr>
-	  	   <th colspan="3" class='job-head'>
+	  	   <th colspan="2" class='job-head'>
 	  	   |Данни от договора|*
 	  	   </th>
 	 </tr>
 	 <tr>
-	    <td colspan="3">
+	    <td colspan="2">
 		     <table>
 			    <!--ET_BEGIN saleId-->
 			    <tr>
