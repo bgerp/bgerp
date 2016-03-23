@@ -397,7 +397,7 @@ class planning_Jobs extends core_Master
     				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     					core_RowToolbar::createIfNotExists($row->_rowTools);
     					$row->_rowTools->addLink('Протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
-    					$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство');
+    					$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', FALSE);
     				}
     			}
     		}
@@ -407,12 +407,6 @@ class planning_Jobs extends core_Master
     	 
     	if($rec->saleId){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
-    	}
-    	
-    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
-    		if(empty($rec->{$fld})){
-    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
-    		}
     	}
     	
     	if($fields['-single']){
@@ -459,6 +453,12 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
+    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
+    		if(empty($rec->{$fld})){
+    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
+    		}
+    	}
+    		
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if(isset($rec->dueDate)){
     			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));

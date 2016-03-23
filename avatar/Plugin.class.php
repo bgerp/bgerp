@@ -68,7 +68,7 @@ class avatar_Plugin extends core_Plugin
         // За случаите, когато имаме дисплей с по-висока плътност
         if(Mode::get('devicePixelRatio') > 1.5) {
             $urlX2 = self::getUrl($userId, $email, $width * 2);
-            $attr['srcset']   = "{$urlX2} x2";
+            $attr['srcset']   = "{$urlX2} 2x";
         }
 
         $attr['alt']   = '';
@@ -96,7 +96,6 @@ class avatar_Plugin extends core_Plugin
             
             if($userRec->avatar) {
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
-                $attr['baseName'] = $key;
                 $imgInst = new thumb_Img(array($userRec->avatar, $width, round($width * 1.5), 'fileman', 'isAbsolute' => FALSE, 'mode' => 'small-no-change', 'verbalName' => $key));
                 $imgUrl = $imgInst->getUrl('forced');
             } else {

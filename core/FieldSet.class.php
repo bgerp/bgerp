@@ -111,6 +111,8 @@ class core_FieldSet extends core_BaseClass
         
         $fieldType = $mvc->fields[$params['externalName']]->type;
         
+        expect(isset($fieldType));
+        
         $this->setField($name, arr::combine(array(
                     'kind' => 'EXT',
                     'externalClass' => $externalClass,

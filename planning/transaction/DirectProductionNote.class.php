@@ -118,11 +118,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					if($dRec->type == 'input'){
 						$productInfo = cat_Products::getProductInfo($dRec->productId);
 						if(!isset($productInfo->meta['canStore'])) continue;
-							
-						$convInfo = planning_ObjectResources::getConvertedInfo($dRec->productId, $dRec->quantity);
-							
-						$entry = array('debit' => array('61101', array('cat_Products', $convInfo->productId),
-								'quantity' => $convInfo->quantity),
+						
+						$entry = array('debit' => array('61101', array('cat_Products', $dRec->productId),
+								'quantity' => $dRec->quantity),
 								'credit' => array('321', array('store_Stores', $dRec->storeId),
 										array('cat_Products', $dRec->productId),
 										'quantity' => $dRec->quantity),
@@ -149,7 +147,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$costAmount += $pAmount;
 				
 					$quantity = ($index == 0) ? $rec->quantity : 0;
-					$convInfo = planning_ObjectResources::getConvertedInfo($dRec1->productId, $dRec1->quantity);
 				
 					// Ако е материал го изписваме към произведения продукт
 					if($dRec1->type == 'input'){
@@ -159,12 +156,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 								array('cat_Products', $rec->productId),
 								'quantity' => $quantity);
 				
-						$entry['credit'] = array('61101', array('cat_Products', $convInfo->productId),
-								'quantity' => $convInfo->quantity);
+						$entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
+								'quantity' => $dRec1->quantity);
 						$entry['reason'] = $reason;
 					} else {
-						$entry['debit'] = array('61101', array('cat_Products', $convInfo->productId),
-								'quantity' => $convInfo->quantity);
+						$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId),
+								'quantity' => $dRec1->quantity);
 				
 						$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
 								array('cat_Products', $rec->productId),

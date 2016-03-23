@@ -104,7 +104,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
         $this->setField('quantity', 'caption=Количества->Вложено');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад,input=none,tdClass=small-field nowrap');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,type');
@@ -206,16 +206,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		
     		if($rec->type == 'pop'){
     			$row->packQuantity .= " {$row->packagingId}";
-    		} else {
-    			
-    			// Ако ще влагаме от склада, и артикула се влага като друг, показваме хинт с името му
-    			if(isset($rec->storeId)){
-    				$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
-    				if($convInfo->productId != $rec->productId){
-    					$convertTitle = cat_Products::getTitleById($convInfo->productId);
-    					$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
-    				}
-    			}
     		}
     	}
     }
@@ -322,16 +312,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	if(!count($data->recs)) return;
     	$storeId = $data->masterData->rec->inputStoreId;
-    	if(!isset($storeId)) return;
     	
-    	foreach ($data->rows as $id => $row){
+    	foreach ($data->rows as $id => &$row){
     		$rec = $data->recs[$id];
-    		if($rec->type != 'input') continue;
-    		
-    		$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
-   
-    		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
-    			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    		if(empty($rec->storeId)){
+    			$row->storeId = tr('Незавършено производство');
+    		} else {
+    			if($rec->type != 'input') continue;
+    			
+    			$warning = deals_Helper::getQuantityHint($rec->productId, $rec->storeId, $rec->quantity);
+    			if(strlen($warning) && $data->masterData->rec->state == 'draft'){
+    				$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
+    			}
     		}
     	}
     }
