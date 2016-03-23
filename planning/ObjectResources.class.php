@@ -68,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'likeProductId=Влагане като,conversionRate=Отношение';
+    public $listFields = 'likeProductId=Влагане като';
     
     
     /**
@@ -93,7 +93,7 @@ class planning_ObjectResources extends core_Manager
     	
     	$this->FLD('resourceId', 'int', 'caption=Ресурс,input=none');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
-    	$this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение');
+    	$this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение,input=none');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('objectId');
@@ -366,6 +366,7 @@ class planning_ObjectResources extends core_Manager
      * @param sdtClass
      * 			o productId - ид на артикула, в който ще се вложи (ако няма такъв се влага в себе си)
      * 			o quantity  - количеството
+     * @TODO да се махне
      */
     public static function getConvertedInfo($productId, $quantity)
     {
