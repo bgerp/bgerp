@@ -512,36 +512,78 @@ class i18n_Charset extends core_MVC {
      */
     static function rateScript($text, $scripts, &$debug)
     {
-        
         $scripts = arr::make($scripts, TRUE);
-
-        if(!($len = mb_strlen($text))) return FALSE;
-
-        if($len > 1000) {
-            $maxI = floor(($len / 400)/2) + 1;
-            for($i = 0; $i < $maxI; $i++) {
-                $start = $i * 400;
-                $t1 = mb_substr($text, $start, 400);
-                if(!self::is7bit($t1)){
-                    $firstText = $t1;
-                    break;
+        
+        if(!($len = strlen($text))) return FALSE;
+        
+        // Ако стринга е дълъг, няма да се прави обработка на целия
+        // Вземаме 3 части от стринга, като по-приоритетни са тези, които имат други символи освен 7 битови
+        if ($len > 2500) {
+            
+            // По-колко символа ще се взема от началото, края и средата на стринга
+            $strMaxLen = 400;
+            $not7BitStr = 'not7bit';
+            
+            $partLen = ceil(($len) / 3);
+            $partLenE = 2 * $partLen;
+            
+            $bitStrArr = array();
+            $strArr = array();
+            $strCntArr = array();
+            
+            $p = 0;
+            while('' != ($char = self::nextChar($text, $p))) {
+                
+                // В зависимост от положениети на маркера, определяме ключа
+                if ($p <= $partLen) {
+                    $k = 'begin';
+                } elseif ($p >= $partLenE) {
+                    $k = 'end';
+                } else {
+                    $k = 'mid';
                 }
-                if (!$firstText) $firstText = $t1;
+                
+                $bitStr = $bitStrArr[$k];
+                
+                // Докато не намерим символ различен от 7 бита, правим проверка
+                if ($bitStr != $not7BitStr && !self::is7bit($char)) {
+                    $bitStrArr[$k] = $bitStr = $not7BitStr;
+                }
+                
+                if ($strCntArr[$k][$bitStr] <= $strMaxLen) {
+                    $strArr[$bitStr][$k] .= $char;
+                    $strCntArr[$k][$bitStr]++;
+                } else {
+                    
+                    // Ако сме намерили стринга, няма нужда да ходим до края
+                    if (($k == 'end') && ($bitStr == $not7BitStr)) break;
+                }
             }
             
-            for($i = 1; $i < $maxI; $i++) {
-                $start = $len - ($i * 400);
-                $t = mb_substr($text, $start, 400);
-                if(!self::is7bit($t)){
-                    $lastText = $t;
-                    break;
+            // Опитваме се да генерираме нов стринг от откритите
+            $text = '';
+            $nLen = 0;
+            foreach ($strCntArr as $key => $vArr) {
+                $text .= $text ? ' ' : '';
+                
+                // Ако не е 7 битов стринг, искаме да е над определена дължина (може да е намерен в края)
+                
+                if ($vArr[$not7BitStr] > floor($strMaxLen / 2.5)) {
+                    $text .= $strArr[$not7BitStr][$key];
+                    $nLen += $vArr[$not7BitStr];
+                } else {
+                    
+                    $text .= $strArr[''][$key];
+                    $nLen += $vArr[''];
+                    
+                    // Ако има много малко текст (под 160 символа), който не е 7 битово, да се конкатинира с 7 битовия
+                    if ($strArr[$not7BitStr][$key]) {
+                        $text .= ' ' . $strArr[$not7BitStr][$key];
+                        $nLen += $vArr[$not7BitStr];
+                    }
                 }
-                if (!$lastText) $lastText = $t;
             }
-            
-            $text = $firstText . ' ' . $lastText;
-            
-            $len  = mb_strlen($text);
+            $len = $nLen;
         }
         
         $sL  = $SL = 'sign';
@@ -812,7 +854,7 @@ class i18n_Charset extends core_MVC {
         }
         
         $res = $total/$len;
-
+        
         return $res;
     }
 
