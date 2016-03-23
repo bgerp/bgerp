@@ -428,7 +428,10 @@ class core_Os
             
             if ($cnt >= $limit) break;
         }
-        @fclose($fp);
+        
+        if (!@fclose($fp)) {
+            wp($fp);
+        }
         
         return $linesArr;
     }
