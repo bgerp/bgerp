@@ -502,24 +502,31 @@ class sales_Invoices extends deals_InvoiceMaster
     			}
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
-    		
-    		$makeHint = FALSE;
-    		if(empty($rec->paymentType)){
-    			$rec->paymentType = $mvc->getAutoPaymentType($rec);
+    	}
+    	
+    	$makeHint = FALSE;
+    	if(empty($rec->paymentType)){
+    		if($rec->paymentType = $mvc->getAutoPaymentType($rec)){
     			$makeHint = TRUE;
     		}
-    		
-    		if(!empty($rec->paymentType)){
-    			$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
-    			
-    			core_Lg::push($rec->tplLang);
-    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
-    			core_Lg::pop();
-    			
-    			if($makeHint === TRUE){
-    				$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
-    			}
-    		}
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		core_Lg::push($rec->tplLang);
+    	}
+    	
+    	$row->type = $mvc->getFieldType('type')->toVerbal($rec->type);
+    	if(!empty($rec->paymentType)){
+    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
+    		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		core_Lg::pop();
+    	}
+    	
+    	if($makeHint === TRUE){
+    		$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
     	}
     }
 
