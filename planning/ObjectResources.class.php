@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,12 +17,6 @@ class planning_ObjectResources extends core_Manager
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_ObjectResources';
-	
-	
     /**
      * Заглавие
      */
@@ -32,7 +26,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
     
     
     /**
@@ -68,7 +62,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'likeProductId=Влагане като';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като';
     
     
     /**
@@ -262,16 +256,6 @@ class planning_ObjectResources extends core_Manager
     			$res = 'no_one';
     		}
     	}
-    	
-    	if($action == 'delete' && isset($rec)){
-    		
-    		// Ако обекта е използван вече в протокол за влагане, да не може да се изтрива докато протокола е активен
-    		$consumptionQuery = planning_ConsumptionNoteDetails::getQuery();
-    		$consumptionQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
-    		if($consumptionQuery->fetch("#productId = {$rec->objectId} AND #state = 'active'")){
-    			$res = 'no_one';
-    		}
-    	}
     }
     
     
@@ -286,10 +270,6 @@ class planning_ObjectResources extends core_Manager
     {
     	if(isset($rec->likeProductId)){
     		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
-    	}
-    	
-    	if(!$rec->conversionRate){
-    		$row->conversionRate = 1;
     	}
     }
     
@@ -355,42 +335,6 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	return $selfValue;
-    }
-    
-    
-    /**
-     * Връща информацията даден артикул като
-     * кой може да се вложи и в какво количество
-     * 
-     * @param int $productId - ид на артикул
-     * @param sdtClass
-     * 			o productId - ид на артикула, в който ще се вложи (ако няма такъв се влага в себе си)
-     * 			o quantity  - количеството
-     * @TODO да се махне
-     */
-    public static function getConvertedInfo($productId, $quantity)
-    {
-    	$convertProductId = $productId;
-    	$convertQuantity = $quantity;
-    	
-    	if($info = planning_ObjectResources::fetch("#objectId = {$productId}")){
-    		$convertProductId = $info->likeProductId;
-    		if(!$convertProductId) {
-    			$convertProductId = $productId;
-    		}
-    		
-    		if(empty($info->conversionRate)){
-    			$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
-    			$lProdMeasureId = cat_Products::getProductInfo($info->likeProductId)->productRec->measureId;
-    			if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
-    				$convertQuantity = $convAmount;
-    			}
-    		} else {
-    			$convertQuantity = $info->conversionRate * $convertQuantity;
-    		}
-    	}
-    	
-    	return (object)array('productId' => $convertProductId, 'quantity' => $convertQuantity);
     }
     
     
