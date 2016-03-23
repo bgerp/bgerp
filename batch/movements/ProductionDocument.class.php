@@ -49,11 +49,13 @@ class batch_movements_ProductionDocument
     	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
 		$dQuery->where("#batch IS NOT NULL OR #batch != ''");
 		
+		$show = 'productId,batch,quantity';
 		if($this->class instanceof planning_DirectProductionNote){
 			$dQuery->where("#type = 'input'");
+			$show = 'productId,batch,quantity,storeId';
 		}
 		
-		$dQuery->show('productId,batch,quantity,storeId');
+		$dQuery->show($show);
 		$operation = ($this->class instanceof planning_ProductionNotes) ? 'in' : 'out';
 		
 		while($dRec = $dQuery->fetch()){

@@ -206,16 +206,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		
     		if($rec->type == 'pop'){
     			$row->packQuantity .= " {$row->packagingId}";
-    		} else {
-    			
-    			// Ако ще влагаме от склада, и артикула се влага като друг, показваме хинт с името му
-    			if(isset($rec->storeId)){
-    				$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
-    				if($convInfo->productId != $rec->productId){
-    					$convertTitle = cat_Products::getTitleById($convInfo->productId);
-    					$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
-    				}
-    			}
     		}
     	}
     }

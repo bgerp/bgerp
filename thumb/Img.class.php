@@ -613,7 +613,7 @@ class thumb_Img
         if(Mode::get('devicePixelRatio') > 1.5 && $this->copy) { 
             // За случаите, когато имаме дисплей с по-висока плътност
             $urlX2 = $this->copy->getUrl();
-            $attr['srcset']   = "{$urlX2} x2";
+            $attr['srcset']   = "{$urlX2} 2x";
         }
         
         setIfNot($attr['alt'], $this->verbalName);
