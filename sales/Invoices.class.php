@@ -826,6 +826,10 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public function getAutoPaymentType($rec)
    	{
+   		if(empty($rec->threadId)){
+   			$rec->threadId = $this->fetchField($rec->id, 'threadId');
+   		}
+   		
    		// Проверяваме имали ПБД-та, ПКО-та или Прихващания
    		$hasPko = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		$hasBankDocument = bank_IncomeDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
