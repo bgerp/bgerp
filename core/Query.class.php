@@ -710,6 +710,11 @@ class core_Query extends core_FieldSet
                 if (count($arr) > 0) {
                     
                     foreach ($arr as $fld => $val) {
+                        
+                        if (!is_object($this->fields[$fld]->type)) {
+                            wp($this, $fld);
+                        }
+                        
                         $rec->{$fld} = $this->fields[$fld]->type->fromMysql($val);
                     }
                 }

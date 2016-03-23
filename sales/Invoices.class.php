@@ -215,7 +215,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
        
@@ -502,24 +502,31 @@ class sales_Invoices extends deals_InvoiceMaster
     			}
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
-    		
-    		$makeHint = FALSE;
-    		if(empty($rec->paymentType)){
-    			$rec->paymentType = $mvc->getAutoPaymentType($rec);
+    	}
+    	
+    	$makeHint = FALSE;
+    	if(empty($rec->paymentType)){
+    		if($rec->paymentType = $mvc->getAutoPaymentType($rec)){
     			$makeHint = TRUE;
     		}
-    		
-    		if(!empty($rec->paymentType)){
-    			$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
-    			
-    			core_Lg::push($rec->tplLang);
-    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
-    			core_Lg::pop();
-    			
-    			if($makeHint === TRUE){
-    				$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
-    			}
-    		}
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		core_Lg::push($rec->tplLang);
+    	}
+    	
+    	$row->type = $mvc->getFieldType('type')->toVerbal($rec->type);
+    	if(!empty($rec->paymentType)){
+    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
+    		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		core_Lg::pop();
+    	}
+    	
+    	if($makeHint === TRUE){
+    		$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
     	}
     }
 
