@@ -249,6 +249,8 @@ class cat_products_Params extends doc_Detail
         	core_RowToolbar::createIfNotExists($row->_rowTools);
         	if($data->noChange !== TRUE){
         		$row->tools = $row->_rowTools->renderHtml();
+        	} else {
+        		unset($row->tools);
         	}
         	
             $block = clone $tpl->getBlock('param');
