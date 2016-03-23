@@ -45,7 +45,11 @@ class phpmailer_Instance extends core_BaseClass
         $PML->SMTPSecure = $conf->PML_SMTPSECURE;
         $PML->Username  = $conf->PML_USERNAME;
         $PML->Password  = $conf->PML_PASSWORD;
-
+        
+        if (strpos($PML->From, ".") === FALSE) {
+            $PML->From .= ".com";
+        }
+        
         if($params['emailTo']) {
             list($user, $domain) = explode('@', $params['emailTo']);
             if($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
