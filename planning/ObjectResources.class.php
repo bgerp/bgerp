@@ -359,42 +359,6 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * Връща информацията даден артикул като
-     * кой може да се вложи и в какво количество
-     * 
-     * @param int $productId - ид на артикул
-     * @param sdtClass
-     * 			o productId - ид на артикула, в който ще се вложи (ако няма такъв се влага в себе си)
-     * 			o quantity  - количеството
-     * @TODO да се махне
-     */
-    public static function getConvertedInfo($productId, $quantity)
-    {
-    	$convertProductId = $productId;
-    	$convertQuantity = $quantity;
-    	
-    	if($info = planning_ObjectResources::fetch("#objectId = {$productId}")){
-    		$convertProductId = $info->likeProductId;
-    		if(!$convertProductId) {
-    			$convertProductId = $productId;
-    		}
-    		
-    		if(empty($info->conversionRate)){
-    			$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
-    			$lProdMeasureId = cat_Products::getProductInfo($info->likeProductId)->productRec->measureId;
-    			if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
-    				$convertQuantity = $convAmount;
-    			}
-    		} else {
-    			$convertQuantity = $info->conversionRate * $convertQuantity;
-    		}
-    	}
-    	
-    	return (object)array('productId' => $convertProductId, 'quantity' => $convertQuantity);
-    }
-    
-    
-    /**
      * Връща масив със всички артикули, които могат да се влагат като друг артикул
      * 
      * @param int $productId - ид на продукта, като който ще се влагат
