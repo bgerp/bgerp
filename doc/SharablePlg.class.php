@@ -53,6 +53,8 @@ class doc_SharablePlg extends core_Plugin
             
             $rec = &$form->rec;
             
+            $sharedUsersArr = array();
+            
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array)$mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
@@ -61,7 +63,7 @@ class doc_SharablePlg extends core_Plugin
                     
                     // Вземаме споделените потребители
                     $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (!$sharedUsersArr) continue;
+                    if (empty($sharedUsersArr)) continue;
                     
                     // Обединяваме всички потребители от споделянията
                     $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
@@ -69,7 +71,7 @@ class doc_SharablePlg extends core_Plugin
             }
             
             // Ако има споделяния
-            if ($sharedUsersArr) {
+            if (!empty($sharedUsersArr)) {
                 
                 // Добавяме id-тата на споделените потребители
                 foreach ((array)$sharedUsersArr as $nick) {
