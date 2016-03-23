@@ -558,4 +558,29 @@ class acc_plg_Contable extends core_Plugin
     		$res = $rec->{$mvc->valiorFld};
     	}
     }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+    	// Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
+    	if($part == 'state'){
+    		if($rec->state == 'rejected' && $rec->brState == 'draft'){
+    			$num = tr('Анулиран');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if(Request::get('Rejected', 'int')){
+    		$data->listFields['state'] = 'Състояние';
+    	}
+    }
 }
