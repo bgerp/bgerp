@@ -168,13 +168,13 @@ class sales_SalesDetails extends deals_DealDetail
     			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
     				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     				if(strlen($warning)){
-    					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
     				}
     			}
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning');
+    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     		}
     	}
     }
