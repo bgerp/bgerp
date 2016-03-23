@@ -38,7 +38,7 @@ class core_exception_Db extends core_exception_Expect
     /**
      * Изключение за липсваща база данни ли е?
      */
-    public function repairDublicatePrimaryKey($link)
+    public function repairDuplicatePrimaryKey($link)
     {
         if(isset($this->dump['mysqlErrCode']) && ($this->dump['mysqlErrCode'] ==  1062)) {
             $parts = explode('`', $this->dump['query']);
