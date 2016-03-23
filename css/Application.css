@@ -1027,6 +1027,9 @@ div.acc-detail {
       .portal.planning .state-closed:hover,
       .portal.detail-info .state-closed:hover {
         background-color: #d0d0d0; }
+    .portal.planning table.listTable th,
+    .portal.detail-info table.listTable th {
+      vertical-align: middle !important; }
   .portal .legend {
     position: absolute;
     top: -16px;
