@@ -68,7 +68,7 @@ class avatar_Plugin extends core_Plugin
         // За случаите, когато имаме дисплей с по-висока плътност
         if(Mode::get('devicePixelRatio') > 1.5) {
             $urlX2 = self::getUrl($userId, $email, $width * 2);
-            $attr['srcset']   = "{$urlX2} x2";
+            $attr['srcset']   = "{$urlX2} 2x";
         }
 
         $attr['alt']   = '';

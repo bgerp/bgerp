@@ -119,16 +119,6 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row){
     		$rec = $data->recs[$id];
     	
-    		// Ако артикула може да се влага като друг показваме хинт
-    		if($data->masterData->rec->useResourceAccounts == 'yes'){
-    			 
-    			$convInfo = planning_ObjectResources::getConvertedInfo($rec->productId, $rec->quantity);
-    			if($convInfo->productId != $rec->productId){
-    				$convertTitle = cat_Products::getTitleById($convInfo->productId);
-    				$row->productId = ht::createHint($row->productId, "Артикулът се влага като|*: {$convertTitle}");
-    			}
-    		}
-    	
     		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
     		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
     			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);

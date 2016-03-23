@@ -106,16 +106,14 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							if($res->type == 'input'){
 								
 								$pInfo = cat_Products::getProductInfo($res->productId);
-								$convInfo = planning_ObjectResources::getConvertedInfo($res->productId, $res->propQuantity);
-								
 								$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($pInfo->meta['canStore'])) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложени материали в производството на артикул');
 								
 								$entry = array(
 										'debit' => array('321', array('store_Stores', $rec->storeId),
 															  array('cat_Products', $dRec->productId),
 												'quantity' => $pQuantity),
-										'credit' => array('61101', array('cat_Products', $convInfo->productId),
-												'quantity' => $convInfo->quantity),
+										'credit' => array('61101', array('cat_Products', $res->productId),
+												'quantity' => $res->propQuantity),
 										'reason' => $reason,
 								);
 							} else {
@@ -123,12 +121,11 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								
 								// Сумата на дебита е себестойността на отпадния ресурс
 								$amount = $res->propQuantity * $selfValue;
-								$convInfo = planning_ObjectResources::getConvertedInfo($res->productId, $resQuantity);
 								
 								$entry = array(
 										'amount' => $amount,
-										'debit' => array('61101', array('cat_Products', $convInfo->productId),
-														'quantity' => $convInfo->quantity),
+										'debit' => array('61101', array('cat_Products', $res->productId),
+														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array('cat_Products', $dRec->productId),
 															'quantity' => $pQuantity),
