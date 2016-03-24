@@ -1366,6 +1366,7 @@ class cat_Boms extends core_Master
     	$dQuery->where("#bomId = {$rec->id}");
     	$dQuery->where("#parentId IS NULL");
     	while($detRec = $dQuery->fetch()){
+    		$detRec->params['$T'] = $quantity;
     		$quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
     		if($quantityE == cat_BomDetails::CALC_ERROR){
     			$quantityE = 0;
@@ -1386,7 +1387,7 @@ class cat_Boms extends core_Master
     	while($dRec = $query->fetch()){
     		$query2 = cat_BomDetails::getQuery();
     		$query2->where("#parentId = {$dRec->id}");
-    
+    		
     		$quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
     		if($quantityP == cat_BomDetails::CALC_ERROR){
     			$quantityP = 0;
