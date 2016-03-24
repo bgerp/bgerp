@@ -163,8 +163,8 @@ class bgerp_Recently extends core_Manager
                 $state = $threadRec->state;
                 
                 $attr = array();
-                $attr['class'] .= "linkWithIcon state-{$state}";
-                $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docRec->id)) . ');';
+                $attr['class'] .= "state-{$state}";
+                $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
                 
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 

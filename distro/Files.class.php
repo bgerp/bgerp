@@ -1068,7 +1068,7 @@ class distro_Files extends core_Detail
                     
                     // Линк за изтриване от хранилището
                     $delLink = ht::createLink($delImg, array($mvc, 'removeFromRepo', $id, 'repoId' => $repoId, 'ret_url' => TRUE),
-                                       tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => tr('Изтриване')));
+                                       tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => 'Изтриване'));
                 }
                 
                 // Ако имаме права за редактиране
@@ -1076,7 +1076,7 @@ class distro_Files extends core_Detail
                     
                     // Линк за редактиране
                     $editLink = ht::createLink($editImg, array($mvc, 'edit', $id, 'ret_url' => TRUE),
-                                       NULL, array('title' => tr('Редактиране')));
+                                       NULL, array('title' => 'Редактиране'));
                 }
                 
                 // Ако има линк за редактиране

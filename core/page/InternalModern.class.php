@@ -80,7 +80,7 @@ class core_page_InternalModern extends core_page_Active
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url  = toUrl(array('bgerp_Portal', 'Show'));
-        $attr = array('id' => 'nCntLink', 'title' => tr('Неразгледани известия'));
+        $attr = array('id' => 'nCntLink', 'title' => 'Неразгледани известия');
 
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
@@ -310,7 +310,7 @@ class core_page_InternalModern extends core_page_Active
         
         if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
         	
-        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => tr("Изпращане на сигнал към разработчиците на bgERP"), 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал към разработчиците на bgERP", 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
         	
         	$email = email_Inboxes::getUserEmail();
         	if(!$email) {
@@ -328,17 +328,17 @@ class core_page_InternalModern extends core_page_Active
         }
         
         // Създава линк за изход
-        $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => tr("Излизане от системата"), 'ef_icon' => 'img/16/logout.png'));
+        $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Излизане от системата", 'ef_icon' => 'img/16/logout.png'));
        	$tpl->replace($signOut, 'SIGN_OUT');
         
         // Създава линк за превключване между режимите
        	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Мобилен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => tr('Превключване на системата в мобилен режим')));
+       		$mode = ht::createLink(tr("Мобилен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
        	} else {
-       		$mode = ht::createLink(tr("Десктоп"), array('log_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => tr('Превключване на системата в десктоп режим')));
+       		$mode = ht::createLink(tr("Десктоп"), array('log_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
        	if(isDebug()) {
-       		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => tr("Показване на debug информация"), 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
+       		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
        	}
         // Смяна на езика
         $lgChange = self::getLgChange();

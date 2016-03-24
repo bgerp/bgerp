@@ -415,7 +415,7 @@ class log_Data extends core_Manager
             // Добавяме линк към реферера
             $refRec = log_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
             if ($refRec && log_Referer::haveRightFor('single', $refRec)) {
-                $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
+                $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => 'Реферер|*: ' . $refRec->ref));
             }
         }
         
