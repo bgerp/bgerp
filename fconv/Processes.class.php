@@ -49,6 +49,8 @@ class fconv_Processes extends core_Manager
         $this->FLD("timeOut", "int", array('notNull' => TRUE, 'caption' => 'Продължителност'));
         
         $this->FLD("callBack", "varchar(128)", array('caption' => 'Функция'));
+        
+        $this->dbEngine = 'innoDB';
     }
     
     
