@@ -81,6 +81,8 @@ class sens2_DataLogs extends core_Manager
         $this->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input=silent,autoFilter');
 
         $this->setDbIndex('time');
+        
+        $this->dbEngine = 'innoDB';
     }
     
     
