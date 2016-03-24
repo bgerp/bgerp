@@ -2321,7 +2321,7 @@ span.sharing-history-title {
   height: 21px;
   float: left;
   margin-left: 5px;
-  background-position: center; }
+  background-position: center !important; }
 
 #cmsNavigation .level1 {
   font-size: 16px;
