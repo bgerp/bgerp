@@ -863,6 +863,7 @@ class i18n_Charset extends core_MVC {
             $mL  = $m;
         }
         
+        $len = mb_strlen($len);
         $res = $total/$len;
         
         return $res;
