@@ -2313,6 +2313,16 @@ span.sharing-history-title {
   padding: 1px 4px;
   display: inline-block; }
 
+#cmsNavigation .nav_item a {
+  float: left; }
+
+#cmsNavigation a.linkWithIcon {
+  display: inline-block;
+  height: 21px;
+  float: left;
+  margin-left: 5px;
+  background-position: center; }
+
 #cmsNavigation .level1 {
   font-size: 16px;
   font-weight: bold;
