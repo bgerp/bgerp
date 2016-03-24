@@ -657,7 +657,7 @@ body {
     height: auto; }
     .narrow #main-container > div.tab-control > div.tab-row .tab a,
     .narrow #main-container > div.tab-control > div.tab-row .tab span {
-      margin: 0px 2px 3px;
+      margin: 0px 2px 2px;
       padding-top: 1px;
       display: block; }
 
