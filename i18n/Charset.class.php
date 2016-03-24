@@ -595,6 +595,11 @@ class i18n_Charset extends core_MVC {
             }
             $len = $nLen;
         }
+
+
+        // Вземаме дължината на стринга в mb
+        // Горе се взема не в mb и затова го вземаме пак, но този път ще е на по-кратък стринг
+        $len = mb_strlen($text);
         
         $sL  = $SL = 'sign';
 
@@ -862,10 +867,6 @@ class i18n_Charset extends core_MVC {
             $cL  = $c;
             $mL  = $m;
         }
-        
-        // Вземаме дължината на стринга в mb
-        // Горе се взема не в mb и затова го вземаме пак, но този път ще е на по-кратък стринг
-        $len = mb_strlen($text);
         
         $res = $total/$len;
         
