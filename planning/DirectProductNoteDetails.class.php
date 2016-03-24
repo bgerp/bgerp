@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting, planning_plg_ReplaceEquivalentProducts';
     
     
     /**
@@ -107,7 +107,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,type');
+        //$this->setDbUnique('noteId,productId,type');
     }
     
     
