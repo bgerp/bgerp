@@ -74,6 +74,8 @@ class status_Messages extends core_Manager
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
         $this->FLD('lifeTime', 'time', 'caption=Живот');
         $this->FLD('hitId', 'varchar(16)', 'caption=ID на хита');
+        
+        $this->dbEngine = 'innoDB';
     }
     
     
