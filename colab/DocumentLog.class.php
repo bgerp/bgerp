@@ -143,11 +143,9 @@ class colab_DocumentLog extends core_Manager
     {
         if (self::haveRightFor('renderview')) {
             
-            $attr = array();
-            $attr['title'] = tr('Документът е видим за партньори');
-    		$attr['class'] = 'eyeIcon linkWithIcon';
-    		$attr['style'] = 'background-image:url(' . sbf('img/16/eye-open.png', '') . ');';
-            
+            $attr = array('title' => tr('Документът е видим за партньори'), 'class' => 'eyeIcon');
+    		$attr = ht::addBackgroundIcon($attr, 'img/16/eye-open.png');
+
             $viewLink = ht::createElement('span', $attr, '', TRUE);
         }
         

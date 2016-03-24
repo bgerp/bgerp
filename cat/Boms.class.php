@@ -1082,6 +1082,9 @@ class cat_Boms extends core_Master
     private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = FALSE, &$materials = array())
     {
     	// Изчисляваме количеството ако можем
+    	$rowParams = self::getProductParams($rec->resourceId);
+    	self::pushParams($params, $rowParams);
+    	
     	$scope = self::getScope($params);
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
     	if($rQuantity != cat_BomDetails::CALC_ERROR){
@@ -1149,9 +1152,7 @@ class cat_Boms extends core_Master
     		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
-    		$newParams = static::getProductParams($rec->resourceId);
-    		$newParams[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
-    		self::pushParams($params, $newParams);
+    		$params[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
     		
     		// Намираме кои редове са му детайли
     		$query = cat_BomDetails::getQuery();
@@ -1175,7 +1176,7 @@ class cat_Boms extends core_Master
     		}
 			
     		// Попваме данните, за да кешираме оригиналните
-    		self::popParams($params, $rec->resourceId);
+    		//self::popParams($params, $rec->resourceId);
     		
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
@@ -1193,6 +1194,8 @@ class cat_Boms extends core_Master
     	if($rec->type == 'pop' && $price !== FALSE){
     		$price *= -1;
     	}
+    	
+    	self::popParams($params, $rec->resourceId);
     	
     	// Връщаме намерената цена
     	return $price;

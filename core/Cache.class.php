@@ -96,6 +96,8 @@ class core_Cache extends core_Manager
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
+        
+        $this->dbEngine = 'innoDB';
     }
     
     

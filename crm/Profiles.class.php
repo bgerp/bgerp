@@ -370,11 +370,8 @@ class crm_Profiles extends core_Master
                         reset($userTeams);
                         $userId = key($userTeams);
                         
-                        $attr = array();
-                        $attr['class'] = 'linkWithIcon';
-        		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-        		        $attr['title'] = tr('Логвания на потребителя');
-                        
+                        $attr = array('ef_icon' => '/img/16/page_go.png', 'title' => tr('Логвания на потребителя'));
+                         
                         // URL за промяна
                         $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
                         

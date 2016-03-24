@@ -499,7 +499,7 @@ class incoming_Documents extends core_Master
                 // Ако има полета, създаваме бутона
                 if (count($arr)) {
                     $tpl->append("\n<tr><td>");
-                    $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($arr['icon'], '') . ");width:100%;text-align:left;"));
+                    $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "ef_icon=" .  $arr['icon'] . ",style=width:100%;text-align:left;"));
                     $tpl->append("</td></tr>");
                 }
             }

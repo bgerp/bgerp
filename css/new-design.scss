@@ -1111,7 +1111,7 @@ div.tab-control.deal-history-tab .tab-row .tab {
     }
 }
 
-@media handheld, only screen and (max-width: 600px) {
+@media handheld, only screen and (max-width: 640px) {
     .inner-framecontentTop{
         padding: 7px 7px 9px 7px !important;
     }
@@ -1128,8 +1128,11 @@ div.tab-control.deal-history-tab .tab-row .tab {
         margin: 0;
     }
     #main-container > .tab-control > .tab-row {
-        padding: 0 6px 1px !important;
+        padding: 3px 6px 1px !important;
         top: 44px;
+        a {
+            margin-bottom: 1px !important;
+        }
     }
     .bookmarkLink {
         &.addBookmarkLink {

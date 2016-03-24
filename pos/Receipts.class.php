@@ -721,9 +721,9 @@ class pos_Receipts extends core_Master {
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right', 'title' => tr('Въведи'))), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
-    	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => tr('Продуктов код или баркод'))), 'FIRST_TOOLS_ROW');
+    	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
     	$block->append(ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => tr('Промени количество'))), 'FIRST_TOOLS_ROW');
-    	$block->append(ht::createFnBtn('|Отстъпка|* %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => tr('Задай отстъпка'))), 'FIRST_TOOLS_ROW');
+    	$block->append(ht::createFnBtn('|Отстъпка|* %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
     	$block->append(ht::createFnBtn('*', NULL, NULL, array('class' => "buttonForm tools-sign", 'title' => 'Умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
     	
     	return $block;
@@ -931,7 +931,7 @@ class pos_Receipts extends core_Master {
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, FALSE, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => tr('Прехвърли продажбата към контрагента')));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, FALSE, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => 'Прехвърли продажбата към контрагента'));
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
@@ -1014,12 +1014,12 @@ class pos_Receipts extends core_Master {
     	$searchUrl2 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'person'), 'local');
     	$searchUrl3 = toUrl(array('pos_Receipts', 'searchContragents'), 'local');
     	
-    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text', 'data-url' => $searchUrl3, 'title' => tr('Търси контрагент по ключова дума,номер или код')));
+    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text', 'data-url' => $searchUrl3, 'title' => 'Търси контрагент по ключова дума,номер или код'));
     	
     	$block->append($inpFld, 'TRANSFERS_BLOCK');
     	
-    	$block->append(ht::createFnBtn('Фирма', NULL, NULL, array('class' => "buttonForm pos-search-contragent-btn", 'data-url' => $searchUrl1, 'title' => tr('Търси фирма'))), 'BTNS');
-    	$block->append(ht::createFnBtn('Лице', NULL, NULL, array('class' => "buttonForm pos-search-contragent-btn", 'data-url' => $searchUrl2, 'title' => tr('Търси лице'))), 'BTNS');
+    	$block->append(ht::createFnBtn('Фирма', NULL, NULL, array('class' => "buttonForm pos-search-contragent-btn", 'data-url' => $searchUrl1, 'title' => 'Търси фирма')), 'BTNS');
+    	$block->append(ht::createFnBtn('Лице', NULL, NULL, array('class' => "buttonForm pos-search-contragent-btn", 'data-url' => $searchUrl2, 'title' => 'Търси лице')), 'BTNS');
     	
     	
     	return $block;
@@ -1062,7 +1062,7 @@ class pos_Receipts extends core_Master {
     	}
 	    
     	$printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
-    	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => tr('Принтиране на бележката'))), 'CLOSE_BTNS');
+    	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => 'Принтиране на бележката')), 'CLOSE_BTNS');
     	
 	    // Ако може да се издаде касова бележка, активираме бутона
 	    if($this->haveRightFor('printReceipt', $rec)){
@@ -1070,7 +1070,7 @@ class pos_Receipts extends core_Master {
 	    }
 	    
 	    $disClass = ($recUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => tr('Издай касова бележка'))), 'CLOSE_BTNS');
+	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => 'Издай касова бележка')), 'CLOSE_BTNS');
 	    
 	    if ($this->haveRightFor('close', $rec)) {
 	    	$contoUrl = array('pos_Receipts', 'close', $rec->id);
@@ -1081,7 +1081,7 @@ class pos_Receipts extends core_Master {
 	    }
 	    
 	    $disClass = ($contoUrl) ? '' : 'disabledBtn';
-	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
+	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass} different-btns", 'id' => 'btn-close', 'title' => $hint)), 'CLOSE_BTNS');
 	   
 	    return $block;
     }

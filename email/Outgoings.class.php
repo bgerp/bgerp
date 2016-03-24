@@ -1381,7 +1381,7 @@ class email_Outgoings extends core_Master
             
             $mvc->singleTitle = "Факс";
             
-            $btnParamsArr = array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => tr('Изпращане на имейла по факс'));
+            $btnParamsArr = array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => 'Изпращане на имейла по факс');
             
             if (!email_FaxSent::haveRightFor('send')) {
                 $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
@@ -1390,7 +1390,7 @@ class email_Outgoings extends core_Master
             $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, $btnParamsArr);
         } else {
             
-            $btnParamsArr = array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => tr('Изпращане на имейла'));
+            $btnParamsArr = array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => 'Изпращане на имейла');
             
             $defaultBoxFromId = self::getDefaultInboxId($rec->folderId);
             if (!isset($defaultBoxFromId)) {
@@ -2050,7 +2050,7 @@ class email_Outgoings extends core_Master
             
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
-                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => tr('Премахване на изчакването за отговор')));
+                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => 'Премахване на изчакването за отговор'));
             }
         }
         

@@ -78,6 +78,19 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * Енджина за таблицата в DB
+     */
+    protected $dbEngine;
+    
+
+    /**
+     *  Колация за символите в DB
+     */
+    protected $dbCollation;
+
+
+
+    /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
@@ -834,12 +847,17 @@ class core_Mvc extends core_FieldSet
             $tableName = $this->dbTableName;
 
             $db = $this->db;     // За краткост
+
+            // Параметри на таблицата
+            $tableParams = array('ENGINE' => $this->dbEngine, 
+                                 'CHARACTER' => $this->dbCharacter,
+                                 'COLLATION' => $this->dbCollation);
             // Създаваме таблицата, ако не е създадена
-            $action = $db->forceTable($tableName) ?
+            $action = $db->forceTable($tableName, $tableParams, $debugLog) ?
             '<li class="debug-new">Създаване на таблица:  ' :
             '<li class="debug-info">Съществуваща от преди таблица:  ';
 
-            $html .= "{$action}<b>{$this->dbTableName}</b></li>";
+            $html .= "{$action}<b>{$this->dbTableName}</b></li>" . $debugLog;
 
             foreach ($fields as $name => $field) {
 
