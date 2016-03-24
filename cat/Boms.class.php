@@ -1152,6 +1152,10 @@ class cat_Boms extends core_Master
     		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
+    		if(!array_key_exists($rec->resourceId, $params)){
+    			$empty = array($rec->resourceId => array());
+    			self::pushParams($params, $empty);
+    		}
     		$params[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
     		
     		// Намираме кои редове са му детайли
@@ -1176,7 +1180,7 @@ class cat_Boms extends core_Master
     		}
 			
     		// Попваме данните, за да кешираме оригиналните
-    		//self::popParams($params, $rec->resourceId);
+    		self::popParams($params, $rec->resourceId);
     		
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
