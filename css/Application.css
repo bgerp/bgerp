@@ -2313,7 +2313,7 @@ span.sharing-history-title {
   padding: 1px 4px;
   display: inline-block; }
 
-#cmsNavigation .nav_item a {
+#cmsNavigation.articles-menu .nav_item a {
   float: left; }
 
 #cmsNavigation a.linkWithIcon {
