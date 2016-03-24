@@ -105,9 +105,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
         $this->setField('quantity', 'caption=Количества->Вложено');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
-        
-        // Само вложими продукти
-        //$this->setDbUnique('noteId,productId,type');
     }
     
     

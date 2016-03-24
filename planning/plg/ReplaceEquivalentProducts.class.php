@@ -77,10 +77,13 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 				
 				// Обновяваме записа
 				$nRec = $form->rec;
-				$mvc->save($nRec);
 				
-				// Редирект
-				return followRetUrl();
+				if($mvc->isUnique($nRec, $nFields)){
+					$mvc->save($nRec);
+					return followRetUrl();
+				} else {
+					$form->setError($nFields, "Вече съществува запис със същите данни");
+				}
 			}
 			
 			// Бутони и заглавие на формата
@@ -112,18 +115,19 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 			
 			// Добавяме бутона за подмяна
 			if($mvc->haveRightFor('replaceproduct', $rec)){
+				
 				$url = array($mvc, 'replaceproduct', $rec->id, 'ret_url' => TRUE);
 				if($mvc->hasPlugin('plg_RowTools2')){
 					core_RowToolbar::createIfNotExists($row->_rowTools);
 					$row->_rowTools->addLink('Заместване', $url, array('ef_icon' => "img/16/dropdown.gif", 'title' => "Избор на заместващ материал"));
 					$row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен');
 				} elseif($mvc->hasPlugin('plg_RowTools')){
-					if(!is_object($row->tools)){
-						$row->tools = new core_ET('[#TOOLS#]');
+					if(!is_object($row->{$mvc->rowToolsField})){
+						$row->{$mvc->rowToolsField} = new core_ET('[#TOOLS#]');
 					}
 					
 					$btn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/dropdown.gif,title=Избор на заместващ материал');
-					$row->tools->append($btn, 'TOOLS');
+					$row->{$mvc->rowToolsField}->append($btn, 'TOOLS');
 				}
 			}
 		}
