@@ -137,6 +137,26 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		$equivalentProducts = self::getEquivalentProducts($rec->likeProductId, $rec->id);
+    		
+    		if(array_key_exists($rec->objectId, $equivalentProducts)){
+    			$form->setError('likeProductId', 'Артикулът вече е взаимозаменяем с избрания');
+    		}
+    	}
+    }
+    
+    
+    /**
      * Опции за избиране на всички артикули, като които може да се използва артикула за влагане
      * 
      * @param int $measureId - ид на мярка
@@ -339,35 +359,61 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
+     * Намира еквивалентите за влагане артикули на даден артикул
+     * 
+     * @param int $likeProductId - на кой артикул му търсим еквивалентните
+     * @param int $ignoreRecId - ид на ред, който да се игнорира
+     * @return array - масив за избор с еквивалентни артикули
+     */
+    public static function getEquivalentProducts($likeProductId, $ignoreRecId = NULL)
+    {
+		$array = array();
+    	$query = self::getQuery();
+    	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
+    	$query->where("#state = 'active'");
+    	if(isset($ignoreRecId)){
+    		$query->where("#id != {$ignoreRecId}");
+    	}
+    	
+    	$query->show("objectId,likeProductId");
+    	while ($dRec = $query->fetch()){
+    		$array[$dRec->objectId] = $dRec->likeProductId;
+    	}
+    	
+    	$res = array();
+    	self::fetchConvertableProducts($likeProductId, $array, $res);
+    	foreach ($res as $id => &$v){
+    		$v = cat_Products::getTitleById($id, FALSE);
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
      * Връща масив със всички артикули, които могат да се влагат като друг артикул
      * 
      * @param int $productId - ид на продукта, като който ще се влагат
      * @return array - намерените артикули
      */
-    public static function fetchConvertableProducts($productId)
+    private static function fetchConvertableProducts($productId, $array, &$res = array())
     {
-    	$res = array();
-    	
-    	$query = self::getQuery();
-    	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
-    	$query->where("#state = 'active'");
-    	$query->show("objectId,likeProductId");
-    	
-    	$query2 = clone $query;
-    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL AND #objectId != '{$productId}'");
-    	while($rec = $query->fetch()){
-    		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
+    	if(isset($array[$productId]) && $res[$array[$productId]] !== TRUE){
+    		$res[$array[$productId]] = TRUE;
+    		self::fetchConvertableProducts($array[$productId], $array, $res);
     	}
     	
-    	$query2->where("#objectId = {$productId} AND #likeProductId != {$productId}");
-    	while($rec = $query2->fetch()){
-    		if($rec->likeProductId){
-    			$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
-    			$replaceable = self::fetchConvertableProducts($rec->likeProductId);
-    			$res += $replaceable;
+    	if(is_array($array)){
+    		foreach($array as $key => $value){
+    			if($value == $productId){
+    				if($res[$key] !== TRUE){
+    					$res[$key] = TRUE;
+    					self::fetchConvertableProducts($key, $array, $res);
+    				}
+    			}
     		}
     	}
     	
-    	return $res;
+    	return;
     }
 }

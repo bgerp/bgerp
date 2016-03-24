@@ -4,20 +4,20 @@
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
-                 |Планирано|*
+                 |Планирано|* ([#measureId#])
              </td>
              <td class = 'sum-th'>
-                 |Остатък|*
+                 |Остатък|* ([#measureId#])
              </td>
              <td class = 'sum-th'>
-                 |Произведено|*
+                 |Произведено|* ([#measureId#])
              </td>
             
              <td class = 'sum-th'>
-                 |Заскладено|*
+                 |Заскладено|* ([#measureId#])
              </td>
              <td class = 'sum-th'>
-                 |Незаскладено|*
+                 |Незаскладено|* ([#measureId#])
              </td>
           </tr>
           <tr>

@@ -329,16 +329,18 @@ class cal_Calendar extends core_Master
        
         // TODO
         $attr = array();
-        $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
+        	$attr['ef_icon'] = 'img/16/leaves.png';
         } elseif($rec->type == 'sickday') {
-        	$attr['style'] = 'background-image:url(' . sbf("img/16/sick.png") . ');';
+        	$attr['ef_icon'] = 'img/16/sick.png';
         }elseif($rec->type == 'trip'){
-			$attr['style'] = 'background-image:url(' . sbf("img/16/working-travel.png") . ');';    		
+			$attr['ef_icon'] = 'img/16/working-travel.png';    		
         }else{
-         	$attr['style'] = 'background-image:url(' . sbf("img/16/{$lowerType}.png") . ');';
+         	$attr['ef_icon'] = "img/16/{$lowerType}.png";
     	}
+
+        $attr = ht::addBackgroundIcon($attr);
+
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }

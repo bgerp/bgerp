@@ -758,9 +758,9 @@ class doc_Threads extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             $docRow = $docProxy->getDocumentRow();
             $attr = array();
-            $attr['class'] .= 'linkWithIcon';
-            $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
-
+            
+            $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docProxy->that));
+            
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
                 $attr['title'] = $docRow->title;
             }

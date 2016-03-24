@@ -1413,7 +1413,7 @@ class doc_Containers extends core_Manager
                     $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, 
                         array($class, 'add', 
                             'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
-                            NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+                            NULL, NULL, "ef_icon={$mvc->singleIcon},style=width:100%;text-align:left;")));
                 }
                 
                 $tpl->append("</li>"); 

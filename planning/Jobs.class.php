@@ -408,14 +408,9 @@ class planning_Jobs extends core_Master
     	if($rec->saleId){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
+    	$row->measureId = $shortUom;
     	
     	if($fields['-single']){
-    		$row->quantity .= " {$shortUom}";
-    		$row->quantityProduced .=  " {$shortUom}";
-    		$row->quantityFromTasks .=  " {$shortUom}";
-    		$row->quantityNotStored .=  " {$shortUom}";
-    		$row->quantityToProduce .=  " {$shortUom}";
-    		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
     		}
