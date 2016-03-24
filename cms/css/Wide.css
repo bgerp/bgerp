@@ -42,22 +42,14 @@ body{
 
 #cmsNavigation .nav_item a {
     color:#336;
-    float: left;
 }
 
 #cmsNavigation .sel_page a {
     color:#334;
     background:#ddf;
     border:solid 1px #ccf;
-    
 }
-#cmsNavigation a.linkWithIcon {
-    display: inline-block;
-    height: 21px;
-    float: left;
-    margin-left: 5px;
-    background-position: center;
-}
+
 #cmsNavigation .level1 {
     color:#333;
 }
