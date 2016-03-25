@@ -19,7 +19,7 @@ class sens2_DataLogs extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals, plg_AutoFilter,plg_Chart';
+    public $loadList = 'plg_RowTools, sens2_Wrapper, plg_Sorting, plg_RefreshRows, plg_AlignDecimals,plg_Chart';
 
     
     /**

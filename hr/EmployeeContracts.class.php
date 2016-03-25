@@ -56,7 +56,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg';
+                     doc_plg_BusinessDoc,doc_SharablePlg';
     
     
     /**

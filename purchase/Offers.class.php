@@ -57,8 +57,7 @@ class purchase_Offers extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
-						purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg,
-						plg_AutoFilter';
+						purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
 
     
     

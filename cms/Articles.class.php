@@ -31,7 +31,7 @@ class cms_Articles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, plg_AutoFilter, change_Plugin';
+    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, change_Plugin';
     
     
     /**
