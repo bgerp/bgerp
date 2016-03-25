@@ -2127,6 +2127,7 @@ class cat_Products extends embed_Manager {
     		$fields['-components'] = TRUE;
     		
     		foreach ($details as $dRec){
+    			$dRec->params['$T'] = 1;
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$row = cat_BomDetails::recToVerbal($dRec, $fields);
