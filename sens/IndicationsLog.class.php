@@ -86,7 +86,7 @@ class sens_IndicationsLog extends core_Manager
         
         $this->setDbIndex('time');
         
-        $this->dbEngine = 'innoDB';
+        $this->dbEngine = 'InnoDB';
     }
     
     
