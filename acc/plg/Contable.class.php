@@ -575,6 +575,12 @@ class acc_plg_Contable extends core_Plugin
     	if($part == 'state'){
     		if($rec->state == 'rejected' && $rec->brState == 'draft'){
     			$num = tr('Анулиран');
+    		} elseif($rec->state == 'active'){
+    			if($rec->isContable == 'activate'){
+    				$num = tr('Активиран');
+    			} elseif($rec->isContable == 'yes'){
+    				$num = tr('Контиран');
+    			}
     		}
     	}
     }
