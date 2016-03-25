@@ -640,11 +640,9 @@ class core_Master extends core_Manager
         // Масива за URL, ако няма права за сингъла е празен
         $url = $me->getSingleUrlArray($id);
         
-        // Иконата
-        $img = sbf($me->getIcon($id), '"', $absolute);
         
         // Вземаме линка
-        $link = ht::createLink($name, $url, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
+        $link = ht::createLink($name, $url, NULL, "ef_icon=" . $me->getIcon($id));
         
         return $link;
     }
