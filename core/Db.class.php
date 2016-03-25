@@ -10,7 +10,7 @@ defIfNot('CORE_INNODB_FLUSH_LOG_AT_TRX_COMMIT', 0);
 /**
  *
  */
-defIfNot('CORE_DEFAULT_ENGINE', 'InnoDB');
+defIfNot('CORE_SQL_DEFAULT_ENGINE', 'InnoDB');
 
 
 /**
@@ -380,7 +380,7 @@ class core_Db extends core_BaseClass
     {
         // Установяване на параметрите по подразбиране
         setIfNot($params, array(
-                'ENGINE' => CORE_DEFAULT_ENGINE,
+                'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
                 'CHARACTER' => 'utf8',
                 'COLLATION' => 'utf8_bin'
             ));
