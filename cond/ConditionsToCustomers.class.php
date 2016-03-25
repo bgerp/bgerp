@@ -98,7 +98,14 @@ class cond_ConditionsToCustomers extends core_Manager
     	
     	if(isset($rec->conditionId)){
     		$condType = cond_Parameters::fetchField($rec->conditionId, 'type');
-    		$form->setFieldType('value', cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters'));
+    		
+    		if($condType == 'delCond'){
+    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
+    		} elseif($condType == 'payMethod'){
+    			$form->fields['value']->type = cls::get('type_Key', array('params' => array('mvc' => 'cond_paymentMethods', 'select' => 'description', 'allowEmpty' => 'allowEmpty')));
+    		} else {
+    			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters');
+    		}
     	} else {
     		$form->setField('value', 'input=hidden');
     	}
