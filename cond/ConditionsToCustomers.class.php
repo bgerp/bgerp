@@ -48,15 +48,21 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Кой може да вижда списъчния изглед
+     * Кой може да добавя
      */
     public $canAdd = 'ceo,cond';
     
     
     /**
-     * Кой може да вижда списъчния изглед
+     * Кой може да редактира
      */
     public $canEdit = 'ceo,cond';
+    
+    
+    /**
+     * Кой може да изтрива
+     */
+    public $canDelete = 'ceo,cond';
     
     
     /**
