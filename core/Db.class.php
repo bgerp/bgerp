@@ -2,15 +2,9 @@
 
 
 /**
- * 
- */
-defIfNot('CORE_INNODB_FLUSH_LOG_AT_TRX_COMMIT', 0);
-
-
-/**
  *
  */
-defIfNot('CORE_SQL_DEFAULT_ENGINE', 'InnoDB');
+defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
 
 
 /**
@@ -154,13 +148,7 @@ class core_Db extends core_BaseClass
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
-            $innoDBFlushLog = isset($this->innoDBFlushLog) ? $this->innoDBFlushLog : CORE_INNODB_FLUSH_LOG_AT_TRX_COMMIT;
-            
-//             $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, GLOBAL innodb_flush_log_at_trx_commit={$innoDBFlushLog};");
-            
-            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}");
-            $link->query("SET COLLATION_CONNECTION={$this->dbCollation}");
-            $link->query("SET CHARACTER_SET_CLIENT={$this->dbCharsetClient}");
+            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient};");
             
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
@@ -384,7 +372,7 @@ class core_Db extends core_BaseClass
     {
         // Установяване на параметрите по подразбиране
         setIfNot($params, array(
-                'ENGINE' => 'MYISAM',
+                'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
                 'CHARACTER' => 'utf8',
                 'COLLATION' => 'utf8_bin'
             ));
