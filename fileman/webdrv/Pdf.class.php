@@ -302,7 +302,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
             
             // Заспиваме процеса
             sleep($sleepTime);
-            Debug::log('Sleep {$sleepTime} sec. in' . __CLASS__);
+            Debug::log("Sleep {$sleepTime} sec. in" . __CLASS__);
 
             // Увеличаваме броя на опитите с единица
             $trays++;
