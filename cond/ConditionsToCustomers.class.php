@@ -54,6 +54,12 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
+     * Кой може да вижда списъчния изглед
+     */
+    public $canEdit = 'ceo,cond';
+    
+    
+    /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
@@ -72,7 +78,7 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
-        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent');
+        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     }
     
@@ -86,22 +92,13 @@ class cond_ConditionsToCustomers extends core_Manager
     	$rec = &$form->rec;
     	
     	$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
-    	if(!$rec->id){
-    		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['value'].value ='';this.form.submit();"));
-    	} else {
+    	if(isset($rec->id)){
     		$form->setReadOnly('conditionId');
     	}
     	
-    	if($rec->conditionId){
+    	if(isset($rec->conditionId)){
     		$condType = cond_Parameters::fetchField($rec->conditionId, 'type');
-    		
-    		if($condType == 'delCond'){
-    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
-    		} elseif($condType == 'payMethod'){
-    			$form->fields['value']->type = cls::get('type_Key', array('params' => array('mvc' => 'cond_paymentMethods', 'select' => 'description', 'allowEmpty' => 'allowEmpty')));
-    		} else {
-    			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters');
-    		}
+    		$form->setFieldType('value', cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters'));
     	} else {
     		$form->setField('value', 'input=hidden');
     	}

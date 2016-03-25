@@ -356,7 +356,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Ако има дефолтен текст за фактура добавяме и него
     	if($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')){
-    		$defInfo .= $invText;
+    		$defInfo .= "\n" .$invText;
     	}
     	
     	// Задаваме дефолтния текст

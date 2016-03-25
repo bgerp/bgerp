@@ -163,7 +163,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param core_Manager $mvc
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
 		
@@ -198,7 +198,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * След преобразуване на записа в четим за хора вид
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
@@ -214,7 +214,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'add'){
 			if(isset($rec)){
@@ -409,40 +409,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			
 			$pInfo = cat_Products::getProductInfo($resource->productId);
 			$dRec->measureId = $pInfo->productRec->measureId;
-			$quantities = array();
-			
-			if(isset($rec->inputStoreId)){
-				$convertableProducts = planning_ObjectResources::fetchConvertableProducts($resource->productId);
-				foreach ($convertableProducts as $prodId => $prodName){
-					$quantities[$prodId] = store_Products::fetchField("#storeId = '{$rec->inputStoreId}' AND #productId = {$prodId}", 'quantity');
-				}
-			}
-		
-			// Ако има такива
-			if(count($quantities)){
-			
-				// Намираме този с най-голямо количество в избрания склад
-				arsort($quantities);
-				$productId = key($quantities);
-				
-				// Заместваме оригиналния артикул с него
-				$dRec->productId = $productId;
-				$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
-				$dRec->quantityInPack = 1;
-				$dRec->measureId = $dRec->packagingId;
-				
-				$quantity = $dRec->quantityFromBom;
-				if($convAmount = cat_UoM::convertValue($dRec->quantityFromBom, $pInfo->productRec->measureId, $dRec->measureId)){
-					$quantity = $convAmount;
-				}
-					
-				$dRec->quantityFromBom = $quantity;
-			}
-			
 			$index = $dRec->productId . "|" . $dRec->type;
 			$details[$index] = $dRec;
 		}
-		
+	
 		// Връщаме генерираните детайли
 		return $details;
 	}
@@ -451,7 +421,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
-	public static function on_AfterCreate($mvc, $rec)
+	protected static function on_AfterCreate($mvc, $rec)
 	{
 		// Ако записа е клониран не правим нищо
 		if($rec->_isClone === TRUE) return;
@@ -482,7 +452,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * @param int $id първичния ключ на направения запис
 	 * @param stdClass $rec всички полета, които току-що са били записани
 	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
 		// При активиране/оттегляне
 		if($rec->state == 'active' || $rec->state == 'rejected'){

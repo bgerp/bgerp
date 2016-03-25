@@ -246,6 +246,12 @@ class cat_BomDetails extends doc_Detail
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
 
     	if(is_array($params)){
+    		
+    		// Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
+    		$expr = str_replace('1/$T*', '_TEMP_', $expr);
+    		$expr = str_replace('$T', '$Trr', $expr);
+    		$expr = str_replace('_TEMP_', '1/$T*', $expr);
+    		
     		$expr = strtr($expr, $params);
     	}
     	
@@ -276,8 +282,9 @@ class cat_BomDetails extends doc_Detail
     	$context = array();
     	if(is_array($params)){
     		foreach ($params as $var => $val){
-    			if($value !== self::CALC_ERROR) {
-    				$context[$var] = "<span style='color:blue' title='{$val}'>{$var}</span>";
+    			if($value !== self::CALC_ERROR && $var != '$T') {
+    				$Double = cls::get('type_Double', array('params' => array('smartRound' => TRUE)));
+    				$context[$var] = "<span style='color:blue' title='{$Double->toVerbal($val)}'>{$var}</span>";
     			} else {
     				$context[$var] = "<span title='{$val}'>{$var}</span>";
     			}
@@ -370,6 +377,7 @@ class cat_BomDetails extends doc_Detail
     		
     		$context = array_keys($scope);
     		$context = array_combine($context, $context);
+    		unset($context['$T']);
     		$form->setSuggestions('propQuantity', $context);
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
