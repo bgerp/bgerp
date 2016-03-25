@@ -1,0 +1,100 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='scrolling-holder'>
+         <table class="innerTable border-table paddingCells">
+            <tbody>
+                <tr>
+                    <td colspan="2" class='centered'>  
+                        <div class="document-title">delivery protocol</div> 
+                        <!--ET_BEGIN operationSysId-->
+                        <small>( [#operationSysId#] )</small>
+                        <!--ET_END operationSysId-->
+                        <div style="padding-top:5px;">
+                                <span class="[#STATE_CLASS#]">
+                                    № <span class="bigData">[#id#]</span> /
+                                    <span class="bigData">[#valior#]</span>
+                                </span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>|Receiver|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Supplier|*</b></td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>[#contragentName#]</b>
+                        <div class='address-block'>
+                            [#contragentCountryId#]
+                            <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                        </div>
+                    </td>
+                    
+                    <td>
+                        <b>[#MyCompany#]</b>
+                        <div class='address-block'>
+                            [#MyAddress#]
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="lines"></div>
+    <div class="scrolling-holder">
+        <div class="details">
+            [#sales_ServicesDetails#]
+        </div>
+    </div>
+    <div class="lines"></div>
+    <div class="scrolling-holder">
+        <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+            <tbody>
+                <tr>
+                    <!--ET_BEGIN LEFT_COLUMN-->
+                    [#LEFT_COLUMN#]
+                    <td class="topCell first vtop">
+                        <table style='width:100%;'>
+                            <!--ET_BEGIN deliveryTime-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%;'>Deadline:</td>
+                                <td>[#deliveryTime#]</td>
+                            </tr>
+                            <!--ET_END deliveryTime-->
+                            <!--ET_BEGIN locationId-->
+                            <tr>
+                                <td class='quiet aright'>Location:</td>
+                                <td>[#locationId#]<!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress--></td>
+                            </tr>
+                            <!--ET_END locationId-->
+                            <!--ET_BEGIN note-->
+                            <tr>
+                                <td class='quiet' colspan=2>
+                                    <hr>
+                                    [#note#]
+                                </td>
+                            </tr>
+                            <!--ET_END note-->
+                        </table>
+                    </td>
+                    <!--ET_END LEFT_COLUMN-->
+                    <td class="topCell aright vtop" style='width:50%;'>
+                        <table class='centered' style='width:100%;'>
+                            <tr>
+                                <td class='centered' style='border-right:1px solid #999;width:50%;'>For the Recipient:</td>
+                                <td class='centered'>For the Supplier:</td>
+                            </tr>
+                            <tr>
+                                <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
+                                <td class='centered'><span class="sign_names nowrap">[#delivered#]</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

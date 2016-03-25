@@ -3,7 +3,7 @@
         <tbody>
             <tr>
                 <td colspan = "2" class='centered'>  
-                    <div class="document-title">|ДОГОВОР ЗА ПРОДАЖБА|*</div>
+                    <div class="document-title">|ДОГОВОР ЗА ИЗРАБОТКА|*</div>
                     <div style="padding-top:5px;">
                         <span class="[#STATE_CLASS#]">
                             № <span class="bigData">[#id#]</span> /
@@ -11,8 +11,8 @@
                         </span>
                     </div>
                      <!--ET_BEGIN reff-->
-			        |Ваш реф|*: <span class="bigData">[#reff#]</span>
-			        <!--ET_END reff-->
+                    |Ваш реф|*: <span class="bigData">[#reff#]</span>
+                    <!--ET_END reff-->
                 </td>
             </tr>
             <tr>
@@ -132,9 +132,9 @@
                             <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                         <!--ET_END deliveryBlock-->
                         <!--ET_BEGIN deliveryTermTime--><li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li><!--ET_END deliveryTermTime--> 
-                    	<!--ET_BEGIN commonConditionQuote-->
-	                    <li>[#commonConditionQuote#]</li>
-	                    <!--ET_END commonConditionQuote-->
+                        <!--ET_BEGIN commonConditionQuote-->
+                        <li>[#commonConditionQuote#]</li>
+                        <!--ET_END commonConditionQuote-->
                     </ol>
                 <!--ET_END conditions-->
                 <hr>
@@ -182,9 +182,9 @@
                   <!--ET_BEGIN sayWords-->
                   <hr>
                   <table class='no-border paddingCells business-doc-summary-table'>
-                  	<tr>
-                       	<td colspan = '3' style='text-align:right'>
-	                       |Словом|*: [#sayWords#]
+                    <tr>
+                        <td colspan = '3' style='text-align:right'>
+                           |Словом|*: [#sayWords#]
                         </td>
                      </tr>
                   </table>

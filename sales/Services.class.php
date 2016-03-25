@@ -183,16 +183,16 @@ class sales_Services extends deals_ServiceMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Протокол за извършени услуги', 
-    					  'content' => 'sales/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
+    					  'content' => 'sales/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
-    					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	$tplArr[] = array('name' => 'Delivery protocol',
-		    			  'content' => 'sales/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesNarrowEN.shtml',
 		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Delivery protocol with prices',
-		    			  'content' => 'sales/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesPricesNarrowEN.shtml',
 		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
