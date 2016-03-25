@@ -558,7 +558,7 @@ class core_LoginLog extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         // Поле за избор на потребител
-        $data->listFilter->FNC('users', 'users(rolesForAll = admin, rolesForTeams = admin)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll = admin, rolesForTeams = admin)', 'caption=Потребител,input,silent,autoFilter');
         
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
