@@ -79,7 +79,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
     	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък)', 'input=hidden,silent,smartCenter');
-    	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter');
+    	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory,smartCenter');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,smartCenter');
     	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,smartCenter,tdClass=nowrap');
