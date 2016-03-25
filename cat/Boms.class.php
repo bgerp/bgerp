@@ -1082,6 +1082,9 @@ class cat_Boms extends core_Master
     private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = FALSE, &$materials = array())
     {
     	// Изчисляваме количеството ако можем
+    	$rowParams = self::getProductParams($rec->resourceId);
+    	self::pushParams($params, $rowParams);
+    	
     	$scope = self::getScope($params);
     	$rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
     	if($rQuantity != cat_BomDetails::CALC_ERROR){
@@ -1149,9 +1152,13 @@ class cat_Boms extends core_Master
     		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
-    		$newParams = static::getProductParams($rec->resourceId);
-    		$newParams[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
-    		self::pushParams($params, $newParams);
+    		$flag = FALSE;
+    		if(!array_key_exists($rec->resourceId, $params)){
+    			$empty = array($rec->resourceId => array());
+    			self::pushParams($params, $empty);
+    			$flag = TRUE;
+    		}
+    		$params[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
     		
     		// Намираме кои редове са му детайли
     		$query = cat_BomDetails::getQuery();
@@ -1175,7 +1182,9 @@ class cat_Boms extends core_Master
     		}
 			
     		// Попваме данните, за да кешираме оригиналните
-    		self::popParams($params, $rec->resourceId);
+    		if($flag === TRUE){
+    			self::popParams($params, $rec->resourceId);
+    		}
     		
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
@@ -1193,6 +1202,8 @@ class cat_Boms extends core_Master
     	if($rec->type == 'pop' && $price !== FALSE){
     		$price *= -1;
     	}
+    	
+    	self::popParams($params, $rec->resourceId);
     	
     	// Връщаме намерената цена
     	return $price;
@@ -1363,6 +1374,7 @@ class cat_Boms extends core_Master
     	$dQuery->where("#bomId = {$rec->id}");
     	$dQuery->where("#parentId IS NULL");
     	while($detRec = $dQuery->fetch()){
+    		$detRec->params['$T'] = $quantity;
     		$quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
     		if($quantityE == cat_BomDetails::CALC_ERROR){
     			$quantityE = 0;
@@ -1383,7 +1395,7 @@ class cat_Boms extends core_Master
     	while($dRec = $query->fetch()){
     		$query2 = cat_BomDetails::getQuery();
     		$query2->where("#parentId = {$dRec->id}");
-    
+    		
     		$quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
     		if($quantityP == cat_BomDetails::CALC_ERROR){
     			$quantityP = 0;
@@ -1404,7 +1416,7 @@ class cat_Boms extends core_Master
     		// Подготвяме задачата за етапа, с него за производим
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
-    							 'plannedQuantity' => $quantityP,
+    							 'plannedQuantity' => $quantityP * $quantity,
     							 'productId' => $dRec->resourceId,
     							 'packagingId' => $dRec->packagingId,
     							 'quantityInPack' => $dRec->quantityInPack,

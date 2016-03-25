@@ -2233,7 +2233,9 @@ function sumOfChildrenWidth() {
 			$('#main-container > div.tab-control > .tab-row .row-holder').width( sum );
 			
 			var activeOffset = $('#main-container > div.tab-control > .tab-row .row-holder .tab.selected').offset();
-			$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+			if(activeOffset.left > $(window).width() - 30) {
+				$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
+			}			
 		}
 		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
 			var sum=0;

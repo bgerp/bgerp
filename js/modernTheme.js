@@ -14,6 +14,10 @@ function slidebars(){
  * Създава лентите и задава необходините опции спрямо ширината на страницата
  */
 function initElements() {
+	if($('.narrow .vertical .formTable').length) {
+		$('#main-container').addClass('unbeddedHeader');
+	}
+	
 	var viewportWidth = $(window).width();
 	
 	if(viewportWidth > 600){
@@ -25,9 +29,6 @@ function initElements() {
     if($('#main-container > .tab-control > .tab-row').length == 0) {
         $('#framecontentTop').css('border-bottom', '1px solid #ccc');
     }
-    if($('.narrow .vertical .formTable').length) {
-		$('#main-container').addClass('unbeddedHeader');
-	}
     
 	if(getCookie('menuInfo') == null && viewportWidth > 1264 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();

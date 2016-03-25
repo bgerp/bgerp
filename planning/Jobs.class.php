@@ -397,7 +397,7 @@ class planning_Jobs extends core_Master
     				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     					core_RowToolbar::createIfNotExists($row->_rowTools);
     					$row->_rowTools->addLink('Протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
-    					$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', FALSE);
+    					$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', 'warning', FALSE);
     				}
     			}
     		}
@@ -408,14 +408,9 @@ class planning_Jobs extends core_Master
     	if($rec->saleId){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
+    	$row->measureId = $shortUom;
     	
     	if($fields['-single']){
-    		$row->quantity .= " {$shortUom}";
-    		$row->quantityProduced .=  " {$shortUom}";
-    		$row->quantityFromTasks .=  " {$shortUom}";
-    		$row->quantityNotStored .=  " {$shortUom}";
-    		$row->quantityToProduce .=  " {$shortUom}";
-    		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
     		}
