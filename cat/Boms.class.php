@@ -1152,6 +1152,12 @@ class cat_Boms extends core_Master
     		}
     		
     		// Ако е етап, новите параметри са неговите данни + количестото му по тиража
+    		$flag = FALSE;
+    		if(!array_key_exists($rec->resourceId, $params)){
+    			$empty = array($rec->resourceId => array());
+    			self::pushParams($params, $empty);
+    			$flag = TRUE;
+    		}
     		$params[$rec->resourceId]['$T'] = ($rQuantity == cat_BomDetails::CALC_ERROR) ? $rQuantity : $t * $rQuantity;
     		
     		// Намираме кои редове са му детайли
@@ -1176,7 +1182,9 @@ class cat_Boms extends core_Master
     		}
 			
     		// Попваме данните, за да кешираме оригиналните
-    		//self::popParams($params, $rec->resourceId);
+    		if($flag === TRUE){
+    			self::popParams($params, $rec->resourceId);
+    		}
     		
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
@@ -1408,7 +1416,7 @@ class cat_Boms extends core_Master
     		// Подготвяме задачата за етапа, с него за производим
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
-    							 'plannedQuantity' => $quantityP,
+    							 'plannedQuantity' => $quantityP * $quantity,
     							 'productId' => $dRec->resourceId,
     							 'packagingId' => $dRec->packagingId,
     							 'quantityInPack' => $dRec->quantityInPack,

@@ -1827,7 +1827,16 @@ function addCmdRefresh(form) {
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
-    addCmdRefresh(form);
+	
+	// Памет за заредените вече файлове
+    if ( typeof refreshForm.loadedFiles == 'undefined' ) {
+        refreshForm.loadedFiles = [];
+    }
+	
+	// Добавяме команда за рефрешване на формата
+	addCmdRefresh(form);
+	
+	// Блокираме посочените полета да не се субмитват
 	if(typeof removeFields != 'undefined') {
 		var fieldsCnt = removeFields.length;
 		for (var i = 0; i < fieldsCnt; i++) {
@@ -1835,7 +1844,43 @@ function refreshForm(form, removeFields) {
 			$("[name^='" + removeFields[i] + "\\[']").prop('disabled', true);
 		}
 	}
-    form.submit();
+	
+	var frm = $(form);
+
+	frm.css('cursor', 'wait');
+	
+	$.ajax({
+		type: frm.attr('method'),
+		url: frm.attr('action'),
+		data: frm.serialize() + '&ajax_mode=1',
+		success: function (data) {
+
+			// Зареждаме стиловете
+			$.each(data.css, function(i, css) {
+				if(refreshForm.loadedFiles.indexOf(css) < 0) {
+					$("<link/>", {
+					   rel: "stylesheet",
+					   type: "text/css",
+					   href: css
+					}).appendTo("head");
+					refreshForm.loadedFiles.push(css);
+				}
+			});
+
+			frm.replaceWith(data.html);
+			
+			// Зареждаме скриптовете
+			$.each(data.js, function(i, js) {
+				if(refreshForm.loadedFiles.indexOf(js) < 0) {
+					$.getScript(js);
+					refreshForm.loadedFiles.push(js);
+				}
+			});
+			
+			// Показваме нормален курсур
+			frm.css('cursor', 'default');
+		}
+    });
 }
 
 
