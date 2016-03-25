@@ -157,7 +157,7 @@ class cond_ConditionsToCustomers extends core_Manager
         
     	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add')){
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink('', $addUrl, NULL, array("ef_icon=img/16/add.png", 'class' => 'addSalecond', 'title' => 'Добавяне на ново търговско условие')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array("ef_icon" => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на ново търговско условие')); 
         }
         
         $data->TabCaption = 'Условия';
