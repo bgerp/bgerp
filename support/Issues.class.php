@@ -743,10 +743,11 @@ class support_Issues extends core_Master
         $data->listFilter->setDefault('maintainers', $default);
 
         // Полетата да не са задължителни и да се субмитва формата при промяната им
-        $data->listFilter->setField('componentId ', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('componentId', array('mandatory' => FALSE));
-        $data->listFilter->setField('systemId', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->fields['componentId']->autoFilter = 'autoFilter';
         $data->listFilter->setField('systemId', array('mandatory' => FALSE));
+        $data->listFilter->fields['systemId']->autoFilter = 'autoFilter';
+        
         
         // Инпутваме
         $data->listFilter->input();
