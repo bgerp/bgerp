@@ -296,10 +296,29 @@ class crm_Groups extends core_Master
         
         $row->name = "<b>$row->name</b>";
         
+        // Ако с в листов иглед
         if($fields['-list']){
+            // Създаваме редовете съдържание
             $row->content = '<div>';
-            $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> " . $row->companiesCnt;
-            $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> " .  $row->personsCnt;
+            
+            // Ако групата се състои само от фирми
+            if ($rec->allow == 'companies') {
+                if (!$rec->personsCnt) {
+                    // ще показваме само броя на фирмите
+                    $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> " . $row->companiesCnt;
+                }
+            // ако групата е само за лица
+            } elseif ($rec->allow == 'persons') {
+                if (!$rec->companiesCnt) {
+                    // ще показваме само броя на лицата
+                    $row->content .= "<span style='font-size:14px;'>" . tr("Брой лица") . ":</span> " .  $row->personsCnt;
+                }
+            } else {
+                // в противен случай и двете
+                $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> " . $row->companiesCnt;
+                $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> " .  $row->personsCnt;
+            }
+            
             $row->content .= '</div>';
         }
     }
