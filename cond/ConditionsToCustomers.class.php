@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -20,55 +20,49 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Други условия';
-    
-    
-    /**
-     * Старо име на класа
-     */
-    var $oldClassName = 'salecond_ConditionsToCustomers';
+    public $title = 'Други условия';
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Друго условие';
+    public $singleTitle = 'Друго условие';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cond_Wrapper';
+    public $loadList = 'plg_RowTools, cond_Wrapper';
     
     
     /**
      * Поле за показване лентата с инструменти
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Кой може да вижда списъчния изглед
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
     
     /**
      * Кой може да вижда списъчния изглед
      */
-    var $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond';
     
     
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
+    public $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
     
     
     /**
      * Активен таб
      */
-    var $currentTab = 'Параметри';
+    public $currentTab = 'Параметри';
     
     
     /**
@@ -86,7 +80,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Извиква се след подготовка на формата
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -120,7 +114,7 @@ class cond_ConditionsToCustomers extends core_Manager
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    static function getRemainingOptions($cClass, $cId)
+    private static function getRemainingOptions($cClass, $cId)
     {
         $options = cond_Parameters::makeArray4Select();
         if(count($options)) {
@@ -171,7 +165,7 @@ class cond_ConditionsToCustomers extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$type = cond_Parameters::fetchField($rec->conditionId, 'type');
         if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
@@ -248,7 +242,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if ($action == 'add' && isset($rec) && (empty($rec->cClass) || empty($rec->cId))) {
         	$res = 'no_one';
@@ -299,7 +293,7 @@ class cond_ConditionsToCustomers extends core_Manager
 	/**
      * Преди изтриване се обновяват свойствата на перата
      */
-    public static function on_AfterDelete($mvc, &$res, $query)
+    protected static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
         	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){
