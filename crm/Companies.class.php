@@ -79,7 +79,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_AutoFilter';
     
     
     /**
@@ -286,7 +286,7 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,autoFilter');
         
         // Вземаме стойността по подразбиране, която може да се покаже
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
@@ -302,11 +302,11 @@ class crm_Companies extends core_Master
         }
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
-        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent,refreshForm');
+        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent,autoFilter');
         
         // Филтриране по група
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
-            'placeholder=Всички групи,caption=Група,input,silent,refreshForm');
+            'placeholder=Всички групи,caption=Група,input,silent,autoFilter');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
