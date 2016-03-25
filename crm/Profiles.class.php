@@ -138,8 +138,8 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
-        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,tdClass=nowrap');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
         $this->XPR('lastTime',  'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)', 'input=none,smartCenter');
 
