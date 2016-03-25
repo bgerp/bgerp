@@ -2328,7 +2328,7 @@ span.sharing-history-title {
 #cmsNavigation .level1 {
   font-size: 16px;
   font-weight: bold;
-  margin-top: 10px;
+  padding-top: 10px;
   margin-bottom: 2px; }
 
 #cmsNavigation div:first-child {
