@@ -1061,6 +1061,10 @@ class core_Form extends core_FieldSet
             $method = 'render' . $view;
             $tpl->append($this->$method(), "FORM_{$view}");
         }
+
+        if($this->cmd == 'refresh' && Request::get('ajax_mode')) {
+            $tpl->ajaxOutput();
+        }
         
         return $tpl;
     }
