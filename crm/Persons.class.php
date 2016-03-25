@@ -299,7 +299,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,autoFilter');
         
         // Вземаме стойността по подразбиране, която може да се покаже
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
@@ -316,10 +316,10 @@ class crm_Persons extends core_Master
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
 
-        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent,refreshForm');
+        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent,autoFilter');
                                          
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent,refreshForm');
-        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent,refreshForm');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent,autoFilter');
+        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent,autoFilter');
 
         $data->listFilter->view = 'horizontal';
 
