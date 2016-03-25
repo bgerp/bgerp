@@ -82,7 +82,7 @@ class sens2_DataLogs extends core_Manager
 
         $this->setDbIndex('time');
         
-        $this->dbEngine = 'innoDB';
+        $this->dbEngine = 'InnoDB';
     }
     
     

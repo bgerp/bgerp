@@ -78,7 +78,7 @@ class core_Locks extends core_Manager
         
         $this->setDbEngine = 'memory';
         
-        $this->dbEngine = 'innoDB';
+        $this->dbEngine = 'InnoDB';
     }
     
     

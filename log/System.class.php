@@ -115,7 +115,7 @@ class log_System extends core_Manager
         
         $this->setDbIndex('type, createdOn, className');
         
-        $this->dbEngine = 'innoDB';
+        $this->dbEngine = 'InnoDB';
     }
     
     
