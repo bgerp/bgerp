@@ -83,7 +83,7 @@ class core_Packs extends core_Manager
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
         
-        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани, hidden=Без инсталатор, deprecated=За изтриване)', 'caption=Състояние,refreshForm,column=none,input=none,notNull,hint=Състояние на пакетите');
+        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани, hidden=Без инсталатор, deprecated=За изтриване)', 'caption=Състояние,column=none,input=none,notNull,hint=Състояние на пакетите');
         
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
@@ -447,6 +447,7 @@ class core_Packs extends core_Manager
         $stateField = $data->listFilter->getField('state');
         unset($stateField->type->options['deprecated']);
         $stateField->type->options = array('all' => 'Всички') + $stateField->type->options;
+        $stateField->autoFilter = 'autoFilter';
         
         $data->listFilter->setDefault('state', 'all');
         
