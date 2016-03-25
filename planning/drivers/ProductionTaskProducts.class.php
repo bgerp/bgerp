@@ -78,6 +78,12 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Кой има право да добавя артикули към активна задача?
+     */
+    public $canAddtoactive = 'planning,ceo';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'planning,ceo';
@@ -261,7 +267,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		if($state != 'draft'){
-    			$requiredRoles = 'no_one';
+    			$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
     		}
     	}
     }
