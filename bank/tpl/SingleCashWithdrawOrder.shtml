@@ -149,10 +149,5 @@
         </div>
         <!-- END belejka -->    
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
     <!-- END belejka_container -->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
