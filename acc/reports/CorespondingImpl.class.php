@@ -123,13 +123,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		if(count($sets)){
     			$i = 1;
     			foreach ($sets as $listId => $caption){
-    				$form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойства|*");
+    				$form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойства|*,placeholder=Без показване,class=w100");
     				$form->FLD("list{$i}", 'int', "input=hidden");
     				$form->setDefault("list{$i}", $listId);
     				
     				// За всяка номенклатура даваме избор да и се изберат свойства
     				$items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
     				$features = acc_Features::getFeatureOptions(array_keys($items));
+
     				$features = array('' => '') + $features + array('*' => $caption);
     				$form->setOptions("feat{$i}", $features);
     				$i++;
@@ -187,7 +188,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	// Проверяваме дали началната и крайната дата са валидни
     	if($form->isSubmitted()){
     		if($form->rec->to < $form->rec->from){
-    			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    			$form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
     		}
     		
     		if($form->rec->orderBy == ''){
