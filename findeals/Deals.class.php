@@ -43,7 +43,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg, plg_Sorting, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues';
     
     
     /**
@@ -192,6 +192,14 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'currencyId'   => 'lastDocUser|lastDoc|CoverMethod',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -201,7 +209,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('accountId', "acc_type_Account", 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
-    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код,silent,removeAndRefreshForm=currencyRate');
     	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс');
     	
     	$this->FLD('companyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Втори контрагент->Фирма,input');
@@ -282,9 +290,6 @@ class findeals_Deals extends deals_DealBase
     	 
     	$form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
     	$form->setReadOnly('contragentName');
-    	 
-    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
-    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	 
     	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
     	
