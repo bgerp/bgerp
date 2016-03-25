@@ -2303,7 +2303,9 @@ span.sharing-history-title {
 #cmsNavigation div.nav_item {
   padding: 1px;
   line-height: normal;
-  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif; }
+  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
+  display: block;
+  clear: both; }
 
 #cmsNavigation a {
   -moz-border-radius: 3px;
@@ -2326,7 +2328,7 @@ span.sharing-history-title {
 #cmsNavigation .level1 {
   font-size: 16px;
   font-weight: bold;
-  margin-top: 10px;
+  padding-top: 10px;
   margin-bottom: 2px; }
 
 #cmsNavigation div:first-child {
