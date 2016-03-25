@@ -100,7 +100,13 @@ class acc_Features extends core_Manager
      */
     public $listItemsPerPage = 40;
     
-    
+
+    /**
+     * Масив в който се записват перата, които имат променени свойства по времето на хита
+     */
+    private $updatedFeaturesOnItem = array();
+
+
     /**
      * Описание на модела
      */
@@ -133,6 +139,8 @@ class acc_Features extends core_Manager
      */
     public static function syncItem($itemId)
     {
+        $self = cls::get(get_called_class());
+
         $itemRec = acc_Items::fetch($itemId);
         
         if(empty($itemRec)) return;
@@ -150,7 +158,6 @@ class acc_Features extends core_Manager
         // Ако свойствата не са масив ги пропускаме
         if(!is_array($features)) return;
         
-        $self = cls::get(get_called_class());
         $updated = array();
         $now = dt::now();
         
@@ -177,6 +184,7 @@ class acc_Features extends core_Manager
                     // Ако има такъв запис и той е със същата стойност не обновяваме
                     if($value == $exRec->value){
                     	$update = FALSE;
+                        $self->updatedFeaturesOnItem[$itemId] = TRUE;
                     }
                 }
                 
@@ -212,9 +220,10 @@ class acc_Features extends core_Manager
         
         $query->show('id,state');
         
-        while($rec = $query->fetch()){
+        while($rec = $query->fetch("#state != 'closed'")){
             $rec->state = 'closed';
             $this->save($rec);
+            $this->updatedFeaturesOnItem[$itemId] = TRUE;
         }
     }
     
@@ -294,6 +303,25 @@ class acc_Features extends core_Manager
     	}
     }
     
+    
+    /**
+     * Овновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        $lists = array();
+        foreach($mvc->updatedFeaturesOnItem as $itemId => $true) {
+            $iRec = acc_Items::fetch($itemId);
+            $lists = arr::combine($lists, keylist::toArray($iRec->lists));
+        }
+
+        foreach($lists as $listId) {
+            acc_Lists::updateFeatureList($listId);
+        }
+    }
+
     
     /**
      * Синхронизиране на таблицата със свойствата по крон

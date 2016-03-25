@@ -110,6 +110,7 @@ class acc_Setup extends core_ProtoSetup
     	'migrate::updateClosedItems3',
     	'migrate::fixExpenses',
     	'migrate::updateItemsEarliestUsedOn',
+        'migrate::updateAllFL',
     );
     
     
@@ -284,6 +285,18 @@ class acc_Setup extends core_ProtoSetup
         }
     }
     
+    
+    /**
+     * Обновява всички свойства, които имат перата от списъците
+     */
+    function updateAllFL()
+    {
+        $query = acc_Lists::getQuery();
+        while($rec = $query->fetch()) {
+            acc_Lists::updateFeatureList($rec->id);
+        }
+    }
+
     
     /**
      * Ъпдейт на затворените пера
