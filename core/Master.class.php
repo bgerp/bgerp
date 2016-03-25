@@ -453,6 +453,9 @@ class core_Master extends core_Manager
         
         if(isset($this->singleLayoutFile)) {
             $layoutText = getTplFromFile($this->singleLayoutFile);
+            if(Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
+            	$layoutText = getTplFromFile($this->singleLayoutFileNarrow);
+            }
         } elseif(isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {
@@ -637,9 +640,11 @@ class core_Master extends core_Manager
         // Масива за URL, ако няма права за сингъла е празен
         $url = $me->getSingleUrlArray($id);
         
+        // Иконата
+        $img = sbf($me->getIcon($id), '"', $absolute);
         
         // Вземаме линка
-        $link = ht::createLink($name, $url, NULL, "ef_icon=" . $me->getIcon($id));
+        $link = ht::createLink($name, $url, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
         
         return $link;
     }

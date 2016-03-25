@@ -47,9 +47,15 @@ class bank_SpendingDocuments extends bank_Document
     
     
     /**
-     * Файл с шаблон за единичен изглед на статия
+     * Файл с шаблон за единичен изглед 
      */
     public $singleLayoutFile = 'bank/tpl/SingleCostDocument.shtml';
+    
+
+    /**
+     * Файл с шаблон за единичен изглед в мобилен
+     */
+    public $singleLayoutFileNarrow = 'bank/tpl/SingleCostDocumentNarrow.shtml';
     
     
     /**
