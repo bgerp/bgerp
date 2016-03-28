@@ -29,7 +29,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, cms_Wrapper, plg_AutoFilter';
+	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, cms_Wrapper';
 	
 
     /**

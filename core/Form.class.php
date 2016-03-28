@@ -671,6 +671,8 @@ class core_Form extends core_FieldSet
                     $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
                 } elseif($field->refreshForm) {
                     $attr['onchange'] .= "refreshForm(this.form);";
+                } elseif($field->autoFilter && strtolower($this->getMethod()) == 'get') {
+                    $attr['onchange'] = 'this.form.submit();';
                 }
                 
                 if ($field->placeholder) {

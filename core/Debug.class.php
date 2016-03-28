@@ -586,6 +586,14 @@ class core_Debug
      */
     public static function prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update = NULL)
     {
+        // Добавяме времето и паметта от настройките и от хита към контекста
+        if (is_array($contex)) {
+            $contex['PEAK_MEMORY_USAGE'] = memory_get_peak_usage();
+            $contex['MEMORY_USAGE'] = memory_get_usage();
+            $contex['MAX_EXECUTION_TIME'] = ini_get('max_execution_time');
+            $contex['MEMORY_LIMIT'] = ini_get('memory_limit');
+        }
+        
         $state = array( 'errType'   => $errType, 
                         'errTitle'  => $errTitle, 
                         'errDetail' => $errDetail, 
@@ -597,8 +605,7 @@ class core_Debug
                         'update'    => $update,
                         
             );
-
-
+        
         // Изваждаме от титлата httpStatusCode, ако е наличен
         if($state['httpStatusCode'] = (int) $errTitle) {
             $pos = strpos($errTitle, $state['httpStatusCode']);

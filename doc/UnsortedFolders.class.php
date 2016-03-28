@@ -226,7 +226,7 @@ class doc_UnsortedFolders extends core_Master
     {
     	$cu = core_Users::getCurrent();
     	
-    	$data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
+    	$data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
     	
     	// Задаваме стойността по подразбиране
     	//$data->listFilter->setDefault('selectedUsers', $cu);
@@ -438,7 +438,7 @@ class doc_UnsortedFolders extends core_Master
     	$form = cls::get('core_Form');
     	$form->FNC('order', 'enum(start=По начало,
 					        	  end=По край,
-					        	  alphabetic=Азбучно)', 'caption=Подредба,width=100%,input,silent,refreshForm');
+					        	  alphabetic=Азбучно)', 'caption=Подредба,width=100%,input,silent,autoFilter');
     	
     	$form->view = 'horizontal';
     	 

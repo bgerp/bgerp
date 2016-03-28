@@ -115,7 +115,7 @@ class log_System extends core_Manager
         
         $this->setDbIndex('type, createdOn, className');
         
-        $this->dbEngine = 'innoDB';
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -170,11 +170,11 @@ class log_System extends core_Manager
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
-        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,refreshForm, allowEmpty, silent');
+        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,autoFilter, allowEmpty, silent');
         
         $data->listFilter->fields['type']->caption = 'Тип';
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
-        $data->listFilter->fields['type']->refreshForm = 'refreshForm';
+        $data->listFilter->fields['type']->autoFilter = 'autoFilter';
         
         $data->listFilter->setSuggestions('class', core_Classes::makeArray4Select('name'));
         $data->listFilter->showFields = 'date, class, type';

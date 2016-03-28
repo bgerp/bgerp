@@ -1,0 +1,84 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='scrolling-holder'>
+         <table class="innerTable border-table paddingCells">
+                <tbody>
+                    <tr>
+                        <td colspan = "2" class='centered'>  
+                            <div class="document-title">|разходен банков ордер|*</div>
+                            <!--ET_BEGIN operationSysId-->
+                            <small>( [#operationSysId#] )</small>
+                            <!--ET_BEGIN operationSysId-->
+                            <div style="padding-top:5px;">
+                                <span class="[#STATE_CLASS#]">
+                                    № <span class="bigData">[#id#]</span> /
+                                    <span class="bigData">[#valior#]</span>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell custom-header-bg" style='width:35%;'><b>|Платец|*</b></td>
+                        <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>[#companyName#]</b>
+	                        <div class='address-block'>
+	                            [#companyAddress#]
+	                        </div>
+                        </td>
+                        <td>
+                            <b>[#contragentName#]</b>
+	                        <div class='address-block'>
+	                            [#contragentAddress#]
+	                        </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+         </div>
+         <div class='lines'></div>
+         <div class='scrolling-holder'>
+            <table class='border-table'>
+                <tr>
+                    <td  class='aleft' style='padding-left:10px; width:67%'>
+                        <table class='no-border'>
+                            <tr>
+                                <td style='width:98px' class='nowrap'>|От сметка|*: </td>
+                                <td><b>[#ownAccount#]</b></td>
+                            </tr>
+                            <!--ET_BEGIN contragentIban-->
+                            <tr>
+                                <td class='nowrap'>|Към сметка|*:</td>
+                                <td><b>[#contragentIban#]</b> </td>
+                            </tr>
+                            <!--ET_END contragentIban-->
+                            <tr>
+                                <td>|Основание|*: </td>
+                                <td> [#reason#]</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table class='no-border' style='width:98%'>
+                            <tr>
+                               <td>|Сума|*: </td>
+                               <td  style='text-align:right'><span><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b style='font-size:1.2em'>[#amount#]</b></span></td>
+                            </tr>
+                            <!--ET_BEGIN amountDeal-->
+                            <tr style='font-size: 0.9em'>
+                                <td class='nowrap'>|Платени по сделката|*: </td>
+                                <td style='text-align:right'><span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b></td>
+                            </tr>
+                            <tr style='font-size: 0.9em'>
+                               <td>|Курс|*:</td>
+                               <td  style='text-align:right;white-space: nowrap;'><b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></td>
+                            </tr>
+                            <!--ET_END amountDeal-->
+                       </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

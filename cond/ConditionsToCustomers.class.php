@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -20,55 +20,61 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Други условия';
-    
-    
-    /**
-     * Старо име на класа
-     */
-    var $oldClassName = 'salecond_ConditionsToCustomers';
+    public $title = 'Други условия';
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Друго условие';
+    public $singleTitle = 'Друго условие';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cond_Wrapper';
+    public $loadList = 'plg_RowTools, cond_Wrapper';
     
     
     /**
      * Поле за показване лентата с инструменти
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Кой може да вижда списъчния изглед
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
     
     /**
-     * Кой може да вижда списъчния изглед
+     * Кой може да добавя
      */
-    var $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond';
+    
+    
+    /**
+     * Кой може да редактира
+     */
+    public $canEdit = 'ceo,cond';
+    
+    
+    /**
+     * Кой може да изтрива
+     */
+    public $canDelete = 'ceo,cond';
     
     
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
+    public $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
     
     
     /**
      * Активен таб
      */
-    var $currentTab = 'Параметри';
+    public $currentTab = 'Параметри';
     
     
     /**
@@ -78,7 +84,7 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
-        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent');
+        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     }
     
@@ -86,19 +92,17 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Извиква се след подготовка на формата
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
     	$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
-    	if(!$rec->id){
-    		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['value'].value ='';this.form.submit();"));
-    	} else {
+    	if(isset($rec->id)){
     		$form->setReadOnly('conditionId');
     	}
     	
-    	if($rec->conditionId){
+    	if(isset($rec->conditionId)){
     		$condType = cond_Parameters::fetchField($rec->conditionId, 'type');
     		
     		if($condType == 'delCond'){
@@ -120,7 +124,7 @@ class cond_ConditionsToCustomers extends core_Manager
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    static function getRemainingOptions($cClass, $cId)
+    private static function getRemainingOptions($cClass, $cId)
     {
         $options = cond_Parameters::makeArray4Select();
         if(count($options)) {
@@ -157,7 +161,7 @@ class cond_ConditionsToCustomers extends core_Manager
         
     	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add')){
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink('', $addUrl, NULL, array("ef_icon=img/16/add.png", 'class' => 'addSalecond', 'title' => 'Добавяне на ново търговско условие')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array("ef_icon" => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на ново търговско условие')); 
         }
         
         $data->TabCaption = 'Условия';
@@ -171,7 +175,7 @@ class cond_ConditionsToCustomers extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$type = cond_Parameters::fetchField($rec->conditionId, 'type');
         if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
@@ -248,7 +252,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if ($action == 'add' && isset($rec) && (empty($rec->cClass) || empty($rec->cId))) {
         	$res = 'no_one';
@@ -299,7 +303,7 @@ class cond_ConditionsToCustomers extends core_Manager
 	/**
      * Преди изтриване се обновяват свойствата на перата
      */
-    public static function on_AfterDelete($mvc, &$res, $query)
+    protected static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
         	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){

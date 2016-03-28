@@ -120,7 +120,7 @@ class log_Data extends core_Manager
          $this->setDbIndex('actionCrc');
          $this->setDbIndex('classCrc,objectId');
 
-         $this->dbEngine = 'innoDB';
+         $this->dbEngine = 'InnoDB';
     }
     
     
@@ -502,14 +502,14 @@ class log_Data extends core_Manager
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
-        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител, silent, refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител, silent, autoFilter');
         
         $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
 		$data->listFilter->FNC('to', 'datetime', 'caption=До');
 		$data->listFilter->FNC('class', 'varchar', 'caption=Клас,removeAndRefreshForm=object, allowEmpty, silent');
-		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,refreshForm, allowEmpty, silent');
+		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,autoFilter, allowEmpty, silent');
         
 		$def = setIfNot($def, Request::get('users'), 'all_users');
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);

@@ -233,7 +233,7 @@ class currency_CurrencyRates extends core_Detail
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $chart = Request::get('Chart');
-        $data->listFilter->FNC('currencySearch', 'key(mvc=currency_Currencies, select=code, allowEmpty, where=#code !\\= \\\'EUR\\\')', 'caption=Валута,refreshForm,input=input');
+        $data->listFilter->FNC('currencySearch', 'key(mvc=currency_Currencies, select=code, allowEmpty, where=#code !\\= \\\'EUR\\\')', 'caption=Валута,autoFilter,input=input');
         
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');

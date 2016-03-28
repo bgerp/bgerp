@@ -125,7 +125,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy,createdOn,createdBy';
+    public $listFields = 'title=Документ, dueDate, quantity=Планирано,quantityFromTasks, quantityProduced, quantityNotStored=Незаскладено, folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -394,11 +394,9 @@ class planning_Jobs extends core_Master
     		
     		if($rec->quantityNotStored > 0){
     			if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    					core_RowToolbar::createIfNotExists($row->_rowTools);
-    					$row->_rowTools->addLink('Протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
-    					$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', 'warning', FALSE);
-    				}
+    				core_RowToolbar::createIfNotExists($row->_rowTools);
+    				$row->_rowTools->addLink('Нов протокол', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), array('order' => 19, 'ef_icon' => "img/16/page_paste.png", 'title' => "Създаване на протокол за производство"));
+    				$row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', 'warning', FALSE);
     			}
     		}
     		
@@ -409,6 +407,26 @@ class planning_Jobs extends core_Master
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
     	$row->measureId = $shortUom;
+    	
+    	$tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
+    	$diff = $rec->quantity * $tolerance;
+    	
+    	foreach (array('quantityFromTasks', 'quantityProduced') as $fld){
+    		if($rec->{$fld} < ($rec->quantity - $diff)){
+    			$color = 'black';
+    		} elseif($rec->{$fld} >= ($rec->quantity - $diff) && $rec->{$fld} <= ($rec->quantity + $diff)){
+    			$color = 'green';
+    		} else {
+    			$row->{$fld} = ht::createHint($row->{$fld}, 'Произведено е повече от планираното', 'warning', FALSE);
+    			$color = 'red';
+    		}
+    		 
+    		if($rec->{$fld} != 0){
+    			$quantityRow = new core_ET("<span style='color:[#color#]'>[#quantity#]</span>");
+    			$quantityRow->placeArray(array('color' => $color, 'quantity' => $row->{$fld}));
+    			$row->{$fld} = $quantityRow;
+    		}
+    	}
     	
     	if($fields['-single']){
     		if(isset($rec->deliveryPlace)){
@@ -429,22 +447,6 @@ class planning_Jobs extends core_Master
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
     			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
-    		}
-    		
-    		$tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
-    		$diff = $rec->quantity * $tolerance;
-    		if($rec->quantityFromTasks < ($rec->quantity - $diff)){
-    			$color = 'blue';
-    		} elseif($rec->quantityFromTasks >= ($rec->quantity - $diff) && $rec->quantityFromTasks <= ($rec->quantity + $diff)){
-    			$color = 'green';
-    		} else {
-    			$color = 'red';
-    		}
-    		
-    		if($rec->quantityFromTasks != 0){
-    			$quantityRow = new core_ET("<span style='color:[#color#]'>[#quantity#]</span>");
-    			$quantityRow->placeArray(array('color' => $color, 'quantity' => $row->quantityFromTasks));
-    			$row->quantityFromTasks = $quantityRow;
     		}
     	}
     	

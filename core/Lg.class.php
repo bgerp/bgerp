@@ -68,7 +68,7 @@ class core_Lg extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2,plg_AutoFilter';
+    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools2';
     
     
     /**
@@ -76,7 +76,7 @@ class core_Lg extends core_Manager
      */
     function description()
     {
-        $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,autoFilter,optionsFunc=core_Lg::getLangOptions, suggestions=');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,optionsFunc=core_Lg::getLangOptions, suggestions=');
         $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
 

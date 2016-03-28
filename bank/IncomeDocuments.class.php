@@ -53,6 +53,12 @@ class bank_IncomeDocuments extends bank_Document
     
     
     /**
+     * Файл с шаблон за единичен изглед в мобилен
+     */
+    public $singleLayoutFileNarrow = 'bank/tpl/SingleIncomeDocumentNarrow.shtml';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = "4.3|Финанси";

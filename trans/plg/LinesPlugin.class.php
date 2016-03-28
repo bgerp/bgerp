@@ -59,7 +59,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		}
 		
 		$mvc->FLD('weightInput', 'cat_type_Weight', 'input=none');
-		$mvc->FLD('volumeInput', 'cat_type_Weight', 'input=none');
+		$mvc->FLD('volumeInput', 'cat_type_Volume', 'input=none');
 		$mvc->FLD('palletCountInput', 'int', 'input=none');
 	}
 	

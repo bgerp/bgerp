@@ -1108,8 +1108,8 @@ class fileman_Files extends core_Master
         
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('fName', 'varchar', 'caption=Име на файл,input,silent');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
-        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'vertical';

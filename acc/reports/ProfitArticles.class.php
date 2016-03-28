@@ -110,11 +110,11 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     public function checkEmbeddedForm(core_Form &$form)
     {
     	// Размяна, ако периодите са объркани
-    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
-    		$mid = $form->rec->from;
-    		$form->rec->from = $form->rec->to;
-    		$form->rec->to = $mid;
-    	}
+        if($form->isSubmitted()){
+            if($form->rec->to < $form->rec->from){
+                $form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+            }
+        }
     }
 
 

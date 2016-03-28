@@ -254,7 +254,7 @@ class price_Updates extends core_Manager
     	$this->savePrimeCost($rec);
     	
     	// Редирект към списъчния изглед
-    	return followRetUrl(NULL, 'Себестойностите са обновени успено');
+    	return followRetUrl(NULL, 'Себестойностите са обновени успешно');
     }
     
     

@@ -31,7 +31,7 @@ class social_Followers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg, plg_AutoFilter';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg';
     
     
     /**

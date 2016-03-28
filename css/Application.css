@@ -2305,7 +2305,8 @@ span.sharing-history-title {
   line-height: normal;
   font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
   display: block;
-  clear: both; }
+  clear: both;
+  margin-bottom: 3px; }
 
 #cmsNavigation a {
   -moz-border-radius: 3px;

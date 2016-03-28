@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ *
+ */
+defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
+
 
 /**
  * Задава кодировката на базата данни по подразбиране
@@ -143,12 +148,8 @@ class core_Db extends core_BaseClass
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
-            // Запомняме връзката към MySQL сървъра за по-късна употреба
-            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}");
-            $link->query("SET COLLATION_CONNECTION={$this->dbCollation}");
-            $link->query("SET CHARACTER_SET_CLIENT={$this->dbCharsetClient}");
- 
-
+            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient};");
+            
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
@@ -371,7 +372,7 @@ class core_Db extends core_BaseClass
     {
         // Установяване на параметрите по подразбиране
         setIfNot($params, array(
-                'ENGINE' => 'MYISAM',
+                'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
                 'CHARACTER' => 'utf8',
                 'COLLATION' => 'utf8_bin'
             ));

@@ -193,7 +193,7 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-        $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
+        $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, autoFilter');
         $form->FLD('emailSearch' , 'varchar', 'caption=Имейл, allowEmpty');
         
         // Вземам всички акаунти за които може да се създаде имейл

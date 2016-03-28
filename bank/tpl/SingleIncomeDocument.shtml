@@ -38,12 +38,12 @@
                                 <table class='no-border'>
                                    <!--ET_BEGIN contragentIban-->
                                     <tr>
-                                        <td style='width:98px'>|От сметка|*: </td>
+                                        <td style='width:98px' class='nowrap'>|От сметка|*: </td>
                                         <td><b>[#contragentIban#]</b></td>
                                     </tr>
                                     <!--ET_END contragentIban-->
                                     <tr>
-                                        <td style='width:98px'>|Към сметка|*:</td>
+                                        <td style='width:98px'  class='nowrap'>|Към сметка|*:</td>
                                         <td><b>[#ownAccount#]</b> </td>
                                     </tr>
                                     

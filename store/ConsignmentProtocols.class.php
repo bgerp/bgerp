@@ -426,7 +426,8 @@ class store_ConsignmentProtocols extends core_Master
     function loadSetupData()
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml', 
+    			 'narrowContent' => 'store/tpl/SingleLayoutConsignmentProtocolNarrow.shtml', 'lang' => 'bg');
     	
     	$res = '';
     	$res .= doc_TplManager::addOnce($this, $tplArr);
