@@ -441,6 +441,9 @@ class label_Labels extends core_Master
                 Request::setProtected('classId, objId');
                 $redirectUrl['classId'] = $classId;
                 $redirectUrl['objId'] = $objId;
+                if($title = Request::get('title', 'varchar')){
+                	$redirectUrl['title'] = $title;
+                }
             } else {
                 foreach ($labelDataArr as $labelName => $val) {
                     $redirectUrl[$labelName] = $val;
