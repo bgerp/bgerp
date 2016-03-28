@@ -447,11 +447,11 @@ class cms_Articles extends core_Master
             } else {
                 $aAttr = array();
             }
-            $navTpl->append("<div class='nav_item level{$l->level} {$selected}'{$style}>");
+            $navTpl->append("<div class='nav_item level{$l->level} {$selected}' {$style}>");
             if($l->url) {
                 $navTpl->append(ht::createLink($l->title, $l->url, NULL, $aAttr));
             } else {
-                $navTpl->append("<span style='>" . $l->title ."</span>");
+                $navTpl->append("<span>" . $l->title ."</span>");
             }
 
             if($l->editLink) {
