@@ -199,6 +199,7 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
+    		'migrate::cacheInvoicePaymentType',
         );
 
         
@@ -298,6 +299,9 @@ class sales_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Ъпдейт на кеширването на начина на плащане на ф-те
+     */
     function cacheInvoicePaymentType()
     {
     	core_App::setTimeLimit(300);
@@ -319,7 +323,5 @@ class sales_Setup extends core_ProtoSetup
     			reportException($e);
     		}
     	}
-    	
-    	bp();
     }
 }
