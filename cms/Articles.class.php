@@ -464,9 +464,9 @@ class cms_Articles extends core_Master
             }
             $navTpl->append("</div>");
         }
-
+        
         if($data->addLink) {
-            $navTpl->append( "<div style='padding:2px; border:solid 1px #ccc; background-color:#eee; margin-top:10px;font-size:0.7em'>");
+            $navTpl->append( "<div style='padding:2px; border:solid 1px #ccc; background-color:#eee; margin:15px 0;font-size:0.7em'>");
             $navTpl->append($data->addLink);
             $navTpl->append( "</div>");
         }
