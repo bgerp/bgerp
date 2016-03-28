@@ -557,6 +557,8 @@ class core_Html
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow') ) {
             $attr = self::addBackgroundIcon($attr);
+        } else {
+            unset($attr['ef_icon']);
         }
 
         // Ако нямаме JavaScript правим хипервръзка
@@ -634,6 +636,8 @@ class core_Html
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow') ) {
             $attr = self::addBackgroundIcon($attr);
+        } else {
+            unset($attr['ef_icon']);
         }
 
         $btn = self::createElement('input', $attr);
@@ -668,6 +672,8 @@ class core_Html
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow') ) {
             $attr = self::addBackgroundIcon($attr);
+        } else {
+            unset($attr['ef_icon']);
         }
 
         $btn = self::createElement('input', $attr);
