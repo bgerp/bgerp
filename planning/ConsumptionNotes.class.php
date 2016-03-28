@@ -102,7 +102,13 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public $singleLayoutFile = 'planning/tpl/SingleLayoutConsumptionNote.shtml';
 	
-	 
+	
+	/**
+	 * Файл за единичния изглед в мобилен
+	 */
+	public $singleLayoutFileNarrow = 'planning/tpl/SingleLayoutConsumptionNoteNarrow.shtml';
+	
+	
 	/**
 	 * Групиране на документите
 	 */

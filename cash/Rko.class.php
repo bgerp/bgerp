@@ -54,6 +54,12 @@ class cash_Rko extends cash_Document
     
     
     /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    public $singleLayoutFileNarrow = 'cash/tpl/RkoNarrow.shtml';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = "4.2|Финанси";

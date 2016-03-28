@@ -453,6 +453,9 @@ class core_Master extends core_Manager
         
         if(isset($this->singleLayoutFile)) {
             $layoutText = getTplFromFile($this->singleLayoutFile);
+            if(Mode::is('screenMode', 'narrow') && isset($this->singleLayoutFileNarrow)) {
+            	$layoutText = getTplFromFile($this->singleLayoutFileNarrow);
+            }
         } elseif(isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {

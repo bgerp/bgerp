@@ -103,7 +103,7 @@ class doc_Search extends core_Manager
         $data->listFilter->setField('scopeFolderId', 'input');
     	
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-    	$data->listFilter->setField('search', 'refreshForm,caption=Ключови думи');
+    	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
     
         $data->listFilter->setDefault('author', 'all_users');

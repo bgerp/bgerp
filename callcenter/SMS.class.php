@@ -78,7 +78,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter, callcenter_ListOperationsPlg, plg_Modified';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows, callcenter_ListOperationsPlg, plg_Modified';
     
     
     /**
@@ -780,7 +780,7 @@ class callcenter_SMS extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {    
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
         
         // Поле за търсене по номера
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');

@@ -127,7 +127,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
-        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по колети->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по логистични единици->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
     }
 

@@ -755,10 +755,10 @@ class cat_Products extends embed_Manager {
     	$orderOptions = arr::fromArray($orderOptions);
     	
     	$data->listFilter->FNC('order', "enum({$orderOptions})",
-            'caption=Подредба,input,silent,remember,refreshForm');
+            'caption=Подредба,input,silent,remember,autoFilter');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Маркери,caption=Група,input,silent,remember,refreshForm');
+            'placeholder=Маркери,caption=Група,input,silent,remember,autoFilter');
 		
         $data->listFilter->FNC('meta1', 'enum(all=Свойства,
        				canSell=Продаваеми,
@@ -766,7 +766,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими)', 'input,refreshForm');
+        			canManifacture=Производими)', 'input,autoFilter');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -2127,6 +2127,7 @@ class cat_Products extends embed_Manager {
     		$fields['-components'] = TRUE;
     		
     		foreach ($details as $dRec){
+    			$dRec->params['$T'] = 1;
     			$obj = new stdClass();
     			$obj->componentId = $dRec->resourceId;
     			$row = cat_BomDetails::recToVerbal($dRec, $fields);

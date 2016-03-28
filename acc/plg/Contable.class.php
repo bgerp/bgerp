@@ -136,11 +136,17 @@ class acc_plg_Contable extends core_Plugin
                 $error = ",error={$error}";
             }
             
-            $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
+            if($rec->isContable == 'activate'){
+            	$caption = 'Активиране';
+            	$action = 'активиран';
+            } else {
+            	$caption = 'Контиране';
+            	$action = 'контиран';
+            }
            
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
-            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         if ($mvc->haveRightFor('revert', $rec)) {
@@ -569,6 +575,12 @@ class acc_plg_Contable extends core_Plugin
     	if($part == 'state'){
     		if($rec->state == 'rejected' && $rec->brState == 'draft'){
     			$num = tr('Анулиран');
+    		} elseif($rec->state == 'active'){
+    			if($rec->isContable == 'activate'){
+    				$num = tr('Активиран');
+    			} elseif($rec->isContable == 'yes'){
+    				$num = tr('Контиран');
+    			}
     		}
     	}
     }

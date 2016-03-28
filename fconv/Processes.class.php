@@ -50,7 +50,7 @@ class fconv_Processes extends core_Manager
         
         $this->FLD("callBack", "varchar(128)", array('caption' => 'Функция'));
         
-        $this->dbEngine = 'innoDB';
+        $this->dbEngine = 'InnoDB';
     }
     
     

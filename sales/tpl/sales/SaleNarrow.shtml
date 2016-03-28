@@ -1,14 +1,73 @@
-<div class="centered" style="border: 1px solid #ccc">
-    <div class="document-title"> |ДОГОВОР ЗА ПРОДАЖБА|*</div>
-    <div   style="margin:5px 0;">
-        <span class="[#STATE_CLASS#]">№ <span class="bigData">[#id#]</span> /
-        <span class="bigData">[#valior#]</span></span>
-        <!--ET_BEGIN reff-->
-        |Ваш реф|*: <span class="bigData">[#reff#]</span>
-        <!--ET_END reff-->
-    </div>
-    <div>|Получател|*:  <b>[#contragentName#]</b></div>
-    <div style="margin-bottom: 5px">|Доставчик|*:  <b>[#MyCompany#]</b></div>
+<div class="scrolling-holder">
+    <table class="innerTable border-table paddingCells">
+        <tbody>
+            <tr>
+                <td colspan = "2" class='centered'>  
+                    <div class="document-title">|ДОГОВОР ЗА ПРОДАЖБА|*</div>
+                    <div style="padding-top:5px;">
+                        <span class="[#STATE_CLASS#]">
+                            № <span class="bigData">[#id#]</span> /
+                            <span class="bigData">[#valior#]</span>
+                        </span>
+                    </div>
+                     <!--ET_BEGIN reff-->
+			        |Ваш реф|*: <span class="bigData">[#reff#]</span>
+			        <!--ET_END reff-->
+                </td>
+            </tr>
+            <tr>
+                <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b>
+                    <!--ET_BEGIN isPaid-->
+                    <div class='stamp fright'>[#isPaid#]</div>
+                    <!--ET_END isPaid-->
+                </td>
+                <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b>
+                    <!--ET_BEGIN isDelivered-->
+                    <div class='stamp fright'>[#isDelivered#]</div>
+                    <!--ET_END isDelivered-->
+                </td>
+            </tr>
+            <tr>
+                <td>
+                     <!--ET_BEGIN contragentName-->
+                    <b>[#contragentName#]</b>
+                    <!--ET_BEGIN contragentAddress-->
+                    <div class='address-block'>
+                        [#contragentAddress#]
+                    </div>
+                    <!--ET_END contragentAddress-->
+                    <!--ET_END contragentName-->
+                    <!--ET_BEGIN deliveryLocationId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        |До обект|*: [#deliveryLocationId#]
+                    </div>
+                    <!--ET_END deliveryLocationId-->
+                    
+                     <!--ET_BEGIN vatId-->
+                     <div>|ДДС|* №:<br>
+                      [#vatId#]</div>
+                     <!--ET_END vatId-->
+                </td>
+                <td>
+                    <!--ET_BEGIN MyCompany-->
+                    <b>[#MyCompany#]</b>
+                    <!--ET_BEGIN MyAddress-->
+                    <div class='address-block'>
+                        [#MyAddress#]
+                    </div>
+                    <!--ET_END MyAddress-->
+                    <!--ET_END MyCompany-->
+                    <!--ET_BEGIN shipmentStoreId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        |От склад|*: [#shipmentStoreId#]
+                    </div>
+                    <!--ET_END shipmentStoreId-->
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 <div class="lines"></div>
 <div class="details scrolling-holder">
@@ -44,9 +103,6 @@
                 <hr>
                 <div class='cellRow'>
                     <span class='quiet'>|Каса|*: </span>[#caseId#]
-                    <!--ET_BEGIN isPaid-->
-                    <div class='stamp'>[#isPaid#]</div>
-                    <!--ET_END isPaid-->
                 </div>
                 <!--ET_END caseId-->
                 <hr>
@@ -80,9 +136,6 @@
 	                    <li>[#commonConditionQuote#]</li>
 	                    <!--ET_END commonConditionQuote-->
                     </ol>
-                    <!--ET_BEGIN isDelivered-->
-                    <div class='stamp'>[#isDelivered#]</div>
-                    <!--ET_END isDelivered-->
                 <!--ET_END conditions-->
                 <hr>
                 <table class='no-border paddingCells business-doc-summary-table'>

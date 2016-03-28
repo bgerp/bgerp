@@ -377,7 +377,7 @@ class cal_Reminders extends core_Master
     	
         // Добавяме поле във формата за търсене
        
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
                 
         $data->listFilter->view = 'horizontal';
         

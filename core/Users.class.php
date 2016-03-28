@@ -398,7 +398,7 @@ class core_Users extends core_Manager
     {
         // Филтриране по група
         $data->listFilter->FNC('role', 'key(mvc=core_Roles,select=role,allowEmpty)',
-            'placeholder=Роля,caption=Роля,input,silent,refreshForm');
+            'placeholder=Роля,caption=Роля,input,silent,autoFilter');
 
         
         $data->listFilter->view = 'horizontal';

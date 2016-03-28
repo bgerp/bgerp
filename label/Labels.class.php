@@ -441,6 +441,9 @@ class label_Labels extends core_Master
                 Request::setProtected('classId, objId');
                 $redirectUrl['classId'] = $classId;
                 $redirectUrl['objId'] = $objId;
+                if($title = Request::get('title', 'varchar')){
+                	$redirectUrl['title'] = $title;
+                }
             } else {
                 foreach ($labelDataArr as $labelName => $val) {
                     $redirectUrl[$labelName] = $val;
@@ -825,7 +828,7 @@ class label_Labels extends core_Master
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty,autoFilter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят

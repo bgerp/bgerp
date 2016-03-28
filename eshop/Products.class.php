@@ -32,7 +32,7 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2';
     
     
     /**

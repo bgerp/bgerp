@@ -356,7 +356,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Ако има дефолтен текст за фактура добавяме и него
     	if($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')){
-    		$defInfo .= $invText;
+    		$defInfo .= "\n" .$invText;
     	}
     	
     	// Задаваме дефолтния текст
@@ -509,6 +509,8 @@ class sales_Invoices extends deals_InvoiceMaster
     		if($rec->paymentType = $mvc->getAutoPaymentType($rec)){
     			$makeHint = TRUE;
     		}
+    	} elseif(isset($rec->_autoPaymentType)){
+    		$makeHint = TRUE;
     	}
     	
     	if(isset($fields['-single'])){
@@ -743,7 +745,7 @@ class sales_Invoices extends deals_InvoiceMaster
    			
    			if($rec->payType){
    				if($rec->payType != 'all'){
-   					$data->query->where("#paymentType = '{$rec->payType}'");
+   					$data->query->where("#paymentType = '{$rec->payType}' OR #paymentType IS NULL");
    				}
    			}
    		}
@@ -864,5 +866,50 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    		
    		return NULL;
+   	}
+   	
+   	
+   	/**
+   	 * Извлича редовете, които ще се покажат на текущата страница
+   	 */
+   	function prepareListRecs_(&$data)
+   	{
+   		$paymentType = $data->listFilter->rec->payType;
+   		
+   		// Ако филтрираме по начин на плащане, който не е 'всички'
+   		if(isset($paymentType) && $paymentType != 'all'){
+   			$data->recs = array();
+   			
+   			// Извличаме редовете
+   			while ($rec = $data->query->fetch()) {
+   				
+   				// Тези без начин за плащане, им се определя автоматично
+   				if(empty($rec->paymentType)){
+   					$rec->paymentType = $this->getAutoPaymentType($rec);
+   					$rec->_autoPaymentType = TRUE;
+   				} 
+   				
+   				// Ако изчисления тип не е избрания махаме записа
+   				if($rec->paymentType == $paymentType){
+   					$data->recs[$rec->id] = $rec;
+   				}
+   			}
+   			
+   			$data->pager->itemsCount = count($data->recs);
+   			$data->pager->calc();
+   				
+   			// Динамично страницираме
+   			foreach ($data->recs as $id => $rec){
+   				if(!$data->pager->isOnPage()){
+   					unset($data->recs[$id]);
+   				}
+   			}
+   		} else {
+   			
+   			// Ако няма филтър по конкретен начин на плащане не правим нищо особено
+   			parent::prepareListRecs_($data);
+   		}
+   		
+   		return $data;
    	}
 }
