@@ -588,10 +588,23 @@ class core_Debug
     {
         // Добавяме времето и паметта от настройките и от хита към контекста
         if (is_array($contex)) {
-            $contex['PEAK_MEMORY_USAGE'] = memory_get_peak_usage();
-            $contex['MEMORY_USAGE'] = memory_get_usage();
+            $contex['MEMORY_LIMIT_VERBAL'] = ini_get('memory_limit');
+            $contex['MEMORY_LIMIT'] = core_Os::getBytesFromMemoryLimit($contex['MEMORY_LIMIT_VERBAL']);
+            
+            $realUsage = TRUE;
+            
+            $contex['PEAK_MEMORY_USAGE'] = memory_get_peak_usage($realUsage);
+            
+            if (is_numeric($contex['MEMORY_LIMIT'])) {
+                $contex['PEAK_MEMORY_USAGE_PERCENT'] = ceil(($contex['PEAK_MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100) . '%';
+            }
+            
+            $contex['MEMORY_USAGE'] = memory_get_usage($realUsage);
+            if (is_numeric($contex['MEMORY_LIMIT'])) {
+                $contex['MEMORY_USAGE_PERCENT'] = ceil(($contex['MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100) . '%';
+            }
+            
             $contex['MAX_EXECUTION_TIME'] = ini_get('max_execution_time');
-            $contex['MEMORY_LIMIT'] = ini_get('memory_limit');
         }
         
         $state = array( 'errType'   => $errType, 
