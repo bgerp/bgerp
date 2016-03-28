@@ -110,6 +110,7 @@ class plg_RowTools2 extends core_Plugin
         		$ddTools->addLink('Промяна', $changeUrl, "ef_icon=img/16/edit.png,id=chn{$rec->id},title=Промяна на|* {$singleTitle}");
         	}
         }
+        $mvc->rowToolsColumn['_rowTools'] = 'rowtools-column';
     }
     
     
