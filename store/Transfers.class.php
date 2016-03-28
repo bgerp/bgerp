@@ -143,6 +143,12 @@ class store_Transfers extends core_Master
 
    
     /**
+     * Файл за единичния изглед в мобилен
+     */
+    public $singleLayoutFileNarrow = 'store/tpl/SingleLayoutTransfersNarrow.shtml';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = "4.5|Логистика";
