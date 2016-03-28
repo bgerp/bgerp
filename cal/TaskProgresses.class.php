@@ -139,7 +139,7 @@ class cal_TaskProgresses extends core_Detail
     	$masterRec = cal_Tasks::fetch($form->rec->taskId);
     	
     	// ако формата е събмитната
-    	if ($form->isSubmitted()){
+    	if ($form->isSubmitted() && isset($masterRec->progress)){
         	if ($masterRec->progress > $form->rec->progress) {
         		$form->setWarning('progress', "|Въвели сте по-малък прогрес от предишния. Сигурни ли сте, че искате да продължите?");
         	} elseif ($masterRec->progress == $form->rec->progress) {
