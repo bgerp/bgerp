@@ -176,6 +176,9 @@ class deals_plg_DpInvoice extends core_Plugin
     				break;
     			case 'none';
     			if(isset($aggreedDp)){
+    				$dpField = $form->getField('amountAccrued');
+    				unset($dpField->autohide);
+    				
     				$sAmount = core_Math::roundNumber($aggreedDp / $rate);
     				$suggestions = array('' => '', "{$sAmount}" => $sAmount);
     				$form->setSuggestions('amountAccrued', $suggestions);
