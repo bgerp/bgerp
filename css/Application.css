@@ -2316,8 +2316,13 @@ span.sharing-history-title {
   padding: 1px 4px;
   display: inline-block; }
 
-#cmsNavigation.articles-menu .nav_item a {
-  float: left; }
+  #cmsNavigation.articles-menu .nav_item a,
+  #cmsNavigation.articles-menu .nav_item span {
+    float: left; }
+  #cmsNavigation.articles-menu .nav_item:after {
+    content: '';
+    display: block;
+    clear: both; }
 
 #cmsNavigation a.linkWithIcon {
   display: inline-block;
@@ -2349,6 +2354,14 @@ span.sharing-history-title {
 
 #cmsNavigation div.nav_item {
   font-size: 1em; }
+
+#cmsNavigation .addPage {
+  clear: both;
+  padding: 2px;
+  border: solid 1px #cccccc;
+  background-color: #eeeeee;
+  margin: 5px 0;
+  font-size: 0.7em; }
 
 .narrow .articles-navigation {
   background-color: #cccccc;

@@ -2649,8 +2649,15 @@ fieldset.sharing-history {
 	display: inline-block;
 }
 
-#cmsNavigation.articles-menu .nav_item a {
-    float: left;
+#cmsNavigation.articles-menu .nav_item {
+	a, span {
+	   float: left;
+	}
+	&:after {
+	    content: '';
+	    display: block;
+	    clear: both;
+	}
 }
 
 #cmsNavigation a.linkWithIcon {
@@ -2688,6 +2695,14 @@ fieldset.sharing-history {
 
 #cmsNavigation div.nav_item {
     font-size:1em;
+}
+#cmsNavigation .addPage {
+	clear: both;
+	padding:2px; 
+	border:solid 1px #ccc; 
+	background-color:#eee;
+	margin:5px 0;
+	font-size:0.7em;
 }
 
 .narrow .articles-navigation {

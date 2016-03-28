@@ -451,7 +451,7 @@ class cms_Articles extends core_Master
             if($l->url) {
                 $navTpl->append(ht::createLink($l->title, $l->url, NULL, $aAttr));
             } else {
-                $navTpl->append($l->title);
+                $navTpl->append("<span style='>" . $l->title ."</span>");
             }
 
             if($l->editLink) {
@@ -466,7 +466,7 @@ class cms_Articles extends core_Master
         }
         
         if($data->addLink) {
-            $navTpl->append( "<div style='padding:2px; border:solid 1px #ccc; background-color:#eee; margin:15px 0;font-size:0.7em'>");
+            $navTpl->append( "<div class='addPage'>");
             $navTpl->append($data->addLink);
             $navTpl->append( "</div>");
         }
