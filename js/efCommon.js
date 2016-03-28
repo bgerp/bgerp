@@ -1824,6 +1824,18 @@ function addCmdRefresh(form) {
 
 
 /**
+ * Returns the type of the argument
+ * @param {Any}    val    Value to be tested
+ * @returns    {String}    type name for argument
+ */
+function getType (val) {
+    if (typeof val === 'undefined') return 'undefined';
+    if (typeof val === 'object' && !val) return 'null';
+    return ({}).toString.call(val).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+}
+
+
+/**
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
 function refreshForm(form, removeFields) {
@@ -1849,11 +1861,14 @@ function refreshForm(form, removeFields) {
 
 	frm.css('cursor', 'wait');
 	
+	form.submit();
+
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
 		data: frm.serialize() + '&ajax_mode=1',
-		success: function (data) {
+		dataType: 'json'
+	}).done( function(data) {
 			
 			// Затваря всики select2 елементи
 			if ($.fn.select2) {
@@ -1871,32 +1886,51 @@ function refreshForm(form, removeFields) {
 				}
 			}
 			
-			// Зареждаме стиловете
-			$.each(data.css, function(i, css) {
-				if(refreshForm.loadedFiles.indexOf(css) < 0) {
-					$("<link/>", {
-					   rel: "stylesheet",
-					   type: "text/css",
-					   href: css
-					}).appendTo("head");
-					refreshForm.loadedFiles.push(css);
-				}
-			});
-
-			frm.replaceWith(data.html);
-			
-			// Зареждаме скриптовете
-			$.each(data.js, function(i, js) {
-				if(refreshForm.loadedFiles.indexOf(js) < 0) {
-					$.getScript(js);
-					refreshForm.loadedFiles.push(js);
-				}
-			});
-			
-			// Показваме нормален курсур
-			frm.css('cursor', 'default');
+		if (getType(data) == 'array') {
+			var r1 = data[0];
+			if(r1['func'] == 'redirect') {
+				render_redirect(r1['arg']);
+			}
 		}
-    });
+
+		// Разрешаваме кеширането при зареждане по ajax
+		$.ajaxSetup ({cache: true});		
+
+		// Зареждаме стиловете
+		$.each(data.css, function(i, css) {
+			if(refreshForm.loadedFiles.indexOf(css) < 0) {
+				$("<link/>", {
+				   rel: "stylesheet",
+				   type: "text/css",
+				   href: css
+				}).appendTo("head");
+				refreshForm.loadedFiles.push(css);
+			}
+		});
+		
+		// Забраняваме отново кеширането при зареждане по ajax
+		$.ajaxSetup ({cache: false});
+		
+		// Заместваме съдържанието на формата
+		frm.replaceWith(data.html);
+		
+		// Разрешаваме кеширането при зареждане по ajax
+		$.ajaxSetup ({cache: true});		
+		
+		// Зареждаме скриптовете
+		$.each(data.js, function(i, js) {
+			if(refreshForm.loadedFiles.indexOf(js) < 0) {
+				$.getScript(js);
+				refreshForm.loadedFiles.push(js);
+			}
+		});
+		
+		// Забраняваме отново кеширането при зареждане по ajax
+		$.ajaxSetup ({cache: false});		
+
+		// Показваме нормален курсур
+		frm.css('cursor', 'default');
+	});
 }
 
 

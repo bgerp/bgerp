@@ -31,7 +31,7 @@ class crm_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper,
+    var $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper,
                      plg_Rejected, plg_Search, plg_TreeObject, plg_Translate';
     
     
@@ -44,7 +44,8 @@ class crm_Groups extends core_Master
     /**
      * Кои полета да се листват
      */
-    var $listFields = 'id,name=Заглавие,content=Съдържание';
+    var $listFields = 'name=Заглавие,companiesCnt=Фирми,personsCnt=Лица';
+
     
     
     /**
@@ -58,13 +59,7 @@ class crm_Groups extends core_Master
      */
     var $singleIcon = 'img/16/group.png';
     
-    
-    /**
-     * Поле за инструментите
-     */
-    var $rowToolsField = 'id';
-    
-    
+        
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
@@ -163,8 +158,8 @@ class crm_Groups extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=СисИД,input=none,column=none');
         $this->FLD('name', 'varchar(128,ci)', 'caption=Група,mandatory,translate');
         $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
-        $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none');
-        $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none');
+        $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none,smartCenter');
+        $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none,smartCenter');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         
         $this->setDbUnique("name");
@@ -272,55 +267,26 @@ class crm_Groups extends core_Master
         
         $row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
         $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
+        $row->name = "<b>$row->name</b>";
         
         if($fields['-single']){
             $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
             $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }
-        
-        if (!$rec->companiesCnt && $fields['-single']) {
-            if ($rec->allow == 'persons') {
-                unset($row->companiesCnt);
-            }
-        } else {
-            $row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+
+     
+        $row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        $row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
+             
+        // Ако групата се състои само от фирми
+        if ($rec->allow == 'companies') {
+            unset($row->personsCnt);
         }
-        
-        if (!$rec->personsCnt && $fields['-single']) {
-            if ($rec->allow == 'companies') {
-                unset($row->personsCnt);
-            }
-        } else {
-            $row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
-        }
-        
-        $row->name = "<b>$row->name</b>";
-        
-        // Ако с в листов иглед
-        if($fields['-list']){
-            // Създаваме редовете съдържание
-            $row->content = '<div>';
             
-            // Ако групата се състои само от фирми
-            if ($rec->allow == 'companies') {
-                if (!$rec->personsCnt) {
-                    // ще показваме само броя на фирмите
-                    $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> " . $row->companiesCnt;
-                }
-            // ако групата е само за лица
-            } elseif ($rec->allow == 'persons') {
-                if (!$rec->companiesCnt) {
-                    // ще показваме само броя на лицата
-                    $row->content .= "<span style='font-size:14px;'>" . tr("Брой лица") . ":</span> " .  $row->personsCnt;
-                }
-            } else {
-                // в противен случай и двете
-                $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> " . $row->companiesCnt;
-                $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> " .  $row->personsCnt;
-            }
-            
-            $row->content .= '</div>';
-        }
+        if ($rec->allow == 'persons') {
+            // ще показваме само броя на лицата
+            unset($row->companiesCnt);
+        } 
     }
     
     
