@@ -516,361 +516,375 @@ class i18n_Charset extends core_MVC {
         
         if(!($len = strlen($text))) return FALSE;
         
-        // Ако стринга е дълъг, няма да се прави обработка на целия
-        // Вземаме 3 части от стринга, като по-приоритетни са тези, които имат други символи освен 7 битови
-        if ($len > 2500) {
-            
-            // По-колко символа ще се взема от началото, края и средата на стринга
-            $strMaxLen = 400;
-            $not7BitStr = 'not7bit';
-            
-            $partLen = ceil(($len) / 3);
-            $partLenE = 2 * $partLen;
-            
-            $bitStrArr = array();
-            $strArr = array();
-            $strCntArr = array();
-            
-            $p = 0;
-            while('' != ($char = self::nextChar($text, $p))) {
-                
-                // В зависимост от положениети на маркера, определяме ключа
-                if ($p <= $partLen) {
-                    $k = 'begin';
-                } elseif ($p >= $partLenE) {
-                    $k = 'end';
-                } else {
-                    $k = 'mid';
-                }
-                
-                $bitStr = $bitStrArr[$k];
-                
-                // Докато не намерим символ различен от 7 бита, правим проверка
-                if ($bitStr != $not7BitStr && !self::is7bit($char)) {
-                    $bitStrArr[$k] = $bitStr = $not7BitStr;
-                }
-                
-                if ($strCntArr[$k][$bitStr] <= $strMaxLen) {
-                    $strArr[$bitStr][$k] .= $char;
-                    $strCntArr[$k][$bitStr]++;
-                } else {
-                    
-                    // Ако сме намерили стринга, няма нужда да ходим до края в интервала
-                    // Прескачаме на следващия интервал или, ако сме в края - прекъсваме
-                    // Това е за бързодействие при стрингове със съдържание на символи различни от 7 бита
-                    if ($bitStr == $not7BitStr) {
-                        if ($k == 'begin') {
-                            $p = $partLen;
-                        } elseif ($k == 'mid') {
-                            $p = $partLenE;
-                        } elseif ($k == 'end') {
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // Опитваме се да генерираме нов стринг от откритите
-            $text = '';
-            $nLen = 0;
-            foreach ($strCntArr as $key => $vArr) {
-                $text .= $text ? ' ' : '';
-                
-                // Ако не е 7 битов стринг, искаме да е над определена дължина (може да е намерен в края)
-                
-                if ($vArr[$not7BitStr] > floor($strMaxLen / 2.5)) {
-                    $text .= $strArr[$not7BitStr][$key];
-                    $nLen += $vArr[$not7BitStr];
-                } else {
-                    
-                    $text .= $strArr[''][$key];
-                    $nLen += $vArr[''];
-                    
-                    // Ако има много малко текст (под 160 символа), който не е 7 битово, да се конкатинира с 7 битовия
-                    if ($strArr[$not7BitStr][$key]) {
-                        $text .= ' ' . $strArr[$not7BitStr][$key];
-                        $nLen += $vArr[$not7BitStr];
-                    }
-                }
-            }
-            $len = $nLen;
-        }
-
-
-        // Вземаме дължината на стринга в mb
-        // Горе се взема не в mb и затова го вземаме пак, но този път ще е на по-кратък стринг
-        $len = mb_strlen($text);
+        static $parts = array();
+        $crc = crc32($text);
         
-        $sL  = $SL = 'sign';
+        if(!isset($parts[$crc])) {
 
-        $c = '';
-
-        $i = 0;
-
-        while('' != ($c = self::nextChar($text, $i))) {
-
-            $m = mb_strtolower($c);
-            
-            $s  = self::getScript($c);
-            $cnt[$s]++;
-            
-            $S = $s;
-
-            if($s == 'cyrillic' || $s == 'cyrExt') {
-                $S = 'cyrillic';
-            } elseif($s == 'latExt' || $s == 'latExt2' || $s == 'latin') {
-                $S = 'latin';
-            } elseif($s == 'sign' || $s == 'sign2') {
-                $S = 'sign';
-            }
-
-           // $debug .= "[ $s " . $S . ' ' . $c . ' ' . dechex(self::utf8Ord($c)) . "]"; // dechex(self::utf8Ord($c));
-            // Ако е валиден моно-сктипт - даваме +1
-            // Ако имаме два различни скрипта, вземаме -1
-            // Ако имаме знак - даваме +1
-            if($S != 'sign') {
-                if($S == $SL || $SL == 'sign') {
-                    if($scripts[$S] || $S == 'latin' || $scripts['all']) {
-                        $total += 1;
-                       // $debug .= '+mono:' . $total . ';';
-                    }
-                } else {
-                    $total -= 1.5;
-                   // $debug .= '-mono:' . $total . ';';
-                }
+            // Ако стринга е дълъг, няма да се прави обработка на целия
+            // Вземаме 3 части от стринга, като по-приоритетни са тези, които имат други символи освен 7 битови
+            if ($len > 2500) {
                 
-                if($scripts[$S] || $S == 'latin' || $scripts['all']) {
-                    $total += 0.05;
-                   // $debug .= "+{$S}:" . $total . ';';
-                }
-
-            } else {
-                if($c == $cL) {
-                    if($c == '?') {
-                        $total -= 0.5;
-                       // $debug .= '+??:' . $total . ';';
+                // По-колко символа ще се взема от началото, края и средата на стринга
+                $strMaxLen = 400;
+                $not7BitStr = 'not7bit';
+                
+                $partLen = ceil(($len) / 3);
+                $partLenE = 2 * $partLen;
+                
+                $bitStrArr = array();
+                $strArr = array();
+                $strCntArr = array();
+                
+                $p = 0;
+                while('' != ($char = self::nextChar($text, $p))) {
+                    
+                    // В зависимост от положениети на маркера, определяме ключа
+                    if ($p <= $partLen) {
+                        $k = 'begin';
+                    } elseif ($p >= $partLenE) {
+                        $k = 'end';
                     } else {
-                        $total += 1.0;
-                       // $debug .= '+ssign:' . $total . ';';
+                        $k = 'mid';
                     }
-
-                } else {
-                    $total += 0.80;
-                   // $debug .= '+sign:' . $total . ';';
-                }
-            }
-
-            // Ако имаме две разширени латински знака -0.2
-            if(($s == 'latExt' || $s == 'latExt2') && ($sL == 'latExt' || $sL == 'latExt2')) {
-                $total -= 0.8;
-               // $debug .= '-dle:' . $total . ';';
-            }
-
-            // Ако имаме две разширени латински знака -0.2
-            if(($s == 'latExt' || $s == 'latExt2') && ($sL == 'sign')) {
-                $total -= 0.7;
-               // $debug .= '-dle1:' . $total . ';';
-            }
-          
-            // Ако имаме два разширени кирилски знака -0.4
-            if($s == 'cyrExt' && $sL == 'cyrExt') {
-                $total -= 0.9;
-               // $debug .= '-dce:'. $total . ';';
-            }
-            
-            // Ако имаме 3 разширени латински знака -0.6
-            if(($s == 'latExt' || $s == 'latExt2') && ($sL == 'latExt' || $sL == 'latExt2') && ($sLL == 'latExt' || $sLL == 'latExt2')) {
-                $total -= 0.6;
-               // $debug .= '-tle:'. $total . ';';
-            }
-            
-            if($S != 'sign') {
-                if(($c == $cL) && ($cL == $cLL)) {
-                    $total -= 0.2;
-                   // $debug .= '-3a:'. $total . ';';
-                }
-            }
-
-            // Ако имаме три разширени кирилски знака -0.4
-            if($s == 'cyrExt' && $sL == 'cyrExt' && $sLL == 'cyrExt' ) {
-                $total -= 1.9;
-               // $debug .= '-tce:'. $total . ';';
-            }
-            
-            
-            // Ако скрипт, знак, скрипт - 0.5
-            if($S != 'sign' && $SL == 'sign' && $SLL != 'sign' && $S != $SLL) {
-                $total -= 0.2;
-               // $debug .= '-SsS:'. $total . ';';
-            }
-            
-            if($S != 'sign' && $cL == '?' && $SLL != 'sign') {
-                $total -= 1;
-               // $debug .= '-S?S:'. $total . ';';
-            }
-
-
-            // Правила за големи и малки букви
-            if(($S == 'cyrillic' || $S == 'latin' || $S == 'greek') && ($SL == 'cyrillic' || $SL == 'latin' || $SL == 'greek')) {
- 
-                // Ако имаме малка и голяма буква -0.5
-                if($m != $c) {
-                    if($mL == $cL) {
-                        $total -= 1.2;
-                       // $debug .= '-aA:'. $total . ';';  
+                    
+                    $bitStr = $bitStrArr[$k];
+                    
+                    // Докато не намерим символ различен от 7 бита, правим проверка
+                    if ($bitStr != $not7BitStr && !self::is7bit($char)) {
+                        $bitStrArr[$k] = $bitStr = $not7BitStr;
                     }
-                }
-
-                // Ако имаме знак, голяма буква, малка буква +0.5
-                if($m == $c) {
-                    if($mL != $cL) {
-                        if($SLL == 'sign') {
-                            $total += 0.4;
-                           // $debug .= '+Aa:'. $total . ';';
+                    
+                    if ($strCntArr[$k][$bitStr] <= $strMaxLen) {
+                        $strArr[$bitStr][$k] .= $char;
+                        $strCntArr[$k][$bitStr]++;
+                    } else {
+                        
+                        // Ако сме намерили стринга, няма нужда да ходим до края в интервала
+                        // Прескачаме на следващия интервал или, ако сме в края - прекъсваме
+                        // Това е за бързодействие при стрингове със съдържание на символи различни от 7 бита
+                        if ($bitStr == $not7BitStr) {
+                            if ($k == 'begin') {
+                                $p = $partLen;
+                            } elseif ($k == 'mid') {
+                                $p = $partLenE;
+                            } elseif ($k == 'end') {
+                                break;
+                            }
                         }
                     }
                 }
-            }
-
-            // Ако сме с китайски скрипт и имаме топ100, даваме +0.3
-            if($S == 'chinese') {
-                if(in_array($c, self::$topCn1)) {
-                    $total += 1.2;
-                   // $debug .= '+Cn1';
-                } elseif(in_array($c, self::$topCn2)) {
-                    $total += 0.6;
-                   // $debug .= '+Cn2';
-                } else {
-                    $total -= 0.05;
-                   // $debug .= '-Cn:'. $total . ';';
-                }
-            }
-            
-            // Ако сме с арабски скрипт и имаме топ100, даваме +0.3
-            if($S == 'arabic') {
-                if(in_array($c, self::$topArabic1)) {
-                    $total += 1.8;
-                   // $debug .= '+Ar1';
-                } elseif(in_array($c, self::$topArabic2)) {
-                    $total += 0.8;
-                   // $debug .= '+Ar2';
-                } else {
-                    $total -= 0.02;
-                   // $debug .= '-Ar:'. $total . ';';
-                }
-            }
-
-            // Ако сме кирилски скрипт и имаме топ1,2,3 даваме  
-            if($S == 'cyrillic' && $SL == 'cyrillic') {
-                $w2 = $mL . $m;
-                if(in_array($w2, self::$topCyr1)) {
-                    $total += 1.8;
-                   // $debug .= '+Cyr1:'. $total . ';';
-                } elseif(in_array($w2, self::$topCyr2)) {
-                    $total += 1.2;
-                   // $debug .= '+Cyr2:'. $total . ';';
-                } elseif(in_array($w2, self::$topCyr3)) {
-                    $total += 0.6;
-                   // $debug .= '+Cyr3:'. $total . ';';
-                } else {
-                    $total -= 0.09;
-                   // $debug .= '-Cyr:'. $total . ';';
-                }
-            }
-
-            // Ако сме латински скрипт и имаме топ даваме  
-            if($S == 'latin' && $SL == 'latin' && ($s != 'latin' || $sL != 'latin')) {
-                $w2 = $mL . $m;
-                if(in_array($w2, self::$topLatExt)) {
-                    $total += 2.8; 
-                   // $debug .= '+LatTop:'. $total . ';';
-                } elseif(in_array($w2, self::$topLatExt2)) {
-                    $total += 1.6; 
-                   // $debug .= '+LatTop:'. $total . ';';
-                } else {
-                    $total -= 0.3; 
-                   // $debug .= '-LatTop:'. $total . ';';
-                }
-            }
-
-
-            // Ако сме гръцки скрипт и имаме топ1,2  даваме  
-            if($S == 'greek' && $SL == 'greek') {
-                $w2 = $mL . $m;
-                if(in_array($w2, self::$topGreek1)) {
-                    $total += 0.8;
-                   // $debug .= '+Cyr1:'. $total . ';';
-                } elseif(in_array($w2, self::$topGreek2)) {
-                    $total += 0.4;
-                   // $debug .= '+Cyr2:'. $total . ';';
-                } else {
-                    $total -= 0.3;
-                   // $debug .= '-Cyr:'. $total . ';';
-                }
-            }
-
-
-            // Ако кирилски разширен сктипт вадим
-            if($s == 'cyrExt') {
-                $total -= 0.5;
-                // $debug .= '-CyrEx:'. $total . ';';
-            }
-
-            if($s == 'latExt') {
-                if(!in_array($c, self::$topLatinExt)) {
-                    $total -= 0.6; 
-                    // $debug .= '-LatEx:'. $total . ';';
-                }
-            }
-            
-            if($sL == 'sign2') {
-                if(in_array($cL, self::$openSign2)) {
-                    if($S == 'latin' || $S == 'cyrillic' || $S == 'greek') {
-                        if($SLL == 'sign') {
-                            $total += 0.4;
-                           // $debug .= '+Op:'. $total . ';';
-                        } elseif ($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
-                            $total -= 0.4;
-                           // $debug .= '-oP:'. $total . ';';
+                
+                // Опитваме се да генерираме нов стринг от откритите
+                $text = '';
+                $nLen = 0;
+                foreach ($strCntArr as $key => $vArr) {
+                    $text .= $text ? ' ' : '';
+                    
+                    // Ако не е 7 битов стринг, искаме да е над определена дължина (може да е намерен в края)
+                    
+                    if ($vArr[$not7BitStr] > floor($strMaxLen / 2.5)) {
+                        $text .= $strArr[$not7BitStr][$key];
+                        $nLen += $vArr[$not7BitStr];
+                    } else {
+                        
+                        $text .= $strArr[''][$key];
+                        $nLen += $vArr[''];
+                        
+                        // Ако има много малко текст (под 160 символа), който не е 7 битово, да се конкатинира с 7 битовия
+                        if ($strArr[$not7BitStr][$key]) {
+                            $text .= ' ' . $strArr[$not7BitStr][$key];
+                            $nLen += $vArr[$not7BitStr];
                         }
                     }
                 }
-
-                if(in_array($cL, self::$closeSign2)) {
-                    if($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
-                        if($S == 'sign') {
-                            $total += 0.3;
-                           // $debug .= '+Cl:'. $total . ';';
-                        } elseif ($S == 'latin' || $S == 'cyrillic' || $S == 'greek') {
-                            $total -= 0.3;
-                           // $debug .= '-cL:'. $total . ';';
-                        }
-                    }
-                }
-
-                if($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
-                    if($SLL == $S) {
-                        $total -= 0.9;
-                       // $debug .= '-Ss2S:'. $total . ';';
-                    }
-                }
+                $len = $nLen;
             }
-
-            // Шифтваме регистъра
-            $sLL = $sL;
-            $SLL = $SL;
-            $cLL = $cL;
-            $mLL = $mL;
-
-            $sL  = $s;
-            $SL  = $S;
-            $cL  = $c;
-            $mL  = $m;
+            
+            $parts[$crc] = $text;
+        } else {
+            $text = $parts[$crc];
         }
         
-        $res = $total/$len;
+        static $rateArr = array();
+        $hash = md5($crc . implode('|', $scripts));
         
-        return $res;
+        if (!isset($rateArr[$hash])) {
+            
+            // Вземаме дължината на стринга в mb
+            // Горе се взема не в mb и затова го вземаме пак, но този път ще е на по-кратък стринг
+            $len = mb_strlen($text);
+            
+            $sL  = $SL = 'sign';
+    
+            $c = '';
+    
+            $i = 0;
+
+            while('' != ($c = self::nextChar($text, $i))) {
+    
+                $m = mb_strtolower($c);
+                
+                $s  = self::getScript($c);
+                
+                $S = $s;
+    
+                if($s == 'cyrillic' || $s == 'cyrExt') {
+                    $S = 'cyrillic';
+                } elseif($s == 'latExt' || $s == 'latExt2' || $s == 'latin') {
+                    $S = 'latin';
+                } elseif($s == 'sign' || $s == 'sign2') {
+                    $S = 'sign';
+                }
+    
+               // $debug .= "[ $s " . $S . ' ' . $c . ' ' . dechex(self::utf8Ord($c)) . "]"; // dechex(self::utf8Ord($c));
+                // Ако е валиден моно-сктипт - даваме +1
+                // Ако имаме два различни скрипта, вземаме -1
+                // Ако имаме знак - даваме +1
+                if($S != 'sign') {
+                    if($S == $SL || $SL == 'sign') {
+                        if($scripts[$S] || $S == 'latin' || $scripts['all']) {
+                            $total += 1;
+                           // $debug .= '+mono:' . $total . ';';
+                        }
+                    } else {
+                        $total -= 1.5;
+                       // $debug .= '-mono:' . $total . ';';
+                    }
+                    
+                    if($scripts[$S] || $S == 'latin' || $scripts['all']) {
+                        $total += 0.05;
+                       // $debug .= "+{$S}:" . $total . ';';
+                    }
+    
+                } else {
+                    if($c == $cL) {
+                        if($c == '?') {
+                            $total -= 0.5;
+                           // $debug .= '+??:' . $total . ';';
+                        } else {
+                            $total += 1.0;
+                           // $debug .= '+ssign:' . $total . ';';
+                        }
+    
+                    } else {
+                        $total += 0.80;
+                       // $debug .= '+sign:' . $total . ';';
+                    }
+                }
+    
+                // Ако имаме две разширени латински знака -0.2
+                if(($s == 'latExt' || $s == 'latExt2') && ($sL == 'latExt' || $sL == 'latExt2')) {
+                    $total -= 0.8;
+                   // $debug .= '-dle:' . $total . ';';
+                }
+    
+                // Ако имаме две разширени латински знака -0.2
+                if(($s == 'latExt' || $s == 'latExt2') && ($sL == 'sign')) {
+                    $total -= 0.7;
+                   // $debug .= '-dle1:' . $total . ';';
+                }
+              
+                // Ако имаме два разширени кирилски знака -0.4
+                if($s == 'cyrExt' && $sL == 'cyrExt') {
+                    $total -= 0.9;
+                   // $debug .= '-dce:'. $total . ';';
+                }
+                
+                // Ако имаме 3 разширени латински знака -0.6
+                if(($s == 'latExt' || $s == 'latExt2') && ($sL == 'latExt' || $sL == 'latExt2') && ($sLL == 'latExt' || $sLL == 'latExt2')) {
+                    $total -= 0.6;
+                   // $debug .= '-tle:'. $total . ';';
+                }
+                
+                if($S != 'sign') {
+                    if(($c == $cL) && ($cL == $cLL)) {
+                        $total -= 0.2;
+                       // $debug .= '-3a:'. $total . ';';
+                    }
+                }
+    
+                // Ако имаме три разширени кирилски знака -0.4
+                if($s == 'cyrExt' && $sL == 'cyrExt' && $sLL == 'cyrExt' ) {
+                    $total -= 1.9;
+                   // $debug .= '-tce:'. $total . ';';
+                }
+                
+                
+                // Ако скрипт, знак, скрипт - 0.5
+                if($S != 'sign' && $SL == 'sign' && $SLL != 'sign' && $S != $SLL) {
+                    $total -= 0.2;
+                   // $debug .= '-SsS:'. $total . ';';
+                }
+                
+                if($S != 'sign' && $cL == '?' && $SLL != 'sign') {
+                    $total -= 1;
+                   // $debug .= '-S?S:'. $total . ';';
+                }
+    
+    
+                // Правила за големи и малки букви
+                if(($S == 'cyrillic' || $S == 'latin' || $S == 'greek') && ($SL == 'cyrillic' || $SL == 'latin' || $SL == 'greek')) {
+     
+                    // Ако имаме малка и голяма буква -0.5
+                    if($m != $c) {
+                        if($mL == $cL) {
+                            $total -= 1.2;
+                           // $debug .= '-aA:'. $total . ';';  
+                        }
+                    }
+    
+                    // Ако имаме знак, голяма буква, малка буква +0.5
+                    if($m == $c) {
+                        if($mL != $cL) {
+                            if($SLL == 'sign') {
+                                $total += 0.4;
+                               // $debug .= '+Aa:'. $total . ';';
+                            }
+                        }
+                    }
+                }
+    
+                // Ако сме с китайски скрипт и имаме топ100, даваме +0.3
+                if($S == 'chinese') {
+                    if(in_array($c, self::$topCn1)) {
+                        $total += 1.2;
+                       // $debug .= '+Cn1';
+                    } elseif(in_array($c, self::$topCn2)) {
+                        $total += 0.6;
+                       // $debug .= '+Cn2';
+                    } else {
+                        $total -= 0.05;
+                       // $debug .= '-Cn:'. $total . ';';
+                    }
+                }
+                
+                // Ако сме с арабски скрипт и имаме топ100, даваме +0.3
+                if($S == 'arabic') {
+                    if(in_array($c, self::$topArabic1)) {
+                        $total += 1.8;
+                       // $debug .= '+Ar1';
+                    } elseif(in_array($c, self::$topArabic2)) {
+                        $total += 0.8;
+                       // $debug .= '+Ar2';
+                    } else {
+                        $total -= 0.02;
+                       // $debug .= '-Ar:'. $total . ';';
+                    }
+                }
+    
+                // Ако сме кирилски скрипт и имаме топ1,2,3 даваме  
+                if($S == 'cyrillic' && $SL == 'cyrillic') {
+                    $w2 = $mL . $m;
+                    if(in_array($w2, self::$topCyr1)) {
+                        $total += 1.8;
+                       // $debug .= '+Cyr1:'. $total . ';';
+                    } elseif(in_array($w2, self::$topCyr2)) {
+                        $total += 1.2;
+                       // $debug .= '+Cyr2:'. $total . ';';
+                    } elseif(in_array($w2, self::$topCyr3)) {
+                        $total += 0.6;
+                       // $debug .= '+Cyr3:'. $total . ';';
+                    } else {
+                        $total -= 0.09;
+                       // $debug .= '-Cyr:'. $total . ';';
+                    }
+                }
+    
+                // Ако сме латински скрипт и имаме топ даваме  
+                if($S == 'latin' && $SL == 'latin' && ($s != 'latin' || $sL != 'latin')) {
+                    $w2 = $mL . $m;
+                    if(in_array($w2, self::$topLatExt)) {
+                        $total += 2.8; 
+                       // $debug .= '+LatTop:'. $total . ';';
+                    } elseif(in_array($w2, self::$topLatExt2)) {
+                        $total += 1.6; 
+                       // $debug .= '+LatTop:'. $total . ';';
+                    } else {
+                        $total -= 0.3; 
+                       // $debug .= '-LatTop:'. $total . ';';
+                    }
+                }
+    
+    
+                // Ако сме гръцки скрипт и имаме топ1,2  даваме  
+                if($S == 'greek' && $SL == 'greek') {
+                    $w2 = $mL . $m;
+                    if(in_array($w2, self::$topGreek1)) {
+                        $total += 0.8;
+                       // $debug .= '+Cyr1:'. $total . ';';
+                    } elseif(in_array($w2, self::$topGreek2)) {
+                        $total += 0.4;
+                       // $debug .= '+Cyr2:'. $total . ';';
+                    } else {
+                        $total -= 0.3;
+                       // $debug .= '-Cyr:'. $total . ';';
+                    }
+                }
+    
+    
+                // Ако кирилски разширен сктипт вадим
+                if($s == 'cyrExt') {
+                    $total -= 0.5;
+                    // $debug .= '-CyrEx:'. $total . ';';
+                }
+    
+                if($s == 'latExt') {
+                    if(!in_array($c, self::$topLatinExt)) {
+                        $total -= 0.6; 
+                        // $debug .= '-LatEx:'. $total . ';';
+                    }
+                }
+                
+                if($sL == 'sign2') {
+                    if(in_array($cL, self::$openSign2)) {
+                        if($S == 'latin' || $S == 'cyrillic' || $S == 'greek') {
+                            if($SLL == 'sign') {
+                                $total += 0.4;
+                               // $debug .= '+Op:'. $total . ';';
+                            } elseif ($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
+                                $total -= 0.4;
+                               // $debug .= '-oP:'. $total . ';';
+                            }
+                        }
+                    }
+    
+                    if(in_array($cL, self::$closeSign2)) {
+                        if($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
+                            if($S == 'sign') {
+                                $total += 0.3;
+                               // $debug .= '+Cl:'. $total . ';';
+                            } elseif ($S == 'latin' || $S == 'cyrillic' || $S == 'greek') {
+                                $total -= 0.3;
+                               // $debug .= '-cL:'. $total . ';';
+                            }
+                        }
+                    }
+    
+                    if($SLL == 'latin' || $SLL == 'cyrillic' || $SLL == 'greek') {
+                        if($SLL == $S) {
+                            $total -= 0.9;
+                           // $debug .= '-Ss2S:'. $total . ';';
+                        }
+                    }
+                }
+    
+                // Шифтваме регистъра
+                $sLL = $sL;
+                $SLL = $SL;
+                $cLL = $cL;
+                $mLL = $mL;
+    
+                $sL  = $s;
+                $SL  = $S;
+                $cL  = $c;
+                $mL  = $m;
+            }
+            
+            $rateArr[$hash] = $total/$len;
+        }
+        
+        return $rateArr[$hash];
     }
 
 
