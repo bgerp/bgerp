@@ -596,15 +596,22 @@ class core_Debug
             $contex['PEAK_MEMORY_USAGE'] = memory_get_peak_usage($realUsage);
             
             if (is_numeric($contex['MEMORY_LIMIT'])) {
-                $contex['PEAK_MEMORY_USAGE_PERCENT'] = ceil(($contex['PEAK_MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100) . '%';
+                $contex['PEAK_MEMORY_USAGE_PERCENT'] = number_format(($contex['PEAK_MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100, 2) . '%';
             }
             
             $contex['MEMORY_USAGE'] = memory_get_usage($realUsage);
             if (is_numeric($contex['MEMORY_LIMIT'])) {
-                $contex['MEMORY_USAGE_PERCENT'] = ceil(($contex['MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100) . '%';
+                $contex['MEMORY_USAGE_PERCENT'] = number_format(($contex['MEMORY_USAGE'] / $contex['MEMORY_LIMIT']) * 100, 2) . '%';
             }
             
             $contex['MAX_EXECUTION_TIME'] = ini_get('max_execution_time');
+            
+            if (self::$startMicroTime) {
+                $contex['DEBUG_LAST_TIMER'] = core_Datetime::getMicrotime() - self::$startMicroTime;
+                if ($contex['MAX_EXECUTION_TIME']) {
+                    $contex['EXECUTION_TIME_PERCENT'] = number_format(($contex['DEBUG_LAST_TIMER'] / $contex['MAX_EXECUTION_TIME']) * 100, 2) . '%';
+                }
+            }
         }
         
         $state = array( 'errType'   => $errType, 
