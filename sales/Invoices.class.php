@@ -218,7 +218,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
-       
+        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+        
         $this->setDbUnique('number');
     }
 	
@@ -404,6 +405,11 @@ class sales_Invoices extends deals_InvoiceMaster
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
         }
+        
+        if(empty($rec->id)){
+        	// Първоначално изчислен начин на плащане
+        	$rec->autoPaymentType = $mvc->getAutoPaymentType($rec);
+        }
     }
     
     
@@ -505,12 +511,14 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	$makeHint = FALSE;
+    	
     	if(empty($rec->paymentType)){
-    		if($rec->paymentType = $mvc->getAutoPaymentType($rec)){
-    			$makeHint = TRUE;
-    		}
-    	} elseif(isset($rec->_autoPaymentType)){
+    		$rec->paymentType = $rec->autoPaymentType;
     		$makeHint = TRUE;
+    	}
+    	
+    	if(!empty($rec->paymentType)){
+    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
     	}
     	
     	if(isset($fields['-single'])){
@@ -518,8 +526,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	$row->type = $mvc->getFieldType('type')->toVerbal($rec->type);
+    	
     	if(!empty($rec->paymentType)){
-    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
     		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
     	}
     	
@@ -726,7 +734,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$conf = core_Packs::getConfig('sales');
    		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
    			$data->listFields['paymentType'] = 'Плащане';
-   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
+   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане)', 'caption=Начин на плащане,input');
    			$data->listFilter->showFields .= ",payType";
    		}
    		$data->listFilter->showFields .= ',invType';
@@ -745,7 +753,7 @@ class sales_Invoices extends deals_InvoiceMaster
    			
    			if($rec->payType){
    				if($rec->payType != 'all'){
-   					$data->query->where("#paymentType = '{$rec->payType}' OR #paymentType IS NULL");
+   					$data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
    				}
    			}
    		}
@@ -853,7 +861,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		
    		// От последната фактура за клиента
    		$iQuery = $this->getQuery();
-   		$iQuery->where("#folderId = {$rec->folderId} AND #state = 'active' AND #id != {$rec->id}");
+   		$iQuery->where("#folderId = {$rec->folderId} AND #state = 'active' AND #id != '{$rec->id}'");
    		$iQuery->where("#paymentType IS NOT NULL");
    		$iQuery->orderBy("id", "DESC");
    		$iQuery->show('paymentType');
@@ -870,46 +878,22 @@ class sales_Invoices extends deals_InvoiceMaster
    	
    	
    	/**
-   	 * Извлича редовете, които ще се покажат на текущата страница
+   	 * Ъпдейтва начина на плащане на фактурите в нишката
+   	 * 
+   	 * @param int $threadId - ид на крака
+   	 * @return void
    	 */
-   	function prepareListRecs_(&$data)
+   	public static function updateAutoPaymentTypeInThread($threadId)
    	{
-   		$paymentType = $data->listFilter->rec->payType;
+   		$me = cls::get(get_called_class());
+   		$query = $me->getQuery();
+   		$query->where("#threadId = '{$threadId}'");
+   		$query->show('threadId,dueDate,date,folderId,containerId');
    		
-   		// Ако филтрираме по начин на плащане, който не е 'всички'
-   		if(isset($paymentType) && $paymentType != 'all'){
-   			$data->recs = array();
-   			
-   			// Извличаме редовете
-   			while ($rec = $data->query->fetch()) {
-   				
-   				// Тези без начин за плащане, им се определя автоматично
-   				if(empty($rec->paymentType)){
-   					$rec->paymentType = $this->getAutoPaymentType($rec);
-   					$rec->_autoPaymentType = TRUE;
-   				} 
-   				
-   				// Ако изчисления тип не е избрания махаме записа
-   				if($rec->paymentType == $paymentType){
-   					$data->recs[$rec->id] = $rec;
-   				}
-   			}
-   			
-   			$data->pager->itemsCount = count($data->recs);
-   			$data->pager->calc();
-   				
-   			// Динамично страницираме
-   			foreach ($data->recs as $id => $rec){
-   				if(!$data->pager->isOnPage()){
-   					unset($data->recs[$id]);
-   				}
-   			}
-   		} else {
-   			
-   			// Ако няма филтър по конкретен начин на плащане не правим нищо особено
-   			parent::prepareListRecs_($data);
+   		while($rec = $query->fetch()){
+   			$rec->autoPaymentType = $me->getAutoPaymentType($rec);
+   			$me->save_($rec, 'autoPaymentType');
+   			doc_DocumentCache::cacheInvalidation($rec->containerId);
    		}
-   		
-   		return $data;
    	}
 }
