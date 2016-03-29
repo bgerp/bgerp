@@ -614,9 +614,9 @@ class purchase_Purchases extends deals_DealMaster
     protected function setTemplates(&$res)
     {
     	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrow.shtml');
-    	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');
+    	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrow.shtml');
+    	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
+    	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrowEN.shtml');
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
