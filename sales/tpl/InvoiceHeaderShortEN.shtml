@@ -169,8 +169,8 @@
                                         <hr>
                                         <table class='centered special-borders' style='width:100%;'>
                                             <tr>
-                                                <td class='centered border-right' style='width:50%;'>Receiver By:</td>
-                                                <td class='centered'>Prepared By:</td>
+                                                <td class='centered border-right' style='width:50%;'>Received by:</td>
+                                                <td class='centered'>Prepared by:</td>
                                             </tr>
                                             <tr>
                                                 <td style='height:40px;' class='border-right'>&nbsp;</td>
