@@ -501,10 +501,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$id}");
 		while ($dRec = $dQuery->fetch()){
+			
 			$nRec = new stdClass();
 			$nRec->resourceId     = $dRec->productId;
 			$nRec->type           = $dRec->type;
-			$nRec->propQuantity   = $dRec->quantity;
+			$nRec->propQuantity   = $dRec->packQuantity;
 			$nRec->packagingId    = $dRec->packagingId;
 			$nRec->quantityInPack = $dRec->quantityInPack;
 			
