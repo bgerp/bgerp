@@ -362,8 +362,6 @@ class email_Accounts extends core_Master
                     $errMsg = "Грешка при свързване|*: " . $imapConn->getLastError();
                     
                     $form->setWarning('server', $errMsg);
-                    
-                    return;
                 }
             } catch (Exception $e) {
                 reportException($e);
