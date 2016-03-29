@@ -182,16 +182,16 @@ class purchase_Services extends deals_ServiceMaster
     protected function setTemplates(&$res)
     {
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги', 
-    					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
+    					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Приемателен протокол за услуги с цени', 
-    					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	$tplArr[] = array('name' => 'Acceptance protocol',
-		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesNarrowEN.shtml',
 		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Acceptance protocol with prices',
-		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			'content' => 'purchase/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',  'narrowContent' => 'purchase/tpl/SingleLayoutServicesPricesNarrowEN.shtml',
 		    			'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	 
         $res .= doc_TplManager::addOnce($this, $tplArr);
