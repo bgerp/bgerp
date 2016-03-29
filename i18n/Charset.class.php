@@ -508,37 +508,39 @@ class i18n_Charset extends core_MVC {
     
     
     /**
-     * Преброява символите от различните скриптове
+     * Връща отрязък от кода - от началот, от средата и от края
+     * 
+     * @param string $text
+     * 
+     * @return boolean|string
      */
-    static function rateScript($text, $scripts, &$debug)
+    public static function getSampleText($text)
     {
-        $scripts = arr::make($scripts, TRUE);
-        
         if(!($len = strlen($text))) return FALSE;
         
         static $parts = array();
         $crc = crc32($text);
         
-        if(!isset($parts[$crc])) {
-
+        if (!isset($parts[$crc])) {
+        	
             // Ако стринга е дълъг, няма да се прави обработка на целия
             // Вземаме 3 части от стринга, като по-приоритетни са тези, които имат други символи освен 7 битови
             if ($len > 2500) {
-                
+        		
                 // По-колко символа ще се взема от началото, края и средата на стринга
                 $strMaxLen = 400;
                 $not7BitStr = 'not7bit';
-                
+        		
                 $partLen = ceil(($len) / 3);
                 $partLenE = 2 * $partLen;
-                
+        		
                 $bitStrArr = array();
                 $strArr = array();
                 $strCntArr = array();
-                
+        		
                 $p = 0;
-                while('' != ($char = self::nextChar($text, $p))) {
-                    
+                while ('' != ($char = self::nextChar($text, $p))) {
+        			
                     // В зависимост от положениети на маркера, определяме ключа
                     if ($p <= $partLen) {
                         $k = 'begin';
@@ -547,19 +549,19 @@ class i18n_Charset extends core_MVC {
                     } else {
                         $k = 'mid';
                     }
-                    
+        			
                     $bitStr = $bitStrArr[$k];
-                    
+        			
                     // Докато не намерим символ различен от 7 бита, правим проверка
                     if ($bitStr != $not7BitStr && !self::is7bit($char)) {
                         $bitStrArr[$k] = $bitStr = $not7BitStr;
                     }
-                    
+        			
                     if ($strCntArr[$k][$bitStr] <= $strMaxLen) {
                         $strArr[$bitStr][$k] .= $char;
                         $strCntArr[$k][$bitStr]++;
                     } else {
-                        
+        			
                         // Ако сме намерили стринга, няма нужда да ходим до края в интервала
                         // Прескачаме на следващия интервал или, ако сме в края - прекъсваме
                         // Това е за бързодействие при стрингове със съдържание на символи различни от 7 бита
@@ -574,40 +576,55 @@ class i18n_Charset extends core_MVC {
                         }
                     }
                 }
-                
+        		
                 // Опитваме се да генерираме нов стринг от откритите
                 $text = '';
-                $nLen = 0;
                 foreach ($strCntArr as $key => $vArr) {
-                    $text .= $text ? ' ' : '';
-                    
+        			
                     // Ако не е 7 битов стринг, искаме да е над определена дължина (може да е намерен в края)
-                    
+        			
                     if ($vArr[$not7BitStr] > floor($strMaxLen / 2.5)) {
                         $text .= $strArr[$not7BitStr][$key];
-                        $nLen += $vArr[$not7BitStr];
                     } else {
-                        
+        				
                         $text .= $strArr[''][$key];
-                        $nLen += $vArr[''];
-                        
+        				
                         // Ако има много малко текст (под 160 символа), който не е 7 битово, да се конкатинира с 7 битовия
                         if ($strArr[$not7BitStr][$key]) {
-                            $text .= ' ' . $strArr[$not7BitStr][$key];
-                            $nLen += $vArr[$not7BitStr];
+                            $text .= $strArr[$not7BitStr][$key];
                         }
                     }
                 }
-                $len = $nLen;
             }
-            
+        	
             $parts[$crc] = $text;
         } else {
             $text = $parts[$crc];
         }
         
+        return $text;
+    }
+    
+    
+    /**
+     * Преброява символите от различните скриптове
+     * 
+     * @param string $text
+     * @param array|string $scripts
+     * @param string|NULL $debug
+     * 
+     * @return boolean|string
+     */
+    public static function rateScript($text, $scripts, &$debug = NULL)
+    {
+        $scripts = arr::make($scripts, TRUE);
+        
+        $text = self::getSampleText($text);
+        
+        if ($text === FALSE) return FALSE;
+        
         static $rateArr = array();
-        $hash = md5($crc . implode('|', $scripts));
+        $hash = md5(crc32($text) . implode('|', $scripts));
         
         if (!isset($rateArr[$hash])) {
             
@@ -886,8 +903,8 @@ class i18n_Charset extends core_MVC {
         
         return $rateArr[$hash];
     }
-
-
+    
+    
     /**
      * От кой писмен скрипт е символа
      */
