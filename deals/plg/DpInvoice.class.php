@@ -117,7 +117,7 @@ class deals_plg_DpInvoice extends core_Plugin
      * @param core_Form $form
      */
     private static function getDefaultDpData(core_Form &$form, $mvc)
-    {   
+    {
     	// Договореното до момента
     	$aggreedDp  = $form->dealInfo->get('agreedDownpayment');
     	$actualDp   = $form->dealInfo->get('downpayment');
@@ -154,44 +154,43 @@ class deals_plg_DpInvoice extends core_Plugin
     	$dpAmount /= $rate;
     	$dpAmount = core_Math::roundNumber($dpAmount);
     	
-    	// Ако държавата не е България не предлагаме начисляване на ДДС
-    	if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
+    	// За проформи, Ако държавата не е България не предлагаме начисляване на ДДС
+    	if(!($mvc instanceof sales_Proformas) && $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'")) return;
 			
-    		switch($dpOperation){
-    			case 'accrued':
-    				if(isset($dpAmount)){
-    					$delivered = $form->dealInfo->get('deliveryAmount');
-    					if(!empty($delivered)){
-    						$dpOperation = 'none';
-    						$form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
-    					} else {
-    						$form->setDefault('amountAccrued', $dpAmount);
-    					}
+    	switch($dpOperation){
+    		case 'accrued':
+    			if(isset($dpAmount)){
+    				$delivered = $form->dealInfo->get('deliveryAmount');
+    				if(!empty($delivered)){
+    					$dpOperation = 'none';
+    					$form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
+    				} else {
+    					$form->setDefault('amountAccrued', $dpAmount);
     				}
-    				break;
-    			case 'deducted':
-    				if($dpAmount){
-    					$form->setDefault('amountDeducted', $dpAmount);
-    				}
-    				break;
-    			case 'none';
-    			if(isset($aggreedDp)){
-    				$dpField = $form->getField('amountAccrued');
-    				unset($dpField->autohide);
-    				
-    				$sAmount = core_Math::roundNumber($aggreedDp / $rate);
-    				$suggestions = array('' => '', "{$sAmount}" => $sAmount);
-    				$form->setSuggestions('amountAccrued', $suggestions);
     			}
     			break;
-    		}
-    		 
-    		if($dpOperation){
-    			$form->setDefault('dpOperation', $dpOperation);
-    			
-    			if($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)){
-    				unset($form->rec->amountDeducted);
+    		case 'deducted':
+    			if($dpAmount){
+    				$form->setDefault('amountDeducted', $dpAmount);
     			}
+    			break;
+    		case 'none';
+    		if(isset($aggreedDp)){
+    			$dpField = $form->getField('amountAccrued');
+    			unset($dpField->autohide);
+    				
+    			$sAmount = core_Math::roundNumber($aggreedDp / $rate);
+    			$suggestions = array('' => '', "{$sAmount}" => $sAmount);
+    			$form->setSuggestions('amountAccrued', $suggestions);
+    		}
+    		break;
+    	}
+    		 
+    	if($dpOperation){
+    		$form->setDefault('dpOperation', $dpOperation);
+    			
+    		if($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)){
+    			unset($form->rec->amountDeducted);
     		}
     	}
     }
