@@ -104,7 +104,7 @@ class email_Accounts extends core_Master
         $this->FLD('type', 'enum(single=Самостоятелна,common=Събирателна,corporate=Корпоративна)', 'notNull,caption=Тип');
         
         // Входящо получаване
-        $this->FLD("server", "varchar(128)", 'caption=Получаване->Сървър,width=100%', array('attr' => array('id' => 'server')));
+        $this->FLD("server", "varchar(128)", 'caption=Получаване->Сървър,width=100%,mandatory', array('attr' => array('id' => 'server')));
         $this->FLD("protocol", "enum(imap=IMAP, pop3=POP3)", 'caption=Получаване->Протокол,notNull', array('attr' => array('id' => 'protocol')));
         $this->FLD('security', 'enum(default=По подразбиране,tls=TLS,notls=No TLS,ssl=SSL)', 'caption=Получаване->Сигурност,notNull', array('attr' => array('id' => 'security')));
         $this->FLD('cert', 'enum(noValidate=Без валидиране,validate=С валидиране)', 'caption=Получаване->Сертификат,notNull', array('attr' => array('id' => 'cert')));
@@ -337,6 +337,37 @@ class email_Accounts extends core_Master
                 if($rec->type != 'single') {  
                     $form->setError('type', "Сметка в публична имейл услуга може да бъде само Самостоятелна");
                 }
+            }
+        }
+        
+        // Показваме предупреждение, ако възникне грешка при свързване
+        if($form->isSubmitted()) {
+            
+            $imapConn = cls::get('email_Imap', array('accRec' => $form->rec));
+            
+            $accRec = $form->rec;
+            
+            // Ако се редактира записа, непопълнените полета ги вземаме от предишния запис
+            if ($form->rec->id) {
+                $sRec = $mvc->fetch($form->rec->id);
+                foreach ((array)$sRec as $k => $v) {
+                    if (isset($accRec->{$k})) continue;
+                    $accRec->{$k} = $v;
+                }
+            }
+            
+            try {
+                // Логването и генериране на съобщение при грешка е винаги в контролерната част
+                if ($imapConn->connect() === FALSE) {
+                    $errMsg = "Грешка при свързване|*: " . $imapConn->getLastError();
+                    
+                    $form->setWarning('server', $errMsg);
+                    
+                    return;
+                }
+            } catch (Exception $e) {
+                reportException($e);
+                $form->setError('server', 'Грешка при свързване');
             }
         }
     }
