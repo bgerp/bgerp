@@ -74,7 +74,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количества->Вложено, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количества->За влагане, quantityFromBom=Количества->Рецепта, quantityFromTasks=Количества->Задачи,storeId';
     
 
     /**
@@ -103,7 +103,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
-        $this->setField('quantity', 'caption=Количества->Вложено');
+        $this->setField('quantity', 'caption=Количества->За влагане');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap');
     }
     
@@ -312,7 +312,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if($data->masterData->rec->state == 'active'){
     		unset($data->listFields['quantityFromBom']);
     		unset($data->listFields['quantityFromTasks']);
-    		$data->listFields['packQuantity'] = "Вложено";
+    		$data->listFields['packQuantity'] = "Количество";
     	}
     	
     	foreach ($data->rows as $id => &$row){
