@@ -106,21 +106,15 @@
                                 <div><span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                                 <!--ET_BEGIN colletsCount--><span class='half-col'>|Изчислен брой палети|*:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>|Брой палети|*: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
                             </div>
+              
+                            <!--ET_BEGIN responsible-->
                             <hr>
-                            <table class='centered special-borders' style='width:100%;'>
-                                <tr>
-                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
-                                    <td class='centered'>|Съставил|*:</td>
-                                </tr>
-                                <tr>
-                                    <td class='border-right' style='height:40px;'></td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
-                                </tr>
-                            </table>
+                            <div>|Получил|*:  [#responsible#]</div>
+                            <!--ET_END responsible-->
+                            
+                            <!--ET_BEGIN username-->
+                            <div>|Съставил|*:  [#username#]</div>
+                            <!--ET_END username-->
                         </td>
                     </tr>
                     <tr class='footerDocInfo'>

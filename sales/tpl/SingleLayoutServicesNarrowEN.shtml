@@ -50,8 +50,6 @@
         <table class="innerTable footer-notes paddingCells" style='width:100%;'>
             <tbody>
                 <tr>
-                    <!--ET_BEGIN LEFT_COLUMN-->
-                    [#LEFT_COLUMN#]
                     <td class="topCell first vtop">
                         <table style='width:100%;'>
                             <!--ET_BEGIN deliveryTime-->
@@ -75,24 +73,16 @@
                             </tr>
                             <!--ET_END note-->
                         </table>
+                        
+                        <!--ET_BEGIN responsible-->
+                        <hr>
+		                Received by: [#responsible#]
+		                <!--ET_END responsible-->
+		                <!--ET_BEGIN username-->
+		                Created by:  [#username#]
+		                <!--ET_END username-->
                     </td>
-                    <!--ET_END LEFT_COLUMN-->
-                    <td class="topCell aright vtop" style='width:50%;'>
-                        <table class='centered' style='width:100%;'>
-                            <tr>
-                                <td class='centered' style='border-right:1px solid #999;width:50%;'>For the Recipient:</td>
-                                <td class='centered'>For the Supplier:</td>
-                            </tr>
-                            <tr>
-                                <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
-                                <td class='centered'><span class="sign_names nowrap">[#delivered#]</span></td>
-                            </tr>
-                        </table>
-                    </td>
+                   
                 </tr>
             </tbody>
         </table>
