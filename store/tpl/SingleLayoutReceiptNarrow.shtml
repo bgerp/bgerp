@@ -59,16 +59,16 @@
             <tbody>
                 <tr>
                     <td class="topCell first vtop">
-                        <table class='shipment-table' style='width:100%;'>
+                        <table style='width:100%;'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>
-                                <td class='quiet aright'>|Срок до|*:</td>
+                                <td class='quiet' style='width:1%'>|Срок до|*:</td>
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
                             <!--ET_BEGIN lineId-->
                             <tr>
-                                <td class='quiet aright'>|Транспорт|*: </td>
+                                <td class='quiet'  style='width:1%'>|Транспорт|*: </td>
                                 <td>[#lineId#]</td>
                             </tr>
                             <!--ET_END lineId-->
