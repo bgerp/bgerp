@@ -1399,7 +1399,7 @@ class core_Mvc extends core_FieldSet
             
             if (!$name) continue;
             
-            $dbTableRes = $dbTable->query("OPTIMIZE TABLE $name");
+            $dbTableRes = $dbTable->query("OPTIMIZE TABLE `{$name}`");
             
             if (!is_object($dbTableRes)) continue;
             
