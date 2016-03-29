@@ -118,6 +118,8 @@ class deals_plg_DpInvoice extends core_Plugin
      */
     private static function getDefaultDpData(core_Form &$form, $mvc)
     {
+    	$rec = $form->rec;
+    	
     	// Договореното до момента
     	$aggreedDp  = $form->dealInfo->get('agreedDownpayment');
     	$actualDp   = $form->dealInfo->get('downpayment');
@@ -126,26 +128,47 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	$downpayment = (empty($actualDp)) ? NULL : $actualDp;
     	
-    	if(!isset($downpayment)) {
-    		$dpOperation = 'none';
-    		
-    		if(isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0){
-    			$dpAmount = $invoicedDp - $deductedDp;
+    	$flag = TRUE;
+    	
+    	// Ако е проформа
+    	if($mvc instanceof sales_Proformas){
+    		$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
+    		$hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
+    	
+    		// Ако има проформа за аванс и няма таква за приспадане, тази приспада
+    		if(isset($accruedProformaRec) && empty($hasDeductedProforma)){
+    			$dpAmount = $accruedProformaRec->dpAmount;
     			$dpOperation = 'deducted';
+    			$flag = FALSE;
     		}
-    	} else {
     		
-    		// Ако няма фактуриран аванс
-    		if(empty($invoicedDp)){
-    			
-    			// Начисляване на аванса
-    			$dpAmount = $downpayment;
-    			$dpOperation = 'accrued';
+    		// Ако има проформа за начисляване на аванс и за приспадане, не задаваме дефолти
+    		if($accruedProformaRec && $hasDeductedProforma) return;
+    	}
+    	
+    	if($flag === TRUE){
+    		if(!isset($downpayment)) {
+    			$dpOperation = 'none';
+    		
+    			if(isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0){
+    				$dpAmount = $invoicedDp - $deductedDp;
+    				$dpOperation = 'deducted';
+    			}
     		} else {
-    			
-    			// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
-    			$dpAmount = $invoicedDp - $deductedDp;
-    			$dpOperation = 'deducted';
+    		
+    			// Ако няма фактуриран аванс
+    			if(empty($invoicedDp)){
+    				if($flag === TRUE){
+    					// Начисляване на аванса
+    					$dpAmount = $downpayment;
+    					$dpOperation = 'accrued';
+    				}
+    			} else {
+    				 
+    				// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
+    				$dpAmount = $invoicedDp - $deductedDp;
+    				$dpOperation = 'deducted';
+    			}
     		}
     	}
     	
