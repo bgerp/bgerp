@@ -529,6 +529,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	if(!empty($rec->paymentType)){
     		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    	} else {
+    		$makeHint = FALSE;
     	}
     	
     	if(isset($fields['-single'])){
