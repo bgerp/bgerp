@@ -165,8 +165,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     private function countCollets($recs)
     {
-    	$count = 0;
-    	
+    	$resArr = array();
     	if(!count($recs)) return 0;
     	
     	foreach ($recs as $rec){
@@ -176,24 +175,26 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			
     			// Разбиване на записа
     			$info = explode(',', $rec->info);
+    			if(!count($info)) continue;
+    			
 	    		foreach ($info as &$seq){
 	    			
 	    			// Ако е посочен интервал от рода 1-5
 	    			$seq = explode('-', $seq);
 	    			if(count($seq) == 1){
-	    				
-	    				// Ако няма такова разбиване, се увеличава броя
-	    				$count += 1;
+	    				$resArr[$seq[0]] = $seq[0];
 	    			} else {
-	    				
-	    				// Ако е посочен интервал, броя се увеличава с разликата
-	    				$count += $seq[1] - $seq[0] +1;
+	    				foreach (range($seq[0], $seq[1]) as $i){
+	    					$resArr[$i] = $i;
+	    				}
 	    			}
 	    		}
     		}
     	}
     	
     	// Връщане на броя на колетите
+    	$count = count($resArr);
+    	
     	return $count;
     }
     
