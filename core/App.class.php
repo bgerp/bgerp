@@ -362,11 +362,63 @@ class core_App
  
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
-
+        
+        // Проверяваме състоянието на системата и ако се налага репорва
+        self::checkHitStatus();
+        
         // Излизаме със зададения статус
-        exit($status);
+        exit();
     }
-
+    
+    
+    
+    /**
+     * Проверява състоянието на системата и ако се налага репортва
+     */
+    public static function checkHitStatus()
+    {
+        $memUsagePercentLimit = 80;
+        $executionTimePercentLimit = 70;
+        
+        $memoryLimit = core_Os::getBytesFromMemoryLimit();
+        
+        $realUsage = TRUE;
+        
+        $peakMemUsage = memory_get_peak_usage($realUsage);
+        if (is_numeric($memoryLimit)) {
+            $peakMemUsagePercent = ($peakMemUsage / $memoryLimit) * 100;
+            
+            // Ако сме доближили до ограничението на паметта
+            if ($peakMemUsagePercent > $memUsagePercentLimit) {
+                wp();
+            }
+        }
+        
+        $memUsage = memory_get_usage($realUsage);
+        if (is_numeric($memUsage)) {
+            $memUsagePercent = ($memUsage / $memoryLimit) * 100;
+            
+            // Ако сме доближили до ограничението на паметта
+            if ($memUsagePercent > $memUsagePercentLimit) {
+                wp();
+            }
+        }
+        
+        $maxExecutionTime = ini_get('max_execution_time');
+        if (core_Debug::$startMicroTime) {
+            if (core_Debug::$startMicroTime) {
+                $executionTime = core_Datetime::getMicrotime() - core_Debug::$startMicroTime;
+                
+                $maxExecutionTimePercent = ($executionTime / $maxExecutionTime) * 100;
+                
+                // Ако сме доближили до ограничението за времето
+                if ($maxExecutionTimePercent > $executionTimePercentLimit) {
+                    wp();
+                }
+            }
+        }
+    }
+    
     
     /**
      * Изпраща всичко буферирано към браузъра и затваря връзката
