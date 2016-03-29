@@ -14040,7 +14040,7 @@ class HTMLPurifier_Injector_SafeObject extends HTMLPurifier_Injector
  * In PHP 5, the DOM XML extension was revamped into DOM and added to the core.
  * It gives us a forgiving HTML parser, which we use to transform the HTML
  * into a DOM, and then into the tokens.  It is blazingly fast (for large
- * documents, it performs twenty times faster than
+ * document, it performs twenty times faster than
  * HTMLPurifier_Lexer_DirectLex,and is the default choice for PHP 5.
  *
  * @note Any empty elements will have empty tokens associated with them, even if
@@ -14937,7 +14937,7 @@ class HTMLPurifier_Strategy_FixNesting extends HTMLPurifier_Strategy
                 // processing as if the parent were the "root" node
                 // unknown info, it won't be used anyway, in the future,
                 // we may want to enforce one element only (this is
-                // necessary for HTML Purifier to clean entire documents
+                // necessary for HTML Purifier to clean entire document
                 $parent_index = $parent_name = $parent_def = null;
             }
 
