@@ -312,6 +312,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	foreach ($data->rows as $id => &$row){
     		$rec = $data->recs[$id];
+    		
+    		$difference = round(abs($rec->quantityFromBom - $rec->quantityFromTasks) / min($rec->quantityFromBom, $rec->quantityFromTasks) * 100);
+    		if($difference >= 20){
+    			$row->packQuantity = ht::createHint($row->packQuantity, 'Има голяма разлика между количеството по рецепта и по задачи',  'warning', FALSE);
+    		}
+    		
     		if(empty($rec->storeId)){
     			$row->storeId = tr('Незавършено производство');
     		} else {
