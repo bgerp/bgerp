@@ -247,10 +247,10 @@ class store_Receipts extends store_DocumentMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Складова разписка', 
-    					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 
+    					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Складова разписка с цени', 
-    					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
