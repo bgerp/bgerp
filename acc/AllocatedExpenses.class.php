@@ -141,7 +141,6 @@ class acc_AllocatedExpenses extends core_Master
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
     	$this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
-    	//$this->FLD('chargeVat', 'enum(yes=С ДДС,no=Без ДДС)', 'caption=ДДС,maxRadio=2');
     	
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
