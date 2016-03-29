@@ -343,11 +343,9 @@ class email_Accounts extends core_Master
         // Показваме предупреждение, ако възникне грешка при свързване
         if($form->isSubmitted()) {
             
-            $imapConn = cls::get('email_Imap', array('accRec' => $form->rec));
-            
             $accRec = $form->rec;
             
-            // Ако се редактира записа, непопълнените полета ги вземаме от предишния запис
+            // Ако се редактира записа, непопълнените полета ги вземаме от модела
             if ($form->rec->id) {
                 $sRec = $mvc->fetch($form->rec->id);
                 foreach ((array)$sRec as $k => $v) {
@@ -355,6 +353,8 @@ class email_Accounts extends core_Master
                     $accRec->{$k} = $v;
                 }
             }
+            
+            $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
             try {
                 // Логването и генериране на съобщение при грешка е винаги в контролерната част
