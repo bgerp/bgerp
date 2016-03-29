@@ -134,9 +134,9 @@ class deals_plg_DpInvoice extends core_Plugin
     	if($mvc instanceof sales_Proformas){
     		$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
     		$hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
-    	
+    		
     		// Ако има проформа за аванс и няма таква за приспадане, тази приспада
-    		if(isset($accruedProformaRec) && empty($hasDeductedProforma)){
+    		if(!empty($accruedProformaRec) && empty($hasDeductedProforma)){
     			$dpAmount = $accruedProformaRec->dpAmount;
     			$dpOperation = 'deducted';
     			$flag = FALSE;
