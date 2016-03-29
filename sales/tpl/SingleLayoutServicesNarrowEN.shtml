@@ -73,14 +73,13 @@
                             </tr>
                             <!--ET_END note-->
                         </table>
-                        
-                        <!--ET_BEGIN responsible-->
+                        <!--ET_BEGIN received-->
                         <hr>
-		                Received by: [#responsible#]
-		                <!--ET_END responsible-->
-		                <!--ET_BEGIN username-->
-		                Created by:  [#username#]
-		                <!--ET_END username-->
+                       <div> Received by: [#received#]</div>
+                        <!--ET_END received-->
+                        <!--ET_BEGIN delivered-->
+                       <div> Delivered by:  [#delivered#] </div>
+                        <!--ET_END delivered-->
                     </td>
                    
                 </tr>
