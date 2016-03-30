@@ -406,6 +406,7 @@ class bank_OwnAccounts extends core_Master {
         }
         
         $acc = bank_Accounts::fetch($ownAcc->bankAccountId);
+        expect($acc, $ownAcc);
         
         if(!$acc->bank) {
             $acc->bank = bglocal_Banks::getBankName($acc->iban);

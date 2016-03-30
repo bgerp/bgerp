@@ -493,31 +493,42 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		cat_Boms::requireRightFor('add');
 		expect($id = Request::get('id', 'int'));
 		expect($rec = $this->fetch($id));
-		
 		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId));
 		
 		// Подготвяме детайлите на рецептата
 		$details = array();
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$id}");
+		
+		$recsToSave = array();
+		
 		while ($dRec = $dQuery->fetch()){
+			$index = "{$dRec->productId}|{$dRec->type}";
+			if(!array_key_exists($index, $recsToSave)){
+				$recsToSave[$index] = (object)array('resourceId'     => $dRec->productId, 
+													'type'           => $dRec->type,
+													'propQuantity'   => 0,
+													'packagingId'    => $dRec->packagingId, 
+													'quantityInPack' => $dRec->quantityInPack);}
 			
-			$nRec = new stdClass();
-			$nRec->resourceId     = $dRec->productId;
-			$nRec->type           = $dRec->type;
-			$nRec->propQuantity   = $dRec->packQuantity;
-			$nRec->packagingId    = $dRec->packagingId;
-			$nRec->quantityInPack = $dRec->quantityInPack;
-			
-			$details[] = $nRec;
+			$recsToSave[$index]->propQuantity += $dRec->quantity;
+			if($dRec->quantityInPack < $recsToSave[$index]->quantityInPack){
+				$recsToSave[$index]->quantityInPack = $dRec->quantityInPack;
+				$recsToSave[$index]->packagingId = $dRec->packagingId;
+			}
+		}
+		
+		foreach ($recsToSave as &$pRec){
+			$pRec->propQuantity /= $pRec->quantityInPack;
 		}
 		
 		// Създаваме новата рецепта
-		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $details, NULL, $rec->expenses);
+		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $rec->originId, $recsToSave, NULL, $rec->expenses);
 		
 		// Записваме, че потребителя е разглеждал този списък
 		cat_Boms::logWrite("Създаване на рецепта от протокол за бързо производство", $newId);
 		
+		// Редирект
 		return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
 	}
 	

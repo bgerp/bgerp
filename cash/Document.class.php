@@ -37,7 +37,7 @@ abstract class cash_Document extends deals_PaymentDocument
     public $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
-                     bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues';
+                     bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg';
     
     
     /**
@@ -83,9 +83,15 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
-     * Кой може да пише?
+     * Кой може да създава?
      */
-    public $canWrite = 'cash, ceo';
+    public $canAdd = 'cash, ceo, purchase, sales';
+    
+    
+    /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'cash, ceo, purchase, sales';
     
     
     /**
@@ -127,6 +133,15 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, cash';
+    
+    
+    /**
      * Добавяне на дефолтни полета
      * 
      * @param core_Mvc $mvc
@@ -140,7 +155,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('number', 'int', 'caption=Номер');
-    	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name)', 'caption=Каса');
+    	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
@@ -215,16 +230,13 @@ abstract class cash_Document extends deals_PaymentDocument
     	
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', dt::today());
+    	$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
+    	$form->setDefault('peroCase', $caseId);
     	
-    	$form->setDefault('peroCase', cash_Cases::getCurrent());
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
     	 
     	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
-    	
-    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
-    		$form->setField('amount', 'input');
-    	}
     	
     	if($contragentClassId == crm_Companies::getClassId()){
     		$form->setSuggestions($mvc->personDocumentField, crm_Companies::getPersonOptions($contragentId, FALSE));
@@ -251,6 +263,14 @@ abstract class cash_Document extends deals_PaymentDocument
     protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
+    	
+    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
+    		$form->setField('amount', 'input');
+    	}
+    	
+    	if(!isset($form->rec->peroCase)){
+    		$form->setField('currencyId', 'input=hidden');
+    	}
     	
     	if ($form->isSubmitted()){
     		if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
@@ -480,7 +500,12 @@ abstract class cash_Document extends deals_PaymentDocument
     		$cashierRow = core_Users::recToVerbal($cashierRec);
     		$row->cashier = $cashierRow->names;
     
-    		$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
+    		if(isset($rec->peroCase)){
+    			$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
+    		} else {
+    			$row->peroCase = tr('Предстои да бъде уточнена');
+    			$row->peroCase = "<span class='red'><small><i>{$row->peroCase}</i></small></span>";
+    		}
     		
     		if($origin = $mvc->getOrigin($rec)){
     			$options = $origin->allowedPaymentOperations;

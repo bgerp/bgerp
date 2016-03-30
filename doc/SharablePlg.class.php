@@ -243,11 +243,23 @@ class doc_SharablePlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+        
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
+        }
+         
+        if(isset($mvc->shareUserRoles)){
+        	$sharedRoles = arr::make($mvc->shareUserRoles, TRUE);
+        	$sharedRoles = implode(',', $sharedRoles);
+        	
+        	// Ако има зададени роли за търсене
+        	if($form->getField('sharedUsers', FALSE)){
+        		$form->setFieldTypeParams('sharedUsers', array('roles' => $sharedRoles));
+        	}
         }
     }
     

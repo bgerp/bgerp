@@ -2001,14 +2001,15 @@ class doc_Threads extends core_Manager
      *
      * @param core_Query $query
      * @param int $userId key(mvc=core_Users) текущия по подразбиране
+     * @param boolean $viewAccess
      */
-    static function restrictAccess($query, $userId = NULL)
+    static function restrictAccess($query, $userId = NULL, $viewAccess = FALSE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
         
-        doc_Folders::restrictAccess($query, $userId, FALSE);
+        doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
         if ($query->mvc->className != 'doc_Threads') {
             // Добавя необходимите полета от модела doc_Threads

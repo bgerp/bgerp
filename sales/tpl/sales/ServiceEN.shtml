@@ -34,11 +34,11 @@
                         Location: [#deliveryLocationId#]
                     </div>
                     <!--ET_END deliveryLocationId-->
-                    
                     <!--ET_BEGIN vatId-->
-                     <div>Vat Id:<br>
-                      [#vatId#]</div>
-                     <!--ET_END vatId-->
+                    <div>Vat Id:<br>
+                        [#vatId#]
+                    </div>
+                    <!--ET_END vatId-->
                 </td>
                 <td>
                     <!--ET_BEGIN MyCompany-->
@@ -124,12 +124,16 @@
                             <!--ET_END notes-->
                             <!--ET_BEGIN deliveryBlock-->
                             [#deliveryBlock#]
-                            <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                            <li>
+                                Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime-->
+                            </li>
                             <!--ET_END deliveryBlock-->
-                            <!--ET_BEGIN deliveryTermTime--><li>Delivery time up to [#deliveryTermTime#] after starting the order</li><!--ET_END deliveryTermTime--> 
-                        	<!--ET_BEGIN commonConditionQuote-->
-	                    	<li>[#commonConditionQuote#]</li>
-	                    	<!--ET_END commonConditionQuote-->
+                            <!--ET_BEGIN deliveryTermTime-->
+                            <li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
+                            <!--ET_END deliveryTermTime--> 
+                            <!--ET_BEGIN commonConditionQuote-->
+                            <li>[#commonConditionQuote#]</li>
+                            <!--ET_END commonConditionQuote-->
                         </ol>
                     </div>
                 </td>

@@ -101,15 +101,16 @@ class core_page_InternalModern extends core_page_Active
     {
     	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
     		$openMenuInfo = $_COOKIE['menuInfo'];
+    		$winWidth = intval($openMenuInfo);
     		$mainContainerClass = '';
     		
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
-			if(strrpos($openMenuInfo, "l") !== FALSE) {
+			if(($winWidth > 700) && strrpos($openMenuInfo, "l") !== FALSE) {
 				$openLeftBtn = ' menu-active ';
 				$openLeftMenu = ' sidemenu-open ';
 				$mainContainerClass .= ' sidemenu-push-toright ';
 			}
-			if(strrpos($openMenuInfo, "r") !== FALSE) {
+			if(($winWidth > 700) && strrpos($openMenuInfo, "r") !== FALSE) {
 				$openRightBtn = ' menu-active ';
 				$openRightMenu = ' sidemenu-open';
 				$mainContainerClass .= ' sidemenu-push-toleft ';

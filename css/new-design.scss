@@ -92,6 +92,14 @@
 		top:0;
 		bottom:0;
 		margin: 0;
+		padding-bottom: 0 !important;
+		.tab {
+		  margin-top: 3px !important;
+		  margin-bottom: 0px !important;
+		}
+	}
+	.tab-page {
+	   padding-top: 10px !important;
 	}
 }
 .sidemenu-push-toright {

@@ -36,7 +36,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	 */
 	public $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
          plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
-         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg';
+         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg';
 	
 	
 	/**
@@ -82,9 +82,15 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
-	 * Кой може да пише?
-	 */
-	public $canWrite = 'bank, ceo';
+     * Кой може да създава?
+     */
+    public $canAdd = 'bank, ceo, purchase, sales';
+    
+    
+    /**
+     * Кой може да редактира?
+     */
+    public $canEdit = 'bank, ceo, purchase, sales';
 	
 	
 	/**
@@ -106,6 +112,15 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
+	 * До потребители с кои роли може да се споделя документа
+	 * 
+	 * @var string
+	 * @see doc_SharablePlg
+	 */
+	public $shareUserRoles = 'ceo, bank';
+	
+	
+	/**
 	 * Добавяне на дефолтни полета
 	 *
 	 * @param core_Mvc $mvc
@@ -123,7 +138,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание,mandatory');
 		$mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
 		$mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
-		$mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title)', 'caption=В->Сметка,mandatory,silent,removeAndRefreshForm=currencyId|amount');
+		$mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
 		$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
 		
 		$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -144,6 +159,20 @@ abstract class bank_Document extends deals_PaymentDocument
 	protected static function on_AfterInputEditForm($mvc, $form)
 	{
 		$rec = &$form->rec;
+		
+		if($form->rec->currencyId != $form->rec->dealCurrencyId){
+			if(isset($form->rec->ownAccount)){
+				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+				if(isset($ownAcc->currencyId)){
+					$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+					$form->setField('amount', "unit={$code}");
+				}
+				
+				$caption = ($mvc instanceof bank_SpendingDocuments) ? 'От' : 'В';
+				$form->setField('amount', "input,caption={$caption}->Заверени");
+			}
+		}
+		
 		if ($form->isSubmitted()){
 			if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
 				$form->setField('amount', 'input');
@@ -364,7 +393,12 @@ abstract class bank_Document extends deals_PaymentDocument
 			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
 			$row->contragentAddress = $contragent->getFullAdress();
 	
-			$row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
+			if(isset($rec->ownAccount)){
+				$row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
+			} else {
+				$row->ownAccount = tr('Предстои да бъде уточнена');
+				$row->ownAccount = "<span class='red'><small><i>{$row->ownAccount}</i></small></span>";
+			}
 			
 			if($origin = $mvc->getOrigin($rec)){
 				$options = $origin->allowedPaymentOperations;
@@ -416,15 +450,19 @@ abstract class bank_Document extends deals_PaymentDocument
         if($bankId = $dealInfo->get('bankAccountId')){
         
         	// Ако потребителя има права, логва се тихо
-        	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
-        	if($bankId){
+        	if($bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id')){
         		bank_OwnAccounts::selectCurrent($bankId);
         	}
         }
+        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
+        $form->setDefault('ownAccoun', $bankId);
         
-        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
-        $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
-        $form->setDefault('currencyId', $ownAcc->currencyId);
+        if(isset($form->rec->ownAccount)){
+        	$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+        	$form->setDefault('currencyId', $ownAcc->currencyId);
+        } else {
+        	$form->setDefault('currencyId', $form->rec->dealCurrencyId);
+        }
         
         $pOperations = $dealInfo->get('allowedPaymentOperations');
         $defaultOperation = $dealInfo->get('defaultBankOperation');
@@ -448,10 +486,5 @@ abstract class bank_Document extends deals_PaymentDocument
         }
         
         $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
-    
-        if($form->rec->currencyId != $form->rec->dealCurrencyId){
-        	$code = currency_Currencies::getCodeById($ownAcc->currencyId);
-        	$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
-        }
-	}
+    }
 }

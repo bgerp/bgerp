@@ -383,7 +383,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->quantity)){
-				$rec->quantity = 1;
+				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
+    			if(!empty($defQuantity)){
+    				$rec->quantity = $defQuantity;
+    			} else {
+    				$form->setError('quantity', 'Не е въведено количество');
+    			}
 			}
 			
 			// Закръгляме количеството спрямо допустимото от мярката
