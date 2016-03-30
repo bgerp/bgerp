@@ -150,6 +150,15 @@ abstract class bank_Document extends deals_PaymentDocument
 	protected static function on_AfterInputEditForm($mvc, $form)
 	{
 		$rec = &$form->rec;
+		
+		if($form->rec->currencyId != $form->rec->dealCurrencyId){
+			if(isset($form->rec->ownAccount)){
+				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+				$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+				$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
+			}
+		}
+		
 		if ($form->isSubmitted()){
 			if(!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId){
 				$form->setField('amount', 'input');
@@ -463,10 +472,5 @@ abstract class bank_Document extends deals_PaymentDocument
         }
         
         $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
-        
-        if($form->rec->currencyId != $form->rec->dealCurrencyId){
-        	$code = currency_Currencies::getCodeById($ownAcc->currencyId);
-        	$form->setField('amount', "input,caption=В->Заверени,unit={$code}");
-        }
-	}
+    }
 }

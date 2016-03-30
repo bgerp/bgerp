@@ -229,10 +229,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	 
     	$form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
     	
-    	if(isset($form->rec->peroCase) && $form->rec->currencyId != $form->rec->dealCurrencyId){
-    		$form->setField('amount', 'input');
-    	}
-    	
     	if($contragentClassId == crm_Companies::getClassId()){
     		$form->setSuggestions($mvc->personDocumentField, crm_Companies::getPersonOptions($contragentId, FALSE));
     	}
@@ -258,6 +254,10 @@ abstract class cash_Document extends deals_PaymentDocument
     protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
+    	
+    	if($form->rec->currencyId != $form->rec->dealCurrencyId){
+    		$form->setField('amount', 'input');
+    	}
     	
     	if(!isset($form->rec->peroCase)){
     		$form->setField('currencyId', 'input=hidden');
