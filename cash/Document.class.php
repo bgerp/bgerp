@@ -204,9 +204,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	
     	// Ако потребителя има права, логва се тихо
     	if($caseId = $dealInfo->get('caseId')){
-    		if(cash_Cases::haveRightFor('select', $caseId)){
-    			cash_Cases::selectCurrent($caseId);
-    		}
+    		cash_Cases::selectCurrent($caseId);
     	}
     	
     	$form->setOptions('operationSysId', $options);
@@ -223,10 +221,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', dt::today());
-    	
-    	if(cash_Cases::haveRightFor('select')){
-    		$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
-    	}
+    	$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
     	
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);

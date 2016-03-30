@@ -428,15 +428,10 @@ abstract class bank_Document extends deals_PaymentDocument
         
         	// Ако потребителя има права, логва се тихо
         	if($bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id')){
-        		if(bank_OwnAccounts::haveRightFor('select', $bankId)){
-        			bank_OwnAccounts::selectCurrent($bankId);
-        		}
+        		bank_OwnAccounts::selectCurrent($bankId);
         	}
         }
-        
-        if(bank_OwnAccounts::haveRightFor('select')){
-        	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
-        }
+        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
         
         if(isset($form->rec->ownAccount)){
         	$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
