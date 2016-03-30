@@ -1517,7 +1517,7 @@ function setFormElementsWidth() {
         $('.vertical .formTitle').css('min-width', formElWidth -10);
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
-        $('.formTable .select2-container').css('maxWidth', formElWidth - 50);
+        $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
     } else {
     	 $('.formTable label').each(function() {
