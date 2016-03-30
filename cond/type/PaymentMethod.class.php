@@ -25,7 +25,7 @@ class cond_type_PaymentMethod extends cond_type_Proto
 	 */
 	public function getType($rec)
 	{
-		$Type = core_Type::getByName("key(mvc=cond_paymentMethods,select=description,allowEmpty)");
+		$Type = core_Type::getByName("key(mvc=cond_paymentMethods,select=title,allowEmpty)");
 		
 		return $Type;
 	}
