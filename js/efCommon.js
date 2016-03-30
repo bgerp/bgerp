@@ -1854,7 +1854,19 @@ function refreshForm(form, removeFields) {
 		url: frm.attr('action'),
 		data: frm.serialize() + '&ajax_mode=1',
 		success: function (data) {
-
+			
+			// Затваря всики select2 елементи
+			if ($.fn.select2) {
+				var selFind = frm.find('select');
+				if (selFind) {
+					$.each(selFind, function(a, elem){
+						if ($(elem).select2()) {
+							$(elem).select2().select2("close");
+						}
+					});
+				}
+			}
+			
 			// Зареждаме стиловете
 			$.each(data.css, function(i, css) {
 				if(refreshForm.loadedFiles.indexOf(css) < 0) {
@@ -3647,9 +3659,9 @@ Experta.prototype.getSavedSelText = function() {
 Experta.prototype.saveSelTextInTextarea = function(id) {
     // Текстареата
     textarea = document.getElementById(id);
-
+    
     // Ако текстареата е на фокус
-    if (textarea.getAttribute('data-focus') == 'focused') {
+    if (textarea && textarea.getAttribute('data-focus') == 'focused') {
 
         // id на текстареата
         //id = textarea.getAttribute('id');
