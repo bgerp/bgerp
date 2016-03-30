@@ -1268,9 +1268,10 @@ class doc_Folders extends core_Master
      * Връща опции за избор на папки, чиито корици имат определен интерфейс
      *
      * @param string $interface - име на интерфейс
+     * @param array $ignoreFolders - масив с ид-та на папки за игнориране
      * @return array $options - масив с опции
      */
-    public static function getOptionsByCoverInterface($interface)
+    public static function getOptionsByCoverInterface($interface, $ignoreFolders = array())
     {
     	$options = array();
     
@@ -1279,6 +1280,10 @@ class doc_Folders extends core_Master
     	$contragents = array_keys($contragents);
     	$query->in('coverClass', $contragents);
     	$query->where("#state != 'rejected'");
+    	if($ignoreFolders){
+    		$query->notIn('id', $ignoreFolders);
+    	}
+    	
     	$query->show('title');
     	while($rec = $query->fetch()){
     		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
