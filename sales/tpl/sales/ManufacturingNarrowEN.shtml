@@ -194,12 +194,11 @@
                 <!--ET_END sayWords-->
                 <hr>
                 <!--ET_BEGIN responsible-->
-                Received by: [#responsible#]
+                <div>Received by: [#responsible#]</div>
                 <!--ET_END responsible-->
                 <!--ET_BEGIN username-->
-                Created by:  [#username#]
+                <div>Created by:  [#username#]</div>
                 <!--ET_END username-->
-                For the supplier:  [#username#]
             </td>
         </tr>
         <tr class='footerDocInfo'>
