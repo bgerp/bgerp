@@ -1427,7 +1427,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
     	 
     	// Ако няма платежен план, това е плащане в брой
-    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_PaymentMethods::fetchField("#name = 'Cash on Delivery'", 'id') : $fields['paymentMethodId'];
+    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_PaymentMethods::fetchField("#sysId = 'COD'", 'id') : $fields['paymentMethodId'];
     	 
     	// Ако няма търговец, това е текущия потребител
     	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
