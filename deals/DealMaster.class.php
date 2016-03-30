@@ -1083,11 +1083,11 @@ abstract class deals_DealMaster extends deals_DealBase
     			$options['ship'] = $opt['service'];
     		}
     	}
-    	 
+    	
     	// ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
     	if($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)){
     
-    		// може да се плати с продуктите
+    		// Може да се плати с продуктите
     		$caseName = cash_Cases::getTitleById($rec->caseId);
     		$options['pay'] = "{$opt['pay']} \"$caseName\"";
     	}
