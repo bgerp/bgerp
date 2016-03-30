@@ -432,6 +432,7 @@ abstract class bank_Document extends deals_PaymentDocument
         	}
         }
         $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
+        $form->setDefault('ownAccoun', $bankId);
         
         if(isset($form->rec->ownAccount)){
         	$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);

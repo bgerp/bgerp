@@ -222,6 +222,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', dt::today());
     	$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
+    	$form->setDefault('peroCase', $caseId);
     	
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	$form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
