@@ -661,7 +661,7 @@ class doc_Folders extends core_Master
      *
      * @param core_Query $query
      * @param int $userId key(mvc=core_Users)
-     * @param boolean $fullAccess - Възможно най - много права за папката
+     * @param boolean $viewAccess - Възможно най - много права за папката
      */
     static function restrictAccess_(&$query, $userId = NULL, $viewAccess = TRUE)
     {

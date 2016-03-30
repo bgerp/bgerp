@@ -329,7 +329,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        doc_Folders::restrictAccess($data->query);
+        doc_Threads::restrictAccess($data->query, NULL, TRUE);
     }
     
     
