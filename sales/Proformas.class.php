@@ -401,7 +401,7 @@ class sales_Proformas extends deals_InvoiceMaster
     		
     		if($methodId){
     			core_Lg::push($rec->tplLang);
-    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
+    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'title');
     			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}
