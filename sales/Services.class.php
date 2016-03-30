@@ -255,8 +255,10 @@ class sales_Services extends deals_ServiceMaster
     	$query = sales_ServicesDetails::getQuery();
     	$query->where("#shipmentId = {$rec->id}");
     	while($dRec = $query->fetch()){
+    		$dRec->price -= $dRec->price * $dRec->discount;
     		$dRec->quantity /= $dRec->quantityInPack;
     		unset($dRec->id);
+    		unset($dRec->discount);
     		unset($dRec->shipmentId);
     		unset($dRec->createdOn);
     		unset($dRec->createdBy);
