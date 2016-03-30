@@ -129,6 +129,12 @@ class trans_Lines extends core_Master
 
     
     /**
+     * Файл за единичния изглед в мобилен
+     */
+    public $singleLayoutFileNarrow = 'trans/tpl/SingleLayoutLinesNarrow.shtml';
+    		
+    		
+    /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/lorry_go.png';

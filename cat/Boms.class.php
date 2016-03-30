@@ -1416,7 +1416,7 @@ class cat_Boms extends core_Master
     		// Подготвяме задачата за етапа, с него за производим
     		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
     							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
-    							 'plannedQuantity' => $quantityP * $quantity,
+    							 'plannedQuantity' => $quantityP,
     							 'productId' => $dRec->resourceId,
     							 'packagingId' => $dRec->packagingId,
     							 'quantityInPack' => $dRec->quantityInPack,

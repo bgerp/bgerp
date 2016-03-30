@@ -73,8 +73,9 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 	{
 		$BatchClass = batch_Defs::getBatchDef($data->rec->productId);
 		if(is_object($BatchClass)){
+			
 			// Ако не е въведена партида, сетваме грешка
-			if(empty($data->rec->batch)){
+			if(empty($data->rec->batch) && $data->rec->state == 'draft'){
 				$data->row->productId = ht::createHint($data->row->productId, 'Не е въведен партиден номер', 'warning');
 			}
 		}

@@ -9,7 +9,7 @@
  * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -17,6 +17,8 @@
  */
 class core_Manager extends core_Mvc
 {
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *        ОПИСАТЕЛНА ЧАСТ                                                               *
@@ -77,13 +79,26 @@ class core_Manager extends core_Mvc
      */
     var $canAdmin = 'admin';
     
+    
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
      *                                                                                      *
      ****************************************************************************************/
     
-
+    
+    /**
+     * Конструктора на таблицата. По подразбиране работи със singleton
+     * адаптор за база данни на име "db". Разчита, че адапторът
+     * е вече свързан към базата.
+     */
+    function init($params = array())
+    {
+    	parent::init($params);
+    	$this->declareInterface('core_ManagerIntf');
+    }
+    
+    
     /**
      * Връща линк към подадения обект
      * 

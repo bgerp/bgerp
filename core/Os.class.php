@@ -435,4 +435,28 @@ class core_Os
         
         return $linesArr;
     }
+    
+    
+    /**
+     * Връща размера на memory_limit в байтове
+     * 
+     * @return integer
+     */
+    public static function getBytesFromMemoryLimit($memoryLimit = NULL)
+    {
+        if (!isset($memoryLimit)) {
+            $memoryLimit = ini_get('memory_limit');
+        }
+        
+        if (preg_match("/^(?'size'\d+)(?'type'.)$/", $memoryLimit, $matches)) {
+            
+            if ($matches['type'] == 'M') {
+                $memoryLimit = $matches['size'] * 1024 * 1024;
+            } else if ($matches['type'] == 'K') {
+                $memoryLimit = $matches['size'] * 1024;
+            }
+        }
+        
+        return (int) $memoryLimit;
+    }
 }

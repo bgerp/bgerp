@@ -135,7 +135,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'tools=Пулт, valior, title=Документ, productId, storeId, folderId, deadline, createdOn, createdBy';
+	
+	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	public $hideListFieldsIfEmpty = 'deadline';
 	
 	
 	/**
@@ -495,10 +501,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$id}");
 		while ($dRec = $dQuery->fetch()){
+			
 			$nRec = new stdClass();
 			$nRec->resourceId     = $dRec->productId;
 			$nRec->type           = $dRec->type;
-			$nRec->propQuantity   = $dRec->quantity;
+			$nRec->propQuantity   = $dRec->packQuantity;
 			$nRec->packagingId    = $dRec->packagingId;
 			$nRec->quantityInPack = $dRec->quantityInPack;
 			

@@ -226,6 +226,13 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	core_Lg::pop();
+    	
+    	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
+    	if(!empty($rec->palletCountInput)){
+    		$row->palletCountInput = $mvc->getVerbal($rec, 'palletCountInput');
+    	} else {
+    		unset($row->palletCountInput);
+    	}
     }
     
     
@@ -407,6 +414,47 @@ class store_ShipmentOrders extends store_DocumentMaster
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Изчислява броя колети в ЕН-то ако има
+     * 
+     * @param int $id - ид на ЕН
+     * @return int $count- брой колети/палети
+     */
+    public static function countCollets($id)
+    {
+    	$rec = static::fetchRec($id);
+    	$dQuery = store_ShipmentOrderDetails::getQuery();
+    	$dQuery->where("#shipmentId = {$rec->id}");
+    	$dQuery->where("#info IS NOT NULL");
+    	$count = 0;
     	
+    	$resArr = array();
+    	while($dRec = $dQuery->fetch()){
+    		
+    		// Разбиване на записа
+    		$info = explode(',', $dRec->info);
+    		if(!count($info)) continue;
+    		
+    		foreach ($info as &$seq){
+    				 
+    			// Ако е посочен интервал от рода 1-5
+    			$seq = explode('-', $seq);
+    			if(count($seq) == 1){
+    				$resArr[$seq[0]] = $seq[0];
+    			} else {
+    				foreach (range($seq[0], $seq[1]) as $i){
+    					$resArr[$i] = $i;
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Връщане на броя на колетите
+    	$count = count($resArr);
+    	
+    	return $count;
     }
 }
