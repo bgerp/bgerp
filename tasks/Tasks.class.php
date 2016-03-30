@@ -350,7 +350,7 @@ class tasks_Tasks extends embed_Manager
     	
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pendingandactive=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активен, pending=Чакащ, pendingandactive=Активни+Чакащи,closed=Приключен, stopped=Спрян, wakeup=Събуден', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');

@@ -147,57 +147,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     }
     
     
-	/**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-        // Преброява броя на колетите, само ако се показва тази информация
-        if(isset($data->listFields['info'])){
-        	$data->masterData->row->colletsCount = cls::get('type_Int')->toVerbal($mvc->countCollets($data->recs));
-        }
-    }
-    
-    
-    /**
-     * Преброява общия брой на колетите
-     * @param array $recs - записите от модела
-     */
-    private function countCollets($recs)
-    {
-    	$count = 0;
-    	
-    	if(!count($recs)) return 0;
-    	
-    	foreach ($recs as $rec){
-    		
-    		// За всяка информация за колети
-    		if($rec->info){
-    			
-    			// Разбиване на записа
-    			$info = explode(',', $rec->info);
-	    		foreach ($info as &$seq){
-	    			
-	    			// Ако е посочен интервал от рода 1-5
-	    			$seq = explode('-', $seq);
-	    			if(count($seq) == 1){
-	    				
-	    				// Ако няма такова разбиване, се увеличава броя
-	    				$count += 1;
-	    			} else {
-	    				
-	    				// Ако е посочен интервал, броя се увеличава с разликата
-	    				$count += $seq[1] - $seq[0] +1;
-	    			}
-	    		}
-    		}
-    	}
-    	
-    	// Връщане на броя на колетите
-    	return $count;
-    }
-    
-    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 

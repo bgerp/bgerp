@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class deals_Document extends core_Master
+abstract class deals_Document extends deals_PaymentDocument
 {
     
 	/**

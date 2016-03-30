@@ -864,8 +864,9 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$row = static::recToVerbal($rec, 'type,number,-list');
-    	$row->number = strip_tags($row->number);
+    	$row = new stdClass();
+    	$row->type = static::getVerbal($rec, 'type');
+    	$row->number = strip_tags(static::getVerbal($rec, 'number'));
     	$num = ($row->number) ? $row->number : $rec->id;
     
     	return tr("|{$row->type}|* №{$num}");

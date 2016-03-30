@@ -117,7 +117,9 @@ class deals_plg_DpInvoice extends core_Plugin
      * @param core_Form $form
      */
     private static function getDefaultDpData(core_Form &$form, $mvc)
-    {   
+    {
+    	$rec = $form->rec;
+    	
     	// Договореното до момента
     	$aggreedDp  = $form->dealInfo->get('agreedDownpayment');
     	$actualDp   = $form->dealInfo->get('downpayment');
@@ -126,26 +128,49 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	$downpayment = (empty($actualDp)) ? NULL : $actualDp;
     	
-    	if(!isset($downpayment)) {
-    		$dpOperation = 'none';
+    	$flag = TRUE;
+    	
+    	// Ако е проформа
+    	if($mvc instanceof sales_Proformas){
+    		$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
+    		$hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
     		
-    		if(isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0){
-    			$dpAmount = $invoicedDp - $deductedDp;
+    		// Ако има проформа за аванс и няма таква за приспадане, тази приспада
+    		if(!empty($accruedProformaRec) && empty($hasDeductedProforma)){
+    			
+    			$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
+    			$dpAmount = core_Math::roundNumber($dpAmount);
     			$dpOperation = 'deducted';
+    			$flag = FALSE;
     		}
-    	} else {
     		
-    		// Ако няма фактуриран аванс
-    		if(empty($invoicedDp)){
-    			
-    			// Начисляване на аванса
-    			$dpAmount = $downpayment;
-    			$dpOperation = 'accrued';
+    		// Ако има проформа за начисляване на аванс и за приспадане, не задаваме дефолти
+    		if($accruedProformaRec && $hasDeductedProforma) return;
+    	}
+    	
+    	if($flag === TRUE){
+    		if(!isset($downpayment)) {
+    			$dpOperation = 'none';
+    		
+    			if(isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0){
+    				$dpAmount = $invoicedDp - $deductedDp;
+    				$dpOperation = 'deducted';
+    			}
     		} else {
-    			
-    			// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
-    			$dpAmount = $invoicedDp - $deductedDp;
-    			$dpOperation = 'deducted';
+    		
+    			// Ако няма фактуриран аванс
+    			if(empty($invoicedDp)){
+    				if($flag === TRUE){
+    					// Начисляване на аванса
+    					$dpAmount = $downpayment;
+    					$dpOperation = 'accrued';
+    				}
+    			} else {
+    				 
+    				// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
+    				$dpAmount = $invoicedDp - $deductedDp;
+    				$dpOperation = 'deducted';
+    			}
     		}
     	}
     	
@@ -154,41 +179,43 @@ class deals_plg_DpInvoice extends core_Plugin
     	$dpAmount /= $rate;
     	$dpAmount = core_Math::roundNumber($dpAmount);
     	
-    	// Ако държавата не е България не предлагаме начисляване на ДДС
-    	if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'")){
+    	// За проформи, Ако държавата не е България не предлагаме начисляване на ДДС
+    	if(!($mvc instanceof sales_Proformas) && $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'")) return;
 			
-    		switch($dpOperation){
-    			case 'accrued':
-    				if(isset($dpAmount)){
-    					$delivered = $form->dealInfo->get('deliveryAmount');
-    					if(!empty($delivered)){
-    						$dpOperation = 'none';
-    						$form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
-    					} else {
-    						$form->setDefault('amountAccrued', $dpAmount);
-    					}
+    	switch($dpOperation){
+    		case 'accrued':
+    			if(isset($dpAmount)){
+    				$delivered = $form->dealInfo->get('deliveryAmount');
+    				if(!empty($delivered)){
+    					$dpOperation = 'none';
+    					$form->setSuggestions('amountAccrued', array('' => '', "{$dpAmount}" => $dpAmount));
+    				} else {
+    					$form->setDefault('amountAccrued', $dpAmount);
     				}
-    				break;
-    			case 'deducted':
-    				if($dpAmount){
-    					$form->setDefault('amountDeducted', $dpAmount);
-    				}
-    				break;
-    			case 'none';
-    			if(isset($aggreedDp)){
-    				$sAmount = core_Math::roundNumber($aggreedDp / $rate);
-    				$suggestions = array('' => '', "{$sAmount}" => $sAmount);
-    				$form->setSuggestions('amountAccrued', $suggestions);
     			}
     			break;
-    		}
-    		 
-    		if($dpOperation){
-    			$form->setDefault('dpOperation', $dpOperation);
-    			
-    			if($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)){
-    				unset($form->rec->amountDeducted);
+    		case 'deducted':
+    			if($dpAmount){
+    				$form->setDefault('amountDeducted', $dpAmount);
     			}
+    			break;
+    		case 'none';
+    		if(isset($aggreedDp)){
+    			$dpField = $form->getField('amountAccrued');
+    			unset($dpField->autohide);
+    				
+    			$sAmount = core_Math::roundNumber($aggreedDp / $rate);
+    			$suggestions = array('' => '', "{$sAmount}" => $sAmount);
+    			$form->setSuggestions('amountAccrued', $suggestions);
+    		}
+    		break;
+    	}
+    		 
+    	if($dpOperation){
+    		$form->setDefault('dpOperation', $dpOperation);
+    			
+    		if($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)){
+    			unset($form->rec->amountDeducted);
     		}
     	}
     }

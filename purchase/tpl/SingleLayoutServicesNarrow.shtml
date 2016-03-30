@@ -1,10 +1,10 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
-         <table class="innerTable border-table paddingCells">
+    <table class="innerTable border-table paddingCells">
             <tbody>
                 <tr>
                     <td colspan="2" class='centered'>  
-                        <div class="document-title">delivery protocol</div> 
+                        <div class="document-title">|приемателен протoкол|*</div> 
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->
@@ -17,10 +17,17 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Receiver|*</b></td>
-                    <td class="cell custom-header-bg"><b>|Supplier|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
                 </tr>
                 <tr>
+                    <td>
+                       <b>[#MyCompany#]</b>
+                        <div class='address-block'>
+                            [#MyAddress#]
+                        </div>
+                    </td>
+                    
                     <td>
                         <b>[#contragentName#]</b>
                         <div class='address-block'>
@@ -28,60 +35,52 @@
                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                         </div>
                     </td>
-                    
-                    <td>
-                        <b>[#MyCompany#]</b>
-                        <div class='address-block'>
-                            [#MyAddress#]
-                        </div>
-                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div class="lines"></div>
     <div class="scrolling-holder">
+        <div class="lines"></div>
         <div class="details">
-            [#sales_ServicesDetails#]
+            [#purchase_ServicesDetails#]
         </div>
     </div>
     <div class="lines"></div>
     <div class="scrolling-holder">
-        <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+        <table class="innerTable footer-notes" border="0" cellpadding="5" style='width:100%'>
             <tbody>
                 <tr>
-                    <td class="topCell first vtop">
-                        <table style='width:100%;'>
+
+                    <!--ET_BEGIN deliveryInfo-->
+                    [#deliveryInfo#]
+                    <td class="topCell first vtop" style='width:50%'>
+                        <table class='shipment-table'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>
-                                <td class='quiet nowrap aright' style='width:1%;'>Deadline:</td>
+                                <td class='quiet nowrap aright' style='width:1%'>|Срок до|*:</td>
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
                             <!--ET_BEGIN locationId-->
                             <tr>
-                                <td class='quiet aright'>Location:</td>
-                                <td>[#locationId#]<!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress--></td>
+                                <td class='quiet nowrap aright' style='width:1%'>|До|*:</td>
+                                <td>[#locationId#]</td>
                             </tr>
                             <!--ET_END locationId-->
-                            <!--ET_BEGIN note-->
+                            <!--ET_BEGIN activityCenterId-->
                             <tr>
-                                <td class='quiet' colspan=2>
-                                    <hr>
-                                    [#note#]
-                                </td>
+                                <td class='quiet nowrap aright' style='width:1%'>|Център на дейност|*:</td>
+                                <td>[#activityCenterId#]</td>
                             </tr>
-                            <!--ET_END note-->
+                            <!--ET_END activityCenterId-->
                         </table>
-                        <!--ET_BEGIN received-->
+                        <!--ET_BEGIN note-->
                         <hr>
-                       <div> Received by: [#received#]</div>
-                        <!--ET_END received-->
-                        <!--ET_BEGIN delivered-->
-                       <div> Delivered by:  [#delivered#] </div>
-                        <!--ET_END delivered-->
+                        [#note#]
+                        <!--ET_END note-->
+                        <hr>
+                        <div>|Получил|*: [#received#]</div>
                     </td>
-                   
                 </tr>
             </tbody>
         </table>

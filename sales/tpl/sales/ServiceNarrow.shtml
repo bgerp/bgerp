@@ -191,7 +191,12 @@
                   <!--ET_END sayWords-->
                
                 <hr>
+                <!--ET_BEGIN responsible-->
+                |Получил|*: [#responsible#]
+                <!--ET_END responsible-->
+                <!--ET_BEGIN username-->
                 |Съставил|*:  [#username#]
+                <!--ET_END username-->
             </td>
         </tr>
         <tr class='footerDocInfo'>

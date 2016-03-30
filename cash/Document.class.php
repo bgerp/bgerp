@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class cash_Document extends core_Master
+abstract class cash_Document extends deals_PaymentDocument
 {
     
 	

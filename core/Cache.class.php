@@ -411,15 +411,12 @@ class core_Cache extends core_Manager
         $keepSeconds = $keepMinutes * 60;
 
         if (function_exists('apc_store')) {
-            apc_store($key, $data, $keepSeconds);
-            $saved = TRUE;
+            $saved = apc_store($key, $data, $keepSeconds);
         } elseif (function_exists('xcache_set')) {
-            xcache_set($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
+            $saved = xcache_set($key, serialize($data), $keepSeconds);
         }
 
         $rec = new stdClass();
-        
         
         // Задаваме ключа
         $rec->key = $key;
