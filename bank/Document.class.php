@@ -163,10 +163,13 @@ abstract class bank_Document extends deals_PaymentDocument
 		if($form->rec->currencyId != $form->rec->dealCurrencyId){
 			if(isset($form->rec->ownAccount)){
 				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
-				expect($ownAcc->currencyId, $ownAcc, $form->rec);
-				$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+				if(isset($ownAcc->currencyId)){
+					$code = currency_Currencies::getCodeById($ownAcc->currencyId);
+					$form->setField('amount', "unit={$code}");
+				}
+				
 				$caption = ($mvc instanceof bank_SpendingDocuments) ? 'От' : 'В';
-				$form->setField('amount', "input,caption={$caption}->Заверени,unit={$code}");
+				$form->setField('amount', "input,caption={$caption}->Заверени");
 			}
 		}
 		
