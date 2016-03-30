@@ -322,6 +322,18 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Подготовка на филтър формата
+     * 
+     * @param core_Manager $mvc
+     * @param stdObject $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        doc_Folders::restrictAccess($data->query);
+    }
+    
+    
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
