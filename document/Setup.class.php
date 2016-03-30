@@ -63,7 +63,9 @@ class document_Setup extends core_ProtoSetup
      */
    var $managers = array(
 	   	'document_Products',
-
+		'document_Tags',
+	   	'document_Orders',
+	   	'document_OrderDetails',
    );
     
 
