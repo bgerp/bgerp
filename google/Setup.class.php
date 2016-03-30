@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * API key за google
+ */
+defIfNot('GOOGLE_API_KEY', '');
 
 
 /**
@@ -48,6 +52,14 @@ class google_Setup extends core_ProtoSetup
      */
     var $depends = '';
     
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		 
+    		'GOOGLE_API_KEY' => array ('varchar', 'caption=Ключ за приложенията на google->API KEY')
+    );		
     
     /**
      * Инсталиране на пакета
