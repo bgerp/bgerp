@@ -412,8 +412,14 @@ class core_Cache extends core_Manager
 
         if (function_exists('apc_store')) {
             $saved = apc_store($key, $data, $keepSeconds);
+            if (!$saved) {
+                self::logWarning('Грешка при записване в APC_STORE');
+            }
         } elseif (function_exists('xcache_set')) {
             $saved = xcache_set($key, serialize($data), $keepSeconds);
+            if (!$saved) {
+                self::logWarning('Грешка при записване в XCACHE');
+            }
         }
 
         $rec = new stdClass();
