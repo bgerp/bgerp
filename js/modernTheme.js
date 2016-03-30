@@ -102,6 +102,7 @@ function setMenuCookie(){
 		menuState += "r";
 	}
 
+	// ако е над 700пх, записваме кои подменюта са били отворени
 	if($(window).width() > 700) {
 		var openMenus = '';
 		$('#nav-panel > ul > li.open').each(function() {
@@ -131,7 +132,6 @@ function openSubmenus() {
     	var endPos = menuInfo.lastIndexOf(':');
     	menuScroll = menuInfo.substring(endPos+1);
     	menuInfo = menuInfo.substring(startPos, endPos);
-    	console.log(menuInfo);
     	menuArray = menuInfo.split(',');
 
         $.each(menuArray, function( index, value ) {
