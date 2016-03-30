@@ -15,6 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
+
 class document_Wrapper extends plg_ProtoWrapper
 {
     
