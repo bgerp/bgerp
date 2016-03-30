@@ -25,9 +25,11 @@ class document_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
+
         $this->TAB('document_Orders', 'Поръчки', 'ceo');
-        $this->TAB('document_Products', 'Продукти', 'ceo');
         $this->TAB('document_Tags', 'Тагове', 'ceo');
+        $this->TAB('document_Products', 'Продукти', 'ceo');
+
         $this->title = 'Продукти';
     }
 }

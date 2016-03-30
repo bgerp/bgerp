@@ -66,6 +66,9 @@ class document_Setup extends core_ProtoSetup
 		'document_Tags',
 	   	'document_Orders',
 	   	'document_OrderDetails',
+
+
+
    );
     
 

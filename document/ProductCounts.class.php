@@ -10,7 +10,9 @@ class document_ProductCounts extends core_Plugin
 {
     static public function on_AfterDescription($mvc)
     {
+
         $mvc->FLD('quantity', 'int', "caption=svoistvo->kolichestvo,default=0");
+
     }
 
     /**
@@ -22,9 +24,11 @@ class document_ProductCounts extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+
         if(isset($rec->image)){
             $row->image = fancybox_Fancybox::getImage($rec->image, [50, 50], [1000, 1000]);
         }
+
 
         $rec->price *= 1.2;
         $row->price = $mvc->getVerbal($rec, "price");
