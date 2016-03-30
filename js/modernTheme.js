@@ -58,9 +58,7 @@ function initElements() {
 	});
 	
 	$(window).focus(function() {
-		if ($(window).width() > 700) {
-			setCookie('menuInfo', currentMenuInfo);
-		}
+		setCookie('menuInfo', currentMenuInfo);
 	});
 }
 
@@ -95,27 +93,28 @@ function setViewportWidth(viewportWidth) {
  * Записваме информацията за състоянието на менютата в бисквитка
  */
 function setMenuCookie(){
-	if ($(window).width() < 700) return;
-
-	var menuState = "";
+	var menuState = $(window).width() + ":";
+	
 	if($('.sidemenu-left').hasClass('sidemenu-open')){
-		menuState = 'l';
+		menuState += 'l';
 	}
 	if($('.sidemenu-right').hasClass('sidemenu-open')){
 		menuState += "r";
 	}
 
-	var openMenus = '';
-	$('#nav-panel > ul > li.open').each(function() {
-		if ($(this).attr('data-menuid') != 'undefined')
-			openMenus += $(this).attr('data-menuId') + ",";
-	});
-	
-	var verticalOffset = $('#nav-panel').scrollTop();
-	menuState += " " + openMenus +  ":"  + verticalOffset;
+	if($(window).width() > 700) {
+		var openMenus = '';
+		$('#nav-panel > ul > li.open').each(function() {
+			if ($(this).attr('data-menuid') != 'undefined')
+				openMenus += $(this).attr('data-menuId') + ",";
+		});
+		
+		var verticalOffset = $('#nav-panel').scrollTop();
+		menuState += " " + openMenus +  ":"  + verticalOffset;
+	}
+
 	currentMenuInfo = menuState;
 	setCookie('menuInfo', menuState);
-	
 }
 
 
@@ -126,12 +125,13 @@ function openSubmenus() {
 	if ($(window).width() < 700) return;
 
 	var menuInfo = getCookie('menuInfo');
+	
     if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
-    	var endPos = menuInfo.indexOf(':');
+    	var endPos = menuInfo.lastIndexOf(':');
     	menuScroll = menuInfo.substring(endPos+1);
     	menuInfo = menuInfo.substring(startPos, endPos);
-    	
+    	console.log(menuInfo);
     	menuArray = menuInfo.split(',');
 
         $.each(menuArray, function( index, value ) {
@@ -193,6 +193,7 @@ function userMenuActions() {
     });
 }
 
+
 /**
  * Създава бисквитка
  */
@@ -210,6 +211,7 @@ function getCookie(key) {
     var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
     return keyValue ? keyValue[2] : null;
 }
+
 
 /**
  * Действия на акордеона в меюто
