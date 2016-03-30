@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.11
  * 
- * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
+ * @method restrictAccess(core_Query $query, NULLinteger $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Companies extends core_Master
 {
@@ -885,11 +885,13 @@ class crm_Companies extends core_Master
     public function updateGroupsCnt()
     {
         $query = $this->getQuery();
-        
+        $groupsCnt = [];
+
         while($rec = $query->fetch()) {
             $keyArr = keylist::toArray($rec->groupList);
-            
+
             foreach($keyArr as $groupId) {
+
                 $groupsCnt[$groupId]++;
             }
         }
@@ -1501,10 +1503,12 @@ class crm_Companies extends core_Master
                 }
             }
 
+            $newCTel = "";
             // Обхождаме останалия масив
             foreach ($cTelArr as $cTel) {
                 
                 // Добавяме в стринга телефона
+
                 $newCTel .= ($newCTel) ? ', ' . $cTel->original : $cTel->original;
             }
             
@@ -1536,11 +1540,12 @@ class crm_Companies extends core_Master
                     }
                 }
             }
-            
+            $newCFax = '';
             // Обхождаме останалия масив
             foreach ($cFaxArr as $cFax) {
                 
                 // Добавяме в стринга факса
+
                 $newCFax .= ($newCFax) ? ', ' . $cFax->original : $cFax->original;
             }
             
