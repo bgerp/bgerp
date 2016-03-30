@@ -112,6 +112,15 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
+	 * До потребители с кои роли може да се споделя документа
+	 * 
+	 * @var string
+	 * @see doc_SharablePlg
+	 */
+	public $shareUserRoles = 'ceo, bank';
+	
+	
+	/**
 	 * Добавяне на дефолтни полета
 	 *
 	 * @param core_Mvc $mvc

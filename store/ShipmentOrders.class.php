@@ -52,6 +52,15 @@ class store_ShipmentOrders extends store_DocumentMaster
 
     
     /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, store';
+    
+    
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,store';

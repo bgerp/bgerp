@@ -133,6 +133,15 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, cash';
+    
+    
+    /**
      * Добавяне на дефолтни полета
      * 
      * @param core_Mvc $mvc

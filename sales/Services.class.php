@@ -39,8 +39,17 @@ class sales_Services extends deals_ServiceMaster
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices';
+					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg';
 
+    
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, sales';
+    
     
     /**
      * Кой има право да чете?
