@@ -1860,8 +1860,12 @@ function refreshForm(form, removeFields) {
 				var selFind = frm.find('select');
 				if (selFind) {
 					$.each(selFind, function(a, elem){
-						if ($(elem).select2()) {
-							$(elem).select2().select2("close");
+						try {
+							if ($(elem).select2()) {
+								$(elem).select2().select2("close");
+							}
+						} catch(e) {
+							
 						}
 					});
 				}
