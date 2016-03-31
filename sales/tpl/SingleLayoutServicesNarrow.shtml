@@ -75,15 +75,13 @@
                             </tr>
                             <!--ET_END note-->
                         </table>
-                        
-                       
-		                <!--ET_BEGIN responsible-->
+		                <!--ET_BEGIN received-->
 		                <hr>
-		                |Получил|*: [#responsible#]
-		                <!--ET_END responsible-->
-		                <!--ET_BEGIN username-->
-		                |Съставил|*:  [#username#]
-		                <!--ET_END username-->
+		                |Получил|*: [#received#]
+		                <!--ET_END received-->
+		                <!--ET_BEGIN delivered-->
+		                |Съставил|*:  [#delivered#]
+		                <!--ET_END delivered-->
                     </td>
                     <!--ET_END LEFT_COLUMN-->
                     
