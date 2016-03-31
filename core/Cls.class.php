@@ -459,14 +459,23 @@ class core_Cls
      * Връща неговите методи, наследените методи и методите от
      * неговите плъгини
      * @param mixed $class - име или инстанция на клас
+     * @param boolean $onlyStatic
+     * 
      * @return param $array - всички достъпни методи за класа
      */
-    public static function getAccessibleMethods($class)
+    public static function getAccessibleMethods($class, $onlyStatic = FALSE)
     {
     	expect($Class = static::get($class));
     	$accessibleMethods = array();
     	$Ref = new ReflectionClass($class);
-    	$methodsArr = $Ref->getMethods();
+    	
+    	$refMet = ReflectionMethod::IS_ABSTRACT | ReflectionMethod::IS_FINAL | ReflectionMethod::IS_PRIVATE | ReflectionMethod::IS_PROTECTED | ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_STATIC;
+    	
+    	if ($onlyStatic) {
+    	    $refMet = ReflectionMethod::IS_STATIC;
+    	}
+    	
+    	$methodsArr = $Ref->getMethods($refMet);
     	
     	// Нормализиране на името на методите
     	if(count($methodsArr)){
@@ -484,7 +493,7 @@ class core_Cls
 	    	$plugins = $Class->getPlugins();
 	    	if(count($plugins)){
 	    		foreach ($plugins as $name => $Plugin){
-	    			$plgMethodsArr = static::getAccessibleMethods($Plugin);
+	    			$plgMethodsArr = static::getAccessibleMethods($Plugin, $onlyStatic);
 	    			
 	    			// Мърджване на методите на плъгина с тези на класа
 	    			$accessibleMethods = array_merge($accessibleMethods, $plgMethodsArr);
