@@ -63,7 +63,7 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -210,6 +210,14 @@ class cat_Products extends embed_Manager {
     public $preventCache = TRUE;
 	
 	
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'code';
+    
+    
 	/**
 	 * Шаблон (ET) за заглавие на продукт
 	 * 
@@ -1108,10 +1116,17 @@ class cat_Products extends embed_Manager {
     	// Ако е зададен контрагент, оставяме смао публичните + частните за него
     	if(isset($customerClass) && isset($customerId)){
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
-    		 
+    		$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
+    		
     		// Избираме всички публични артикули, или частните за тази папка
     		$query->where("#isPublic = 'yes'");
-    		$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+    		if(count($sharedProducts)){
+    			$sharedProducts = implode(',', $sharedProducts);
+    			$query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
+    		} else {
+    			$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+    		}
+    		
     		$query->show('isPublic,folderId,meta,id,code,name');
     	}
     	
