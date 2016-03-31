@@ -179,17 +179,17 @@ class cal_Reminders extends core_Master
      */
     function description()
     {
-        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable');
+        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable,silent');
         $this->FLD('priority', 'enum(low=Нисък,
                                      normal=Нормален,
                                      high=Висок,
                                      critical=Критичен)', 
             'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,changable');
         
-        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable');
+        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable,silent');
         
         // Какво ще е действието на известието?
         $this->FLD('action', 'enum(threadOpen=Отваряне на нишката,
