@@ -193,11 +193,12 @@
                 </table>
                 <!--ET_END sayWords-->
                 <hr>
+
                 <!--ET_BEGIN responsible-->
-                |Получил|*: [#responsible#]
+                <div>|Получил|*: [#responsible#]</div>
                 <!--ET_END responsible-->
                 <!--ET_BEGIN username-->
-                |Съставил|*:  [#username#]
+                <div>|Съставил|*:  [#username#]</div>
                 <!--ET_END username-->
             </td>
         </tr>
