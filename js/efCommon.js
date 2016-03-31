@@ -1849,23 +1849,23 @@ function refreshForm(form, removeFields) {
 
 	frm.css('cursor', 'wait');
 	
-	// Затваря всики select2 елементи
-	if ($.fn.select2) {
-		var selFind = frm.find('select');
-		if (selFind) {
-			$.each(selFind, function(a, elem){
-				if ($(elem).select2()) {
-					$(elem).select2().select2("close");
-				}
-			});
-		}
-	}
-	
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
 		data: frm.serialize() + '&ajax_mode=1',
 		success: function (data) {
+			
+			// Затваря всики select2 елементи
+			if ($.fn.select2) {
+				var selFind = frm.find('select');
+				if (selFind) {
+					$.each(selFind, function(a, elem){
+						if ($(elem).select2()) {
+							$(elem).select2().select2("close");
+						}
+					});
+				}
+			}
 			
 			// Зареждаме стиловете
 			$.each(data.css, function(i, css) {
