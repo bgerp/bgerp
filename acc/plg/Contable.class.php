@@ -595,4 +595,20 @@ class acc_plg_Contable extends core_Plugin
     		$data->listFields['state'] = 'Състояние';
     	}
     }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$valior = $mvc->getValiorValue($rec);
+    	
+    		if($error = acc_Periods::checkDocumentDate($valior)){
+    			$form->setError($mvc->valiorFld, $error);
+    		}
+    	}
+    }
 }

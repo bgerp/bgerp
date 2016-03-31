@@ -227,39 +227,29 @@ class acc_Periods extends core_Manager
      * и записва във формата съобщение за грешка или предупреждение
      * грешка или предупреждение няма, ако датата е от началото на активния,
      * до края на насотящия период
+     * 
+     * @param date $dateToCheck - Дата която да се сравни
+     * @param string|FALSE - грешката или FALSE ако няма
      */
-    public static function checkDocumentDate($form, $field = 'date')
+    public static function checkDocumentDate($dateToCheck)
     {
-        $date = $form->rec->{$field};
+    	if(!$dateToCheck) return;
+    	
+    	$rec = self::forceActive();
+    	if($rec->start >= $dateToCheck) {
+    		
+    		return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
+    	}
+    	
+    	$rec = self::fetchByDate($dateToCheck);
+    	if(!$rec) return "Датата е в несъществуващ счетоводен период";
         
-        if(!$date) {
+        if($dateToCheck > dt::getLastDayOfMonth()) {
             
-            return;
+        	return "Датата е в бъдещ счетоводен период";
         }
         
-        $rec = self::forceActive();
-        
-        if($rec->start >= $date) {
-            $form->setError($field, "Датата е преди активния счетоводен период| ($rec->title)");
-            
-            return;
-        }
-        
-        $rec = self::fetchByDate($date);
-        
-        if(!$rec) {
-            $form->setError($field, "Датата е в несъществуващ счетоводен период");
-            
-            return;
-        }
-        
-        if($date > dt::getLastDayOfMonth()) {
-            $form->setWarning($field, "Датата е в бъдещ счетоводен период");
-            
-            return;
-        }
-        
-        return TRUE;
+        return FALSE;
     }
     
     

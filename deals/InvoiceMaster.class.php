@@ -734,8 +734,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    
-    	acc_Periods::checkDocumentDate($form);
+    	
     	$form->rec->_edited = TRUE;
     	
     	// Метод който да бъде прихванат от deals_plg_DpInvoice

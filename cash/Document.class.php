@@ -312,8 +312,6 @@ abstract class cash_Document extends deals_PaymentDocument
     			$form->setError('amountDeal', $msg);
     		}
     	}
-    	
-    	acc_Periods::checkDocumentDate($form, 'valior');
     }
     
     
