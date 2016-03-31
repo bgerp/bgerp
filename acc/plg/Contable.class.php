@@ -606,8 +606,8 @@ class acc_plg_Contable extends core_Plugin
     		$rec = &$form->rec;
     		$valior = $mvc->getValiorValue($rec);
     	
-    		if($error = acc_Periods::checkDocumentDate($valior)){
-    			$form->setError($mvc->valiorFld, $error);
+    		if($warning = acc_Periods::checkDocumentDate($valior)){
+    			$form->setWarning($mvc->valiorFld, $warning);
     		}
     	}
     }
