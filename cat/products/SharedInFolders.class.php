@@ -230,6 +230,12 @@ class cat_products_SharedInFolders extends core_Manager
     }
     
     
+    /**
+     * Кои са споделените артикули към дадена папка
+     * 
+     * @param int $folderId - ид на папка
+     * @return array $res - масив със споделените артикули
+     */
     public static function getSharedProducts($folderId)
     {
     	$res = array();
