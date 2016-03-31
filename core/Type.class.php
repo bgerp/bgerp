@@ -268,7 +268,7 @@ class core_Type extends core_BaseClass
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
             if (!$res['error'] && isset($this->params['regexp'])) {
                 if (!preg_match($this->params['regexp'], $value)) {
-                    $res['error'] = 'Не отговаря на шаблона, който се изисква';
+                    $res['error'] = 'Неправилен формат на данните';
                 }
             }
             
