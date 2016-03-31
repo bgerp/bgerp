@@ -90,6 +90,7 @@ class cat_Setup extends core_ProtoSetup
             'cat_products_Params',
             'cat_products_Packagings',
     		'cat_products_VatGroups',
+    		'cat_products_SharedInFolders',
             'cat_Params',
     		'cat_Boms',
     		'cat_BomDetails',
