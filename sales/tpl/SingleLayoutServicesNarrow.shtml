@@ -77,10 +77,10 @@
                         </table>
 		                <!--ET_BEGIN received-->
 		                <hr>
-		                |Получил|*: [#received#]
+		                <div>|Получил|*: [#received#]</div>
 		                <!--ET_END received-->
 		                <!--ET_BEGIN delivered-->
-		                |Съставил|*:  [#delivered#]
+		                <div>|Съставил|*:  [#delivered#]</div>
 		                <!--ET_END delivered-->
                     </td>
                     <!--ET_END LEFT_COLUMN-->
