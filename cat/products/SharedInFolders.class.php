@@ -207,13 +207,13 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	if($data->masterData->rec->isPublic == 'yes'){
     		$tpl->append('state-rejected', 'TAB_STATE');
-    		$tpl->append("<br><i><small class='red'>( " . tr('Артикулът е стандартен и споделянето е без ефект') . " )</small></i>", 'title');
+    		$tpl->append("<br><i><small class='red'>( " . tr('Артикулът е стандартен и по дефолт се показва във всички папки') . " )</small></i>", 'title');
     	} else {
     		if(!count($data->rows)){
     			$thisFolderName = doc_Folders::recToVerbal(doc_Folders::fetch($data->masterData->rec->folderId))->title;
     			$tpl->append("<i>" . tr('Само в папката на') . " {$thisFolderName}</i>", 'content');
     		} else {
-    			$tpl->append("<br><i><small style='color:green'>( " . tr('Артикулът ще е достъпен за избор и в следните папки') . " )</small></i>", 'title');
+    			$tpl->append("<br><i><small style='color:green'>( " . tr('Артикулът е достъпен за избор в следните папки') . " )</small></i>", 'title');
     		}
     		
     	}
