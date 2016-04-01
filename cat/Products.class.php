@@ -223,7 +223,7 @@ class cat_Products extends embed_Manager {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--><!--ET_BEGIN hand--> ([#hand#])<!--ET_END hand-->';
+	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
 	
 	
 	/**
@@ -1370,7 +1370,6 @@ class cat_Products extends embed_Manager {
     	}
         
         if($fields['-list']){
-
             $meta = arr::make($rec->meta, TRUE);
      
            if($meta['canStore']) {  
@@ -1394,6 +1393,14 @@ class cat_Products extends embed_Manager {
                     $row->price = $mvc->getVerbal($rec, 'price');
                 }
             }
+            
+            if($rec->isPublic == 'no'){
+            	//bp($row->name);
+            	//$row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
+            	//$row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
+            	
+            	//$row->name = 'aaaa';
+            }
         }
         
     }
@@ -1409,10 +1416,18 @@ class cat_Products extends embed_Manager {
     private static function getDisplayName($rec)
     {
     	// Ако в името имаме '||' го превеждаме
-    	if(strpos($rec->name, '||') !== FALSE) return tr($rec->name);
+    	$name = $rec->name;
+    	if(strpos($rec->name, '||') !== FALSE){
+    		$name = tr($rec->name);
+    	}
+    	
+    	if($rec->isPublic == 'no'){
+    		$hand = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+    		$name .= " ($hand)";
+    	}
     	
     	// Иначе го връщаме такова, каквото е
-    	return $rec->name;
+    	return $name;
     }
     
     
@@ -1427,6 +1442,9 @@ class cat_Products extends embed_Manager {
     		}
     		
     		$rec->name = static::getDisplayName($rec);
+    		if($rec->isPublic == 'no'){
+    			//bp();
+    		}
     	}
     }
     
@@ -1437,9 +1455,6 @@ class cat_Products extends embed_Manager {
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec->name = static::getDisplayName($rec);
-    	if($rec->isPublic == 'no'){
-    		$rec->hand = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
-    	}
     	
     	return parent::getRecTitle($rec, $escaped);
     }
