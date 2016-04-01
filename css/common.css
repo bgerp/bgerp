@@ -1111,7 +1111,7 @@ a.profile {
 .state-rejected .document h4,
 .state-rejected .richtext,
 .state-rejected .document a,
-.state-rejected .document span:not('state'),
+.state-rejected .document span:not(.state),
 .state-rejected .richtext div,
 .state-rejected .cCode,
 .state-rejected .antetka,
@@ -1122,7 +1122,7 @@ a.profile {
 .state-rejected .document font,
 .state-rejected .document legend {
   color: #999999 !important;
-  text-decoration: line-through !important; }
+  text-decoration: line-through}
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
   opacity: 0.5; }
