@@ -6,7 +6,7 @@
                     <td colspan="2" class='centered'>  
                         <div class="document-title">|складова разписка|*</div> 
                         <div style="padding-top:5px;">
-                                <span class="[#STATE_CLASS#]">
+                                <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
                                     <span class="bigData">[#valior#]</span>
                                 </span>
