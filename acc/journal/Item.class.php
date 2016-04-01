@@ -51,7 +51,7 @@ class acc_journal_Item
                 $this->objectId = $this->itemRec->objectId;
             }
         } else {
-            acc_journal_Exception::expect(is_numeric($objectId), 'невалидно ид');
+            acc_journal_Exception::expect(is_numeric($objectId), 'Невалидно ид');
             
             $this->classId  = $classId;
             $this->objectId = $objectId;
