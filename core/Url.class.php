@@ -242,6 +242,29 @@ class core_Url
         return $parts;
     }
     
+    
+    /**
+     * Дали посоченото URL е частно (запазено за частна употреба от организации)?
+     * 
+     * @param string $url
+     * 
+     * @return boolean
+     */
+    public static function isPrivate($url)
+    {
+        $url = preg_replace('/^https?:\/\//', '', $url);
+        
+        $url = preg_replace('/^www\./', '', $url);
+        
+        if ($url == 'localhost') return TRUE;
+        
+        if (strpos($url, 'localhost:') === 0) return TRUE;
+        
+        if (strpos($url, 'localhost/') === 0) return TRUE;
+            
+        return type_IP::isPrivate($url);
+    }
+    
 
     /**
      * Проверява дали е валиден даден топ-левъл домейн
