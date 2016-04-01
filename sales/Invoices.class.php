@@ -529,8 +529,6 @@ class sales_Invoices extends deals_InvoiceMaster
     		core_Lg::push($rec->tplLang);
     	}
     	
-    	$row->type = $mvc->getFieldType('type')->toVerbal($rec->type);
-    	
     	if(!empty($rec->paymentType)){
     		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
     	} else {
