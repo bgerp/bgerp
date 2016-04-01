@@ -110,6 +110,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				unset($keys[0]);
 				$keys = implode('|', $keys);
 				$form->setField('proto', "removeAndRefreshForm={$keys}");
+				
+				$rec = $form->rec;
+				$rec->folderId = $masterRec->folderId;
+				$rec->threadId = $masterRec->threadId;
+				$rec->isPublic = 'no';
+				
 				$form->input();
 				$Products->invoke('AfterInputEditForm', array($form));
 			} else {
@@ -117,7 +123,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			}
 			
 			if($form->isSubmitted()){
-				$rec = $form->rec;
+				
 				$rec->quantity = ($rec->quantity) ? $rec->quantity : cat_UoM::fetchField($rec->measureId, 'defQuantity');
 				if(empty($rec->quantity)){
 					$form->setError('quantity', 'Няма количество');
@@ -127,9 +133,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
 					$price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 					
-					$rec->folderId = $masterRec->folderId;
-					$rec->threadId = $masterRec->threadId;
-					$rec->isPublic = 'no';
 					$productId = $Products->save($rec);
 					
 					$dRec = (object)array('productId'      => $productId,

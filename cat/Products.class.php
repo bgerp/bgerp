@@ -514,6 +514,17 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->id) && $rec->isPublic == 'no' AND !empty($rec->code)){
     			$form->setWarning('code', 'При добавянето на код на частен артикул, той ще стане публичен');
     		}
+    		
+    		// Ако артикулът е в папка на контрагент, и има вече артикул,
+    		// със същото име сетваме предупреждение
+    		if(isset($rec->folderId)){
+    			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    			if(cls::haveInterface('doc_ContragentDataIntf', $coverClassId)){
+    				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]'", $rec->name), 'id')){
+    					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
+    				}
+    			}
+    		}
         }
     }
     
