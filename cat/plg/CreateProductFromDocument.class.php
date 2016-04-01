@@ -25,6 +25,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	{
 		setIfNot($mvc->filterProtoByMeta, 'canSell');
 		expect(in_array($mvc->filterProtoByMeta, array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture')));
+		expect($mvc instanceof deals_DealDetail || $mvc instanceof sales_QuotationsDetails);
 	}
 	
 	
@@ -159,6 +160,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	}
 	
 	
+	/**
+	 * Кои са прототипните артикули
+	 * 
+	 * @param string $meta - мета свойство
+	 * @param int $limit - ограничение
+	 * @return array $options - опции
+	 */
 	private static function getProtoOptions($meta, $limit = NULL)
 	{
 		$options = cat_Categories::getProtoOptions();
