@@ -1715,6 +1715,7 @@ td.formElement {
 	border-bottom: none;
 	padding: 8px;
 	vertical-align: middle !important;
+	word-wrap: break-word;
 	@include border-radius4(5px, 5px, 0, 0);
 	img {
 		vertical-align: middle !important;
@@ -1843,6 +1844,7 @@ td.formElement {
 .path-title {
     font-size: 0.9em;
     display: inline;
+	word-wrap: break-word;
 }
 
 .wide .path-title {

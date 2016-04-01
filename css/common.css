@@ -1122,7 +1122,7 @@ a.profile {
 .state-rejected .document font,
 .state-rejected .document legend {
   color: #999999 !important;
-  text-decoration: line-through}
+  text-decoration: line-through !important; }
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
   opacity: 0.5; }
@@ -1587,6 +1587,7 @@ input:focus[type=button] {
   border-bottom: none;
   padding: 8px;
   vertical-align: middle !important;
+  word-wrap: break-word;
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-radius: 5px 5px 0 0;
   border-radius: 5px 5px 0 0; }
@@ -1708,7 +1709,8 @@ input:focus[type=button] {
  */
 .path-title {
   font-size: 0.9em;
-  display: inline; }
+  display: inline;
+  word-wrap: break-word; }
 
 .wide .path-title {
   margin-top: 2px; }
