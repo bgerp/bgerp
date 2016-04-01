@@ -1,0 +1,11 @@
+/vendor
+syntax: regexp
+^tests$
+/.settings
+/.project
+/.buildpath
+/.git
+/.gitignore
+/.idea
+/composer.lock
+/composer.phar
