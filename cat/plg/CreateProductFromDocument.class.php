@@ -80,9 +80,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			
 			$form = cls::get('core_Form');
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=name2,placeholder=Популярни продукти,mandatory");
-			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,mandatory,silent,refreshForm,after=id,input=hidden");
-			$form->FLD('quantity', 'double(Min=0)', 'caption=Количество');
-			$form->FLD('price', 'double', 'caption=Цена,mandatory');
+			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,silent,refreshForm,after=id,input=hidden");
+			$form->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=hidden');
+			$form->FLD('price', 'double', 'caption=Цена,input=hidden');
 			
 			$form->fields['price']->unit = "|*" . $masterRec->currencyId . ", ";
 			$form->fields['price']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
@@ -94,6 +94,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$form->input(NULL, 'silent');
 			
 			if(isset($form->rec->proto)){
+				$form->setField('quantity', 'input');
+				$form->setField('price', 'input,mandatory');
 				$proto = $form->rec->proto;
 				cat_Products::setAutoCloneFormFields($form, $proto);
 				
