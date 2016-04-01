@@ -21,15 +21,20 @@
                     <td class="cell custom-header-bg"><b>Supplier</b></td>
                 </tr>
                 <tr>
-                    <td>
-                         <b>[#contragentName#]</b>
+                    <td class="cell">
+                        <b>[#contragentName#]</b>
                         <div class='address-block'>
                             [#contragentCountryId#]
                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                         </div>
+                        <!--ET_BEGIN locationId-->
+                        <hr style="margin: 3px 0 1px;">
+                        <div>
+                            Location: [#locationId#]
+                        </div>
+                        <!--ET_END locationId-->
                     </td>
-                    
-                    <td>
+                    <td class="cell">
                         <b>[#MyCompany#]</b>
                         <div class='address-block'>
                             [#MyAddress#]
@@ -64,62 +69,42 @@
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
-                            <!--ET_BEGIN storeId-->
-                            <tr>
-                                <td class='nowrap quiet aright'>From store:</td>
-                                <td>[#storeId#]</td>
-                            </tr>
-                            <!--ET_END storeId-->
-                            <!--ET_BEGIN locationData-->
-                            [#locationData#]
-                            <tr>
-                                <td class='nowrap quiet aright'>Delivery place:</td>
-                                <!--ET_BEGIN locationId-->
-                                <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
-                                <!--ET_END locationId-->
-                                <!--ET_BEGIN formLocation-->
-                                    [#formLocation#]
-                                    <td>
-                                          [#deliveryTo#]
-                                    </td>
-                                <!--ET_END formLocation-->
-                            </tr>
-                            <!--ET_END locationData-->
+                           <!--ET_BEGIN deliveryAddressBlock-->
+                           [#deliveryAddressBlock#]
+                           <tr>
+                               <td class='quiet nowrap aright'>Delivery address:</td>
+                               <td>
+                                   [#deliveryTo#] [#deliveryLocationAddress#]
+                               </td>
+                           </tr>
+                           <!--ET_END deliveryAddressBlock-->
                             <!--ET_BEGIN lineId-->
                             <tr>
                                 <td class='nowrap quiet aright'>Transport: </td>
                                 <td>[#lineId#]</td>
                             </tr>
                             <!--ET_END lineId-->
-                            <!--ET_BEGIN lineId-->
+                            <!--ET_BEGIN note-->
+
                             <tr>
                                 <td colspan="2">
                                     <hr>
                                     [#note#]
                                 </td>
                             </tr>
-                            <!--ET_END lineId-->
+                            <!--ET_END note-->
                         </table>
-                    </td>
-                    <td>
-
-                        <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
-                        <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
                         <hr>
-                        <table class='centered' style="width:100%">
-                            <tr>
-                                <td class='centered' style='border-right:1px solid #999;width:50%;'>Received:</td>
-                                <td class='centered'>Created by:</td>
-                            </tr>
-                            <tr>
-                                <td style='height:40px;border-right:1px solid #999'></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
-                                <td class='nowrap centared'><span class="sign_names">[#username#]</span></td>
-                            </tr>
-                        </table>
+                        <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                            <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
+
+                        <hr>
+                        <!--ET_BEGIN responsible-->
+                        <div>Received by: [#responsible#]</div>
+                        <!--ET_END responsible-->
+                        <!--ET_BEGIN username-->
+                        <div>Created by:  [#username#]</div>
+                        <!--ET_END username-->
                     </td>
                 </tr>
                 <tr class='footerDocInfo'>
