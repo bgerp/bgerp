@@ -2287,4 +2287,24 @@ class cat_Products extends embed_Manager {
     	// Връщаме намерените задачи
     	return $defaultTasks;
     }
+    
+    
+    /**
+     * Кои полета от драйвера да се добавят към форма за автоматично създаване на артикул
+     * 
+     * @param core_Form - $form
+     * @param int $id - ид на артикул
+     * @return void
+     */
+    public static function setAutoCloneFormFields(&$form, $id)
+    {
+    	//$form->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
+    	$form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
+    	$form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
+    	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
+    	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
+		
+    	$Driver = static::getDriver($id);
+    	$Driver->addFields($form);
+    }
 }
