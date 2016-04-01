@@ -833,6 +833,9 @@ class cat_Products extends embed_Manager {
             if(!is_object($Driver)) return NULL;
 
         	$pInfo = cat_Products::getProductInfo($objectId);
+        	if($rec->isPublic == 'no'){
+        		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+        	}
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
