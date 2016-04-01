@@ -35,7 +35,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	public static function on_AfterPrepareListToolbar($mvc, $data)
 	{
 		if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $data->masterId))){
-			$data->toolbar->addBtn('Нов артикул', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE), ",title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/star_2.png,order=12');
+			$data->toolbar->addBtn('Създаване', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE), ",title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/shopping.png,order=12');
 		}
 	}
 	
