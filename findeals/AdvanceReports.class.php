@@ -170,7 +170,7 @@ class findeals_AdvanceReports extends core_Master
     	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
     	$this->FLD('total', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     
     	$this->setDbUnique('number');
     }

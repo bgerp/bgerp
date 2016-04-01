@@ -146,7 +146,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
 		$mvc->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Сторниран, closed=Контиран)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
