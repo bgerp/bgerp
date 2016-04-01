@@ -342,7 +342,7 @@ abstract class deals_DealDetail extends doc_Detail
                 $error = "error=Няма продаваеми артикули, ";
             }
             
-            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
+            $data->toolbar->addBtn('Добавяне', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
             "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);

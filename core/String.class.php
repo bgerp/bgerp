@@ -919,4 +919,23 @@ class core_String
             return $shortestW;
         }
     }
+    
+    
+    /**
+     * Замества последното срещане на търсения стринг с друг стринг
+     * 
+     * @param string $string  - стринг в който търсим
+     * @param string $search  - стринг, който търсим
+     * @param string $replace - стринг, който да заместим
+     * @return string $string - заместения стринг
+     */
+    public static function replaceLastOccurence($string, $search, $replace)
+    {
+    	if((($stringLen = strlen($string)) == 0) || (($searchLen = strlen($search)) == 0)) return $string;
+    	$pos = strrpos($string, $search);
+    
+    	if($pos > 0) return substr($string,0,$pos) . $replace . substr($string, $pos + $searchLen, max(0, $stringLen - ($pos + $searchLen)));
+    
+    	return $string;
+    }
 }

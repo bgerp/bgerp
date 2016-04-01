@@ -18,7 +18,7 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -272,7 +272,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		
 		if($mvc->haveRightFor('add', (object)array("{$mvc->masterKey}" => $masterRec->id))){
 			if($mvc->haveRightFor('import', (object)array("{$mvc->masterKey}" => $masterRec->id))){
-				$data->toolbar->addBtn('Импорт', array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
+				$data->toolbar->addBtn('Импортиране', array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
 				"id=btnAdd-import,{$error},title=Импортиране на артикули", 'ef_icon = img/16/import16.png,order=15');
 			}
 		}

@@ -361,10 +361,11 @@ class cat_Categories extends core_Master
     /**
      * Връща възможните за избор прототипни артикули с дадения драйвер
      * 
-     * @param int $driverId - ид на продуктов драйвер
+     * @param int|NULL $driverId - Ид на продуктов драйвер
+     * @param int|NULL $limit - Ограничаване на резултатите
      * @return array $opt - прототипните артикули
      */
-    public static function getProtoOptions($driverId)
+    public static function getProtoOptions($driverId = NULL, $limit = NULL)
     {
     	$opt = $cArr = array();
     	
@@ -380,7 +381,15 @@ class cat_Categories extends core_Master
     		$Products = cls::get('cat_Products');
     		
     		$query = cat_Products::getQuery();
-    		while($pRec = $query->fetch("#{$Products->driverClassField} = {$driverId} AND #state = 'active' AND #folderId IN ({$catList})")) {
+    		if($driverId){
+    			$query->where("#{$Products->driverClassField} = {$driverId}");
+    		}
+    		$query->where("#state = 'active' AND #folderId IN ({$catList})");
+    		if($limit){
+    			$query->limit($limit);
+    		}
+    		
+    		while($pRec = $query->fetch()) {
     			$opt[$pRec->id] = cat_Products::getTitleById($pRec->id, FALSE);
     		}
     	}

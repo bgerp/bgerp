@@ -329,7 +329,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        doc_Threads::restrictAccess($data->query, NULL, TRUE);
+        doc_Threads::restrictAccess($data->query);
     }
     
     
@@ -351,11 +351,6 @@ class doc_DocumentPlg extends core_Plugin
             
             if(!$row->singleTitle) {
                 $row->singleTitle = tr($invoker->singleTitle);
-            }
-
-            if($rec->state == 'rejected') {
-                $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
-                $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
             
             if (Mode::is('screenMode', 'narrow')) {
@@ -3038,6 +3033,11 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderSingleLayout($mvc, &$tpl, &$data)
     {
+    	if($data->rec->state == 'rejected') {
+    		$tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+    		$data->row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+    	}
+    	
     	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
     	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
     

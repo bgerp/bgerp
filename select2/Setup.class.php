@@ -136,7 +136,7 @@ class select2_Setup extends core_ProtoSetup {
         $conf = core_Packs::getConfig('select2');
         $coreConf = core_Packs::getConfig('core');
         
-        return 'select2/' . $conf->SELECT2_VERSION . '/select2.min.js, select2/' . $conf->SELECT2_VERSION . '/i18n/' . $coreConf->EF_DEFAULT_LANGUAGE . '.js';
+        return 'select2/js/adapter.js, select2/' . $conf->SELECT2_VERSION . '/select2.min.js, select2/' . $conf->SELECT2_VERSION . '/i18n/' . $coreConf->EF_DEFAULT_LANGUAGE . '.js';
     }
     
     

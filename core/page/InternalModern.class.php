@@ -143,10 +143,10 @@ class core_page_InternalModern extends core_page_Active
 	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
 	    					</span>
 	    					<a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
-	    					<span class='fright'>
-		    						<span class='menu-options user-options'>
+	    					<div class='fright'>
+		    						<div class='menu-options user-options'>
 		    							" . $img .
-    			    					"<span class='menu-holder'>
+    			    					"<div class='menu-holder'>
 			     		   					[#USERLINK#]
 		    								[#CHANGE_MODE#]
                                             [#LANG_CHANGE#]
@@ -154,9 +154,9 @@ class core_page_InternalModern extends core_page_Active
     			    						[#DEBUG_BTN#]
 	    									<div class='divider'></div>
 			     		   					[#SIGN_OUT#]
-		    							</span>
-	    							</span>
-	     		   			</span>
+		    							</div>
+	    							</div>
+	     		   			</div>
 	    				<div class='clearfix21'></div>
 	    				</div>  " ;
     	 

@@ -573,7 +573,7 @@ class acc_plg_Contable extends core_Plugin
     {
     	// Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
     	if($part == 'state'){
-    		if($rec->state == 'rejected' && $rec->brState == 'draft'){
+    		if($rec->state == 'rejected' && $rec->brState == 'active'){
     			$num = tr('Анулиран');
     		} elseif($rec->state == 'active'){
     			if($rec->isContable == 'activate'){
@@ -593,6 +593,22 @@ class acc_plg_Contable extends core_Plugin
     {
     	if(Request::get('Rejected', 'int')){
     		$data->listFields['state'] = 'Състояние';
+    	}
+    }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$valior = $mvc->getValiorValue($rec);
+    	
+    		if($warning = acc_Periods::checkDocumentDate($valior)){
+    			$form->setWarning($mvc->valiorFld, $warning);
+    		}
     	}
     }
 }

@@ -141,7 +141,6 @@ class findeals_DebitDocuments extends deals_Document
     		$rec->debitAccount = $debitAccount;
     		$rec->creditAccount = $creditAccount;
     		$rec->isReverse = empty($operation['reverse']) ? 'no' : 'yes';
-    		acc_Periods::checkDocumentDate($form, 'valior');
     	}
     }
 }

@@ -19,7 +19,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
+    public $interfaces = 'acc_RegisterIntf, hr_ContractAccRegIntf, doc_DocumentIntf';
     
     
     /**
@@ -56,7 +56,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc,doc_SharablePlg';
+                     doc_plg_BusinessDoc, doc_SharablePlg, bgerp_plg_Blank';
     
     
     /**

@@ -215,7 +215,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
         $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
@@ -230,12 +230,16 @@ class sales_Invoices extends deals_InvoiceMaster
     function loadSetupData()
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура за факторинг', 'content' => 'sales/tpl/InvoiceFactoring.shtml', 'lang' => 'bg');
-    	
-    	$tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
-        $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 
+    			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml',
+    			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура за факторинг', 'content' => 'sales/tpl/InvoiceFactoring.shtml',
+    			'narrowContent' =>  'sales/tpl/InvoiceFactoringNarrow.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml',
+    			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrowEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
+        $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 
+        		'narrowContent' =>  'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
        
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -524,8 +528,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	if(isset($fields['-single'])){
     		core_Lg::push($rec->tplLang);
     	}
-    	
-    	$row->type = $mvc->getFieldType('type')->toVerbal($rec->type);
     	
     	if(!empty($rec->paymentType)){
     		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));

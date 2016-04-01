@@ -35,23 +35,23 @@ class acc_journal_Item
     public function __construct($classId, $objectId = NULL)
     {
         if (isset($classId) && is_array($classId)) {
-            expect(count($classId) == 2);
+            acc_journal_Exception::expect(count($classId) == 2, 'Масива трябва да е от два елемента');
             list($classId, $objectId) = $classId;
             $classId = core_Classes::getId($classId);
         }
         
         if (!isset($objectId)) {
-            expect(is_null($classId) || is_numeric($classId), (array)$classId, $objectId);
+            acc_journal_Exception::expect(is_null($classId) || is_numeric($classId), "Не е подаден клас");
             
             $this->id = $classId;
             
             if ($this->id) {
-                expect($this->itemRec = $this->fetchItemRecById($this->id), func_get_args(), $classId, $objectId);
+                acc_journal_Exception::expect($this->itemRec = $this->fetchItemRecById($this->id), 'Липсва перо');
                 $this->classId  = $this->itemRec->classId;
                 $this->objectId = $this->itemRec->objectId;
             }
         } else {
-            expect(is_numeric($objectId));
+            acc_journal_Exception::expect(is_numeric($objectId), 'Невалидно ид');
             
             $this->classId  = $classId;
             $this->objectId = $objectId;
@@ -76,7 +76,7 @@ class acc_journal_Item
         }
         
         if (is_numeric($iface)) {
-            expect($iface = core_Interfaces::fetchField($iface, 'name'));
+            acc_journal_Exception::expect($iface = core_Interfaces::fetchField($iface, 'name'), 'Липсващ интерфейс');
         }
         
         return cls::haveInterface($iface, $this->classId);
@@ -94,7 +94,7 @@ class acc_journal_Item
         }
         
         if (isset($this->id)) {
-            expect($this->id == $itemId);
+            acc_journal_Exception::expect($this->id == $itemId, 'Грешно ид');
         }
         
         $this->id = $itemId;

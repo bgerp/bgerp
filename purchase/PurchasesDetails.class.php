@@ -36,7 +36,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy';
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument';
     
     
     /**
@@ -102,6 +102,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
      * Какви мета данни да изискват продуктите, които да се показват
      */
     public $metaProducts = 'canBuy';
+    
+    
+    /**
+     * Филтър на прототипи по свойство
+     */
+    public $filterProtoByMeta = 'canBuy';
     
     
     /**

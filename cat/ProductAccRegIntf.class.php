@@ -132,7 +132,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	 * @param string $id   - ид на записа
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-    public static function getParams($id, $name = NULL)
+    public function getParams($id, $name = NULL)
     {
     	return $this->class->getParams($id, $name);
     }
@@ -190,7 +190,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * 						 - array production - артикули за произвеждане
      * 						 - array waste      - отпадъци
      */
-    public static function getDefaultProductionTasks($id, $quantity = 1)
+    public function getDefaultProductionTasks($id, $quantity = 1)
     {
     	return $this->class->getDefaultProductionTasks($id, $quantity);
     }

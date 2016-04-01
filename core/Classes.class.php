@@ -40,12 +40,18 @@ class core_Classes extends core_Manager
      * Никой потребител не може да добавя или редактира тази таблица
      */
     var $canWrite = 'no_one';
-
+    
     
     /**
      * Работен кеш за извлечените интерфейсни методи
      */
     static $interfaceMehods = array();
+    
+    
+    /**
+     * Работен кеш за извлечените статичните интерфейсни методи
+     */
+    static $staticInterfaceMehods = array();
     
 
     /**
@@ -372,12 +378,22 @@ class core_Classes extends core_Manager
     			if(!static::$interfaceMehods[$intName]){
     				static::$interfaceMehods[$intName] = cls::getAccessibleMethods($intName);
     			}
+    			
+    			if (!static::$staticInterfaceMehods[$intName]) {
+    			    static::$staticInterfaceMehods[$intName] = cls::getAccessibleMethods($intName, TRUE);
+    			}
+    			
     			$methods = static::$interfaceMehods[$intName];
     			
     			// Намират се всички неимплементирани методи от класа
     			$notImplemented = array_diff_assoc($methods, $ClassMethods);
     			$verbalInterfaces .= $verbalInterfaces ? ',' : '';
-    			if(!count($notImplemented)){
+    			
+    			if (static::$staticInterfaceMehods[$intName]) {
+    			    $hint = implode(', ', static::$staticInterfaceMehods[$intName]);
+    			    $hint = 'Статични методи: ' . $hint;
+    			    $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:red;'  title='{$hint}'>{$intName}</span>";
+    			} else if(!count($notImplemented)){
     				$verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
     			} else {
     				$hint = implode(', ', $notImplemented);

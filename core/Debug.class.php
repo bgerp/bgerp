@@ -612,6 +612,18 @@ class core_Debug
                     $contex['EXECUTION_TIME_PERCENT'] = number_format(($contex['DEBUG_LAST_TIMER'] / $contex['MAX_EXECUTION_TIME']) * 100, 2) . '%';
                 }
             }
+            
+            $contex['OS_INFO'] = php_uname();
+            $contex['PHP_VERSION'] = phpversion();
+            
+            try {
+                $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
+            } catch (Exception $e) {
+                // Не се прави нищо
+            }
+            
+            $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
+            $contex['BGERP_LAST_STABLE_VERSION'] = '16.11';
         }
         
         $state = array( 'errType'   => $errType, 
