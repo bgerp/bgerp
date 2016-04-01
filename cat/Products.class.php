@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -223,7 +223,7 @@ class cat_Products extends embed_Manager {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
+	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--><!--ET_BEGIN hand--> ([#hand#])<!--ET_END hand-->';
 	
 	
 	/**
@@ -1437,6 +1437,9 @@ class cat_Products extends embed_Manager {
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec->name = static::getDisplayName($rec);
+    	if($rec->isPublic == 'no'){
+    		$rec->hand = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+    	}
     	
     	return parent::getRecTitle($rec, $escaped);
     }
@@ -1468,13 +1471,12 @@ class cat_Products extends embed_Manager {
     	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
     	if($rec->isPublic == 'no'){
-    		$handle = cat_Products::getHandle($rec);
-    		$title .= " ({$handle}";
     		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+    		
     		if($count > 1){
-    			$title .= "<small class='versionNumber'>v{$count}</small>";
+    			$vNumber = "/<small class='versionNumber'>v{$count}</small>";
+    			$title = str::replaceLastOccurence($title, ')', $vNumber . ")");
     		}
-    		$title .= ")";
     	}
     	
     	$showDescription = FALSE;
