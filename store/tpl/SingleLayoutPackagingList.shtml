@@ -26,12 +26,24 @@
                             [#contragentCountryId#]
                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                         </div>
+                        <!--ET_BEGIN locationId-->
+                        <hr style="margin: 3px 0 1px;">
+                        <div>
+                            Location: [#locationId#]
+                        </div>
+                        <!--ET_END locationId-->
                     </td>
                     <td class="cell">
                         <b>[#MyCompany#]</b>
                         <div class='address-block'>
                             [#MyAddress#]
                         </div>
+                        <!--ET_BEGIN storeId-->
+                        <hr style="margin: 3px 0 1px;">
+                        <div>
+                            From store: [#storeId#]
+                        </div>
+                        <!--ET_END storeId-->
                     </td>
                 </tr>
             </tbody>
@@ -56,26 +68,16 @@
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
-                            <!--ET_BEGIN storeId-->
-                            <tr>
-                                <td class='nowrap quiet aright'>From store:</td>
-                                <td>[#storeId#]</td>
-                            </tr>
-                            <!--ET_END storeId-->
-                            <!--ET_BEGIN locationData-->
-                            [#locationData#]
-                            <tr>
-                                <td class='nowrap quiet aright'>Delivery place:</td>
-                                <!--ET_BEGIN locationId-->
-                                <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
-                                <!--ET_END locationId-->
-                                <!--ET_BEGIN formLocation-->
-                                    [#formLocation#]
-                                    <td>
-                                          [#deliveryTo#]
-                                    </td>
-                                <!--ET_END formLocation-->
-                            </tr>
+                            <!--ET_BEGIN deliveryAddressBlock-->
+							[#deliveryAddressBlock#]
+							<tr>
+							    <td class='quiet nowrap aright'>Delivery adress:</td>
+						        <td>
+						             [#deliveryTo#] [#deliveryLocationAddress#]
+						        </td>
+							</tr>
+							<!--ET_END deliveryAddressBlock-->
+							
                             <!--ET_END locationData-->
                             <!--ET_BEGIN lineId-->
                             <tr>

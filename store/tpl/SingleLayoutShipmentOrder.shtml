@@ -29,7 +29,7 @@
                             <!--ET_BEGIN locationId-->
                             <hr style="margin: 3px 0 1px;">
                             <div>
-                                |До обект|*: [#locationId#]<!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress-->
+                                |До обект|*: [#locationId#]
                             </div>
                             <!--ET_END locationId-->
                         </td>
@@ -68,18 +68,15 @@
                                         <td>[#deliveryTime#]</td>
                                     </tr>
                                     <!--ET_END deliveryTime-->
-                                    <!--ET_BEGIN locationData-->
-                                    [#locationData#]
+                                    <!--ET_BEGIN deliveryAddressBlock-->
+                                    [#deliveryAddressBlock#]
                                     <tr>
-                                        <td class='quiet nowrap aright'>|До|*:</td>
-                                        <!--ET_BEGIN formLocation-->
-                                            [#formLocation#]
+                                        <td class='quiet nowrap aright'>|До адрес|*:</td>
                                             <td>
-                                                 [#deliveryTo#]
+                                                 [#deliveryTo#] [#deliveryLocationAddress#]
                                             </td>
-                                        <!--ET_END formLocation-->
                                     </tr>
-                                    <!--ET_END locationData-->
+                                    <!--ET_END deliveryAddressBlock-->
                                     <!--ET_BEGIN lineId-->
                                     <tr>
                                         <td class='quiet nowrap aright'>|Транспорт|*: </td>

@@ -26,12 +26,24 @@
                                 [#contragentCountryId#]
                                 <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                             </div>
+                            <!--ET_BEGIN locationId-->
+                            <hr style="margin: 3px 0 1px;">
+                            <div>
+                                |До обект|*: [#locationId#]
+                            </div>
+                            <!--ET_END locationId-->
                         </td>
                         <td class="cell">
                             <b>[#MyCompany#]</b>
                             <div class='address-block'>
                                 [#MyAddress#]
                             </div>
+                            <!--ET_BEGIN storeId-->
+                            <hr style="margin: 3px 0 1px;">
+                            <div>
+                                |От склад|*: [#storeId#]
+                            </div>
+                            <!--ET_END storeId-->
                         </td>
                     </tr>
                 </tbody>
@@ -56,27 +68,15 @@
                                     <td>[#deliveryTime#]</td>
                                 </tr>
                                 <!--ET_END deliveryTime-->
-                                <!--ET_BEGIN storeId-->
-                                <tr>
-                                    <td class='nowrap quiet aright'>|От склад|*:</td>
-                                    <td>[#storeId#]</td>
-                                </tr>
-                                <!--ET_END storeId-->
-                                <!--ET_BEGIN locationData-->
-                                [#locationData#]
-                                <tr>
-                                    <td class='quiet nowrap aright'>|До|*:</td>
-                                    <!--ET_BEGIN locationId-->
-                                        <td><b>[#locationId#]</b><!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress--></td>
-                                    <!--ET_END locationId-->
-                                    <!--ET_BEGIN formLocation-->
-                                        [#formLocation#]
-                                        <td>
-                                              [#deliveryTo#]
-                                        </td>
-                                    <!--ET_END formLocation-->
-                                </tr>
-                                <!--ET_END locationData-->
+                                <!--ET_BEGIN deliveryAddressBlock-->
+                                    [#deliveryAddressBlock#]
+                                    <tr>
+                                        <td class='quiet nowrap aright'>|До адрес|*:</td>
+                                            <td>
+                                                 [#deliveryTo#] [#deliveryLocationAddress#]
+                                            </td>
+                                    </tr>
+                                <!--ET_END deliveryAddressBlock-->
                                 <!--ET_BEGIN lineId-->
                                 <tr>
                                     <td class='nowrap quiet aright'>|Транспорт|*: </td>
