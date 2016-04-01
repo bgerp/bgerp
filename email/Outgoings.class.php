@@ -1066,6 +1066,28 @@ class email_Outgoings extends core_Master
                     $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
                 }
             }
+            
+            $mvc->checkHost($form, 'boxFrom');
+        }
+    }
+    
+    
+    /**
+     * Помощна функция, за проверка дали се изпраща от частна мрежа и линковете ще са коректни
+     * 
+     * @param core_Form $form
+     * @param string $errField
+     */
+    protected function checkHost($form, $errField)
+    {
+        $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+        
+        if (core_Url::isPrivate($sHost)) {
+            $form->setWarning($errField, 'Изпращате от частна мрежа. Линковете към системата няма да работят.');
+        
+            if ($form->isSubmitted()) {
+                self::logWarning('Изпращане на писмо с линкове към частна мрежа', $form->rec->id);
+            }
         }
     }
     
@@ -1107,6 +1129,8 @@ class email_Outgoings extends core_Master
                     //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                     $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресат|*->|Имейл|*</b>.");
                 }
+                
+                $mvc->checkHost($form, 'subject');
             }
             
             if (trim($form->rec->body) && (preg_match_all(type_Richtext::QUOTE_PATTERN, $form->rec->body, $matches))) {

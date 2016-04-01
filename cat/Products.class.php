@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -63,7 +63,7 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -210,6 +210,14 @@ class cat_Products extends embed_Manager {
     public $preventCache = TRUE;
 	
 	
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'code';
+    
+    
 	/**
 	 * Шаблон (ET) за заглавие на продукт
 	 * 
@@ -505,6 +513,17 @@ class cat_Products extends embed_Manager {
     		// При добавянето на код на частен артикул слагаме предупреждение
     		if(isset($rec->id) && $rec->isPublic == 'no' AND !empty($rec->code)){
     			$form->setWarning('code', 'При добавянето на код на частен артикул, той ще стане публичен');
+    		}
+    		
+    		// Ако артикулът е в папка на контрагент, и има вече артикул,
+    		// със същото име сетваме предупреждение
+    		if(isset($rec->folderId)){
+    			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+    			if(cls::haveInterface('doc_ContragentDataIntf', $coverClassId)){
+    				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]'", $rec->name), 'id')){
+    					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
+    				}
+    			}
     		}
         }
     }
@@ -814,6 +833,9 @@ class cat_Products extends embed_Manager {
             if(!is_object($Driver)) return NULL;
 
         	$pInfo = cat_Products::getProductInfo($objectId);
+        	if($rec->isPublic == 'no'){
+        		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+        	}
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
@@ -1108,10 +1130,17 @@ class cat_Products extends embed_Manager {
     	// Ако е зададен контрагент, оставяме смао публичните + частните за него
     	if(isset($customerClass) && isset($customerId)){
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
-    		 
+    		$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
+    		
     		// Избираме всички публични артикули, или частните за тази папка
     		$query->where("#isPublic = 'yes'");
-    		$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+    		if(count($sharedProducts)){
+    			$sharedProducts = implode(',', $sharedProducts);
+    			$query->orWhere("#isPublic = 'no' AND (#folderId = {$folderId} OR #id IN ({$sharedProducts}))");
+    		} else {
+    			$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+    		}
+    		
     		$query->show('isPublic,folderId,meta,id,code,name');
     	}
     	
@@ -1355,7 +1384,6 @@ class cat_Products extends embed_Manager {
     	}
         
         if($fields['-list']){
-
             $meta = arr::make($rec->meta, TRUE);
      
            if($meta['canStore']) {  
@@ -1379,6 +1407,14 @@ class cat_Products extends embed_Manager {
                     $row->price = $mvc->getVerbal($rec, 'price');
                 }
             }
+            
+            if($rec->isPublic == 'no'){
+            	//bp($row->name);
+            	//$row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
+            	//$row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
+            	
+            	//$row->name = 'aaaa';
+            }
         }
         
     }
@@ -1394,10 +1430,18 @@ class cat_Products extends embed_Manager {
     private static function getDisplayName($rec)
     {
     	// Ако в името имаме '||' го превеждаме
-    	if(strpos($rec->name, '||') !== FALSE) return tr($rec->name);
+    	$name = $rec->name;
+    	if(strpos($rec->name, '||') !== FALSE){
+    		$name = tr($rec->name);
+    	}
+    	
+    	if($rec->isPublic == 'no'){
+    		$hand = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+    		$name .= " ($hand)";
+    	}
     	
     	// Иначе го връщаме такова, каквото е
-    	return $rec->name;
+    	return $name;
     }
     
     
@@ -1412,6 +1456,9 @@ class cat_Products extends embed_Manager {
     		}
     		
     		$rec->name = static::getDisplayName($rec);
+    		if($rec->isPublic == 'no'){
+    			//bp();
+    		}
     	}
     }
     
@@ -1453,13 +1500,12 @@ class cat_Products extends embed_Manager {
     	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
     	if($rec->isPublic == 'no'){
-    		$handle = cat_Products::getHandle($rec);
-    		$title .= " ({$handle}";
     		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+    		
     		if($count > 1){
-    			$title .= "<small class='versionNumber'>v{$count}</small>";
+    			$vNumber = "/<small class='versionNumber'>v{$count}</small>";
+    			$title = str::replaceLastOccurence($title, ')', $vNumber . ")");
     		}
-    		$title .= ")";
     	}
     	
     	$showDescription = FALSE;
@@ -2271,5 +2317,25 @@ class cat_Products extends embed_Manager {
     	
     	// Връщаме намерените задачи
     	return $defaultTasks;
+    }
+    
+    
+    /**
+     * Кои полета от драйвера да се добавят към форма за автоматично създаване на артикул
+     * 
+     * @param core_Form - $form
+     * @param int $id - ид на артикул
+     * @return void
+     */
+    public static function setAutoCloneFormFields(&$form, $id)
+    {
+    	//$form->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
+    	$form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
+    	$form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
+    	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
+    	$form->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember');
+		
+    	$Driver = static::getDriver($id);
+    	$Driver->addFields($form);
     }
 }

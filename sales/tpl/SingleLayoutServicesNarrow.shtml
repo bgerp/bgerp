@@ -9,7 +9,7 @@
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
-                                <span class="[#STATE_CLASS#]">
+                                <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
                                     <span class="bigData">[#valior#]</span>
                                 </span>
@@ -75,15 +75,13 @@
                             </tr>
                             <!--ET_END note-->
                         </table>
-                        
-                       
-		                <!--ET_BEGIN responsible-->
+		                <!--ET_BEGIN received-->
 		                <hr>
-		                |Получил|*: [#responsible#]
-		                <!--ET_END responsible-->
-		                <!--ET_BEGIN username-->
-		                |Съставил|*:  [#username#]
-		                <!--ET_END username-->
+		                <div>|Получил|*: [#received#]</div>
+		                <!--ET_END received-->
+		                <!--ET_BEGIN delivered-->
+		                <div>|Съставил|*:  [#delivered#]</div>
+		                <!--ET_END delivered-->
                     </td>
                     <!--ET_END LEFT_COLUMN-->
                     

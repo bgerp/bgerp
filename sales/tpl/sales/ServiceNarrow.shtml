@@ -5,7 +5,7 @@
                 <td colspan = "2" class='centered'>
                     <div class="document-title">|ДОГОВОР ЗА УСЛУГА|*</div>
                     <div style="padding-top:5px;">
-                        <span class="[#STATE_CLASS#]">
+                        <span class="state [#STATE_CLASS#]">
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
                         </span>
@@ -193,11 +193,12 @@
                 </table>
                 <!--ET_END sayWords-->
                 <hr>
+                
                 <!--ET_BEGIN responsible-->
-                |Получил|*: [#responsible#]
+                <div>|Получил|*: [#responsible#]</div>
                 <!--ET_END responsible-->
                 <!--ET_BEGIN username-->
-                |Съставил|*:  [#username#]
+                <div>|Съставил|*:  [#username#]</div>
                 <!--ET_END username-->
             </td>
         </tr>

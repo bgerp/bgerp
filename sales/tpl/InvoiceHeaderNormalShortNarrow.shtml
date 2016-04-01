@@ -1,52 +1,43 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div class='scrolling-holder'>
-        <table style='width:100%;' id='inv-holder'>
+ <div class='scrolling-holder'>
+        <table class="innerTable border-table paddingCells">
             <tbody>
                 <tr>
+                    <td colspan="2" class='centered'>  
+                        <div class="document-title">[#type#]</div> 
+                        <div style="padding-top:5px;">
+                                <span class="state [#STATE_CLASS#]">
+                                    № <span class="bigData">[#number#]</span> /
+                                    <span class="bigData">[#date#]</span>
+                                </span>
+                                <!--ET_BEGIN place-->
+                                <div>[#place#]</div>
+                                <!--ET_END place-->
+                        </div>
+                        <div>
+                            <div class='original'>[#INV_STATUS#]</div>
+                            <!--ET_BEGIN originInv-->
+                            <div id='origin-title'>към Фактура <b>[#originInv#]</b> от [#originInvDate#]</div>
+                            <!--ET_END originInv-->
+                        </div>
+                        
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                </tr>
+                <tr>
                     <td>
-                        <table class="innerTable footer-notes paddingCells" style='width:100%;'>
-                            <tbody>
-                                <tr>
-                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Получател</b></td>
-                                    <td class="cell centered" rowspan="3" style='width:30%;'>
-                                        <div class='document-title'>[#type#]</div>
-                                        <div class='invInfo'>Номер</div>
-                                        <div class="bigData">[#number#]</div>
-                                        <div class='invInfo'>Дата</div>
-                                        <div class="bigData">[#date#]</div>
-                                        <div class='invInfo'>Място</div>
-                                        <div class="bigData">[#place#]</div>
-                                        <div class='invInfo bigData'>
-                                            <div class='original'>[#INV_STATUS#]</div>
-                                            <!--ET_BEGIN originInv-->
-                                            <div id='origin-title'>към Фактура <b>[#originInv#]</b> от [#originInvDate#]</div>
-                                            <!--ET_END originInv-->
-                                        </div>
-                                        <!--ET_BEGIN state-->
-                                        <div class="state [#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
-                                        <!--ET_END state-->
-                                    </td>
-                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Доставчик</b> </td>
-                                </tr>
-                                <tr>
-                                    <td class="cell">
-                                        <b>[#contragentName#]</b>
-                                        <div class='address-block'>
-                                            [#contragentCountryId#]<br>
-                                            [#contragentPCode#] [#contragentPlace#]<br>
-                                            <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                                        </div>
-                                    </td>
-                                    <td class="cell">
-                                        <b>[#MyCompany#]</b>
-                                        <div class='address-block'>
-                                            [#MyAddress#]
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="cell">
-                                        <table>
+                         <b>[#contragentName#]</b>
+                         <div class='address-block'>
+                             [#contragentCountryId#]<br>
+                             [#contragentPCode#] [#contragentPlace#]<br>
+                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                         </div>
+                          <hr>
+                         <table class='no-border'>
                                             <tbody>
                                                 <!--ET_BEGIN contragentVatNo-->
                                                 <tr>
@@ -60,9 +51,15 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </td>
-                                    <td class="cell">
-                                        <table>
+                    </td>
+                    
+                    <td>
+                        <b>[#MyCompany#]</b>
+                        <div class='address-block'>
+                            [#MyAddress#]
+                        </div>
+                        <hr>
+                        <table  class='no-border'>
                                             <tbody>
                                                 <!--ET_BEGIN MyCompanyVatNo-->
                                                 <tr>
@@ -78,13 +75,14 @@
                                                 <!--ET_END uicId-->
                                             </tbody>
                                         </table>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <div class="lines"></div>
                         <!--ET_BEGIN sales_InvoiceDetails-->
-                        <div class='details'>
+                        <div class='scrolling-holder details'>
                             [#sales_InvoiceDetails#]
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
@@ -97,9 +95,8 @@
                                         <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
-                                        <div><span class='quiet'>Данъчно събитие:</span> [#vatDate#]</div>
-                                        <!--ET_END vatDate-->
-                                         
+                                        <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <!--ET_END vatDate-->  
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>Курс:</span>  [#rate#]
                                         <!--ET_END rate-->  
@@ -110,13 +107,16 @@
                                         <div>[#paymentType#]</div>
                                         <!--ET_END paymentType-->
                                         
-                                        <!--ET_BEGIN dueDate-->
+                                        <!--ET_BEGIN DUE_BLOCK-->
+                                           [#DUE_BLOCK#]
                                         <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
+                                        <!--ET_END DUE_BLOCK--> 
                                         
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
+                                            <!--ET_BEGIN DUE_DATE-->
+                                            <span class='quiet'>Краен срок за плащане:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
                                             <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                                             <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
@@ -137,10 +137,9 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
-                                        
                                         <!--ET_BEGIN deliveryInfo-->
-                                        <hr class='printVisible'>
                                         [#deliveryInfo#]
+                                        <hr class='printVisible'>
                                         <div class='custom-bg-block'><b>Доставка</b></div>
                                         <!--ET_BEGIN deliveryId-->
                                         [#deliveryId#]
@@ -154,6 +153,21 @@
                                         <div class='custom-bg-block'><b>Бележки</b></div>
                                         <div>[#additionalInfo#]</div>
                                         <!--ET_END additionalInfo-->
+                                        <hr>
+                                        <table class='centered special-borders' style='width:100%;'>
+                                            <tr>
+                                                <td class='centered border-right' style='width:50%;'>Получил:</td>
+                                                <td class='centered'>Съставил:</td>
+                                            </tr>
+                                            <tr>
+                                                <td style='height:40px;' class='border-right'>&nbsp;</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
+                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                            </tr>
+                                        </table>
                                     </td>
                                     <td id='invoice-info' style='width:40%;'>
                                         <table class='no-border paddingCells business-doc-summary-table' style='margin-bottom: 20px;width:100%;'>
@@ -190,7 +204,7 @@
                                             </tr>
                                             <!--ET_BEGIN vatAmount-->
                                             <tr class='nowrap'>
-                                                <td class='aright'>ДДС&nbsp;<b>[#vat#]</b> :</td>
+                                                <td class='aright'>ДДС <b>[#vat#]</b>:</td>
                                                 <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
                                                 <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
                                             </tr>
@@ -210,26 +224,11 @@
                                                 </td>
                                             </tr>
                                         </table>
-                                        <hr>
-                                        <table class='centered special-borders' style='width:100%;'>
-                                            <tr>
-                                                <td class='centered border-right' style='width:50%;'>Получил:</td>
-                                                <td class='centered'>Съставил:</td>
-                                            </tr>
-                                            <tr>
-                                                <td style='height:40px;' class='border-right'>&nbsp;</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
-                                            </tr>
-                                        </table>
                                     </td>
                                 </tr>
                                 <tr class='footerDocInfo'>
                                     <td colspan="2">
-                                         <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                                         Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>
                                     </td>
                                 </tr>
                             </tbody>

@@ -158,7 +158,12 @@ class fileman_Data extends core_Manager {
      */
     static function on_CalcPath($mvc, $rec)
     {
-        $rec->path = self::getFilePath($rec);
+        $rec->path = self::getFilePath($rec, TRUE, FALSE);
+        
+        // Ако директорията е на старото място - не е с поддиректории
+        if (!is_file($rec->path)) {
+            $rec->path = self::getFilePath($rec, FALSE, FALSE);
+        }
     }
     
     
@@ -233,16 +238,27 @@ class fileman_Data extends core_Manager {
      * Връща пътя до файла на съответния запис
      * 
      * @param mixed $rec - id' на файла или записа на файла
+     * @param bolean $subDir - дали името да се раздели на поддиректрии
+     * @param bolean $createDir - Създва директорията, ако липсва
      * 
      * @return string $path - Пътя на файла
      */
-    static function getFilePath($rec)
+    static function getFilePath($rec, $subDir = TRUE, $createDir = TRUE)
     {
         if (is_numeric($rec)) {
             $rec = self::fetch($rec);
         }
         
-        $path = FILEMAN_UPLOADS_PATH . "/" . static::getFileName($rec);
+        $path = FILEMAN_UPLOADS_PATH . "/" . static::getFileName($rec, $subDir);
+        
+        // Ако няма такава директория/поддиректория я създаваме
+        if ($createDir) {
+            $dirName = dirname($path);
+            
+            if ($dirName && !is_dir($dirName)) {
+                mkdir(dirname($path), 0777, TRUE);
+            }
+        }
         
         return $path;
     }
@@ -252,10 +268,11 @@ class fileman_Data extends core_Manager {
      * Връща името на файла
      * 
      * @param mixed $rec - id' на файла или записа на файла
+     * @param bolean $subDir - дали името да се раздели на поддиректрии
      * 
      * @return string $name - Името на файла
      */
-    static function getFileName($rec)
+    static function getFileName($rec, $subDir = TRUE)
     {
         // Ако не е обектс
         if (is_numeric($rec)) {
@@ -264,8 +281,16 @@ class fileman_Data extends core_Manager {
             $rec = static::fetch($rec);
         }    
         
+        $md5 = $rec->md5;
+        
+        // Ако ще се използват поддиректории
+        if ($subDir) {
+            $md5 = substr_replace($md5, '/', 4, 0);
+            $md5 = substr_replace($md5, '/', 2, 0);
+        }
+        
         // Генерираме името
-        $name = $rec->md5 . "_" . $rec->fileLen;
+        $name = $md5 . "_" . $rec->fileLen;
         
         return $name;
     }
@@ -312,7 +337,7 @@ class fileman_Data extends core_Manager {
         
         // Намираме id' то на файла, ако е съществувал
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-
+        
         // Ако не е имал такъв запис
         if (!$rec->id) {
             

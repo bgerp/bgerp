@@ -321,8 +321,9 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('vatRate', 'input=hidden');
     	$form->setField('deliveryId', 'input=none');
     	$form->setField('deliveryPlaceId', 'input=none');
-    
-    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
+    	$form->setField('displayRate', 'input=hidden');
+    	
+    	foreach(array('contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
     		if($form->rec->$name){
     			$form->setReadOnly($name);
     		}
@@ -734,8 +735,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    
-    	acc_Periods::checkDocumentDate($form);
+    	
     	$form->rec->_edited = TRUE;
     	
     	// Метод който да бъде прихванат от deals_plg_DpInvoice

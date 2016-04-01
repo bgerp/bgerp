@@ -9,7 +9,7 @@
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
-                                <span class="[#STATE_CLASS#]">
+                                <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
                                     <span class="bigData">[#valior#]</span>
                                 </span>
@@ -21,18 +21,25 @@
                     <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
                 </tr>
                 <tr>
-                    <td>
-                         <b>[#contragentName#]</b>
+                    <td class="cell">
+                        <b>[#contragentName#]</b>
                         <div class='address-block'>
                             [#contragentCountryId#]
                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                         </div>
+                        <!--ET_BEGIN locationId-->
+                        <hr style="margin: 3px 0 1px;">
+                        <div>
+                            |До обект|*: [#locationId#]
+                        </div>
+                        <!--ET_END locationId-->
                     </td>
-                    <td>
+                    <td class="cell">
                         <b>[#MyCompany#]</b>
                         <div class='address-block'>
                             [#MyAddress#]
                         </div>
+                        <!--ET_BEGIN storeId-->
                         <hr style="margin: 3px 0 1px;">
                         <div>
                             |От склад|*: [#storeId#]
@@ -62,27 +69,15 @@
                                     <td>[#deliveryTime#]</td>
                                 </tr>
                                 <!--ET_END deliveryTime-->
-                                <!--ET_BEGIN storeId-->
+                                <!--ET_BEGIN deliveryAddressBlock-->
+                                [#deliveryAddressBlock#]
                                 <tr>
-                                    <td class='nowrap quiet aright'>|От склад|*:</td>
-                                    <td>[#storeId#]</td>
+                                    <td class='quiet nowrap aright'>|До адрес|*:</td>
+                                    <td>
+                                        [#deliveryTo#] [#deliveryLocationAddress#]
+                                    </td>
                                 </tr>
-                                <!--ET_END storeId-->
-                                <!--ET_BEGIN locationData-->
-                                [#locationData#]
-                                <tr>
-                                    <td class='quiet nowrap aright'>|До|*:</td>
-                                    <!--ET_BEGIN locationId-->
-                                        <td><b>[#locationId#]</b><!--ET_BEGIN deliveryLocationAddress-->, [#deliveryLocationAddress#]<!--ET_END deliveryLocationAddress--></td>
-                                    <!--ET_END locationId-->
-                                    <!--ET_BEGIN formLocation-->
-                                        [#formLocation#]
-                                        <td>
-                                              [#deliveryTo#]
-                                        </td>
-                                    <!--ET_END formLocation-->
-                                </tr>
-                                <!--ET_END locationData-->
+                                <!--ET_END deliveryAddressBlock-->
                                 <!--ET_BEGIN lineId-->
                                 <tr>
                                     <td class='nowrap quiet aright'>|Транспорт|*: </td>
@@ -100,8 +95,7 @@
                             <hr>
                             [#note#]
                             <!--ET_END note-->
-                        </td>
-                        <td class="topCell vtop">
+                            <hr>
                             <table class='no-border business-doc-summary-table' style='margin-bottom: 20px;width:100%;'>
                                 <tr class='nowrap'>
                                     <td class='aright'>|Стойност|* :</td>

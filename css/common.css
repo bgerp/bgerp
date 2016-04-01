@@ -1111,7 +1111,7 @@ a.profile {
 .state-rejected .document h4,
 .state-rejected .richtext,
 .state-rejected .document a,
-.state-rejected .document span,
+.state-rejected .document span:not(.state),
 .state-rejected .richtext div,
 .state-rejected .cCode,
 .state-rejected .antetka,
@@ -1134,6 +1134,11 @@ a.profile {
   .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
     color: #999999 !important;
     text-decoration: none !important; }
+
+.document .state-rejected.state,
+.document .state-rejected.state a {
+  color: #444444 !important;
+  text-decoration: none !important; }
 
   .detail-info.state-rejected td,
   .detail-info.state-rejected th,
@@ -1582,6 +1587,7 @@ input:focus[type=button] {
   border-bottom: none;
   padding: 8px;
   vertical-align: middle !important;
+  word-wrap: break-word;
   -moz-border-radius: 5px 5px 0 0;
   -webkit-border-radius: 5px 5px 0 0;
   border-radius: 5px 5px 0 0; }
@@ -1703,7 +1709,8 @@ input:focus[type=button] {
  */
 .path-title {
   font-size: 0.9em;
-  display: inline; }
+  display: inline;
+  word-wrap: break-word; }
 
 .wide .path-title {
   margin-top: 2px; }

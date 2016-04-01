@@ -1280,6 +1280,8 @@ class doc_Folders extends core_Master
     	$contragents = array_keys($contragents);
     	$query->in('coverClass', $contragents);
     	$query->where("#state != 'rejected'");
+    	doc_Folders::restrictAccess($query);
+    	
     	if($ignoreFolders){
     		$query->notIn('id', $ignoreFolders);
     	}

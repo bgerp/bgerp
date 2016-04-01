@@ -104,6 +104,10 @@ class type_IP extends type_Varchar {
     
     /**
      * Дали посоченото IP е частно (запазено за частна употреба от организации)?
+     * 
+     * @param string $ip
+     * 
+     * @return boolean
      */
     static function isPrivate($ip)
     {

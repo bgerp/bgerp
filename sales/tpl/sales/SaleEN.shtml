@@ -18,7 +18,7 @@
                         <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
-                    <div class="[#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+                    <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                     <!--ET_END state-->
                 </td>
                 <td class='custom-header-bg' style='width:38%;'>

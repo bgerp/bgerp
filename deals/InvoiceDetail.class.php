@@ -128,7 +128,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$error = "error=Няма {$text} артикули,";
 			}
 	
-			$data->toolbar->addBtn('Артикули', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
+			$data->toolbar->addBtn('Добавяне', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
 					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
 			
 		}

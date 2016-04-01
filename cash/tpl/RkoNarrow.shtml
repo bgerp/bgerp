@@ -9,7 +9,7 @@
                           <small>( [#operationSysId#] )</small>
                           <!--ET_BEGIN operationSysId-->
                           <div style="padding-top:5px;">
-                              <span class="[#STATE_CLASS#]">
+                              <span class="state [#STATE_CLASS#]">
                                   № <span class="bigData">[#id#]</span> /
                                   <span class="bigData">[#valior#]</span>
                               </span>

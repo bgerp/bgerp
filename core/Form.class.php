@@ -1266,7 +1266,7 @@ class core_Form extends core_FieldSet
         Mode::pop();
 
         $this->setOptions($name, array(
-                $value => $verbal
+                "{$value}" => $verbal
             ));
         
         $field->type->params['isReadOnly'] = TRUE;  
