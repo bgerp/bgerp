@@ -430,7 +430,7 @@ class log_Browsers extends core_Master
         $rec->userAgent = self::getUserAgent();
         $rec->acceptLangs = self::getAcceptLangs();
         
-        self::save($rec, NULL, REPLACE);
+        self::save($rec, NULL, 'REPLACE');
     }
     
     
