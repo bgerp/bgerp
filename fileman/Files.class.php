@@ -886,11 +886,11 @@ class fileman_Files extends core_Master
     /**
      * Връща разширението на файла, от името му
      */
-    static function getExt($name)
+    static function getExt($name, $maxLen = 10)
     {
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
             $ext =  mb_strtolower(mb_substr($name, $dotPos + 1));
-            $pattern = "/^[a-zA-Z0-9_\$]{1,10}$/i";
+            $pattern = "/^[a-zA-Z0-9_\$]{1," . $maxLen . "}$/i";
             if(!preg_match($pattern, $ext)) {
                 $ext = '';
             }
