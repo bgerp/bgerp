@@ -1861,7 +1861,7 @@ function refreshForm(form, removeFields) {
 
 	frm.css('cursor', 'wait');
 	
-	form.submit();
+	// form.submit();
 
 	$.ajax({
 		type: frm.attr('method'),

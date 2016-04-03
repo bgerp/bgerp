@@ -76,7 +76,7 @@ class acc_Lists extends core_Manager {
     function description()
     {
         // Трибуквен, уникален номер
-        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
+        $this->FLD('num', 'int(3,size=3)', 'caption=Код,remember=info,mandatory,notNull,export');
         
         // Име на номенклатурата
         $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');

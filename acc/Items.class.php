@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
+    var $listFields = 'titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -157,7 +157,7 @@ class acc_Items extends core_Manager
         $this->FLD('earliestUsedOn', 'date', 'caption=Най-ранно използване,input=none');
         
         // Титла - хипервръзка
-        $this->FNC('titleLink', 'html', 'column=none');
+        $this->FNC('titleLink', 'html', 'column=none,sortingLike=title');
         $this->FNC('titleNum', 'varchar', 'column=none');
         
         $this->setDbUnique('objectId,classId');
@@ -333,7 +333,7 @@ class acc_Items extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,refreshForm,placeholder=Номенклатура');
+        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,autoFilter,placeholder=Номенклатура');
         $listOptions = acc_Lists::makeArray4Select('name', "");
         if(haveRole('admin,ceo,debug')){
         	$listOptions+= array('-1' => '[Без номенклатури]');
@@ -488,7 +488,7 @@ class acc_Items extends core_Manager
             // Може ли да импортираме от модел, ако да махаме бутона за нормално добавяне
             if($this->haveRightFor('insert', (object)array('listId' => $listId))){
                 $data->toolbar->removeBtn('btnAdd');
-                $data->toolbar->addBtn("Избор", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на пера');
+                $data->toolbar->addBtn("Добавяне на пера||Add items", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на пера');
             }
         }
         
@@ -645,7 +645,7 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Запомня запис на перо за по късно обновление.
+     * Запомня запис на перо за по-късно обновление.
      *
      * @param stdClass $rec
      */
@@ -683,7 +683,7 @@ class acc_Items extends core_Manager
         	core_App::setTimeLimit($timeLimit);
         	
             foreach ($this->touched as $rec) {
-                $this->save($rec, 'lastUseOn');
+                $this->save_($rec, 'lastUseOn');
             }
         }
     }
@@ -1043,5 +1043,48 @@ class acc_Items extends core_Manager
     	$Items->_cashedRecords = array();
     	
     	$Items->db->query($query);
+    }
+
+
+    /**
+     * Извлича перата с които може да са правени счетоводни операции в посочения  
+     * интервал дати и евентуално са от определена номенклатура
+     * 
+     * @param string $fromDate начало на период
+     * @param string $toDate   край на период
+     * @param string $listId   id на номенклатура. Ало липсва - всички
+     */
+    public static function fetchUsedItems($fromDate = NULL, $toDate = NULL, $listId = NULL)
+    {
+
+        $query = self::getQuery();
+        
+        if(isset($toDate)) {
+            $cond = "(#createdOn <= '{$toDate}')";
+        }
+
+        if(isset($fromDate)) {
+            if(!strpos($toDate, ' ')) {
+                $fromDate .= ' 23:59:59';
+            }
+            $cond .= ($cond ? " OR " : '') . "('$fromDate' <= #lastUseOn)";
+
+        }
+
+        if($cond) {
+            $query->where($cond);
+        }
+
+        if(isset($listId)) {
+            $query->like('lists', '|' . $listId . '|');
+        }
+
+        $query->show('id,title');
+        $res = array();
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->title;
+        }
+
+        return $res;
     }
 }
