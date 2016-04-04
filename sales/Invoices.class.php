@@ -846,6 +846,10 @@ class sales_Invoices extends deals_InvoiceMaster
    			$rec->threadId = $this->fetchField($rec->id, 'threadId');
    		}
    		
+   		if(empty($rec->folderId)){
+   			$rec->folderId = $this->fetchField($rec->id, 'folderId');
+   		}
+   		
    		// Ако със самата продажба е направено плащане, то винаги е в брой
    		$firstDocRec = doc_Threads::getFirstDocument($rec->threadId)->rec();
    		$contoActions = type_Set::toArray($firstDocRec->contoActions);
@@ -872,7 +876,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		
    		// От последната фактура за клиента
    		$iQuery = $this->getQuery();
-   		$iQuery->where("#folderId = {$rec->folderId} AND #state = 'active' AND #id != '{$rec->id}'");
+   		$iQuery->where("#folderId = '{$rec->folderId}' AND #state = 'active' AND #id != '{$rec->id}'");
    		$iQuery->where("#paymentType IS NOT NULL");
    		$iQuery->orderBy("id", "DESC");
    		$iQuery->show('paymentType');
