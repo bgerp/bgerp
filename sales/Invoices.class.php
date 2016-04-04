@@ -571,7 +571,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $self->fetch($id);
         
         if (!$rec->number) {
-            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
+            $hnd = $self->abbr . $rec->id;
         } else {
             $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
             $hnd = $self->abbr . $number;
