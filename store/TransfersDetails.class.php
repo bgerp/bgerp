@@ -251,7 +251,7 @@ class store_TransfersDetails extends doc_Detail
 				$error = "error=Няма складируеми артикули, ";
 			}
 	
-			$data->toolbar->addBtn('Добавяне', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE),
+			$data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE),
 					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
 		}
     }
