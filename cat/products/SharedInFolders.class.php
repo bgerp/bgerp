@@ -211,12 +211,14 @@ class cat_products_SharedInFolders extends core_Manager
     		$tpl->append("<div><i><small style='color:green'>" . tr('Артикулът е достъпен за избор в следните папки') . "</small></i></div>", 'content');
     	}
     	
-    	foreach ($data->rows as $row){
-    		$dTpl = new core_ET("<div>[#folderId#] [#tools#]</div>");
-    		$dTpl->placeObject($row);
-    		$dTpl->removeBlocks();
+    	if(is_array($data->rows)){
+    		foreach ($data->rows as $row){
+    			$dTpl = new core_ET("<div>[#folderId#] [#tools#]</div>");
+    			$dTpl->placeObject($row);
+    			$dTpl->removeBlocks();
     		
-    		$tpl->append($dTpl, 'content');
+    			$tpl->append($dTpl, 'content');
+    		}
     	}
     	
     	return $tpl;
