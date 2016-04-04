@@ -986,7 +986,7 @@ class fileman_Files extends core_Master
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
-        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
+        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink,checkPrivateHost=warning', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
         
         // Вземаме конфигурацията за fileman
         $conf = core_Packs::getConfig('fileman');
