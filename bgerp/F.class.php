@@ -98,7 +98,7 @@ class bgerp_F extends core_Manager
         }
         
         if ($actRec && $actRec->data->to) {
-            log_Browsers::setVars(array('email' => $actRec->data->to));
+            log_Browsers::setVars(array('email' => $actRec->data->to), FALSE, FALSE);
         }
         
         // Записа на файла
@@ -193,7 +193,7 @@ class bgerp_F extends core_Manager
             }
             
             if ($actRec && $actRec->data->to) {
-                log_Browsers::setVars(array('email' => $actRec->data->to));
+                log_Browsers::setVars(array('email' => $actRec->data->to), FALSE, FALSE);
             }
             
             // Запис за документа

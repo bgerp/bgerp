@@ -344,11 +344,16 @@ class log_Browsers extends core_Master
      * Записва подадените стойности в userData
      * 
      * @param array $varsArr
+     * @param boolean $addOnExist
+     * @param boolean $addForLogged
      * 
-     * @return integer
+     * @return integer|NULL
      */
-    public static function setVars($varsArr)
+    public static function setVars($varsArr, $addOnExist = TRUE, $addForLogged = TRUE)
     {
+        // Ако няма да се добавя за регистрирани потребители
+        if (!$addForLogged && core_Users::getCurrent() > 0) return ;
+        
         $brid = self::getBrid();
         
         $rec = self::fetch(array("#brid = '[#1#]'", $brid), 'userData');
@@ -365,6 +370,10 @@ class log_Browsers extends core_Master
         
         // Добавяме подадените данни в началото на масива
         if ($rec->userData) {
+            
+            // Ако няма да се обновяват предишните данни
+            if (!$addOnExist) return ;
+            
             $userData = $rec->userData;
             $userData = array($now => $varsArr) + $userData;
         } else {
