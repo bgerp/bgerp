@@ -369,6 +369,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+    	cat_Products::touchRec($rec->productId);
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
     		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
     	}
@@ -381,6 +382,7 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
+        	cat_Products::touchRec($rec->productId);
         	if(cat_Params::fetchField("#id = '{$rec->paramId}'", 'isFeature') == 'yes'){
         		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
         	}
