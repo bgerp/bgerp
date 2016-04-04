@@ -75,6 +75,14 @@ class core_Toolbar extends core_BaseClass
     {
         $params = arr::combine($params, $moreParams);
         
+        // Ако е от частна мрежа сетваме грешката
+        if ($params['checkPrivateHost'] && !$params['error']) {
+            if (core_App::checkCurrentHostIsPrivate()) {
+                $params['error'] = 'Не може да се използва услугата, защото bgERP не работи на публичен домейн.';
+            }
+            unset($params['checkPrivateHost']);
+        }
+        
         if($params['target']) {
             $btn->newWindow = $params['target'];
             unset($params['target']);
