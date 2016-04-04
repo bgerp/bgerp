@@ -211,12 +211,15 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
+    		if(empty($rec->number)){
+    			$rec->number = NULL;
+    		}
     		
     		// изискваме за контрагент с този номер да няма фактура със този номер
     		foreach (array('contragentVatNo', 'uicNo') as $fld){
-    			if(isset($rec->{$fld})){
+    			if(isset($rec->{$fld}) && !empty($rec->number)){
     				if($mvc->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}'")){
-    					$form->setError($fld, 'Има вече входяща фактура с този номер, за този');
+    					$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
     				}
     			}
     		}
@@ -354,19 +357,6 @@ class purchase_Invoices extends deals_InvoiceMaster
    					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
    				}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-    	$rec = $mvc->fetchRec($id);
-    	
-    	if(empty($rec->number)){
-    		redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
     	}
     }
     
