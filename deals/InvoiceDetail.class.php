@@ -474,10 +474,23 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			if($masterRec->type === 'dc_note'){
 				$cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId);
-				$cache = $cache[$rec->productId][$rec->packagingId];
+				
+				// За да проверим дали има променено и количество и цена
+				// намираме този запис кой пдоред детайл е на нареждането
+				// и намираме от кешираните стойности оригиналните количества за сравняване
+				$recs = array();
+				$query = $mvc->getQuery();
+				$query->where("#invoiceId = {$masterRec->id}");
+				$query->orderBy('id', 'ASC');
+				$query->show('id');
+				while($dRec = $query->fetch()){
+					$recs[] = $dRec->id;
+				}
+				$index = array_search($rec->id, $recs);
+				$cache = $cache[$index][$rec->productId];
 				
 				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && round($cache['price'], 5) != round($rec->packPrice, 5)){
-					//$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
+					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
 				}
 			}
 			
