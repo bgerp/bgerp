@@ -1129,12 +1129,13 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Подготовка на полето за избор на операция и инпут на формата
     	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
+    	$map = ($this instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
     	
     	$selected = array();
     	
     	// Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
     	if($options['ship'] && $rec->shipmentStoreId){
-    		if($rec->shipmentStoreId === $curStoreId){
+    		if($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship']){
     			$selected[] = 'ship';
     		}
     	} elseif($options['ship']){
