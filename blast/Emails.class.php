@@ -402,7 +402,7 @@ class blast_Emails extends core_Master
                 $this->logErr('Прекъснато изпращане на циркулярни имейли. Прави се опит за изпращане от частна мрежа', $rec->id);
                 
                 $rec->state = 'stopped';
-                $rec->errMsg = '|Спряно разпращане, поради опит за изпращане от частна мрежа.';
+                $rec->errMsg = '|Спряно разпращане, поради опит за изпращане от частен адрес.';
                 
                 $this->save($rec, 'state, errMsg');
                 $this->touchRec($rec->id);
@@ -1025,7 +1025,7 @@ class blast_Emails extends core_Master
             }
             
             if (core_App::checkCurrentHostIsPrivate()) {
-                $form->setWarning('sendPerCall', 'Ако изпращате от частна мрежа, линковете към системата няма да работят.');
+                $form->setWarning('sendPerCall', 'Ако изпращате от частен адрес, линковете към системата няма да работят.');
                 
                 if ($form->isSubmitted()) {
                     self::logWarning('Активиране на изпращане на имейли от частна мрежа.', $form->rec->id);
@@ -1054,8 +1054,10 @@ class blast_Emails extends core_Master
                 $form->rec->state = 'pending';
             }
             
+            $form->rec->errMsg = NULL;
+            
             // Упдейтва състоянието и данните за имейл-а
-            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo');
+            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo, errMsg');
             
             // Обновяваме списъка с имейлите
             $updateCnt = self::updateEmailList($form->rec->id);
