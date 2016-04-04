@@ -163,8 +163,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$cached = $this->Master->getInvoiceDetailedInfo($rec->originId);
 				
 				// За всеки запис ако е променен от оригиналния показваме промяната
+				$count = 0;
 				foreach($recs as &$dRec){
-					$originRef = $cached[$dRec->productId][$dRec->packagingId];
+					$originRef = $cached[$count][$dRec->productId];
 					
 					$diffQuantity = $dRec->quantity - $originRef['quantity'];
 					$diffPrice = $dRec->packPrice - $originRef['price'];
@@ -178,6 +179,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						$dRec->packPrice = $diffPrice;
 						$dRec->changedPrice = TRUE;
 					}
+					$count++;
 				}
 			}
 		}
@@ -470,7 +472,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$cache = $cache[$rec->productId][$rec->packagingId];
 				
 				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && round($cache['price'], 5) != round($rec->packPrice, 5)){
-					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
+					//$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
 				}
 			}
 			
