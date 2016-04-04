@@ -151,7 +151,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
@@ -165,7 +165,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-		$origin = $mvc->getOrigin($data->form->rec);
+		$rec = $data->form->rec;
+    	$origin = $mvc->getOrigin($data->form->rec);
     	if($origin->isInstanceOf('findeals_AdvanceReports')){
     		$data->form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
     		$data->form->setField('vatRate', 'input');
@@ -192,6 +193,11 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
     		$data->form->setField('vatReason', 'mandatory');
+    	}
+    	
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	if($rec->contragentCountryId == $bgId){
+    		$data->form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
     	}
     }
     
