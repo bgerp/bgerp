@@ -162,7 +162,7 @@ class cat_products_SharedInFolders extends core_Manager
     		return;
     	}
     	
-    	$data->TabCaption = 'Показване';
+    	$data->TabCaption = 'Достъпност';
     	$data->Tab = 'top';
     	
     	$data->recs = $data->rows = array();
@@ -198,17 +198,16 @@ class cat_products_SharedInFolders extends core_Manager
     	if($data->hide == TRUE) return;
     	
     	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-    	$tpl->append('Показване в папки на контрагенти', 'title');
+    	$tpl->append('Папки, в които артикулът е достъпен:', 'title');
     	
     	if(isset($data->addUrl)){
-    		$ht = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне');
+    		$ht = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне папки на контрагенти');
     		$tpl->append($ht, 'title');
     	}
     	
     	if($data->masterData->rec->isPublic == 'yes'){
-    		$tpl->append("<div><i><small class='red'>" . tr('Артикулът е стандартен и по дефолт се показва във всички папки') . "</small></i></div>", 'content');
-    	} else {
-    		$tpl->append("<div><i><small style='color:green'>" . tr('Артикулът е достъпен за избор в следните папки') . "</small></i></div>", 'content');
+			$tpl->append("<div><b>" . tr('Артикулът е стандартен и е достъпен във всички папки.') . "</b></div>", 'content');
+			$tpl->append("<div><i><small>" . tr('Като частен е бил споделен в папките на:') . "</small></i></div>", 'content');
     	}
     	
     	if(is_array($data->rows)){
