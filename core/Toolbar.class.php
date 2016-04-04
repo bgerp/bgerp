@@ -78,7 +78,11 @@ class core_Toolbar extends core_BaseClass
         // Ако е от частна мрежа сетваме грешката
         if ($params['checkPrivateHost'] && !$params['error']) {
             if (core_App::checkCurrentHostIsPrivate()) {
-                $params['error'] = 'Не може да се използва услугата, защото bgERP не работи на публичен домейн.';
+                if ($params['checkPrivateHost'] == 'warning') {
+                    $params['warning'] = 'Използвате услугата от частен адрес.';
+                } else {
+                    $params['error'] = 'Не може да се използва услугата, защото не работи с частни адреси.';
+                }
             }
             unset($params['checkPrivateHost']);
         }
