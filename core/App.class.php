@@ -533,9 +533,15 @@ class core_App
      */
     public static function checkCurrentHostIsPrivate()
     {
-        $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+        static $status;
         
-        return core_Url::isPrivate($sHost);
+        if (!isset($status)) {
+            $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $status = core_Url::isPrivate($sHost);
+        }
+        
+        return $status;
     }
     
     
