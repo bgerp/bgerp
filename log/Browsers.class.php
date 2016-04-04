@@ -34,6 +34,12 @@ class log_Browsers extends core_Master
     
     
     /**
+     * Максималния брой записи в масива със стойностите
+     */
+    const MAX_BRID_VARS_CNT = 20;
+    
+    
+    /**
      * Заглавие
      */
     public $title = "Браузъри";
@@ -376,10 +382,14 @@ class log_Browsers extends core_Master
             
             $userData = $rec->userData;
             $userData = array($now => $varsArr) + $userData;
+            
+            // Ограничаваме броя на записите
+            $userData = array_slice($userData, 0, self::MAX_BRID_VARS_CNT);
         } else {
             $userData = array($now => $varsArr);
             
         }
+        
         $nRec->userData = $userData;
         
         $id = self::save($nRec);
