@@ -4643,13 +4643,13 @@ only screen and (max-width: 320px) {
   .treeView .hidden {
     display: none; }
   .treeView .treeLevel1 .leafName {
-    text-indent: 50px; }
+    text-indent: 40px; }
   .treeView .treeLevel2 .leafName {
-    text-indent: 80px; }
+    text-indent: 60px; }
   .treeView .treeLevel3 .leafName {
-    text-indent: 110px; }
+    text-indent: 80px; }
   .treeView .treeLevel4 .leafName {
-    text-indent: 140px; }
+    text-indent: 100px; }
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
