@@ -342,7 +342,16 @@ class acc_ArticleDetails extends doc_Detail
              * аналитичности на дебит и кредит сметките са едни и същи.
              */
         } else {
-            foreach ($accs as $type => $acc) {
+            
+        	foreach ($accs as $type => $acc) {
+        		if ($acc->isDimensional && !isset($rec->amount)) {
+        			if(isset($rec->{"{$type}Price"}) && isset($rec->{"{$type}Quantity"})){
+        				@$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
+        			}
+        		}
+        	}
+        	
+        	foreach ($accs as $type => $acc) {
                 if ($acc->isDimensional) {
                     
                     /**
