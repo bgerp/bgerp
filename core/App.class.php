@@ -527,6 +527,19 @@ class core_App
     
     
     /**
+     * Проверява текущия хост (или ако е дефиниран, хоста от константа) дали е от частна мрежа
+     * 
+     * @return boolean
+     */
+    public static function checkCurrentHostIsPrivate()
+    {
+        $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+        
+        return core_Url::isPrivate($sHost);
+    }
+    
+    
+    /**
      * Връща резултата, като JSON и спира процеса
      * 
      * $resArr array
