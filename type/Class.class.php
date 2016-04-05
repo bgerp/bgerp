@@ -173,7 +173,7 @@ class type_Class  extends type_Key {
      * 
      * @param mixed $key
      * 
-     * @return mixed
+     * @return string
      */
     public function prepareKey($key)
     {
