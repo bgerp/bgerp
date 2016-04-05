@@ -53,6 +53,9 @@ class cat_products_Params extends doc_Detail
     var $lastUsedKeys = 'paramId';
     
     
+    var $rowToolsMinLinksToShow = 2;
+    
+    
     /**
      * Поле за пулт-а
      */
@@ -150,7 +153,7 @@ class cat_products_Params extends doc_Detail
         
     	if(!$form->rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
-	    	$options = self::getRemainingOptions($form->rec->classId, $productId, $form->rec->id);
+	    	$options = self::getRemainingOptions($form->rec->classId, $form->rec->productId, $form->rec->id);
 			
 	        $form->setOptions('paramId', array('' => '') + $options);
     	} else {
@@ -240,10 +243,11 @@ class cat_products_Params extends doc_Detail
         	$tpl->append($data->changeBtn, 'addParamBtn');
         }
         
+        $mvc = cls::get(get_called_class());
         foreach((array)$data->params as $row) {
         	core_RowToolbar::createIfNotExists($row->_rowTools);
         	if($data->noChange !== TRUE){
-        		$row->tools = $row->_rowTools->renderHtml();
+        		$row->tools = $row->_rowTools->renderHtml($mvc->rowToolsMinLinksToShow);
         	} else {
         		unset($row->tools);
         	}

@@ -199,8 +199,7 @@ class plg_RowTools2 extends core_Plugin
             		$tools->removeBtn("single{$rec->id}");
             	}
             	
-            	// Рендираме тулбара
-                $tools = $tools->renderHtml();
+                $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow);
                 if($tools) {
                     $mustShow = TRUE;
                 }
