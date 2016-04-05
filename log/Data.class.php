@@ -547,7 +547,7 @@ class log_Data extends core_Manager
                 $actArr[$actRec->id] = $actRec->crc;
             }
             
-            if ($actArr) {
+            if (!empty($actArr)) {
                 $query->in('actionCrc', $actArr);
             } else {
                 
@@ -568,7 +568,7 @@ class log_Data extends core_Manager
                 $ipArr[$ipRec->id] = $ipRec->id;
             }
             
-            if ($ipArr) {
+            if (!empty($ipArr)) {
                 $query->in('ipId', $ipArr);
             } else {
                 // Ако няма намерен текст, да не се показва никакъв резултат
@@ -621,7 +621,7 @@ class log_Data extends core_Manager
             }
         }
         
-        if ($classSuggArr) {
+        if (!empty($classSuggArr)) {
             $classSuggArr = array('' => '') + $classSuggArr;
             $data->listFilter->setOptions('class', $classSuggArr);
         }
@@ -629,7 +629,7 @@ class log_Data extends core_Manager
         // Филтрираме по клас
         if (trim($rec->class)) {
             $crc = log_Classes::getClassCrc($rec->class, FALSE);
-            if ($crc) {
+            if (isset($crc)) {
                 $query->where("#classCrc = '{$crc}'");
             } else {
                 $query->where("1=2");
@@ -684,7 +684,7 @@ class log_Data extends core_Manager
         }
         
         // Добавяме обектите, за които има запис
-        if ($objSuggArr) {
+        if (!empty($objSuggArr)) {
             $objSuggArr = array('' => '') + $objSuggArr;
             $data->listFilter->setOptions('object', $objSuggArr);
         }
