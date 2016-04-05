@@ -134,6 +134,7 @@
                         </table>
                          <hr>
                         <div>|Получил|*: [#received#]</div>
+                        <div>|Доставил|*: [#delivered#]</div>
                     </td>
                 </tr>
             </tbody>

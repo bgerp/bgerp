@@ -80,6 +80,7 @@
                         <!--ET_END note-->
                         <hr>
                         <div>|Получил|*: [#received#]</div>
+                        <div>|Доставил|*: [#delivered#]</div>
                     </td>
                 </tr>
             </tbody>

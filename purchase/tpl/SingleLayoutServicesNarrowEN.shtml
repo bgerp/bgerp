@@ -81,6 +81,7 @@
                         <hr>
                         <!--ET_END deliveryInfo-->
                         <div>Received: [#received#]</div>
+                        <div>Delivered: [#delivered#]</div>
                     </td>
                 </tr>
             </tbody>
