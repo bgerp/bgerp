@@ -236,7 +236,7 @@ class distro_Group extends core_Master
         $reposArr = fileman_Repositories::getAccessedReposArr($reposArr);
         
         // Ако има хранилища
-        if ($reposArr) {
+        if (!empty($reposArr)) {
             
             // Задаваме ги
             $data->form->setSuggestions('repos', $reposArr);
@@ -442,7 +442,7 @@ class distro_Group extends core_Master
             $reposArr = type_Keylist::toArray($rec->repos);
             
             // Ако няма хранилище, прескачаме
-            if (!$reposArr) continue;
+            if (empty($reposArr)) continue;
             
             // Обхождаме масива с хранилищата
             foreach ((array)$reposArr as $repoId) {
@@ -531,7 +531,7 @@ class distro_Group extends core_Master
      * 
      * @param distro_Group $mvc
      * @param integer $id
-     * @param core_Detail $Detail
+     * @param core_Manager $detailMvc
      */
     protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
