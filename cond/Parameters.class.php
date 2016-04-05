@@ -38,7 +38,7 @@ class cond_Parameters extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, driverClass, state,sysId';
+    public $listFields = 'tools=Пулт, name, driverClass, state';
     
     
     /**
