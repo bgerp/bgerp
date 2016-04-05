@@ -389,7 +389,7 @@ class acc_ArticleDetails extends doc_Detail
                         $rec->{"{$type}Amount"} = $rec->amount;
                     }
                     
-                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && $rec->amount != $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"}) {
+                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && trim($rec->amount) != trim($rec->{"{$type}Price"} * $rec->{"{$type}Quantity"})) {
                         $form->setError("{$type}Quantity, {$type}Price, amount", 'Невъзможни стойности на оборотите');
                     }
                 } else {
