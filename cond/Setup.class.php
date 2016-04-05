@@ -61,7 +61,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::oldPosPayments',
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',
-    		'migrate::deleteParams',
+    		'migrate::deleteParams2',
         );
 
         
@@ -152,9 +152,16 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Изтрива параметри
      */
-    function deleteParams()
+    function deleteParams2()
     {
-    	cond_Parameters::delete("#sysId = 'commonConditionQuote'");
-    	cond_Parameters::delete("#sysId = 'commonConditionQuoteEng'");
+    	if($f1 = cond_Parameters::fetch("#name = 'Текст за фактура'")){
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f1->id}");
+    		cond_Parameters::delete($f1->id);
+    	}
+    	
+    	if($f2 = cond_Parameters::fetch("#name = 'Други условия към фактура (английски)'")){
+    		cond_ConditionsToCustomers::delete("#conditionId = {$f2->id}");
+    		cond_Parameters::delete($f2->id);
+    	}
     }
 }

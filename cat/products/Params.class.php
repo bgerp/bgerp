@@ -150,14 +150,9 @@ class cat_products_Params extends doc_Detail
         
     	if(!$form->rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
-	    	expect($productId = $form->rec->productId);
-			$options = self::getRemainingOptions($form->rec->classId, $productId, $form->rec->id);
-			expect(count($options));
-	        
-	        if(!$data->form->rec->id){
-	        	$options = array('' => '') + $options;
-	        }
-	        $form->setOptions('paramId', $options);
+	    	$options = self::getRemainingOptions($form->rec->classId, $productId, $form->rec->id);
+			
+	        $form->setOptions('paramId', array('' => '') + $options);
     	} else {
     		$form->setReadOnly('paramId');
     	}

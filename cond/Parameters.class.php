@@ -9,72 +9,78 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cond_Parameters extends core_Master
+class cond_Parameters extends embed_Manager
 {
     
     
 	/**
+	 * Свойство, което указва интерфейса на вътрешните обекти
+	 */
+	public $driverInterface = 'cond_ParamTypeIntf';
+	
+	
+	/**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'salecond_Parameters';
+    public $oldClassName = 'salecond_Parameters';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, type, state';
+    public $listFields = 'tools=Пулт, name, driverClass, state,sysId';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Търговски условия';
+    public $title = 'Търговски условия';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Търговско условие";
+    public $singleTitle = "Търговско условие";
     
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'ceo,cond';
+    public $canRead = 'ceo,cond';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'ceo,cond';
+    public $canEditsysdata = 'ceo,cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cond';
+	public $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cond';
+	public $canSingle = 'ceo,cond';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,cond';
+    public $canWrite = 'ceo,cond';
     
     
     /**
@@ -86,13 +92,13 @@ class cond_Parameters extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,cond';
+    public $canAdd = 'ceo,cond';
     
     
     /**
@@ -101,37 +107,52 @@ class cond_Parameters extends core_Master
     function description()
     {
     	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Символи,text=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип');
-        $this->FLD('options', 'varchar(128)', 'caption=Стойности');
+        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Символи,text=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип,input=none');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id, input=hidden');
         $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
         
         $this->setDbUnique('name');
+        $this->setDbUnique("sysId");
     }
     
     
     /**
-     * След изпращане на формата
+     * Връща типа на параметъра
+     *
+     * @param mixed $id - ид или запис на параметър
+     * @return FALSE|cond_type_Proto - инстанцирания тип или FALSE ако не може да се определи
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    public static function getTypeInstance($id)
     {
-        if ($form->isSubmitted()) {
-        	$rec = &$form->rec;
-        	if($rec->options){
-        		$vArr = explode(",", $rec->options);
-        		$Type = cls::get("type_{$rec->type}");
-        		foreach($vArr as $option){
-        			if($rec->type != 'enum' && !$Type->fromVerbal($option)){
-        				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");
-        			}
-        		}
-        	} else {
-        		if($rec->type == 'enum'){
-        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойностти");
-        		}
-        	}
-        }
+    	$rec = static::fetchRec($id);
+    	if($Driver = static::getDriver($rec)){
+    		return $Type = $Driver->getType($rec);
+    	}
+    	 
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	core_Classes::add($rec->driverClass);
+    	$rec->driverClass = cls::get($rec->driverClass)->getClassId();
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setField('driverClass', 'caption=Тип,input');
     }
     
     
@@ -143,7 +164,7 @@ class cond_Parameters extends core_Master
     	$file = "cond/csv/Parameters.csv";
     	$fields = array(
     			0 => "name",
-    			1 => "type",
+    			1 => "driverClass",
     			2 => "sysId",
     			3 => "default");
     	 
@@ -156,6 +177,7 @@ class cond_Parameters extends core_Master
     
 	/**
      * Връща стойността на дадено търговско условие за клиента
+     * 
      * @param int $cId - ид на контрагента
      * @param string $conditionSysId - sysId на параметър (@see cond_Parameters)
      * @return string $value - стойността на параметъра
@@ -185,34 +207,15 @@ class cond_Parameters extends core_Master
     	// Търси се метод дефиниран за връщане на стойността на условието
     	$method = "get{$conditionSysId}";
     	if(method_exists($Class, $method)){
+    		
     		return $Class::$method($cId);
     	}
     	
     	// Връща се супер дефолта на параметъра;
     	$default = static::fetchField($condId, 'default');
+    	
     	if(isset($default)) return $default;
     	
     	return NULL;
-    }
-    
-    
-    /**
-     * Помощен метод за извличане на информация на параметър
-     * @param int $id - ид на параметър
-     * @return stdClass $res
-     * 				    ->type - тип на полето
-     * 					->options - масив с допустими стойности
-     */
-    public static function getParamInfo($id)
-    {
-    	$res = new stdClass();
-    	$res->options = array();
-    	expect($rec = static::fetch($id));
-    	$res->type = $rec->type;
-    	
-    	if($rec->options){
-    		$res->options = array('' => '') + arr::make($rec->options, TRUE);
-    	}
-    	return $res;
     }
 }
