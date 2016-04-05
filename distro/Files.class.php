@@ -1302,7 +1302,7 @@ class distro_Files extends core_Detail
     {
         
         // Извикваме функцията и връщаме резултата му
-        return static::syncFiles();
+        return core_Type::mixedToString(static::syncFiles());
     }
     
     
