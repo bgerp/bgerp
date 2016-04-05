@@ -21,20 +21,20 @@ class core_Detail extends core_Manager
     /**
      * Полето-ключ към мастъра
      */
-    var $masterKey;
+    public $masterKey;
 
 
     /**
      * Инстанция към мастера
      */
-    var $Master;
+    public $Master;
     
     
     /**
      * По колко реда от резултата да показва на страница в детайла на документа
      * Стойност '0' означава, че детайла няма да се странира
      */
-    var $listItemsPerPage = 0;
+    public $listItemsPerPage = 0;
     
     
     /**
