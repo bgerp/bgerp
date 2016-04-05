@@ -1,4 +1,5 @@
 <?php
+
 class trans_Zones extends core_Manager
 {
     public $title = "Транспортни зони";
@@ -7,10 +8,12 @@ class trans_Zones extends core_Manager
 
     public function description()
     {
+
         $this->FLD('zoneId', 'key(mvc=trans_ZoneNames, select=name)', 'caption=Зона, recently, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
         $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
+
 
         $this->setDbUnique("deliveryTermId,countryId, pCode");
     }
@@ -20,10 +23,6 @@ class trans_Zones extends core_Manager
         $data->toolbar->addBtn("Изчисление на зона", array("trans_Zones", "test"), "ef_icon=img/16/arrow_out.png");
     }
 
-    public function act_Test2()
-    {
-
-    }
     /**
      * Тестване на направеното
      */
@@ -52,6 +51,7 @@ class trans_Zones extends core_Manager
         return $form->renderHTML();
     }
 
+    
 
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
@@ -61,6 +61,7 @@ class trans_Zones extends core_Manager
      *
      * @return string                   име на зоната
      */
+
     public static function getZoneId($deliveryTermId, $countryId, $pCode)
     {
         $query = self::getQuery();
@@ -68,15 +69,12 @@ class trans_Zones extends core_Manager
         $bestSimilarityCount = -1;
         $bestZone = "";
         while($rec = $query->fetch()) {
-
             $similarityCount = self::strNearPCode($pCode, $rec->pCode);
-            echo "<li>" . $similarityCount;
-            if($similarityCount > $bestSimilarityCount){
+            if ($similarityCount > $bestSimilarityCount) {
                 $bestSimilarityCount = $similarityCount;
                 $bestZone = $rec->zoneId;
             }
         }
-
         return $bestZone;
     }
 
@@ -92,6 +90,5 @@ class trans_Zones extends core_Manager
             }
         }
 
-        return $cycleNumber;
     }
 }
