@@ -19,7 +19,7 @@ class email_Mime extends core_BaseClass
     /**
      * Текстоватана имейл-а
      */
-    var $textPart;
+    public $textPart;
     
     
     /**
