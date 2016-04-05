@@ -39,13 +39,13 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     /**
      * Дефолт сметка
      */
-    public $baseAccountId = '401';
+    public $baseAccountId = '321';
 
 
     /**
      * Кореспондент сметка
      */
-    public $corespondentAccountId = '611';
+    public $corespondentAccountId = '401';
 
 
     /**
@@ -62,8 +62,76 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $corespondentAccId = acc_Accounts::getRecBySystemId($mvc->corespondentAccountId)->id;
         $form->setDefault('corespondentAccountId', $corespondentAccId);
         $form->setHidden('corespondentAccountId');
-
+        
+        $form->setHidden("orderField");
+        $form->setHidden("side");
     }
+    
+    
+    /**
+     * След подготовката на ембеднатата форма
+     */
+    public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
+    {
+
+        $storePositionId = acc_Lists::getPosition($mvc->baseAccountId, 'store_AccRegIntf');
+        $form->setHidden("feat{$storePositionId}");
+        foreach (range(4, 6) as $i) {
+            $form->setHidden("feat{$i}");
+        }
+
+        $articlePositionId = acc_Lists::fetchField("#systemId = 'catProducts'",'id');
+        $storePositionId = acc_Lists::getPosition($mvc->baseAccountId, 'store_AccRegIntf');
+         
+        foreach(range(1, 3) as $i) {
+            if ($form->rec->{"list{$i}"} == $articlePositionId) {
+
+                $form->setDefault("feat{$i}", "*");
+                $form->setField("feat{$i}", 'caption=Артикул');
+            }
+        }
+        
+        $form->setDefault("orderField", "blAmount");
+        $form->setDefault("side", "all");
+       
+        $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'cat_ProductAccRegIntf');
+         
+        $form->setDefault("feat{$contragentPositionId}", "*");
+        $form->setHidden("feat{$contragentPositionId}");
+    }
+    
+    /**
+     * Връща шаблона на репорта
+     *
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReportLayout_()
+    {
+        $tpl = getTplFromFile('acc/tpl/PurchaseReportLayout.shtml');
+    
+        if($this->innerForm->compare == 'no') {
+            $tpl->removeBlock('summeryNew');
+        }
+    
+        return $tpl;
+    }
+    
+    
+    public static function on_AfterGetReportLayout($mvc, &$tpl)
+    {
+        //$tpl = $mvc->getReportLayout();
+        
+        $tpl->removeBlock('debit');
+        $tpl->removeBlock('credit');
+        $tpl->removeBlock('debitNew');
+        $tpl->removeBlock('creditNew');
+        $tpl->removeBlock('blName');
+
+        if($mvc->innerForm->compare == 'no') {
+            $tpl->removeBlock('summeryNew');
+        }
+    }
+    
 
 
     /**
@@ -100,5 +168,47 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     	$title = tr("|{$explodeTitle[1]}|*");
     	 
     	return $title;
+    }
+    
+    
+    /**
+     * Какви са полетата на таблицата
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+
+        $form = $mvc->innerForm;
+        $newFields = array();
+
+        $data->listFields['item2'] = 'Контрагенти';
+        $data->listFields['item3'] = 'Артикул';
+        $data->listFields['blQuantity'] = 'Количество';
+        $data->listFields['blAmount'] = 'Сума';
+        $data->listFields['delta'] = 'Дял';
+
+        // Кои полета ще се показват
+        if($mvc->innerForm->compare == 'old' || $mvc->innerForm->compare == 'year'){
+            $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
+    		$toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
+    		$prefixOld = (string) $fromVerbalOld . " - " . $toVerbalOld;
+    		
+    		$fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
+    		$toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
+    		$prefix = (string) $fromVerbal . " - " . $toVerbal;
+
+    		$fields = arr::make("item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сум,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+    		$data->listFields = $fields;
+        }
+        
+        $articlePositionId = acc_Lists::fetchField("#systemId = 'catProducts'",'id');
+        foreach(range(1, 3) as $i) {
+            if ($form->{"list{$i}"} == $articlePositionId) {
+                 if($form->{"feat{$i}"} != "*") {
+                     unset($data->listFields['item3']);
+                 }
+            }
+        }
+         
+        unset($data->listFields['debitQuantity'],$data->listFields['debitAmount'],$data->listFields['creditQuantity'],$data->listFields['creditAmount']);
     }
 }
