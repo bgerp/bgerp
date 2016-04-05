@@ -13,8 +13,6 @@ class trans_Fees extends core_Manager
         $this->FLD('weight', 'double(min=0)', 'caption=Тегло, mandatory');
         $this->FLD('price', 'double(min=0)', 'caption=Цена, mandatory');
     }
-
-
     
 
     public static function calcFee($deliveryTerm, $countryId, $pcode, $totalWeight, $singleWeight = 1)

@@ -51,7 +51,7 @@ class trans_Zones extends core_Manager
         return $form->renderHTML();
     }
 
-    
+
 
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
