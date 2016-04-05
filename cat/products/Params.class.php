@@ -20,82 +20,88 @@ class cat_products_Params extends doc_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'productId';
+    public $masterKey = 'productId';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Параметри';
+    public $title = 'Параметри';
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Параметър';
+    public $singleTitle = 'Параметър';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId=Продукт №, paramId, paramValue';
+    public $listFields = 'productId=Продукт №, paramId, paramValue';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_LastUsedKeys, plg_SaveAndNew';
     
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'paramId';
+    public $lastUsedKeys = 'paramId';
     
     
-    var $rowToolsMinLinksToShow = 2;
+    /**
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     * 
+     * @param int
+     * @see plg_RowTools2
+     */
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
      * Поле за пулт-а
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = 'cat_Products';
+    public $tabName = 'cat_Products';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,cat';
+    public $canAdd = 'ceo,cat';
     
     
     /**
      * Кой може да листва
      */
-    var $canList = 'ceo,cat';
+    public $canList = 'ceo,cat';
     
     
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'ceo,cat';
+    public $canEdit = 'ceo,cat';
     
     
     /**
      * Кой може да изтрива
      */
-    var $canDelete = 'ceo,cat';
+    public $canDelete = 'ceo,cat';
     
     
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, productId, paramId';
+    public $fetchFieldsBeforeDelete = 'id, productId, paramId';
     
     
     /**
