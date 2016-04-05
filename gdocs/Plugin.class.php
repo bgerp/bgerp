@@ -35,7 +35,7 @@ class gdocs_Plugin extends core_Plugin
                      
                     // Добавяме бутона
                     $data->toolbar->addBtn('gDocs', $url, 
-                        "id='btn-gdocs',ef_icon=gdocs/img/google.png", 
+                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/google.png", 
                         array('target'=>'_blank', 'order'=>'30')
                     ); 
                 }

@@ -34,6 +34,12 @@ class log_Browsers extends core_Master
     
     
     /**
+     * Максималния брой записи в масива със стойностите
+     */
+    const MAX_BRID_VARS_CNT = 20;
+    
+    
+    /**
      * Заглавие
      */
     public $title = "Браузъри";
@@ -344,11 +350,16 @@ class log_Browsers extends core_Master
      * Записва подадените стойности в userData
      * 
      * @param array $varsArr
+     * @param boolean $addOnExist
+     * @param boolean $addForLogged
      * 
-     * @return integer
+     * @return integer|NULL
      */
-    public static function setVars($varsArr)
+    public static function setVars($varsArr, $addOnExist = TRUE, $addForLogged = TRUE)
     {
+        // Ако няма да се добавя за регистрирани потребители
+        if (!$addForLogged && core_Users::getCurrent() > 0) return ;
+        
         $brid = self::getBrid();
         
         $rec = self::fetch(array("#brid = '[#1#]'", $brid), 'userData');
@@ -365,12 +376,20 @@ class log_Browsers extends core_Master
         
         // Добавяме подадените данни в началото на масива
         if ($rec->userData) {
+            
+            // Ако няма да се обновяват предишните данни
+            if (!$addOnExist) return ;
+            
             $userData = $rec->userData;
             $userData = array($now => $varsArr) + $userData;
+            
+            // Ограничаваме броя на записите
+            $userData = array_slice($userData, 0, self::MAX_BRID_VARS_CNT);
         } else {
             $userData = array($now => $varsArr);
             
         }
+        
         $nRec->userData = $userData;
         
         $id = self::save($nRec);
@@ -430,7 +449,7 @@ class log_Browsers extends core_Master
         $rec->userAgent = self::getUserAgent();
         $rec->acceptLangs = self::getAcceptLangs();
         
-        self::save($rec, NULL, REPLACE);
+        self::save($rec, NULL, 'REPLACE');
     }
     
     

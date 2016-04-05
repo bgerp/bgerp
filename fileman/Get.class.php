@@ -225,9 +225,17 @@ class fileman_Get extends core_Manager {
                             break;
                         }
                     }
-        
-                    if(!$ext) $ext = $exts[0];
-                }
+                    
+                    // Вземаме нещо, което прилича на екстеншън от URL-то
+                    if(!$ext) {
+                        $ext = fileman_Files::getExt($rec->url, 4);
+                    }
+
+                    // Вземаме дефолтния екстеншън от МИМЕ-типа
+                    if(!$ext) {
+                        $ext = $exts[0];
+                    }
+               }
             }
             
             $fileName = $headers['filename'];

@@ -975,9 +975,12 @@ abstract class deals_InvoiceMaster extends core_Master
     		$cache = array();
     		$Detail = $this->mainDetail;
     		$query = $Detail::getQuery();
+    		
+    		$count = 0;
     		$query->where("#{$this->$Detail->masterKey} = '{$document->that}'");
     		while($dRec = $query->fetch()){
-    			$cache[$dRec->productId][$dRec->packagingId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
+    			$cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
+    			$count++;
     		}
     		$this->cache[$containerId] = $cache;
     	}

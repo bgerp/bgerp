@@ -105,11 +105,14 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceRepairDetails',
     	'acc_BalanceTransfers',
     	'acc_AllocatedExpenses',
+        'acc_FeatureTitles',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     	'migrate::updateClosedItems3',
     	'migrate::fixExpenses',
     	'migrate::updateItemsEarliestUsedOn',
+        'migrate::updateAllFL',
+        'migrate::updateFeatureTitles',
     );
     
     
@@ -206,7 +209,8 @@ class acc_Setup extends core_ProtoSetup
     var $defClasses = "acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
-    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales";
+    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
+                        acc_reports_MovementsBetweenAccounts";
     
     
     /**
@@ -284,6 +288,18 @@ class acc_Setup extends core_ProtoSetup
         }
     }
     
+    
+    /**
+     * Обновява всички свойства, които имат перата от списъците
+     */
+    function updateAllFL()
+    {
+        $query = acc_Lists::getQuery();
+        while($rec = $query->fetch()) {
+            acc_Lists::updateFeatureList($rec->id);
+        }
+    }
+
     
     /**
      * Ъпдейт на затворените пера
@@ -365,5 +381,20 @@ class acc_Setup extends core_ProtoSetup
     			}
     		}
     	}
+    }
+
+
+    /**
+     *
+     */
+    function updateFeatureTitles()
+    {
+        $fQuery = acc_Features::getQuery();
+        unset($fQuery->fields['feature']);
+        $fQuery->FLD('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
+
+        while($fRec = $fQuery->fetch()) {  
+            acc_Features::save($fRec);
+        }
     }
 }

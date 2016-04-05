@@ -128,7 +128,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$error = "error=Няма {$text} артикули,";
 			}
 	
-			$data->toolbar->addBtn('Добавяне', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
+			$data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
 					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
 			
 		}
@@ -163,8 +163,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$cached = $this->Master->getInvoiceDetailedInfo($rec->originId);
 				
 				// За всеки запис ако е променен от оригиналния показваме промяната
+				$count = 0;
 				foreach($recs as &$dRec){
-					$originRef = $cached[$dRec->productId][$dRec->packagingId];
+					$originRef = $cached[$count][$dRec->productId];
 					
 					$diffQuantity = $dRec->quantity - $originRef['quantity'];
 					$diffPrice = $dRec->packPrice - $originRef['price'];
@@ -178,6 +179,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						$dRec->packPrice = $diffPrice;
 						$dRec->changedPrice = TRUE;
 					}
+					$count++;
 				}
 			}
 		}
@@ -472,7 +474,20 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			if($masterRec->type === 'dc_note'){
 				$cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId);
-				$cache = $cache[$rec->productId][$rec->packagingId];
+				
+				// За да проверим дали има променено и количество и цена
+				// намираме този запис кой пдоред детайл е на нареждането
+				// и намираме от кешираните стойности оригиналните количества за сравняване
+				$recs = array();
+				$query = $mvc->getQuery();
+				$query->where("#invoiceId = {$masterRec->id}");
+				$query->orderBy('id', 'ASC');
+				$query->show('id');
+				while($dRec = $query->fetch()){
+					$recs[] = $dRec->id;
+				}
+				$index = array_search($rec->id, $recs);
+				$cache = $cache[$index][$rec->productId];
 				
 				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && round($cache['price'], 5) != round($rec->packPrice, 5)){
 					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');

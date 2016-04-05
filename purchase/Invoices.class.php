@@ -151,7 +151,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
@@ -165,7 +165,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-		$origin = $mvc->getOrigin($data->form->rec);
+		$rec = $data->form->rec;
+    	$origin = $mvc->getOrigin($data->form->rec);
     	if($origin->isInstanceOf('findeals_AdvanceReports')){
     		$data->form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
     		$data->form->setField('vatRate', 'input');
@@ -193,6 +194,11 @@ class purchase_Invoices extends deals_InvoiceMaster
     	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
     		$data->form->setField('vatReason', 'mandatory');
     	}
+    	
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	if($rec->contragentCountryId == $bgId){
+    		$data->form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
+    	}
     }
     
     
@@ -205,12 +211,15 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
+    		if(empty($rec->number)){
+    			$rec->number = NULL;
+    		}
     		
     		// изискваме за контрагент с този номер да няма фактура със този номер
     		foreach (array('contragentVatNo', 'uicNo') as $fld){
-    			if(isset($rec->{$fld})){
+    			if(isset($rec->{$fld}) && !empty($rec->number)){
     				if($mvc->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}'")){
-    					$form->setError($fld, 'Има вече входяща фактура с този номер, за този');
+    					$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
     				}
     			}
     		}
@@ -348,19 +357,6 @@ class purchase_Invoices extends deals_InvoiceMaster
    					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
    				}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-    	$rec = $mvc->fetchRec($id);
-    	
-    	if(empty($rec->number)){
-    		redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
     	}
     }
     

@@ -222,6 +222,8 @@ class blast_Emails extends core_Master
         
         $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
         
+        $this->FLD('errMsg', 'varchar', 'caption=Съобщение за грешка, input=none');
+        
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
     
@@ -394,6 +396,19 @@ class blast_Emails extends core_Master
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
+            
+            // Ако се изпраща от частна мрежа, спираме процеса
+            if (core_App::checkCurrentHostIsPrivate()) {
+                $this->logErr('Прекъснато изпращане на циркулярни имейли. Прави се опит за изпращане от частна мрежа', $rec->id);
+                
+                $rec->state = 'stopped';
+                $rec->errMsg = '|Спряно разпращане, поради опит за изпращане от частен адрес.';
+                
+                $this->save($rec, 'state, errMsg');
+                $this->touchRec($rec->id);
+                
+                break;
+            }
             
             // Ако е свършило времето
             if (!$this->checkTimelimit()) {
@@ -1008,6 +1023,14 @@ class blast_Emails extends core_Master
                     $form->setError('sendingTo, sendingFrom', 'Началният час трябва да е преди крайния');
                 }
             }
+            
+            if (core_App::checkCurrentHostIsPrivate()) {
+                $form->setWarning('sendPerCall', 'Ако изпращате от частен адрес, линковете към системата няма да работят.');
+                
+                if ($form->isSubmitted()) {
+                    self::logWarning('Активиране на изпращане на имейли от частна мрежа.', $form->rec->id);
+                }
+            }
         }
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
@@ -1031,8 +1054,10 @@ class blast_Emails extends core_Master
                 $form->rec->state = 'pending';
             }
             
+            $form->rec->errMsg = NULL;
+            
             // Упдейтва състоянието и данните за имейл-а
-            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo');
+            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo, errMsg');
             
             // Обновяваме списъка с имейлите
             $updateCnt = self::updateEmailList($form->rec->id);
@@ -1730,6 +1755,11 @@ class blast_Emails extends core_Master
                     $row->srcLink = $inst->getPersonalizationSrcLink($rec->perSrcObjectId);
                 }
             }
+        }
+        
+        if ($rec->errMsg) {
+            $row->errMsg = tr('|*' . $rec->errMsg);
+            $row->errMsg = type_Varchar::escape($row->errMsg);
         }
     }
     

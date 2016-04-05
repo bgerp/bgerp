@@ -520,7 +520,7 @@ class cat_Products extends embed_Manager {
     		if(isset($rec->folderId)){
     			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     			if(cls::haveInterface('doc_ContragentDataIntf', $coverClassId)){
-    				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]'", $rec->name), 'id')){
+    				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
     					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
     				}
     			}

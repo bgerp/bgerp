@@ -1080,9 +1080,7 @@ class email_Outgoings extends core_Master
      */
     protected function checkHost($form, $errField)
     {
-        $sHost = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
-        
-        if (core_Url::isPrivate($sHost)) {
+        if (core_App::checkCurrentHostIsPrivate()) {
             $form->setWarning($errField, 'Изпращате от частна мрежа. Линковете към системата няма да работят.');
         
             if ($form->isSubmitted()) {

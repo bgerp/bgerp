@@ -146,7 +146,7 @@ class cond_PaymentMethods extends core_Master
     	if(!$payment) return TRUE;
     	
     	$where = (is_numeric($payment)) ? $payment : "#sysId = '{$payment}'";
-    	expect($sysId = static::fetchField($where, 'sysId'));
+    	$sysId = static::fetchField($where, 'sysId');
     	
     	return ($sysId == 'COD');
     }

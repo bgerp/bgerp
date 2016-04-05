@@ -136,7 +136,7 @@ class acc_Accounts extends core_Manager
      */
     function description()
     {
-        $this->FLD('num', 'varchar(5)', "caption=Номер,mandatory,remember=info, export");
+        $this->FLD('num', 'varchar(5)', "caption=№,mandatory,remember=info, export");
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
             'caption=Тип,remember, export');
