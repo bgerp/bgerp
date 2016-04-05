@@ -22,6 +22,12 @@ class core_Detail extends core_Manager
      * Полето-ключ към мастъра
      */
     var $masterKey;
+
+
+    /**
+     * Инстанция към мастера
+     */
+    var $Master;
     
     
     /**
