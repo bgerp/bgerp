@@ -107,8 +107,11 @@
         <div class='display-table'>
             <div class="additional-info">
                 <!--ET_BEGIN srcLink-->
-                <div><b style="margin-bottom: 10px; display: block">|Източник|*: [#srcLink#]</b></div>
+                <div><b style="margin-bottom: 10px; display: block;">|Източник|*: [#srcLink#]</b></div>
                 <!--ET_END srcLink-->
+                <!--ET_BEGIN errMsg-->
+                <div class="red"><b style="margin-bottom: 10px;">|Грешка|*: </b>[#errMsg#]</div>
+                <!--ET_END errMsg-->
                 <!--ET_BEGIN sendPerCall-->
                 <div>|Изпращания заедно|*: [#sendPerCall#]</div>
                 <!--ET_END sendPerCall-->

@@ -343,7 +343,12 @@ class sales_Sales extends deals_DealMaster
         }
        
         $form->setOptions('bankAccountId', $options);
-        $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('bankAccountId', FALSE));
+        if($curBank = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
+        	$curBankInfo = bank_OwnAccounts::getOwnAccountInfo($curBank);
+        	if($form->rec->currencyId == $curBankInfo->currencyCode){
+        		$form->setDefault('bankAccountId', $curBankInfo);
+        	}
+        }
        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));

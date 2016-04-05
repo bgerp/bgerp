@@ -13,14 +13,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_reports_CorespondingImpl extends frame_BaseDriver
+class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
 {
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $oldClassName = 'acc_CorespondingReportImpl';
+    public $oldClassName = 'acc_reports_CorespondingImpl2';
     
     
     /**
@@ -32,7 +32,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Кореспонденция по сметка';
+    public $title = 'Счетоводство » Обороти между сметки';
     
     
     /**
@@ -75,14 +75,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         // Добавяме полетата за филтър
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
-        $form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory,silent,removeAndRefreshForm=list1|list2|list3|list4|list5|list6|feat1|feat2|feat3|feat4|feat5|feat6');
-        $form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory,silent,removeAndRefreshForm=list1|list2|list3|list4|list5|list6|feat1|feat2|feat3|feat4|feat5|feat6');
-        $form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти,removeAndRefreshForm=orderField|orderBy,silent');
-        
+        $form->FLD('compare', 'enum(no=Няма,old=Предходен период,year=Миналогодишен период)', 'caption=Съпоставка,silent');
+        $form->FLD('dAcc', 'acc_type_Account(allowEmpty)', 'mandatory,silent,removeAndRefreshForm=df1|df2|df3',
+            array('caption' => "|*<span style='color:#ffccaa'>|Дебит|*</span>->|Сметка"));
+        $form->FLD('cAcc', 'acc_type_Account(allowEmpty)', 'mandatory,silent,removeAndRefreshForm=cf1|cf2|cf3',
+            array('caption' => "|*<span style='color:#aaccff'>|Кредит|*</span>->|Сметка"));
         $form->FLD('orderBy', 'enum(DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
         $form->FLD('orderField', 'enum(debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
         
-        $form->FLD('compare', 'enum(no=Няма,old=Предходен период,year=Миналогодишен период)', 'caption=Съпоставка,silent');
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -95,6 +95,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
+        // Информация, че справката не е готова
+        $form->info = "<div style='margin:10px;color:red; background-color:yellow; border: dotted 1px red; padding:5px; font-size:1.3em;'>Тази спревка е в процес на разработка</div>";
+
         // Поставяме удобни опции за избор на период
         $op = acc_Periods::getPeriodOptions();
     
@@ -103,52 +106,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $form->setDefault('orderBy', 'DESC');
         $form->setDefault('compare', 'no');
         
-        // Ако има избрани сметки, показваме обединението на номенклатурите им
-        if(isset($form->rec->baseAccountId) && isset($form->rec->corespondentAccountId)){
-            $baseAccInfo = acc_Accounts::fetch($form->rec->baseAccountId);
-            $corespAccInfo = acc_Accounts::fetch($form->rec->corespondentAccountId);
-            $sets = array();
-        
-            foreach (range(1, 3) as $i){
-                if(isset($baseAccInfo->{"groupId{$i}"})){
-                    $sets[$baseAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($baseAccInfo->{"groupId{$i}"}, 'name');
-                }
-                 
-                if(isset($corespAccInfo->{"groupId{$i}"})){
-                    $sets[$corespAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($corespAccInfo->{"groupId{$i}"}, 'name');
-                }
-            }
-            
-            // Добавяме поле за групиране ако има по какво
-            if(count($sets)){
-                $i = 1;
-                foreach ($sets as $listId => $caption){
-                    //$caption = "<font color=red>$caption</font>";
-                    $featName = "feat{$i}";
-                    $form->FLD("{$featName}", 'varchar', "placeholder=Без показване,class=w100,refreshForm,silent", array('caption' => "|*<font color='red'>{$caption}</font>->|Свойства"));
-
-                    //bp($form->rec, $form);
-                    $form->input(NULL, TRUE);
-                    if($form->rec->{$featName}) {
-                        $valField = "val{$i}";
-                        $form->FLD("{$valField}", 'keylist(mvc=acc_Features,select=feature)', "placeholder=Всички,class=w100", array('caption' => "|*<font color='red'>{$caption}</font>->|Стойности"));
-                        $actField = "act{$i}";
-                        $form->FLD("{$actField}", 'enum(group=Групиране,filter=Филтриране)', array('caption' => "|*<font color='red'>{$caption}</font>->|Действие"));
-
-                    }
-                    $form->FLD("list{$i}", 'int', "input=hidden");
-                    $form->setDefault("list{$i}", $listId);
-                    
-                    // За всяка номенклатура даваме избор да и се изберат свойства
-                    //$items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
-                    $features = acc_Lists::fetchField($listId, 'featureList');
-
-                    $features = array('' => '') + $features + array('*' => $caption);
-                    $form->setOptions("feat{$i}", $features);
-                    $i++;
-                }
-            }
-        }
+        $form->input(NULL, TRUE);
+ 
+        self::addAccFeats($form->rec->dAcc, 'd', $form);
+        self::addAccFeats($form->rec->cAcc, 'c', $form);
          
         // Ако е избрано подреждаме
         if(isset($form->rec->orderBy) && $form->rec->orderBy != ''){
@@ -169,6 +130,75 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         }
     
         $this->invoke('AfterPrepareEmbeddedForm', array($form));
+    }
+
+    
+
+    /**
+     * Добавя след посоченото поле, полета за избор на свойства
+     */
+    private static function addAccFeats($accId, $prefix, $form)
+    {
+        if(!$accId) return;
+
+        $aRec = acc_Accounts::fetch($accId);
+        
+        $color = ($prefix == 'd') ? "#ffccaa" : "#aaccff";
+        
+        $afterField = $prefix . 'Acc';
+
+        for($i = 1; $i <= 3; $i++) {
+            $groupName = "groupId{$i}";
+            $afterField = self::addFeatSection($aRec->{$groupName}, $prefix . 'Feat' . $i, $afterField, $form, $color);
+        }
+    }
+
+
+    /**
+     * Добавя във формата полета за избор на свойство
+     */
+    private static function addFeatSection($listId, $field, $afterField, $form, $color)
+    {
+        if($listId) {
+            $lRec = acc_Lists::fetch($listId);
+            $caption = $listName = acc_Lists::getVerbal($lRec, 'name');
+            $caption = "<span style='color:{$color}'>{$caption}</span>";
+            
+            $valField = $field . 'Val';
+
+            
+            $form->FLD($field, 'varchar', "placeholder=Без показване,class=w100,removeAndRefreshForm={$valField},silent", 
+                array('caption' => "|*{$caption}->|Признаци", 'after' => $afterField));
+            
+            // Намираме перата, които с абили използвани в посочения период от посочената номенклатура
+            $items = acc_Items::fetchUsedItems($form->rec->from, $form->rec->to, $listId);
+                        
+            $features = acc_Features::getFeatureOptions(array_keys($items));
+            $features = array('' => '') + $features + array('*' => "[{$listName}]");
+            $form->setOptions($field, $features);
+
+
+            // Отново въвеждаме новото silent поле
+            $form->input(NULL, TRUE);
+
+            if($form->rec->{$field}) {
+                if($form->rec->{$field} == '*') {
+                    $form->FLD($valField, "keylist(mvc=acc_Items,select=title)", "placeholder=Всички", array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
+                    $form->setSuggestions($valField, $items);
+                } else {
+                    $featureTitleId = acc_FeatureTitles::fetchIdByTitle($form->rec->{$field});
+                    $featureValuesOpt = acc_Features::getFeatureValueOptions($featureTitleId);
+                    $form->FLD($valField, "keylist(mvc=acc_Features,select=value)", "placeholder=Всички", array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
+                    $form->setSuggestions($valField, $featureValuesOpt);
+                }
+                $field = $actField = $field . 'Act';
+                $form->FLD($actField, 'enum(group=Групиране,filter=Филтриране)', array('caption' => "|*{$caption}->|Действие", 'after' => $valField));
+            }
+
+
+        }
+        
+        return $field;
     }
     
 

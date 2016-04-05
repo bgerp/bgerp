@@ -1396,7 +1396,7 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} left'>", 'TBL_GROUP3');
         	$toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
     	    $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.020);
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.010);
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]\\n', document.getElementById('{$formId}'), true)\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.010);
     	    $toolbarArr->add("</span>", 'TBL_GROUP3');
             $toolbarArr->add("</span><div class='clearfix21'></div>", 'TBL_GROUP3');
         } else {

@@ -175,9 +175,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
 		}
-		
 		$form->setDefault('makeInvoice', 'yes');
-		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
 		
 		// Поле за избор на локация - само локациите на контрагента по покупката
 		$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
@@ -512,17 +510,6 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-    }
-    
-    
-    /**
-     * При нова сделка, се ънсетва threadId-то, ако има
-     */
-    public static function on_AfterPrepareDocumentLocation11111111111($mvc, $form)
-    {   
-    	if($form->rec->threadId && !$form->rec->id){
-		     unset($form->rec->threadId);
-		}
     }
     
     
@@ -1129,12 +1116,13 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Подготовка на полето за избор на операция и инпут на формата
     	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
+    	$map = ($this instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
     	
     	$selected = array();
     	
     	// Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
     	if($options['ship'] && $rec->shipmentStoreId){
-    		if($rec->shipmentStoreId === $curStoreId){
+    		if($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship']){
     			$selected[] = 'ship';
     		}
     	} elseif($options['ship']){

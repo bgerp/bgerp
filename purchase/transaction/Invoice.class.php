@@ -42,6 +42,18 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
     			'entries' => array(),
     	);
     
+    	if(Mode::get('saveTransaction')){
+    		if(empty($rec->number)){
+    			if($rec->type == 'dc_note'){
+    				$name = ($rec->dealValue <= 0) ? 'Кредитното известие' : 'Дебитното известие';
+    			} else {
+    				$name = 'Фактурата';
+    			}
+    			
+    			acc_journal_RejectRedirect::expect(FALSE, "{$name} няма номер");
+    		}
+    	}
+    	
     	$origin = $this->class->getOrigin($rec);
     	
     	// Ако е ДИ или КИ се посочва към коя фактура е то

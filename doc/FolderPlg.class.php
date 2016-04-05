@@ -161,7 +161,7 @@ class doc_FolderPlg extends core_Plugin
             }
         } else {
         	if ($mvc->haveRightFor('createnewfolder', $data->rec)) {
-        		$title = $mvc->getFolderTitle($data->rec->id);
+        		$title = $mvc->getFolderTitle($data->rec->id, FALSE);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
         		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$title}"));

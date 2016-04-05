@@ -100,17 +100,48 @@ class acc_Features extends core_Manager
      */
     public $listItemsPerPage = 40;
     
-    
+
+    /**
+     * Масив в който се записват перата, които имат променени свойства по времето на хита
+     */
+    private $updatedFeaturesOnItem = array();
+
+
     /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('itemId', 'key(mvc=acc_Items, select=titleLink)', 'caption=Перо,mandatory');
-        $this->FLD('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
+        $this->FLD('featureTitleId', 'key(mvc=acc_FeatureTitles, select=title)', 'caption=СвойствоИд,input=none,column=none,mandatory');
+
+        $this->FNC('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
         $this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
         
-        $this->setDbUnique('itemId,feature');
+        $this->setDbUnique('itemId,featureTitleId');
+    }
+
+
+    /**
+     * Извлича наименованието на признака от отделен модел
+     */
+    static function on_CalcFeature($mvc, $rec)
+    {
+        if($rec->featureTitleId) {
+            $rec->feature = acc_FeatureTitles::fetchField($rec->featureTitleId, 'title');
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди записа
+     * Ако липсва - записваме id-то на връзката към титлата
+     */
+    static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+        if($rec->feature && !isset($rec->featureTitleId)) {
+            $rec->featureTitleId = acc_FeatureTitles::fetchIdByTitle($rec->feature);
+        }
     }
     
     
@@ -133,6 +164,8 @@ class acc_Features extends core_Manager
      */
     public static function syncItem($itemId)
     {
+        $self = cls::get(get_called_class());
+
         $itemRec = acc_Items::fetch($itemId);
         
         if(empty($itemRec)) return;
@@ -150,7 +183,6 @@ class acc_Features extends core_Manager
         // Ако свойствата не са масив ги пропускаме
         if(!is_array($features)) return;
         
-        $self = cls::get(get_called_class());
         $updated = array();
         $now = dt::now();
         
@@ -162,14 +194,16 @@ class acc_Features extends core_Manager
             foreach ($features as $feat => $value){
                 
                 // Ако няма стойност пропускаме
-                if(empty($value)) continue;
+                if(empty($value) || empty($feat)) continue;
                 
                 $value = str_replace('&nbsp;', ' ', $value);
                 $update = TRUE;
                 
+                $featId = acc_FeatureTitles::fetchIdByTitle($feat);
+
                 // Подготвяме записа за добавяне/обновяване
-                $rec = (object)array('itemId' => $itemId, 'feature' => $feat, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
-                
+                $rec = (object)array('itemId' => $itemId, 'featureTitleId' => $featId, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
+              
                 // Ако не е уникален, значи ъпдейтваме свойство
                 if(!$self->isUnique($rec, $fields, $exRec)){
                     $rec->id = $exRec->id;
@@ -177,6 +211,7 @@ class acc_Features extends core_Manager
                     // Ако има такъв запис и той е със същата стойност не обновяваме
                     if($value == $exRec->value){
                     	$update = FALSE;
+                        $self->updatedFeaturesOnItem[$itemId] = TRUE;
                     }
                 }
                 
@@ -212,9 +247,10 @@ class acc_Features extends core_Manager
         
         $query->show('id,state');
         
-        while($rec = $query->fetch()){
+        while($rec = $query->fetch("#state != 'closed'")){
             $rec->state = 'closed';
             $this->save($rec);
+            $this->updatedFeaturesOnItem[$itemId] = TRUE;
         }
     }
     
@@ -249,7 +285,7 @@ class acc_Features extends core_Manager
             $query->in('itemId', $array);
         }
         
-        $query->groupBy("feature");
+        $query->groupBy("featureTitleId");
         
         while($rec = $query->fetch()){
             $options[$rec->feature] = $rec->feature;
@@ -258,6 +294,31 @@ class acc_Features extends core_Manager
         return $options;
     }
     
+
+    /**
+     * Връща всички стойности свойства на зададените пера, ако не са зададени пера, връща всички
+     *
+     * @param array $array - масив с ид-та на пера
+     * @return array $options - опции със стойности
+     */
+    public static function getFeatureValueOptions($featureTitleId)
+    {
+        $options = array();
+        
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        
+        $query->where("#featureTitleId = {$featureTitleId}");
+          
+        $query->groupBy("value");
+        
+        while($rec = $query->fetch()){
+            $options[$rec->id] = $rec->value;
+        }
+        
+        return $options;
+    }
+
     
     /**
      * Връща масив с перата и свойствата, които имат
@@ -294,6 +355,25 @@ class acc_Features extends core_Manager
     	}
     }
     
+    
+    /**
+     * Овновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        $lists = array();
+        foreach($mvc->updatedFeaturesOnItem as $itemId => $true) {
+            $iRec = acc_Items::fetch($itemId);
+            $lists = arr::combine($lists, keylist::toArray($iRec->lists));
+        }
+
+        foreach($lists as $listId) {
+            acc_Lists::updateFeatureList($listId);
+        }
+    }
+
     
     /**
      * Синхронизиране на таблицата със свойствата по крон

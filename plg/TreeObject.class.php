@@ -311,7 +311,7 @@ class plg_TreeObject extends core_Plugin
 		if($mvc->haveRightFor('add')){
 			$url = array($mvc, 'add', 'parentId' => $data->rec->id, 'ret_url' => TRUE);
 			$parentTitle = $mvc->getVerbal($data->rec, 'name');
-			$data->toolbar->addBtn('Подниво', $url, "ef_icon=img/16/add.png,title=Добави нов поделемент на '{$parentTitle}'");
+			$data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добави нов поделемент на '{$parentTitle}'");
 		}
 	}
 	
@@ -333,9 +333,13 @@ class plg_TreeObject extends core_Plugin
 			// Ако може да се добавя поделемент, показваме бутон за добавяне
 			if($mvc->haveRightFor('add')){
 				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
-				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
-				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
-				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави нов поделемент на '{$parentTitle}'");
+				$img = ht::createElement('img', array('src' => sbf('img/16/add-sub.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
+				
+                $parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
+				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави ново подниво на |*'{$parentTitle}'");
+                
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png, title=title=Добави ново подниво на |*'{$parentTitle}'");
 			}
 			
 			// Ако записа е намерен при търсене добавяме му клас

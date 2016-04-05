@@ -406,6 +406,7 @@ class bank_OwnAccounts extends core_Master {
         }
         
         $acc = bank_Accounts::fetch($ownAcc->bankAccountId);
+        $acc->currencyCode = currency_Currencies::getCodeById($acc->currencyId);
         expect($acc, $ownAcc);
         
         if(!$acc->bank) {

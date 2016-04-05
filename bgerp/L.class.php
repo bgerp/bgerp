@@ -139,7 +139,7 @@ class bgerp_L extends core_Manager
                 if ($action->action == doclog_Documents::ACTION_SEND) {
                     
                     if ($action && $action->data->to) {
-                        log_Browsers::setVars(array('email' => $action->data->to));
+                        log_Browsers::setVars(array('email' => $action->data->to), FALSE, FALSE);
                     }
                     
                     $activatedBy = $action->createdBy;
@@ -255,7 +255,7 @@ class bgerp_L extends core_Manager
             $action = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
             
             if ($action && $action->data->to) {
-                log_Browsers::setVars(array('email' => $action->data->to));
+                log_Browsers::setVars(array('email' => $action->data->to), FALSE, FALSE);
             }
         }
         
