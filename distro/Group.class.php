@@ -14,131 +14,138 @@
 class distro_Group extends core_Master
 {
     
+
+
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
     
     /**
      * Заглавие на модела
      */
-    var $title = 'Разпределени групи файлове';
+    public $title = 'Разпределени групи файлове';
     
     
     /**
      * 
      */
-    var $singleTitle = 'Група файлове';
+    public $singleTitle = 'Група файлове';
     
     
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/distro.png';
+    public $singleIcon = 'img/16/distro.png';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'distro/tpl/SingleLayoutGroup.shtml';
+    public $singleLayoutFile = 'distro/tpl/SingleLayoutGroup.shtml';
     
     
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'repos';
+    public $cloneFields = 'repos';
     
     
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'admin';
+    public $canClone = 'admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin';
+    public $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    public $canList = 'admin';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'powerUser';
+	public $canSingle = 'powerUser';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'powerUser';
+    public $canReject = 'powerUser';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg';
+    public $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Dst';
+    public $abbr = 'Dst';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "18.8|Други"; 
+    public $newBtnGroup = "18.8|Други"; 
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'id';
+    public $rowToolsSingleField = 'id';
     
 
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, repos';
+    public $searchFields = 'title, repos';
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'distro_Files';
+    public $details = 'distro_Files';
     
     
 	/**
