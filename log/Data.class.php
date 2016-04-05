@@ -175,7 +175,7 @@ class log_Data extends core_Manager
      */
     public static function canViewUserLog($userId, $currUserId = NULL)
     {
-        if (!$currUserId) {
+        if (!isset($currUserId)) {
             $currUserId = core_Users::getCurrent();
         }
         
