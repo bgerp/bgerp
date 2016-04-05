@@ -42,7 +42,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
+    public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
                         plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument';
     
     
@@ -99,11 +99,14 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
     
-        
+
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
      */
-    public $rowToolsField = 'RowNumb';
+    public $rowToolsMinLinksToShow = 2;
 
 
     /**

@@ -55,15 +55,18 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
      */
-    public $rowToolsField = 'tools';
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument';
     
     
     /**
@@ -608,6 +611,8 @@ class sales_QuotationsDetails extends doc_Detail {
 	    	foreach($data->rows as $index => $arr){
 	    		list($pId, $optional) = explode("|", $index);
 	    		foreach($arr as $key => $row){
+	    			core_RowToolbar::createIfNotExists($row->_rowTools);
+	    			$row->tools = $row->_rowTools->renderHtml($this->rowToolsMinLinksToShow);
 	    			
 	    			// Взависимост дали е опционален продукта го добавяме към определения шаблон
 	    			if($optional == 'no'){
@@ -810,6 +815,13 @@ class sales_QuotationsDetails extends doc_Detail {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
     		if($quoteState != 'draft'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'createproduct' && isset($rec->cloneId)){
+    		$cloneRec = $mvc->fetch($rec->cloneId);
+    		if($cloneRec->optional != 'no'){
     			$requiredRoles = 'no_one';
     		}
     	}
