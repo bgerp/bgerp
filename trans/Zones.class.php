@@ -28,8 +28,16 @@ class trans_Zones extends core_Manager
      */
     public function act_Test()
     {
-        trans_Fees::calcFee(5, 262, 8000, 1200);
-
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 1000);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 1200);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 5000);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 11000);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 3);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 6);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 511);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 512);
+        $a[] = trans_Fees::calcFee(5, 262, 8000, 513);
+bp($a);
         // Вземаме съответстващата форма на този модел
         $form = self::getForm();
 
