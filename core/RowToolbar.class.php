@@ -193,7 +193,7 @@ class core_RowToolbar extends core_BaseClass
         
         setIfNot($showWithoutToolbar, 1);
         if(count($this->links) <= $showWithoutToolbar) {
-        	$layout = new core_ET("<div>[#ROW_TOOLS#]</div>");
+        	$layout = new core_ET("<span>[#ROW_TOOLS#]</span>");
         	foreach ($this->links as $linkObj){
         		setIfNot($linkObj->attr['hint'], $linkObj->title);
         		$linkObj->attr['title'] = tr($linkObj->attr['title']);
