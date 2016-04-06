@@ -3,7 +3,7 @@
             <tbody>
                 <tr>
                     <td colspan="2" class='centered'>  
-                        <div class="document-title">PURCHASE SERVICE CONTRACT</div>
+                        <div class="document-title">PURCHASE OF SERVICE CONTRACT</div>
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->
