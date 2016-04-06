@@ -316,7 +316,7 @@ class acc_plg_Contable extends core_Plugin
             
             // Черновите и оттеглените документи немогат да се коригират
             if ($rec->state == 'draft' || $rec->state == 'rejected') {
-                //$requiredRoles = 'no_one';
+                $requiredRoles = 'no_one';
             }
             
             // Ако няма какво да се коригира в журнала, не може да се създаде корекция
