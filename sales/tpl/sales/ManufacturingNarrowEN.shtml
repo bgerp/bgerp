@@ -142,7 +142,7 @@
                 </ol>
                 <!--ET_END conditions-->
                 <hr>
-                <table class='no-border paddingCells business-doc-summary-table'>
+                <table class='no-border paddingCells business-doc-summary-table fright'>
                     <tr class='nowrap'>
                         <td>Value :</td>
                         <td><span class='cCode'>[#currencyId#]</span></td>
@@ -181,17 +181,16 @@
                         <td><span class='cCode'>[#currencyId#]</span></td>
                         <td><b>[#total#]</b></td>
                     </tr>
-                </table>
-                <!--ET_BEGIN sayWords-->
-                <hr>
-                <table class='no-border paddingCells business-doc-summary-table'>
+                    <!--ET_BEGIN sayWords-->
                     <tr>
                         <td colspan = '3' style='text-align:right'>
                             Say words: [#sayWords#]
                         </td>
                     </tr>
+                    <!--ET_END sayWords-->
                 </table>
-                <!--ET_END sayWords-->
+
+                <div class="clearfix21"></div>
                 <hr>
                 <!--ET_BEGIN responsible-->
                 <div>Received by: [#responsible#]</div>
