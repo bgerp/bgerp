@@ -16,13 +16,13 @@
                 </td>
             </tr>
             <tr>
-                <td class="cell custom-header-bg" style='width:35%;'>
+                <td class="cell custom-header-bg" style='width:50%;'>
                     <b>|Получател|*</b>
                     <!--ET_BEGIN isPaid-->
                     <div class='stamp fright'>[#isPaid#]</div>
                     <!--ET_END isPaid-->
                 </td>
-                <td class="cell custom-header-bg" style='width:35%;'>
+                <td class="cell custom-header-bg" style='width:50%;'>
                     <b>|Доставчик|*</b>
                     <!--ET_BEGIN isDelivered-->
                     <div class='stamp fright'>[#isDelivered#]</div>
