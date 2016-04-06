@@ -197,6 +197,11 @@ class acc_ArticleDetails extends doc_Detail
         $form->setField('debitAccId', 'caption=Дебит->Сметка');
         $form->setField('creditAccId', 'caption=Кредит->Сметка');
         
+        if(isset($rec->id)){
+        	$form->setReadOnly('debitAccId');
+        	$form->setReadOnly('creditAccId');
+        }
+        
         if(isset($rec->debitAccId)){
         	$debitAcc = acc_Accounts::getAccountInfo($rec->debitAccId);
         } else {
