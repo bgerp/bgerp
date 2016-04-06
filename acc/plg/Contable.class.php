@@ -264,8 +264,8 @@ class acc_plg_Contable extends core_Plugin
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Само активни документи с транзакция и в незатворен период могат да се сторнират
-                if (($periodRec->state != 'closed') || ($rec->state != 'active') || empty($jRec)) {
-                    $requiredRoles = 'no_one';
+                if (($periodRec->state != 'closed') || ($rec->state != 'active' && $rec->state != 'closed') || empty($jRec)) {
+                   $requiredRoles = 'no_one';
                 }
             }
         } elseif ($action == 'reject') {
@@ -316,7 +316,7 @@ class acc_plg_Contable extends core_Plugin
             
             // Черновите и оттеглените документи немогат да се коригират
             if ($rec->state == 'draft' || $rec->state == 'rejected') {
-                $requiredRoles = 'no_one';
+                //$requiredRoles = 'no_one';
             }
             
             // Ако няма какво да се коригира в журнала, не може да се създаде корекция
