@@ -73,6 +73,9 @@
 .belejka_container .border_r {
   border-right: solid 1px #cccccc; }
 
+.belejka_container .border_l {
+  border-left: solid 1px #cccccc; }
+
 .belejka_container .border_b {
   border-bottom: solid 1px #cccccc; }
 
