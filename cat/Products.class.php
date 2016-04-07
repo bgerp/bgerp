@@ -254,7 +254,6 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 'meta'    => 'lastDocUser|lastDoc',
 	);
 	
 	
@@ -2329,7 +2328,7 @@ class cat_Products extends embed_Manager {
      */
     public static function setAutoCloneFormFields(&$form, $id)
     {
-    	//$form->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
+    	$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,silent,refreshForm,after=id,input=hidden");
     	$form->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
     	$form->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
     	$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
