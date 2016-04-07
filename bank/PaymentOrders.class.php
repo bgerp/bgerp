@@ -68,7 +68,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Bpо";
+    var $abbr = "Bpo";
     
     
     /**
@@ -124,6 +124,8 @@ class bank_PaymentOrders extends core_Master
      */
     function description()
     {
+        $this->FLD('documentType', 'enum(transfer=кредитен превод,budget=плащане от/към бюджета)', 'caption=Вид на пл. нареждане,default=transfer,removeAndRefreshForm = paymentType|documentNumber|periodStart|periodEnd|liablePerson|vatId|ENG|LNC,silent');
+
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
         $this->FLD('reason', 'varchar(255)', 'caption=Основание,mandatory');
@@ -139,6 +141,16 @@ class bank_PaymentOrders extends core_Master
         $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory');
         $this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
         $this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
+
+        $this->FLD('paymentType', 'varchar(6)', 'caption=Допълнителни данни->Вид плащане,input=none');
+        $this->FLD('documentNumber', 'varchar(40)', 'caption=Допълнителни данни->Номер на документа, по който се плаща,input=none');
+        $this->FLD('periodStart', 'date(format=d.m.Y)', array('caption'=>'Период, за който се плаща->От дата', 'input'=>'none'));
+        $this->FLD('periodEnd', 'date(format=d.m.Y)', array('caption'=>'Период, за който се плаща->До дата', 'input'=>'none'));
+        $this->FLD('liablePerson', 'varchar(255)', 'caption=Допълнителни данни->Задължено лице,input=none,remember');
+
+        $this->FLD('vatId', 'drdata_VatType', 'caption=Допълнителни данни->ЕИК,input=none');
+        $this->FLD('ENG', 'bglocal_EgnType', 'caption=Допълнителни данни->ЕГН,input=none');
+        $this->FLD('LNC', 'varchar(10)', 'caption=Допълнителни данни->ЛНЧ,input=none');
     }
     
     
@@ -149,7 +161,18 @@ class bank_PaymentOrders extends core_Master
     {
         $form = &$data->form;
         $originId = $form->rec->originId;
-        
+
+        if($form->rec->documentType == "budget") {
+            $form->setField("paymentType", "input");
+            $form->setField("documentNumber", "input");
+            $form->setField("periodStart", "input");
+            $form->setField("periodEnd", "input");
+            $form->setField("liablePerson", "input");
+            $form->setField("vatId", "input");
+            $form->setField("ENG", "input");
+            $form->setField("LNC", "input");
+
+        }
         if($originId) {
             $doc = doc_Containers::getDocument($originId);
             $docRec = $doc->fetch();
@@ -208,13 +231,20 @@ class bank_PaymentOrders extends core_Master
      */
     static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()){
-            if(!$form->rec->execBank){
+        if($form->isSubmitted()) {
+            if (!$form->rec->execBank) {
                 $form->rec->execBank = bglocal_Banks::getBankName($form->rec->ordererIban);
             }
-            
-            if(!$form->rec->execBankBic){
+
+            if (!$form->rec->execBankBic) {
                 $form->rec->execBankBic = bglocal_Banks::getBankBic($form->rec->ordererIban);
+            }
+            if ((int)$form->rec->lnc + (int)$form->rec->eng + (int)$form->rec->vatId > 1) { // ne e samo 1 pole
+                $form->setError("vatId,EGN,LNC","Трябва само от полетата за ЕИК, ЕГН и ЛНЧ да е попълнено");
+            }
+            $lnc = cls::get("bglocal_BulgarianLNC");
+            if (isset($form->rec->lnc) && !$lnc->isLnc()){
+                $form->setError("LNC","Грешен ЛНЧ номер");
             }
         }
     }
