@@ -389,7 +389,14 @@ class acc_Setup extends core_ProtoSetup
      */
     function updateFeatureTitles()
     {
-        $fQuery = acc_Features::getQuery();
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('acc_Features');
+        $cls->db->connect();
+        $featureField = str::phpToMysqlName('feature');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $featureField)) return ;
+        
+        $fQuery = $cls->getQuery();
+        
         unset($fQuery->fields['feature']);
         $fQuery->FLD('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
 
