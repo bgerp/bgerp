@@ -121,6 +121,12 @@
                         [#reason#]
                     </div>
                 </div>
+                <div class='bg_white line'>
+                    <div class='text'>
+                        <span class='pos_abs small_text_top_left'>|Още пояснения|*</span><br>
+                        [#moreReason#]&nbsp;
+                    </div>
+                </div>
                 <!--ET_BEGIN budgetBlock-->
                 [#budgetBlock#]
                 <div class='bg_white line'>
