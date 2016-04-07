@@ -95,6 +95,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			
 			$form = $mvc->getForm();
 			$form->setField($mvc->masterKey, 'input=hidden');
+			$f6 = $form->getField('packagingId');
+			unset($f6->removeAndRefreshForm);
+			
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance,placeholder=Популярни продукти,mandatory,after=saleId");
 			
 			$protos = cat_Categories::getProtoOptions();
