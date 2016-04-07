@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 
 /**
@@ -14,116 +14,118 @@
  */
 class bank_PaymentOrders extends core_Master
 {
-    
-    
+
+
     /**
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
-    
-    
+
+
     /**
      * Заглавие на мениджъра
      */
     var $title = "Платежни нареждания";
-    
-    
+
+
     /**
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_DocumentSummary, plg_Search,
          plg_Sorting,doc_DocumentPlg, plg_Printing,doc_plg_MultiPrint, doc_ActivatePlg, doc_EmailCreatePlg';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "tools=Пулт, number=Номер, reason, valior, amount, currencyId, beneficiaryName, beneficiaryIban, createdOn, createdBy";
-    
-    
+
+
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
-    
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'reason';
-    
-    
+
+
     /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Платежно нареждане';
-    
-    
+
+
     /**
      * Икона на документа
      */
     var $singleIcon = 'img/16/pln.png';
-    
-    
+
+
     /**
      * Абревиатура
      */
-    var $abbr = "Bpо";
-    
-    
+    var $abbr = "Bpo";
+
+
     /**
      * Кой има право да чете?
      */
     var $canRead = 'bank, ceo';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     var $canList = 'bank,ceo';
-    
-    
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     var $canSingle = 'bank,ceo';
-    
-    
+
+
     /**
      * Кой може да пише?
      */
     var $canWrite = 'bank, ceo';
-    
-    
+
+
     /**
      * Кой може да създава
      */
     var $canAdd = 'bank, ceo';
-    
-    
+
+
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'bank/tpl/SinglePaymentOrder.shtml';
-    
-    
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban, id';
-    
-    
+
+
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.9|Финанси";
-    
-    
+
+
     /**
      * Описание на модела
      */
     function description()
     {
+        $this->FLD('documentType', 'enum(transfer=кредитен превод,budget=плащане от/към бюджета)', 'caption=Вид на пл. нареждане,default=transfer,removeAndRefreshForm = paymentType|documentNumber|periodStart|periodEnd|liablePerson|vatId|EGN|LNC,silent');
+
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
         $this->FLD('reason', 'varchar(255)', 'caption=Основание,mandatory');
@@ -139,9 +141,19 @@ class bank_PaymentOrders extends core_Master
         $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory');
         $this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory');
         $this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
+
+        $this->FLD('paymentType', 'varchar(6)', 'caption=Допълнителни данни->Вид плащане');
+        $this->FLD('documentNumber', 'varchar(40)', 'caption=Допълнителни данни->Номер на документа, по който се плаща');
+        $this->FLD('periodStart', 'date(format=d.m.Y)', array('caption'=>'Период, за който се плаща->От дата'));
+        $this->FLD('periodEnd', 'date(format=d.m.Y)', array('caption'=>'Период, за който се плаща->До дата'));
+        $this->FLD('liablePerson', 'varchar(255)', 'caption=Допълнителни данни->Задължено лице,remember');
+
+        $this->FLD('vatId', 'drdata_VatType', 'caption=Допълнителни данни->ЕИК');
+        $this->FLD('EGN', 'varchar(10)', 'caption=Допълнителни данни->ЕГН');
+        $this->FLD('LNC', 'varchar(10)', 'caption=Допълнителни данни->ЛНЧ');
     }
-    
-    
+
+
     /**
      * Обработка на формата за редакция и добавяне
      */
@@ -149,12 +161,23 @@ class bank_PaymentOrders extends core_Master
     {
         $form = &$data->form;
         $originId = $form->rec->originId;
-        
+
+        if($form->rec->documentType != "budget") {
+            $form->setField("paymentType", "input=none");
+            $form->setField("documentNumber", "input=none");
+            $form->setField("periodStart", "input=none");
+            $form->setField("periodEnd", "input=none");
+            $form->setField("liablePerson", "input=none");
+            $form->setField("vatId", "input=none");
+            $form->setField("EGN", "input=none");
+            $form->setField("LNC", "input=none");
+        }
+
         if($originId) {
             $doc = doc_Containers::getDocument($originId);
             $docRec = $doc->fetch();
             $cClass = $doc->className;
-            
+
             $form->setDefault('originClassId', $cClass::getClassId());
             $form->setDefault('currencyId', $docRec->currencyId);
             $form->setDefault('amount', $docRec->amount);
@@ -162,9 +185,9 @@ class bank_PaymentOrders extends core_Master
             $form->setDefault('valior', $docRec->valior);
             $myCompany = crm_Companies::fetchOwnCompany();
             $contragentIbans = bank_Accounts::getContragentIbans($docRec->contragentId, $docRec->contragentClassId);
-            
+
             if($doc->className == 'bank_IncomeDocuments') {
-                
+
                 // Ако оригиналния документ е приходен, наредителя е контрагента
                 // а получателя е моята фирма
                 $form->setDefault('beneficiaryName', $myCompany->company);
@@ -172,70 +195,85 @@ class bank_PaymentOrders extends core_Master
                 $form->setDefault('beneficiaryIban', $ownAcc->iban);
                 $form->setDefault('orderer', $docRec->contragentName);
                 $form->setSuggestions('ordererIban', $contragentIbans);
-                
+
                 if($docRec->contragentIban){
                     $form->setDefault('ordererIban', $docRec->contragentIban);
                 }
             } elseif($doc->className == 'bank_SpendingDocuments') {
-                
+
                 // Ако оригиналния документ е приходен, наредителя е моята фирма
                 // а получателя е контрагента
                 $form->setDefault('orderer', $myCompany->company);
                 $ownAcc = bank_OwnAccounts::getOwnAccountInfo($docRec->ownAccount);
                 $form->setDefault('ordererIban', $ownAcc->iban);
                 $form->setSuggestions('beneficiaryIban', $contragentIbans);
-                
+
                 if($docRec->contragentIban){
                     $form->setDefault('beneficiaryIban', $docRec->contragentIban);
                 }
                 $form->setDefault('beneficiaryName', $docRec->contragentName);
             }
         }
-        
+
         // Поставяме стойности по подразбиране
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-        
+
         // Използваме помощната функция за намиране името на контрагента
         $form->setReadOnly('beneficiaryName');
     }
-    
-    
+
+
     /**
      * След изпращане на формата попълваме банката и бика ако неса
      * попълнени
      */
     static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()){
-            if(!$form->rec->execBank){
+        if($form->isSubmitted()) {
+            if (!$form->rec->execBank) {
                 $form->rec->execBank = bglocal_Banks::getBankName($form->rec->ordererIban);
             }
-            
-            if(!$form->rec->execBankBic){
+
+            if (!$form->rec->execBankBic) {
                 $form->rec->execBankBic = bglocal_Banks::getBankBic($form->rec->ordererIban);
+            }
+
+            if ((int)!empty($form->rec->LNC) + (int)!empty($form->rec->EGN) + (int)!empty($form->rec->vatId) > 1) {
+                $form->setError("vatId,EGN,LNC","Трябва само едно от полетата за ЕИК, ЕГН и ЛНЧ да е попълнено");
+            }
+
+            $lnc = cls::get("bglocal_BulgarianLNC");
+            if (!empty($form->rec->LNC) && !$lnc->isLnc()){
+                $form->setError("LNC","Грешен ЛНЧ номер");
+            }
+
+            $egn = cls::get("bglocal_EgnType");
+            if (!empty($form->rec->EGN) && !$egn->isValid()){
+                $form->setError("EGN","Грешен ЕГН номер");
             }
         }
     }
-    
-    
+
+
     /**
      * Обработки по вербалното представяне на данните
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->number = static::getHandle($rec->id);
-        
+
+
         if($fields['-single']) {
-            
+
             // Извличаме името на банката и BIC-а на получателя от IBAN-а му
             $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
             $row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
         }
     }
-    
-    
+
+
     /**
      * Функция която скрива бланката с логото на моята фирма
      * при принтиране ако документа е базиран на
@@ -244,20 +282,20 @@ class bank_PaymentOrders extends core_Master
     function renderSingleLayout_(&$data)
     {
         $tpl = parent::renderSingleLayout_($data);
-        
+
         if(Mode::is('printing')){
-            
+
             if($data->row->originClassId == 'bank_IncomeDocuments') {
-                
+
                 // скриваме логото на моята фирма
                 $tpl->replace('', 'blank');
             }
         }
-        
+
         return $tpl;
     }
-    
-    
+
+
     /**
      * Вкарваме css файл за единичния изглед
      */
@@ -265,12 +303,12 @@ class bank_PaymentOrders extends core_Master
     {
         $tpl->push('bank/tpl/css/belejka.css', 'CSS');
     }
-    
+
     /*
      * Реализация на интерфейса doc_DocumentIntf
      */
-    
-    
+
+
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -283,11 +321,11 @@ class bank_PaymentOrders extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->recTitle = $rec->reason;
-        
+
         return $row;
     }
-    
-    
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -298,8 +336,8 @@ class bank_PaymentOrders extends core_Master
     {
         return FALSE;
     }
-    
-    
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
@@ -311,17 +349,17 @@ class bank_PaymentOrders extends core_Master
     {
         // Ако няма ориджин в урл-то, документа не може да се добави към нишката
         $originId = Request::get('originId', 'int');
-        
+
         if(empty($originId)) return FALSE;
-        
+
         // Към кой документ се създава бланката
         $origin = doc_Containers::getDocument($originId);
-        
+
         // Може да се поражда само от приходен или разходен банков документ
         return $origin->isInstanceOf('bank_IncomeDocuments') || $origin->isInstanceOf('bank_SpendingDocuments');
     }
-    
-    
+
+
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -329,11 +367,11 @@ class bank_PaymentOrders extends core_Master
     {
         $rec = static::fetch($id);
         $self = cls::get(get_called_class());
-        
+
         return $self->abbr . $rec->id;
     }
-    
-    
+
+
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -341,8 +379,8 @@ class bank_PaymentOrders extends core_Master
     {
         $data->toolbar->removeBtn('btnAdd');
     }
-    
-    
+
+
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото на имейл по подразбиране
@@ -352,11 +390,11 @@ class bank_PaymentOrders extends core_Master
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашето платежно нареждане") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
-        
+
         return $tpl->getContent();
     }
-    
-    
+
+
     /**
      * След рендиране на единичния изглед
      */
@@ -364,6 +402,11 @@ class bank_PaymentOrders extends core_Master
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');
+        }
+
+        if($data->rec->documentType != "budget") {
+            $tpl->removeBlock('budgetBlock');
+            $tpl->removeBlock('paymentType');
         }
     }
 }
