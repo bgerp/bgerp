@@ -757,6 +757,10 @@ class tasks_Tasks extends embed_Manager
     		
     	// Подготвяме данните
     	while($rec = $query->fetch()){
+    		if(!cls::load($rec->classId, TRUE)){
+    			wp($rec);
+    			continue;
+    		}
     		$Class = cls::get($rec->classId);
     		
     		$data->recs[$rec->id] = $rec;
