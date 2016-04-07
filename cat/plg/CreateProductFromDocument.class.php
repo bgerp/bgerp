@@ -134,8 +134,14 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					if(isset($protoRec->{$n1})){
 						$form->setDefault($n1, $protoRec->{$n1});
 					}
-					$caption = (isset($cloneRec)) ? "Клониране на" : "Персонализиране на";
-					$form->setField($n1, "caption={$caption}|* <b>{$protoName}</b>->{$fld->caption}");
+					
+					$caption = $fld->caption;
+					if(strpos($fld->caption, '->') === FALSE){
+						$caption = (isset($cloneRec)) ? "Клониране на" : "Персонализиране на";
+						$caption .= "|* <b>{$protoName}</b>->{$fld->caption}";
+					}
+					
+					$form->setField($n1, "caption={$caption}");
 				}
 				
 				$productKeys = array_keys($productFields);
