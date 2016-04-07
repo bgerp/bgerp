@@ -22,7 +22,7 @@ class trans_Zones extends core_Manager
 
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn("Изчисление на зона", array("trans_Zones", "test"), "ef_icon=img/16/arrow_out.png");
+        $data->toolbar->addBtn("Изчисление на разходи по пратка в зона", array("trans_Zones", "test"), "ef_icon=img/16/arrow_out.png");
     }
 
     /**
@@ -50,9 +50,10 @@ class trans_Zones extends core_Manager
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             try {
-                $price = trans_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
-                $form->info = $price[0];
-                bp($price);
+                $result = trans_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
+                $form->info = "Цената за " . $rec->singleWeight . " на " . $rec->totalWeight . " броя от този пакет ще струва ". round($result[1], 4).
+                    ",a всички ".  $rec->totalWeight . " ще струват " . round($result[0], 4) . ". Пратката попада в зона с id=" . $result[2];
+
             } catch(core_exception_Expect $e) {
                 $form->setError("zoneId, deliveryTermId, countryId", "Не може да се изчисли по зададените данни");
             }
@@ -88,7 +89,6 @@ class trans_Zones extends core_Manager
             }
 
         }
-
         return $bestZone;
     }
 

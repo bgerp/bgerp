@@ -23,18 +23,19 @@ class trans_Fees extends core_Manager
      * @param double    $totalWeight        Посоченото тегло
      * @param int       $singleWeight
      *
-     * @return string   Финална цена на посоченото тегло
+     * @return array[0] $finalPrice         Обработената цена
+     * @return array[1] $result             Резултат за подадената единица $singleWeight
+     * @return array[1] $zoneId             Id на зоната
      */
 
     public static function calcFee($deliveryTerm, $countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
-//        expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
-
+        expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
         //bp($deliveryTerm, $countryId, $pCode);
         $zoneId = trans_Zones::getZoneId($deliveryTerm, $countryId, $pCode);
-        bp($zoneId);
+//        bp($zoneId);
         //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
 
@@ -45,7 +46,8 @@ class trans_Fees extends core_Manager
 
         //Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = trans_Fees::getQuery();
-            expect($zoneId);
+            expect($zoneId > 0);
+
             $query->where(['#zoneId = [#1#]', $zoneId]);
 
         while($rec = $query->fetch()){
@@ -66,6 +68,7 @@ class trans_Fees extends core_Manager
             //Слагаме получените цени за по-късно ползване в асоциативния масив
             $arrayOfWeightPrice[$rec->weight] = $rec->price;
         }
+
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
 
@@ -120,9 +123,10 @@ class trans_Fees extends core_Manager
         $result = $finalPrice/ $totalWeight * $singleWeight;
 
         /*
-         * Връща се получената цена и отношението цена/тегло в определен $singleWeight
+         * Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
          */
-        return [$finalPrice, $result];
 
+
+        return array($finalPrice, $result, $zoneId);
     }
 }
