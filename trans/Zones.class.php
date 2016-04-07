@@ -52,12 +52,10 @@ class trans_Zones extends core_Manager
             try {
                 $price = trans_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
                 $form->info = $price[0];
+                bp($price);
             } catch(core_exception_Expect $e) {
-                bp($e);
                 $form->setError("zoneId, deliveryTermId, countryId", "Не може да се изчисли по зададените данни");
             }
-
-
         }
         $form->title = 'Пресмятане на налва';
         $form->toolbar->addSbBtn('Запис');
@@ -78,21 +76,25 @@ class trans_Zones extends core_Manager
     public static function getZoneId($deliveryTermId, $countryId, $pCode)
     {
         $query = self::getQuery();
-        $query->where(['#deliveryTermId = [#1#] AND #countryId = [#2#] ', $deliveryTermId, $countryId]);
-        $bestSimilarityCount = -1;
-        $bestZone = "";
+        $query->where(array('#deliveryTermId = [#1#] AND #countryId = [#2#] ', $deliveryTermId, $countryId));
+        $bestSimilarityCount = 0;
+        $bestZone = -1;
         while($rec = $query->fetch()) {
             $similarityCount = self::strNearPCode($pCode, $rec->pCode);
+
             if ($similarityCount > $bestSimilarityCount) {
                 $bestSimilarityCount = $similarityCount;
                 $bestZone = $rec->zoneId;
             }
+
         }
+
         return $bestZone;
     }
 
     private static function strNearPCode($pc1, $pc2)
     {
+
         // Finding the smaller length of the two
         $cycleNumber = min(strlen($pc1), strlen($pc2));
 
@@ -102,6 +104,6 @@ class trans_Zones extends core_Manager
                 return $i;
             }
         }
-
+        return strlen($pc1);
     }
 }

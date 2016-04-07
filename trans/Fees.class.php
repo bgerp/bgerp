@@ -32,11 +32,8 @@ class trans_Fees extends core_Manager
 
 
         //Определяне на зоната на транспорт
+        //bp($deliveryTerm, $countryId, $pCode);
         $zoneId = trans_Zones::getZoneId($deliveryTerm, $countryId, $pCode);
-        $query = trans_Zones::getQuery();
-        while($row = $query->fetch()){
-            bp($row);
-        }
         bp($zoneId);
         //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
@@ -51,9 +48,6 @@ class trans_Fees extends core_Manager
             expect($zoneId);
             $query->where(['#zoneId = [#1#]', $zoneId]);
 
-
-
-//        if(!count())
         while($rec = $query->fetch()){
             //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
             if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
