@@ -91,105 +91,137 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$mvc->requireRightFor('createproduct', (object)array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id));
 			$Products = cls::get('cat_Products');
 			
-			$form = cls::get('core_Form');
-			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=name2,placeholder=Популярни продукти,mandatory");
-			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,silent,refreshForm,after=id,input=hidden");
-			$form->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=hidden');
-			$form->FLD('price', 'double', 'caption=Цена,input=hidden');
+			$detailFields = $productFields = array();
 			
-			$form->fields['price']->unit = "|*" . $masterRec->currencyId . ", ";
-			$form->fields['price']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
-			
-			// В кои категории може да има прототипни артикули
-			$options = self::getProtoOptions($mvc->filterProtoByMeta);
-			if(isset($cloneId)){
-				$options[$cloneRec->productId] = cat_Products::getTitleById($cloneRec->productId, FALSE);
-				$form->setReadOnly('proto', $cloneRec->productId);
-				$form->setDefault('proto', $cloneRec->productId);
-			}
-			
-			$form->setOptions('proto', $options);
+			$form = $mvc->getForm();
+			$form->setField($mvc->masterKey, 'input=hidden');
+			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Прототип,input,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance,placeholder=Популярни продукти,mandatory,after=saleId");
 			$form->input(NULL, 'silent');
 			
+			foreach (array('id', 'createdOn', 'createdBy') as $f){
+				unset($form->fields[$f]);
+			}
+			
+			$form->setField('productId', 'input=hidden');
+			if(isset($cloneRec)){
+				$form->setField('proto', 'input=hidden');
+				$form->setDefault('proto', $cloneRec->productId);
+				$detailFields['proto'] = 'proto';
+				foreach ($form->fields as $n => $f1){
+					$detailFields[$n] = $n;
+					if(isset($cloneRec->{$n})){
+						$form->setDefault($n, $cloneRec->{$n});
+					}
+				}
+			} else {
+				foreach ($form->fields as $n => $f1){
+					$detailFields[$n] = $n;
+				}
+			}
+			
+			$data1 = (object)array('form' => $form, 'masterRec' => $masterRec);
+			$mvc->invoke('AfterPrepareEditForm', array($data1, $data1));
+			
 			if(isset($form->rec->proto)){
-				$form->setField('quantity', 'input');
-				$form->setField('price', 'input,mandatory');
 				$proto = $form->rec->proto;
 				cat_Products::setAutoCloneFormFields($form, $proto);
+				$form->setDefault('productId', $form->rec->proto);
 				
-				$form->rec = cat_Products::fetch($proto);
-				foreach (array('code', 'threadId', 'folderId', 'id', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'containerId', 'isPublic') as $fld){
-					unset($form->rec->{$fld});
+				$protoRec = cat_Products::fetch($proto);
+				$productFields = array_diff_key($form->fields, $detailFields);
+				$protoName = cat_Products::getTitleById($protoRec->id);
+				foreach ($productFields as $n1 => $fld){
+					if(isset($protoRec->{$n1})){
+						$form->setDefault($n1, $protoRec->{$n1});
+					}
+					$caption = (isset($cloneRec)) ? "Клониране на" : "Персонализиране на";
+					$form->setField($n1, "caption={$caption}|* <b>{$protoName}</b>->{$fld->caption}");
 				}
 				
-				$form->rec->proto = $proto;
-				if(isset($cloneRec)){
-					$form->setField('quantity', 'input=none');
-					$form->setField('price', 'input=none');
-				}
+				$productKeys = array_keys($productFields);
+				$productKeys = implode('|', $productKeys);
+				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
+				
+				$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
+				$form->setOptions('measureId', $sameMeasures);
 				
 				$Driver = cat_Products::getDriver($proto);
 				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
-				
-				$keys = array_keys($form->selectFields());
-				unset($keys[0]);
-				$keys = implode('|', $keys);
-				$form->setField('proto', "removeAndRefreshForm={$keys}");
-				
-				$rec = $form->rec;
-				$rec->folderId = $masterRec->folderId;
-				$rec->threadId = $masterRec->threadId;
-				$rec->isPublic = 'no';
-				
+			
 				$form->input();
+				$mvc->invoke('AfterInputEditForm', array($form));
 				$Products->invoke('AfterInputEditForm', array($form));
+				
+				$productKeys = array_keys($productFields);
+				$productKeys = implode('|', $productKeys);
+				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
+				
+				if(isset($cloneRec)){
+					$form->rec->proto = $protoRec->proto;
+				} else {
+					$quantityField = $form->getField('measureId');
+					if($quantityField->input != 'hidden'){
+						unset($form->fields['packQuantity']->unit);
+					}
+				}
+				
+				$productFields = array_diff_key($form->fields, $detailFields);
+				
+				if(isset($cloneRec)){
+					if(!array_key_exists($cloneRec->packagingId, $sameMeasures)){
+						$sameMeasures[$cloneRec->packagingId] = cat_UoM::getVerbal($cloneRec->packagingId, 'name');
+					}
+					$form->setOptions('packagingId', $sameMeasures);
+				}
 			} else {
-				$form->input();
+				$fields = $form->selectFields();
+				foreach ($fields as $name => $fl1){
+					if($name != 'proto'){
+						$form->setField($name, 'input=none');
+					}
+				}
 			}
 			
 			if($form->isSubmitted()){
+				$rec = $form->rec;
+				$arrRec = (array)$rec;
 				
-				$rec->quantity = ($rec->quantity) ? $rec->quantity : cat_UoM::fetchField($rec->measureId, 'defQuantity');
-				if(empty($rec->quantity)){
-					$form->setError('quantity', 'Няма количество');
+				$pRec = (object)array_intersect_key($arrRec, $productFields);
+				$pRec->proto = $rec->proto;
+				$pRec->folderId = $masterRec->folderId;
+				$pRec->threadId = $masterRec->threadId;
+				$pRec->isPublic = 'no';
+				
+				$protoRec = cat_Products::fetch($rec->productId);
+				$pRec->meta = $protoRec->meta;
+				
+				$productId = $Products->save($pRec);
+				$dRec = (object)array_diff_key($arrRec, $productFields);
+				$dRec->productId = $productId;
+				if(empty($cloneRec)){
+					$dRec->packagingId = $pRec->measureId;
+					$dRec->quantityInPack = 1;
 				}
 				
-				if(!$form->gotErrors()){
-					$vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
-					$price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+				$mvc->save($dRec);
 					
-					$productId = $Products->save($rec);
-					
-					$dRec = (object)array('productId'      => $productId,
-										  $mvc->masterKey  => $masterId,
-										  'packagingId'    => $rec->measureId,
-										  'quantityInPack' => 1,
-										  'showMode'       => 'detailed',
-										  'quantity'       => $rec->quantity,
-										  'price'          => $price,
-					);
-					
-					if(isset($cloneRec)){
-						foreach (array('packagingId', 'quantityInPack', 'quantity', 'price', 'discount', 'tolerance') as $fld){
-							$dRec->{$fld} = $cloneRec->{$fld};
-						}
-					}
-					
-					$mvc->save($dRec);
-					
-					return Redirect(array($mvc->Master, 'single', $masterId), FALSE, 'Успешно е създаден нов артикул');
+				if($dRec->packagingId != $pRec->measureId){
+					$packRec = (object)array('productId' => $productId, 'packagingId' => $rec->packagingId, 'quantity' => $rec->quantityInPack);
+					cat_products_Packagings::save($packRec);
 				}
+				
+				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, 'Успешно е създаден нов артикул');
 			}
 			
 			$folderTitle = doc_Folders::recToVerbal(doc_Folders::fetch($masterRec->folderId))->title;
 			$form->title = "Създаване на нов нестандартен артикул в|* {$folderTitle}";
-			
+				
 			$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис');
 			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-			
+				
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
-			
+				
 			return FALSE;
 		}
 	}
