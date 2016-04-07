@@ -419,9 +419,11 @@ class sales_QuotationsDetails extends doc_Detail {
     			    }
     			}
     			
-    			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    				if($sameProduct->id != $rec->id){
-    					$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    			if(Request::get('Act') != 'CreateProduct'){
+    				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
+    					if($sameProduct->id != $rec->id){
+    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    					}
     				}
     			}
     			
