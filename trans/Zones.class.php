@@ -13,9 +13,11 @@ class trans_Zones extends core_Manager
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
         $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
-
+        $this->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently');
+        $this->FLD('singleWeight', 'double(Min=0)', 'caption=Брой за връщане');
 
         $this->setDbUnique("deliveryTermId,countryId, pCode");
+
     }
 
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
@@ -28,16 +30,14 @@ class trans_Zones extends core_Manager
      */
     public function act_Test()
     {
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 1000);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 1200);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 5000);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 11000);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 3);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 6);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 511);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 512);
-        $a[] = trans_Fees::calcFee(5, 262, 8000, 513);
-bp($a);
+//        $a[] = trans_Fees::calcFee(5, 262, 8000, 0);
+//        $a[] = trans_Fees::calcFee(5, 262, 8000, -1);
+//        $a[] = trans_Fees::calcFee(5, 262, 8000, 1000000);
+//        $a[] = trans_Fees::calcFee(5, 262, 8000, 400);
+//        $a[] = trans_Fees::calcFee(5, 262, 8000, 2000);
+//        $a[] = trans_Fees::calcFee(5, 262, 8000, "Chris");
+
+
         // Вземаме съответстващата форма на този модел
         $form = self::getForm();
 
@@ -46,17 +46,22 @@ bp($a);
 
         // Въвеждаме формата от Request (тази важна стъпка я бяхме пропуснали)
         $form->input();
-
-        if($form->isSubmitted()) {
+        $form->setDefault('singleWeight', 1);
+        if ($form->isSubmitted()) {
             $rec = $form->rec;
-            $zoneId = self::getZoneName($rec->deliveryTermId, $rec->countryId, $rec->pCode);
-            $transRow = trans_ZoneNames::recToVerbal($zoneId, 'name');
+            try {
+                $price = trans_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
+                $form->info = $price[0];
+            } catch(core_exception_Expect $e) {
+                bp($e);
+                $form->setError("zoneId, deliveryTermId, countryId", "Не може да се изчисли по зададените данни");
+            }
 
 
         }
+        $form->title = 'Пресмятане на налва';
         $form->toolbar->addSbBtn('Запис');
-        trans_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, "", "");
-        return $form->renderHTML();
+        return $this->renderWrapping($form->renderHTML());
     }
 
 
