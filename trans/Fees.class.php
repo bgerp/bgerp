@@ -48,7 +48,7 @@ class trans_Fees extends core_Manager
         $query = trans_Fees::getQuery();
             expect($zoneId > 0);
 
-            $query->where(['#zoneId = [#1#]', $zoneId]);
+            $query->where(array("#zoneId = [#1#]", $zoneId));
 
         while($rec = $query->fetch()){
             //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
