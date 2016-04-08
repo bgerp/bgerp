@@ -122,6 +122,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			if(isset($cloneRec)){
 				$form->setField('proto', 'input=hidden');
 				$form->setDefault('proto', $cloneRec->productId);
+				
 				$detailFields['proto'] = 'proto';
 				foreach ($form->fields as $n => $f1){
 					$detailFields[$n] = $n;
@@ -164,11 +165,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$form->setField($n1, "caption={$caption}");
 				}
 				
-				// Кои полета да се рефрешват
-				$productKeys = array_keys($productFields);
-				$productKeys = implode('|', $productKeys);
-				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
-				
 				// Допустимите мерки са сред производните на тази на прототипа
 				$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
 				$form->setOptions('measureId', $sameMeasures);
@@ -186,9 +182,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
 				
 				// Ако клонираме запис
-				if(isset($cloneRec)){
-					$form->rec->proto = $protoRec->proto;
-				} else {
+				if(!isset($cloneRec)){
 					$quantityField = $form->getField('measureId');
 					if($quantityField->input != 'hidden'){
 						unset($form->fields['packQuantity']->unit);
@@ -205,7 +199,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$form->setOptions('packagingId', $sameMeasures);
 				}
 			} else {
-				// Ако не клонирваме прототипа е скрит
+				// Ако не клонираме прототипа е скрит
 				$fields = $form->selectFields();
 				foreach ($fields as $name => $fl1){
 					if($name != 'proto'){
@@ -217,11 +211,15 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			// След събмит
 			if($form->isSubmitted()){
 				$rec = $form->rec;
+				
+				if(isset($cloneRec)){
+					$rec->proto = cat_Products::fetchField($rec->productId, 'proto');
+				}
+				
 				$arrRec = (array)$rec;
 				
 				// Намираме полетата на артикула
-				$pRec = (object)array_intersect_key($arrRec, $productFields);
-				$pRec->proto = $rec->proto;
+				$pRec = (object)(array('proto' => $rec->proto) + array_intersect_key($arrRec, $productFields));
 				$pRec->folderId = $masterRec->folderId;
 				$pRec->threadId = $masterRec->threadId;
 				$pRec->isPublic = 'no';
