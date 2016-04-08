@@ -166,7 +166,7 @@ class acc_Periods extends core_Manager
         }
         
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->title}");
+            $row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->title}");
         }
         
         $curPerEnd = static::getPeriodEnd();
