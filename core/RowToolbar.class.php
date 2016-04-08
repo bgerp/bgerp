@@ -212,9 +212,7 @@ class core_RowToolbar extends core_BaseClass
                 $attr = $linkObj->attr;
 
                 ht::setUniqId($attr);
-                if($attr['title']) {
-                    $attr['title'] = tr($attr['title']);
-                }
+                
                 $link = ht::createLink(tr($linkObj->title), $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $attr); 
                 $layout->append($link, 'ROW_LINKS');
             }
