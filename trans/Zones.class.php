@@ -2,10 +2,25 @@
 
 class trans_Zones extends core_Manager
 {
+
+    /**
+     * Заглавие
+     */
     public $title = "Транспортни зони";
+
+    /**
+     * Плъгини за зареждане
+     */
     public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper";
 
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = "zoneId, deliveryTermId, countryId, pCode, createdOn, createdBy";
 
+    /**
+     * Описание на модела (таблицата)
+     */
     public function description()
     {
 
@@ -15,21 +30,23 @@ class trans_Zones extends core_Manager
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
         $this->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently');
         $this->FLD('singleWeight', 'double(Min=0)', 'caption=Брой за връщане');
-
+        
         $this->setDbUnique("deliveryTermId,countryId, pCode");
 
     }
 
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn("Изчисление на разходи по пратка в зона", array("trans_Zones", "test"), "ef_icon=img/16/arrow_out.png");
+        $data->toolbar->addBtn("Изчисление на разходи по пратка в зона", array("trans_Zones", "calcFee"), "ef_icon=img/16/arrow_out.png");
     }
 
     /**
      * Тестване на направеното
      */
-    public function act_Test()
+    public function act_calcFee()
     {
+
+        requireRole('admin, ceo');
         //Тестовни примери
         /*
          * $a[] = trans_Fees::calcFee(5, 262, 8000, 0);

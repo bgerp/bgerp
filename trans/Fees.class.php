@@ -3,7 +3,7 @@
 class trans_Fees extends core_Manager
 {
     public $title = "Налва";
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper, plg_AlignDecimals2";
 
 
 
