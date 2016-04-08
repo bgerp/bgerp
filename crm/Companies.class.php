@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.11
  * 
- * @method restrictAccess(core_Query $query, NULLinteger $userId = NULL, boolean $viewAccess = TRUE)
+ * @method restrictAccess(core_Query $query, NULL|integer $userId = NULL, boolean $viewAccess = TRUE)
  */
 class crm_Companies extends core_Master
 {
@@ -27,7 +27,6 @@ class crm_Companies extends core_Master
 
         // Интерфейс за счетоводни пера, отговарящи на фирми
         'crm_CompanyAccRegIntf',
-
         
         // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
