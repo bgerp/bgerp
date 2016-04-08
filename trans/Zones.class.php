@@ -30,12 +30,16 @@ class trans_Zones extends core_Manager
      */
     public function act_Test()
     {
-//        $a[] = trans_Fees::calcFee(5, 262, 8000, 0);
-//        $a[] = trans_Fees::calcFee(5, 262, 8000, -1);
-//        $a[] = trans_Fees::calcFee(5, 262, 8000, 1000000);
-//        $a[] = trans_Fees::calcFee(5, 262, 8000, 400);
-//        $a[] = trans_Fees::calcFee(5, 262, 8000, 2000);
-//        $a[] = trans_Fees::calcFee(5, 262, 8000, "Chris");
+        //Тестовни примери
+        /*
+         * $a[] = trans_Fees::calcFee(5, 262, 8000, 0);
+         * $a[] = trans_Fees::calcFee(5, 262, 8000, -1);
+         * $a[] = trans_Fees::calcFee(5, 262, 8000, 1000000);
+         * $a[] = trans_Fees::calcFee(5, 262, 8000, 400);
+         * $a[] = trans_Fees::calcFee(5, 262, 8000, 2000);
+         * $a[] = trans_Fees::calcFee(5, 262, 8000, "Chris");
+         */
+
 
 
         // Вземаме съответстващата форма на този модел
@@ -50,12 +54,14 @@ class trans_Zones extends core_Manager
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             try {
+
                 $result = trans_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
+                $zoneName = trans_ZoneNames::getVerbal_($result[2], 'name');
                 $form->info = "Цената за " . $rec->singleWeight . " на " . $rec->totalWeight . " броя от този пакет ще струва ". round($result[1], 4).
-                    ",a всички ".  $rec->totalWeight . " ще струват " . round($result[0], 4) . ". Пратката попада в зона с id=" . $result[2];
+                    ",a всички ".  $rec->totalWeight . " ще струват " . round($result[0], 4) . ". Пратката попада в " . $zoneName ;
 
             } catch(core_exception_Expect $e) {
-                $form->setError("zoneId, deliveryTermId, countryId", "Не може да се изчисли по зададените данни");
+                $form->setError("zoneId, deliveryTermId, countryId", "Не може да се изчисли по зададените данни, вашата пратка не попада в никоя зона");
             }
         }
         $form->title = 'Пресмятане на налва';
