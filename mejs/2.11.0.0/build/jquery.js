@@ -4309,7 +4309,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 			hasDuplicate = true;
 			return 0;
 
-		// Parentless nodes are either documents or disconnected
+		// Parentless nodes are either document or disconnected
 		} else if ( !aup || !bup ) {
 			return a === doc ? -1 :
 				b === doc ? 1 :
