@@ -159,7 +159,7 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
     	
-    	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=hidden,notNull');
+    	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
     	
     	$this->setDbIndex('classId');
     	
@@ -444,8 +444,7 @@ class tasks_Tasks extends embed_Manager
     	
     	$cu = core_Users::getCurrent();
     	$form->setDefault('inCharge', keylist::addKey('', $cu));
-    	$form->setDefault('classId', $mvc->getClassId());
-    		
+    	
     	// Ако задачата идва от дефолт задача на продуктов драйвер
     	if(isset($rec->systemId)){
     			

@@ -198,6 +198,8 @@ class planning_Tasks extends tasks_Tasks
 			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 			$rec->originId = $firstDoc->fetchField('containerId');
 		}
+		
+		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
 	}
 	
 	
