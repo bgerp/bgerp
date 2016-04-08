@@ -172,14 +172,16 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				// Допустимите мерки са сред производните на тази на прототипа
 				$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
 				$form->setOptions('measureId', $sameMeasures);
+				$form->rec->folderId = $masterRec->folderId;
+				$form->rec->threadId = $masterRec->threadId;
 				
 				// Извикваме в класа и драйвера нужните ивенти
 				$Driver = cat_Products::getDriver($proto);
 				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
 			
 				$form->input();
-				$mvc->invoke('AfterInputEditForm', array($form));
 				$Products->invoke('AfterInputEditForm', array($form));
+				$mvc->invoke('AfterInputEditForm', array($form));
 				
 				$productKeys = array_keys($productFields);
 				$productKeys = implode('|', $productKeys);
