@@ -311,7 +311,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				if($mvc->hasPlugin('plg_RowTools2')){
 					core_RowToolbar::createIfNotExists($row->_rowTools);
-					$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/shopping.png,order=12');
+					$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
 				}
 			}
 		}
