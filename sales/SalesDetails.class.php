@@ -87,6 +87,14 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'ceo, sales';
+    
+    
+    /**
      * Брой записи на страница
      * 
      * @var integer
