@@ -340,11 +340,12 @@ class cat_Products extends embed_Manager {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = $form->rec;
     	
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->driverClassField)){
     		$form->setField($mvc->driverClassField, "remember,removeAndRefreshForm=proto|measureId|meta");
-            if(!$form->rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $form->rec->{$driverField})) {
+            if(!$rec->id && ($driverField = $mvc->driverClassField) && ($drvId = $rec->{$driverField})) {
                 
             	$protoProducts = cat_Categories::getProtoOptions($drvId);
             	
@@ -369,17 +370,17 @@ class cat_Products extends embed_Manager {
     	$measureOptions = cat_UoM::getUomOptions();
     	
     	// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
-    	if(isset($form->rec->folderId)){
-    		$cover = doc_Folders::getCover($form->rec->folderId);
+    	if(isset($rec->folderId)){
+    		$cover = doc_Folders::getCover($rec->folderId);
     		
     		$defMetas = array();
-    		if(isset($form->rec->proto)){
-    			$defMetas = $mvc->fetchField($form->rec->proto, 'meta');
+    		if(isset($rec->proto)){
+    			$defMetas = $mvc->fetchField($rec->proto, 'meta');
     			$defMetas = type_Set::toArray($defMetas);
     		} else {
     			$defMetas = $cover->getDefaultMeta();
     			
-    			if($Driver = $mvc->getDriver($form->rec)){
+    			if($Driver = $mvc->getDriver($rec)){
     				$defMetas = $Driver->getDefaultMetas($defMetas);
     				$measureName = $Driver->getDefaultUom();
     				$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
@@ -410,8 +411,8 @@ class cat_Products extends embed_Manager {
     				// вече избраната мярка ако има + дефолтната за драйвера
     				$categoryMeasures = keylist::toArray($CategoryRec->measures);
     				if(count($categoryMeasures)){
-    					if(isset($form->rec->measureId)){
-    						$categoryMeasures[$form->rec->measureId] = $form->rec->measureId;
+    					if(isset($rec->measureId)){
+    						$categoryMeasures[$rec->measureId] = $rec->measureId;
     					}
     					if(isset($defaultUomId)){
     						$categoryMeasures[$defaultUomId] = $defaultUomId;
@@ -435,8 +436,8 @@ class cat_Products extends embed_Manager {
     	}
 
     	// Ако артикула е създаден от източник
-    	if(isset($form->rec->originId)){
-    		$document = doc_Containers::getDocument($form->rec->originId);
+    	if(isset($rec->originId)){
+    		$document = doc_Containers::getDocument($rec->originId);
     	
     		// Задаваме за дефолти полетата от източника
     		$Driver = $document->getDriver();
@@ -463,8 +464,8 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
-    	if(isset($form->rec->id) && $data->action != 'clone'){
-    		if(cat_products_Packagings::isUsed($form->rec->id)){
+    	if(isset($rec->id) && $data->action != 'clone'){
+    		if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id)){
     			$form->setReadOnly('measureId');
     		}
     	}
