@@ -885,7 +885,7 @@ class crm_Companies extends core_Master
     public function updateGroupsCnt()
     {
         $query = $this->getQuery();
-        $groupsCnt = [];
+        $groupsCnt = array();
 
         while($rec = $query->fetch()) {
             $keyArr = keylist::toArray($rec->groupList);
