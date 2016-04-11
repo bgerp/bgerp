@@ -61,6 +61,8 @@
                 <tbody>
                     <tr>
                         <td class="topCell first vtop" style='width:50%;'>
+                            <!--ET_BEGIN delivery_table-->
+                            [#delivery_table#]
                            <table class='shipment-table' style='width: 100%'>
                                     <!--ET_BEGIN deliveryTime-->
                                     <tr>
@@ -91,8 +93,11 @@
                                         </td>
                                     </tr>
                                     <!--ET_END note-->
+                                    <tr>
+                                        <td colspan="2"><hr></td>
+                                    </tr>
                                 </table>
-                                <hr>
+                                <!--ET_END delivery_table-->
                                 <div class='clearfix21' style='margin-bottom: 5px;'>
                                     <div><span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                                         <!--ET_BEGIN colletsCount--><span class='half-col'>|Изчислен брой палети|*:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>|Брой палети|*: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
