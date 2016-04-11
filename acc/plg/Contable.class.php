@@ -146,7 +146,7 @@ class acc_plg_Contable extends core_Plugin
            
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
-            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документът да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         if ($mvc->haveRightFor('revert', $rec)) {
@@ -157,7 +157,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->getClassId(),
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документът да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
         } else {
         	
         	// Ако потребителя може да създава коригиращ документ, слагаме бутон
