@@ -574,7 +574,7 @@ class doc_FolderPlg extends core_Plugin
         if($fields['-list']) {
         	
         	// Имали бързи бутони
-        	if($mvc->hasPlugin('plg_RowTools2')){
+        	if($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected'){
         		
         		$managersIds = doc_Threads::getFastButtons($mvc, $rec->id);
         		if(count($managersIds)){
