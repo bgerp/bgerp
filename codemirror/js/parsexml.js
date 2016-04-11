@@ -16,7 +16,7 @@ var XMLParser = Editor.Parser = (function() {
   var UseKludges = Kludges;
   var alignCDATA = false;
 
-  // Simple stateful tokenizer for XML document. Returns a
+  // Simple stateful tokenizer for XML documents. Returns a
   // MochiKit-style iterator, with a state property that contains a
   // function encapsulating the current state. See tokenize.js.
   var tokenizeXML = (function() {
