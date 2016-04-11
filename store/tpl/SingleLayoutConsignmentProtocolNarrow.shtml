@@ -14,7 +14,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Довереник|*</b></td>
+                    <td class="cell custom-header-bg"  style="width: 50%"><b>|Довереник|*</b></td>
                     <td class="cell custom-header-bg"><b>|Доверител|*</b></td>
                 </tr>
                 <tr>

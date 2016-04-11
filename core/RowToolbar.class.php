@@ -181,19 +181,25 @@ class core_RowToolbar extends core_BaseClass
     
     /**
      * Връща html - съдържанието на лентата с инструменти
+     * 
+     * @param int $showWithoutToolbar - при колко линка минимум да не се показва дропдауна
+     * @return core_ET $layout - рендирания тулбар
      */
-    function renderHtml_()
+    function renderHtml_($showWithoutToolbar = NULL)
     {
         if (!count($this->links) > 0) return;
         
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain')) return;
         
-        if(count($this->links) == 1) {
-            $linkObj = current($this->links);
-            setIfNot($linkObj->attr['hint'], $linkObj->title);
-            $linkObj->attr['title'] = tr($linkObj->attr['title']);
-            
-            $layout = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $linkObj->attr);
+        setIfNot($showWithoutToolbar, 1);
+        if(count($this->links) <= $showWithoutToolbar) {
+        	$layout = new core_ET("<span>[#ROW_TOOLS#]</span>");
+        	foreach ($this->links as $linkObj){
+        		setIfNot($linkObj->attr['hint'], $linkObj->title);
+        		$linkObj->attr['title'] = tr($linkObj->attr['title']);
+        		$btn = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $linkObj->attr);
+        		$layout->append($btn, 'ROW_TOOLS');
+        	}
         } else {
             $dropDownIcon = sbf("img/16/rowtools-btn.png", '');
             $layout = new ET("\n" . 
@@ -206,9 +212,7 @@ class core_RowToolbar extends core_BaseClass
                 $attr = $linkObj->attr;
 
                 ht::setUniqId($attr);
-                if($attr['title']) {
-                    $attr['title'] = tr($attr['title']);
-                }
+                
                 $link = ht::createLink(tr($linkObj->title), $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $attr); 
                 $layout->append($link, 'ROW_LINKS');
             }

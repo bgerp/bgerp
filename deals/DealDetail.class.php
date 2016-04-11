@@ -284,11 +284,13 @@ abstract class deals_DealDetail extends doc_Detail
     		$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     		$rec->price  = $price;
     		
-    		// Ако има такъв запис, сетваме грешка
-    		$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
-    		if($exRec){
-    			$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
-    			unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+    		if(Request::get('Act') != 'CreateProduct'){
+    			// Ако има такъв запис, сетваме грешка
+    			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch);
+    			if($exRec){
+    				$form->setError('productId,packagingId,packPrice,discount,tolerance,term,batch', 'Вече съществува запис със същите данни');
+    				unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+    			}
     		}
     	
     		// При редакция, ако е променена опаковката слагаме преудпреждение

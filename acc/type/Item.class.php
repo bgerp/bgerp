@@ -179,7 +179,7 @@ class acc_type_Item extends type_Key
      * 
      * @param mixed $key
      * 
-     * @return mixed
+     * @return string
      */
     public function prepareKey($key)
     {

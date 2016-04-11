@@ -1159,7 +1159,7 @@ $.position = {
 			scrollTop: withinElement.scrollTop(),
 
 			// support: jQuery 1.6.x
-			// jQuery 1.6 doesn't support .outerWidth/Height() on documents or windows
+			// jQuery 1.6 doesn't support .outerWidth/Height() on document or windows
 			width: isWindow || isDocument ? withinElement.width() : withinElement.outerWidth(),
 			height: isWindow || isDocument ? withinElement.height() : withinElement.outerHeight()
 		};

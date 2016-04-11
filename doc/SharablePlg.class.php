@@ -319,7 +319,7 @@ class doc_SharablePlg extends core_Plugin
     {
         $res = arr::make($res, TRUE);
         
-        if (!$originId) return ;
+        if (!isset($originId)) return ;
         
         if (!$mvc->autoShareOriginShared) return ;
         

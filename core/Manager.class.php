@@ -29,13 +29,13 @@ class core_Manager extends core_Mvc
     /**
      * Заглавие на мениджъра
      */
-    var $title = '?Мениджър?';
+    public $title = '?Мениджър?';
     
     
     /**
      * Заглавие на единичния обект
      */
-    var $singleTitle = '?Обект?';
+    public $singleTitle = '?Обект?';
     
     
     /**

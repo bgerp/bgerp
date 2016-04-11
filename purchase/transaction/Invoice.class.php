@@ -58,11 +58,18 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
     	
     	// Ако е ДИ или КИ се посочва към коя фактура е то
     	if($rec->type != 'invoice') {
-    		$type = $this->class->getVerbal($rec, 'type');
-    		$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+    		$type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';
+    		$result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
     		
     		// Намираме оридиджана на фактурата върху която е ДИ или КИ
     		$origin = $origin->getOrigin();
+    		
+    		// Ако е Ди или Ки без промяна не може да се контира
+    		if(Mode::get('saveTransaction')){
+    			if(!$rec->dealValue){
+    				acc_journal_RejectRedirect::expect(FALSE, "Дебитното/кредитното известие не може да бъде контирано, докато сумата е нула");
+    			}
+    		}
     	} 
     	 
     	if($origin->isInstanceOf('findeals_AdvanceReports')){

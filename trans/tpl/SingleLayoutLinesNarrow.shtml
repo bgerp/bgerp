@@ -18,9 +18,9 @@
 	                </td>
 	            </tr>
 	            <tr>
-	                <td class="cell custom-header-bg" style='width:35%;'><b>|Възложител|*</b>
+	                <td class="cell custom-header-bg" style='width:50%;'><b>|Възложител|*</b>
 	                </td>
-	                <td class="cell custom-header-bg" style='width:35%;'><b>|Изпълнител|*</b>
+	                <td class="cell custom-header-bg" style='width:50%;'><b>|Изпълнител|*</b>
 	                </td>
 	            </tr>
 	            <tr>

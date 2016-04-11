@@ -17,7 +17,7 @@
 	                    </td>
 	                </tr>
 	                <tr>
-	                    <td class="cell custom-header-bg"><b>Receiver</b></td>
+	                    <td class="cell custom-header-bg"  style="width: 50%"><b>Receiver</b></td>
 	                    <td class="cell custom-header-bg"><b>Supplier</b></td>
 	                </tr>
 	                <tr>
@@ -73,6 +73,12 @@
                                 <td><span class='cCode'>[#currencyId#]</span></td>
                             </tr>
                             <!--ET_END currencyId-->
+                            <!--ET_BEGIN activityCenterId-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%'>Activity center:</td>
+                                <td>[#activityCenterId#]</td>
+                            </tr>
+                            <!--ET_END activityCenterId-->
                         </table>
                         <!--ET_BEGIN note-->
                         <hr>
@@ -136,6 +142,7 @@
                         </table>
                         <hr>
                         <div>Received: [#received#]</div>
+                        <div>Delivered: [#delivered#]</div>
                     </td>
                 </tr>
             </tbody>

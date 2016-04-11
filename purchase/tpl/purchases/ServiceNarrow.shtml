@@ -16,7 +16,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg"  style="width: 50%"><b>|Получател|*</b></td>
                     <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
                 </tr>
                 <tr>
@@ -126,7 +126,7 @@
                     <!--ET_END isDelivered-->
                 <!--ET_END conditions-->
                 <hr>
-                <table class='no-border paddingCells business-doc-summary-table'>
+                <table class='no-border paddingCells business-doc-summary-table fright'>
                     <tr class='nowrap'>
                         <td>|Стойност|* :</td>
                         <td><span class='cCode'>[#currencyId#]</span></td>
@@ -166,6 +166,7 @@
                         <td><b>[#total#]</b></td>
                     </tr>
                 </table>
+                <div class="clearfix21"></div>
                 <hr>
                 <!--ET_BEGIN responsible-->
                 <div>|Получил|*:  [#responsible#]</div>

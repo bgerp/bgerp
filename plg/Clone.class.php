@@ -149,7 +149,7 @@ class plg_Clone extends core_Plugin
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
-     * @param core_Mvc $mvc
+     * @param core_Manager $mvc
      * @param string $requiredRoles
      * @param string $action
      * @param stdClass $rec
