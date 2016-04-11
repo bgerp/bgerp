@@ -767,7 +767,7 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Частни');
+    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}

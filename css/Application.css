@@ -1373,9 +1373,6 @@ td.portal-date {
 .lighterBold {
   color: #666666; }
 
-.selectRows .listTable > tbody > tr > td:first-child {
-  text-align: center; }
-
 .document-title {
   font-size: 16pt;
   font-weight: bold;

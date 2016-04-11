@@ -1632,9 +1632,12 @@ class doc_Threads extends core_Manager
         	$folderState = doc_Folders::fetchField($data->folderId, 'state');
         	if($folderState == 'closed'){
         		$data->toolbar->removeBtn('*');
+        		if($mvc->hasPlugin('plg_Select')){
+        			unset($data->listFields['_checkboxes']);
+        		}
         	} else {
         		// Може да се добавя нов документ, само ако папката не е затворена
-        		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
+        		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
         		$data->rejQuery->where("#folderId = {$data->folderId}");
@@ -1660,7 +1663,8 @@ class doc_Threads extends core_Manager
             	$Cover = doc_Folders::getCover($data->folderId);
             	$managersIds = self::getFastButtons($Cover->getInstance(), $Cover->that);
         	    
-        	    if(count($managersIds)){
+            	$fState = doc_Folders::fetchField($data->folderId, 'state');
+        	    if(count($managersIds) && ($fState != 'closed' && $fState != 'rejected')){
         	    	
         	    	// Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
         			foreach ($managersIds as $classId){

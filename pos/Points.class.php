@@ -25,7 +25,7 @@ class pos_Points extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, doc_FolderPlg,
+    var $loadList = 'plg_Created, plg_RowTools2, plg_Rejected, doc_FolderPlg,
                      pos_Wrapper, plg_Sorting, plg_Printing, plg_Current,plg_State, plg_Modified';
 
     
@@ -38,13 +38,7 @@ class pos_Points extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, caseId, storeId';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'name, caseId, storeId';
     
     
    /**
