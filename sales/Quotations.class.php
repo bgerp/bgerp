@@ -45,7 +45,7 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
                     doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues';
        
     
@@ -94,7 +94,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, date, title=Документ, folderId, state, createdOn, createdBy';
+    public $listFields = 'date, title=Документ, folderId, state, createdOn, createdBy';
     
 
     /**
@@ -120,13 +120,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId, id';
-    
-   
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
     
     
     /**

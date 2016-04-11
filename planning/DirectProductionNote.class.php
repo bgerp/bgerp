@@ -41,7 +41,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * 
 	 * , acc_plg_Contable
 	 */
-	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
@@ -73,12 +73,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * Кой има право да променя?
 	 */
 	public $canEdit = 'ceo,planning';
-	
-	
-	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
 	
 	
 	/**
@@ -135,7 +129,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, productId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, productId, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**

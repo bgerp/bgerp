@@ -14,6 +14,8 @@
  */
 class purchase_Services extends deals_ServiceMaster
 {
+	
+	
     /**
      * Заглавие
      */
@@ -35,7 +37,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search, doc_SharablePlg';
 
@@ -88,7 +90,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior,title=Документ, folderId, amountDelivered, createdOn, createdBy';
+    public $listFields = 'valior,title=Документ, folderId, amountDelivered, createdOn, createdBy';
 
 
     /**

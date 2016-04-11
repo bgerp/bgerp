@@ -46,7 +46,7 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
     
@@ -113,7 +113,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
 
 
     /**
@@ -152,12 +152,6 @@ class store_Transfers extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "4.5|Логистика";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
