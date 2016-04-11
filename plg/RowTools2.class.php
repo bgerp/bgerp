@@ -101,7 +101,9 @@ class plg_RowTools2 extends core_Plugin
 			            'id' => $rec->id,
 			            'ret_url' => $retUrl);
 			        
-                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");        			
+        			if(!($mvc instanceof core_Master)){
+        				$ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");
+        			}
         		}
         	}
         }
