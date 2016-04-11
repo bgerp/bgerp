@@ -481,7 +481,7 @@ class frame_Reports extends core_Embedder
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('changestate', $data->rec)){
-    		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документа да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
+    		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документът да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
     	}
     	
     	if($mvc->haveRightFor('export', $data->rec)){
