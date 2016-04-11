@@ -1269,7 +1269,7 @@ class HTML5TreeConstructer {
         !preg_match('/^[\t\n\x0b\x0c ]+$/', $token['data']))) {
             /* This specification does not define how to handle this case. In
             particular, user agents may ignore the entirety of this specification
-            altogether for such document, and instead invoke special parse modes
+            altogether for such documents, and instead invoke special parse modes
             with a greater emphasis on backwards compatibility. */
 
             $this->phase = self::ROOT_PHASE;
