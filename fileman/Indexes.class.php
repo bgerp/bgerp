@@ -245,7 +245,7 @@ class fileman_Indexes extends core_Manager
         }
         
         // Вземаме текстовата част за съответното $dataId
-        $rec = fileman_Indexes::fetch("#dataId = '{$fRec->dataId}' AND #type = '{$type}'", '*', FALSE);
+        $rec = fileman_Indexes::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $fRec->dataId, $type), '*', FALSE);
 
         // Ако няма такъв запис
         if (!$rec) return FALSE;
