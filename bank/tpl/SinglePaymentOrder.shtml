@@ -130,11 +130,30 @@
                 <!--ET_BEGIN budgetBlock-->
                 [#budgetBlock#]
                 <div class='bg_white line'>
+                    <div class='text a_right' style="width: 22%;">
+                        <span class='pos_abs abs_right small_text_top_left'>|Период, за който се плаща|*<br>
+                        |От дата|*
+                        </span>
+                    </div>
+                    <div class='text border_l border_r a_right' style="width: 25%;">
+                        <span class='pos_abs abs_right small_text_top_left' style="min-width: 220px">&nbsp;<br>
+                        </span>
+                        <br>[#periodStart#]
+                    </div>
+                    <div class='text a_right' style="width:22%">
+                        <span class='pos_abs abs_right small_text_top_left'><br>|До дата|*<br></span>
+                    </div>
+                    <div style="width:25%;" class="text a_right border_l">
+                        <span class='pos_abs small_text_top_left' style="min-width: 220px;">&nbsp;<br></span>
+                        <br>[#periodEnd#]
+                    </div>
+                </div>
+                <div class='bg_white line'>
                     <div class='text border_r' style="width: 50%;">
                         <span class='pos_abs small_text_top_left'>|Номер на документа, който се плаща|*</span><br>
                         [#documentNumber#]
                     </div>
-                    <div class='text border_r' style="width:14%">
+                    <div class='text border_r' style="width:14%;">
                         <span class='pos_abs small_text_top_left'> &nbsp;</span><br>
                         &nbsp;
                     </div>
