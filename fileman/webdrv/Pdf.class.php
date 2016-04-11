@@ -297,12 +297,14 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Максималния брой опити
         $maxTrays = 30;
         
+        core_App::setTimeLimit(100);
+        
         // Докат се направи JPG на документа или прескочим максималния брой опити
         while ((!($a = fileman_Indexes::getInfoContentByFh($script->fh, 'jpg'))) && ($trays < $maxTrays)){
             
             // Заспиваме процеса
             sleep($sleepTime);
-            Debug::log("Sleep {$sleepTime} sec. in" . __CLASS__);
+            Debug::log("Sleep {$sleepTime} sec. in " . __CLASS__);
 
             // Увеличаваме броя на опитите с единица
             $trays++;
