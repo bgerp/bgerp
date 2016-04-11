@@ -146,6 +146,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			$form->setField('storeId', 'input');
     		}
     	}
+    	
+    	if($rec->type == 'pop'){
+    		$form->setField('storeId', 'input=none');
+    	}
     }
     
     
@@ -280,6 +284,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	// Рендираме таблицата с отпадъците
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
     		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
+    		unset($data->listFields['storeId']);
     		
     		$pData = clone $data;
     		$pData->rows = $data->popArr;
