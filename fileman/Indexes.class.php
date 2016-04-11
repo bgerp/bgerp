@@ -245,7 +245,7 @@ class fileman_Indexes extends core_Manager
         }
         
         // Вземаме текстовата част за съответното $dataId
-        $rec = fileman_Indexes::fetch("#dataId = '{$fRec->dataId}' AND #type = '{$type}'");
+        $rec = fileman_Indexes::fetch("#dataId = '{$fRec->dataId}' AND #type = '{$type}'", '*', FALSE);
 
         // Ако няма такъв запис
         if (!$rec) return FALSE;
@@ -307,7 +307,9 @@ class fileman_Indexes extends core_Manager
     static function isProcessStarted($params, $trim=FALSE)
     {
         // Ако няма lockId
-        if (!$params['lockId']) $params['lockId']=fileman_webdrv_Generic::getLockId($params['type'], $params['dataId']);
+        if (!$params['lockId']) {
+            $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $params['dataId']);
+        }
 
         // Ако процеса е заключен
         if (core_Locks::isLocked($params['lockId'])) return TRUE;
