@@ -45,14 +45,14 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
+    var $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
      	plg_Sorting,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+    var $listFields = "valior, title=Документ, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
     
     
     /**
@@ -65,12 +65,6 @@ class cash_InternalMoneyTransfer extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'ceo,cash';
-	
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
     
     
     /**
