@@ -1657,7 +1657,9 @@ class doc_Threads extends core_Manager
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-            	$managersIds = self::getFastButtons($data->folderId);
+            	$Cover = doc_Folders::getCover($data->folderId);
+            	$managersIds = self::getFastButtons($Cover->getInstance(), $Cover->that);
+        	    
         	    if(count($managersIds)){
         	    	
         	    	// Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
@@ -1687,13 +1689,11 @@ class doc_Threads extends core_Manager
      * @param int $folderId - ид на папката
      * @return array $res - намерените мениджъри
      */
-    private static function getFastButtons($folderId)
+    public static function getFastButtons($coverClass, $coverId)
     {
-    	$Cover = doc_Folders::getCover($folderId);
-    	if(!$Cover->haveInterface('doc_FolderIntf')) return;
-    	
-    	$managers = $Cover->getDocButtonsInFolder();
-    	
+    	expect($Cover = cls::get($coverClass));
+    	$managers = $Cover->getDocButtonsInFolder($coverId);
+    
     	$res = array();
     	if(is_array($managers) && count($managers)){
     		foreach ($managers as $manager){
