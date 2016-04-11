@@ -93,7 +93,7 @@ class log_Classes extends core_Manager
      * @param string $action
      * @param boolean $autoSave
      * 
-     * @return integer
+     * @return integer|NULL
      */
     public static function getClassCrc($className, $autoSave = TRUE)
     {

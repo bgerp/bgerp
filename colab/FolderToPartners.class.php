@@ -176,7 +176,7 @@ class colab_FolderToPartners extends core_Manager
                 }
             }
             
-            if ($rejectedArr) {
+            if (!empty($rejectedArr)) {
                 foreach ($rejectedArr as $contractorId => $rejectedRow) {
                     $data->partners[$contractorId] = $rejectedRow;
                     $data->partners[$contractorId]->count = cls::get('type_Int')->toVerbal($count);
@@ -354,7 +354,7 @@ class colab_FolderToPartners extends core_Manager
     	$form->FNC('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory, input');
     	
     	$emailsArr = type_Emails::toArray($companyRec->email);
-    	if ($emailsArr) {
+    	if (!empty($emailsArr)) {
     	    $emailsArr = array_combine($emailsArr, $emailsArr);
     	    $emailsArr = array('' => '') + $emailsArr;
     	}

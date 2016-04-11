@@ -2595,6 +2595,10 @@ function efae() {
 
     // Кога за последно е стартирана AJAX заявка към сървъра
     efae.prototype.ajaxLastTime = new Date();
+    
+    // Интервал над който ще се нулира брояча
+    // Когато устройството е заспало, да се форсират всички табове след събуждане (30 мин)
+    efae.prototype.forceStartInterval = 1800000;
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
@@ -2914,7 +2918,13 @@ efae.prototype.getSubscribed = function() {
 
     // Разликата между текущото време и последното извикване
     var diff = now - this.ajaxLastTime;
-
+    
+    // Нулираме брояча, ако дълго време не е стартирано
+    // Ако е заспало устройството да се уеднаквят табовете при събуждане
+    if (diff >= this.forceStartInterval) {
+    	this.resetTimeout();
+    }
+    
     // Ако времето от последното извикване и е по - голяма от интервала
     if (diff >= this.ajaxInterval) {
 

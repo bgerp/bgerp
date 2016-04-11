@@ -175,7 +175,7 @@ class log_Data extends core_Manager
      */
     public static function canViewUserLog($userId, $currUserId = NULL)
     {
-        if (!$currUserId) {
+        if (!isset($currUserId)) {
             $currUserId = core_Users::getCurrent();
         }
         
@@ -253,7 +253,7 @@ class log_Data extends core_Manager
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
         
-        if ($type) {
+        if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));
         }
         
@@ -287,7 +287,7 @@ class log_Data extends core_Manager
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
         
-        if ($type) {
+        if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));
         }
         
@@ -342,7 +342,7 @@ class log_Data extends core_Manager
     public static function flush()
     {
         // Ако няма данни за добавяне, няма нужда да се изпълнява
-        if (!self::$toAdd) return ;
+        if (empty(self::$toAdd)) return ;
         
         $ipId = log_Ips::getIpId();
         $bridId = log_Browsers::getBridId();
@@ -380,11 +380,11 @@ class log_Data extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fieldsArr = array())
     {
-        if (!$fieldsArr || $fieldsArr['brId']) {
+        if (empty($fieldsArr) || $fieldsArr['brId']) {
             $row->brId = log_Browsers::getLinkFromId($rec->brId);
         }
         
-        if ($rec->time && (!$fieldsArr || $fieldsArr['actTime'])) {
+        if ($rec->time && (empty($fieldsArr) || $fieldsArr['actTime'])) {
             $time = dt::timestamp2Mysql($rec->time);
             $row->actTime = dt::mysql2verbal($time, 'smartTime');
         }
@@ -399,19 +399,19 @@ class log_Data extends core_Manager
         
         $action = tr($action);
         
-        if (!$fieldsArr || $fieldsArr['actionCrc']) {
+        if (empty($fieldsArr) || $fieldsArr['actionCrc']) {
             $typeVarchar = cls::get('type_Varchar');
             $row->actionCrc = str_replace(self::$objReplaceInAct, '', $action);
             $row->actionCrc = $typeVarchar->toVerbal($row->actionCrc);
         }
         
         $className = log_Classes::getClassFromCrc($rec->classCrc);
-        if (!$fieldsArr || $fieldsArr['classCrc']) {
+        if (empty($fieldsArr) || $fieldsArr['classCrc']) {
             $typeClass = cls::get('type_Class');
             $row->classCrc = $typeClass->toVerbal($className);
         }
         
-        if (!$fieldsArr || $fieldsArr['text']) {
+        if (empty($fieldsArr) || $fieldsArr['text']) {
             $row->text = self::prepareText($action, $className, $rec->objectId);
             
             // Добавяме линк към реферера
@@ -547,7 +547,7 @@ class log_Data extends core_Manager
                 $actArr[$actRec->id] = $actRec->crc;
             }
             
-            if ($actArr) {
+            if (!empty($actArr)) {
                 $query->in('actionCrc', $actArr);
             } else {
                 
@@ -568,7 +568,7 @@ class log_Data extends core_Manager
                 $ipArr[$ipRec->id] = $ipRec->id;
             }
             
-            if ($ipArr) {
+            if (!empty($ipArr)) {
                 $query->in('ipId', $ipArr);
             } else {
                 // Ако няма намерен текст, да не се показва никакъв резултат
@@ -621,7 +621,7 @@ class log_Data extends core_Manager
             }
         }
         
-        if ($classSuggArr) {
+        if (!empty($classSuggArr)) {
             $classSuggArr = array('' => '') + $classSuggArr;
             $data->listFilter->setOptions('class', $classSuggArr);
         }
@@ -629,7 +629,7 @@ class log_Data extends core_Manager
         // Филтрираме по клас
         if (trim($rec->class)) {
             $crc = log_Classes::getClassCrc($rec->class, FALSE);
-            if ($crc) {
+            if (isset($crc)) {
                 $query->where("#classCrc = '{$crc}'");
             } else {
                 $query->where("1=2");
@@ -684,7 +684,7 @@ class log_Data extends core_Manager
         }
         
         // Добавяме обектите, за които има запис
-        if ($objSuggArr) {
+        if (!empty($objSuggArr)) {
             $objSuggArr = array('' => '') + $objSuggArr;
             $data->listFilter->setOptions('object', $objSuggArr);
         }

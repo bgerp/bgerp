@@ -17,8 +17,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
-                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg" style="width: 50%"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg" style="width: 50%"><b>|Доставчик|*</b></td>
                 </tr>
                 <tr>
                     <td class="cell">

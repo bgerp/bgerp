@@ -61,7 +61,7 @@ class email_Sent
             'mid'     => $body->__mid,
             'encoding' => $options['encoding'],
             'attachments' => (is_array($body->attachments)) ? keylist::fromArray($body->attachments) :$body->attachments,
-            'documents' => (is_array($body->documents)) ? keylist::fromArray($body->documents) :$body->documents,
+            'document' => (is_array($body->documents)) ? keylist::fromArray($body->documents) :$body->documents,
         );
         
         $message = (object)$messageBase;

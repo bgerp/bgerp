@@ -164,7 +164,7 @@ class acc_Balances extends core_Master
     	
     		if($fields['-list']){
     			if($mvc->haveRightFor('single', $rec)){
-    				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->periodId}");
+    				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
     			}
     		}
     	}

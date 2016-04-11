@@ -534,6 +534,7 @@ select {
     background-repeat: no-repeat !important;
     background-position: center right !important;
     padding-right: 1em;
+    padding-left: 0.2em;
     -webkit-border-radius: 0; }
 
   .wide select {

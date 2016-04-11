@@ -16,7 +16,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>Receiver</b></td>
+                    <td class="cell custom-header-bg"  style="width: 50%"><b>Receiver</b></td>
                     <td class="cell custom-header-bg"><b>Supplier</b></td>
                 </tr>
                 <tr>
@@ -117,7 +117,7 @@
                         </div>
                     <!--ET_END purchaseConditions-->
                     <hr>
-                        <table style='float:right; width:100%;' class='business-doc-summary-table'>
+                        <table style='float:right; width:100%;' class='business-doc-summary-table  fright'>
                             <tr class='nowrap'>
                                 <td class='aright'>Value :</td>
                                 <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
@@ -168,6 +168,7 @@
                                 </td>
                             </tr>
                         </table>
+                    <div class="clearfix21"></div>
                     <hr>
                     <!--ET_BEGIN responsible-->
                         <div>Receiver: [#responsible#]</div>
@@ -176,9 +177,7 @@
                         <div>Created by: [#username#]</div>
                     <!--ET_END username--> 
                  </td>
-                  
             </tr>
-            
         </tbody>
     </table>
 </div>

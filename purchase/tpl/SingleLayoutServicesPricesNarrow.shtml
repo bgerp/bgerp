@@ -17,7 +17,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg" style="width: 50%"><b>|Получател|*</b></td>
                     <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
                 </tr>
                 <tr>
@@ -72,6 +72,12 @@
                                 <td><span class='cCode'>[#currencyId#]</span></td>
                             </tr>
                             <!--ET_END currencyId-->
+                            <!--ET_BEGIN activityCenterId-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%'>|Център на дейност|*:</td>
+                                <td>[#activityCenterId#]</td>
+                            </tr>
+                            <!--ET_END activityCenterId-->
                         </table>
                         <!--ET_BEGIN note-->
                         <hr>
@@ -134,6 +140,7 @@
                         </table>
                          <hr>
                         <div>|Получил|*: [#received#]</div>
+                        <div>|Доставил|*: [#delivered#]</div>
                     </td>
                 </tr>
             </tbody>

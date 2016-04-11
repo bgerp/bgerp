@@ -198,7 +198,7 @@ class cat_products_SharedInFolders extends core_Manager
     	if($data->hide == TRUE) return;
     	
     	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-    	$tpl->append('Папки, в които артикулът е достъпен:', 'title');
+    	$tpl->append(tr('Папки, в които артикулът е достъпен'), 'title');
     	
     	if(isset($data->addUrl)){
     		$ht = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне папки на контрагенти');

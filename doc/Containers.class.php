@@ -1467,13 +1467,9 @@ class doc_Containers extends core_Manager
                 $instanceArr[$id] = cls::get($className);
                 
                 $abbr = strtoupper($instanceArr[$id]->abbr);
-                
-                // Ако сме в дебъг режим
-                if (isDebug()) {
-                    
-//                    expect(trim($instanceArr[$id]->abbr), $instanceArr[$id]);
-                    expect(!$abbrArr[$abbr], $abbr, $abbrArr[$abbr], $className);
-                }
+				
+                expect(i18n_Charset::is7Bit($abbr), $abbr, $abbrArr[$abbr], $className);
+                expect(!$abbrArr[$abbr], $abbr, $abbrArr[$abbr], $className);
                 
                 // Ако няма абревиатура
                 if (!trim($abbr)) continue;

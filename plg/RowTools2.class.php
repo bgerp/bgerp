@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'plg_RowTools2' - Dropdown инструменти за изтриване и редактиране на ред
+ * Клас 'plg_RowTools2' - Dropdown инструменти действия с реда
  *
  *
  * @category  bgerp
@@ -69,7 +69,7 @@ class plg_RowTools2 extends core_Plugin
 
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Изтриване на|* {$singleTitle},id=edt{$rec->id}");
+            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$rec->id}");
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
@@ -199,8 +199,7 @@ class plg_RowTools2 extends core_Plugin
             		$tools->removeBtn("single{$rec->id}");
             	}
             	
-            	// Рендираме тулбара
-                $tools = $tools->renderHtml();
+                $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow);
                 if($tools) {
                     $mustShow = TRUE;
                 }
@@ -213,5 +212,4 @@ class plg_RowTools2 extends core_Plugin
             $data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));	
         }
     }
-
 }

@@ -94,6 +94,8 @@ class core_Cron extends core_Manager
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
 
         $this->setDbUnique('systemId,offset,delay');
+		
+        $this->dbEngine = 'InnoDB';
     }
     
     

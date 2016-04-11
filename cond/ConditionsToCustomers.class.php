@@ -44,7 +44,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да вижда списъчния изглед
      */
-    public $canList = 'no_one';
+   // public $canList = 'no_one';
     
     
     /**
@@ -97,24 +97,23 @@ class cond_ConditionsToCustomers extends core_Manager
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
-    	if(isset($rec->id)){
+    	if(!$form->rec->id){
+    		$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
+    	} else {
     		$form->setReadOnly('conditionId');
     	}
     	
-    	if(isset($rec->conditionId)){
-    		$condType = cond_Parameters::fetchField($rec->conditionId, 'type');
-    		
-    		if($condType == 'delCond'){
-    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
-    		} elseif($condType == 'payMethod'){
-    			$form->fields['value']->type = cls::get('type_Key', array('params' => array('mvc' => 'cond_paymentMethods', 'select' => 'description', 'allowEmpty' => 'allowEmpty')));
-    		} else {
-    			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters');
-    		}
-    	} else {
-    		$form->setField('value', 'input=hidden');
-    	}
+    	if($form->rec->conditionId){
+        	if($Driver = cond_Parameters::getDriver($form->rec->conditionId)){
+        		$form->setField('value', 'input');
+        		$pRec = cond_Parameters::fetch($form->rec->conditionId);
+        		if($Type = $Driver->getType($pRec)){
+        			$form->setFieldType('value', $Type);
+        		}
+        	} else {
+        		$form->setError('conditionId', 'Има проблем при зареждането на типа');
+        	}
+        }
     }
     
 	
@@ -136,7 +135,7 @@ class cond_ConditionsToCustomers extends core_Manager
         } else {
             $options = array();
         }
-
+		
         return $options;
     }
     
@@ -177,20 +176,11 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$type = cond_Parameters::fetchField($rec->conditionId, 'type');
-        if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
-        	try{
-        		$Type = cls::get("type_{$type}");
-        		$row->value = $Type->toVerbal($rec->value);
-        	} catch(core_exception_Expect $e){
-        		$row->value = "??????????????";
-        	}
-            
-        } elseif($type == 'delCond'){
-            $row->value = cond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
-        } elseif($type == 'payMethod'){
-            $row->value = cond_paymentMethods::getTitleById($rec->value);
-        }
+    	$paramRec = cond_Parameters::fetch($rec->conditionId);
+    	
+    	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
+    		$row->value = $ParamType->toVerbal(trim($rec->value));
+    	}
     }
     
     

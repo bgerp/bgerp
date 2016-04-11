@@ -234,7 +234,9 @@ class acc_Lists extends core_Manager {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
-        $row->featureList = type_Varchar::escape(implode(', ', $rec->featureList));
+    	if(is_array($rec->featureList)){ 
+    		$row->featureList = type_Varchar::escape(implode(', ', $rec->featureList));
+    	}
     }
     
     

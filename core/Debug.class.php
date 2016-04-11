@@ -1,6 +1,9 @@
 <?php
 
-// Дали знака '@' преди функция да предизвиква подтискане на грешките в нея?
+
+/**
+ * Дали знака '@' преди функция да предизвиква подтискане на грешките в нея?
+ */
 defIfNot('CORE_ENABLE_SUPRESS_ERRORS', TRUE);
 
 // Кои грешки да се показват?
@@ -11,10 +14,16 @@ if(defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev' || BGERP_GIT_BRANCH
     defIfNot('CORE_ERROR_LOGGING_LEVEL', E_ERROR | E_PARSE | E_CORE_ERROR | E_STRICT | E_COMPILE_ERROR | E_WARNING);
 }
 
-// Кои грешки да се логват
+
+/**
+ * Кои грешки да се логват
+ */
 defIfNot('CORE_ERROR_LOGGING_LEVEL', CORE_ERROR_REPORTING_LEVEL);
 
-// Колко секунди да е валидно cookie за дебъг режим?
+
+/**
+ * Колко секунди да е валидно cookie за дебъг режим?
+ */
 defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
 
 
@@ -32,30 +41,49 @@ defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
  */
 class core_Debug
 {
-	static $startMicroTime;
-
-	static $lastMicroTime;
-
-    static $debugTime = array();
-
-    static $timers = array();
+    
+    
+    /**
+     * 
+     */
+	public static $startMicroTime;
+    
+	
+	/**
+	 * 
+	 */
+	public static $lastMicroTime;
+    
+	
+	/**
+	 * 
+	 */
+    public static $debugTime = array();
+    
+    
+    /**
+     * 
+     */
+    public static $timers = array();
+    
     
     /**
      * Дали дебъгера да записва
      * Това е един начин, да се изключат логовете на дебъгера
      */
-    static $isLogging = TRUE;
+    public static $isLogging = TRUE;
     
-
+    
     /**
      * Дали се рапортуват грешки на отдалечен компютър
      */
-    static $isErrorReporting = TRUE;
-
+    public static $isErrorReporting = TRUE;
+    
+    
     /**
      * Кеш - дали се намираме в DEBUG режим
      */
-    static $isDebug;
+    public static $isDebug;
 
 
     /**

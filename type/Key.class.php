@@ -181,7 +181,7 @@ class type_Key extends type_Int
      * 
      * @param string|int|NULL $key
      * 
-     * @return mixed
+     * @return string
      */
     public function prepareKey($key)
     {

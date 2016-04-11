@@ -58,7 +58,7 @@
                 [#rkoRow#]
                 <tr>
                     <td colspan='2'>
-                        <table style='width:100%'>
+                        <table style='width:100%' class="no-border">
                             <tr>
                                 <!--ET_BEGIN notes-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px'>

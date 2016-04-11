@@ -589,7 +589,7 @@ class core_App
             }
         }
         
-        if ($parentUrlArr) {
+        if (!empty($parentUrlArr)) {
             $params = $parentUrlArr;
         } else {
             // Всички параметри в рекуеста
@@ -602,7 +602,7 @@ class core_App
         }
         
         // Ако има параметри
-        if ($params) {
+        if (!empty($params)) {
             
             // Премахваме ненужните
             unset($params['virtual_url'], $params['ajax_mode']);
@@ -868,7 +868,7 @@ class core_App
         unset($params['Ctr'], $params['App'], $params['Act'], $params['id']);
         
         // Ако е сетнат масива
-        if ($preParamsArr) {
+        if (!empty($preParamsArr)) {
             
             // В пътя допускаме само букви, цифри , тере, долна черта и точка
             $pattern = "/^[A-Za-z0-9_\-\.]*$/";

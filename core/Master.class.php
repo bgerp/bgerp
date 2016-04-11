@@ -20,13 +20,13 @@ class core_Master extends core_Manager
     /**
      * Мениджърите на детайлите записи към обекта
      */
-    var $details;
+    public $details;
     
     
     /**
      * Титлата на обекта в единичен изглед
      */
-    var $singleTitle;
+    public $singleTitle;
     
     
     /**
