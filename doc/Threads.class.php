@@ -1632,6 +1632,9 @@ class doc_Threads extends core_Manager
         	$folderState = doc_Folders::fetchField($data->folderId, 'state');
         	if($folderState == 'closed'){
         		$data->toolbar->removeBtn('*');
+        		if($mvc->hasPlugin('plg_Select')){
+        			unset($data->listFields['_checkboxes']);
+        		}
         	} else {
         		// Може да се добавя нов документ, само ако папката не е затворена
         		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
