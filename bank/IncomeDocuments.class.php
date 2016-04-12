@@ -136,13 +136,15 @@ class bank_IncomeDocuments extends bank_Document
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if($data->rec->state == 'draft') {
-            if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($data->rec->creditAccId, 'crm_ContragentAccRegIntf')) {
-                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново платежно нареждане');
+        $rec = $data->rec;
+        
+    	if($rec->state == 'draft') {
+            if(bank_PaymentOrders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново платежно нареждане');
             }
             
-            if(bank_DepositSlips::haveRightFor('add')){
-                $data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на нова вносна бележка');
+            if(bank_DepositSlips::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))){
+                $data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на нова вносна бележка');
             }
         }
     }
