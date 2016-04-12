@@ -1,22 +1,41 @@
 <?php
 
-class trans_Fees extends core_Manager
+class trans_Fees extends core_Detail
 {
+
+    /**
+     * Заглавие
+     */
     public $title = "Налва";
+
+    /**
+     * Плъгини за зареждане
+     */
     public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper, plg_AlignDecimals2";
 
+    /**
+     * Ключ към core_Master
+     */
+    public $masterKey = 'feeId';
+
+    /**
+     * Единично заглавие
+     */
+    public $singleTitle = "държава и п.Код";
 
 
+    /**
+     * Описание на модела (таблицата)
+     */
     public function description()
     {
-        $this->FLD('zoneId', 'key(mvc=trans_ZoneNames, select=name)', 'caption=Зона, mandatory');
+        $this->FLD('feeId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
         $this->FLD('weight', 'double(min=0)', 'caption=Тегло, mandatory');
         $this->FLD('price', 'double(min=0)', 'caption=Цена, mandatory');
     }
 
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
-     * @param int       $deliveryTerm       Условие на доставка
      * @param int       $countryId          id на съотверната държава
      * @param string    $pCode              пощенски код
      *
@@ -28,14 +47,14 @@ class trans_Fees extends core_Manager
      * @return array[1] $zoneId             Id на зоната
      */
 
-    public static function calcFee($deliveryTerm, $countryId, $pCode, $totalWeight, $singleWeight = 1)
+    public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
         //bp($deliveryTerm, $countryId, $pCode);
-        $zoneId = trans_Zones::getZoneId($deliveryTerm, $countryId, $pCode);
-//        bp($zoneId);
+        $zone = trans_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
+//        bp($zone);
         //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
 
@@ -46,9 +65,7 @@ class trans_Fees extends core_Manager
 
         //Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = trans_Fees::getQuery();
-            expect($zoneId > 0);
-
-            $query->where(array("#zoneId = [#1#]", $zoneId));
+            $query->where(array("#feeId = [#1#]", $zone['zoneId']));
 
         while($rec = $query->fetch()){
             //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
@@ -125,8 +142,6 @@ class trans_Fees extends core_Manager
         /*
          * Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
          */
-
-
-        return array($finalPrice, $result, $zoneId);
+        return array($finalPrice, $result, $zone['zoneId']);
     }
 }

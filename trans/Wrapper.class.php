@@ -23,7 +23,7 @@ class trans_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('trans_Lines', 'Линии', 'ceo,trans');
     	$this->TAB('trans_Vehicles', 'Превозни средства', 'ceo,trans');
-        $this->TAB('trans_ZoneNames', 'Зони', 'ceo, trans');
+        $this->TAB('trans_FeeZones', 'Зони', 'ceo, trans');
         $this->TAB('trans_Zones', 'Транспорт', 'ceo, trans');
         $this->TAB('trans_Fees', 'Налва', 'ceo, trans');
         $this->title = 'Транспорт';
