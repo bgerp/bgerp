@@ -374,7 +374,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     	
-    	foreach ($recs as $jRec){bp($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
+    	foreach ($recs as $jRec){
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
     	}
 
