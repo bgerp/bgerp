@@ -124,7 +124,7 @@ class bank_PaymentOrders extends core_Master
      */
     function description()
     {
-        $this->FLD('documentType', 'enum(transfer=кредитен превод,budget=плащане от/към бюджета)', 'caption=Вид на пл. нареждане,default=transfer,removeAndRefreshForm = paymentType|documentNumber|periodStart|periodEnd|liablePerson|vatId|EGN|LNC,silent');
+        $this->FLD('documentType', 'enum(transfer=Кредитен превод,budget=Плащане от/към бюджета)', 'caption=Вид на пл. нареждане,default=transfer,removeAndRefreshForm = paymentType|documentNumber|periodStart|liablePerson|vatId|EGN|LNC,silent');
 
         $this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
@@ -166,7 +166,7 @@ class bank_PaymentOrders extends core_Master
             $form->setField("paymentType", "input=none");
             $form->setField("documentNumber", "input=none");
             $form->setField("periodStart", "input=none");
-            $form->setField("periodEnd", "input=none");
+          //  $form->setField("periodEnd", "input=none");
             $form->setField("liablePerson", "input=none");
             $form->setField("vatId", "input=none");
             $form->setField("EGN", "input=none");
