@@ -107,17 +107,6 @@ class bank_PaymentOrders extends bank_DocumentBlank
         $form = &$data->form;
         $originId = $form->rec->originId;
 
-        if($form->rec->documentType != "budget") {
-            $form->setField("paymentType", "input=none");
-            $form->setField("documentNumber", "input=none");
-            $form->setField("periodStart", "input=none");
-            $form->setField("periodEnd", "input=none");
-            $form->setField("liablePerson", "input=none");
-            $form->setField("vatId", "input=none");
-            $form->setField("EGN", "input=none");
-            $form->setField("LNC", "input=none");
-        }
-
         if($originId) {
             $doc = doc_Containers::getDocument($originId);
             $docRec = $doc->fetch();
@@ -178,6 +167,17 @@ class bank_PaymentOrders extends bank_DocumentBlank
     {
         $rec = &$form->rec;
     	
+		if($rec->documentType != "budget") {
+        	$form->setField("paymentType", "input=none");
+        	$form->setField("documentNumber", "input=none");
+        	$form->setField("periodStart", "input=none");
+        	$form->setField("periodEnd", "input=none");
+        	$form->setField("liablePerson", "input=none");
+        	$form->setField("vatId", "input=none");
+        	$form->setField("EGN", "input=none");
+        	$form->setField("LNC", "input=none");
+        }
+        
     	if($form->isSubmitted()) {
             if (!$rec->execBank) {
                 $rec->execBank = bglocal_Banks::getBankName($rec->ordererIban);
