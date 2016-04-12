@@ -660,6 +660,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($form->rec->currencyId == acc_Periods::getBaseCurrencyCode($form->rec->date)){
     		$form->setField('displayRate', 'input=hidden');
     	}
+    	
+    	$noReason1 = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
+    	$noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
+    	$suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
+    	$form->setSuggestions('vatReason', $suggestions);
     }
     
     
@@ -803,6 +808,14 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-single']){
+    		if(empty($rec->vatReason)){
+    			if(TRUE || !drdata_Countries::isEu($rec->contragentCountryId)){
+    				$row->vatReason = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
+    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    				$row->vatReason = acc_Setup::get('VAT_REASON_IN_EU');
+    			}
+    		}
+    		
     		core_Lg::push($rec->tplLang);
     		
     		if($rec->originId && $rec->type != 'invoice'){

@@ -35,6 +35,18 @@ defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
 
 
 /**
+ * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
+ */
+defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
+
+
+/**
+ * Основание за неначисляване на ДДС за контрагент извън ЕС
+*/
+defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -123,6 +135,8 @@ class acc_Setup extends core_ProtoSetup
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
         'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
     	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
+    	'ACC_VAT_REASON_OUTSIDE_EU' => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
+    	'ACC_VAT_REASON_IN_EU'      => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
     );
     
     

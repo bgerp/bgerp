@@ -310,14 +310,6 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
 		
     	if($fields['-single']){
-    		if(empty($rec->vatReason)){
-    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
-    				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
-    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
-    				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');
-    			}
-    		}
-    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
