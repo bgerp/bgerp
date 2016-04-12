@@ -3,7 +3,7 @@
 
 
 /**
- * Документ за наследяване от банковите бланки
+ * Документ за наследяване от банковите бланки (Платежно нареждане, Вносна бележка и Нареждане разписка)
  *
  *
  * @category  bgerp
@@ -30,21 +30,9 @@ abstract class bank_DocumentBlank extends core_Master
 	
 	
 	/**
-	 * Кой има право да чете?
+	 * Кой има право да разглежда документа?
 	 */
-	public $canRead = 'bank, ceo';
-	
-	
-	/**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'bank,ceo';
-	
-	
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'bank,ceo';
+	public $canSingle = 'bank, ceo';
 	
 	
 	/**
@@ -57,6 +45,12 @@ abstract class bank_DocumentBlank extends core_Master
 	 * Кой може да създава
 	 */
 	public $canAdd = 'bank, ceo';
+	
+	
+	/**
+	 * Кой има право да редактира?
+	 */
+	public $canEdit = 'bank, ceo';
 	
 	
 	/**
