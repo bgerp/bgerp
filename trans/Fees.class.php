@@ -1,22 +1,38 @@
 <?php
 
+
+/**
+ * Модел "Изчисляване на налва"
+ *
+ *
+ * @category  bgerp
+ * @package   survey
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class trans_Fees extends core_Detail
 {
+
 
     /**
      * Заглавие
      */
     public $title = "Налва";
 
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper, plg_AlignDecimals2";
 
+
     /**
      * Ключ към core_Master
      */
     public $masterKey = 'feeId';
+
 
     /**
      * Единично заглавие
@@ -34,6 +50,7 @@ class trans_Fees extends core_Detail
         $this->FLD('price', 'double(min=0)', 'caption=Цена, mandatory');
     }
 
+
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
      * @param int       $countryId          id на съотверната държава
@@ -46,15 +63,13 @@ class trans_Fees extends core_Detail
      * @return array[1] $result             Резултат за подадената единица $singleWeight
      * @return array[1] $zoneId             Id на зоната
      */
-
     public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
-        //bp($deliveryTerm, $countryId, $pCode);
         $zone = trans_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
-//        bp($zone);
+
         //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
 
@@ -93,6 +108,7 @@ class trans_Fees extends core_Detail
         if (!isset($weightsLeft)){
             $weightsLeft = 0;
         }
+
         // Покриване на специалните случаи, които въведеното тегло е най-голямо
         if ($biggestWeight < $weightsRight){
             end($indexedArray);
@@ -121,8 +137,9 @@ class trans_Fees extends core_Detail
              * a = (y1 - y2) / (x1 - x2)
              * b = y1 - ((y1 - y2) / (x1 - x2) * x1);
              * y3 = a*x3 + b // y3 = finalPrice
+             * Възможно е float да се запази като string, така че ги преобразяваме
              */
-            //Възможно е float да се запази като string, така че ги преобразяваме
+
             $weightsLeft = floatval($weightsLeft);
             $weightsRight = floatval($weightsRight);
             $priceLeft = floatval($arrayOfWeightPrice[$weightsLeft]);
@@ -134,6 +151,8 @@ class trans_Fees extends core_Detail
             $finalPrice = $a * $totalWeight + $b;
 
         }
+
+
         /*
          * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
          */
