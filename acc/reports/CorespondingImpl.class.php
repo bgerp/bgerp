@@ -123,7 +123,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		if(count($sets)){
     			$i = 1;
     			foreach ($sets as $listId => $caption){
-    				$form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойства|*");
+    				$form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойства|*,placeholder=Без показване,class=w100");
     				$form->FLD("list{$i}", 'int', "input=hidden");
     				$form->setDefault("list{$i}", $listId);
     				
@@ -187,7 +187,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	// Проверяваме дали началната и крайната дата са валидни
     	if($form->isSubmitted()){
     		if($form->rec->to < $form->rec->from){
-    			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    			$form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
     		}
     		
     		if($form->rec->orderBy == ''){
@@ -374,10 +374,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     	
-    	foreach ($recs as $jRec){
+    	foreach ($recs as $jRec){bp($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
     	}
-    	
+
     	// Ако има намерени записи
     	if(count($data->recs)){ 
     		
@@ -416,7 +416,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			}
     		}
     	}
-    	
+    
 		// Обработваме обобщената информация
     	$this->prepareSummary($data);
 
@@ -744,66 +744,63 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     private function addEntry($baseAccountId, $jRec, &$data, $groupBy, $form, $features, &$recs)
     {
     	
-    	// Обхождаме дебитната и кредитната част, И намираме в какви номенклатури имат сметките
-    	foreach (array('debit', 'credit') as $type){
-    		if(!isset($this->cache2[$jRec->{"{$type}AccId"}])){
-    			$this->cache2[$jRec->{"{$type}AccId"}] = acc_Accounts::fetch($jRec->{"{$type}AccId"}, 'groupId1,groupId2,groupId3');
-    		}
-    	}
-    	
-    	$debitGroups = $this->cache2[$jRec->debitAccId];
-    	$creditGroups = $this->cache2[$jRec->creditAccId];
-    	
-    	$index = array();
-    	foreach (range(1, 6) as $i){
-    		if(!empty($form->{"feat{$i}"})){
-    			foreach (array('debit', 'credit') as $type){
-    				$groups = ${"{$type}Groups"};
-    				foreach (range(1, 3) as $j){
-    					if($groups->{"groupId{$j}"} == $form->{"list{$i}"}){
-    						$key = $jRec->{"{$type}Item{$j}"};
-    						
-    						if($form->{"feat{$i}"} != '*'){
-    							$featValue = $features[$key][$form->{"feat{$i}"}];
-    							$key = isset($featValue) ? $featValue : 'others';
-    						}
-    						
-    						$jRec->{"column{$i}"} = $key;
-    						$index[$i] = $key;
-    					}
-    				}
-    			}
-    		}
-    	}
-    	
-    	// Ако записите няма обект с такъв индекс, създаваме го
-    	$index = implode('|', $index);
-    	if(!array_key_exists($index, $recs)){
-    		$recs[$index] = new stdClass();
-    		
-    		foreach (range(1, 6) as $k){
-    			if(isset($jRec->{"column{$k}"})){
-    				$recs[$index]->{"item{$k}"} = $jRec->{"column{$k}"};
-    				if ($jRec->valior) {
-    				    $recs[$index]->valior = $jRec->valior;
-    				}
-    			}
-    		}
-    	}
-    	
-    	// Сумираме записите
-    	foreach (array('debit', 'credit') as $type){
-    		
-    		// Пропускаме движенията от сметката кореспондент
-    		if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
-    		
-    		// Сумираме дебитния или кредитния оборот
-    		$quantityFld = "{$type}Quantity";
-    		$amountFld = "{$type}Amount";
-    		
-    		$recs[$index]->{$quantityFld} += $jRec->{"{$type}Quantity"};
-    		$recs[$index]->{$amountFld} += $jRec->amount;
-    	}
+        // Обхождаме дебитната и кредитната част, И намираме в какви номенклатури имат сметките
+        foreach (array('debit', 'credit') as $type){
+            if(!isset($this->cache2[$jRec->{"{$type}AccId"}])){
+                $this->cache2[$jRec->{"{$type}AccId"}] = acc_Accounts::fetch($jRec->{"{$type}AccId"}, 'groupId1,groupId2,groupId3');
+            }
+        }
+        
+        $debitGroups = $this->cache2[$jRec->debitAccId];
+        $creditGroups = $this->cache2[$jRec->creditAccId];
+        
+        $index = array();
+        foreach (range(1, 6) as $i){
+            if(!empty($form->{"feat{$i}"})){
+                foreach (array('debit', 'credit') as $type){
+                    $groups = ${"{$type}Groups"};
+                    foreach (range(1, 3) as $j){
+                        if($groups->{"groupId{$j}"} == $form->{"list{$i}"}){
+                            $key = $jRec->{"{$type}Item{$j}"};
+                            
+                            if($form->{"feat{$i}"} != '*'){
+                                $featValue = $features[$key][$form->{"feat{$i}"}];
+                                $key = isset($featValue) ? $featValue : 'others';
+                            }
+                            
+                            $jRec->{"column{$i}"} = $key;
+                            $index[$i] = $key;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Ако записите няма обект с такъв индекс, създаваме го
+        $index = implode('|', $index);
+        if(!array_key_exists($index, $recs)){
+            $recs[$index] = new stdClass();
+            
+            foreach (range(1, 6) as $k){
+                if(isset($jRec->{"column{$k}"})){
+                    $recs[$index]->{"item{$k}"} = $jRec->{"column{$k}"};
+                }
+            }
+        }
+        
+        // Сумираме записите
+        foreach (array('debit', 'credit') as $type){
+            
+            // Пропускаме движенията от сметката кореспондент
+            if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
+            
+            // Сумираме дебитния или кредитния оборот
+            $quantityFld = "{$type}Quantity";
+            $amountFld = "{$type}Amount";
+            
+            $recs[$index]->{$quantityFld} += $jRec->{"{$type}Quantity"};
+            $recs[$index]->{$amountFld} += $jRec->amount;
+        }
     }
     
     
