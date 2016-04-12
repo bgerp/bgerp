@@ -121,7 +121,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	{
 		if($form->isSubmitted()){
 			if($form->rec->toDate < $form->rec->fromDate){
-				$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+				$form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
 			}
 			
 			if($form->rec->orderField == ''){
