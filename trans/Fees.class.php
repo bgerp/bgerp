@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   survey
+ * @package   trans
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
@@ -38,6 +38,54 @@ class trans_Fees extends core_Detail
      * Единично заглавие
      */
     public $singleTitle = "държава и п.Код";
+
+
+    /**
+     * Време за опресняване информацията при лист на събитията
+     */
+    var $refreshRowsTime = 5000;
+
+
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo,admin,trans';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'ceo,admin,trans';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'ceo,admin,trans';
 
 
     /**

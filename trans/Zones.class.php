@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   survey
+ * @package   trans
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
@@ -42,6 +42,54 @@ class trans_Zones extends core_Detail
      * Единично заглавие
      */
     public $singleTitle = "Зона";
+
+
+    /**
+     * Време за опресняване информацията при лист на събитията
+     */
+    var $refreshRowsTime = 5000;
+
+
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo,admin,trans';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'ceo,admin,trans';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'ceo,admin,trans';
 
 
     /**
@@ -128,13 +176,12 @@ class trans_Zones extends core_Detail
         $query->where(array('#countryId = [#1#]', $countryId));
         $bestSimilarityCount = 0;
         while($rec = $query->fetch()) {
-
             $similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
-
             if ($similarityCount > $bestSimilarityCount) {
                 $bestSimilarityCount = $similarityCount;
                 $bestZone = $rec;
             }
+
         }
 
         //Намиране на името на намерената зона
@@ -148,7 +195,9 @@ class trans_Zones extends core_Detail
 
 
     /**
-     * Намиране на поредни еднакви знака в 2 кода
+     * @param       $pc1    Първи данни за сравнение
+     * @param       $pc2    Втори данни за сравнение
+     * @return      int     Брой съвпадения
      */
     private static function strNearPCode($pc1, $pc2)
     {
