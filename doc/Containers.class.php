@@ -36,6 +36,12 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Документ в нишка";
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "created=Създаване,document=Документи";

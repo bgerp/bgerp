@@ -192,7 +192,7 @@ class cat_products_VatGroups extends core_Detail
     {
     	$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$data->listFields = array("vatGroup" => "Група", 'vatPercent' => 'ДДС (%)', 'validFrom' => 'В сила oт');
+    	$data->listFields = array("vatGroup" => "Група", 'vatPercent' => 'ДДС|* (%)', 'validFrom' => 'В сила oт');
         $tpl = $table->get($data->rows, $data->listFields);
     	
     	$title = 'ДДС';

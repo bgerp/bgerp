@@ -61,6 +61,8 @@
             <tbody>
                 <tr>
                     <td class="topCell first vtop"  style="width:50%">
+                        <!--ET_BEGIN delivery_table-->
+                        [#delivery_table#]
                        <table class='shipment-table' style="width:100%">
                             <!--ET_BEGIN deliveryTime-->
                             <tr>
@@ -85,16 +87,19 @@
                                 <td>[#lineId#]</td>
                             </tr>
                             <!--ET_END lineId-->
-                            <!--ET_BEGIN lineId-->
+                            <!--ET_BEGIN note-->
                             <tr>
                                 <td colspan="2">
                                     <hr>
                                     [#note#]
                                 </td>
                             </tr>
-                            <!--ET_END lineId-->
+                           <tr>
+                               <td colspan="2"> <hr></td>
+                           </tr>
+                            <!--ET_END note-->
                         </table>
-                        <hr>
+                        <!--ET_END delivery_table-->
                         <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
                             <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
 

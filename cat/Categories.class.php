@@ -50,13 +50,13 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected, plg_Modified';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,meta=Свойства,useAsProto=Прототипи';
+    public $listFields = 'name,meta=Свойства,useAsProto=Прототипи';
     
     
     /**
@@ -75,12 +75,6 @@ class cat_Categories extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
     
     
     /**

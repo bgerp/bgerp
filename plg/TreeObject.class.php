@@ -311,7 +311,7 @@ class plg_TreeObject extends core_Plugin
 		if($mvc->haveRightFor('add')){
 			$url = array($mvc, 'add', 'parentId' => $data->rec->id, 'ret_url' => TRUE);
 			$parentTitle = $mvc->getVerbal($data->rec, 'name');
-			$data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добави нов поделемент на '{$parentTitle}'");
+			$data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добави нов поделемент на|* '{$parentTitle}'");
 		}
 	}
 	

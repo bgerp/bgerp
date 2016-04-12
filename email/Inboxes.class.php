@@ -27,7 +27,7 @@ class email_Inboxes extends core_Master
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
-    				 plg_Modified, doc_FolderPlg, plg_RowTools, 
+    				 plg_Modified, doc_FolderPlg, plg_RowTools2, 
     				 plg_Rejected';
     
     
@@ -136,7 +136,7 @@ class email_Inboxes extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, accountId, inCharge, access, shared, createdOn, createdBy';
+    var $listFields = 'email, accountId, inCharge, access, shared, createdOn, createdBy';
     
     
     /**

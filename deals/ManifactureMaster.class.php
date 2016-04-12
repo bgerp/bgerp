@@ -26,7 +26,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
    /**
