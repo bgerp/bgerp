@@ -63,13 +63,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, reason, beneficiaryName, beneficiaryIban, execBank, id';
-    
-    
-    /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = "4.91|Финанси";
+    public $searchFields = 'valior, reason, beneficiaryName, beneficiaryIban, execBank';
     
     
     /**

@@ -62,13 +62,7 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, reason, proxyName, proxyEgn, proxyIdCard, id';
-    
-    
-    /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = "4.92|Финанси";
+    public $searchFields = 'valior, reason, proxyName, proxyEgn, proxyIdCard';
     
     
     /**

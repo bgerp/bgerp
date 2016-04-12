@@ -62,13 +62,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban, id';
-
-
-    /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = "4.9|Финанси";
+    public $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban';
 
 
     /**
