@@ -176,27 +176,34 @@ class bank_PaymentOrders extends bank_DocumentBlank
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()) {
-            if (!$form->rec->execBank) {
-                $form->rec->execBank = bglocal_Banks::getBankName($form->rec->ordererIban);
+        $rec = &$form->rec;
+    	
+    	if($form->isSubmitted()) {
+            if (!$rec->execBank) {
+                $rec->execBank = bglocal_Banks::getBankName($rec->ordererIban);
             }
 
-            if (!$form->rec->execBankBic) {
-                $form->rec->execBankBic = bglocal_Banks::getBankBic($form->rec->ordererIban);
+            if (!$rec->execBankBic) {
+                $rec->execBankBic = bglocal_Banks::getBankBic($rec->ordererIban);
             }
 
-            if ((int)!empty($form->rec->LNC) + (int)!empty($form->rec->EGN) + (int)!empty($form->rec->vatId) > 1) {
+            if ((int)!empty($rec->LNC) + (int)!empty($rec->EGN) + (int)!empty($rec->vatId) > 1) {
                 $form->setError("vatId,EGN,LNC","Трябва само едно от полетата за ЕИК, ЕГН и ЛНЧ да е попълнено");
             }
 
-            $lnc = cls::get("bglocal_BulgarianLNC");
-            if (!empty($form->rec->LNC) && !$lnc->isLnc()){
-                $form->setError("LNC","Грешен ЛНЧ номер");
+            if(!empty($rec->LNC)){
+            	$lnc = cls::get("bglocal_BulgarianLNC");
+            	if($lnc->isLnc($rec->LNC) !== TRUE){
+            		$form->setError("LNC", "Грешен ЛНЧ номер");
+            	}
             }
-
-            $egn = cls::get("bglocal_EgnType");
-            if (!empty($form->rec->EGN) && !$egn->isValid()){
-                $form->setError("EGN","Грешен ЕГН номер");
+            
+            if (!empty($rec->EGN)){
+	            try {
+	            	$Egn = new bglocal_BulgarianEGN($rec->EGN);
+	        	} catch(bglocal_exception_EGN $e) {
+	        		$form->setError("EGN", $e->getMessage());
+	        	}
             }
         }
     }
