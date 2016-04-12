@@ -499,7 +499,7 @@ class cat_Boms extends core_Master
     			
     			$row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
     		
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $rec->state != 'rejected'){
     				$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
     			}
     		}
