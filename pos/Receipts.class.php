@@ -844,7 +844,7 @@ class pos_Receipts extends core_Master {
     			$rPrice1 = $product->price * (1 - $product->discount);
     			$rPrice2 = $pInfo->price * (1 - $pInfo->discount);
     			
-    			// Оставяме по малката цена
+    			// Оставяме по-малката цена
     			if($rPrice2 < $rPrice1) {
     				$product->price = $pInfo->price;
     				$product->discount = $pInfo->discount;

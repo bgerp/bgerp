@@ -679,7 +679,7 @@ class barcode_Generator extends core_Manager
             break;
         }
         
-        // Минималната широчина на баркода трябва да е по малка от широчината зададена от потребителя
+        // Минималната широчина на баркода трябва да е по-малка от широчината зададена от потребителя
         expect($size['width'] >= $minWidthAndHeightArr['width'], "Минималната широчина за баркода е {$minWidthAndHeightArr['width']}");
         expect($size['height'] >= $minWidthAndHeightArr['height'], "Минималната височина за баркода е {$minWidthAndHeightArr['height']}");
     }

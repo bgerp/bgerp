@@ -134,14 +134,16 @@ class bank_SpendingDocuments extends bank_Document
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if($data->rec->state == 'draft') {
+    	$rec = $data->rec;
+        
+    	if($rec->state == 'draft') {
             
-            // Ако дебитната сметка е за работа с контрагент слагаме бутон за
-            // платежно нареждане ако е подочетно лице генерираме нареждане разписка
-            if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($data->rec->debitAccId, 'crm_ContragentAccRegIntf')) {
-                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново платежно нареждане');
-            } elseif(bank_CashWithdrawOrders::haveRightFor('add') && acc_Lists::getPosition($data->rec->creditAccId, 'crm_PersonAccRegIntf')) {
-                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново нареждане разписка');
+            if(bank_PaymentOrders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/pln.png,title=Създаване на ново платежно нареждане');
+            }
+            
+            if(bank_CashWithdrawOrders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon=img/16/nrrz.png,title=Създаване на ново нареждане разписка');
             }
         }
     }

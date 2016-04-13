@@ -141,7 +141,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     {
     	if($form->isSubmitted()){
     		if($form->rec->to < $form->rec->from){
-    		     $form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    		     $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
     		}
     		
     		foreach (range(1, 3) as $i){

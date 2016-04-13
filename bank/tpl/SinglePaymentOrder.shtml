@@ -104,7 +104,7 @@
                     <div class='bg_white text a_center border_r' style='width: 454px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
                         <span class='b'>|ПЛАТЕЖНО НАРЕЖДАНЕ|*</span>
                         <br>
-                        <span style='text-transform: none;'>за [#documentType#]</span>
+                        <span style='text-transform: lowercase;'>за [#documentType#]</span>
                     </div>
                     <div class='text bg_blue border_r'  style='width:90px'>
                         <span class='pos_abs small_text_top_left'>|Вид валута|*</span><br>
