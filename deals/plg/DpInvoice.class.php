@@ -379,7 +379,6 @@ class deals_plg_DpInvoice extends core_Plugin
     		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued'");
     		$iQuery->where("#id != '{$rec->invoiceId}'");
     		$iQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
-    		$iQuery->show('id,number');
     		
     		$handleArr = array();
     		while($iRec = $iQuery->fetch()){

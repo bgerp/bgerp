@@ -51,7 +51,7 @@ class trans_Setup extends core_ProtoSetup
     var $managers = array(
             'trans_Vehicles',
     		'trans_Lines',
-            'trans_ZoneNames',
+            'trans_FeeZones',
             'trans_Zones',
             'trans_Fees'
         );
