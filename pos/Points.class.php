@@ -134,6 +134,10 @@ class pos_Points extends core_Master {
     	if(!static::defaultContragent($id)) {
 	    	$defaultContragent = new stdClass();
 	    	$defaultContragent->name = "POS:" . $rec->id . "-Анонимен Клиент";
+	    	
+	    	$countryName = core_Packs::getConfigValue('crm', 'BGERP_OWN_COMPANY_COUNTRY');
+	    	$defaultContragent->country = drdata_Countries::fetchField("#commonName = '{$countryName}'", 'id');
+	    	
 	    	crm_Persons::save($defaultContragent);
     	}
     }
