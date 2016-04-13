@@ -295,7 +295,7 @@ abstract class deals_DealBase extends core_Master
      */
     public function act_Closewith()
     {
-    	core_App::setTimeLimit(1000);
+    	core_App::setTimeLimit(2000);
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'draft');
