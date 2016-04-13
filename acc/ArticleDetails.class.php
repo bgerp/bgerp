@@ -38,7 +38,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals, doc_plg_HidePrices,
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals2, doc_plg_HidePrices,
         Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_SaveAndNew';
     
     
