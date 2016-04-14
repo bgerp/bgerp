@@ -181,13 +181,6 @@
                         <td><span class='cCode'>[#currencyId#]</span></td>
                         <td><b>[#total#]</b></td>
                     </tr>
-                    <!--ET_BEGIN sayWords-->
-                    <tr>
-                        <td colspan = '3' style='text-align:right'>
-                            Say words: [#sayWords#]
-                        </td>
-                    </tr>
-                    <!--ET_END sayWords-->
                 </table>
 
                 <div class="clearfix21"></div>
