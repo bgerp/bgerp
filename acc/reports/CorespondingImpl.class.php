@@ -228,17 +228,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$from = strtotime($form->from);
     	$to = strtotime($form->to);
     	
-    	if ($this->innerForm->compare == 'old') {
-    		 
+    	if ($this->innerForm->compare == 'old') { 
     		$data->fromOld = date('Y-m-d', $from - abs($to - $from));
-    		$data->toOld = $form->from;
-
+    		$data->toOld = strstr(dt::addDays(-1,$form->from), " ", TRUE);
     	} elseif ($this->innerForm->compare == 'year') {
     		$data->toOld = date('Y-m-d',strtotime("-12 months", $from));
-    		$data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
-
+    		$data->fromOld = date('Y-m-d', strtotime("-12 months", $to));
     	}
-    	
+
     	$data->groupBy = array();
     	foreach (range(1, 6) as $i){
     		if(!empty($form->{"feat{$i}"})){
