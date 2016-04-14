@@ -71,7 +71,7 @@ class acc_ActiveShortBalance {
         $strict = (isset($params['strict']) ? TRUE : FALSE);
         $this->params = $params;
         
-        set_time_limit(600);
+        core_App::setTimeLimit(600);
         
         // Изчисления баланс се кешира, само ако е указано
         if($params['cacheBalance'] !== FALSE){

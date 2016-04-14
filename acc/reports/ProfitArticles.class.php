@@ -112,7 +112,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     	// Размяна, ако периодите са объркани
         if($form->isSubmitted()){
             if($form->rec->to < $form->rec->from){
-                $form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+                $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
             }
         }
     }
