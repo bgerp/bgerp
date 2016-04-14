@@ -85,4 +85,13 @@ class plg_RowNumbering extends core_Plugin
             $data->listFields = arr::combine(array('RowNumb' => '№') , $data->listFields);
         }
     }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, &$data)
+    {
+    	$data->listTableMvc->FLD('RowNumb', 'int', 'tdClass=RowNumColumn');
+    }
 }
