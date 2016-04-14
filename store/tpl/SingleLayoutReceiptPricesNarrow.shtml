@@ -144,9 +144,9 @@
                                     <td class='aright'><b>[#total#]</b></td>
                                 </tr>
                             </table>
-                            
-                            <!--ET_BEGIN responsible-->
                             <hr>
+                            <!--ET_BEGIN responsible-->
+
                              <div>|Получил|*: [#responsible#]</div>
                             <!--ET_END responsible-->
                             

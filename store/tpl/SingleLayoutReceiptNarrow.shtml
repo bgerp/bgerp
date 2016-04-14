@@ -88,14 +88,15 @@
                             </tr>
 
                         </table>
+                        <hr>
                         <!--ET_BEGIN responsible-->
-                            <hr>
-                             <div>|Получил|*: [#responsible#]</div>
-                            <!--ET_END responsible-->
-                            
-                            <!--ET_BEGIN username-->
-                             <div>|Съставил|*: [#username#]</div>
-                            <!--ET_END username-->
+
+                         <div>|Получил|*: [#responsible#]</div>
+                        <!--ET_END responsible-->
+
+                        <!--ET_BEGIN username-->
+                         <div>|Съставил|*: [#username#]</div>
+                        <!--ET_END username-->
                     </td>
                 </tr>
             </tbody>
