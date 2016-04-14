@@ -55,11 +55,6 @@
 			                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
 			                    </td>
 			                </tr>
-			                <tr>
-			                    <td class='with-words' colspan='2'>
-			                        |Словом|*: [#amountVerbal#]<br>
-			                    </td>
-			                </tr>
 			            </table>
 			            </td>
 			            </tr>

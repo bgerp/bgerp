@@ -197,15 +197,6 @@
                                                 <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
                                                 <td class='aright'><b>[#total#]</b></td>
                                             </tr>
-                                            <tr>
-                                                <td colspan='3' style='text-align:right'>
-                                                    <!--ET_BEGIN sayWords-->
-                                                    <hr>
-                                                    Словом:
-                                                    [#sayWords#]
-                                                    <!--ET_END sayWords-->
-                                                </td>
-                                            </tr>
                                         </table>
                                         <hr>
                                         <!--ET_BEGIN responsible-->
