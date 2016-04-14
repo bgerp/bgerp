@@ -93,6 +93,7 @@ function setViewportWidth(viewportWidth) {
  * Записваме информацията за състоянието на менютата в бисквитка
  */
 function setMenuCookie(){
+	console.log("in");
 	var menuState = $(window).width() + ":";
 	
 	if($('.sidemenu-left').hasClass('sidemenu-open')){
@@ -116,6 +117,7 @@ function setMenuCookie(){
 
 	currentMenuInfo = menuState;
 	setCookie('menuInfo', menuState);
+	console.log(menuState);
 }
 
 
