@@ -242,7 +242,12 @@ class core_SpellNumber
         }
         $N0 = $this->dig2Text($N{$l - 2}, $N{$l - 1}, $N{$l}, $g);
         
-        return str_replace("_", " ", $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0)));
+        $res = str_replace("_", " ", $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0)));
+        if($NUMBER < 0){
+        	$res = "минус" . " " . $res;
+        }
+         
+        return $res;
     }
     
     
@@ -388,7 +393,7 @@ class core_SpellNumber
         }
         
         $text .= $numCur;
-        $cent = $num - (int) $num;
+        $cent = abs($num - (int) $num);
         $cents = $Double->toVerbal($cent);
         
         if($showCurrencyCode){
@@ -397,8 +402,6 @@ class core_SpellNumber
 		
         if ($cent > 0){
         	$text .= " {$andStr} {$cents}" . $centCur;
-        } elseif($cent == 0){
-        	//$text .= ", {$cents}" . $centCur;
         }
         
         return $text;
