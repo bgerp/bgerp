@@ -241,8 +241,10 @@ class core_SpellNumber
             $N3 = "_хиляда ";
         }
         $N0 = $this->dig2Text($N{$l - 2}, $N{$l - 1}, $N{$l}, $g);
+        $res = $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0));
+        $res = str_replace("_", " ", $res);
+        $res = trim($res);
         
-        $res = str_replace("_", " ", $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0)));
         if($NUMBER < 0){
         	$res = "минус" . " " . $res;
         }
