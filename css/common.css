@@ -1228,6 +1228,8 @@ table.listTable {
     margin-top: 3px; }
   table.listTable > tbody > tr.row-error > td {
     color: #990000; }
+  table.listTable .rowNumColumn {
+    width: 1%; }
 
 .narrow table.listTable {
   margin-bottom: 12px; }

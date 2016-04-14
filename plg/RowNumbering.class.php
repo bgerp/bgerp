@@ -92,6 +92,6 @@ class plg_RowNumbering extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
-    	$data->listTableMvc->FLD('RowNumb', 'int', 'tdClass=RowNumColumn');
+    	$data->listTableMvc->FLD('RowNumb', 'int', 'tdClass=rowNumColumn');
     }
 }
