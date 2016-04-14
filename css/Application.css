@@ -1329,6 +1329,20 @@ td.portal-date {
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
 
+.narrow .document-settings,
+.narrow .document-settings-left,
+.narrow .document-title-group {
+  display: inline;
+  float: none; }
+  .narrow .document-settings .liked,
+  .narrow .document-settings .disliked,
+  .narrow .document-settings-left .liked,
+  .narrow .document-settings-left .disliked,
+  .narrow .document-title-group .liked,
+  .narrow .document-title-group .disliked {
+    position: relative;
+    top: 3px; }
+
 .document-settings-left,
 .document-title-group {
   float: left;

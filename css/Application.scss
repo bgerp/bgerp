@@ -1502,6 +1502,15 @@ td.portal-date {
 	}
 }
 
+.narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
+	display: inline;
+	float: none;
+	.liked, .disliked {
+		position: relative;
+		top: 3px;
+	}
+}
+
 .document-settings-left, .document-title-group {
 	float: left;
 	display: inline-block;
