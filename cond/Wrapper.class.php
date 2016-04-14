@@ -27,7 +27,8 @@ class cond_Wrapper extends plg_ProtoWrapper
     	$this->TAB('cond_PaymentMethods', 'Плащания->Методи', 'cond,ceo');    
         $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,cond');
         $this->TAB('cond_Parameters', 'Параметри', 'cond,ceo');
-        
+        $this->TAB('passage_Texts', 'Пасажи', 'ceo,cond, admin');
+
         $this->title = 'Терминология';
     }
 }

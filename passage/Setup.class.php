@@ -15,8 +15,8 @@
  */
 class passage_Setup extends core_ProtoSetup
 {
-    
-    
+
+
     /**
      * Версия на пакета
      */
@@ -55,19 +55,24 @@ class passage_Setup extends core_ProtoSetup
     var $roles = 'ceo, admin';
 
     
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    var $menuItems = array(
-            array(4.1, 'Система', 'Дефиниции', 'passage_Texts', 'default', "admin, ceo"),
-        );
 
 	
 	/**
 	 * Път до css файла
 	 */
 //	var $commonCSS = 'trans/tpl/LineStyles.css';
-	
+    function install()
+    {
+        $html = parent::install();
+
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+
+        // Замества handle' ите на документите с линк към документа
+        $html .= $Plugins->installPlugin('Пасажи в RichEdit', 'passage_RichTextPlg', 'type_Richtext', 'private');
+
+        return $html;
+	}
 	
     /**
      * Де-инсталиране на пакета
