@@ -76,6 +76,7 @@
         </tr>
         </tbody>
     </table>
+</div>
     <div class="lines"></div>
     <!--ET_BEGIN sales_InvoiceDetails-->
     <div class='scrolling-holder details'>
@@ -83,6 +84,7 @@
     </div>
     <!--ET_END sales_InvoiceDetails-->
     <div class="lines"></div>
+<div class="scrolling-holder">
     <table class="innerTable footer-notes paddingCells border-table">
         <tbody>
         <tr>
