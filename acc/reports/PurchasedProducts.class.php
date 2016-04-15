@@ -187,7 +187,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         $data->listFields['delta'] = 'Дял';
 
         // Кои полета ще се показват
-        if($mvc->innerForm->compare == 'old' || $mvc->innerForm->compare == 'year'){
+        if($mvc->innerForm->compare != 'no'){
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
     		$toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
     		$prefixOld = (string) $fromVerbalOld . " - " . $toVerbalOld;
