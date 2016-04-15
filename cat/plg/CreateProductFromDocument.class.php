@@ -186,11 +186,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$productKeys = array_keys($productFields);
 				$productKeys = implode('|', $productKeys);
 				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
-				
-				// Ако клонираме запис
-				if(isset($cloneRec)){
-					$form->setField('packagingId', 'input=hidden');
-				}
+				$form->setField('packagingId', 'input=hidden');
 				
 				// Намираме полетата от артикула
 				$productFields = array_diff_key($form->fields, $detailFields);
