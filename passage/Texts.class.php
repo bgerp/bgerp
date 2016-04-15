@@ -23,7 +23,7 @@ class passage_Texts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, passage_DialogWrapper";
 
     public $searchFields = "title, body";
     /**
@@ -85,6 +85,68 @@ class passage_Texts extends core_Manager
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
     }
 
+    /**
+     * Екшъна за показване на диалоговия прозорец за добавяне на пасаж
+     */
+    function act_Dialog()
+    {
+
+        // Вземаме callBack'а
+        $callback = Request::get('callback', 'identifier');
+
+        // Сетваме нужните променливи
+        Mode::set('dialogOpened', TRUE);
+        Mode::set('callback', $callback);
+      // Mode::set('bucketId', $bucketId);
+
+        // Вземаме шаблона
+        $tpl = $this->act_List();
+
+        // Връщаме шаблона
+        return $tpl;
+    }
+
+
+
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката' на мениджъра
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param core_Et $tpl
+     * @param object $data.
+     *
+     * @return boolean
+     */
+    function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data=NULL)
+    {
+        // Ако е отворен в диалоговия прозорец
+        if (Mode::get('dialogOpened')) {
+
+            // Рендираме опаковката от друго място
+            $res = $mvc->renderDialog($tpl);
+
+            // Да не се извикат останалите и да не се рендира "опаковката"
+            return FALSE;
+        }
+    }
+
+
+    /**
+     * Връща шаблона за диалоговия прозорец
+     *
+     * @param Core_Et $tpl
+     *
+     * @return core_ET $tpl
+     */
+    function renderDialog_($tpl)
+    {
+
+        return $tpl;
+    }
+
 
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
@@ -119,5 +181,8 @@ class passage_Texts extends core_Manager
 
         $data->query->orderBy('#createdOn', 'DESC');
     }
+
+
+
 
 }

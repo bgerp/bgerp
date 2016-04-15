@@ -43,7 +43,7 @@ class passage_RichTextPlg extends core_Plugin
             }
 
             // URL за добавяне на документи
-            $url = toUrl(array('passage_Texts', 'list'));
+            $url = toUrl(array('passage_Texts', 'Dialog'));
 
             // JS фунцкията, която отваря прозореца
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
