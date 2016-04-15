@@ -71,9 +71,6 @@ class core_page_InternalModern extends core_page_Active
         // Забраняваме мащабирането
         $this->append("disableScale();", "START_SCRIPTS");
 
-        // Акордеона в менюто
-        jquery_Jquery::run($this, "sidebarAccordeonActions()");
-
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
 
@@ -100,6 +97,9 @@ class core_page_InternalModern extends core_page_Active
     static function getTemplate()
     {
     	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
+   //         echo("<li>");
+   //         echo("<li>");
+   //         echo("<li>".  $_COOKIE['menuInfo']);
     		$openMenuInfo = $_COOKIE['menuInfo'];
     		$winWidth = intval($openMenuInfo);
     		$mainContainerClass = '';
