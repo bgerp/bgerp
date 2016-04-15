@@ -295,6 +295,7 @@ abstract class deals_DealBase extends core_Master
      */
     public function act_Closewith()
     {
+    	core_App::setTimeLimit(2000);
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'draft');
@@ -315,6 +316,7 @@ abstract class deals_DealBase extends core_Master
     
     	// След като формата се изпрати
     	if($form->isSubmitted()){
+    		
     		$rec->contoActions = 'activate';
     		$rec->state = 'active';
     		if(!empty($form->rec->closeWith)){
@@ -324,6 +326,8 @@ abstract class deals_DealBase extends core_Master
     		$this->invoke('AfterActivation', array($rec));
     	   
     		if(!empty($form->rec->closeWith)){
+    			core_App::setTimeLimit(1000);
+    			
     			$CloseDoc = cls::get($this->closeDealDoc);
     			$deals = keylist::toArray($form->rec->closeWith);
     			foreach ($deals as $dealId){
@@ -387,6 +391,7 @@ abstract class deals_DealBase extends core_Master
     	
     	$tpl->append($table->get($data->DealHistory, $fields), 'DEAL_HISTORY');
     	$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
+    	$tpl->removeBlock('STATISTIC_BAR');
     }
     
     
@@ -423,6 +428,7 @@ abstract class deals_DealBase extends core_Master
     		
     		$tpl->replace($btnCSVHtml, 'TABEXP');
     	}
+    	$tpl->removeBlock('STATISTIC_BAR');
     }
     
     

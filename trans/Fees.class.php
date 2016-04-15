@@ -1,41 +1,132 @@
 <?php
 
-class trans_Fees extends core_Manager
+
+/**
+ * Модел "Изчисляване на налва"
+ *
+ *
+ * @category  bgerp
+ * @package   trans
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class trans_Fees extends core_Detail
 {
+
+
+    /**
+     * Заглавие
+     */
     public $title = "Налва";
+
+
+    /**
+     * Плъгини за зареждане
+     */
     public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, trans_Wrapper, plg_AlignDecimals2";
 
 
+    /**
+     * Ключ към core_Master
+     */
+    public $masterKey = 'feeId';
 
+
+    /**
+     * Единично заглавие
+     */
+    public $singleTitle = "държава и п.Код";
+
+
+    /**
+     * Време за опресняване информацията при лист на събитията
+     */
+    var $refreshRowsTime = 5000;
+
+
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo,admin,trans';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'ceo,admin,trans';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'ceo,admin,trans';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'ceo,admin,trans';
+
+
+    /**
+     * Описание на модела (таблицата)
+     */
     public function description()
     {
-        $this->FLD('zoneId', 'key(mvc=trans_ZoneNames, select=name)', 'caption=Зона, mandatory');
+        $this->FLD('feeId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
         $this->FLD('weight', 'double(min=0)', 'caption=Тегло, mandatory');
         $this->FLD('price', 'double(min=0)', 'caption=Цена, mandatory');
     }
 
+
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
-     * @param int       $deliveryTerm       Условие на доставка
      * @param int       $countryId          id на съотверната държава
      * @param string    $pCode              пощенски код
      *
      * @param double    $totalWeight        Посоченото тегло
      * @param int       $singleWeight
      *
+     * @return int      0                   Ако не може да бъде намерена зона, в която принадлежи пакета
+     *
      * @return array[0] $finalPrice         Обработената цена
      * @return array[1] $result             Резултат за подадената единица $singleWeight
      * @return array[1] $zoneId             Id на зоната
      */
-
-    public static function calcFee($deliveryTerm, $countryId, $pCode, $totalWeight, $singleWeight = 1)
+    public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
-        //bp($deliveryTerm, $countryId, $pCode);
-        $zoneId = trans_Zones::getZoneId($deliveryTerm, $countryId, $pCode);
-//        bp($zoneId);
+        $zone = trans_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
+
+        //Ако не се намери зона се връща 0
+        if($zone == null){
+            return 0;
+        }
+
+        expect($zone['zoneId'] > 0);
+
         //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
 
@@ -46,9 +137,7 @@ class trans_Fees extends core_Manager
 
         //Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = trans_Fees::getQuery();
-            expect($zoneId > 0);
-
-            $query->where(array("#zoneId = [#1#]", $zoneId));
+            $query->where(array("#feeId = [#1#]", $zone['zoneId']));
 
         while($rec = $query->fetch()){
             //Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
@@ -76,6 +165,7 @@ class trans_Fees extends core_Manager
         if (!isset($weightsLeft)){
             $weightsLeft = 0;
         }
+
         // Покриване на специалните случаи, които въведеното тегло е най-голямо
         if ($biggestWeight < $weightsRight){
             end($indexedArray);
@@ -104,8 +194,9 @@ class trans_Fees extends core_Manager
              * a = (y1 - y2) / (x1 - x2)
              * b = y1 - ((y1 - y2) / (x1 - x2) * x1);
              * y3 = a*x3 + b // y3 = finalPrice
+             * Възможно е float да се запази като string, така че ги преобразяваме
              */
-            //Възможно е float да се запази като string, така че ги преобразяваме
+
             $weightsLeft = floatval($weightsLeft);
             $weightsRight = floatval($weightsRight);
             $priceLeft = floatval($arrayOfWeightPrice[$weightsLeft]);
@@ -117,6 +208,8 @@ class trans_Fees extends core_Manager
             $finalPrice = $a * $totalWeight + $b;
 
         }
+
+
         /*
          * Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
          */
@@ -125,8 +218,6 @@ class trans_Fees extends core_Manager
         /*
          * Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
          */
-
-
-        return array($finalPrice, $result, $zoneId);
+        return array($finalPrice, $result, $zone['zoneId']);
     }
 }

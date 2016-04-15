@@ -220,13 +220,6 @@ class forum_Boards extends core_Master {
 
 
 	/**
-	 * New Action title
-	 */
-
-	function act_Title(){
-		return("Pesho");
-	}
-	/**
 	 *  Подготовка на списъка с дъски, разпределени по техните категории
 	 */
 	 function prepareForum($data)

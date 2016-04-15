@@ -64,7 +64,7 @@ class trans_Vehicles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,number,createdOn,createdBy';
+    public $listFields = 'name,number,createdOn,createdBy';
     
     
     /**

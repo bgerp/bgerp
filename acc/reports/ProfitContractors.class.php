@@ -67,8 +67,6 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $form->setHidden('side');
         
         $form->setDefault('orderBy', 'DESC');
-        
-        $form->setHidden('compare');
 
         $form->setDefault('orderField', 'blAmount');
         $form->setOptions('orderField', array('blAmount' => "Сума"));
@@ -135,9 +133,24 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
         
-        $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
-        $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
-        $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+        // Кои полета ще се показват
+        if($mvc->innerForm->compare == 'old' || $mvc->innerForm->compare == 'year'){
+            $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
+            $toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
+            $prefixOld = (string) $fromVerbalOld . " - " . $toVerbalOld;
+        
+            $fromVerbal = dt::mysql2verbal($mvc->innerForm->from, 'd.m.Y');
+            $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
+            $prefix = (string) $fromVerbal . " - " . $toVerbal;
+        
+            $fields = arr::make("item1=Контрагенти,blAmount={$prefix}->Сум,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+            $data->listFields = $fields;
+        } else {
+        
+            $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
+            $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
+            $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+        }
     }
 
 

@@ -182,6 +182,10 @@ class doc_plg_TplManager extends core_Plugin
     		$content = doc_TplManager::getTemplate($data->rec->template);
     		$tpl->replace($content, $mvc->templateFld);
     	}
+    	
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    		$tpl->removeBlock('shareLog');
+    	}
     }
     
     

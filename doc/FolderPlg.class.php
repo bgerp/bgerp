@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -23,7 +23,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$mvc)
+    public static function on_AfterDescription(&$mvc)
     {
         if(!$mvc->fields['folderId']) {
             
@@ -379,7 +379,33 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-        if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
+    	// Екшън за форсиране на документ в папка на корица
+    	if($action == 'forcedocumentinfolder'){
+    		
+    		expect($id = Request::get('id', 'int'));
+    		expect($documentClassId = Request::get('documentClassId', 'class(interface=doc_DocumentIntf)'));
+    		
+    		// Форсираме папката на корицата
+    		$folderId = $mvc->forceCoverAndFolder($id);
+    		
+    		// Въпросния документ трябва да може да бъде създаден в папката
+    		$Document = cls::get($documentClassId);
+    		expect($Document->haveRightFor('add', (object)array('folderId' => $folderId)));
+    		
+    		// Редирект към екшъна за добавяне на документа
+    		$url = array($Document, 'add', 'folderId' => $folderId);
+    		if($retUrl = getRetUrl()){
+    			$url['ret_url'] = $retUrl;
+    		}
+    		
+    		// Редирект
+    		$res = new Redirect($url);
+    		
+    		// Спираме изпълнението на други плъгини
+    		return FALSE;
+    	}
+    	
+    	if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
         
         // Входни параметри и проверка за права
         expect($id = Request::get('id', 'int'));
@@ -544,6 +570,31 @@ class doc_FolderPlg extends core_Plugin
             }
         }
 
+        // В лист изгледа
+        if($fields['-list']) {
+        	
+        	// Имали бързи бутони
+        	if($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected'){
+        		
+        		$managersIds = doc_Threads::getFastButtons($mvc, $rec->id);
+        		if(count($managersIds)){
+        		
+        			// За всеки документ който може да се създаде от бърз бутон
+        			foreach ($managersIds as $classId){
+        				$Cls = cls::get($classId);
+        				if($Cls->haveRightFor('add', (object)array('folderId' => $mvc->forceCoverAndFolder($rec->id, FALSE)))){
+        					$btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
+        					$url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $classId, 'ret_url' => TRUE);
+        		
+        					// Добавяме го в rowToolbar-а
+        					core_RowToolbar::createIfNotExists($row->_rowTools);
+        					$row->_rowTools->addLink($btnTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        		
+        				}
+        			}
+        		}
+        	}
+        }
     }
     
     
@@ -820,7 +871,7 @@ class doc_FolderPlg extends core_Plugin
      * @param core_Mvc $mvc
      * @param core_Query $query
      */
-    static function on_AfterPrepareExportQuery($mvc, $query)
+    public static function on_AfterPrepareExportQuery($mvc, $query)
     {
         if (!Request::get('Rejected')) {
             $query->where("#state != 'rejected'");

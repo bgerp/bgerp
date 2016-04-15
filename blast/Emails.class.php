@@ -216,7 +216,7 @@ class blast_Emails extends core_Master
                                     cp2152=Western|* (CP1252),
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, changable,notNull');
         
-        $this->FLD('attachments', 'set(files=Файловете,document=Документите)', 'caption=Прикачи, changable');
+        $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
         
         cls::get('core_Lg');
         
@@ -739,7 +739,7 @@ class blast_Emails extends core_Master
             }
             
             //Ако сме избрали да се добавят документите, като прикачени
-            if ($attachArr['document']) {
+            if ($attachArr['documents']) {
                 
                 $nRec = clone $rec;
                 
@@ -927,7 +927,7 @@ class blast_Emails extends core_Master
      *
      * @param object $rec
      *
-     * @return array $document - Масив с прикачените документи
+     * @return array $documents - Масив с прикачените документи
      */
     function getDocuments($rec)
     {
@@ -1541,7 +1541,7 @@ class blast_Emails extends core_Master
                 
                 $attachArr = type_Set::toArray($rec->attachments);
                 
-                if ($attachArr['document']) {
+                if ($attachArr['documents']) {
                     // Прикачените документи
                     $docsArr = $mvc->getDocuments($rec);
                     $docsSizesArr = $mvc->getDocumentsSizes($docsArr);
@@ -1561,9 +1561,9 @@ class blast_Emails extends core_Master
                     // Вербалният размер на файловете и документите
                     $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
                     
-                    if ($attachArr['document'] && $attachArr['files']) {
+                    if ($attachArr['documents'] && $attachArr['files']) {
                         $str = "файлове и документи";
-                    } else if ($attachArr['document']) {
+                    } else if ($attachArr['documents']) {
                         $str = "документи";
                     } else {
                         $str = "файлове";
@@ -1741,7 +1741,7 @@ class blast_Emails extends core_Master
         
         if ($attachArr['files']) $row->Files = tr('Файловете');
         
-        if ($attachArr['document']) $row->Documents = tr('Документите');
+        if ($attachArr['documents']) $row->Documents = tr('Документите');
         
         // Манипулатора на документа
         $row->handle = $mvc->getHandle($rec->id);

@@ -1632,9 +1632,12 @@ class doc_Threads extends core_Manager
         	$folderState = doc_Folders::fetchField($data->folderId, 'state');
         	if($folderState == 'closed'){
         		$data->toolbar->removeBtn('*');
+        		if($mvc->hasPlugin('plg_Select')){
+        			unset($data->listFields['_checkboxes']);
+        		}
         	} else {
         		// Може да се добавя нов документ, само ако папката не е затворена
-        		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
+        		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
         			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
         		$data->rejQuery->where("#folderId = {$data->folderId}");
@@ -1657,8 +1660,11 @@ class doc_Threads extends core_Manager
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-            	$managersIds = self::getFastButtons($data->folderId);
-        	    if(count($managersIds)){
+            	$Cover = doc_Folders::getCover($data->folderId);
+            	$managersIds = self::getFastButtons($Cover->getInstance(), $Cover->that);
+        	    
+            	$fState = doc_Folders::fetchField($data->folderId, 'state');
+        	    if(count($managersIds) && ($fState != 'closed' && $fState != 'rejected')){
         	    	
         	    	// Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
         			foreach ($managersIds as $classId){
@@ -1687,13 +1693,11 @@ class doc_Threads extends core_Manager
      * @param int $folderId - ид на папката
      * @return array $res - намерените мениджъри
      */
-    private static function getFastButtons($folderId)
+    public static function getFastButtons($coverClass, $coverId)
     {
-    	$Cover = doc_Folders::getCover($folderId);
-    	if(!$Cover->haveInterface('doc_FolderIntf')) return;
-    	
-    	$managers = $Cover->getDocButtonsInFolder();
-    	
+    	expect($Cover = cls::get($coverClass));
+    	$managers = $Cover->getDocButtonsInFolder($coverId);
+    
     	$res = array();
     	if(is_array($managers) && count($managers)){
     		foreach ($managers as $manager){

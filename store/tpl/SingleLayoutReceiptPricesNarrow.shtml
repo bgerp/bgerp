@@ -143,18 +143,10 @@
                                     <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
                                     <td class='aright'><b>[#total#]</b></td>
                                 </tr>
-                                <!--ET_BEGIN sayWords-->
-                                <tr>
-                                    <td colspan = '3' style='text-align:right'>
-                                        <hr>
-                                        |Словом|*: [#sayWords#]
-                                    </td>
-                                </tr>
-                                <!--ET_END sayWords-->
                             </table>
-                            
-                            <!--ET_BEGIN responsible-->
                             <hr>
+                            <!--ET_BEGIN responsible-->
+
                              <div>|Получил|*: [#responsible#]</div>
                             <!--ET_END responsible-->
                             

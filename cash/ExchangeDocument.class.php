@@ -39,7 +39,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, cash_Wrapper, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, cash_Wrapper, acc_plg_Contable,
      	plg_Sorting,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
@@ -47,13 +47,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "valior, title=Документ, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
     
     
     /**

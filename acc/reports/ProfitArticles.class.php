@@ -90,8 +90,6 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         $form->setDefault('side', 'all');
         $form->setHidden('side');
         
-        $form->setHidden('compare');
-        
         $form->setDefault('orderBy', 'DESC');
         
         $form->setDefault('orderField', 'blAmount');
@@ -112,7 +110,7 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
     	// Размяна, ако периодите са объркани
         if($form->isSubmitted()){
             if($form->rec->to < $form->rec->from){
-                $form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+                $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
             }
         }
     }
@@ -203,9 +201,24 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
 
-        $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
-        $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
-        $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+        // Кои полета ще се показват
+        if($mvc->innerForm->compare == 'old' || $mvc->innerForm->compare == 'year'){
+            $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
+            $toVerbalOld = dt::mysql2verbal($data->toOld, 'd.m.Y');
+            $prefixOld = (string) $fromVerbalOld . " - " . $toVerbalOld;
+        
+            $fromVerbal = dt::mysql2verbal($mvc->innerForm->from, 'd.m.Y');
+            $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
+            $prefix = (string) $fromVerbal . " - " . $toVerbal;
+
+            $fields = arr::make("item3=Артикули,blAmount={$prefix}->Сум,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+            $data->listFields = $fields;
+        } else {
+    
+            $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
+            $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
+            $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+        }
         
     }
     

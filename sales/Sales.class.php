@@ -344,10 +344,12 @@ class sales_Sales extends deals_DealMaster
         }
        
         $form->setOptions('bankAccountId', $options);
-        if($curBank = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
-        	$curBankInfo = bank_OwnAccounts::getOwnAccountInfo($curBank);
-        	if($form->rec->currencyId == $curBankInfo->currencyCode){
-        		$form->setDefault('bankAccountId', $curBankInfo);
+        if($bankAccountId = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
+        	$accountRec = bank_Accounts::fetch($bankAccountId);
+        	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
+        	
+        	if($form->rec->currencyId == $bankCurrencyCode){
+        		$form->setDefault('bankAccountId', $bankAccountId);
         	}
         }
        

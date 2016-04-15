@@ -404,6 +404,7 @@ class bank_OwnAccounts extends core_Master {
         } else {
             $ownAcc = static::fetch(static::getCurrent());
         }
+        expect($ownAcc);
         
         if(!$ownAcc) return FALSE;
 

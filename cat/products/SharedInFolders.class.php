@@ -212,7 +212,7 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	if(is_array($data->rows)){
     		foreach ($data->rows as $row){
-    			$dTpl = new core_ET("<div>[#folderId#] [#tools#]</div>");
+    			$dTpl = new core_ET("<div>[#folderId#] <span class='custom-rowtools'>[#tools#]</span></div>");
     			$dTpl->placeObject($row);
     			$dTpl->removeBlocks();
     		

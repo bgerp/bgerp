@@ -40,7 +40,7 @@
         <!--ET_BEGIN sayWords-->
         <tr>
             <td colspan="5" class='aright'>
-                |С думи|*: [#sayWords#]    
+                |Словом|*: [#sayWords#]    
             </td>
         </tr>
         <!--ET_END sayWords-->

@@ -51,7 +51,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
 	
 	
@@ -137,12 +137,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
-	
-	
-	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
 	public $rowToolsSingleField = 'title';
@@ -173,7 +167,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Материалите ще бъдат вкарани в производството по артикули' : 'Материалите ще бъдат вложени в производството сумарно';
+		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат вкарани в производството по артикули' : 'Артикулите ще бъдат вложени в производството сумарно';
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
 	}
 }

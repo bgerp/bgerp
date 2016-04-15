@@ -34,7 +34,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
                      bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg';
@@ -49,13 +49,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
     
     
     /**
@@ -486,9 +480,10 @@ abstract class cash_Document extends deals_PaymentDocument
     			unset($row->rate);
     		}
     		 
-    		$spellNumber = cls::get('core_SpellNumber');
-    		$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-    		$row->amountVerbal = $amountVerbal;
+    		$SpellNumber = cls::get('core_SpellNumber');
+    		$currecyCode = currency_Currencies::getCodeById($rec->currencyId);
+    		$amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', FALSE, $currecyCode);
+    		$row->amountVerbal = str::mbUcfirst($amountVerbal);
     		 
     		// Вземаме данните за нашата фирма
     		$ownCompanyData = crm_Companies::fetchOwnCompany();

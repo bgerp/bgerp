@@ -47,7 +47,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
 
@@ -106,7 +106,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
     /**

@@ -84,14 +84,16 @@ class plg_RowTools2 extends core_Plugin
         } else {
         	$loadList = arr::make($mvc->loadList); 
         	if($mvc->fields['state']->type->options['rejected']){
-        		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)  ){  
+        		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)){  
         			$rejectUrl = array(
 			            $mvc,
 			            'reject',
 			            'id' => $rec->id,
 			            'ret_url' => $retUrl);
                     
-                    $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");        			
+        			if(!($mvc instanceof core_Master)){
+        				$ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");
+        			}
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
         			$restoreUrl = array(
 			            $mvc,
@@ -99,7 +101,9 @@ class plg_RowTools2 extends core_Plugin
 			            'id' => $rec->id,
 			            'ret_url' => $retUrl);
 			        
-                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");        			
+        			if(!($mvc instanceof core_Master)){
+        				$ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");
+        			}
         		}
         	}
         }

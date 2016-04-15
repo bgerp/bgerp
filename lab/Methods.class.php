@@ -91,9 +91,9 @@ class lab_Methods extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование');
+    	$this->FLD('paramId', 'key(mvc=lab_Parameters,select=name,allowEmpty,remember)', 'caption=Параметър,notSorting,mandatory');
+    	$this->FLD('name', 'varchar(255)', 'caption=Наименование');
         $this->FLD('equipment', 'varchar(255)', 'caption=Оборудване,notSorting');
-        $this->FLD('paramId', 'key(mvc=lab_Parameters,select=name,allowEmpty,remember)', 'caption=Параметър,notSorting');
         $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
         $this->FLD('minVal', 'double(decimals=2)', 'caption=Възможни стойности->Минимална,notSorting');
         $this->FLD('maxVal', 'double(decimals=2)', 'caption=Възможни стойности->Максимална,notSorting');

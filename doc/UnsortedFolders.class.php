@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search, plg_Modified';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified';
     
     
     /**
@@ -79,7 +79,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=№,name,description,inCharge,access,shared,createdOn,createdBy';
+    public $listFields = 'name,description,inCharge,access,shared,createdOn,createdBy';
     
     
     /**

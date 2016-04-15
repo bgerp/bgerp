@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Период, на който крона ще затваря миналите Линии и ще генерира нови
- */
-defIfNot('TRANS_LINES_CRON_INTERVAL', 60 * 60);
 
 
 /**
@@ -11,13 +7,13 @@ defIfNot('TRANS_LINES_CRON_INTERVAL', 60 * 60);
  *
  *
  * @category  bgerp
- * @package   trans
- * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @package   passage
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Setup extends core_ProtoSetup
+class passage_Setup extends core_ProtoSetup
 {
     
     
@@ -30,7 +26,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'trans_Lines';
+    var $startCtr = 'passage_Texts';
     
     
     /**
@@ -42,40 +38,29 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Организация на вътрешния транспорт";
+    var $info = "Модул за съхраняваме откъси от текст";
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'trans_Vehicles',
-    		'trans_Lines',
-            'trans_FeeZones',
-            'trans_Zones',
-            'trans_Fees'
+            'passage_Texts',
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'trans';
+    var $roles = 'ceo, admin';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', "trans, ceo"),
+            array(4.1, 'Система', 'Дефиниции', 'passage_Texts', 'default', "admin, ceo"),
         );
-
-    /**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии->Време'),
-	);
 
 	
 	/**

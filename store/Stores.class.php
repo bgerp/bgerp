@@ -39,7 +39,7 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified';
     
     
     /**
@@ -177,7 +177,7 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, chiefs';
+    public $listFields = 'name, chiefs';
     
     
     /**

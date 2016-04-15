@@ -43,7 +43,7 @@ class cash_Cases extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, cashiers, blAmount=Сума';
+    var $listFields = 'name, cashiers, blAmount=Сума';
     
     
     /**
@@ -61,17 +61,7 @@ class cash_Cases extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
-     * таблицата.
-     * 
-     * @see plg_RowTools
-     * @var $string име на поле от този модел
-     */
-    var $rowToolsField = 'tools';
+    var $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified';
     
     
     /**

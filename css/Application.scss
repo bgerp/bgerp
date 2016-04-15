@@ -1416,6 +1416,11 @@ td.portal-date {
 	.tab-control .detail-info {
 		font-size: 0.9em;
 	}
+	.business-doc-summary-table > tbody > tr > td{
+		padding:3px !important ;
+		border:0px !important;
+	}
+
 }
 
 .small-padding td {
@@ -1497,6 +1502,15 @@ td.portal-date {
 	}
 }
 
+.narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
+	display: inline;
+	float: none;
+	.liked, .disliked {
+		position: relative;
+		top: 3px;
+	}
+}
+
 .document-settings-left, .document-title-group {
 	float: left;
 	display: inline-block;
@@ -1550,10 +1564,6 @@ td.portal-date {
 
 .lighterBold {
 	color: #666;
-}
-
-.selectRows .listTable > tbody > tr > td:first-child {
-	text-align: center;
 }
 
 .document-title{

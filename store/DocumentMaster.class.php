@@ -35,12 +35,6 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
