@@ -135,7 +135,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
+    public $singleLayoutFile = 'store/tpl/SingleStoreDocument.shtml';
 
    
     /**
@@ -154,6 +154,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Основна операция
      */
     protected static $defOperationSysId = 'delivery';
+    
+    
+    /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
     
     
     /**

@@ -1,5 +1,4 @@
-[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div class='scrolling-holder'>
+<div class='scrolling-holder'>
         <table class="innerTable border-table paddingCells">
             <tbody>
                 <tr>
@@ -161,4 +160,3 @@
             <div class='clearfix21'></div>
             </div>
     </div>
-[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
