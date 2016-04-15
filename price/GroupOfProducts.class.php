@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценови групи
@@ -97,7 +97,7 @@ class price_GroupOfProducts extends core_Detail
         $query = self::getQuery();
         $query->orderBy('#validFrom', 'DESC');
         $query->where("#validFrom <= '{$datetime}'");
-        $query->where("#productId = {$productId}");
+        $query->where("#productId = '{$productId}'");
         $query->limit(1);
 		$query->show('groupId');
         

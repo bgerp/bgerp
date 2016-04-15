@@ -547,13 +547,10 @@ class price_ListRules extends core_Detail
                 if($productGroup) {
                     $pgCond = "#groupId = $productGroup OR ";
                 }
-
-                expect($rec->productId);
-
-                $query->where("{$pgCond}(#productId = $rec->productId)");
+                $query->where("{$pgCond}(#productId = '{$rec->productId}')");
             }
             
-            expect($actRec = $query->fetch(), $query->where, $rec);
+            wp($actRec = $query->fetch(), $query->where, $rec);
  
             if($actRec->id == $rec->id) {
                 $state = 'active';
