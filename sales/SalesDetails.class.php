@@ -109,15 +109,6 @@ class sales_SalesDetails extends deals_DealDetail
     
 
     /**
-     * При колко линка в тулбара на реда да не се показва дропдауна
-     *
-     * @param int
-     * @see plg_RowTools2
-     */
-    public $rowToolsMinLinksToShow = 2;
-
-
-    /**
      * Полета свързани с цени
      */
     public $priceFields = 'price,amount,discount,packPrice';
