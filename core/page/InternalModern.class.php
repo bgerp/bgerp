@@ -97,9 +97,6 @@ class core_page_InternalModern extends core_page_Active
     static function getTemplate()
     {
     	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
-   //         echo("<li>");
-   //         echo("<li>");
-   //         echo("<li>".  $_COOKIE['menuInfo']);
     		$openMenuInfo = $_COOKIE['menuInfo'];
     		$winWidth = intval($openMenuInfo);
     		$mainContainerClass = '';
