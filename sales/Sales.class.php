@@ -39,7 +39,8 @@ class sales_Sales extends deals_DealMaster
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
+                          acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf';
     
     
     /**
@@ -47,7 +48,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,doc_plg_BusinessDoc';
     
     
     /**
@@ -1039,4 +1040,17 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     }
+
+
+    /**
+     * В кои корици може да се вкарва документа
+     * 
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+        
+    	return array('crm_ContragentAccRegIntf');
+    }
+
 }
