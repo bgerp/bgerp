@@ -304,6 +304,8 @@ class doc_TplManager extends core_Master
     		$content = $rec->content;
     	}
     	
+    	$content = core_ET::loadFilesRecursivelyFromString($content);
+    	
     	return new ET(tr("|*" . $content));
     }
     
