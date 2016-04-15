@@ -486,6 +486,8 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
+        } elseif(mb_strlen($str) > $maxLen/2) {
+            $str = str::hyphenText($str);
         }
         
         return $str;
@@ -938,4 +940,23 @@ class core_String
     
     	return $string;
     }
+
+
+    /**
+     * Хифинира текст, така че да няма много дължи, не-пренодими думи
+     */
+    public static function hyphenText($text, $maxWordLen = 20)
+    {
+        $hyphSign = html_entity_decode('&#45;');
+
+        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $maxWordLen . ",}/s", array('core_String', 'hyphenWord'), $text);
+
+        return $text;
+    }
+
+    private static function hyphenWord($matches)
+    {
+       return hyphen_Plugin::getHyphenWord($matches[0]);
+    }
+
 }
