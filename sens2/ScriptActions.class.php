@@ -176,6 +176,7 @@ class  sens2_ScriptActions extends core_Detail
     public static function runScript($scriptId)
     {
         $query = self::getQuery();
+        $query->orderBy("#order", 'ASC');
         while($rec = $query->fetch("#scriptId = {$scriptId}")) {
             $action = cls::get($rec->action);
             $rec->data->scriptId = $rec->scriptId;
