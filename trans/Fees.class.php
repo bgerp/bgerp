@@ -107,6 +107,8 @@ class trans_Fees extends core_Detail
      * @param double    $totalWeight        Посоченото тегло
      * @param int       $singleWeight
      *
+     * @return int      0                   Ако не може да бъде намерена зона, в която принадлежи пакета
+     *
      * @return array[0] $finalPrice         Обработената цена
      * @return array[1] $result             Резултат за подадената единица $singleWeight
      * @return array[1] $zoneId             Id на зоната
@@ -117,6 +119,13 @@ class trans_Fees extends core_Detail
 
         //Определяне на зоната на транспорт
         $zone = trans_Zones::getZoneIdAndDeliveryTerm($countryId, $pCode);
+
+        //Ако не се намери зона се връща 0
+        if($zone == null){
+            return 0;
+        }
+
+        expect($zone['zoneId'] > 0);
 
         //Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();

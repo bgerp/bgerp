@@ -1244,6 +1244,9 @@ td.portal-date {
     white-space: nowrap; }
   .document .tab-control .detail-info {
     font-size: 0.9em; }
+  .document .business-doc-summary-table > tbody > tr > td {
+    padding: 3px !important;
+    border: 0px !important; }
 
 .small-padding td {
   padding: 3px !important; }
@@ -1325,6 +1328,20 @@ td.portal-date {
     .document-settings .linkWithIcon.disliked.disable,
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
+
+.narrow .document-settings,
+.narrow .document-settings-left,
+.narrow .document-title-group {
+  display: inline;
+  float: none; }
+  .narrow .document-settings .liked,
+  .narrow .document-settings .disliked,
+  .narrow .document-settings-left .liked,
+  .narrow .document-settings-left .disliked,
+  .narrow .document-title-group .liked,
+  .narrow .document-title-group .disliked {
+    position: relative;
+    top: 3px; }
 
 .document-settings-left,
 .document-title-group {

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценови групи
@@ -21,61 +21,61 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценови групи';
+    public $title = 'Ценови групи';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Ценова група';
+    public $singleTitle = 'Ценова група';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_SaveAndNew';
                     
  
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'groupId, productId, validFrom, createdBy, createdOn';
+    public $listFields = 'groupId, productId, validFrom, createdBy, createdOn';
         
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'priceMaster,ceo';
+    public $canEdit = 'priceMaster,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'priceMaster,ceo';
+    public $canAdd = 'priceMaster,ceo';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'priceMaster,ceo';
+    public $canDelete = 'priceMaster,ceo';
     
     
     /**
      * @todo Чака за документация...
      */
-    var $currentTab = 'Групи';
+    public $currentTab = 'Групи';
     
     
     /**
      * Поле - ключ към мастера
      */
-    var $masterKey = 'productId';
+    public $masterKey = 'productId';
    
 
     /**
      * Променлива за кеширане на актуалната информация, кой продукт в коя група е;
      */
-    static $products = array();
+    public static $products = array();
 
 
     /**
@@ -92,12 +92,12 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Връща групата на продукта към посочената дата
      */
-    static function getGroup($productId, $datetime)
+    public static function getGroup($productId, $datetime)
     {
         $query = self::getQuery();
         $query->orderBy('#validFrom', 'DESC');
         $query->where("#validFrom <= '{$datetime}'");
-        $query->where("#productId = {$productId}");
+        $query->where("#productId = '{$productId}'");
         $query->limit(1);
 		$query->show('groupId');
         
@@ -111,7 +111,7 @@ class price_GroupOfProducts extends core_Detail
      * Връща масив групите на всички всички продукти към определената дата
      * $productId => $groupId
      */
-    static function getAllProducts($datetime = NULL, $showNames = TRUE)
+    public static function getAllProducts($datetime = NULL, $showNames = TRUE)
     {
         price_ListToCustomers::canonizeTime($datetime);
 		
@@ -145,7 +145,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Извиква се след подготовка на заявката за детайла
      */
-    static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
+    protected static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
         $data->query->orderBy("validFrom,id", 'DESC');
@@ -155,7 +155,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Извиква се след обработка на ролите
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
         if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
             if($rec->validFrom <= dt::verbal2mysql()) {
@@ -178,7 +178,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Подготвя формата за въвеждане на групи на продукти
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $rec = $data->form->rec;
 
@@ -225,7 +225,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$data->form->title = $data->formTitle;
     }
@@ -234,7 +234,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    public static function on_AfterPrepareEditToolbar($mvc, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
     	if($data->masterMvc instanceof cat_Products) {
     		if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
@@ -250,7 +250,7 @@ class price_GroupOfProducts extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()) {
             
@@ -313,9 +313,7 @@ class price_GroupOfProducts extends core_Detail
         
         return parent::getMasterKey_($rec);
     }
-
-
-
+    
 
     /**
      * След подготовка на записите във вербален вид
@@ -393,7 +391,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * След подготовка на урл-то за връщане
      */
-    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
     	$data->retUrl["#"] = 'detailTabsTop';
     }
@@ -441,7 +439,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Подготвя продукт в група
      */
-    function prepareProductInGroup($data)
+    public function prepareProductInGroup($data)
     {   
         $data->masterKey = 'groupId';
          
@@ -501,14 +499,13 @@ class price_GroupOfProducts extends core_Detail
                 }
             }
         }
-
     }
 
 
     /**
      * Рендира продукт в група
      */
-    function renderProductInGroup($data)
+    public function renderProductInGroup($data)
     {
         return self::renderDetail_($data);
     }
@@ -517,7 +514,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	// Ако няма продаваеми продукти, слага се error на бутона
     	if(!empty($data->toolbar->buttons['btnAdd'])){

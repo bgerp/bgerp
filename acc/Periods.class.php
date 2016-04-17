@@ -645,4 +645,53 @@ class acc_Periods extends core_Manager
     
     	return (object)array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
     }
+
+    
+    /**
+     * Помощна функция подготвяща датите за сравняване
+     *
+     * @param string $from 
+     * @param string $to 
+     * @param string $displacement със стойности "months|year" 
+     * @return stdClass $res
+     * 					$res->from - начало на сравнявания период
+     * 					$res->to - край на сравнявания период
+     */
+    public static function comparePeriod($from, $to, $displacement = NULL)
+    {
+        switch ($displacement) {
+        
+            case "months":
+
+                $dFrom = date('d', dt::mysql2timestamp($from));
+
+                if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to)) {
+                    
+                    $fromCompare = date('Y-m-01', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from)));
+                    $toCompare = dt::getLastDayOfMonth($from,-1);
+                
+                } else {
+                    
+                    $fromCompare = date('Y-m-d', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from)));
+                    $toCompare = strstr(dt::addDays(-1,$from), " ", TRUE);
+                    
+                }
+                
+                break;
+                
+            case "year":
+                
+                $toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($to)));
+                $fromCompare = date('Y-m-d', strtotime("-12 months", dt::mysql2timestamp($from)));
+                
+                break;
+                
+            default:
+                
+                $fromCompare = $from;
+                $toCompare = $to;
+        }
+        
+        return (object) array('from'=> $fromCompare , 'to'=> $toCompare);
+    }
 }

@@ -8,10 +8,10 @@
                         <small>( [#operationSysId#] )</small>
                         <!--ET_END operationSysId-->
                         <div style="padding-top:5px;">
-                                <span class="state [#STATE_CLASS#]">
-                                    № <span class="bigData">[#id#]</span> /
-                                    <span class="bigData">[#valior#]</span>
-                                </span>
+							<span class="state [#STATE_CLASS#]">
+								№ <span class="bigData">[#id#]</span> /
+								<span class="bigData">[#valior#]</span>
+							</span>
                         </div>
                     </td>
                 </tr>
@@ -161,12 +161,6 @@
 	                            <td class='aright'>Total :</td>
 	                            <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
 	                            <td class='aright'><b>[#total#]</b></td>
-	                        </tr>
-	                        <tr>
-	                            <td colspan = '3' style='text-align:right'>
-	                                <hr>
-	                                Say words: [#sayWords#]
-	                            </td>
 	                        </tr>
 	                    </table>
 						<div class="clearfix21"></div>

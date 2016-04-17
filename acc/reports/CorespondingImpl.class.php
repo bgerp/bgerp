@@ -82,7 +82,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$form->FLD('orderBy', 'enum(DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
     	$form->FLD('orderField', 'enum(debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
     	
-    	$form->FLD('compare', 'enum(no=Няма,old=Предходен период,year=Миналогодишен период)', 'caption=Съпоставка,silent');
+    	$form->FLD('compare', 'enum(no=Няма,months=Предходен период,year=Миналогодишен период)', 'caption=Съпоставка,silent');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -224,21 +224,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$data->recsNew = array();
     	$data->recsAll = array();
     	$form = $this->innerForm;
-    	
-    	$from = strtotime($form->from);
-    	$to = strtotime($form->to);
-    	
-    	if ($this->innerForm->compare == 'old') {
-    		 
-    		$data->fromOld = date('Y-m-d', $from - abs($to - $from));
-    		$data->toOld = $form->from;
 
-    	} elseif ($this->innerForm->compare == 'year') {
-    		$data->toOld = date('Y-m-d',strtotime("-12 months", $from));
-    		$data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
+    	$date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare);
+    	$data->toOld = $date->to;
+    	$data->fromOld = $date->from;
 
-    	}
-    	
     	$data->groupBy = array();
     	foreach (range(1, 6) as $i){
     		if(!empty($form->{"feat{$i}"})){
@@ -572,7 +562,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    	// toolbar
 	    	$btns = $this->generateBtns($data);
 	
-	    	if ($this->innerForm->compare == 'year' || $this->innerForm->compare == 'old') {
+	    	if ($this->innerForm->compare != 'no') {
 		        $tpl->replace($btns->buttonList, 'buttonList');
 		        $tpl->replace($btns->buttonBar, 'buttonBar');
 	    	} else {
@@ -813,7 +803,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$newFields = array();
 
     	// Кои полета ще се показват
-    	if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
+    	if($this->innerForm->compare != 'no'){
     		$fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
     		$toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
     		
@@ -845,7 +835,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     	
-    	if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
+    	if($this->innerForm->compare != 'no'){
     		
     		if ($data->fromOld != NULL &&  $data->toOld != NULL) {
 

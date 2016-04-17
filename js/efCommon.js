@@ -1446,7 +1446,6 @@ function getWindowWidth() {
     if (winWidth < 320) {
         winWidth = 320;
     }
-    
     return winWidth;
 }
 
@@ -1455,6 +1454,7 @@ function getCalculatedElementWidth() {
 	var winWidth = getWindowWidth();
     // разстояние около формата
 	var outsideWidth = 42;
+    var menuSize = 0;
 	if($('#all').length) {
 		outsideWidth = 30;
 		if($('#login-form input').length) {
@@ -1463,8 +1463,10 @@ function getCalculatedElementWidth() {
 	}  else if ($('.modern-theme').length && $('.vertical .formCell > input[type="text"]').length) {
         outsideWidth = parseInt($('.vertical .formCell > input[type="text"]').first().offset().left * 2 + 2);
     }
-	
-    var formElWidth = winWidth - outsideWidth;
+    if($('.sidemenu-open').length) {
+        menuSize = $('.sidemenu-open').length * $('.sidemenu-open').first().width();
+    }
+    var formElWidth = winWidth - outsideWidth - menuSize;
 
     return formElWidth;
 }
@@ -1481,7 +1483,7 @@ function setFormElementsWidth() {
     	
         // изчислена максимална ширина формата
         var formElWidth = getCalculatedElementWidth();
-        
+        console.log(formElWidth);
         var winWidth = getWindowWidth();
 
         // колко ЕМ е широка страницата

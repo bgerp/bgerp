@@ -161,12 +161,6 @@
                                 <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
                                 <td class='aright'><b>[#total#]</b></td>
                             </tr>
-                            <tr>
-                                <td colspan = '3' style='text-align:right'>
-                                    <hr>
-                                    Say words: [#sayWords#]
-                                </td>
-                            </tr>
                         </table>
                     <div class="clearfix21"></div>
                     <hr>

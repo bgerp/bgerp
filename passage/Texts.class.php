@@ -1,0 +1,89 @@
+<?php
+
+
+/**
+ * Модел "Изчисляване на налва"
+ *
+ *
+ * @category  bgerp
+ * @package   trans
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class passage_Texts extends core_Manager
+{
+    /**
+     * Заглавие
+     */
+    public $title = "Фрафменти";
+
+
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, passage_Wrapper, plg_Search";
+
+    public $searchFields = "name, body";
+    /**
+     * Време за опресняване информацията при лист на събитията
+     */
+    var $refreshRowsTime = 5000;
+
+
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo,admin';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'ceo,admin';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,admin';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,admin';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,admin';
+
+
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'ceo,admin';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'ceo,admin,trans';
+
+
+    /**
+     * Описание на модела (таблицата)
+     */
+    public function description()
+    {
+        $this->FLD('name', 'varchar(256)', 'caption=Заглавие, mandatory');
+        $this->FLD('body', 'text', 'caption=Описание, mandatory');
+        $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
+        $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
+    }
+
+
+}

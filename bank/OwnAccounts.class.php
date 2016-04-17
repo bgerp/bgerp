@@ -406,6 +406,8 @@ class bank_OwnAccounts extends core_Master {
         }
         expect($ownAcc);
         
+        if(!$ownAcc) return FALSE;
+
         $acc = bank_Accounts::fetch($ownAcc->bankAccountId);
         $acc->currencyCode = currency_Currencies::getCodeById($acc->currencyId);
         expect($acc, $ownAcc);

@@ -694,6 +694,7 @@ class core_Manager extends core_Mvc
         $tpl->append($this->renderListPager($data), 'ListPagerBottom');
         
         // Попълваме таблицата с редовете
+        setIfNot($data->listTableMvc, clone $this);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме долния тулбар
@@ -779,7 +780,8 @@ class core_Manager extends core_Mvc
      */
     function renderListTable_($data)
     {
-        $table = cls::get('core_TableView', array('mvc' => $this));
+        setIfNot($data->listTableMvc, $this);
+    	$table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
         
         if($data->action == 'list') {
             $table->tableClass ='listTable listAction';

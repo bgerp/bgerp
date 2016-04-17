@@ -46,7 +46,15 @@ class drdata_Countries extends core_Manager {
      */
     static $euCountries = array('BE','BG','CY','CZ','DK','EE','GR','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR');
     
-    
+
+    /**
+     * Списък с кодовете на държавите от европейския съюз
+     */
+    static $eurCountries = array('BE','BG','CY','CZ','DK','EE','GR','DE','PT','FR','FI','HU','LU','MT',
+        'SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR',
+        'IS', 'NO', 'CH', 'LI', 'ME', 'MK', 'AL', 'RS', 'TR', 'XK', 'BA');
+
+
     /**
      * Кой има право да променя?
      *
@@ -116,7 +124,22 @@ class drdata_Countries extends core_Manager {
     	return in_array($abbr, static::$euCountries);
     }
     
-    
+
+
+    /**
+     * Връща държавите, с които се търгува в EUR
+     *
+     * @param int $countryId - ид на държавата
+     * @return boolean TRUE/FALSE
+     */
+    public static function isEUR($countryId)
+    {
+    	expect($abbr = static::fetchField($countryId, 'letterCode2'));
+    	
+    	return in_array($abbr, static::$eurCountries);
+    }
+
+
     /**
      * Попълва езиците, които се говорят в дадена страна
      */
