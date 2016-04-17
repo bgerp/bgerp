@@ -48,8 +48,7 @@
                 </tr>
                 <tr>
                     <td class='with-words' colspan='2'>
-                        <b>|словом|*:</b>&nbsp;&nbsp;<span class='cCode'>[#currencyId#]</span>
-                        &nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;<br>
+                        |Словом|*: [#amountVerbal#]<br>
                     </td>
                 </tr>
             </table>

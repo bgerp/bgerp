@@ -38,6 +38,18 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Файл за единичния изглед
+     */
+    public $singleLayoutFile = 'store/tpl/SingleStoreDocument.shtml';
+    
+    
+    /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
@@ -125,12 +137,6 @@ class store_Receipts extends store_DocumentMaster
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/shipment.png';
-    
-    
-    /**
-     * Файл за единичния изглед
-     */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutReceipt.shtml';
 
    
     /**

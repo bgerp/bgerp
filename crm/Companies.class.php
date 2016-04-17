@@ -1133,7 +1133,7 @@ class crm_Companies extends core_Master
     	} else {
     		
     		// Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
-    		if(drdata_Countries::isEu($rec->country)){
+    		if(drdata_Countries::isEur($rec->country)){
     			
     			return 'EUR';
     		}

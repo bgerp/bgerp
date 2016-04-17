@@ -1307,10 +1307,6 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$tpl->removeBlock('shareLog');
-    	}
-    	
     	if($data->paymentPlan){
     		$tpl->placeObject($data->paymentPlan);
     	}

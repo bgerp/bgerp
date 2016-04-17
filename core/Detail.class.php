@@ -159,6 +159,7 @@ class core_Detail extends core_Manager
         $tpl->append($this->renderListSummary($data), 'ListSummary');
         
         // Попълваме таблицата с редовете
+        setIfNot($data->listTableMvc, clone $this);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете

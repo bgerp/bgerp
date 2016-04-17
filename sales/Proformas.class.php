@@ -310,12 +310,12 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
 		
     	if($fields['-single']){
-    		if($rec->accountId){
+    		if(isset($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
     			core_Lg::push($rec->tplLang);
-    			$row->bank = core_Lg::transliterate($Varchar->toVerbal($ownAcc->bank));
+    			$row->bank = core_Lg::transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
     			core_Lg::pop($rec->tplLang);
     			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);

@@ -142,14 +142,14 @@ class core_Sbf extends core_Mvc
                     }
                     
                 }
-
             } else {
                 $sbfArr = pathinfo($sbfPath);
                 $rArr = pathinfo($rPath);
                 $rPath = $rArr['dirname'] . '/'. $sbfArr['basename'];
             }
-                
         }
+        
+        $rPath = ltrim($rPath, '/');
         
         $res = $qt . core_App::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
          

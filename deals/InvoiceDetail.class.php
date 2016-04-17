@@ -246,7 +246,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			if($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !count($data->rows))){
 				// При дебитни и кредитни известия показваме основанието
 				$data->listFields = array();
-				$data->listFields['number'] = '№';
+				$data->listFields['RowNumb'] = '№';
 				$data->listFields['reason'] = 'Основание';
 				$data->listFields['amount'] = 'Сума';
 				$data->rows = array();
@@ -262,7 +262,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 				
 				$data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => TRUE);
-				$data->rows['advance'] = (object) array('number' => 1,
+				$data->rows['advance'] = (object) array('RowNumb' => 1,
 						'reason' => $reason,
 						'amount' => $amount);
 			} 

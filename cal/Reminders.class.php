@@ -138,6 +138,12 @@ class cal_Reminders extends core_Master
 	public $canSingle = 'powerUser';
     
 	
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canSnooz = 'powerUser';
+	
+	
     /**
      * Икона за единичния изглед
      */
@@ -592,19 +598,18 @@ class cal_Reminders extends core_Master
 
     		$last7days = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now()) - 7*24*60*60);
     		if ($action == 'snooz') {
+    		    if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
+    		        $requiredRoles = 'no_one';
+    		    }  
+    		    
         		if($rec->state !== 'closed') {
-        		    if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
-        		        $requiredRoles = 'no_one';
-        		    }
+        		    $requiredRoles = 'no_one';
         		}
         		
-        		if ($rec->notifySent !== 'yes' && !($rec->nextStartTime >= $last7days && $rec->nextStartTime <= dt::now())){//bp();
-        		  if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
-
-        		        $requiredRoles = 'no_one';
-        	       }
+        		if ($rec->notifySent !== 'yes' && !($rec->nextStartTime >= $last7days && $rec->nextStartTime <= dt::now())){
+                    $requiredRoles = 'no_one';
         		}
-    		}	
+    		}
     	}
     }
     

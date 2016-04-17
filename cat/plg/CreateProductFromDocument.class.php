@@ -126,7 +126,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$detailFields['proto'] = 'proto';
 				foreach ($form->fields as $n => $f1){
 					$detailFields[$n] = $n;
-					if(isset($cloneRec->{$n})){
+					if(isset($cloneRec->{$n}) && !in_array($n, array('packQuantity', 'quantity', 'price', 'packPrice', 'discount'))){
 						$form->setDefault($n, $cloneRec->{$n});
 					}
 				}
@@ -186,24 +186,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$productKeys = array_keys($productFields);
 				$productKeys = implode('|', $productKeys);
 				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
-				
-				// Ако клонираме запис
-				if(!isset($cloneRec)){
-					$quantityField = $form->getField('measureId');
-					if($quantityField->input != 'hidden'){
-						unset($form->fields['packQuantity']->unit);
-					}
-				}
+				$form->setField('packagingId', 'input=hidden');
 				
 				// Намираме полетата от артикула
 				$productFields = array_diff_key($form->fields, $detailFields);
-				
-				if(isset($cloneRec)){
-					if(!array_key_exists($cloneRec->packagingId, $sameMeasures)){
-						$sameMeasures[$cloneRec->packagingId] = cat_UoM::getVerbal($cloneRec->packagingId, 'name');
-					}
-					$form->setOptions('packagingId', $sameMeasures);
-				}
 			} else {
 				// Ако не клонираме прототипа е скрит
 				$fields = $form->selectFields();
@@ -237,20 +223,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$productId = $Products->save($pRec);
 				$dRec = (object)array_diff_key($arrRec, $productFields);
 				$dRec->productId = $productId;
-				
-				// Ако не клонираме той е в основна опаковка
-				if(empty($cloneRec)){
-					$dRec->packagingId = $pRec->measureId;
-					$dRec->quantityInPack = 1;
-				}
+				$dRec->packagingId = $pRec->measureId;
+				$dRec->quantityInPack = 1;
 				
 				$mvc->save($dRec);
-					
-				// Форсираме и опаковка при нужда
-				if($dRec->packagingId != $pRec->measureId){
-					$packRec = (object)array('productId' => $productId, 'packagingId' => $rec->packagingId, 'quantity' => $rec->quantityInPack);
-					cat_products_Packagings::save($packRec);
-				}
 				
 				// Редирект към сделката/офертата
 				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, 'Успешно е създаден нов артикул');

@@ -391,6 +391,7 @@ abstract class deals_DealBase extends core_Master
     	
     	$tpl->append($table->get($data->DealHistory, $fields), 'DEAL_HISTORY');
     	$tpl->append($data->historyPager->getHtml(), 'DEAL_HISTORY');
+    	$tpl->removeBlock('STATISTIC_BAR');
     }
     
     
@@ -427,6 +428,7 @@ abstract class deals_DealBase extends core_Master
     		
     		$tpl->replace($btnCSVHtml, 'TABEXP');
     	}
+    	$tpl->removeBlock('STATISTIC_BAR');
     }
     
     
