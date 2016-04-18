@@ -264,18 +264,9 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $data->rowsOld = $data->recsOld = array();
         $form = $this->innerForm;
         
-        $from = strtotime($form->from);
-        $to = strtotime($form->to);
-        
-        if ($this->innerForm->compare == 'old') {
-             
-            $data->fromOld = date('Y-m-d', $from - abs($to - $from));
-            $data->toOld = $form->from;
-        } elseif ($this->innerForm->compare == 'year') {
-            $data->toOld = date('Y-m-d',strtotime("-12 months", $from));
-            $data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
-            //bp($data->toOld, $data->fromOld , $from, $to);
-        }
+        $date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare);
+    	$data->toOld = $date->to;
+    	$data->fromOld = $date->from;
 
         $data->groupBy = array();
         foreach (range(1, 6) as $i){
@@ -676,7 +667,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $newFields = array();
 
         // Кои полета ще се показват
-        if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
+        if($this->innerForm->compare != 'no'){
             $fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
             $toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
             
@@ -708,7 +699,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             }
         }
         
-        if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
+        if($this->innerForm->compare != 'no'){
             
             if ($data->fromOld != NULL &&  $data->toOld != NULL) {
 

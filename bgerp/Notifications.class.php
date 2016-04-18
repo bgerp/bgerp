@@ -390,7 +390,7 @@ class bgerp_Notifications extends core_Manager
             // Рендираме изгледа
             $tpl = $Notifications->renderPortal($data);
 
-            core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), 5);
+            core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         //Задаваме текущото време, за последно преглеждане на нотификациите

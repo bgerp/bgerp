@@ -138,4 +138,18 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		parent::setDocumentFields($this);
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат изписани от незавършеното производство един по един' : 'Артикулите ще бъдат изписани от незавършеното производството сумарно';
+		$row->useResourceAccounts = tr($row->useResourceAccounts);
+	}
 }

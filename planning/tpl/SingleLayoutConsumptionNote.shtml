@@ -55,8 +55,11 @@
                                                 </tr>
                                                 <!--ET_END useResourceAccounts-->
                                             </table>
+                                            <!--ET_BEGIN note-->
                                             <hr>
+                                            |Бележки|*:<br>
                                             [#note#]
+                                            <!--ET_END note-->
                                         </td>
                                         <td>
                                             <table class='centered special-borders' style='width:100%;'>

@@ -480,9 +480,10 @@ abstract class cash_Document extends deals_PaymentDocument
     			unset($row->rate);
     		}
     		 
-    		$spellNumber = cls::get('core_SpellNumber');
-    		$amountVerbal = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-    		$row->amountVerbal = $amountVerbal;
+    		$SpellNumber = cls::get('core_SpellNumber');
+    		$currecyCode = currency_Currencies::getCodeById($rec->currencyId);
+    		$amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', FALSE, $currecyCode);
+    		$row->amountVerbal = str::mbUcfirst($amountVerbal);
     		 
     		// Вземаме данните за нашата фирма
     		$ownCompanyData = crm_Companies::fetchOwnCompany();

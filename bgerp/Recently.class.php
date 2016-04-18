@@ -177,7 +177,7 @@ class bgerp_Recently extends core_Manager
                     $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
                 }
-                
+
                 $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
                     $linkUrl,
                     NULL, $attr);
@@ -326,7 +326,7 @@ class bgerp_Recently extends core_Manager
             // Рендираме изгледа
             $tpl = $Recently->renderPortal($data);
 
-            core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), 5);
+            core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         return $tpl;

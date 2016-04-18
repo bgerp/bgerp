@@ -1257,7 +1257,8 @@ class fileman_Files extends core_Master
     {
         // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
         // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
-        if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
+        $idLen = mb_strlen($id);
+        if ($idLen > FILEMAN_HANDLER_LEN && (($idLen - EF_ID_CHECKSUM_LEN) == FILEMAN_HANDLER_LEN)) {
             
             // Променлива, в която държим старото състояние
             $old = $this->protectId;

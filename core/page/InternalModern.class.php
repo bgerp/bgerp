@@ -71,9 +71,6 @@ class core_page_InternalModern extends core_page_Active
         // Забраняваме мащабирането
         $this->append("disableScale();", "START_SCRIPTS");
 
-        // Акордеона в менюто
-        jquery_Jquery::run($this, "sidebarAccordeonActions()");
-
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
 

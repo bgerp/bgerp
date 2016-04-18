@@ -73,11 +73,14 @@ class core_String
     
     /**
      * Прави първия символ на стринга главна буква (за многобайтови символи)
+     * 
      * @param string $string - стринга който ще се рансформира
+     * @return string $string - стринга с първа главна буква
      */
 	public static function mbUcfirst($string) 
 	{
-        $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+		$string = trim($string);
+		$string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
         
         return $string;
     }
@@ -486,6 +489,8 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
+        } elseif(mb_strlen($str) > $maxLen/2) {
+            $str = str::hyphenText($str);
         }
         
         return $str;
@@ -938,4 +943,23 @@ class core_String
     
     	return $string;
     }
+
+
+    /**
+     * Хифинира текст, така че да няма много дължи, не-пренодими думи
+     */
+    public static function hyphenText($text, $maxWordLen = 20)
+    {
+        $hyphSign = html_entity_decode('&#45;');
+
+        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $maxWordLen . ",}/s", array('core_String', 'hyphenWord'), $text);
+
+        return $text;
+    }
+
+    private static function hyphenWord($matches)
+    {
+       return hyphen_Plugin::getHyphenWord($matches[0]);
+    }
+
 }

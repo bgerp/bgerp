@@ -31,7 +31,7 @@ class crm_Locations extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search';
+    var $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search, plg_Printing';
     
     
     /**

@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Правилата за ценоразписите за продуктите от каталога
@@ -32,67 +32,67 @@ class price_ListRules extends core_Detail
     /**
      * Заглавие
      */
-    var $title = 'Ценоразписи->Правила';
+    public $title = 'Ценоразписи->Правила';
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Правило';
+    public $singleTitle = 'Правило';
     
     
     /**
      * Брой елементи на страница
      */
-    var $listItemsPerPage = 40;
+    public $listItemsPerPage = 40;
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_SaveAndNew';
                     
  
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy';
+    public $listFields = 'id, domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo,priceMaster';
+    public $canRead = 'ceo,priceMaster';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'ceo,priceMaster';
+    public $canEdit = 'ceo,priceMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,priceMaster';
+    public $canAdd = 'ceo,priceMaster';
     
     
     /**
      * Поле - ключ към мастера
      */
-    var $masterKey = 'listId';
+    public $masterKey = 'listId';
 
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'productId, groupId, price';
+    public $searchFields = 'productId, groupId, price';
     
     
     /**
@@ -134,7 +134,7 @@ class price_ListRules extends core_Detail
     /**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -359,7 +359,7 @@ class price_ListRules extends core_Detail
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$data->form->title = $data->formTitle;
     }
@@ -368,7 +368,7 @@ class price_ListRules extends core_Detail
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
     	if($rec->type == 'groupDiscount'){
@@ -463,9 +463,9 @@ class price_ListRules extends core_Detail
 
   
     /**
-     *
+     * След рендиране на лист тулбара
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('*'); 
         $data->toolbar->addBtn('Стойност', array($mvc, 'add', 'type' => 'value', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE), NULL, 'title=Продуктова цена');
@@ -547,13 +547,13 @@ class price_ListRules extends core_Detail
                 if($productGroup) {
                     $pgCond = "#groupId = $productGroup OR ";
                 }
-
-                expect($rec->productId);
-
-                $query->where("{$pgCond}(#productId = $rec->productId)");
+                $query->where("{$pgCond}(#productId = '{$rec->productId}')");
             }
-
-            expect($actRec = $query->fetch());
+            
+            $actRec = $query->fetch();
+            if(!$actRec){
+            	wp($query->where, $rec);
+            }
  
             if($actRec->id == $rec->id) {
                 $state = 'active';
