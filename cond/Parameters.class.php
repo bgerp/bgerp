@@ -21,12 +21,6 @@ class cond_Parameters extends embed_Manager
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
 	public $driverInterface = 'cond_ParamTypeIntf';
-	
-	
-	/**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'salecond_Parameters';
     
     
     /**
@@ -51,12 +45,6 @@ class cond_Parameters extends embed_Manager
      * Заглавие в единствено число
      */
     public $singleTitle = "Търговско условие";
-    
-    
-    /**
-     * Кой може да чете
-     */
-    public $canRead = 'ceo,cond';
     
     
     /**
@@ -203,6 +191,8 @@ class cond_Parameters extends embed_Manager
     	if($value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId)){
     		return $value;
     	}
+    	
+    	//@TODO От същата държава + Нов модел
     	
     	// Търси се метод дефиниран за връщане на стойността на условието
     	$method = "get{$conditionSysId}";

@@ -20,19 +20,19 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Други условия';
+    public $title = 'Търговски условия на клиенти';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Друго условие';
+    public $singleTitle = 'Търговско условие';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, cond_Wrapper';
+    public $loadList = 'plg_RowTools2, cond_Wrapper';
     
     
     /**
@@ -44,7 +44,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да вижда списъчния изглед
      */
-   // public $canList = 'no_one';
+    public $canList = 'ceo,cond';
     
     
     /**
@@ -72,9 +72,9 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Активен таб
+     * Полета, които ще се показват в листов изглед
      */
-    public $currentTab = 'Параметри';
+    public $listFields = 'cId=Контрагент, conditionId, value';
     
     
     /**
@@ -82,8 +82,8 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     function description()
     {
-        $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
+        $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
+        $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     }
@@ -116,7 +116,18 @@ class cond_ConditionsToCustomers extends core_Manager
         }
     }
     
-	
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	
+    	$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id);
+    }
+    
+    
 	/**
      * Връща не-използваните параметри за конкретния продукт, като опции
      *
@@ -168,18 +179,20 @@ class cond_ConditionsToCustomers extends core_Manager
     
 
 	/**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$paramRec = cond_Parameters::fetch($rec->conditionId);
     	
     	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
+    	}
+    	
+    	$row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, TRUE);
+    	
+    	if(isset($fields['-list'])){
+    		$row->ROW_ATTR['class'] .= " state-active";
     	}
     }
     
@@ -253,6 +266,10 @@ class cond_ConditionsToCustomers extends core_Manager
        		$cState = cls::get($rec->cClass)->fetchField($rec->cId, 'state');
        		if($cState == 'rejected'){
        			$res = 'no_one';
+       		} else {
+       			if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+       				$res = 'no_one';
+       			}
        		}
        }
     }
@@ -300,5 +317,21 @@ class cond_ConditionsToCustomers extends core_Manager
         		acc_Features::syncFeatures($rec->cClass, $rec->cId);
         	}
         }
+    }
+    
+    
+    /**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	
+    	// За всеки запис, махаме тези, до който контрагент нямаме достъп
+    	foreach ($data->recs as $id => $rec){
+    		if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+    			unset($data->recs[$id]);
+    		}
+    	}
     }
 }
