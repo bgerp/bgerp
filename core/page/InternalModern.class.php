@@ -267,7 +267,7 @@ class core_page_InternalModern extends core_page_Active
                 if($lastMenu != $rec->menu) {
                     $html .= ($html ? "\n</ul></li>" : '') . "\n<li{$mainClass} data-menuid = '{$rec->id}'>";
                     $html .= "\n    <div><span class='arrow'></span>{$rec->menuTr}</div>";
-                    $html .= "\n<ul>";
+                    $html .= "\n<ul class='submenuBlock'>";
                 }
                 $lastMenu = $rec->menu;
                 $html .= "\n<li{$subClass}>" . ht::createLink($rec->subMenuTr, array($rec->ctr, $rec->act)) . "</li>";
