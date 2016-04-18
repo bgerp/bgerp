@@ -78,6 +78,15 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
+     */
+    public $rowToolsMinLinksToShow = 2;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -157,7 +166,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Подготвя данните за екстеншъна с условия на офертата
      */
-    public static function prepareCustomerSalecond(&$data)
+    public function prepareCustomerSalecond(&$data)
     {
         expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
@@ -169,6 +178,8 @@ class cond_ConditionsToCustomers extends core_Manager
         	// Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->id] = $rec;
             $row = static::recToVerbal($rec);
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            
             $data->rows[$rec->id] = $row; 
         }
         
@@ -203,7 +214,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Рендира екстеншъна с условия на офертата
      */
-    public static function renderCustomerSalecond($data)
+    public function renderCustomerSalecond($data)
     {
       	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Търговски условия'), 'title');
@@ -211,11 +222,12 @@ class cond_ConditionsToCustomers extends core_Manager
         if(isset($data->addBtn)){
         	$tpl->append($data->addBtn, 'title');
         }
-        
+      
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
 				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
-				$tpl->append($row->conditionId . " - " . $row->value . "<span style='position:relative;top:4px'> &nbsp;" . $row->tools . "</span>", 'content');
+				$toolsHtml = $row->_rowTools->renderHtml($this->rowToolsMinLinksToShow);
+				$tpl->append($row->conditionId . " - " . $row->value . "<span style=''>{$toolsHtml}</span>", 'content');
 				$tpl->append("</div>", 'content');
 				
 			}
