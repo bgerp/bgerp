@@ -30,12 +30,6 @@ class core_Tabs extends core_BaseClass
 	
 	
 	/**
-	 * Да се рендира ли селектирания таб при принтиране
-	 */
-	protected $hideSelectedTabOnPrinting = FALSE;
-	
-	
-	/**
 	 * Дали да се показва винаги първия таб ако няма избран
 	 */
 	public $showFirstIfNotSelected = FALSE;
@@ -119,19 +113,10 @@ class core_Tabs extends core_BaseClass
 
             $tabClass = $this->classes[$tab];
             
-            $displayNone = '';
-            
-            // Ако е оказано да не рендираме селектирания таб и режима е xhtml,pdf или printing, скриваме го
-            if($this->hideSelectedTabOnPrinting === TRUE && $selected){
-            	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
-            		$displayNone = 'display:none !important';
-            	}
-            }
-            
             if ($url) {
                 $url = ht::escapeAttr($url);
-                $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;{$displayNone}' class='tab {$selected}'>";
-                $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}' style='{$displayNone}'>{$title}</a>";
+                $head .= "<div onclick=\"openUrl('{$url}', event)\" style='cursor:pointer;' class='tab {$selected}'>";
+                $head .= "<a onclick=\"return openUrl('{$url}', event);\" href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
                 if($selected) {
                     $head .= $hintBtn;
                 }
