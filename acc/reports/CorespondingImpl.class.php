@@ -784,7 +784,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             foreach($this->innerState->recs as $id => $rec) {
         
                 $dataRecs[] = $this->getVerbalRec($rec, $data);
-                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum') as $fld){
+                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'plus', 'minus','quantity','sum','аmountSelf') as $fld){
+                
                     if(!is_null($rec->{$fld})){
                         $dataRecs[$id]->{$fld} = $rec->{$fld};
                     }
@@ -820,7 +821,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
        
             }
-    
+
             $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
         	
         	return $csv;
