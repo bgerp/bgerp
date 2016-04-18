@@ -503,7 +503,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	    } else {
     	        $recs = $data->recs;
     	    }
-    	 
+
+    	  if(count($recs)) {
     		// За всеки запис
     		foreach ($recs as $id=>&$rec){ 
     			$rec->id = $id+1;
@@ -513,6 +514,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			// Вербално представяне на записа
     			$data->rows[] = $mvc->getVerbalRec($rec, $data);
     		}
+    	  }
     	}
     }
     
