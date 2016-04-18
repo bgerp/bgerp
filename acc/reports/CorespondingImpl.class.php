@@ -486,6 +486,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {	
+        $recs = array();
+
     	// Ако има намерени записи
     	if(count($data->recs)){
     		
@@ -499,14 +501,17 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
     	
     	    if ($mvc->innerForm->compare != 'no') {
-    	        $recs = $data->recsAll;
+    	        
+                foreach ($data->recsAll as $recsAll) {
+    	           $recs[] = $recsAll;
+                }
     	    } else {
     	        $recs = $data->recs;
     	    }
 
     	  if(count($recs)) {
     		// За всеки запис
-    		foreach ($recs as $id=>&$rec){ 
+    		foreach ($recs as $id=>&$rec){
     			$rec->id = $id+1;
     			// Ако не е за текущата страница не го показваме
     			if(!$data->Pager->isOnPage()) continue;
