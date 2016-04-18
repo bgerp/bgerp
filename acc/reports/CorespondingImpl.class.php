@@ -1089,7 +1089,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$value2 = array();
     	$labels = array();
 
-    	if (count($data->recsAll)) { 
+    	if ($this->innerForm->compare != 'no') { 
     	    foreach ($data->recsAll as $id => $rec) {
     	        $value = abs($rec->{$this->innerForm->orderField});
     	        $valueNew = abs($rec->{$this->innerForm->orderField."New"});
@@ -1179,7 +1179,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 		     
 		  return ($a->value > $b->value) ? -1 : 1;
 		});
-		
+
 		$arr = $this->preparePie($dArr, 12);
 
 		$title = '';
@@ -1264,8 +1264,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public static function preparePie ($data, $n, $otherName = 'Други')
     {
-    	$newArr = array();
     	
+        $newArr = array();
+
     	foreach ($data as $key => $rec) {
     		// Вземаме всички пера като наредени н-орки
     		$title = '';
@@ -1304,8 +1305,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	    
     	        $res[] = (object) array ('key' => $k, 'title' => $titleV, 'value' => $rec->value);
     	    }
-    
-    		return $res;
     
     		//в противен случай
     	} else {
