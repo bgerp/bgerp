@@ -183,12 +183,13 @@ class trans_Fees extends core_Detail
 
         $finalPrice = null;
         //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
-        if($totalWeight == $smallestWeight){
-            $finalPrice =  $totalWeight;
-        }
+
         //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
-        elseif($totalWeight == $weightsLeft){
+        if($totalWeight == $weightsLeft){
             $finalPrice = $arrayOfWeightPrice[$weightsLeft];
+        }
+        elseif($totalWeight == $smallestWeight){
+            $finalPrice =  $totalWeight;
         }
         //Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
         else{

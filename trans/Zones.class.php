@@ -133,8 +133,8 @@ class trans_Zones extends core_Detail
 
         // Вземаме съответстващата форма на този модел
         $form = self::getForm();
-        $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently');
-        $form->FLD('singleWeight', 'double(Min=0)', 'caption=Брой за връщане');
+        $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.');
+        $form->FLD('singleWeight', 'double(Min=0)', 'caption=Кг. за връщане');
 
         // Премахваме полето "name", защото то тррябва да е резултат от теста, а не да се въвежда
         unset($form->fields['zoneId']);
@@ -147,7 +147,7 @@ class trans_Zones extends core_Detail
             try {
                 $result = trans_Fees::calcFee($rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
                 $zoneName = trans_FeeZones::getVerbal($result[2], 'name');
-                $form->info = "Цената за " . $rec->singleWeight . " на " . $rec->totalWeight . " броя от този пакет ще струва ". round($result[1], 4).
+                $form->info = "Цената за " . $rec->singleWeight . " на " . $rec->totalWeight . " кг. от този пакет ще струва ". round($result[1], 4).
                     ", a всички ".  $rec->totalWeight . " ще струват " . round($result[0], 4) . ". Пратката попада в " . $zoneName ;
 
             } catch(core_exception_Expect $e) {
