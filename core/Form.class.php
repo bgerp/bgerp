@@ -181,7 +181,7 @@ class core_Form extends core_FieldSet
                 if ($value === NULL) continue;
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && (!(strlen(trim($value)))) && ($field->type->toVerbal($value) === NULL)) continue;
+                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
             }
             
             if ($silent && !(strlen(trim($value))) && $field->type->toVerbal($value)) continue;
@@ -313,7 +313,12 @@ class core_Form extends core_FieldSet
             $value = isset($values[$name]) ? $values[$name] : Request::get($name);
         
             // Ако $silent, не сме критични към празните стойности
-            if(($value === NULL) && $silent) continue;
+            if ($silent) {
+                if ($value === NULL) continue;
+                
+                // Когато полето е скрито и няма стойност, гледаме да не е NULL
+                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
+            }
            
             $captions = str_replace('->', '|* » |', $field->caption);
             
