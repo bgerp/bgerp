@@ -269,12 +269,9 @@ function scrollToElem(docId) {
  * */
 function scrollToHash(){
 	var hash = window.location.hash;
-	//console.log(hash);
 	if($(hash).length) {
-		//console.log($(hash));
         setTimeout(function() {
 			var scrollTo = parseInt($(hash).offset().top) - 70;
-			//console.log(scrollTo);
 			if (scrollTo < 400) {
 				scrollTo = 0;
 			}
