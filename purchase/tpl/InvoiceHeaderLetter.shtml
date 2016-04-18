@@ -69,14 +69,8 @@
                                             <!--ET_BEGIN bankInfo-->
                                             [#bankInfo#]
                                             <div class="smallData">
-                                                <div>
-                                                    <!--ET_BEGIN bank-->
-                                                    [#bank#]
-                                                    <!--ET_END bank-->
-                                                    <!--ET_BEGIN bic-->
-                                                    , BIC: [#bic#]
-                                                    <!--ET_END bic-->
-                                                </div>
+                                                <!--ET_BEGIN bank-->[#bank#]<!--ET_END bank-->
+                                                <!--ET_BEGIN bic-->, BIC: [#bic#]<!--ET_END bic-->
                                             </div>
                                             <!--ET_END bankInfo-->
                                         </div>
