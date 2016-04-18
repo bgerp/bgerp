@@ -2372,7 +2372,12 @@ a.lang {
   bottom: 2.1em;
   display: none; }
   .richtext-emoticons6 a.rtbutton {
-    text-align: left; }
+    text-align: left;
+    display: table-cell;
+    min-width: 65px; }
+
+.narrow .richtext-emoticons6 a.rtbutton {
+  min-width: 72px; }
 
 .richtext-emoticons5 {
   left: -260%; }
