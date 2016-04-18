@@ -89,13 +89,19 @@ class trans_Fees extends core_Detail
 
 
     /**
+     * Полета, които се виждат
+     */
+     public $listFields  = "id, weight, price, createdOn, createdBy";
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('feeId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
-        $this->FLD('weight', 'double(min=0)', 'caption=Тегло, mandatory');
-        $this->FLD('price', 'double(min=0)', 'caption=Цена, mandatory');
+        $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->Тегло, mandatory');
+        $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Цена, mandatory');
     }
 
 

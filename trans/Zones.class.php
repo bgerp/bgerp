@@ -29,7 +29,7 @@ class trans_Zones extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "zoneId, countryId, pCode, createdOn, createdBy";
+    public $listFields = "countryId, pCode, createdOn, createdBy";
 
 
     /**
@@ -97,9 +97,9 @@ class trans_Zones extends core_Detail
      */
     public function description()
     {
-        $this->FLD('zoneId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, recently, mandatory');
-        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
+        $this->FLD('zoneId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
+        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter');
         $this->setDbUnique("countryId, pCode");
     }
 
