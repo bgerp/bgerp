@@ -441,10 +441,10 @@ class planning_ObjectResources extends core_Manager
     	
     	// Ще се опитаме да намерим средната цена на заместващите артикули
     	$priceSum = $count = 0;
+    	$listId = price_ListRules::PRICE_LIST_COST;
+    	price_ListToCustomers::canonizeTime($date);
     	foreach ($equivalentProducts as $pId => $pName){
-    		
-    		// За всеки артикул, търсим себестойноста му
-    		$price = cat_Products::getSelfValue($pId, NULL, 1, $date);
+    		$price = price_ListRules::getPrice($listId, $pId, NULL, $date);
     		
     		// Ако има себестойност прибавяме я към средната
     		if(isset($price)){
@@ -455,9 +455,9 @@ class planning_ObjectResources extends core_Manager
     	
     	// Ако има намерена ненулева цена, изчисляваме средната
     	if($count !== 0){
-    		$avgPrice = round($priceSum / $price, 8);
+    		$avgPrice = round($priceSum / $count, 8);
     	}
-
+		
     	// За тази група артикули, кеширваме в паметта средната цена
     	$index = keylist::fromArray($equivalentProducts);
     	static::$cache[$index] = $avgPrice;
