@@ -367,13 +367,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	foreach ($recs as $jRec){
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
     	}
-
+        
+    	$id = 1;
     	// Ако има намерени записи
     	if(count($data->recs)){ 
-    		
+    	    
     		// За всеки запис
     		foreach ($data->recs as &$rec){
-    			
+    		    $rec->id = 1;
     			// Изчисляваме окончателния остатък (дебит - кредит)
     			$rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
     			$rec->blAmount = $rec->debitAmount - $rec->creditAmount;
@@ -387,6 +388,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			if($rec->blQuantity != $rec->blAmount){
     				$data->hasSameAmounts = FALSE;
     			}
+    			
+    			$rec->id = $id++;
     		}
     		
     		foreach ($data->recs as &$rec1){
@@ -494,15 +497,16 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		
     		// Ако има избрано поле за сортиране, сортираме по него
     		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
-
-    	    if (count($data->recsAll)) {
+    	
+    	    if ($mvc->innerForm->compare != 'no') {
     	        $recs = $data->recsAll;
     	    } else {
     	        $recs = $data->recs;
     	    }
+    	 
     		// За всеки запис
-    		foreach ($recs as &$rec){
-    			
+    		foreach ($recs as $id=>&$rec){ 
+    			$rec->id = $id+1;
     			// Ако не е за текущата страница не го показваме
     			if(!$data->Pager->isOnPage()) continue;
     			
@@ -592,6 +596,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         } else {
  
 	    	$f = cls::get('core_FieldSet');
+	    	$f->FLD('id', 'int', 'tdClass=accClass');
 	    	$f->FLD('item1', 'varchar', 'tdClass=itemClass');
 	    	$f->FLD('item2', 'varchar', 'tdClass=itemClass');
 	    	$f->FLD('item3', 'varchar', 'tdClass=itemClass');
@@ -641,6 +646,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$row = new stdClass();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$Varchar = cls::get('type_Varchar');
+    	$Int = cls::get('type_Int');
+
+    	$row->id = $Int->toVerbal($rec->id);
  
     	// Вербалното представяне на перата
     	foreach (range(1, 6) as $i){
@@ -816,7 +824,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	foreach (range(1, 6) as $i){
     		if(!empty($form->{"feat{$i}"})){
     			if($form->{"feat{$i}"} == '*'){
-    				$newFields["item{$i}"] = acc_Lists::getVerbal($form->{"list{$i}"}, 'name');
+    			    $newFields["id"] = "№";
+    			    $newFields["item{$i}"] = acc_Lists::getVerbal($form->{"list{$i}"}, 'name');
     			} else {
     				$newFields["item{$i}"] = $form->{"feat{$i}"};
     			}
@@ -984,6 +993,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     {
         // Кои полета ще се показват
         $f = new core_FieldSet;
+        $f->FLD('id', 'int');
         $f->FLD('debitQuantity', 'double');
         $f->FLD('debitAmount', 'double');
         $f->FLD('creditQuantity', 'double');
