@@ -77,6 +77,9 @@ class planning_ObjectResources extends core_Manager
     public $singleTitle = 'Заместващ артикул';
     
     
+    protected static $cache = array();
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -424,17 +427,21 @@ class planning_ObjectResources extends core_Manager
     	$avgPrice = NULL;
     	expect($productId);
     	
+    	// Проверяваме за тази група артикули, имали кеширана средна цена
+    	$cachePrice = static::$cache[current(preg_grep("|{$productId}|", array_keys(static::$cache)))];
+    	if($cachePrice) return $cachePrice;
+    	
     	// Ако артикула не е вложим, не търсим средна цена
     	$isConvertable = cat_Products::fetchField($productId, "canConvert");
     	if($isConvertable != 'yes') return $avgPrice;
     	
     	// Ако няма заместващи артикули, не търсим средна цена
-    	$equivalenProducts = static::getEquivalentProducts($productId);
-    	if(!count($equivalenProducts)) return $avgPrice;
+    	$equivalentProducts = static::getEquivalentProducts($productId);
+    	if(!count($equivalentProducts)) return $avgPrice;
     	
     	// Ще се опитаме да намерим средната цена на заместващите артикули
     	$priceSum = $count = 0;
-    	foreach ($equivalenProducts as $pId => $pName){
+    	foreach ($equivalentProducts as $pId => $pName){
     		
     		// За всеки артикул, търсим себестойноста му
     		$price = cat_Products::getSelfValue($pId, NULL, 1, $date);
@@ -450,6 +457,10 @@ class planning_ObjectResources extends core_Manager
     	if($count !== 0){
     		$avgPrice = round($priceSum / $price, 8);
     	}
+
+    	// За тази група артикули, кеширваме в паметта средната цена
+    	$index = keylist::fromArray($equivalentProducts);
+    	static::$cache[$index] = $avgPrice;
     	
     	// Връщаме цената ако е намерена
     	return $avgPrice;
