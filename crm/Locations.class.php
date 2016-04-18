@@ -193,16 +193,8 @@ class crm_Locations extends core_Master {
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$rec = &$data->form->rec;
-    	$url = cls::get($rec->contragentCls)->getSingleUrlArray($data->form->rec->contragentId);
-    	$title = cls::get($rec->contragentCls)->getTitleById($data->form->rec->contragentId);
-    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => cls::get($rec->contragentCls)->singleIcon, 'class' => 'linkInTitle'));
-    	 
-    	if($data->form->rec->id) {
-    		$data->form->title = "Редактиране на локация на|* <b style='color:#ffffcc;'>" . $title . "</b>";
-    	} else {
-    		$data->form->title = "Нова локация на|* <b style='color:#ffffcc;'>" . $title . "</b>";
-    	}
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id);
     }
     
     
