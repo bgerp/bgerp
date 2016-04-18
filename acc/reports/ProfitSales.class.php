@@ -61,6 +61,8 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         
         $form->setDefault('orderBy', 'DESC');
         
+        $form->setHidden('compare');
+        
         $form->setDefault('orderField', 'blAmount');
         $form->setOptions('orderField', array('blAmount' => "Сума"));
         
@@ -138,7 +140,7 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-   
+  
 		unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
@@ -149,7 +151,7 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         unset($data->listFields['creditQuantityCompare']);
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
-        
+ 
         // Кои полета ще се показват
         if($mvc->innerForm->compare != 'no'){
             $fromVerbalOld = dt::mysql2verbal($data->fromOld, 'd.m.Y');
@@ -160,7 +162,7 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
             $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
             $prefix = (string) $fromVerbal . " - " . $toVerbal;
         
-            $fields = arr::make("item3=Сделки,blAmount={$prefix}->Сум,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+            $fields = arr::make("item3=Сделки,blAmount={$prefix}->Сумa,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
             $data->listFields = $fields;
         } else {
         
