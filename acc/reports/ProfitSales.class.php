@@ -168,7 +168,7 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         
             $data->listFields['blAmount'] = "Сума";
         }
-        bp($data->listFields);
+
     }
     
 
