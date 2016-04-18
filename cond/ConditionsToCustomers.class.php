@@ -32,7 +32,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cond_Wrapper';
+    public $loadList = 'plg_RowTools2, crm_Wrapper';
     
     
     /**
@@ -44,7 +44,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да вижда списъчния изглед
      */
-    public $canList = 'ceo,cond';
+    public $canList = 'no_one';
     
     
     /**
@@ -96,6 +96,9 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
+    	
+    	$tab = ($rec->cClass == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
+    	$mvc->currentTab = $tab;
     	
     	if(!$form->rec->id){
     		$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
@@ -261,7 +264,7 @@ class cond_ConditionsToCustomers extends core_Manager
         	$res = 'no_one';
        }
        
-       if(($action == 'edit' || $action == 'delete') && isset($rec)){
+       if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
        		
        		$cState = cls::get($rec->cClass)->fetchField($rec->cId, 'state');
        		if($cState == 'rejected'){
@@ -317,21 +320,5 @@ class cond_ConditionsToCustomers extends core_Manager
         		acc_Features::syncFeatures($rec->cClass, $rec->cId);
         	}
         }
-    }
-    
-    
-    /**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-    	if(!count($data->recs)) return;
-    	
-    	// За всеки запис, махаме тези, до който контрагент нямаме достъп
-    	foreach ($data->recs as $id => $rec){
-    		if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
-    			unset($data->recs[$id]);
-    		}
-    	}
     }
 }
