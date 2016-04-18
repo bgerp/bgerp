@@ -17,7 +17,7 @@ class passage_Texts extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Фрафменти";
+    public $title = "Фрагменти";
 
 
     /**
