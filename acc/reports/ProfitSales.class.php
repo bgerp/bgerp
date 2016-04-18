@@ -61,6 +61,8 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         
         $form->setDefault('orderBy', 'DESC');
         
+        $form->setHidden('compare');
+        
         $form->setDefault('orderField', 'blAmount');
         $form->setOptions('orderField', array('blAmount' => "Сума"));
         
