@@ -454,7 +454,7 @@ class sales_Quotations extends core_Master
     	
     			if($ownCompanyData->$fld){
     				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
-    				$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
+    				$row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
     			}
     		}
     			

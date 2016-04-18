@@ -315,8 +315,8 @@ class sales_Proformas extends deals_InvoiceMaster
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
     			core_Lg::push($rec->tplLang);
-    			$row->bank = core_Lg::transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
-    			core_Lg::pop($rec->tplLang);
+    			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
+    			core_Lg::pop();
     			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}

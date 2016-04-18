@@ -252,7 +252,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $row->MyCompany = transliterate(tr($row->MyCompany));
         
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-        $row->MyAddress = core_Lg::transliterate($row->MyAddress);
+        $row->MyAddress = transliterate(tr($row->MyAddress));
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
