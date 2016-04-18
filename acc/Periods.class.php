@@ -667,12 +667,28 @@ class acc_Periods extends core_Manager
 
                 if ($dFrom == '01' && $to == dt::getLastDayOfMonth($to)) {
                     
-                    $fromCompare = date('Y-m-01', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from)));
                     $toCompare = dt::getLastDayOfMonth($from,-1);
-                
+            
+                    $first = date('Y-m-01', dt::mysql2timestamp($toCompare));
+                    $dFrom = date('d', dt::mysql2timestamp($toCompare));
+                    $mFrom = date('m', dt::mysql2timestamp($toCompare));
+
+                    $date1 = new DateTime($to);
+                    $date2 = new DateTime($from);
+                    $interval = date_diff($date1, $date2);
+                    $months = $interval->m;
+ 
+                    $fromCompare1 = dt::addMonths(-$months,$first);
+                    
+                    if ($dFrom == '28' && $mFrom == '02') { 
+                        $fromCompare1 = dt::addMonths(-$months+1,$toCompare);
+                    } 
+   
+                    $fromCompare = date('Y-m-01', dt::mysql2timestamp($fromCompare1));
+
                 } else {
                     
-                    $fromCompare = date('Y-m-d', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from)));
+                    $fromCompare = date('Y-m-d', dt::mysql2timestamp($from) - abs(dt::mysql2timestamp($to) - dt::mysql2timestamp($from))-1);
                     $toCompare = strstr(dt::addDays(-1,$from), " ", TRUE);
                     
                 }
