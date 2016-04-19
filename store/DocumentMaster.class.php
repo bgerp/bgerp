@@ -448,7 +448,15 @@ abstract class store_DocumentMaster extends core_Master
     	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	$oldRow = $this->recToVerbal($rec, $fields);
     	
-    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
+    	$amount = NULL;
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	if($firstDoc->getInstance()->getField("#paymentMethodId")){
+    		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
+    		if(cond_PaymentMethods::isCOD($paymentMethodId)){
+    			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
+    		}
+    	}
+    	
     	$rec->palletCount = ($rec->palletCountInput) ? $rec->palletCountInput : $rec->palletCount;
     	
     	if($rec->palletCount){
@@ -475,7 +483,7 @@ abstract class store_DocumentMaster extends core_Master
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getLink($rec->id, 0);
-    	 
+    	
     	return $row;
     }
     
