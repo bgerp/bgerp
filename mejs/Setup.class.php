@@ -2,6 +2,12 @@
 
 
 /**
+ * Версията на продукта
+ */
+defIfNot('MEJS_VERSION', '2.11.0.0');
+
+
+/**
  * Клас 'mejs_Setup'
  *
  * Исталиране/деинсталиране на Apachetika
@@ -35,6 +41,12 @@ class mejs_Setup extends core_ProtoSetup
 	 * Пакет без инсталация
 	 */
 	public $noInstall = TRUE;
-	
+    
+    
+	/**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+        'MEJS_VERSION' => array ('enum(2.11.0.0)', 'caption=Версия на MEJS'),
+	);
 }
-
