@@ -413,7 +413,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 		// Обработваме обобщената информация
     	$this->prepareSummary($data);
 
-    	if (count($data->recsNew)) {
+    	if (count($data->recsNew) || count($data->recs)) {
 
     	    foreach ($data->recs as $id => $r) {
 
@@ -505,8 +505,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 foreach ($data->recsAll as $recsAll) {
     	           $recs[] = $recsAll;
                 }
-    	    } else {
-    	        $recs = $data->recs;
+    	    } else { 
+    	        $recs[] = $data->recs;
     	    }
 
     	  if(count($recs)) {
