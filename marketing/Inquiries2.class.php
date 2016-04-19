@@ -641,12 +641,16 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$rec = static::fetch($id);
+    	$rec = $this->fetch($id);
     	$date = dt::mysql2verbal($rec->createdOn, 'd-M');
     	$time = dt::mysql2verbal($rec->createdOn, 'H:i');
     	

@@ -314,11 +314,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * 
      * @see email_DocumentIntf
      * @param int $id - ид на документа
+     * @param boolean $forward
      * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
+        $handle = $this->getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашето експедиционно нареждане") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         

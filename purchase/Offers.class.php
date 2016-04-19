@@ -162,11 +162,12 @@ class purchase_Offers extends core_Master
      * 
      * @see email_DocumentIntf
      * @param int $id - ид на документа
+     * @param boolean $forward
      * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = purchase_Offers::getHandle($id);
+        $handle = $this->getHandle($id);
         
         // Създаваме шаблона
         $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта: ") . '#[#handle#]');

@@ -421,14 +421,13 @@ abstract class cash_Document extends deals_PaymentDocument
      * 
      * @see email_DocumentIntf
      * @param int $id - ид на документа
+     * @param boolean $forward
      * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$self = cls::get(get_called_class());
-    	
-    	$handle = static::getHandle($id);
-    	$title = mb_strtolower($self->singleTitle);
+    	$handle = $this->getHandle($id);
+    	$title = mb_strtolower($this->singleTitle);
     	$tpl = new ET(tr("Моля запознайте се с нашия {$title}") . ': #[#handle#]');
     	$tpl->append($handle, 'handle');
     	

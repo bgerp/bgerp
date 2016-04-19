@@ -18,13 +18,14 @@ class email_DocumentIntf extends doc_DocumentIntf
 	
 	
 	/**
-	 * Връща тялото на имейла генериран от документа
-	 * 
-	 * @param int $id - ид на документа
-	 * @return string - тялото на имейла
-	 */
-    function getDefaultEmailBody($id)
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        return $this->class->getDefaultEmailBody($id);
+        return $this->class->getDefaultEmailBody($id, $forward = FALSE);
     }
 }

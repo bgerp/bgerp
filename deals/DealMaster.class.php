@@ -572,13 +572,13 @@ abstract class deals_DealMaster extends deals_DealBase
      * 
      * @see email_DocumentIntf
      * @param int $id - ид на документа
+     * @param boolean $forward
      * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
-        $self = cls::get(get_called_class());
-        $title = tr(mb_strtolower($self->singleTitle));
+        $handle = $this->getHandle($id);
+        $title = tr(mb_strtolower($this->singleTitle));
         
         $tpl = new ET(tr("|Моля запознайте се с нашата|* {$title}") . ': #[#handle#]');
         $tpl->append($handle, 'handle');

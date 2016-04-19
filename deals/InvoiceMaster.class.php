@@ -336,14 +336,14 @@ abstract class deals_InvoiceMaster extends core_Master
      * 
      * @see email_DocumentIntf
      * @param int $id - ид на документа
+     * @param boolean $forward
      * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$handle = static::getHandle($id);
-    	$me = cls::get(get_called_class());
+    	$handle = $this->getHandle($id);
     	
-    	if($me->getField('type', FALSE)){
+    	if($this->getField('type', FALSE)){
     		$rec = static::fetch($id);
     		switch($rec->type){
     			case 'invoice':
