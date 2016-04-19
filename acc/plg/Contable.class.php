@@ -519,15 +519,12 @@ class acc_plg_Contable extends core_Plugin
         		// Ако има основание, връщаме му вербалното представяне
         		$res = acc_Operations::getTitleById($reasonCode, FALSE);
         	} else {
+        		$rec = $mvc->fetchRec($id);
+        		$Cover = doc_Folders::getCover($rec->folderId);
         		
-        		// Ако документа е в папка на контрагент връщаме му името за основание
-        		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
-        			 $rec = $mvc->fetchRec($id);
-        			 $Cover = doc_Folders::getCover($rec->folderId);
-        				
-        			 $res = $Cover->getShortHyperLink();
+        		if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+        			$res = $Cover->getShortHyperLink();
         		} else {
-        			
         			// Aко няма основание, но журнала на документа има връщаме него
         			if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
         				$Varchar = cls::get('type_Varchar');
