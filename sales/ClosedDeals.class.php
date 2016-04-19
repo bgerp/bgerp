@@ -31,7 +31,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_CloseDeal';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_CloseDeal';
     
     
     /**
@@ -169,21 +169,6 @@ class sales_ClosedDeals extends deals_ClosedDeals
     	
         $data->listFilter->input(NULL, 'silent');
     }
-    
-    
-    /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
-     */
-    static function getDefaultEmailBody($id)
-    {
-        $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашия документ") . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
-        
-        return $tpl->getContent();
-    }
-    
     
 
     /**

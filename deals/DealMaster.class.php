@@ -568,8 +568,11 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @return string - тялото на имейла
      */
     public static function getDefaultEmailBody($id)
     {

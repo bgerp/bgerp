@@ -39,7 +39,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, deals_InvoiceSourceIntf';
     
     
     /**
@@ -379,8 +379,11 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @return string - тялото на имейла
      */
     public static function getDefaultEmailBody($id)
     {

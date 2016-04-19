@@ -21,7 +21,7 @@ class price_ListDocs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
 
 
     /**
@@ -779,14 +779,18 @@ class price_ListDocs extends core_Master
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id)
+    public static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашия ценоразпис:") . '#[#handle#]');
         $tpl->append($handle, 'handle');
+        
         return $tpl->getContent();
     }
     

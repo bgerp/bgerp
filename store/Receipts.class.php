@@ -52,7 +52,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
                           acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
     
     
@@ -233,8 +233,11 @@ class store_Receipts extends store_DocumentMaster
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @return string - тялото на имейла
      */
     static function getDefaultEmailBody($id)
     {
