@@ -121,6 +121,7 @@ class trans_Fees extends core_Detail
      */
     public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
+
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
