@@ -219,8 +219,17 @@ class calendarpicker_Import {
      */
     function render($tpl, $attr)
     {
-        $cal_options = array('ifFormat'=> "%d-%m-%Y", 'daFormat' => '%d-%m-%Y');
-        $tpl = new ET($this->makeInputField($cal_options , $tpl, $attr));
+        if (Mode::get('screenMode') == 'narrow') {
+            $df = core_Setup::get('EF_DATE_NARROW_FORMAT', TRUE);
+        } else {
+            $df = core_Setup::get('EF_DATE_FORMAT', TRUE);
+        }
+        
+        $df = preg_replace('/([a-z])/i', '%${1}', $df);
+        
+        $calOptions = array('ifFormat'=> $df, 'daFormat' => $df);
+        
+        $tpl = new ET($this->makeInputField($calOptions , $tpl, $attr));
         $tpl->append($this->includeCode);
         
         return $tpl;
