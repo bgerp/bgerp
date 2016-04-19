@@ -1483,7 +1483,6 @@ function setFormElementsWidth() {
     	
         // изчислена максимална ширина формата
         var formElWidth = getCalculatedElementWidth();
-        console.log(formElWidth);
         var winWidth = getWindowWidth();
 
         // колко ЕМ е широка страницата
