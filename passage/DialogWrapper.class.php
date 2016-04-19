@@ -64,7 +64,7 @@ class passage_DialogWrapper extends core_Plugin
         // Добавяме икони
         $res->prepend("<style>
         		
-            .docLog { background-image:url('" . sbf('img/16/documents16.png', '') . "');}
+            .passage { background-repeat: no-repeat; padding-left: 20px; background-image:url('" . sbf('img/16/passage.png', '') . "');}
 
             </style>");
         
@@ -87,6 +87,6 @@ class passage_DialogWrapper extends core_Plugin
 	 */
     function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {
-        $tabs['docLog'] = array('caption' => 'Пасажи', 'Ctr' => $mvc, 'Act' => 'Dialog');
+        $tabs['passage'] = array('caption' => 'Пасажи', 'Ctr' => $mvc, 'Act' => 'Dialog');
     }
 }

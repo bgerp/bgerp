@@ -164,7 +164,8 @@ class passage_Texts extends core_Manager
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
         $form->showFields = 'search,author,langWithAllSelect';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $form->view = 'horizontal';
+        $form->view = 'vertical';
+        $form->class = 'simpleForm';
 
         $form->input();
         if($form->isSubmitted()){

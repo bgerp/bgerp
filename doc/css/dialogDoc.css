@@ -35,3 +35,14 @@
   padding-bottom: 0px;
   color: #335533; }
 
+.wide .addDoc table.listAction,
+.wide .addDoc .listTopContainer {
+  width: 100%;
+  min-width: 0; }
+
+.modal-toolbar .linkWithIcon {
+  display: block; }
+
+.rowtools-column {
+  width: 1%; }
+
