@@ -501,18 +501,24 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
     	
     	    if ($mvc->innerForm->compare != 'no') {
-    	        
-                foreach ($data->recsAll as $recsAll) {
-    	           $recs = $recsAll;
-                }
+    	        if (count($data->recsAll)) {
+                    foreach ($data->recsAll as $recsAll) {
+        	           $recs[] = $recsAll;
+                    }
+    	        }
     	    } else { 
-    	        $recs = $data->recs;
+    	        foreach ($data->recs as $recs) { 
+    	
+    	           $recs = $data->recs;
+    	        }
     	    }
-    	    
+
     	  if(count($recs)) {
     		// За всеки запис
-    		foreach ($recs as $id=>&$rec){ 
-    			$rec->id = $id+1;
+    		foreach ($recs as $id=>&$rec){
+
+    	        $rec->id = $id + 1;
+
     			// Ако не е за текущата страница не го показваме
     			if(!$data->Pager->isOnPage()) continue;
     			
@@ -655,7 +661,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$Varchar = cls::get('type_Varchar');
     	$Int = cls::get('type_Int');
 
-    	$row->id = $Int->toVerbal($rec->id);
+        if (isset($rec->id)) {
+    	   $row->id = $Int->toVerbal($rec->id);
+        }
  
     	// Вербалното представяне на перата
     	foreach (range(1, 6) as $i){
