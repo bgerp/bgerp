@@ -184,8 +184,6 @@ class core_Form extends core_FieldSet
                 if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
             }
             
-            if ($silent && !(strlen(trim($value))) && $field->type->toVerbal($value)) continue;
-            
             if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$captions}|*'</b>!");
