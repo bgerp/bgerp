@@ -90,6 +90,7 @@ class passage_Texts extends core_Manager
      */
     function act_Dialog()
     {
+        Mode::set('wrapper', 'page_Dialog');
 
         // Вземаме callBack'а
         $callback = Request::get('callback', 'identifier');
@@ -161,11 +162,8 @@ class passage_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
-
         $form->showFields = 'search,author,langWithAllSelect';
-
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-
         $form->view = 'horizontal';
 
         $form->input();
@@ -178,10 +176,43 @@ class passage_Texts extends core_Manager
                 $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
             }
         }
-
         $data->query->orderBy('#createdOn', 'DESC');
     }
 
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    {
+        if (Mode::get('dialogOpened')) {
+            $title = $mvc->getVerbal($rec, 'title');
+
+            $row->body = $title . $row->body . $row->createdBy . $row->createdOn;
+//            bp($row);
+        }
+    }
+
+
+    /**
+ * Извиква се преди подготовката на колоните ($data->listFields)
+ *
+ * @param core_Mvc $mvc
+ * @param object $res
+ * @param object $data
+ */
+    static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        // Ако е отворен в диалоговия прозорец
+        if (Mode::get('dialogOpened')) {
+
+            // Нулираме, ако е имало нещо
+            $data->listFields = array();
+
+            // Задаваме, кои полета да се показва
+            $data->listFields['body'] = "Пасаж";
+
+
+            // Да не се извикат останалите
+            return FALSE;
+        }
+    }
 
 
 
