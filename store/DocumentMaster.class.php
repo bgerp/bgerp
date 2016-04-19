@@ -450,7 +450,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	$amount = NULL;
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	if($firstDoc->getInstance()->getField("#paymentMethodId")){
+    	if($firstDoc->getInstance()->getField("#paymentMethodId", FALSE)){
     		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
     		if(cond_PaymentMethods::isCOD($paymentMethodId)){
     			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
