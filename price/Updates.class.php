@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Правила за обновяване на себестойностите
  *
@@ -9,7 +8,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -21,6 +20,12 @@ class price_Updates extends core_Manager
      * Заглавие
      */
     public $title = 'Правила за обновяване на себестойностите';
+    
+    
+    /**
+     * Еденично заглавие
+     */
+    public $singleTitle = 'Обновяване на себестойностите';
     
     
     /**
@@ -104,7 +109,7 @@ class price_Updates extends core_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -122,10 +127,11 @@ class price_Updates extends core_Manager
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$title =  ($data->form->rec->id) ? '|Редактиране на|*' : '|Добавяне на|*';
-    	$data->form->title = $title . ' |правило за обновяване на себестойност|*';
+    	$rec = $data->form->rec;
+    	$objectClass = ($rec->type == 'category') ? cat_Categories::getClassId() : cat_Products::getClassId();
+    	$data->form->title = core_Detail::getEditTitle($objectClass, $rec->objectId, $mvc->singleTitle, $rec->id);
     }
     
     
@@ -135,7 +141,7 @@ class price_Updates extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	if($form->isSubmitted()){
@@ -173,7 +179,7 @@ class price_Updates extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	// Показваме името на правилото
     	$row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, TRUE) : cat_Products::getHyperlink($rec->objectId, TRUE);
@@ -201,7 +207,7 @@ class price_Updates extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'saveprimecost' && isset($rec)){
     		if($rec->updateMode != 'manual'){
@@ -600,7 +606,7 @@ class price_Updates extends core_Manager
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if($rec->updateMode == 'manual'){
     		$mvc->savePrimeCost($rec);

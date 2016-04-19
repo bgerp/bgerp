@@ -48,24 +48,29 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 		if($action == 'createproduct'){
 			if(isset($rec)){
 				$options = self::getProtoOptions($mvc->filterProtoByMeta, 1);
+				
 				if(isset($rec->cloneId)){
 					$cloneRec = $mvc->fetch($rec->cloneId);
-					if(!$cloneRec || $cloneRec->{$mvc->masterKey} != $rec->{$mvc->masterKey}){
-						$requiredRoles = 'no_one';
-					} else {
+					$isPublic = cat_Products::fetchField($cloneRec->productId, 'isPublic');
+					
+					if($isPublic == 'no'){
 						$options[$cloneRec->productId] = $cloneRec->productId;
+					} else {
+						$requiredRoles = 'no_one';
 					}
 				}
 				
-				if(count($options)){
-					$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-					if(!cat_Products::haveRightFor('add', (object)array('threadId' => $masterRec->threadId))){
-						$requiredRoles = 'no_one';
+				if($requiredRoles != 'no_one'){
+					if(count($options)){
+						$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+						if(!cat_Products::haveRightFor('add', (object)array('threadId' => $masterRec->threadId))){
+							$requiredRoles = 'no_one';
+						} else {
+							$requiredRoles = $mvc->getRequiredRoles('add', (object)array($mvc->masterKey => $masterRec->id));
+						}
 					} else {
-						$requiredRoles = $mvc->getRequiredRoles('add', (object)array($mvc->masterKey => $masterRec->id));
+						$requiredRoles = 'no_one';
 					}
-				} else {
-					$requiredRoles = 'no_one';
 				}
 			} else {
 				$requiredRoles = $mvc->getRequiredRoles('add');
@@ -283,7 +288,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		if(cat_Products::fetchField($rec->productId, 'proto')){
+		
 			if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id))){
 				$url = array($mvc, 'CreateProduct', $mvc->masterKey => $rec->{$mvc->masterKey}, 'cloneId' => $rec->id, 'ret_url' => TRUE);
 				
@@ -292,6 +297,5 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$row->_rowTools->addLink('Клониране', $url, "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/clone.png,order=12');
 				}
 			}
-		}
 	}
 }

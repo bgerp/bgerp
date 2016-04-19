@@ -74,7 +74,10 @@ class planning_ObjectResources extends core_Manager
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Информация за влагане';
+    public $singleTitle = 'Заместващ артикул';
+    
+    
+    protected static $cache = array();
     
     
     /**
@@ -127,12 +130,8 @@ class planning_ObjectResources extends core_Manager
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$url = cat_Products::getSingleUrlArray($data->form->rec->objectId);
-    	$objectName = cat_Products::getTitleById($data->form->rec->objectId);
-    	$objectName = ht::createLink($objectName, $url, NULL, array('ef_icon' => cls::get('cat_Products')->singleIcon, 'class' => 'linkInTitle'));
-    	
-    	$title = ($data->form->rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
-    	$data->form->title = $title . "|* <b style='color:#ffffcc;'>". $objectName . "</b>";
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle('cat_Products', $rec->objectId, $mvc->singleTitle, $rec->id);
     }
     
     
@@ -413,7 +412,57 @@ class planning_ObjectResources extends core_Manager
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Намира средната еденична цена на всички заместващи артикули на подаден артикул
+     * 
+     * @param int $productId         - артикул, чиято средна цена търсим
+     * @param string|NULL $date      - към коя дата
+     * @return NULL|double $avgPrice - средна цена
+     */
+    public static function getAvgPriceEquivalentProducts($productId, $date = NULL)
+    {
+    	$avgPrice = NULL;
+    	expect($productId);
     	
-    	return;
+    	// Проверяваме за тази група артикули, имали кеширана средна цена
+    	$cachePrice = static::$cache[current(preg_grep("|{$productId}|", array_keys(static::$cache)))];
+    	if($cachePrice) return $cachePrice;
+    	
+    	// Ако артикула не е вложим, не търсим средна цена
+    	$isConvertable = cat_Products::fetchField($productId, "canConvert");
+    	if($isConvertable != 'yes') return $avgPrice;
+    	
+    	// Ако няма заместващи артикули, не търсим средна цена
+    	$equivalentProducts = static::getEquivalentProducts($productId);
+    	if(!count($equivalentProducts)) return $avgPrice;
+    	
+    	// Ще се опитаме да намерим средната цена на заместващите артикули
+    	$priceSum = $count = 0;
+    	$listId = price_ListRules::PRICE_LIST_COST;
+    	price_ListToCustomers::canonizeTime($date);
+    	foreach ($equivalentProducts as $pId => $pName){
+    		$price = price_ListRules::getPrice($listId, $pId, NULL, $date);
+    		
+    		// Ако има себестойност прибавяме я към средната
+    		if(isset($price)){
+    			$priceSum += $price;
+    			$count++;
+    		}
+    	}
+    	
+    	// Ако има намерена ненулева цена, изчисляваме средната
+    	if($count !== 0){
+    		$avgPrice = round($priceSum / $count, 8);
+    	}
+		
+    	// За тази група артикули, кеширваме в паметта средната цена
+    	$index = keylist::fromArray($equivalentProducts);
+    	static::$cache[$index] = $avgPrice;
+    	
+    	// Връщаме цената ако е намерена
+    	return $avgPrice;
     }
 }

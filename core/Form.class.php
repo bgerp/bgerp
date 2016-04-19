@@ -175,13 +175,23 @@ class core_Form extends core_FieldSet
             $value = Request::get($name);
             
             $captions = str_replace('->', '|* » |', $field->caption);
-
+            
             // Ако $silent, не сме критични към празните стойности
-            if(($value === NULL) && $silent) continue;
+            if ($silent) {
+                if ($value === NULL) continue;
+                
+                // Когато полето е скрито и няма стойност, гледаме да не е NULL
+                if ($field->input == 'hidden' && !trim($value) && ($field->type->toVerbal($value) === NULL)) continue;
+            }
+            
+            if ($silent && !(strlen(trim($value))) && $field->type->toVerbal($value)) continue;
             
             if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$captions}|*'</b>!");
+
+                $this->fields[$name]->input = 'input';
+                
                 continue;
             }
             
@@ -234,6 +244,9 @@ class core_Form extends core_FieldSet
                 if (($value === NULL || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
                     $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$captions}|*'</b>!");
+                    
+                    $this->fields[$name]->input = 'input';
+                    
                     continue;
                 }
                 
@@ -300,13 +313,21 @@ class core_Form extends core_FieldSet
             $value = isset($values[$name]) ? $values[$name] : Request::get($name);
         
             // Ако $silent, не сме критични към празните стойности
-            if(($value === NULL) && $silent) continue;
+            if ($silent) {
+                if ($value === NULL) continue;
+                
+                // Когато полето е скрито и няма стойност, гледаме да не е NULL
+                if ($field->input == 'hidden' && !trim($value) && ($field->type->toVerbal($value) === NULL)) continue;
+            }
            
             $captions = str_replace('->', '|* » |', $field->caption);
             
             if ($value === "" && $field->mandatory) {
                 $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$captions}|*'</b>!");
+                
+                $this->fields[$name]->input = 'input';
+                
                 continue;
             }
         
@@ -360,6 +381,9 @@ class core_Form extends core_FieldSet
                 if (($value === NULL || $value === '') && $field->mandatory) {
                     $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$captions}|*'</b>!");
+                    
+                    $this->fields[$name]->input = 'input';
+                    
                     continue;
                 }
         

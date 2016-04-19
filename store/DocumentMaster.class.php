@@ -238,7 +238,7 @@ abstract class store_DocumentMaster extends core_Master
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
     	$row->MyCompany = transliterate(tr($row->MyCompany));
     	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-    	$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+    	$row->MyAddress = transliterate(tr($row->MyAddress));
     	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
     	if($uic != $ownCompanyData->vatNo){

@@ -255,25 +255,45 @@ class core_Detail extends core_Manager
 
     /**
      * Подготвя заглавието на формата
+     * 
+     * @param stdClass $data
      */
     function prepareEditTitle_($data)
     {
-    	$title = $data->masterMvc->getTitleById($data->masterId);
-    	$title = str::limitLen($title, 32);
-    	
-    	$url = $data->masterMvc->getSingleUrlArray($data->masterId);
-    	
+    	$data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id);
+    }
+    
+    
+    /**
+     * Помощна ф-я, която връща заглавие за формата при добавяне на детайл към клас
+     * Изнесена е статично за да може да се използва и от класове, които не наследяват core_Detail,
+     * Но реално се добавят като детайли към друг клас
+     * 
+     * @param mixed $master       - ид на класа на мастъра
+     * @param int $masterId       - ид на мастъра
+     * @param string $singleTitle - еденично заглавие
+     * @param int|NULL $recId     - ид на записа, ако има
+     * @return string $title      - заглавието на формата на 'Детайла'
+     */
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId)
+    {
+    	$MasterMvc = cls::get($master);
+    	$masterTitle = $MasterMvc->getTitleById($masterId);
+    	$masterTitle = str::limitLen($masterTitle, 32);
+    	 
+    	$url = $MasterMvc->getSingleUrlArray($masterId);
     	if(count($url)) {
-    		$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
+    		$masterTitle = ht::createLink($masterTitle, $url, NULL, array('ef_icon' => $MasterMvc->singleIcon, 'class' => 'linkInTitle'));
     	}
-    	
-    	if ($data->singleTitle) {
-    		$single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
-    		 
+    	 
+    	if ($singleTitle) {
+    		$single = ' на| ' . mb_strtolower($singleTitle) . '|';
     	}
+    	 
+    	$title = ($recId) ? "Редактиране{$single} в" : "Добавяне{$single} към";
+    	$title .= "|* <b style='color:#ffffcc;'>" . $masterTitle . "</b>";
     	
-    	$data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-    	$data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	return $title;
     }
     
     
