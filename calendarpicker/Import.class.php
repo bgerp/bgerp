@@ -87,10 +87,10 @@ class calendarpicker_Import {
         $this->calendarLibPath = "calendarpicker/";
 
         $this->includeCode = new ET();
-        $this->includeCode->push($this->calendarLibPath . $theme . ".css", 'CSS');
-        $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS');
-        $this->includeCode->push($this->calendarLibPath . "lang/calendar-" . $lang . ".js", 'JS');
-        $this->includeCode->push($this->calendarLibPath . $this->calendarSetupFile, 'JS');
+        $this->includeCode->push($this->calendarLibPath . $theme . ".css", 'CSS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . "lang/calendar-" . $lang . ".js", 'JS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . $this->calendarSetupFile, 'JS', TRUE);
         $this->calendarOptions = array('ifFormat' => '%Y/%m/%d', 'daFormat' => '%Y/%m/%d');
     }
     
