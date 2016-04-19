@@ -1638,22 +1638,28 @@ class crm_Companies extends core_Master
      * Връща пълния конкатениран адрес на контрагента
      * 
      * @param int $id - ид на контрагент
+     * @param boolean $translitarate - дали да се транслитерира адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
+    	$tpl = new ET("[#country#] <!--ET_BEGIN pCode--><br>[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
     		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
-    		if($rec->$fld){
-    			$obj->$fld = $Varchar->toVerbal($rec->$fld);
+    		if($rec->{$fld}){
+    			$obj->{$fld} = $Varchar->toVerbal($rec->{$fld});
+    			if($translitarate === TRUE){
+    				if($fld != 'pCode'){
+    					$obj->$fld = transliterate($obj->{$fld});
+    				}
+    			}
     		}
     	}
     	
