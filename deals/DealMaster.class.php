@@ -1663,8 +1663,10 @@ abstract class deals_DealMaster extends deals_DealBase
     		$products = $agreed;
     		$invoiced = array();
     		foreach ($products as $product1){
-    			$product1->price *= 1 - $product1->discount;
-    			unset($product1->discount);
+    			if(!($forMvc instanceof sales_Proformas)){
+    				$product1->price -= $product1->price * $product1->discount;
+    				unset($product1->discount);
+    			}
     		}
     	}
     	
