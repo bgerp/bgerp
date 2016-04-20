@@ -765,7 +765,7 @@ class doc_Threads extends core_Manager
                 $attr['title'] = $docRow->title;
             }
             
-            $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+            $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
                     'threadId' => $rec->id,
                     'folderId' => $rec->folderId,

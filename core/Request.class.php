@@ -303,7 +303,6 @@ class core_Request
      */
     static function push($array, $name = NULL, $unShift = FALSE)
     {
-        
         if ($name) {
             $element[$name] = $array;
         } else {
