@@ -68,19 +68,26 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      * за подадено количество.
      * 
      * Връща среднопритеглената сума от началото на месеца на подадената дата до подадената дата.
-     * Ако няма движения през този период, проверяваме в предишния и така докато се намери някаква цена
+     * Ако няма движения през този период, проверяваме в предишния и така докато се намери
+     * някаква цена, или не се достигне максималния брой опити
      * Ако абсолютно никога не е имало движения връщаме NULL
      * 
-     * @param double $quantity - к-то което ще проверяваме
-     * @param date $date       - дата към която търсим цената
-     * @param string $accSysId - систем ид на сметка със стратегия
-     * @param mixed $item1     - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
-     * @param mixed $item2     - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
-     * @param mixed $item3     - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
+     * @param double $quantity     - к-то което ще проверяваме
+     * @param date $date           - дата към която търсим цената
+     * @param string $accSysId     - систем ид на сметка със стратегия
+     * @param mixed $item1         - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
+     * @param mixed $item2         - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
+     * @param mixed $item3         - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
+     * @param int|NULL $maxTries   - максимален брой опити, NUll за безкрай
+     * @param int|NULL $currentTry - текущ опит
+     * 
      * @return mixed $amount   - сумата за количеството спрямо средно притеглената цена
      */
-    public static function getAmount($quantity, $date, $accSysId, $item1, $item2, $item3)
+    public static function getAmount($quantity, $date, $accSysId, $item1, $item2, $item3, $maxTries = NULL, &$currentTry = NULL)
     {
+    	// Увеличаваме брояча
+    	$currentTry++;
+    	
     	// Изчисляваме начална и крайна дата, която ще извличаме
     	$from = dt::mysql2timestamp($date);
     	$from = date('Y-m-01', $from);
@@ -90,6 +97,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     	$jQuery = acc_JournalDetails::getQuery();
     	
     	acc_JournalDetails::filterQuery($jQuery, $from, $to, $accSysId);
+    	
     	foreach (range(1, 3) as $i){
     		$param = ${"item{$i}"};
     		
@@ -142,7 +150,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     			// Ако страната отговаря точно на аналитичната сметка
     			if($accId == $accRec->id && ($item1 == '*' || $pos1 == $item1) && ($item2 == '*' || $pos2 == $item2) && ($item3 == '*' || $pos3 == $item3)){
     				$feedType = ($type == 'debit') ? 'active' : 'credit';
-    		
+    				
     				// Ако типа на сметката, позволява да бъде 'хранена'
     				if($accRec->type == $feedType){
     					
@@ -156,8 +164,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     	// Опитваме се да намерим сумата за к-то
     	$amount = $strategy->consume($quantity);
     	
-    	// Ако няма
-    	if(!isset($amount)){
+    	// Ако няма сума и няма максимален брой ипити или има максимален брой и не сме ги достигнали
+    	if(!isset($amount) && (!isset($maxTries) || (isset($maxTries) && $currentTry < $maxTries))){
     		
     		// За нова дата към която ще търсим става последния ден от периода преди началото на търсенето
     		$newTo = dt::addDays(-1, $from);
@@ -167,7 +175,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     		if(cls::get('acc_Balances')->getBalanceBefore($date)){
     			
     			// Рекурсирно извикваме същата функция
-    			return self::getAmount($quantity, $newTo, $accSysId, $item1, $item2, $item3);
+    			return self::getAmount($quantity, $newTo, $accSysId, $item1, $item2, $item3, $maxTries, $currentTry);
     		}
     	}
     	
