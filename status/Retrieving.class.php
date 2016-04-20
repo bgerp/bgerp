@@ -73,6 +73,7 @@ class status_Retrieving extends core_Manager
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор,notNull');
         $this->FLD('retTime', 'datetime', 'caption=Изтегляне');
         $this->FLD('hitTime', 'datetime', 'caption=Заявка');
+        $this->FLD('hitId', 'varchar(16)', 'caption=ID на хита');
         $this->FLD('idleTime', 'int', 'caption=Бездействие, notNull');
         
         $this->setDbUnique('messageId, hitTime, sid, userId');
@@ -87,10 +88,11 @@ class status_Retrieving extends core_Manager
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $sid
      * @param integer $userId
+     * @param string $hitId
      * 
      * @return integer - id на записа
      */
-    static function addRetrieving($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL)
+    static function addRetrieving($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL, $hitId=NULL)
     {
         // Записва 
         $rec = new stdClass();
@@ -98,6 +100,7 @@ class status_Retrieving extends core_Manager
         $rec->hitTime = $hitTime;
         $rec->retTime = dt::now();
         $rec->idleTime = $idleTime;
+        $rec->hitId = $hitId;
         
         // Ако има потребител
         if ($userId) {
@@ -136,10 +139,11 @@ class status_Retrieving extends core_Manager
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $sid
      * @param integer $userId
+     * @param string $hitId
      * 
      * @return boolean
      */
-    static function isRetrived($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL)
+    static function isRetrived($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL, $hitId=NULL)
     {
         // Конфигурация на пакета
         $conf = core_Packs::getConfig('status');
@@ -151,8 +155,15 @@ class status_Retrieving extends core_Manager
         $query = static::getQuery();
         $query->where(array("#messageId = '[#1#]'", $messageId));
         
+        $or = FALSE;
+        
+        if ($hitId) {
+            $query->where(array("#hitId = '[#1#]'", $hitId));
+            $or = TRUE;
+        }
+        
         // Които не са теглени от съответния таб или са теглени от таб с по прясно време на бездействие
-        $query->where(array("#hitTime = '[#1#]'", $hitTime));
+        $query->where(array("#hitTime = '[#1#]'", $hitTime), $or);
         
         // Ако времето от браузра е по - голямо от максимално допустимото време
         if ($idleTime > $maxIdleTime) {
@@ -170,8 +181,8 @@ class status_Retrieving extends core_Manager
         if ($userId) {
             $query->where(array("#userId = '[#1#]'", $userId));
         }
-        
+        status_Messages::logDebug('Retr' . $n = $query->count(), $messageId);
         // Ако има записи
-        if ($query->count()) return TRUE;
+        if ($n) return TRUE;
     }
 }
