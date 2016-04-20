@@ -28,7 +28,7 @@ class codemirror_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	public $info = "Мностранен текстов редактор за редактиране на код";
+	public $info = "Гъвкав текстов редактор за код";
 	
 
 	/**
