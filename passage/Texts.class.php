@@ -183,9 +183,21 @@ class passage_Texts extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         if (Mode::get('dialogOpened')) {
-            $title = $mvc->getVerbal($rec, 'title');
+            $callback = Mode::get('callback');
+            $str = json_encode($rec->body);
 
-            $row->body = $title . $row->body . $row->createdBy . $row->createdOn;
+            $attr = array('onclick' => "if(window.opener.{$callback}($str) != true) self.close(); else self.focus();", "class" => "file-log-link");
+//            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
+            $title = ht::createLink($rec->title, '#', FALSE, $attr);
+
+            //$rec->body = str_replace("\n", ' ', $rec->body);
+            //$rec->body = str::limitLen($rec->body, 100);
+
+            //$string = $mvc->getVerbal($rec, 'body');
+            $createdOn = $mvc->getVerbal($rec, 'createdOn');
+            $createdBy = $mvc->getVerbal($rec, 'createdBy');
+
+            $row->body = $title . "<br>" . $row->body . "<br>" . $createdOn . ' - ' . $createdBy;
 //            bp($row);
         }
     }
