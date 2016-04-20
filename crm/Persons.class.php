@@ -2507,10 +2507,12 @@ class crm_Persons extends core_Master
     
     /**
      * Връща пълния конкатениран адрес на контрагента
+     * 
      * @param int $id - ид на контрагент
-     * @return param $adress - адреса
+     * @param boolean $translitarate - дали да се транслитерира адреса
+     * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2524,6 +2526,11 @@ class crm_Persons extends core_Master
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
     			$obj->$fld = $Varchar->toVerbal($rec->$fld);
+    			if($translitarate === TRUE){
+    				if($fld != 'pCode'){
+    					$obj->$fld = transliterate($obj->{$fld});
+    				}
+    			}
     		}
     	}
     	

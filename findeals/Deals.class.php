@@ -260,7 +260,7 @@ class findeals_Deals extends deals_DealBase
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     

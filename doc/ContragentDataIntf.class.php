@@ -50,13 +50,15 @@ class doc_ContragentDataIntf
     
     
 	/**
-     * Връща пълния адрес на контрагента
+     * Връща пълния конкатениран адрес на контрагента
+     * 
      * @param int $id - ид на контрагент
-     * @return param $adress - адреса
+     * @param boolean $translitarate - дали да се транслитерира адреса
+     * @return core_ET $tpl - адреса
      */
-    function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
-        return $this->class->getFullAdress($id);
+        return $this->class->getFullAdress($id, $translitarate);
     }
     
     

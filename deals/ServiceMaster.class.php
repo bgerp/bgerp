@@ -165,8 +165,7 @@ abstract class deals_ServiceMaster extends core_Master
 		$Companies = cls::get('crm_Companies');
 		$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 		$row->MyCompany = transliterate(tr($row->MyCompany));
-		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-		$row->MyAddress = transliterate(tr($row->MyAddress));
+		$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
 		
 		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
 		if($uic != $ownCompanyData->vatNo){
@@ -179,7 +178,6 @@ abstract class deals_ServiceMaster extends core_Master
 		$cData = $ContragentClass->getContragentData($rec->contragentId);
 		$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
 		$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-		$row->contragentAddress  = core_Lg::transliterate($row->contragentAddress);
 	}
 
 

@@ -56,7 +56,7 @@ class passage_DialogWrapper extends core_Plugin
             $tabs->TAB($name, $title, $url, $name);
         }
         
-        $tabs->htmlClass = 'addDoc';
+        $tabs->htmlClass = 'passageDialog';
         
         // Рендираме
         $res = $tabs->renderHtml($res);

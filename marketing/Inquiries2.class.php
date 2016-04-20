@@ -298,7 +298,7 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass);
     }
     
     
@@ -564,7 +564,7 @@ class marketing_Inquiries2 extends embed_Manager
     			// Създаване на нов артикул от запитването
     			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
     				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'proto' => $rec->proto, 'ret_url' => TRUE);
-    				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
+    				if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
     					$url['folderId'] = $rec->folderId; 
     					$url['threadId'] = $rec->threadId;
     				}
@@ -666,7 +666,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('crm_ContragentAccRegIntf');
     }
     
     

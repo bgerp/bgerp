@@ -817,7 +817,7 @@ class price_ListDocs extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf', 'price_PriceListFolderCoverIntf');
+    	return array('crm_ContragentAccRegIntf', 'price_PriceListFolderCoverIntf');
     }
     
     

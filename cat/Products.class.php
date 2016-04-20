@@ -393,7 +393,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		// Ако корицата не е на контрагент
-    		if(!$cover->haveInterface('doc_ContragentDataIntf')){
+    		if(!$cover->haveInterface('crm_ContragentAccRegIntf')){
     			
     			// Правим кода на артикула задължителен
     			$form->setField('code', 'mandatory');
@@ -519,7 +519,7 @@ class cat_Products extends embed_Manager {
     		// със същото име сетваме предупреждение
     		if(isset($rec->folderId)){
     			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    			if(cls::haveInterface('doc_ContragentDataIntf', $coverClassId)){
+    			if(cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId)){
     				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
     					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
     				}
@@ -1695,7 +1695,7 @@ class cat_Products extends embed_Manager {
     			
     			if(isset($rec->folderId)){
     				$Cover = doc_Folders::getCover($rec->folderId);
-    				if(!$Cover->haveInterface('doc_ContragentDataIntf')){
+    				if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
     					if(!haveRole('ceo,cat')){
     						$res = 'no_one';
     					}

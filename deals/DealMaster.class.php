@@ -250,9 +250,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $Companies = cls::get('crm_Companies');
         $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyCompany = transliterate(tr($row->MyCompany));
-        
-        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-        $row->MyAddress = transliterate(tr($row->MyAddress));
+        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
@@ -266,7 +264,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
     	
     	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    	$row->contragentAddress = core_Lg::transliterate($row->contragentAddress);
     }
 
 
@@ -417,7 +414,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -1666,8 +1663,10 @@ abstract class deals_DealMaster extends deals_DealBase
     		$products = $agreed;
     		$invoiced = array();
     		foreach ($products as $product1){
-    			$product1->price *= 1 - $product1->discount;
-    			unset($product1->discount);
+    			if(!($forMvc instanceof sales_Proformas)){
+    				$product1->price -= $product1->price * $product1->discount;
+    				unset($product1->discount);
+    			}
     		}
     	}
     	

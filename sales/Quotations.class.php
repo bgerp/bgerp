@@ -596,7 +596,7 @@ class sales_Quotations extends core_Master
     	$threadRec = doc_Threads::fetch($threadId);
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -607,7 +607,7 @@ class sales_Quotations extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     

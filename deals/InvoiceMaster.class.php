@@ -90,7 +90,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
     	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
+    	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
     	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
@@ -248,8 +248,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
     	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-    	$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
     	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
     	if($uic != $ownCompanyData->vatNo){
@@ -803,9 +802,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+    		$noVat = $rec->dealValue - $rec->discountAmount;
+    		
     		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
+    		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
     		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->dealValue;
-    	
+    		$row->valueNoVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->valueNoVat;
+    		
     		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
     		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>&nbsp;" . $row->vatAmount;
     	}
@@ -1118,5 +1121,15 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	return $details;
+    }
+
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if(!count($data->rows)) return;
+    	$data->listTableMvc->FNC('valueNoVat', 'int');
     }
 }

@@ -87,10 +87,10 @@ class calendarpicker_Import {
         $this->calendarLibPath = "calendarpicker/";
 
         $this->includeCode = new ET();
-        $this->includeCode->push($this->calendarLibPath . $theme . ".css", 'CSS');
-        $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS');
-        $this->includeCode->push($this->calendarLibPath . "lang/calendar-" . $lang . ".js", 'JS');
-        $this->includeCode->push($this->calendarLibPath . $this->calendarSetupFile, 'JS');
+        $this->includeCode->push($this->calendarLibPath . $theme . ".css", 'CSS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . $this->calendarFile, 'JS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . "lang/calendar-" . $lang . ".js", 'JS', TRUE);
+        $this->includeCode->push($this->calendarLibPath . $this->calendarSetupFile, 'JS', TRUE);
         $this->calendarOptions = array('ifFormat' => '%Y/%m/%d', 'daFormat' => '%Y/%m/%d');
     }
     
@@ -219,8 +219,17 @@ class calendarpicker_Import {
      */
     function render($tpl, $attr)
     {
-        $cal_options = array('ifFormat'=> "%d-%m-%Y", 'daFormat' => '%d-%m-%Y');
-        $tpl = new ET($this->makeInputField($cal_options , $tpl, $attr));
+        if (Mode::get('screenMode') == 'narrow') {
+            $df = core_Setup::get('EF_DATE_NARROW_FORMAT', TRUE);
+        } else {
+            $df = core_Setup::get('EF_DATE_FORMAT', TRUE);
+        }
+        
+        $df = preg_replace('/([a-z])/i', '%${1}', $df);
+        
+        $calOptions = array('ifFormat'=> $df, 'daFormat' => $df);
+        
+        $tpl = new ET($this->makeInputField($calOptions , $tpl, $attr));
         $tpl->append($this->includeCode);
         
         return $tpl;

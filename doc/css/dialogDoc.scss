@@ -43,7 +43,7 @@
 	color: #353;
 }
 
-.wide .addDoc table.listAction, .wide .addDoc .listTopContainer {
+.wide .passageDialog table.listAction, .wide .passageDialog .listTopContainer {
 	width: 100%;
 	min-width:0;
 }
@@ -54,4 +54,10 @@
 
 .rowtools-column {
 	width: 1%;
+}
+
+.passageDialog {
+	select, input {
+		max-width: 350px;
+	}
 }

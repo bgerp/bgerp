@@ -1483,7 +1483,6 @@ function setFormElementsWidth() {
     	
         // изчислена максимална ширина формата
         var formElWidth = getCalculatedElementWidth();
-        console.log(formElWidth);
         var winWidth = getWindowWidth();
 
         // колко ЕМ е широка страницата
@@ -1897,7 +1896,7 @@ function refreshForm(form, removeFields) {
 
 		// Разрешаваме кеширането при зареждане по ajax
 		$.ajaxSetup ({cache: true});		
-
+		
 		// Зареждаме стиловете
 		$.each(data.css, function(i, css) {
 			if(refreshForm.loadedFiles.indexOf(css) < 0) {
@@ -1919,13 +1918,8 @@ function refreshForm(form, removeFields) {
 		// Разрешаваме кеширането при зареждане по ajax
 		$.ajaxSetup ({cache: true});		
 		
-		// Зареждаме скриптовете
-		$.each(data.js, function(i, js) {
-			if(refreshForm.loadedFiles.indexOf(js) < 0) {
-				$.getScript(js);
-				refreshForm.loadedFiles.push(js);
-			}
-		});
+		// Зареждаме JS файловете синхронно
+		loadFiles(data.js, refreshForm.loadedFiles);
 		
 		// Забраняваме отново кеширането при зареждане по ajax
 		$.ajaxSetup ({cache: false});		
@@ -1933,6 +1927,29 @@ function refreshForm(form, removeFields) {
 		// Показваме нормален курсур
 		frm.css('cursor', 'default');
 	});
+}
+
+
+/**
+ * Зарежда подадените JS файлове синхронно
+ * 
+ * @param jsFiles
+ * @param loadedFiles
+ */
+function loadFiles(jsFiles, loadedFiles)
+{
+	if (typeof jsFiles == 'undefined' || (jsFiles.length == 0)) return ;
+	
+	file = jsFiles.shift();
+	
+	if (typeof file == 'undefined') return ;
+	
+	if (loadedFiles.indexOf(file) < 0) {
+		$.getScript(file, function(){loadFiles(jsFiles, loadedFiles)});
+		loadedFiles.push(file);
+	} else {
+		loadFiles(jsFiles, loadedFiles);
+	}
 }
 
 

@@ -91,7 +91,7 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     function description()
     {
-        $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
+        $this->FLD('cClass', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
@@ -248,7 +248,7 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public static function fetchByCustomer($cClass, $cId, $conditionId = NULL)
     {
-    	expect(cls::haveInterface('doc_ContragentDataIntf', $cClass));
+    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $cClass));
     	
     	$query = static::getQuery();
     	$query->where("#cClass = {$cClass}");

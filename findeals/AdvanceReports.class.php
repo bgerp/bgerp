@@ -374,7 +374,7 @@ class findeals_AdvanceReports extends core_Master
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$data->row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
+    	$data->row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE);
     }
     
     
