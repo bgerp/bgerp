@@ -183,8 +183,8 @@ class status_Retrieving extends core_Manager
         if ($userId) {
             $query->where(array("#userId = '[#1#]'", $userId));
         }
-        status_Messages::logDebug('Retr' . $n = $query->count(), $messageId);
+        
         // Ако има записи
-        if ($n) return TRUE;
+        if ($query->count()) return TRUE;
     }
 }
