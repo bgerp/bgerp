@@ -105,7 +105,7 @@ class cat_Products extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,measureId,quantity,price,folderId,groups';
+    public $listFields = 'code,name,measureId,quantity,price,folderId';
     
     
     /**
