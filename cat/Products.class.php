@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     plg_AlignDecimals2,cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+                     cat_Wrapper, plg_Sorting, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
     /**
@@ -1863,10 +1863,6 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	$data->form->toolbar->renameBtn('save', 'Запис');
-    	
-    	if (!empty($data->form->toolbar->buttons['activate'])) {
-    		$data->form->toolbar->removeBtn('activate');
-    	}
     }
     
     
