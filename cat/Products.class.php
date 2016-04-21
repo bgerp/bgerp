@@ -63,7 +63,7 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -736,8 +736,6 @@ class cat_Products extends embed_Manager {
     	}
     	$rec->meta = implode(',', $nMetaArr);
     	
-    	$rec->innerForm = (object)array('name' => $rec->name, 'measureId' => $rec->measureId);
-    	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
     	$category = ($rec->csv_category) ? $rec->csv_category : $rec->Category;
@@ -1403,16 +1401,7 @@ class cat_Products extends embed_Manager {
                     $row->price = $mvc->getVerbal($rec, 'price');
                 }
             }
-            
-            if($rec->isPublic == 'no'){
-            	//bp($row->name);
-            	//$row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
-            	//$row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
-            	
-            	//$row->name = 'aaaa';
-            }
         }
-        
     }
     
     
@@ -1452,9 +1441,6 @@ class cat_Products extends embed_Manager {
     		}
     		
     		$rec->name = static::getDisplayName($rec);
-    		if($rec->isPublic == 'no'){
-    			//bp();
-    		}
     	}
     }
     
@@ -1602,10 +1588,6 @@ class cat_Products extends embed_Manager {
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
     	if($mvc->haveRightFor('add')){
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
-    	}
-    	
-    	if(!haveRole('ceo,cat')){
-    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     
@@ -1775,7 +1757,7 @@ class cat_Products extends embed_Manager {
      * Затваряне на перата на частните артикули, по които няма движения
      * в продължение на няколко затворени периода
      */
-    function cron_closePrivateProducts()
+    public function cron_closePrivateProducts()
     {
     	// Намираме датата на начало на последния затворен период, Ако няма - операцията пропада
     	if(!$lastClosedPeriodRec = acc_Periods::getLastClosedPeriod()) return;
