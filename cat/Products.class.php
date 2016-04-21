@@ -49,7 +49,7 @@ class cat_Products extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
                      cat_Wrapper, plg_Sorting, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
@@ -105,19 +105,13 @@ class cat_Products extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=✍, code,name,measureId,quantity,price,folderId';
+    public $listFields = 'code,name,measureId,quantity,price,folderId,groups';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-
-    /**
-     *
-     */
-    public $rowToolsField = 'tools';
 
 
     /**
@@ -253,8 +247,7 @@ class cat_Products extends embed_Manager {
 	/**
 	 * Стратегии за дефолт стойностти
 	 */
-	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-	);
+	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc');
 	
 	
 	/**
@@ -772,7 +765,7 @@ class cat_Products extends embed_Manager {
             'caption=Подредба,input,silent,remember,autoFilter');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Маркери,caption=Група,input,silent,remember,autoFilter');
+            'placeholder=Маркери,input,silent,remember,autoFilter');
 		
         $data->listFilter->FNC('meta1', 'enum(all=Свойства,
        				canSell=Продаваеми,
@@ -803,8 +796,10 @@ class cat_Products extends embed_Manager {
         	$data->query->where("#isPublic = 'yes'");
         }
         
-        if ($data->listFilter->rec->groupId) {
-        	$data->query->like("groups", keylist::addKey('', $data->listFilter->rec->groupId));
+        if (!empty($data->listFilter->rec->groupId)) {
+        	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groups", $keylist);
         }
         
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
