@@ -32,6 +32,12 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
 
 
 /**
+ * При търсене на складова себестойност до колко месеца на зад да се търси
+ */
+defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 2);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -41,7 +47,7 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -133,11 +139,12 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
+    		'CAT_BOM_REMEMBERED_RESOURCES'          => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
-    		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
-    		'CAT_DEFAULT_MEASURE_ID' => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
-    		'CAT_BOM_MAX_COMPONENTS_LEVEL' => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
+    		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER'   => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
+    		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
+    		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
+    		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(Min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
     );
 
     
