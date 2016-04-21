@@ -337,7 +337,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след подготовка на Едит Формата
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = $form->rec;
@@ -475,7 +475,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
 		if(!isset($form->rec->innerClass)){
     		$form->setField('groups', 'input=hidden');
@@ -532,7 +532,7 @@ class cat_Products extends embed_Manager {
     /**
      * Преди запис на продукт
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	// Разпределяме свойствата в отделни полета за полесно търсене
     	if($rec->meta){
@@ -559,7 +559,7 @@ class cat_Products extends embed_Manager {
     /**
      * Преди запис на клониран запис
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	unset($nRec->originId);
     }
@@ -594,7 +594,7 @@ class cat_Products extends embed_Manager {
 	 * @param crm_Companies $mvc
 	 * @param array $fields
 	 */
-	public static function on_AfterPrepareImportFields($mvc, &$fields)
+	protected static function on_AfterPrepareImportFields($mvc, &$fields)
 	{
 	    $fields = array();
 	     
@@ -606,12 +606,7 @@ class cat_Products extends embed_Manager {
 	    
 	    $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
 	    $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
-	    $metaType = 'set(canSell=Продаваем,
-                                                                                        canBuy=Купуваем,
-                                                                                        canStore=Складируем,
-                                                                                        canConvert=Вложим,
-                                                                                        fixedAsset=Дълготраен актив,
-                                                                			            canManifacture=Производим)';
+	    $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)';
 	    
 	    $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => TRUE, 'type' => $categoryType);
 	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Маркери', 'notColumn' => TRUE, 'type' => $groupType);
@@ -638,7 +633,7 @@ class cat_Products extends embed_Manager {
      * @param cat_Products $mvc
      * @param stdObject $rec
      */
-    public static function on_BeforeImportRec($mvc, $rec)
+    protected static function on_BeforeImportRec($mvc, $rec)
     {
         // Полетата csv_ се попълват в loadSetupData
         // При 'Импорт' не се използват
@@ -1024,7 +1019,7 @@ class cat_Products extends embed_Manager {
 	/**
      * След всеки запис
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
@@ -1369,7 +1364,7 @@ class cat_Products extends embed_Manager {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-single']){
     		if(isset($rec->originId)){
@@ -1682,7 +1677,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add'){
     		if(isset($rec)){
@@ -1729,7 +1724,7 @@ class cat_Products extends embed_Manager {
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
     	if($data->rec->state != 'rejected'){
     		$tId = $mvc->fetchField($data->rec->id, 'threadId');
@@ -1748,7 +1743,7 @@ class cat_Products extends embed_Manager {
     /**
      * Променяме шаблона в зависимост от мода
      */
-    public static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
     	// Ако потребителя е контрактор не показваме детайлите
     	if(core_Users::isContractor()){
@@ -2122,7 +2117,7 @@ class cat_Products extends embed_Manager {
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
     	cat_Products::prepareComponents($data->rec->id, $data->components);
@@ -2132,7 +2127,7 @@ class cat_Products extends embed_Manager {
     /**
      * След рендиране на единичния изглед
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	if(count($data->components)){
     		$componentTpl = cat_Products::renderComponents($data->components);
@@ -2242,7 +2237,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->createdProducts[] = $rec;
     }
