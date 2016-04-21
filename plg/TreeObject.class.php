@@ -510,4 +510,53 @@ class plg_TreeObject extends core_Plugin
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Метод по подразбиране, връщащ обединението на множествата на записите, които
+	 * са наследници на друга група от записи
+	 * 
+	 * @param core_Mvc $mvc         - мениджър
+	 * @param array|NULL $res       - намереното обединение
+	 * @param array|string $keylist - кейлист с записи, чиито наследници търсим
+	 */
+	public static function on_AfterGetDescendentArray($mvc, &$res, $keylist)
+	{
+		if(!$res){
+			
+			// Подсигуряваме се че работим с масив
+			if(!is_array($keylist)){
+				$keylist = keylist::toArray($keylist);
+			}
+			
+			$array = array();
+			
+			// За всяко от подадените ид-та
+			foreach ($keylist as $id){
+				
+				// Добавяме го към множеството
+				$array[$id] = $id;
+				
+				// Намираме всички записи, които са негови поделементи
+				$query = $mvc->getQuery();
+				$query->where("#{$mvc->parentFieldName} = {$id}");
+				$query->show("{$mvc->parentFieldName},id");
+				while($rec = $query->fetch()){
+					
+					// Добавяме наследника
+					$array[$rec->id] = $rec->id;
+					
+					// Добавяме и всички негови наследници
+					$parent = $rec->id;
+					while($parent && ($pRec = $mvc->fetch("#{$mvc->parentFieldName} = {$parent}", 'id'))) {
+						$array[$pRec->id] = $pRec->id;
+						$parent = $pRec->id;
+					}
+				}
+			}
+			
+			// Връщаме намерените резултати
+			$res = $array;
+		}
+	}
 }
