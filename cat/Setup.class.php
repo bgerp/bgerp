@@ -144,7 +144,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER'   => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
     		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
-    		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(Min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
+    		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
     );
 
     

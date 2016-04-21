@@ -1948,7 +1948,8 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Намираме сумата която струва к-то от артикула в склада
-    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL);
+    	$maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL, $maxTry);
     	
     	if(isset($amount)){
     		
