@@ -403,8 +403,10 @@ class crm_Persons extends core_Master
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
 
-        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
-            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
+    	if(!empty($data->listFilter->rec->groupId)){
+        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groupList", $keylist);
         }
     }
 
