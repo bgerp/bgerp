@@ -1520,6 +1520,10 @@ function setFormElementsWidth() {
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
+
+        $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
+        $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
+        $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
     } else {
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){

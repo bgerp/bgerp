@@ -1511,6 +1511,8 @@ input:focus[type=button] {
     width: 100%; }
   .narrow .vertical .formFields .w25 {
     width: 50%; }
+    .narrow .vertical .formFields .inlineTo .w25 {
+      max-width: 40%; }
 
 /*
  * край на общи стилове за елементите на формите
