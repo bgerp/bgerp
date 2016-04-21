@@ -151,16 +151,28 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 				$entry['credit'] = array('488');
 				
 				$this->amount488 -= $entry['amount'];
-			} else {
-				
+			} elseif($blAmount > 0){
 				// Ако салдото е положително отива като разход
 				$entry['debit'] = array('488');
 				$entry['credit'] = $ourSideArr;
 				
 				$this->amount488 += $entry['amount'];
+			} else {
+				if($blQuantity < 0){
+					$entry['debit'] = $ourSideArr;
+					$entry['credit'] = array('488');
+					
+					$this->amount488 -= $entry['amount'];
+				} else {
+					// Ако салдото е положително отива като разход
+					$entry['debit'] = array('488');
+					$entry['credit'] = $ourSideArr;
+					
+					$this->amount488 += $entry['amount'];
+				}
 			}
 			
-			$entry['reason'] = 'Разлики от закръгления';
+			$entry['reason'] = 'Разлики от закръгляния';
 			$entries[] = $entry;
 		}
 		
