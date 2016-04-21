@@ -1,15 +1,14 @@
 <?php
 
 
-
 /**
- * Транспорт
+ * Пасаж
  *
  *
  * @category  bgerp
  * @package   passage
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */

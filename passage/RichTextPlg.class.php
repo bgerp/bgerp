@@ -2,13 +2,13 @@
 
 
 /**
- * Клас 'doc_RichTextPlg' - Добавя функционалност за поставяне handle на документи в type_Richtext
+ * Пасаж
  *
  *
  * @category  bgerp
- * @package   doc
- * @author    Yusein Yuseinov <yyuseinov@gmail.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @package   passage
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */

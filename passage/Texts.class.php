@@ -2,11 +2,11 @@
 
 
 /**
- * Модел "Изчисляване на налва"
+ * Пасаж
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   passage
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
@@ -190,8 +190,8 @@ class passage_Texts extends core_Manager
 //            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
             $title = ht::createLink($rec->title, '#', FALSE, $attr);
 
-            //$rec->body = str_replace("\n", ' ', $rec->body);
-            //$rec->body = str::limitLen($rec->body, 100);
+//            $string= str_replace("\n", ' ', $rec->body);
+//            $string = str::limitLen($string, 100);
 
             //$string = $mvc->getVerbal($rec, 'body');
             $createdOn = $mvc->getVerbal($rec, 'createdOn');

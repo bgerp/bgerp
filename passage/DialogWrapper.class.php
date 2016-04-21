@@ -2,13 +2,13 @@
 
 
 /**
- * 
+ * Пасаж
  *
  *
- * @category  vendors
- * @package   doc
- * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @category  bgerp
+ * @package   passage
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
