@@ -747,36 +747,44 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Добавяне на полета към филтър форма
+     * 
+     * @param core_Form $listFilter
+     * @return void
      */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
+    public static function expandFilter(&$listFilter)
     {
     	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
     	$orderOptions = arr::fromArray($orderOptions);
+    	 
+    	$listFilter->FNC('order', "enum({$orderOptions})",
+    	'caption=Подредба,input,silent,remember,autoFilter');
     	
-    	$data->listFilter->FNC('order', "enum({$orderOptions})",
-            'caption=Подредба,input,silent,remember,autoFilter');
-
-        $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Маркери,input,silent,remember,autoFilter');
+    	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
+    			'placeholder=Маркери,input,silent,remember,autoFilter');
+    	
+    	$listFilter->view = 'horizontal';
+    	$listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	static::expandFilter($data->listFilter);
 		
-        $data->listFilter->FNC('meta1', 'enum(all=Свойства,
+    	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
        				canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         			canManifacture=Производими)', 'input,autoFilter');
-		
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
@@ -792,16 +800,14 @@ class cat_Products extends embed_Manager {
         		break;
         }
         
-        if($data->listFilter->rec->order != 'private'){
-        	$data->query->where("#isPublic = 'yes'");
-        }
-        
+        // Филтър по маркери
         if (!empty($data->listFilter->rec->groupId)) {
         	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
         	$keylist = keylist::fromArray($descendants);
         	$data->query->likeKeylist("groups", $keylist);
         }
         
+        // Филтър по свойства
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like("meta", $data->listFilter->rec->meta1);
         }
@@ -810,8 +816,8 @@ class cat_Products extends embed_Manager {
 
     /**
      * Перо в номенклатурите, съответстващо на този продукт
-     *
-     * Част от интерфейса: acc_RegisterIntf
+     * 
+     * @see acc_RegisterIntf
      */
     public static function getItemRec($objectId)
     {
