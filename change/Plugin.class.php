@@ -132,7 +132,6 @@ class change_Plugin extends core_Plugin
         
         // Въвеждаме полетата
         $form->input($inputFields);
-        $form->input(NULL, TRUE);
         
         // Очакваме потребителя да има права за съответния запис
         $mvc->requireRightFor('single', $fRec);
