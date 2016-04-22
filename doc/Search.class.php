@@ -369,9 +369,9 @@ class doc_Search extends core_Manager
             
             $rec = cat_Products::fetch(array("#code = '[#1#]'", $search));
             
-            if ($rec && cat_Products::haveRightFor('single', $rec)) {
+            if ($rec && ($singleUrl = cat_Products::getSingleUrlArray($rec->id))) {
                 
-                redirect(cat_Products::getSingleUrlArray($rec->id));
+                redirect($singleUrl);
             }
         }
     }
