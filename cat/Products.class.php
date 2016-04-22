@@ -1375,7 +1375,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     				$row->proto = $mvc->getHyperlink($rec->proto);
     			}
     		}
@@ -1401,7 +1401,7 @@ class cat_Products extends embed_Manager {
             if($meta['canSell']) { 
                 if($rec->price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->id)) {
                     $vat = self::getVat($rec->id);
-                    $rec->price *= (1+$vat);
+                    $rec->price *= (1 + $vat);
                     $row->price = $mvc->getVerbal($rec, 'price');
                 }
             }
@@ -2224,31 +2224,6 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->createdProducts[] = $rec;
-    }
-    
-    
-    /**
-     * Намира всички стандартни, продаваеми или купуваеми артикули
-     * 
-     * @param boolean $onlyStorable - дали да са само складируемите
-     * @return array $products - артикули
-     */
-    public static function getStandartProducts($onlyStorable = FALSE)
-    {
-    	$products = array();
-    	$pQuery = cat_Products::getQuery();
-    	$pQuery->where("#isPublic = 'yes'");
-    	$pQuery->where("#state = 'active'");
-    	$pQuery->where("#canBuy = 'yes' OR #canSell = 'yes'");
-    	if($onlyStorable === TRUE){
-    		$pQuery->where("#canStore = 'yes'");
-    	}
-    	
-    	while($pRec = $pQuery->fetch()){
-    		$products[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-    	}
-    	
-    	return $products;
     }
     
     
