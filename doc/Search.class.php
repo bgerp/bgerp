@@ -359,11 +359,11 @@ class doc_Search extends core_Manager
         // Ако няма информация, да не се изпълнява
         if ($info && $info['className'] && $info['id']) {
             $className = $info['className'];
-        
+            
             $rec = $className::fetchByHandle($info);
             
             // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
-            redirect(array($info['className'], 'single', $rec->id));
+            redirect($className::getSingleUrlArray($rec->id));
         } else {
             $search = ltrim($search, '#');
             
@@ -371,7 +371,7 @@ class doc_Search extends core_Manager
             
             if ($rec && cat_Products::haveRightFor('single', $rec)) {
                 
-                redirect(array('cat_Products', 'single', $rec->id));
+                redirect(cat_Products::getSingleUrlArray($rec->id));
             }
         }
     }
