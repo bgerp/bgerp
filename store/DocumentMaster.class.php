@@ -237,8 +237,7 @@ abstract class store_DocumentMaster extends core_Master
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
     	$row->MyCompany = transliterate(tr($row->MyCompany));
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-    	$row->MyAddress = transliterate(tr($row->MyAddress));
+    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
     	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
     	if($uic != $ownCompanyData->vatNo){
@@ -251,7 +250,6 @@ abstract class store_DocumentMaster extends core_Master
     	$cData = $ContragentClass->getContragentData($rec->contragentId);
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
     	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    	$row->contragentAddress  = core_Lg::transliterate($row->contragentAddress);
     	$row->vatNo = $cData->vatNo;
     }
     
@@ -448,7 +446,15 @@ abstract class store_DocumentMaster extends core_Master
     	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	$oldRow = $this->recToVerbal($rec, $fields);
     	
-    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
+    	$amount = NULL;
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	if($firstDoc->getInstance()->getField("#paymentMethodId", FALSE)){
+    		$paymentMethodId = $firstDoc->fetchField('paymentMethodId');
+    		if(cond_PaymentMethods::isCOD($paymentMethodId)){
+    			$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
+    		}
+    	}
+    	
     	$rec->palletCount = ($rec->palletCountInput) ? $rec->palletCountInput : $rec->palletCount;
     	
     	if($rec->palletCount){
@@ -475,7 +481,7 @@ abstract class store_DocumentMaster extends core_Master
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getLink($rec->id, 0);
-    	 
+    	
     	return $row;
     }
     

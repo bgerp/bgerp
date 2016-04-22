@@ -181,10 +181,8 @@ class core_Form extends core_FieldSet
                 if ($value === NULL) continue;
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && !trim($value) && ($field->type->toVerbal($value) === NULL)) continue;
+                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
             }
-            
-            if ($silent && !(strlen(trim($value))) && $field->type->toVerbal($value)) continue;
             
             if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
@@ -317,7 +315,7 @@ class core_Form extends core_FieldSet
                 if ($value === NULL) continue;
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && !trim($value) && ($field->type->toVerbal($value) === NULL)) continue;
+                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === NULL)) continue;
             }
            
             $captions = str_replace('->', '|* » |', $field->caption);

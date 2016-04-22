@@ -1019,6 +1019,10 @@ class cat_Boms extends core_Master
     			}
     		}
     		
+    		if(!isset($price)){
+    			$price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
+    		}
+    		
     		// Ако и по рецепта няма тогава да гледа по складова
     		if(!isset($price)){
     			$pInfo = cat_Products::getProductInfo($productId);
@@ -1046,6 +1050,10 @@ class cat_Boms extends core_Master
     			if($prodBom = cat_Products::getLastActiveBom($productId)){
     				$price = static::getBomPrice($prodBom, $quantity, 0, 0, $date, $priceListId);
     			}
+    		}
+    		
+    		if(!isset($price)){
+    			$price = planning_ObjectResources::getAvgPriceEquivalentProducts($productId, $date);
     		}
     		
     		// В краен случай взимаме мениджърската себестойност

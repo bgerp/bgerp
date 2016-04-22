@@ -42,7 +42,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol,batch_MovementSourceIntf=batch_movements_ConsignmentProtocol';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol,batch_MovementSourceIntf=batch_movements_ConsignmentProtocol';
     
     
     /**
@@ -380,7 +380,7 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('crm_ContragentAccRegIntf');
     }
     
     
@@ -394,7 +394,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     
-    	return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass);
     }
     
     
@@ -410,7 +410,7 @@ class store_ConsignmentProtocols extends core_Master
     	$threadRec = doc_Threads::fetch($threadId);
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	 
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     

@@ -347,7 +347,8 @@ class planning_ObjectResources extends core_Manager
     	$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
     	if(isset($item1)){
     		// Намираме сумата която струва к-то от артикула в склада
-    		$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL);
+    		$maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+    		$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL, $maxTry);
     		if($selfValue){
     			$selfValue = round($selfValue, 4);
     		}

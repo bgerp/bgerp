@@ -8,8 +8,8 @@
  *
  * @category  bgerp
  * @package   store
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State, plg_LastUsedKeys';
+    public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State';
     
     
     /**
@@ -62,25 +62,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, tools=Пулт, productId=Наименование, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'storeId';
-    
-    
-    /**
-     * Полета за търсене
-     */
-    public $searchField = 'productId';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'productId=Наименование, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
     
     
     /**
@@ -107,8 +89,12 @@ class store_Products extends core_Manager
     }
     
     
-	/**
-     * Изчисляване на заглавието спрямо продуктовия мениджър
+    /**
+     * Изчисляване на функционално поле
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return void|number
      */
     public static function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
     {
@@ -130,7 +116,6 @@ class store_Products extends core_Manager
     {
         // Взема селектирания склад
         $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
         $data->title = "|Продукти в склад|* \"{$selectedStoreName}\"";
     }
     
@@ -164,26 +149,74 @@ class store_Products extends core_Manager
 	        if($rec->quantityNotOnPallets > 0){
 	        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
 	        }
-	        	
-	        $row->TR_CLASS = 'active';
         }
     }
     
     
     /**
      * След подготовка на филтъра
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'search';
-        $data->listFilter->input();
+    	// Подготвяме формата
+    	cat_Products::expandFilter($data->listFilter);
+    	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+    	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
+    	$data->listFilter->setField('storeId', 'autoFilter');
+    	
+    	// Подготвяме в заявката да може да се търси по полета от друга таблица
+    	$data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
+    	$data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+    	$data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+    	$data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
+    	$data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
+    	
+        $data->listFilter->showFields = 'storeId,search,order,groupId';
+        $data->listFilter->input('storeId,order,groupId,search', 'silent');
         
-        $selectedStoreId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$selectedStoreId}");
-        $data->query->orderBy('state');
+        // Ако има филтър
+        if($rec = $data->listFilter->rec){
+        	
+        	// И е избран склад, търсим склад
+        	if(isset($rec->storeId)){
+        		$data->query->where("#storeId = {$rec->storeId}");
+        	}
+        	
+        	// Ако се търси по ключови думи, търсим по тези от външното поле
+        	if(isset($rec->search)){
+        	 	plg_Search::applySearch($rec->search, $data->query, 'keywords');
+            
+            	// Ако ключовата дума е число, търсим и по ид
+            	if (type_Int::isInt($rec->search)) {
+            		$data->query->orWhere("#productId = {$rec->search}");
+            	}
+        	}
+        	
+        	// Подредба
+        	if(isset($rec->order)){
+        		switch($data->listFilter->rec->order){
+        			case 'last':
+        				$data->query->orderBy('#productCreatedOn=DESC');
+        				break;
+        			case 'private':
+        				$data->query->where("#isPublic = 'no'");
+        				break;
+        			default :
+        				$data->query->orderBy('#state,#name');
+        				break;
+        		}
+        	}
+        	
+        	// Филтър по маркери на артикула
+        	if (!empty($rec->groupId)) {
+        		$descendants = cat_Groups::getDescendantArray($rec->groupId);
+        		$keylist = keylist::fromArray($descendants);
+        		$data->query->likeKeylist("groups", $keylist);
+        	}
+        }
     }
     
     
@@ -270,9 +303,6 @@ class store_Products extends core_Manager
 	    
 	    return $products;
     }
-    
-    
-
 
 
     /**

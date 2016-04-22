@@ -99,7 +99,7 @@ class trans_Zones extends core_Detail
     {
         $this->FLD('zoneId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
         $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
         $this->setDbUnique("countryId, pCode");
     }
 
@@ -169,19 +169,27 @@ class trans_Zones extends core_Detail
      * @return array['zoneName']        име на намерената зона
      * @return array['deliveryTermId']  Условие на доставка
      */
-    public static function getZoneIdAndDeliveryTerm($countryId, $pCode)
+    public static function getZoneIdAndDeliveryTerm($countryId, $pCode = "")
     {
-        //Обхождане на trans_zones базата и намиране на най-подходящата зона
+//       bp($pCode, empty($pCode));
         $query = self::getQuery();
+        if(empty($pCode)){
+            $query->where(array("#countryId = [#1#] AND #pCode = '[#2#]'", $countryId, $pCode));
+            $rec = $query->fetch();
+//            bp($rec);
+            $bestZone = $rec;
+        }
+        //Обхождане на trans_zones базата и намиране на най-подходящата зона
+        else{
         $query->where(array('#countryId = [#1#]', $countryId));
         $bestSimilarityCount = 0;
         while($rec = $query->fetch()) {
             $similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
-            if ($similarityCount > $bestSimilarityCount) {
-                $bestSimilarityCount = $similarityCount;
-                $bestZone = $rec;
+                if ($similarityCount > $bestSimilarityCount) {
+                    $bestSimilarityCount = $similarityCount;
+                    $bestZone = $rec;
+                }
             }
-
         }
 
         //Намиране на името на намерената зона

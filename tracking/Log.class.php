@@ -31,7 +31,7 @@ class tracking_Log extends core_Master {
      *
      * var string|array
      */
-    public $loadList = 'plg_Created, plg_RowTools, plg_LastUsedKeys, tracking_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, tracking_Wrapper';
     
     /**
      * Полета за показване

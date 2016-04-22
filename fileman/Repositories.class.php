@@ -853,6 +853,8 @@ class fileman_Repositories extends core_Master
             
         } catch (Exception $e) {
             
+            reportException($e);
+            
             return $res;
         }
         

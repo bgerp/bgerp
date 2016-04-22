@@ -2,11 +2,11 @@
 
 
 /**
- * Модел "Изчисляване на налва"
+ * Пасаж
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   passage
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
@@ -90,6 +90,7 @@ class passage_Texts extends core_Manager
      */
     function act_Dialog()
     {
+        Mode::set('wrapper', 'page_Dialog');
 
         // Вземаме callBack'а
         $callback = Request::get('callback', 'identifier');
@@ -161,12 +162,10 @@ class passage_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
-
         $form->showFields = 'search,author,langWithAllSelect';
-
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-
-        $form->view = 'horizontal';
+        $form->view = 'vertical';
+        $form->class = 'simpleForm';
 
         $form->input();
         if($form->isSubmitted()){
@@ -178,10 +177,55 @@ class passage_Texts extends core_Manager
                 $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
             }
         }
-
         $data->query->orderBy('#createdOn', 'DESC');
     }
 
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    {
+        if (Mode::get('dialogOpened')) {
+            $callback = Mode::get('callback');
+            $str = json_encode($rec->body);
+
+            $attr = array('onclick' => "if(window.opener.{$callback}($str) != true) self.close(); else self.focus();", "class" => "file-log-link");
+//            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
+            $title = ht::createLink($rec->title, '#', FALSE, $attr);
+
+//            $string= str_replace("\n", ' ', $rec->body);
+//            $string = str::limitLen($string, 100);
+
+            //$string = $mvc->getVerbal($rec, 'body');
+            $createdOn = $mvc->getVerbal($rec, 'createdOn');
+            $createdBy = $mvc->getVerbal($rec, 'createdBy');
+
+            $row->body = $title . "<br>" . $row->body . "<br>" . $createdOn . ' - ' . $createdBy;
+//            bp($row);
+        }
+    }
+
+
+    /**
+ * Извиква се преди подготовката на колоните ($data->listFields)
+ *
+ * @param core_Mvc $mvc
+ * @param object $res
+ * @param object $data
+ */
+    static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        // Ако е отворен в диалоговия прозорец
+        if (Mode::get('dialogOpened')) {
+
+            // Нулираме, ако е имало нещо
+            $data->listFields = array();
+
+            // Задаваме, кои полета да се показва
+            $data->listFields['body'] = "Пасаж";
+
+
+            // Да не се извикат останалите
+            return FALSE;
+        }
+    }
 
 
 

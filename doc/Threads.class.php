@@ -765,7 +765,7 @@ class doc_Threads extends core_Manager
                 $attr['title'] = $docRow->title;
             }
             
-            $row->onlyTitle = $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+            $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
                     'threadId' => $rec->id,
                     'folderId' => $rec->folderId,
@@ -978,8 +978,10 @@ class doc_Threads extends core_Manager
             foreach($selArr as $threadId) {
                 try {
                     $this->move($threadId, $folderId);
-                    
+					
+                    doc_Folders::logWrite('Преместена нишка от', $threadRec->folderId);
                     doc_Threads::logWrite('Преместена нишка', $threadId);
+                    doc_Folders::logWrite('Преместена нишка в', $folderId);
                     
                     $successCnt++;
                 } catch (core_Exception_Expect $expect) { 

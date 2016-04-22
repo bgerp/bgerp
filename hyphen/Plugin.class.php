@@ -74,7 +74,11 @@ class hyphen_Plugin extends core_Plugin
     
 	/**
      * Хифенира стринговете
-     */
+     *
+	 * @param string $string
+	 * 
+	 * @return string
+	 */
     static function getHyphenWord($string)
     {
         // Брояча за сивмовилите

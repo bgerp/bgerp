@@ -27,13 +27,13 @@ class doc_TplManager extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Мениджър на шаблони за документи";
+    public $title = "Изгледи на документи";
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Шаблон";
+    public $singleTitle = "Изглед";
     
     
     /**

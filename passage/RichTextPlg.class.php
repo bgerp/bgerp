@@ -2,13 +2,13 @@
 
 
 /**
- * Клас 'doc_RichTextPlg' - Добавя функционалност за поставяне handle на документи в type_Richtext
+ * Пасаж
  *
  *
  * @category  bgerp
- * @package   doc
- * @author    Yusein Yuseinov <yyuseinov@gmail.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @package   passage
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,6 +28,7 @@ class passage_RichTextPlg extends core_Plugin
         if (haveRole('powerUser')) {
 
             // id
+            ht::setUniqId($attr);
             $id = $attr['id'];
 
             // Име на функцията и на прозореца
@@ -43,7 +44,7 @@ class passage_RichTextPlg extends core_Plugin
             }
 
             // URL за добавяне на документи
-            $url = toUrl(array('passage_Texts', 'Dialog'));
+            $url = toUrl(array('passage_Texts', 'Dialog', 'callback' => $callbackName));
 
             // JS фунцкията, която отваря прозореца
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
@@ -54,6 +55,7 @@ class passage_RichTextPlg extends core_Plugin
 
             // JS функцията
             $callback = "function {$callbackName}(passage) {
+            console.log(passage);
                 var ta = get$('{$id}');
                 rp(passage, ta, 1);
                 return true;
@@ -72,6 +74,8 @@ class passage_RichTextPlg extends core_Plugin
      * Прихваща никовете и създава линкове към сингъла на профилите
      *
      * @param array $match
+     *
+     * @return string
      */
     function _catchNick($match)
     {

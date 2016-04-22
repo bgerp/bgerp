@@ -2,13 +2,13 @@
 
 
 /**
- * 
+ * Пасаж
  *
  *
- * @category  vendors
- * @package   doc
- * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @category  bgerp
+ * @package   passage
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -56,7 +56,7 @@ class passage_DialogWrapper extends core_Plugin
             $tabs->TAB($name, $title, $url, $name);
         }
         
-        $tabs->htmlClass = 'addDoc';
+        $tabs->htmlClass = 'passageDialog';
         
         // Рендираме
         $res = $tabs->renderHtml($res);
@@ -64,7 +64,7 @@ class passage_DialogWrapper extends core_Plugin
         // Добавяме икони
         $res->prepend("<style>
         		
-            .docLog { background-image:url('" . sbf('img/16/documents16.png', '') . "');}
+            .passage { background-repeat: no-repeat; padding-left: 20px; background-image:url('" . sbf('img/16/passage.png', '') . "');}
 
             </style>");
         
@@ -87,6 +87,6 @@ class passage_DialogWrapper extends core_Plugin
 	 */
     function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {
-        $tabs['docLog'] = array('caption' => 'Пасажи', 'Ctr' => $mvc, 'Act' => 'Dialog');
+        $tabs['passage'] = array('caption' => 'Пасажи', 'Ctr' => $mvc, 'Act' => 'Dialog');
     }
 }
