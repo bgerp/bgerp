@@ -97,6 +97,18 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Кой  може да клонира системни записи
+     */
+    public $canClonesysdata = 'cat,ceo,sales,purchase';
+    
+    
+    /**
+     * Кой  може да клонира запис
+     */
+    public $canClonerec = 'cat,ceo,sales,purchase';
+    
+    
+    /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Артикул";
@@ -1671,7 +1683,8 @@ class cat_Products extends embed_Manager {
     		}
     	}
     	
-    	if(($action == 'add' || $action == 'edit' || $action == 'write') && isset($rec)){
+    	// Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
+    	if(($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)){
 			if(isset($rec->folderId)){
     			$Cover = doc_Folders::getCover($rec->folderId);
     			if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
