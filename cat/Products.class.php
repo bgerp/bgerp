@@ -760,6 +760,7 @@ class cat_Products extends embed_Manager {
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
     	'caption=Подредба,input,silent,remember,autoFilter');
+    	$listFilter->setDefault('order', 'alphabetic');
     	
     	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
     			'placeholder=Маркери,input,silent,remember,autoFilter');
@@ -777,12 +778,12 @@ class cat_Products extends embed_Manager {
     	static::expandFilter($data->listFilter);
 		
     	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
-       				canSell=Продаваеми,
+       							canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими)', 'input,autoFilter');
+        					    canManifacture=Производими)', 'input,autoFilter');
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
