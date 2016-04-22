@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -130,7 +130,7 @@ class store_Pallets extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
@@ -148,12 +148,10 @@ class store_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Палети в СКЛАД|* \"{$selectedStoreName}\"";
+        $selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
+    	$data->title = "|Палети в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -163,7 +161,7 @@ class store_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене на палет в склада';
         $data->listFilter->view = 'horizontal';
@@ -196,7 +194,7 @@ class store_Pallets extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Дефинираме иконките, които ще използваме
         $imgUp = ht::createElement('img', array('src' => sbf('img/up.gif', ''), 'width' => '16px', 'height' => '16px',
@@ -330,7 +328,7 @@ class store_Pallets extends core_Manager
      * @param stdClass $data
      * @param stdClass $rec
      */
-    static function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    protected static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $data->toolbar->removeBtn('btnAdd');
     }
@@ -343,7 +341,7 @@ class store_Pallets extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         expect($productId = Request::get('productId', 'int'));
         $selectedStoreId = store_Stores::getCurrent();
@@ -392,7 +390,7 @@ class store_Pallets extends core_Manager
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$data->form->title = $data->formTitle;
     }
@@ -405,7 +403,7 @@ class store_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() && (!$form->rec->id)) {
             // Проверка за количеството
@@ -465,7 +463,7 @@ class store_Pallets extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    protected static function on_BeforeSave($mvc, &$id, $rec)
     {
         // При add на нов палет
         if (!$rec->id) {
@@ -543,7 +541,7 @@ class store_Pallets extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    protected static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($rec->newRec == TRUE) {
             /* Change product quantity on pallets */
@@ -630,7 +628,7 @@ class store_Pallets extends core_Manager
      * @param $query
      * @param string $cond
      */
-    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    protected static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         
@@ -650,7 +648,7 @@ class store_Pallets extends core_Manager
      * @param string $cond
      * @return core_Redirect
      */
-    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_Movements::delete("#palletId = {$query->deleteRecId}");
         
@@ -671,7 +669,8 @@ class store_Pallets extends core_Manager
      * @param int $productId
      * @return int $productQuantityOnPallets
      */
-    static function calcProductQuantityOnPalletes($productId) {
+    public static function calcProductQuantityOnPalletes($productId) 
+    {
         $query = static::getQuery();
         $where = "#productId = {$productId}";
         
@@ -692,7 +691,7 @@ class store_Pallets extends core_Manager
      * @param $rec
      * @return boolean
      */
-    static function checkProductQuantity($rec)
+    public static function checkProductQuantity($rec)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -720,7 +719,7 @@ class store_Pallets extends core_Manager
      * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId']
      * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements']
      */
-    static function getPalletsInStore()
+    public static function getPalletsInStore()
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -798,7 +797,7 @@ class store_Pallets extends core_Manager
      * @param string $position
      * @return boolean
      */
-    static function checkIfPalletPlaceIsFree($position)
+    public static function checkIfPalletPlaceIsFree($position)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -821,7 +820,7 @@ class store_Pallets extends core_Manager
      *
      * @param array $fErrors
      */
-    static function prepareErrorsAndWarnings($fErrors, $form)
+    public static function prepareErrorsAndWarnings($fErrors, $form)
     {
         $countErrors = 0;
         $countWarnings = 0;

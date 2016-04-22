@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -123,7 +123,7 @@ class store_Movements extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
@@ -161,12 +161,10 @@ class store_Movements extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Движения на палети в СКЛАД|* \"{$selectedStoreName}\"";
+    	$selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
+    	$data->title = "|Движения в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -177,7 +175,7 @@ class store_Movements extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // $row->state
         switch($rec->state) {
@@ -248,7 +246,7 @@ class store_Movements extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
         
@@ -358,7 +356,7 @@ class store_Movements extends core_Manager
     /**
      * След подготовката на заглавието на формата
      */
-    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$data->form->title = $data->formTitle;
     }
@@ -370,7 +368,7 @@ class store_Movements extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -501,7 +499,7 @@ class store_Movements extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    protected static function on_BeforeSave($mvc, &$id, $rec)
     {
         $rec->storeId = store_Stores::getCurrent();
         
@@ -524,7 +522,7 @@ class store_Movements extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    protected static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         if ($rec->do && in_array($rec->do, array('palletUp', 'palletDown', 'palletMove'))) {
             $recPallets = store_Pallets::fetch($rec->palletId);
@@ -615,7 +613,7 @@ class store_Movements extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
@@ -677,7 +675,7 @@ class store_Movements extends core_Manager
      * @param string $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace)
+    public static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace)
     {
         $selectedStoreId = store_Stores::getCurrent();
         

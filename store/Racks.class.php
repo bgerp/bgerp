@@ -154,24 +154,10 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Стелажи в СКЛАД|* \"{$selectedStoreName}\"";
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на титлата в единичния изглед
-     */
-    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
-        
-        $data->title = "|СКЛАД|* \"{$selectedStoreName}\", |стелаж|* № {$data->rec->id}";
+        $selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
+    	$data->title = "|Стелажи в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -181,7 +167,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене на продукт в склада';
         $data->listFilter->view = 'horizontal';
@@ -213,7 +199,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -250,7 +236,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() && ($form->rec->id)) {
             $selectedStoreId = store_Stores::getCurrent();
@@ -403,7 +389,7 @@ class store_Racks extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->ROW_ATTR['class'] = 'noHover';
         
@@ -618,7 +604,7 @@ class store_Racks extends core_Master
      * @param stdClass $res
      * @param $query
      */
-    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    protected static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         
@@ -636,7 +622,7 @@ class store_Racks extends core_Master
      * @param stdClass $query
      * @param string $cond
      */
-    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_RackDetails::delete("#rackId = {$query->deleteRecId}");
         
@@ -652,7 +638,7 @@ class store_Racks extends core_Master
      * @param int $constrColumnsStep
      * @return string
      */
-    static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
+    public static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
     {
         if ($c == 1) {
             return "constrColumnLeft";
@@ -675,7 +661,8 @@ class store_Racks extends core_Master
      * @param int $palletId
      * @return boolean
      */
-    static function checkIfProductGroupsAreAllowed($rackId, $productId) {
+    public static function checkIfProductGroupsAreAllowed($rackId, $productId) 
+    {
         $selectedStoreId = store_Stores::getCurrent();
         
         try {
@@ -717,7 +704,8 @@ class store_Racks extends core_Master
      * @param string $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceExists($palletPlace) {
+    public static function checkIfPalletPlaceExists($palletPlace) 
+    {
         // array letter to digit
         $rackRowsArr = array('A' => 1,
             'B' => 2,
@@ -762,7 +750,7 @@ class store_Racks extends core_Master
      * @param string $palletPlace
      * @return array $fResult
      */
-    static function isSuitable($rackId, $productId, $palletPlace)
+    public static function isSuitable($rackId, $productId, $palletPlace)
     {
         $fResult = array();
         $fErrors = array();
@@ -814,7 +802,7 @@ class store_Racks extends core_Master
      * @param $arrayForExplode
      * @return array $fResult
      */
-    static function ppRackNum2rackId($stringForExplode)
+    public static function ppRackNum2rackId($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
         $positionArr = explode("-", $stringForExplode);
@@ -843,7 +831,7 @@ class store_Racks extends core_Master
      * @param $arrayForExplode
      * @return array $fResult
      */
-    static function ppRackId2RackNum($stringForExplode)
+    public static function ppRackId2RackNum($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
         $positionArr = explode("-", $stringForExplode);
@@ -875,7 +863,8 @@ class store_Racks extends core_Master
      * @param string|int $value
      * @return string|int
      */
-    static function rackRowConv($value) {
+    public static function rackRowConv($value) 
+    {
         $value = str::utf2ascii($value);
         
         $rowStringArr = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'ALL');
