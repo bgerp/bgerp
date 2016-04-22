@@ -172,7 +172,7 @@ class store_Products extends core_Manager
         	// И е избран склад, търсим склад
         	if(isset($rec->storeId)){
         		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
-        		$data->title = "|Продукти в|* <b style='color:green'>{$selectedStoreName}</b>";
+        		$data->title = "|Продукти в склад|* <b style='color:green'>{$selectedStoreName}</b>";
         		$data->query->where("#storeId = {$rec->storeId}");
         	}
         	

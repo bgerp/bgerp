@@ -112,7 +112,7 @@ class store_Zones extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             
@@ -133,12 +133,10 @@ class store_Zones extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Зони в СКЛАД|* \"{$selectedStoreName}\"";
+    	$selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
+    	$data->title = "|Зони в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -149,7 +147,7 @@ class store_Zones extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -165,7 +163,7 @@ class store_Zones extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    protected static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->id) {
             $rec->storeId = store_Stores::getCurrent();
