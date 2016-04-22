@@ -123,13 +123,13 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да променя?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,sales';
+    public $canAdd = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -148,12 +148,6 @@ class cat_Products extends embed_Manager {
      * Кой може да го разгледа?
      */
     public $canList = 'powerUser';
-    
-    
-    /**
-     * Кой може да качва файлове
-     */
-    public $canWrite = 'cat,ceo';
     
     
     /**  
@@ -1674,13 +1668,15 @@ class cat_Products extends embed_Manager {
     					$res = 'no_one';
     				}
     			}
-    			
-    			if(isset($rec->folderId)){
-    				$Cover = doc_Folders::getCover($rec->folderId);
-    				if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
-    					if(!haveRole('ceo,cat')){
-    						$res = 'no_one';
-    					}
+    		}
+    	}
+    	
+    	if(($action == 'add' || $action == 'edit' || $action == 'write') && isset($rec)){
+			if(isset($rec->folderId)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
+    				if(!haveRole('ceo,cat')){
+    					$res = 'no_one';
     				}
     			}
     		}
