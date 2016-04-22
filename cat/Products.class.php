@@ -752,7 +752,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни');
+    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни,closed=Закрити');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
@@ -793,6 +793,9 @@ class cat_Products extends embed_Manager {
         		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
+        		break;
+        	case 'closed':
+        		$data->query->where("#state = 'closed'");
         		break;
         	default :
         		$data->query->orderBy('#state,#name');

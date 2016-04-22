@@ -105,20 +105,6 @@ class store_Products extends core_Manager
     	return $rec->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
     }
     
-    
-    /**
-     * Смяна на заглавието
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareListTitle($mvc, $data)
-    {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        $data->title = "|Продукти в склад|* \"{$selectedStoreName}\"";
-    }
-    
 
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -163,6 +149,9 @@ class store_Products extends core_Manager
     {
     	// Подготвяме формата
     	cat_Products::expandFilter($data->listFilter);
+    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни,closed=Изчерпани');
+    	$data->listFilter->setOptions('order', $orderOptions);
+    	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
     	$data->listFilter->setField('storeId', 'autoFilter');
@@ -182,6 +171,8 @@ class store_Products extends core_Manager
         	
         	// И е избран склад, търсим склад
         	if(isset($rec->storeId)){
+        		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
+        		$data->title = "|Продукти в склад|* <b style='color:green'>{$selectedStoreName}</b>";
         		$data->query->where("#storeId = {$rec->storeId}");
         	}
         	
@@ -203,6 +194,9 @@ class store_Products extends core_Manager
         				break;
         			case 'private':
         				$data->query->where("#isPublic = 'no'");
+        				break;
+        			case 'closed':
+        				$data->query->where("#state = 'closed'");
         				break;
         			default :
         				$data->query->orderBy('#state,#name');
