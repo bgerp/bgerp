@@ -127,7 +127,7 @@ function openSubmenus() {
 	if ($(window).width() < 700) return;
 
 	var menuInfo = getCookie('menuInfo');
-	
+
     if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
     	var endPos = menuInfo.lastIndexOf(':');
@@ -137,8 +137,9 @@ function openSubmenus() {
 
         $.each(menuArray, function( index, value ) {
         	value = parseInt(value);
-        	$("li[data-menuid='" + value + "']").addClass('open');
-        	$("li[data-menuid='" + value + "']").find('ul').css('display', 'block');
+			if(value) {
+				$("li[data-menuid='" + value + "']").addClass('open');
+			}
         });
         if(menuScroll){
         	$('#nav-panel').scrollTop(menuScroll);
@@ -218,7 +219,7 @@ function getCookie(key) {
  * Действия на акордеона в меюто
  */
 function sidebarAccordeonActions() {
-	$('#nav-panel li:not(.selected) ul').css('display', 'none');
+	$('#nav-panel li:not(.open,.selected) ul').css('display', 'none');
 	$('#nav-panel li.selected').addClass('open');
 
 	$("#nav-panel li div").click( function() {
@@ -270,11 +271,11 @@ function scrollToHash(){
 	var hash = window.location.hash;
 	if($(hash).length) {
         setTimeout(function() {
-			var scrollTo = $(hash).offset().top - 70;
+			var scrollTo = parseInt($(hash).offset().top) - 70;
 			if (scrollTo < 400) {
 				scrollTo = 0;
 			}
-			$('html, body').scrollTop(scrollTo, 0);
+			$('html, body').scrollTop(scrollTo);
 		}, 1);
 	}
 }

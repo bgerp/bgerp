@@ -19,7 +19,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, bgerp_DealIntf, email_DocumentIntf';
 
     
     /**

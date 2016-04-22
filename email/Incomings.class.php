@@ -1724,10 +1724,14 @@ class email_Incomings extends core_Master
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото наимей по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id, $forward)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
         $mvc = cls::get('email_Incomings');
         

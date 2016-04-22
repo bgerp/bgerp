@@ -21,12 +21,6 @@ class cond_Parameters extends embed_Manager
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
 	public $driverInterface = 'cond_ParamTypeIntf';
-	
-	
-	/**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'salecond_Parameters';
     
     
     /**
@@ -51,12 +45,6 @@ class cond_Parameters extends embed_Manager
      * Заглавие в единствено число
      */
     public $singleTitle = "Търговско условие";
-    
-    
-    /**
-     * Кой може да чете
-     */
-    public $canRead = 'ceo,cond';
     
     
     /**
@@ -199,9 +187,20 @@ class cond_Parameters extends embed_Manager
     		}
     	}
     	
-    	//Връщаме стойността ако има директен запис за условието
+    	// Връщаме стойността ако има директен запис за условието
     	if($value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId)){
+    		
     		return $value;
+    	}
+    	
+    	// Търсим имали дефинирано търговско условие за държавата на контрагента
+    	$contragentData = cls::get($cClass)->getContragentData($cId);
+    	$countryId = $contragentData->countryId;
+    	if($countryId){
+    		if($value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value')){
+    		
+    			return $value;
+    		}
     	}
     	
     	// Търси се метод дефиниран за връщане на стойността на условието

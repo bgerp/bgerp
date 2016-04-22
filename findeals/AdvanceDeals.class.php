@@ -39,7 +39,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf';
+    public $interfaces = 'acc_RegisterIntf, doc_DocumentIntf, email_DocumentIntf, deals_DealsAccRegIntf, bgerp_DealIntf, bgerp_DealAggregatorIntf';
     
     
     /**

@@ -178,7 +178,6 @@ class status_Messages extends core_Manager
         // Вземаме всички записи за текущия потребител
         // Създадени преди съответното време
         $query = self::getQuery();
-        $query->where(array("#createdOn >= '[#1#]'", $hitTimeB));
         
         // Ако потребителя е логнат
         if ($userId > 0) {
@@ -199,7 +198,7 @@ class status_Messages extends core_Manager
         $query->orderBy('createdOn', 'ASC');
         
         // Записите със зададено hitId да се връщат, се връщат само за съответното hitId
-        $query->where("#hitId IS NULL");
+        $query->where(array("#hitId IS NULL AND #createdOn >= '[#1#]'", $hitTimeB));
         if ($hitId) {
             $query->orWhere(array("#hitId = '[#1#]'", $hitId));
         }
@@ -212,8 +211,8 @@ class status_Messages extends core_Manager
             
             $skip = FALSE;
             
-            // Проверяваме дали е изличан преди
-            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId);
+            // Проверяваме дали е извличан преди
+            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId, $hitId);
             
             // Ако е извличан преди в съответния таб, да не се показва пак
             if ($isRetrived) continue;
@@ -245,7 +244,7 @@ class status_Messages extends core_Manager
             }
             
             // Добавяме в извличанията
-            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
+            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId, $hitId);
         }
         
         return $resArr;

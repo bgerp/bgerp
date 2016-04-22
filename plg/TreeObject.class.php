@@ -227,7 +227,7 @@ class plg_TreeObject extends core_Plugin
         		foreach ($data->recs as $rec1){
         			
         			// За всеки намираме му децата
-        			$descendents = self::getDescendents($mvc, $rec1->id, $data->recs);
+        			$descendants = self::getDescendants($mvc, $rec1->id, $data->recs);
         		
         			// Ако има полета за сумиране
         			foreach ($fieldsToSum as $fld){
@@ -237,8 +237,8 @@ class plg_TreeObject extends core_Plugin
         				if($fieldType instanceof type_Int || $fieldType instanceof type_Double){
         					
         					// Сумираме стойността на полето за всеки наследник
-        					if(count($descendents)){
-        						foreach ($descendents as $dRec){
+        					if(count($descendants)){
+        						foreach ($descendants as $dRec){
         							if(isset($dRec->{$fld})){
         								$rec1->{$fld} += $dRec->{$fld};
         							}
@@ -491,23 +491,72 @@ class plg_TreeObject extends core_Plugin
 	/**
 	 * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
 	 */
-	private static function getDescendents($mvc, $id, $allRecs, &$res = array())
+	private static function getDescendants($mvc, $id, $allRecs, &$res = array())
 	{
-		$descendents = array();
+		$descendants = array();
 		foreach ($allRecs as $key => $cRec){
 			if($cRec->{$mvc->parentFieldName} == $id){
-				$descendents[$key] = $cRec;
+				$descendants[$key] = $cRec;
 			}
 		}
 		
-		$res = array_merge($res, $descendents);
+		$res = array_merge($res, $descendants);
 		
-		if(count($descendents)){
-			foreach ($descendents as $dRec){
-				self::getDescendents($mvc, $dRec->id, $allRecs, $res);
+		if(count($descendants)){
+			foreach ($descendants as $dRec){
+				self::getDescendants($mvc, $dRec->id, $allRecs, $res);
 			}
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Метод по подразбиране, връщащ обединението на множествата на записите, които
+	 * са наследници на друга група от записи
+	 * 
+	 * @param core_Mvc $mvc         - мениджър
+	 * @param array|NULL $res       - намереното обединение
+	 * @param array|string $keylist - кейлист с записи, чиито наследници търсим
+	 */
+	public static function on_AfterGetDescendantArray($mvc, &$res, $keylist)
+	{
+		if(!$res){
+			
+			// Подсигуряваме се че работим с масив
+			if(!is_array($keylist)){
+				$keylist = keylist::toArray($keylist);
+			}
+			
+			$array = array();
+			
+			// За всяко от подадените ид-та
+			foreach ($keylist as $id){
+				
+				// Добавяме го към множеството
+				$array[$id] = $id;
+				
+				// Намираме всички записи, които са негови поделементи
+				$query = $mvc->getQuery();
+				$query->where("#{$mvc->parentFieldName} = {$id}");
+				$query->show("{$mvc->parentFieldName},id");
+				while($rec = $query->fetch()){
+					
+					// Добавяме наследника
+					$array[$rec->id] = $rec->id;
+					
+					// Добавяме и всички негови наследници
+					$parent = $rec->id;
+					while($parent && ($pRec = $mvc->fetch("#{$mvc->parentFieldName} = {$parent}", 'id'))) {
+						$array[$pRec->id] = $pRec->id;
+						$parent = $pRec->id;
+					}
+				}
+			}
+			
+			// Връщаме намерените резултати
+			$res = $array;
+		}
 	}
 }

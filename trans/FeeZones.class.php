@@ -17,6 +17,12 @@ class trans_FeeZones extends core_Master
 
 
     /**
+     * Полета, които се виждат
+     */
+    public $listFields = "name,deliveryTermId, createdOn, createdBy";
+
+
+    /**
      * Старо име на класа
      */
     public $oldClassName = "trans_ZoneNames";

@@ -221,7 +221,8 @@ class fileman_GalleryRichTextPlg extends core_Plugin
             $documentUpload->appendOnce($callback, 'SCRIPTS');
             
             // Добавяне в групата за добавяне на документ
-            $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.245);
+            $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.050);
+            $toolbarArr->add("<span class='clearfix21'></span>", 'filesAndDoc', 1000.055);
         }
     }
 }

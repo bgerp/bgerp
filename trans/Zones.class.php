@@ -29,7 +29,7 @@ class trans_Zones extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "zoneId, countryId, pCode, createdOn, createdBy";
+    public $listFields = "countryId, pCode, createdOn, createdBy";
 
 
     /**
@@ -97,9 +97,9 @@ class trans_Zones extends core_Detail
      */
     public function description()
     {
-        $this->FLD('zoneId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, recently, mandatory');
-        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
+        $this->FLD('zoneId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
+        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
         $this->setDbUnique("countryId, pCode");
     }
 
@@ -133,8 +133,8 @@ class trans_Zones extends core_Detail
 
         // Вземаме съответстващата форма на този модел
         $form = self::getForm();
-        $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently');
-        $form->FLD('singleWeight', 'double(Min=0)', 'caption=Брой за връщане');
+        $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.');
+        $form->FLD('singleWeight', 'double(Min=0)', 'caption=Кг. за връщане');
 
         // Премахваме полето "name", защото то тррябва да е резултат от теста, а не да се въвежда
         unset($form->fields['zoneId']);
@@ -147,7 +147,7 @@ class trans_Zones extends core_Detail
             try {
                 $result = trans_Fees::calcFee($rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
                 $zoneName = trans_FeeZones::getVerbal($result[2], 'name');
-                $form->info = "Цената за " . $rec->singleWeight . " на " . $rec->totalWeight . " броя от този пакет ще струва ". round($result[1], 4).
+                $form->info = "Цената за " . $rec->singleWeight . " на " . $rec->totalWeight . " кг. от този пакет ще струва ". round($result[1], 4).
                     ", a всички ".  $rec->totalWeight . " ще струват " . round($result[0], 4) . ". Пратката попада в " . $zoneName ;
 
             } catch(core_exception_Expect $e) {
@@ -169,19 +169,27 @@ class trans_Zones extends core_Detail
      * @return array['zoneName']        име на намерената зона
      * @return array['deliveryTermId']  Условие на доставка
      */
-    public static function getZoneIdAndDeliveryTerm($countryId, $pCode)
+    public static function getZoneIdAndDeliveryTerm($countryId, $pCode = "")
     {
-        //Обхождане на trans_zones базата и намиране на най-подходящата зона
+//       bp($pCode, empty($pCode));
         $query = self::getQuery();
+        if(empty($pCode)){
+            $query->where(array("#countryId = [#1#] AND #pCode = '[#2#]'", $countryId, $pCode));
+            $rec = $query->fetch();
+//            bp($rec);
+            $bestZone = $rec;
+        }
+        //Обхождане на trans_zones базата и намиране на най-подходящата зона
+        else{
         $query->where(array('#countryId = [#1#]', $countryId));
         $bestSimilarityCount = 0;
         while($rec = $query->fetch()) {
             $similarityCount = self::strNearPCode((string)$pCode, $rec->pCode);
-            if ($similarityCount > $bestSimilarityCount) {
-                $bestSimilarityCount = $similarityCount;
-                $bestZone = $rec;
+                if ($similarityCount > $bestSimilarityCount) {
+                    $bestSimilarityCount = $similarityCount;
+                    $bestZone = $rec;
+                }
             }
-
         }
 
         //Намиране на името на намерената зона

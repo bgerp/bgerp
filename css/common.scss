@@ -1625,6 +1625,11 @@ td.formElement {
 	  .w25 {
        width: 50%;
     }
+	.inlineTo {
+		.w25 {
+			max-width: 40%;
+		}
+	}
 }
 /* край на общи стилове за елементите на формите*/
 
@@ -2581,9 +2586,13 @@ a.lang {
     display: none;
     a.rtbutton {
         text-align: left;
+		display: table-cell;
+		min-width: 65px;
 	}
 }
-
+.narrow .richtext-emoticons6 a.rtbutton{
+	min-width: 72px;
+}
 .richtext-emoticons5 {
     left: -260%;
 }

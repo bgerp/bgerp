@@ -1824,7 +1824,13 @@ Date.prototype.print = function (str) {
 	return str;
 };
 
-Date.prototype.__msh_oldSetFullYear = Date.prototype.setFullYear;
+// #C12045
+// Да не се дефинира повторно, когато стойността на Date.prototype.setFullYear e функцията
+// Което води до зацикляне
+if (typeof Date.prototype.__msh_oldSetFullYear == 'undefined') {
+	Date.prototype.__msh_oldSetFullYear = Date.prototype.setFullYear;
+}
+
 Date.prototype.setFullYear = function(y) {
 	var d = new Date(this);
 	d.__msh_oldSetFullYear(y);

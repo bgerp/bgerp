@@ -144,7 +144,7 @@ class cat_products_SharedInFolders extends core_Manager
     		$productRec = cat_Products::fetch($rec->productId);
     		if($productRec->isPublic == 'yes' && $action != 'delete'){
     			$requiredRoles = 'no_one';
-    		} elseif($productRec->state == 'rejected') {
+    		} elseif($productRec->state == 'rejected' || $productRec->state == 'closed') {
     			$requiredRoles = 'no_one';
     		}
     	}
