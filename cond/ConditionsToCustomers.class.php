@@ -20,19 +20,19 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Други условия';
+    public $title = 'Търговски условия на клиенти';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Друго условие';
+    public $singleTitle = 'Търговско условие';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, cond_Wrapper';
+    public $loadList = 'plg_RowTools2, crm_Wrapper';
     
     
     /**
@@ -44,7 +44,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да вижда списъчния изглед
      */
-   // public $canList = 'no_one';
+    public $canList = 'no_one';
     
     
     /**
@@ -72,9 +72,18 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Активен таб
+     * Полета, които ще се показват в листов изглед
      */
-    public $currentTab = 'Параметри';
+    public $listFields = 'cId=Контрагент, conditionId, value';
+    
+    
+    /**
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
+     */
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
@@ -82,8 +91,8 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     function description()
     {
-        $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
+        $this->FLD('cClass', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
+        $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     }
@@ -96,6 +105,9 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
+    	
+    	$tab = ($rec->cClass == crm_Companies::getClassId()) ? 'Фирми' : 'Лица';
+    	$mvc->currentTab = $tab;
     	
     	if(!$form->rec->id){
     		$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
@@ -116,7 +128,17 @@ class cond_ConditionsToCustomers extends core_Manager
         }
     }
     
-	
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id);
+    }
+    
+    
 	/**
      * Връща не-използваните параметри за конкретния продукт, като опции
      *
@@ -143,7 +165,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Подготвя данните за екстеншъна с условия на офертата
      */
-    public static function prepareCustomerSalecond(&$data)
+    public function prepareCustomerSalecond(&$data)
     {
         expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
@@ -155,6 +177,8 @@ class cond_ConditionsToCustomers extends core_Manager
         	// Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->id] = $rec;
             $row = static::recToVerbal($rec);
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            
             $data->rows[$rec->id] = $row; 
         }
         
@@ -168,18 +192,20 @@ class cond_ConditionsToCustomers extends core_Manager
     
 
 	/**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$paramRec = cond_Parameters::fetch($rec->conditionId);
     	
     	if($ParamType = cond_Parameters::getTypeInstance($paramRec)){
     		$row->value = $ParamType->toVerbal(trim($rec->value));
+    	}
+    	
+    	$row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, TRUE);
+    	
+    	if(isset($fields['-list'])){
+    		$row->ROW_ATTR['class'] .= " state-active";
     	}
     }
     
@@ -187,7 +213,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Рендира екстеншъна с условия на офертата
      */
-    public static function renderCustomerSalecond($data)
+    public function renderCustomerSalecond($data)
     {
       	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Търговски условия'), 'title');
@@ -195,11 +221,12 @@ class cond_ConditionsToCustomers extends core_Manager
         if(isset($data->addBtn)){
         	$tpl->append($data->addBtn, 'title');
         }
-        
+      
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
 				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
-				$tpl->append($row->conditionId . " - " . $row->value . "<span style='position:relative;top:4px'> &nbsp;" . $row->tools . "</span>", 'content');
+				$toolsHtml = $row->_rowTools->renderHtml($this->rowToolsMinLinksToShow);
+				$tpl->append($row->conditionId . " - " . $row->value . "<span style=''>{$toolsHtml}</span>", 'content');
 				$tpl->append("</div>", 'content');
 				
 			}
@@ -221,7 +248,7 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public static function fetchByCustomer($cClass, $cId, $conditionId = NULL)
     {
-    	expect(cls::haveInterface('doc_ContragentDataIntf', $cClass));
+    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $cClass));
     	
     	$query = static::getQuery();
     	$query->where("#cClass = {$cClass}");
@@ -248,11 +275,15 @@ class cond_ConditionsToCustomers extends core_Manager
         	$res = 'no_one';
        }
        
-       if(($action == 'edit' || $action == 'delete') && isset($rec)){
+       if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
        		
        		$cState = cls::get($rec->cClass)->fetchField($rec->cId, 'state');
        		if($cState == 'rejected'){
        			$res = 'no_one';
+       		} else {
+       			if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+       				$res = 'no_one';
+       			}
        		}
        }
     }

@@ -70,7 +70,7 @@ class type_Url extends type_Varchar {
             $value = 'http://' . $value;
         }
 
-        $res = self::isValid($value);
+        $res = $this->isValid($value);
         
         return $value;
     }

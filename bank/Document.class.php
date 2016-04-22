@@ -303,14 +303,17 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 
 	/**
-	 * Интерфейсен метод на doc_ContragentDataIntf
-	 * Връща тялото на имейл по подразбиране
-	 */
-	public static function getDefaultEmailBody($id)
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = FALSE)
 	{
-		$self = cls::get(get_called_class());
-		$handle = static::getHandle($id);
-		$singleTitle = mb_strtolower($self->singleTitle);
+		$handle = $this->getHandle($id);
+		$singleTitle = mb_strtolower($this->singleTitle);
 		$tpl = new ET(tr("Моля запознайте се с нашия {$singleTitle}") . ': #[#handle#]');
 		$tpl->append($handle, 'handle');
 	

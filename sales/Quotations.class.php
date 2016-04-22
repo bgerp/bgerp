@@ -454,7 +454,7 @@ class sales_Quotations extends core_Master
     	
     			if($ownCompanyData->$fld){
     				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
-    				$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
+    				$row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
     			}
     		}
     			
@@ -567,12 +567,16 @@ class sales_Quotations extends core_Master
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
+        $handle = $this->getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата оферта") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
@@ -592,7 +596,7 @@ class sales_Quotations extends core_Master
     	$threadRec = doc_Threads::fetch($threadId);
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -603,7 +607,7 @@ class sales_Quotations extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     

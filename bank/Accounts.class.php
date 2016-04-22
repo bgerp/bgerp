@@ -140,9 +140,7 @@ class bank_Accounts extends core_Master {
         $rec = $data->form->rec;
         
         $Contragents = cls::get($rec->contragentCls);
-        expect($Contragents instanceof core_Master);
-        $contragentRec   = $Contragents->fetch($rec->contragentId);
-        $data->Contragent = $Contragents;
+        $contragentRec = $Contragents->fetch($rec->contragentId);
         
         if(!$rec->id) {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
@@ -181,15 +179,8 @@ class bank_Accounts extends core_Master {
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$url = $data->Contragent->getSingleUrlArray($data->form->rec->contragentId);
-    	$title = $data->Contragent->getTitleById($data->form->rec->contragentId);
-    	$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->Contragent->singleIcon, 'class' => 'linkInTitle'));
-    	
-    	if($data->form->rec->id) {
-    		$data->form->title = "Редактиране на банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
-    	} else {
-    		$data->form->title = "Нова банкова сметка на|* <b style='color:#ffffcc;'>" . $title . "</b>";
-    	}
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id);
     }
     
     

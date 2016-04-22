@@ -49,8 +49,8 @@ class cat_Products extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     plg_AlignDecimals2,cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
+                     cat_Wrapper, plg_Sorting, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
     /**
@@ -63,7 +63,7 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -105,19 +105,13 @@ class cat_Products extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=✍, code,name,measureId,quantity,price,folderId';
+    public $listFields = 'code,name,measureId,quantity,price,folderId';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-
-    /**
-     *
-     */
-    public $rowToolsField = 'tools';
 
 
     /**
@@ -253,8 +247,7 @@ class cat_Products extends embed_Manager {
 	/**
 	 * Стратегии за дефолт стойностти
 	 */
-	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-	);
+	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc');
 	
 	
 	/**
@@ -337,7 +330,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след подготовка на Едит Формата
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = $form->rec;
@@ -393,7 +386,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		// Ако корицата не е на контрагент
-    		if(!$cover->haveInterface('doc_ContragentDataIntf')){
+    		if(!$cover->haveInterface('crm_ContragentAccRegIntf')){
     			
     			// Правим кода на артикула задължителен
     			$form->setField('code', 'mandatory');
@@ -475,7 +468,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
 		if(!isset($form->rec->innerClass)){
     		$form->setField('groups', 'input=hidden');
@@ -519,7 +512,7 @@ class cat_Products extends embed_Manager {
     		// със същото име сетваме предупреждение
     		if(isset($rec->folderId)){
     			$coverClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    			if(cls::haveInterface('doc_ContragentDataIntf', $coverClassId)){
+    			if(cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId)){
     				if(cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
     					$form->setWarning('name', 'В папката на контрагента има вече артикул със същото име');
     				}
@@ -532,7 +525,7 @@ class cat_Products extends embed_Manager {
     /**
      * Преди запис на продукт
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	// Разпределяме свойствата в отделни полета за полесно търсене
     	if($rec->meta){
@@ -559,7 +552,7 @@ class cat_Products extends embed_Manager {
     /**
      * Преди запис на клониран запис
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	unset($nRec->originId);
     }
@@ -594,7 +587,7 @@ class cat_Products extends embed_Manager {
 	 * @param crm_Companies $mvc
 	 * @param array $fields
 	 */
-	public static function on_AfterPrepareImportFields($mvc, &$fields)
+	protected static function on_AfterPrepareImportFields($mvc, &$fields)
 	{
 	    $fields = array();
 	     
@@ -606,12 +599,7 @@ class cat_Products extends embed_Manager {
 	    
 	    $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
 	    $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
-	    $metaType = 'set(canSell=Продаваем,
-                                                                                        canBuy=Купуваем,
-                                                                                        canStore=Складируем,
-                                                                                        canConvert=Вложим,
-                                                                                        fixedAsset=Дълготраен актив,
-                                                                			            canManifacture=Производим)';
+	    $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)';
 	    
 	    $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => TRUE, 'type' => $categoryType);
 	    $fields['Groups'] = array('caption' => 'Допълнителен избор->Маркери', 'notColumn' => TRUE, 'type' => $groupType);
@@ -638,7 +626,7 @@ class cat_Products extends embed_Manager {
      * @param cat_Products $mvc
      * @param stdObject $rec
      */
-    public static function on_BeforeImportRec($mvc, $rec)
+    protected static function on_BeforeImportRec($mvc, $rec)
     {
         // Полетата csv_ се попълват в loadSetupData
         // При 'Импорт' не се използват
@@ -748,8 +736,6 @@ class cat_Products extends embed_Manager {
     	}
     	$rec->meta = implode(',', $nMetaArr);
     	
-    	$rec->innerForm = (object)array('name' => $rec->name, 'measureId' => $rec->measureId);
-    	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
     	$category = ($rec->csv_category) ? $rec->csv_category : $rec->Category;
@@ -759,36 +745,44 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Добавяне на полета към филтър форма
+     * 
+     * @param core_Form $listFilter
+     * @return void
      */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
+    public static function expandFilter(&$listFilter)
     {
     	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
     	$orderOptions = arr::fromArray($orderOptions);
+    	 
+    	$listFilter->FNC('order', "enum({$orderOptions})",
+    	'caption=Подредба,input,silent,remember,autoFilter');
     	
-    	$data->listFilter->FNC('order', "enum({$orderOptions})",
-            'caption=Подредба,input,silent,remember,autoFilter');
-
-        $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Маркери,caption=Група,input,silent,remember,autoFilter');
+    	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
+    			'placeholder=Маркери,input,silent,remember,autoFilter');
+    	
+    	$listFilter->view = 'horizontal';
+    	$listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	static::expandFilter($data->listFilter);
 		
-        $data->listFilter->FNC('meta1', 'enum(all=Свойства,
+    	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
        				canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         			canManifacture=Производими)', 'input,autoFilter');
-		
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
@@ -804,14 +798,14 @@ class cat_Products extends embed_Manager {
         		break;
         }
         
-        if($data->listFilter->rec->order != 'private'){
-        	$data->query->where("#isPublic = 'yes'");
+        // Филтър по маркери
+        if (!empty($data->listFilter->rec->groupId)) {
+        	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groups", $keylist);
         }
         
-        if ($data->listFilter->rec->groupId) {
-        	$data->query->like("groups", keylist::addKey('', $data->listFilter->rec->groupId));
-        }
-        
+        // Филтър по свойства
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like("meta", $data->listFilter->rec->meta1);
         }
@@ -820,8 +814,8 @@ class cat_Products extends embed_Manager {
 
     /**
      * Перо в номенклатурите, съответстващо на този продукт
-     *
-     * Част от интерфейса: acc_RegisterIntf
+     * 
+     * @see acc_RegisterIntf
      */
     public static function getItemRec($objectId)
     {
@@ -1024,7 +1018,7 @@ class cat_Products extends embed_Manager {
 	/**
      * След всеки запис
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
@@ -1369,7 +1363,7 @@ class cat_Products extends embed_Manager {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-single']){
     		if(isset($rec->originId)){
@@ -1407,16 +1401,7 @@ class cat_Products extends embed_Manager {
                     $row->price = $mvc->getVerbal($rec, 'price');
                 }
             }
-            
-            if($rec->isPublic == 'no'){
-            	//bp($row->name);
-            	//$row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
-            	//$row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
-            	
-            	//$row->name = 'aaaa';
-            }
         }
-        
     }
     
     
@@ -1456,9 +1441,6 @@ class cat_Products extends embed_Manager {
     		}
     		
     		$rec->name = static::getDisplayName($rec);
-    		if($rec->isPublic == 'no'){
-    			//bp();
-    		}
     	}
     }
     
@@ -1607,10 +1589,6 @@ class cat_Products extends embed_Manager {
     	if($mvc->haveRightFor('add')){
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
-    	
-    	if(!haveRole('ceo,cat')){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     
@@ -1682,7 +1660,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add'){
     		if(isset($rec)){
@@ -1695,7 +1673,7 @@ class cat_Products extends embed_Manager {
     			
     			if(isset($rec->folderId)){
     				$Cover = doc_Folders::getCover($rec->folderId);
-    				if(!$Cover->haveInterface('doc_ContragentDataIntf')){
+    				if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
     					if(!haveRole('ceo,cat')){
     						$res = 'no_one';
     					}
@@ -1729,7 +1707,7 @@ class cat_Products extends embed_Manager {
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
     	if($data->rec->state != 'rejected'){
     		$tId = $mvc->fetchField($data->rec->id, 'threadId');
@@ -1748,7 +1726,7 @@ class cat_Products extends embed_Manager {
     /**
      * Променяме шаблона в зависимост от мода
      */
-    public static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
     {
     	// Ако потребителя е контрактор не показваме детайлите
     	if(core_Users::isContractor()){
@@ -1779,7 +1757,7 @@ class cat_Products extends embed_Manager {
      * Затваряне на перата на частните артикули, по които няма движения
      * в продължение на няколко затворени периода
      */
-    function cron_closePrivateProducts()
+    public function cron_closePrivateProducts()
     {
     	// Намираме датата на начало на последния затворен период, Ако няма - операцията пропада
     	if(!$lastClosedPeriodRec = acc_Periods::getLastClosedPeriod()) return;
@@ -1868,10 +1846,6 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	$data->form->toolbar->renameBtn('save', 'Запис');
-    	
-    	if (!empty($data->form->toolbar->buttons['activate'])) {
-    		$data->form->toolbar->removeBtn('activate');
-    	}
     }
     
     
@@ -1953,7 +1927,8 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Намираме сумата която струва к-то от артикула в склада
-    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL);
+    	$maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL, $maxTry);
     	
     	if(isset($amount)){
     		
@@ -2122,7 +2097,7 @@ class cat_Products extends embed_Manager {
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
     	cat_Products::prepareComponents($data->rec->id, $data->components);
@@ -2132,7 +2107,7 @@ class cat_Products extends embed_Manager {
     /**
      * След рендиране на единичния изглед
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	if(count($data->components)){
     		$componentTpl = cat_Products::renderComponents($data->components);
@@ -2242,7 +2217,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->createdProducts[] = $rec;
     }

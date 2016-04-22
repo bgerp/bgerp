@@ -229,12 +229,12 @@ class crm_Companies extends core_Master
      * Предефинирани подредби на листовия изглед
      */
     var $listOrderBy = array(
-        'alphabetic'    => array('Азбучно', '#nameT=ASC'),
-        'last'          => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
-        'modified'      => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
+        'alphabetic' => array('Азбучно', '#nameT=ASC'),
+        'last'       => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
+        'modified'   => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
         'vatId'      => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
         'pCode'      => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
-        'website'       => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
+        'website'    => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
         );
     
     
@@ -367,12 +367,13 @@ class crm_Companies extends core_Master
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
-                    
-        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
-            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
+
+        if(!empty($data->listFilter->rec->groupId)){
+        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groupList", $keylist);
         }
     }
-    
     
     
     /**
@@ -1638,22 +1639,28 @@ class crm_Companies extends core_Master
      * Връща пълния конкатениран адрес на контрагента
      * 
      * @param int $id - ид на контрагент
+     * @param boolean $translitarate - дали да се транслитерира адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
+    	$tpl = new ET("[#country#] <!--ET_BEGIN pCode--><br>[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
     		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
-    		if($rec->$fld){
-    			$obj->$fld = $Varchar->toVerbal($rec->$fld);
+    		if($rec->{$fld}){
+    			$obj->{$fld} = $Varchar->toVerbal($rec->{$fld});
+    			if($translitarate === TRUE){
+    				if($fld != 'pCode'){
+    					$obj->$fld = transliterate($obj->{$fld});
+    				}
+    			}
     		}
     	}
     	

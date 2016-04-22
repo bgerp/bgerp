@@ -196,7 +196,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     		$toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
     		$prefix = (string) $fromVerbal . " - " . $toVerbal;
 
-    		$fields = arr::make("item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сум,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+    		$fields = arr::make("id=№,item2=Контрагенти,item3=Артикул,blQuantity={$prefix}->Количество,blAmount={$prefix}->Сума,delta={$prefix}->Дял,blQuantityNew={$prefixOld}->Количество,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
     		$data->listFields = $fields;
         }
         

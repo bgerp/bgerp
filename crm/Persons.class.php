@@ -403,8 +403,10 @@ class crm_Persons extends core_Master
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
 
-        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
-            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
+    	if(!empty($data->listFilter->rec->groupId)){
+        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groupList", $keylist);
         }
     }
 
@@ -2507,10 +2509,12 @@ class crm_Persons extends core_Master
     
     /**
      * Връща пълния конкатениран адрес на контрагента
+     * 
      * @param int $id - ид на контрагент
-     * @return param $adress - адреса
+     * @param boolean $translitarate - дали да се транслитерира адреса
+     * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2524,6 +2528,11 @@ class crm_Persons extends core_Master
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
     			$obj->$fld = $Varchar->toVerbal($rec->$fld);
+    			if($translitarate === TRUE){
+    				if($fld != 'pCode'){
+    					$obj->$fld = transliterate($obj->{$fld});
+    				}
+    			}
     		}
     	}
     	

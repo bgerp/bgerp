@@ -27,7 +27,7 @@ class findeals_DebitDocuments extends deals_Document
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_DebitDocument, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_DebitDocument, bgerp_DealIntf';
    
     
     /**

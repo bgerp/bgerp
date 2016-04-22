@@ -158,8 +158,8 @@ span.all-users{
 .narrow .color-preview {
 	height: 3px;
 	vertical-align: top;
-	position: relarive;
-	top:3px;
+	position: relative;
+	top:4px;
 }
 
 @-moz-document url-prefix() { 

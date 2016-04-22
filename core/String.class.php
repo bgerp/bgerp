@@ -471,11 +471,38 @@ class core_String
       return mb_substr($str, 0, $length) . $append;
     }
     
-
+    
     /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
+     * В допълнение, ако е необходимо, хифенира текста
+     * 
+     * @param string $str
+     * @param integer $maxLen
+     * @param integer $showEndFrom
+     * @param string $dots
+     * @param boolean $hyphen
+     * 
+     * @return string
      */
-    static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = " ... ")
+    public static function limitLenAndHyphen($str, $maxLen, $showEndFrom = 20, $dots = " ... ")
+    {
+        
+        return self::limitLen($str, $maxLen, $showEndFrom, $dots, TRUE);
+    }
+    
+    
+    /**
+     * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
+     * 
+     * @param string $str
+     * @param integer $maxLen
+     * @param integer $showEndFrom
+     * @param string $dots
+     * @param boolean $hyphen
+     * 
+     * @return string
+     */
+    static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = " ... ", $hyphen = FALSE)
     {
         if(Mode::is('screenMode', 'narrow')) {
             $maxLen = round($maxLen/1.25);
@@ -489,7 +516,7 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
-        } elseif(mb_strlen($str) > $maxLen/2) {
+        } elseif($hyphen && (mb_strlen($str) > $maxLen/2)) {
             $str = str::hyphenText($str);
         }
         
@@ -946,7 +973,13 @@ class core_String
 
 
     /**
+     * 
      * Хифинира текст, така че да няма много дължи, не-пренодими думи
+     * 
+     * @param string $text
+     * @param integer $maxWordLen
+     * 
+     * @return string
      */
     public static function hyphenText($text, $maxWordLen = 20)
     {
@@ -956,10 +989,18 @@ class core_String
 
         return $text;
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param array $matches
+     * 
+     * @return string
+     */
     private static function hyphenWord($matches)
     {
-       return hyphen_Plugin::getHyphenWord($matches[0]);
+     	
+    	return hyphen_Plugin::getHyphenWord($matches[0]);
     }
-
 }

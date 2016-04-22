@@ -89,13 +89,19 @@ class trans_Fees extends core_Detail
 
 
     /**
+     * Полета, които се виждат
+     */
+     public $listFields  = "id, weight, price, createdOn, createdBy";
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('feeId', 'key(mvc=trans_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
-        $this->FLD('weight', 'double(min=0)', 'caption=Тегло, mandatory');
-        $this->FLD('price', 'double(min=0)', 'caption=Цена, mandatory');
+        $this->FLD('weight', 'double(min=0)', 'caption=Правила за изчисление->Тегло, mandatory');
+        $this->FLD('price', 'double(min=0)', 'caption=Правила за изчисление->Цена, mandatory');
     }
 
 
@@ -115,6 +121,7 @@ class trans_Fees extends core_Detail
      */
     public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
+
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
@@ -177,12 +184,13 @@ class trans_Fees extends core_Detail
 
         $finalPrice = null;
         //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
-        if($totalWeight == $smallestWeight){
-            $finalPrice =  $totalWeight;
-        }
+
         //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
-        elseif($totalWeight == $weightsLeft){
+        if($totalWeight == $weightsLeft){
             $finalPrice = $arrayOfWeightPrice[$weightsLeft];
+        }
+        elseif($totalWeight == $smallestWeight){
+            $finalPrice =  $totalWeight;
         }
         //Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
         else{

@@ -930,11 +930,13 @@ class core_ET extends core_BaseClass
     public function ajaxOutput()
     {
         $res = new stdClass();
-        $res->css = array_unique($this->getArray('CSS'));
+        $res->css = array_keys(array_flip($this->getArray('CSS')));
         foreach($res->css as $key => $file) {
             $res->css[$key] = sbf($file, '');
         }
-        $res->js  = array_unique($this->getArray('JS'));
+        
+        $res->js = array_keys(array_flip($this->getArray('JS')));
+        
         foreach($res->js as $key => $file) {
             $res->js[$key] = sbf($file, '');
         }

@@ -230,36 +230,8 @@ class core_Query extends core_FieldSet
     {
         $this->whereArr($field, $condArr, TRUE, $orToPrevious);
     }
-    
-    
-    /**
-     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
-     */
-    function likeKeylist($field, $keylist, $or = FALSE)
-    {
-        $keylistArr = keylist::toArray($keylist);
-        
-        $isFirst = TRUE;
-        
-        if(count($keylistArr)) {
-            foreach($keylistArr as $key => $value) {
-                
-                $cond = "LOCATE('|{$key}|', #{$field})";
-                
-                if($or === TRUE) {
-                    $this->orWhere($cond);
-                } else {
-                    $this->where($cond);
-                }
-                
-                $or = TRUE;
-            }
-        }
-        
-        return $this;
-    }
-    
-    
+
+
     /**
      * Добавя с OR условие, посоченото поле да съдържа поне един от ключовете в keylist
      */
@@ -267,11 +239,39 @@ class core_Query extends core_FieldSet
     {
         return $this->likeKeylist($field, $keylist, TRUE);
     }
-    
-    
+
+
+    /**
+     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
+     */
+    function likeKeylist($field, $keylist, $or = FALSE)
+    {
+        $keylistArr = keylist::toArray($keylist);
+
+        $isFirst = TRUE;
+
+        if(count($keylistArr)) {
+            foreach($keylistArr as $key => $value) {
+
+                $cond = "LOCATE('|{$key}|', #{$field})";
+
+                if($or === TRUE) {
+                    $this->orWhere($cond);
+                } else {
+                    $this->where($cond);
+                }
+
+                $or = TRUE;
+            }
+        }
+
+        return $this;
+    }
+
+
     /**
      * Добавя ново условие с LIKE във WHERE клаузата
-     * 
+     *
      * @param string $field - Името на полето
      * @param string $val - Стойността
      * @param boolean $like - Дали да е LIKE или NOT LIKE
@@ -284,19 +284,19 @@ class core_Query extends core_FieldSet
         } else {
             $like = "NOT LIKE";
         }
-        
+
         $cond = "#{$field} {$like} '%[#1#]%'";
-                
+
         if($or === TRUE) {
             $this->orWhere(array($cond, $val));
         } else {
             $this->where(array($cond, $val));
         }
-        
+
         return $this;
     }
-    
-    
+
+
 	/**
      * Добавя новоусловие с OR и LIKE във WHERE клаузата
      * 

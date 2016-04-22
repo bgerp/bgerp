@@ -20,7 +20,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,deals_InvoiceSourceIntf';
     
     
     /**
@@ -315,8 +315,8 @@ class sales_Proformas extends deals_InvoiceMaster
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
     			core_Lg::push($rec->tplLang);
-    			$row->bank = core_Lg::transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
-    			core_Lg::pop($rec->tplLang);
+    			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
+    			core_Lg::pop();
     			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}

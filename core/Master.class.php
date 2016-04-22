@@ -359,7 +359,7 @@ class core_Master extends core_Manager
               	$tabArray = array();
               	
               	// Подготвяме горни и долни табове
-              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam, 'hideSelectedTabOnPrinting' => TRUE));
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => $data->tabTopParam));
               	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
               	
                 foreach($detailTabbed as $var => $order) {
@@ -390,13 +390,15 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
-					$method = ($selectedTop ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
-					if ($this->{$selectedTop} && is_callable(array($this->{$selectedTop}, $method))) {
-					    $selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
-    					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
-    					
-    					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detail{$data->tabTopParam}'></a>[#1#]</div>", $tabHtml);
-    					$detailsTpl->append($tabHtml);
+					if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+						$method = ($selectedTop ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+						if ($this->{$selectedTop} && is_callable(array($this->{$selectedTop}, $method))) {
+							$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
+							$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
+								
+							$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top {$this->tabTopClass}'><a id='detail{$data->tabTopParam}'></a>[#1#]</div>", $tabHtml);
+							$detailsTpl->append($tabHtml);
+						}
 					}
 				}
 				
@@ -410,22 +412,24 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
-					$method = ($selectedBottom ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
-					
-					if ($this->{$selectedBottom} && is_callable(array($this->{$selectedBottom}, $method))) {
-    					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
-    					
-    					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
-    					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
-    						$tabHtml = $selectedHtml;
-    					} else {
-    						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
-    					}
-    					
-    					if($tabHtml){
-    						$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-    						$detailsTpl->append($tabHtml);
-    					}
+					if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+						$method = ($selectedBottom ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
+							
+						if ($this->{$selectedBottom} && is_callable(array($this->{$selectedBottom}, $method))) {
+							$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+								
+							// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
+							if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
+								$tabHtml = $selectedHtml;
+							} else {
+								$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+							}
+								
+							if($tabHtml){
+								$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+								$detailsTpl->append($tabHtml);
+							}
+						}
 					}
 				}
                

@@ -143,7 +143,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
             $toVerbal = dt::mysql2verbal($mvc->innerForm->to, 'd.m.Y');
             $prefix = (string) $fromVerbal . " - " . $toVerbal;
         
-            $fields = arr::make("item1=Контрагенти,blAmount={$prefix}->Сум,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
+            $fields = arr::make("id=№,item1=Контрагенти,blAmount={$prefix}->Сумa,delta={$prefix}->Дял,blAmountNew={$prefixOld}->Сума,deltaNew={$prefixOld}->Дял", TRUE);
             $data->listFields = $fields;
         } else {
         

@@ -352,7 +352,7 @@ class acc_Articles extends core_Master
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return cls::haveInterface('doc_ContragentDataIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
+        return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
     }
     
     
