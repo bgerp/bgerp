@@ -184,7 +184,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$array['quantity'] = $quantity;
 						$entry['credit'] = $array;
 						
-						$entry['amount'] = $dRec1->quantity * $primeCost;
+						$entry['amount'] = $primeCost;
 						$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
 						//$total -= $amount;
 					}
