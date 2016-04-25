@@ -86,6 +86,8 @@ class pallet_Setup extends core_ProtoSetup
     	$html .= core_Classes::add('pallet_ArrangeStrategyBottom');
     	$html .= core_Classes::add('pallet_ArrangeStrategyMain');
     	
+    	$html .= core_Roles::addOnce('pallet', 'storeWorker');
+    	
     	return $html;
     }
     
