@@ -113,13 +113,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		
 		// търсим всички продажби, които са на този книент и са активни
 		$querySales = sales_Sales::getQuery();
-		$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND #state = 'active'");
 		
 		if (isset($data->rec->from))  { 
 			// коя е текущата ни валута
 			$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId($data->rec->from),'code');
+			$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND (#state = 'active' AND #valior <= '{$data->rec->from}')");		
 		} else {
 			$currencyNow = currency_Currencies::fetchField(acc_Periods::getBaseCurrencyId(dt::now()),'code');
+			$querySales->where("(#contragentClassId = '{$contragentCls}' AND #contragentId = '{$contragentId}') AND #state = 'active'");		
 		}
 	
 		while ($recSale = $querySales->fetch()) {
