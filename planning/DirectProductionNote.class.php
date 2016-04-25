@@ -151,6 +151,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
+		$this->FLD('saleId', 'key(mvc=sales_Sales,select=id)', 'caption=Сделка,input=none,before=inputStoreId');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
 		
 		$this->setDbIndex('productId');
@@ -192,6 +193,36 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(isset($bomRec->expenses)){
 			$form->setDefault('expenses', $bomRec->expenses);
 		}
+		
+		$productInfo = cat_Products::getProductInfo($form->rec->productId);
+		
+		if(!isset($productInfo->meta['canStore'])){
+			$form->setField('saleId', 'input,mandatory,caption=Извършена услуга->По сделка,before=inputStoreId');
+			$form->setField('storeId', 'input=none');
+			
+			$saleOptions = cls::get('sales_Sales')->makeArray4Select(NULL, "#state = 'active'", 'id');
+			$form->setOptions('saleId', array('' => '') + $saleOptions);
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
+	 */
+	public static function on_AfterInputEditForm($mvc, &$form)
+	{
+		$rec = &$form->rec;
+		if($form->isSubmitted()){
+			$productInfo = cat_Products::getProductInfo($form->rec->productId);
+			if(!isset($productInfo->meta['canStore'])){
+				unset($rec->storeId);
+			} else {
+				unset($rec->saleId);
+			}
+		}
 	}
 	
 	
@@ -207,6 +238,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(!empty($rec->batch)){
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
 			$row->batch = cls::get('type_RichText')->toVerbal($batch);
+		}
+		
+		if(isset($rec->saleId)){
+			$row->saleId = sales_Sales::getLink($rec->saleId, 0);
 		}
 	}
 	
