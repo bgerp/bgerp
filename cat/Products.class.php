@@ -782,16 +782,8 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
     	static::expandFilter($data->listFilter);
-		
-    	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
-       							canSell=Продаваеми,
-                                canBuy=Купуваеми,
-                                canStore=Складируеми,
-                                canConvert=Вложими,
-                                fixedAsset=Дълготрайни активи,
-        					    canManifacture=Производими)', 'input,autoFilter');
-        $data->listFilter->showFields = 'search,order,meta1,groupId';
-        $data->listFilter->input('order,groupId,search,meta1', 'silent');
+        $data->listFilter->showFields = 'search,order,groupId';
+        $data->listFilter->input('order,groupId,search', 'silent');
         
         switch($data->listFilter->rec->order){
         	case 'last':
@@ -813,11 +805,6 @@ class cat_Products extends embed_Manager {
         	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
         	$keylist = keylist::fromArray($descendants);
         	$data->query->likeKeylist("groups", $keylist);
-        }
-        
-        // Филтър по свойства
-        if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
-        	$data->query->like("meta", $data->listFilter->rec->meta1);
         }
     }
 
