@@ -133,7 +133,9 @@ class store_Products extends core_Manager
 	        }
 	        	 
 	        if($rec->quantityNotOnPallets > 0){
-	        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+	        	if(core_Packs::isInstalled('pallet')){
+	        		$row->makePallets = ht::createBtn('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+	        	}
 	        }
         }
     }
@@ -210,6 +212,10 @@ class store_Products extends core_Manager
         		$keylist = keylist::fromArray($descendants);
         		$data->query->likeKeylist("groups", $keylist);
         	}
+        }
+        
+        if(!core_Packs::isInstalled('pallet')){
+        	unset($data->listFields['makePallets']);
         }
     }
     

@@ -6,23 +6,29 @@
  * Стратегия за подреждане на склада 'ArrangeStrategyMain'
  *
  * Започва се от 0 т.
- * Ако store_Racks::isSuitable() върне FALSE това палет място не може да се използва -1000 т.
+ * Ако pallet_Racks::isSuitable() върне FALSE това палет място не може да се използва -1000 т.
  * Ако под инспектираното палет място има палет (или наредено движение) със същия продукт +100 т.
  * Ако в ляво от инспектираното палет място има палет (или наредено движение) със същия продукт + 5 т.
  * За всяко свободно място над инспектираното се добавят +10 т.
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ArrangeStrategyMain
+class pallet_ArrangeStrategyMain
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'store_ArrangeStrategyMain';
+	
+	
     /**
      * Какви интерфeйси поддържа този мениджър
      */

@@ -335,18 +335,7 @@ purchase_Services,list,bg,"Тук се съдържа списък на всич
 purchase_Services,edit,bg,Това е форма за редактиране/добавяне на Приемателен протокол. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Logistika-Dostavki/]Логистика » Доставки[/link]
 purchase_ClosedDeals,list,bg,"Тук се съдържа списък на всички ""Документи за приключване на покупка"". За повече информация прочетете: [link=http://www.bgerp.com/Bg/Logistika-Dostavki/]Логистика » Доставки[/link]"
 purchase_ClosedDeals,edit,bg,Това е форма за редактиране/добавяне на Документи за приключване на покупка. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Logistika-Dostavki/]Логистика » Доставки[/link]
-store_Movements,list,bg,Тук се съдържа списък на всички генерирани в системата движения на палети. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
-store_Pallets,list,bg,"Тук се съдържа списък на всички видове палети - етикет (кратко име) на палета, количеството от артикула на 1 палет, броя палети, които се създават, зона за палетиране и позиция от стелаж. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]"
-store_Pallets,edit,bg,Това е форма за редактиране/добавяне на палет - етикет (кратко име) на палета
-store_PalletTypes,list,bg,"Тук се съдържа списък на всички параметри на палета - ширина, височина, дълбочина, тегло и т.н. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]"
-store_PalletTypes,edit,bg,Това е форма за редактиране/добавяне на параметър на палета - ширина
 store_Products,list,bg,Тук се съдържа списък на палетираните в склада продукти. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
-store_Racks,list,bg,Тук се дефинират стелажите в конкретния склад. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
-store_Racks,edit,bg,Това е форма за редактиране/добавяне на стелаж в конкретния склад. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
-store_Racks,single,bg,Това е общ изглед на стелажa в конкретния склад. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
-store_RackDetails,edit,bg,Това е форма за редактиране/добавяне на параметър на стелажа. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
-store_Zones,list,bg,"Тук се съдържа списък на всички създадени свободнодефинируеми зони на пода. Такива зони могат да бъдат товарни рампи, вход/изход на производствени помещения и цехове, както и обособени зони на пода вътре в самия склад. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]"
-store_Zones,edit,bg,Това е форма за редактиране/добавяне на свободнодефинируеми зони на пода. Такива зони могат да бъдат товарни рампи
 store_Stores,list,bg,Тук се съдържа списък на всички складове на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
 store_Stores,edit,bg,Това е форма за редактиране/добавяне на склад на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
 store_Stores,single,bg,Това е общ изглед на складa на фирмата. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Logistika-Skladove/]Логистика » Складове[/link]
