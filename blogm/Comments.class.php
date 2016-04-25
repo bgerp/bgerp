@@ -303,7 +303,7 @@ class blogm_Comments extends core_Detail {
             $artRec = $mvc->Master->fetch($rec->articleId);
             $title = $mvc->Master->getVerbal($artRec, 'title');
             bgerp_Notifications::add(
-                "Нов коменрар към \"{$title}\"", // съобщение
+                "Нов коментар към \"{$title}\"", // съобщение
                 array($mvc->Master, 'single', $rec->articleId), // URL
                 $artRec->createdBy
             );
