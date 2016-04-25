@@ -299,7 +299,7 @@ class fileman_webdrv_Generic extends core_Manager
                     // TODO
                     
                     // Добавяме стринг
-                    $barcodeStr .= "Тип: {$barcodeObj->type}\nБаркод: {$barcodeObj->code}\n\n";
+                    $barcodeStr .= "Тип: {$barcodeObj->type}\nБаркод: <span onmouseUp='selectInnerText(this);'>{$barcodeObj->code}</span>\n\n";
                 }
             }
         }
