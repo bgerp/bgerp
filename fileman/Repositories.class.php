@@ -1702,7 +1702,7 @@ class fileman_Repositories extends core_Master
         $rec = self::fetch($repoId);
         
         if ($rec->state == 'rejected') {
-            $attr['class'] .= 'state-rejected';
+            $attr['class'] .= ' state-rejected';
         }
         
         return parent::getLinkToSingle_($repoId, $fieldName, $absolute, $attr);
