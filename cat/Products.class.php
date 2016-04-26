@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
     /**
@@ -836,18 +836,16 @@ class cat_Products extends embed_Manager {
         
         if ($rec = self::fetch($objectId)) {
         	$Driver = cat_Products::getDriver($rec->id);
-
             if(!is_object($Driver)) return NULL;
-
-        	$pInfo = cat_Products::getProductInfo($objectId);
+            
         	if($rec->isPublic == 'no'){
         		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
         	}
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
-                'title'    => $pInfo->productRec->name,
-                'uomId'    => $pInfo->productRec->measureId,
+                'title'    => $rec->name,
+                'uomId'    => $rec->measureId,
                 'features' => array()
             );
             
