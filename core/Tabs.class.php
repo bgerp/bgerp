@@ -187,10 +187,19 @@ class core_Tabs extends core_BaseClass
     
     
     /**
-     * кои са зададените табове в обекта
+     * Kои са зададените табове в обекта
      */
     public function getTabs()
     {
     	return $this->tabs;
+    }
+    
+    
+    /**
+     * Какъв е броя на табовете
+     */
+    public function count()
+    {
+    	return count($this->tabs);
     }
 }
