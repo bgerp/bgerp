@@ -347,7 +347,15 @@ class cat_Products extends embed_Manager {
             				unset($pRec->code);
             				$Cmd = Request::get('Cmd');
             				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
-            					Request::push($pRec->driverRec);
+            					if(empty($pRec->driverRec['measureId'])){
+            						$pRec->driverRec['measureId'] = $pRec->measureId;
+            					}
+            					
+            					foreach ($pRec->driverRec as $name => $value){
+            						$form->setDefault($name, $value);
+            					}
+            					
+            					//Request::push($pRec->driverRec);
             				}
             			}
             		}
