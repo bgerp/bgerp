@@ -136,7 +136,7 @@ class store_Products extends core_Manager
 	        if($rec->quantityNotOnPallets > 0){
 	        	if($makePallets){
 	        		core_RowToolbar::createIfNotExists($row->_rowTools);
-	        		$row->_rowTools->addLink('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/box.png,title=Палетиране на продукт');
+	        		$row->_rowTools->addLink('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/box.png,title=Палетиране на артикул');
 	        	}
 	        }
         }
@@ -342,6 +342,13 @@ class store_Products extends core_Manager
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+    	if(!core_Packs::isInstalled('pallet')){
+    		unset($data->listFields['quantityNotOnPallets']);
+    		unset($data->listFields['quantityOnPallets']);
+    		$data->listFields['quantity'] = 'Количество';
+    	}
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	
     	// Тулбара го преместваме преди състоянието
     	if(isset($data->listFields['_rowTools'])){
     		$field = $data->listFields['_rowTools'];
