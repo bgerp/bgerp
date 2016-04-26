@@ -748,7 +748,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни,closed=Закрити');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Закрити');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
@@ -756,7 +756,7 @@ class cat_Products extends embed_Manager {
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
     	'caption=Подредба,input,silent,remember,autoFilter');
-    	$listFilter->setDefault('order', 'alphabetic');
+    	$listFilter->setDefault('order', 'standard');
     	
     	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
     			'placeholder=Маркери,input,silent,remember,autoFilter');
@@ -784,17 +784,21 @@ class cat_Products extends embed_Manager {
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
         switch($data->listFilter->rec->order){
-        	case 'last':
-        		$data->query->orderBy('#createdOn=DESC');
+        	case 'all':
+        		$data->query->orderBy('#state,#name');
         		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
         		$data->query->orderBy('#state,#name');
         		break;
+			case 'last':
+        		$data->query->orderBy('#createdOn=DESC');
+        		break;
         	case 'closed':
         		$data->query->where("#state = 'closed'");
         		break;
         	default :
+        		$data->query->where("#isPublic = 'yes'");
         		$data->query->orderBy('#state,#name');
         		break;
         }
