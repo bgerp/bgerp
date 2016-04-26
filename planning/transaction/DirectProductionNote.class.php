@@ -161,6 +161,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					} else {
 						$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
 					}
+					if(!$primeCost){
+						$primeCost = 0;
+					}
+					
 					
 					$pAmount = $sign * $primeCost;
 					$costAmount += $pAmount;
@@ -195,23 +199,25 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			}
 			
 			// Ако има режийни разходи, разпределяме ги
-			if(isset($rec->expenses)){
+			if(isset($rec->expenses)){// bp($costAmount);
 				$costAmount = $costAmount * $rec->expenses;
 				$costAmount = round($costAmount, 2);
-			
+				
+				// Ако себестойността е неположителна, режийните са винаги 0
+				if($costAmount <= 0){
+					$costAmount = 0;
+				}
+				
 				$array['quantity'] = 0;
 				
-				if($costAmount){
-					$costArray = array(
-							'amount' => $costAmount,
-							'debit' => $array,
-							'credit' => array('61102'),
-							'reason' => 'Разпределени режийни разходи',
-					);
-						
-					$total += $costAmount;
-					$entries[] = $costArray;
-				}
+				$costArray = array(
+						'amount' => $costAmount,
+						'debit' => $array,
+						'credit' => array('61102'),
+						'reason' => 'Разпределени режийни разходи');
+					
+				//$total += abs($costAmount);
+				$entries[] = $costArray;
 			}
 		}
 		
