@@ -444,6 +444,7 @@ class cat_UoM extends core_Manager
     	$rec = $data->form->rec;
     	
     	if($rec->type == 'packaging'){
+    		$mvc->currentTab = 'Мерки->Опаковки';
     		$data->form->setField('name', 'caption=Опаковка');
     	}
     	
