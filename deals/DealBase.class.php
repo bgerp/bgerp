@@ -416,7 +416,7 @@ abstract class deals_DealBase extends core_Master
     	
     	$tpl->append($table->get($data->DealReport, $fields), 'DEAL_REPORT');
     	$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
-    	 
+    	
     	if($this->haveRightFor('export', $data->rec)){
     		$expUrl = getCurrentUrl();;
     		$expUrl['export'] = TRUE;
@@ -539,12 +539,13 @@ abstract class deals_DealBase extends core_Master
 
     	$title = $this->title . " Поръчано/Доставено";
   
-    	foreach ($data->dealReportCSV as $rec) {
+    	$Double = cls::get('type_Double');
+    	foreach ($data->dealReportCSV as $rec) { 
     	    foreach(array("code", "productId", "measure", "quantity", "shipQuantity", "bQuantity") as $fld) {
     	       $rec->{$fld} = html_entity_decode(strip_tags($rec->{$fld}));
     	    }
     	}
-    	
+
     	$csv = $this->prepareCsvExport($data->dealReportCSV);
     
     	$fileName = str_replace(' ', '_', str::utf2ascii($title));
@@ -569,7 +570,7 @@ abstract class deals_DealBase extends core_Master
     	$fields = $this->getFields();
 
     	$csv = csv_Lib::createCsv($data, $fields, $exportFields);
-  
+    	
     	return $csv;
     }
     
@@ -697,30 +698,37 @@ abstract class deals_DealBase extends core_Master
 			    }
 		    }
     	}
+
+    	$data->dealReportCSV = array();
     	
-    	$data->dealReportCSV = &$report;
+    	foreach ($report as $k => $v) {
+    	    $data->dealReportCSV[$k] = clone $v;
+    	    $data->dealReportCSV[$k]->productId = cat_Products::getShortHyperLink($v->productId);
+    	    $data->dealReportCSV[$k]->measure = cat_UoM::getShortName($v->measure);
+    	}
 
-    	foreach ($report as $id =>  $rec) { 
+    	
+    	foreach ($report as $id =>  $r) { 
         	foreach (array('shipQuantity', 'bQuantity') as $fld){
-        	    $rec->$fld =  $Double->toVerbal($rec->$fld);
+        	    $r->$fld =  $Double->toVerbal($r->$fld);
         	}
 
-        	if($rec->bQuantity > 0){
-        	    $rec->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Double->toVerbal($rec->quantity)}</span>";
+        	if($r->bQuantity > 0){
+        	    $r->quantity = "<span class='row-negative' title = '" . tr('Количеството в склада е отрицателно') . "'>{$Double->toVerbal($r->quantity)}</span>";
         	} else {
-        	    $rec->quantity = $Double->toVerbal($rec->quantity);
+        	    $r->quantity = $Double->toVerbal($r->quantity);
         	}
         	
-        	if (isset($rec->bQuantity)) {
-        	    $rec->bQuantity = ($rec->bQuantity < 0) ? "<span style='color:red'>{$rec->bQuantity}</span>" : $rec->bQuantity;
+        	if (isset($r->bQuantity)) {
+        	    $r->bQuantity = ($r->bQuantity < 0) ? "<span style='color:red'>{$r->bQuantity}</span>" : $r->bQuantity;
         	}
         	
-        	if (isset($rec->productId)) {
-        	   $rec->productId = cat_Products::getShortHyperLink($rec->productId);
+        	if (isset($r->productId)) {
+        	   $r->productId = cat_Products::getShortHyperLink($r->productId);
         	}
         	
-        	if (isset($rec->measure)) {
-        	   $rec->measure = cat_UoM::getShortName($rec->measure);
+        	if (isset($r->measure)) {
+        	   $r->measure = cat_UoM::getShortName($r->measure);
         	}
     	}
 
