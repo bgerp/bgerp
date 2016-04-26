@@ -478,12 +478,16 @@ abstract class deals_DealBase extends core_Master
     	$tabs->TAB('Statistic', 'Статистика' , $url);
     	
     	if(haveRole('ceo,acc')){
-    		$url['dealTab'] = 'DealHistory';
-    		$tabs->TAB('DealHistory', 'Обороти' , $url);
+    		if($data->rec->state != 'draft'){
+    			$url['dealTab'] = 'DealHistory';
+    			$tabs->TAB('DealHistory', 'Обороти' , $url);
+    		}
     	}
     	
-    	$url['dealTab'] = 'DealReport';
-    	$tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    	if($data->rec->state != 'draft'){
+    		$url['dealTab'] = 'DealReport';
+    		$tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
+    	}
     	
     	$data->tabs = $tabs;
     }
@@ -614,7 +618,8 @@ abstract class deals_DealBase extends core_Master
     protected function prepareDealReport(&$data)
     {
     	$rec = $data->rec;
-
+		if($rec->state == 'draft') return;
+    	
     	// обобщената информация за цялата нищка
     	$dealInfo = self::getAggregateDealInfo($rec->id);
 
@@ -738,6 +743,7 @@ abstract class deals_DealBase extends core_Master
     {
     	$rec = $data->rec;
     	if(!haveRole('ceo,acc')) return;
+    	if($rec->state == 'draft') return;
     	
     	// Извличаме всички записи от журнала където сделката е в дебита или в кредита
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
