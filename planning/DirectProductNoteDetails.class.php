@@ -172,7 +172,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     				$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
     		
     				if(!isset($selfValue)){
-    					$form->setError('productId', 'Отпадакът няма себестойност');
+    					$form->setError('productId', 'Отпадъкът няма себестойност');
     				}
     			}
     		}
