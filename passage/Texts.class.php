@@ -190,15 +190,21 @@ class passage_Texts extends core_Manager
 //            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
             $title = ht::createLink($rec->title, '#', FALSE, $attr);
 
-//            $string= str_replace("\n", ' ', $rec->body);
-//            $string = str::limitLen($string, 100);
+            $string = str_replace(array("\r", "\n"), array('', ' '), $rec->body);
 
-            //$string = $mvc->getVerbal($rec, 'body');
+            Mode::set('text', 'plain');
+
+            $string =  $mvc->fields['body']->type->toVerbal($string);
+            Mode::push('text');
+            $rec->title = str::limitLen($title, 100);
+
+            $string = substr_replace($string, "[hide=Още]", 0, 0);
+            $string = substr_replace($string, "[/hide]", strlen($string), 0);
+            $string =  $mvc->fields['body']->type->toVerbal($string);
             $createdOn = $mvc->getVerbal($rec, 'createdOn');
             $createdBy = $mvc->getVerbal($rec, 'createdBy');
 
-            $row->body = $title . "<br>" . $row->body . "<br>" . $createdOn . ' - ' . $createdBy;
-//            bp($row);
+            $row->body = $title . "<br>" . $string  . $createdOn . ' - ' . $createdBy;
         }
     }
 
