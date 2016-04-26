@@ -38,7 +38,14 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'plg_RowTools,cat_Wrapper';
+    
+    
+    /**
+     * Активен таб
+     */
+    public $currentTab = 'Категории';
+    
     
     
     /**
