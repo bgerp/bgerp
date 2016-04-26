@@ -195,7 +195,7 @@ class cat_Products extends embed_Manager {
     /** 
 	 *  Полета по които ще се търси
 	 */
-	public $searchFields = 'name, code';
+	public $searchFields = 'name, code, info';
 	
 	
 	/**
@@ -320,16 +320,6 @@ class cat_Products extends embed_Manager {
         $this->setDbIndex('canManifacture');
         
         $this->setDbUnique('code');
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	$info = strip_tags($mvc->getFieldType('info')->toVerbal($rec->info));
-    	$res .= " " . plg_Search::normalizeText($info);
     }
     
     
@@ -799,6 +789,7 @@ class cat_Products extends embed_Manager {
         		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
+        		$data->query->orderBy('#state,#name');
         		break;
         	case 'closed':
         		$data->query->where("#state = 'closed'");
