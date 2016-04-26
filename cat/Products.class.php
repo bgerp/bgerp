@@ -1028,8 +1028,11 @@ class cat_Products extends embed_Manager {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
         }
-        
         Mode::setPermanent('cat_LastProductCode' , $rec->code);
+        
+        if(isset($rec->originId)){
+        	doc_DocumentCache::cacheInvalidation($rec->originId);
+        }
     }
     
     
