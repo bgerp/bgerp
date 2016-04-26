@@ -494,6 +494,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$origin = doc_Containers::getDocument($rec->originId);
 			
 			planning_Jobs::updateProducedQuantity($origin->that);
+			doc_DocumentCache::threadCacheInvalidation($rec->threadId);
 		}
 	}
 
