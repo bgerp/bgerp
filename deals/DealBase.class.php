@@ -507,6 +507,11 @@ abstract class deals_DealBase extends core_Master
     		$data->selectedTab = $data->tabs->getFirstTab();
     	}
     	
+    	// Ако е само един таба не показваме статистиката
+    	if($data->tabs->count() == 1){
+    		unset($data->tabs);
+    	}
+    	
     	// Ако има селектиран таб викаме му метода за подготовка на данните
     	if(isset($data->selectedTab) && $data->selectedTab != 'Statistic'){
     		$method = "prepare{$data->selectedTab}";
