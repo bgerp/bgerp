@@ -517,6 +517,12 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
          $exportFields = $this->innerState->listFields;
          
          if(count($this->innerState->recs)) {
+             foreach ($this->innerState->recs as $rec) {
+                 $state = array('pending' => "Чакащо", 'overdue' => "Просроченo", 'paid' => "Платенo", 'repaid' => "Издължено");
+                 
+                 $rec->paymentState = $state[$rec->paymentState];
+             }
+             
              $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
 			 $csv = $rowContragent. "\n" . $csv;
 	    } 
