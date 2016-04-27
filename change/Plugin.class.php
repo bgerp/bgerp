@@ -131,7 +131,7 @@ class change_Plugin extends core_Plugin
         $inputFields .= ',id';
         
         // Въвеждаме полетата
-        $form->input($inputFields, 'silent');
+        $form->input($inputFields);
         
         // Очакваме потребителя да има права за съответния запис
         $mvc->requireRightFor('single', $fRec);

@@ -38,7 +38,14 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'plg_RowTools,cat_Wrapper';
+    
+    
+    /**
+     * Активен таб
+     */
+    public $currentTab = 'Категории';
+    
     
     
     /**
@@ -135,7 +142,12 @@ class batch_CategoryDefinitions extends embed_Manager {
     	$tpl = getTplFromFile('batch/tpl/CategoryDefinitionDetail.shtml');
         $title = tr('Партидност на артикулите');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$tpl->placeObject($data->row);
+    	
+    	if(is_object($data->row)){
+    		$tpl->placeObject($data->row);
+    	} else {
+    		$tpl->append(tr("Няма запис"), 'CONTENT');
+    	}
     	
     	$tpl->append($title, 'title');
     	if(isset($data->addUrl)){

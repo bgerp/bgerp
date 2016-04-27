@@ -62,6 +62,7 @@ class fconv_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'fconv_Processes',
+            'fconv_Remote',
         );
     
     

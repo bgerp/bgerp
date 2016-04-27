@@ -244,12 +244,12 @@ class cat_products_Packagings extends core_Detail
 
         // Групираме опциите, ако има такива
         $options = array();
-        if(count($uomArr)){
-        	$options = array('u' => (object)array('group' => TRUE, 'title' => tr('Мерки'))) + $uomArr;
+        if(count($packArr)){
+        	$options = array('p' => (object)array('group' => TRUE, 'title' => tr('Опаковки'))) + $packArr;
         }
         
-        if(count($packArr)){
-        	$options += array('p' => (object)array('group' => TRUE, 'title' => tr('Опаковки'))) + $packArr;
+        if(count($uomArr)){
+        	$options += array('u' => (object)array('group' => TRUE, 'title' => tr('Мерки'))) + $uomArr;
         }
         
         // Връщаме намерените опции

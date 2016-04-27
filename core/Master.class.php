@@ -622,10 +622,12 @@ class core_Master extends core_Manager
      * 
      * @param integer $id - id на записа
      * @param string $fieldName - Името на полето, което ще се използва за линк
+     * @param boolean $absolute
+     * @param array $attr
      * 
      * @return core_Et - Линк към сингъла 
      */
-    public static function getLinkToSingle_($id, $fieldName=NULL, $absolute=FALSE)
+    public static function getLinkToSingle_($id, $fieldName=NULL, $absolute=FALSE, $attr = array())
     {
         // Инстанция на класа
         $me = cls::get(get_called_class());
@@ -644,9 +646,10 @@ class core_Master extends core_Manager
         // Масива за URL, ако няма права за сингъла е празен
         $url = $me->getSingleUrlArray($id);
         
+        setIfNot($attr['ef_icon'], $me->getIcon($id));
         
         // Вземаме линка
-        $link = ht::createLink($name, $url, NULL, "ef_icon=" . $me->getIcon($id));
+        $link = ht::createLink($name, $url, NULL, $attr);
         
         return $link;
     }

@@ -23,6 +23,12 @@
                                     <tr>
                                        <td>
                                        	   <div><span class='quiet'>|Артикул|*</span>: [#productId#]</div>
+                                    	   <!--ET_BEGIN storeId-->
+                                       	   <div><span class='quiet'>|Засклаждане в|*</span>: [#storeId#]</div>
+                                       	   <!--ET_END storeId-->
+                                       	   <!--ET_BEGIN saleId-->
+                                       	   <div><span class='quiet'>|Извършена услуга по сделка|*</span>:[#saleId#]</div>
+                                       	   <!--ET_END saleId-->
                                     	   <div><span class='quiet'>|К-во|*</span>: [#quantity#]</div>
                                     	   <!--ET_BEGIN expenses-->
                                     	   		<div><span class='quiet'>|Режийни разходи|*</span>: [#expenses#]</div>
@@ -30,7 +36,6 @@
                                     	   <!--ET_BEGIN batch-->
                                     	   <div><span class='quiet'>|Партида|*</span>: [#batch#]</div>
                                     	   <!--ET_END batch-->
-                                       	   <div><span class='quiet'>|Засклаждане в|*</span>: [#storeId#]</div>
                                        </td>
                                     </tr>
                                 </tbody>

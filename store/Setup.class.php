@@ -44,7 +44,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Стартов контролер за връзката в системното меню
      */
-    var $startCtr = 'store_Movements';
+    var $startCtr = 'pallet_Movements';
     
     
     /**
@@ -56,7 +56,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Палетно складово стопанство";
+    var $info = "Управление на складове и складови документи";
         
     
     /**
@@ -64,13 +64,7 @@ class store_Setup extends core_ProtoSetup
      */
     var  $managers = array(
             'store_Stores',
-            'store_Movements',
-            'store_Pallets',
-            'store_PalletTypes',
-            'store_Racks',
-            'store_RackDetails',
             'store_Products',
-            'store_Zones',
             'store_ShipmentOrders',
             'store_ShipmentOrderDetails',
     		'store_Receipts',
@@ -95,7 +89,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.2, 'Логистика', 'Склад', 'store_Movements', 'default', "storeWorker,ceo"),
+            array(3.2, 'Логистика', 'Склад', 'store_Stores', 'default', "storeWorker,ceo"),
         );
     
     
@@ -113,10 +107,6 @@ class store_Setup extends core_ProtoSetup
     function install()
     {
         $html = parent::install();      
-        
-        $html .=  core_Classes::add('store_ArrangeStrategyTop');
-        $html .= core_Classes::add('store_ArrangeStrategyBottom');
-        $html .= core_Classes::add('store_ArrangeStrategyMain');
         
         // Забравена миграция
     	if($roleRec = core_Roles::fetch("#role = 'masterStore'")){

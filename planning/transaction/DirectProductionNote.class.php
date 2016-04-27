@@ -53,10 +53,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	 * 1. Етап: влагаме материалите, които ще изпишем при производството
 	 * 
 	 * Всички складируеми материали в секцията за влагане ги влагаме в производството.
-	 * Нескладируемите се предполага ,че вече са вложени там при покупката им
+	 * Нескладируемите се предполага, че вече са вложени там при покупката им
 	 * 
 	 * Dt: 61101 - Незавършено производство                (Артикули)
+     * 
      * Ct: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
+     *   или ако артикула е услуга Ct: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
 	 * 
 	 * 2. Етап: вкарваме в склада произведения продукт
 	 * 
@@ -67,26 +69,44 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	 * Вкарване на материал
 	 * 
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
+     * или ако артикула е услуга Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
+     * 
      * Ct: 61101 - Незавършено производство                (Артикули)
 	 * 
 	 * Вкарване на отпадък
 	 * 
 	 * Dt: 61101 - Незавършено производство                (Артикули)
+	 * 
      * Ct: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
+     * или ако артикула е услуга Ct: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
      * 
      * 3. Етап: Ако има режийни разходи за разпределение
      * 
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
+     * или ако артикула е услуга Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
+     * 
      * Ct: 61102 - Други разходи (общо)                
 	 */
 	private function getEntries($rec, &$total)
 	{
 		$resourcesArr = $entries = array();
+		$pInfo = cat_Products::getProductInfo($rec->productId);
+		$canStore = isset($pInfo->meta['canStore']) ? TRUE : FALSE;
 		
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		$dQuery->orderBy('id,type', 'ASC');
 		$dRecs = $dQuery->fetchAll();
+		
+		if($canStore === TRUE){
+			$array = array('321', array('store_Stores', $rec->storeId),
+								  array('cat_Products', $rec->productId));
+		} else {
+			$saleRec = sales_Sales::fetch($rec->saleId);
+			$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
+								  array('sales_Sales', $rec->saleId),
+								  array('cat_Products', $rec->productId));
+		}
 		
 		if(is_array($dRecs)){
 			
@@ -99,13 +119,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$amount = 0;
 				}
 				$costAmount = $amount;
+				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
-						'debit' => array('321', array('store_Stores', $rec->storeId),
-								array('cat_Products', $rec->productId),
-								'quantity' => $rec->quantity),
-						'credit' => array('61102'),
-								'reason' => 'Бездетайлно произвеждане');
+							   'debit' => $array,
+							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
 				$total += $amount;
 					
 				$entries[] = $entry;
@@ -129,7 +147,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						$entries[] = $entry;
 					}
 				}
-					
+
+				arr::orderA($dRecs, 'type');
+				
 				$costAmount = $index = 0;
 				foreach ($dRecs as $dRec1){
 				
@@ -142,7 +162,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					} else {
 						$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
 					}
-						
+					if(!$primeCost){
+						$primeCost = 0;
+					}
+					
+					
 					$pAmount = $sign * $primeCost;
 					$costAmount += $pAmount;
 				
@@ -152,9 +176,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					if($dRec1->type == 'input'){
 						$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на продукт'));
 				
-						$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
-								array('cat_Products', $rec->productId),
-								'quantity' => $quantity);
+						$array['quantity'] = $quantity;
+						$entry['debit'] = $array;
 				
 						$entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
 								'quantity' => $dRec1->quantity);
@@ -162,13 +185,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					} else {
 						$entry['debit'] = array('61101', array('cat_Products', $dRec1->productId),
 								'quantity' => $dRec1->quantity);
-				
-						$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
-								array('cat_Products', $rec->productId),
-								'quantity' => $quantity);
-						$entry['amount'] = $amount;
+						
+						$array['quantity'] = $quantity;
+						$entry['credit'] = $array;
+						
+						$entry['amount'] = $primeCost;
 						$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
-						$total += $amount;
+						//$total -= $amount;
 					}
 				
 					$entries[] = $entry;
@@ -177,23 +200,25 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			}
 			
 			// Ако има режийни разходи, разпределяме ги
-			if(isset($rec->expenses)){
+			if(isset($rec->expenses)){// bp($costAmount);
 				$costAmount = $costAmount * $rec->expenses;
 				$costAmount = round($costAmount, 2);
-			
-				if($costAmount){
-					$costArray = array(
-							'amount' => $costAmount,
-							'debit' => array('321', array('store_Stores', $rec->storeId),
-									array('cat_Products', $rec->productId),
-									'quantity' => 0),
-							'credit' => array('61102'),
-							'reason' => 'Разпределени режийни разходи',
-					);
-						
-					$total += $costAmount;
-					$entries[] = $costArray;
+				
+				// Ако себестойността е неположителна, режийните са винаги 0
+				if($costAmount <= 0){
+					$costAmount = 0;
 				}
+				
+				$array['quantity'] = 0;
+				
+				$costArray = array(
+						'amount' => $costAmount,
+						'debit' => $array,
+						'credit' => array('61102'),
+						'reason' => 'Разпределени режийни разходи');
+					
+				//$total += abs($costAmount);
+				$entries[] = $costArray;
 			}
 		}
 		

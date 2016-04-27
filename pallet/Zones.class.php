@@ -13,10 +13,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_Zones extends core_Manager
+class pallet_Zones extends core_Manager
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'store_Zones';
+	
+	
     /**
      * Заглавие
      */
@@ -26,7 +32,7 @@ class store_Zones extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools2';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, pallet_Wrapper, plg_RowTools2';
     
     
     /**
@@ -38,43 +44,43 @@ class store_Zones extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,storeWorker';
+    var $canRead = 'ceo,pallet';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,storeWorker';
+    var $canEdit = 'ceo,pallet';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,storeWorker';
+    var $canAdd = 'ceo,pallet';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,storeWorker';
+    var $canView = 'ceo,pallet';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,storeWorker';
+	var $canList = 'ceo,pallet';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,storeWorker';
+	var $canSingle = 'ceo,pallet';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,store';
+    var $canDelete = 'ceo,pallet';
     
     
     /**
@@ -112,11 +118,11 @@ class store_Zones extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             
-            $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
+            $mvc->palletsInStoreArr = pallet_Pallets::getPalletsInStore();
             
             $rec = $mvc->fetch($rec->id);
             
@@ -133,12 +139,10 @@ class store_Zones extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Зони в СКЛАД|* \"{$selectedStoreName}\"";
+    	$selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
+    	$data->title = "|Зони в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -149,7 +153,7 @@ class store_Zones extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -165,7 +169,7 @@ class store_Zones extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_BeforeSave($mvc, &$id, $rec)
+    protected static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->id) {
             $rec->storeId = store_Stores::getCurrent();

@@ -438,7 +438,7 @@ class cat_BomDetails extends doc_Detail
     		if($rec->type == 'pop'){
     			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId);
     			if(!isset($selfValue)){
-    				$form->setWarning('resourceId', 'Отпадакът няма себестойност');
+    				$form->setWarning('resourceId', 'Отпадъкът няма себестойност');
     			}
     		} else {
     			

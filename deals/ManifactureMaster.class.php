@@ -62,18 +62,21 @@ abstract class deals_ManifactureMaster extends core_Master
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 	    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-	        $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+	    	if(isset($rec->storeId)){
+	    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+	    	}
 	    }
 		
 		if($fields['-single']){
-			$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
-			if($storeLocation){
-				$row->storeLocation = crm_Locations::getAddress($storeLocation);
+			if(isset($rec->storeId)){
+				$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
+				if($storeLocation){
+					$row->storeLocation = crm_Locations::getAddress($storeLocation);
+				}
 			}
 		}
 		
 		if($fields['-list']){
-			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->title = $mvc->getLink($rec->id, 0);
 		}
 	}

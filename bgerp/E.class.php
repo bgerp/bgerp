@@ -121,6 +121,14 @@ class bgerp_E extends core_Manager
         
         $form->setDefault('validity', 86400);
         
+        // Ако линка ще сочи към частна мрежа, показваме предупреждение
+        if (core_App::checkCurrentHostIsPrivate()) {
+            
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в интернет|*.") . "</div>";
+        }
+        
         if ($form->isSubmitted()) {
             
             $rec = $form->rec;
@@ -187,7 +195,7 @@ class bgerp_E extends core_Manager
             self::save($rec);
             
             $downloadUrl = self::getUrlForDownload($rec->key);
-            $form->info = "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
+            $form->info .= "<b>" . tr('Линк|*: ') . "</b><span onmouseUp='selectInnerText(this);'>" . $downloadUrl . '</span>';
             
             $form->setField('format, validity', 'input=none');
 			

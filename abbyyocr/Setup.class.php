@@ -106,6 +106,8 @@ class abbyyocr_Setup extends core_ProtoSetup
      */
     function checkConfig()
     {
+        if (fconv_Remote::canRunRemote('abbyyocr9')) return ;
+        
         $conf = core_Packs::getConfig('abbyyocr');
         
         $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
@@ -124,7 +126,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         
         if ($haveError) {
             
-            return "Програмата " . type_Varchar::escape($conf->ABBYYOCR_PATH) . " не е инталирана.";
+            return "Програмата " . type_Varchar::escape($conf->ABBYYOCR_PATH) . " не е инсталирана.";
         }
     }
 }

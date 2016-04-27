@@ -1285,8 +1285,8 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 /*
  * грешки и предупреждения
  */
-.formError {
-  border: solid 1px red;
+.formError,
+.formNotice {
   background-color: #ffff66;
   font-size: 0.9em;
   padding: 10px;
@@ -1295,6 +1295,12 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px; }
+
+.formNotice {
+  border: solid 1px green; }
+
+.formError {
+  border: solid 1px red; }
 
 .wide .formError {
   text-align: left;

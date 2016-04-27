@@ -221,7 +221,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
     			
     			if(!isset($selfValue)){
-    				$form->setWarning('productId', 'Отпадакът няма себестойност');
+    				$form->setWarning('productId', 'Отпадъкът няма себестойност');
     			}
     		}
     		
