@@ -518,4 +518,29 @@ class core_Array
             expect(!$arr, $arr);
         }
     }
+    
+    
+    /**
+     * Допълва в един масив ключовете, които липсват в него
+     * 
+     * @param stdClass|array $objectToFill - масив или запис, който ще се допълва
+     * @param stdClass|array $fillFromObject - масив или запис, от който ще се допълват
+     * @return array $arrayToFill - оригиналния масив или запис, но с допълнени стойности
+     */
+    public static function fillMissingKeys($objectToFill, $fillFromObject)
+    {
+    	// Подсигуряваме се, че работим с масиви
+    	$arrayToFill = (array)$objectToFill;
+    	$arraySource = (array)$fillFromObject;
+    	
+    	// Обхождаме източника, и ако няма такъв ключ в подадения масив, се добавя
+    	foreach ($arraySource as $key => $value){
+    		if(!array_key_exists($key, $arrayToFill)){
+    			$arrayToFill[$key] = $value;
+    		}
+    	}
+    	
+    	// Връщаме допълнения масив
+    	return $arrayToFill;
+    }
 }
