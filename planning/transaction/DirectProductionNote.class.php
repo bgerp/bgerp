@@ -102,9 +102,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$saleRec = sales_Sales::fetch($rec->saleId);
+			$doc = doc_Containers::getDocument($rec->dealId);
+			$saleRec = $doc->fetch();
 			$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
-								  array('sales_Sales', $rec->saleId),
+								  array($doc->getInstance()->className, $doc->that),
 								  array('cat_Products', $rec->productId));
 		}
 		

@@ -42,7 +42,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank, deals_plg_SelectDeal';
 	
 	
 	/**
@@ -129,13 +129,29 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'valior, title=Документ, productId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, productId, quantity=К-во, storeId=В склад,dealId=По сделка, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	public $hideListFieldsIfEmpty = 'deadline';
+	public $hideListFieldsIfEmpty = 'deadline,dealId,storeId';
+	
+	
+	/**
+	 * След кое поле да се покаже секцията за избор на сделка
+	 *
+	 * @see deals_plg_SelectDeal
+	 */
+	public $selectDealAfterField = 'expenses';
+	
+	
+	/**
+	 * От кои класове на сделки може да се избира
+	 *
+	 * @see deals_plg_SelectDeal
+	 */
+	public $selectedDealClasses = 'sales_Sales';
 	
 	
 	/**
@@ -151,7 +167,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
-		$this->FLD('saleId', 'key(mvc=sales_Sales,select=id)', 'caption=Сделка,input=none,before=inputStoreId');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
 		
 		$this->setDbIndex('productId');
@@ -196,12 +211,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$productInfo = cat_Products::getProductInfo($form->rec->productId);
 		
-		if(!isset($productInfo->meta['canStore'])){
-			$form->setField('saleId', 'input,mandatory,caption=Извършена услуга->По сделка,before=inputStoreId');
+		if(isset($productInfo->meta['canStore'])){
+			$form->setField('contragentFolderId', 'input=none');
+			$form->setField('dealHandler', 'input=none');
+			$form->setField('dealId', 'input=none');
+		} else {
+			$form->setField('dealHandler', 'mandatory');
 			$form->setField('storeId', 'input=none');
-			
-			$saleOptions = cls::get('sales_Sales')->makeArray4Select(NULL, "#state = 'active'", 'id');
-			$form->setOptions('saleId', array('' => '') + $saleOptions);
+		}
+	}
+	
+	
+	/**
+	 * Проверява хендлъра дали може да се избере
+	 *
+	 * @param core_Mvc $mvc  - класа
+	 * @param string $error  - текста на грешката
+	 * @param string $handle - хендлъра на сделката
+	 * @param stdClass $rec  - текущия запис
+	 */
+	public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
+	{
+		if($error) return $error;
+		$doc = doc_Containers::getDocumentByHandle($handle);
+		if(!$doc->isInstanceOf('sales_Sales')){
+			$error = 'Трябва да е избрана активна продажба';
 		}
 	}
 	
@@ -218,9 +252,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($form->isSubmitted()){
 			$productInfo = cat_Products::getProductInfo($form->rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
-				unset($rec->storeId);
+				$rec->storeId = NULL;
 			} else {
-				unset($rec->saleId);
+				$rec->dealId = NULL;
 			}
 		}
 	}
@@ -238,10 +272,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(!empty($rec->batch)){
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
 			$row->batch = cls::get('type_RichText')->toVerbal($batch);
-		}
-		
-		if(isset($rec->saleId)){
-			$row->saleId = sales_Sales::getLink($rec->saleId, 0);
 		}
 	}
 	
