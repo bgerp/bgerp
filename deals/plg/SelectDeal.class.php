@@ -5,7 +5,12 @@
 /**
  * Плъгин позволяващ лесно избиране на сделка по контрагент. Добавя две полета във формата
  * за избор на папка на контрагент и за въвеждане на хендлър на сделка.
+ * При избор на контрагент се зареждат наличните сделки като предложения.
+ * При въвеждане на хендлър се проверява дали има такъв документ и дали въобще може да бъде избран
  *
+ * $mvc->selectedDealOriginFieldName - в това поле ще се запише контейнера на сделката
+ * $mvc->selectedDealClasses         - между кои класове на сделки да търсим
+ * $mvc->selectDealAfterField        - след кое поле в формата да се покажат полетата за избор
  *
  * @category  bgerp
  * @package   deals
@@ -43,7 +48,6 @@ class deals_plg_SelectDeal extends core_Plugin
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
     	
     	if(isset($rec->id)){
     		if($rec->{$mvc->selectedDealOriginFieldName}){
@@ -130,7 +134,8 @@ class deals_plg_SelectDeal extends core_Plugin
     	// За всички финансови сделки и покупки
     	foreach ($allowedClasses as $cls){
     		$Cls = cls::get($cls);
-    
+    		expect($Cls instanceof deals_DealBase, 'Не е подадена валидна сделка');
+    		
     		// Намираме тези в папката на контрагента за един месец назад
     		$fQuery = $Cls->getQuery();
     		$fQuery->where("#folderId = {$folderId}");
