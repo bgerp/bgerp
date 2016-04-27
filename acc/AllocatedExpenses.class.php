@@ -20,13 +20,13 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_AllocatedExpense';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_AllocatedExpense';
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Корекции на стойности";
+    public $title = "Корекции на стойности";
     
     
     /**
@@ -45,13 +45,13 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "6.9|Счетоводни";
+    public $newBtnGroup = "6.9|Счетоводни";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-   public $listFields = "tools=Пулт, valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
     
     
     /**
@@ -82,12 +82,6 @@ class acc_AllocatedExpenses extends core_Master
      * Заглавие на единичен документ
      */
     public $singleTitle = 'Корекция на стойности';
-    
-    
-    /**
-     * Икона на единичния изглед
-     */
-    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
