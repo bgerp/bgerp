@@ -2,8 +2,7 @@
 
 
 /**
- * Пасаж
- *
+ * Модул Пасаж
  *
  * @category  bgerp
  * @package   passage
@@ -164,6 +163,14 @@ class passage_Texts extends core_Manager
     }
 
 
+    /**
+     * Промяна да дължината на заглавието
+     *
+     * @param $mvc
+     * @param $id
+     * @param $rec
+     * @param null $fields
+     */
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
         if(empty($rec->title)){
@@ -172,6 +179,15 @@ class passage_Texts extends core_Manager
         }
     }
 
+
+    /**
+     *
+     * Поставянето на полета за търсене
+     *
+     * @param $mvc
+     * @param $data
+     *
+     */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $form = $data->listFilter;
@@ -195,6 +211,15 @@ class passage_Texts extends core_Manager
         $data->query->orderBy('#createdOn', 'DESC');
     }
 
+
+    /**
+     * Променяне на вида на прозореца при отварянето му като диалог
+     *
+     * @param $mvc
+     * @param $row
+     * @param $rec
+     * @param null $fields
+     */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         if (Mode::get('dialogOpened')) {
@@ -230,6 +255,8 @@ class passage_Texts extends core_Manager
     * @param core_Mvc $mvc
     * @param object $res
     * @param object $data
+     *
+     * @return bool false
     */
     static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
@@ -242,12 +269,8 @@ class passage_Texts extends core_Manager
             // Задаваме, кои полета да се показва
             $data->listFields['body'] = "Пасаж";
 
-
             // Да не се извикат останалите
             return FALSE;
         }
     }
-
-
-
 }
