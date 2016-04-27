@@ -403,7 +403,8 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				if($canSeeHistory){
 					$histUrl['fromDate'] = $rec->from;
 					$histUrl['toDate'] = $rec->to;
-					$row->date = ht::createLink('', $histUrl, NULL, $attr) . " {$row->date}";
+					
+					$row->date = ht::createLink('', toUrl($histUrl,'absolute'), NULL, $attr) . " {$row->date}";
 				}
 				
 				$data->rows[] = $row;
