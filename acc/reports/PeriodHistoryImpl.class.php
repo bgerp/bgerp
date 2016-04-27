@@ -312,7 +312,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 							'creditAmount'   => 'Кредит->Сума',
 							'blQuantity'     => 'Остатък->К-во',
 							'blAmount'       => 'Остатък->Сума',);
-		
+
 		switch ($data->rec->step){
 			case 'day':
 				$dateCaption = 'Ден';
@@ -322,6 +322,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				break;
 			case 'month':
 				$dateCaption = 'Месец';
+				break;
 			case 'year':
 				$dateCaption = 'Години';
 				break;
