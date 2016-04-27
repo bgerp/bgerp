@@ -168,7 +168,7 @@ class acc_AllocatedExpenses extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	
@@ -241,7 +241,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * След рендиране на единичния изглед
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	if(!count($data->rec->productsData)) return;
     	
@@ -313,7 +313,7 @@ class acc_AllocatedExpenses extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -502,7 +502,7 @@ class acc_AllocatedExpenses extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -754,7 +754,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec)){
     		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
