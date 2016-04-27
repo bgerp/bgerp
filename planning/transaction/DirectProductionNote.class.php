@@ -119,12 +119,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$amount = 0;
 				}
 				$costAmount = $amount;
+				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
-							   'debit' => array('321', array('store_Stores', $rec->storeId),
-													   array('cat_Products', $rec->productId),
-												'quantity' => $rec->quantity),
-								'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
+							   'debit' => $array,
+							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
 				$total += $amount;
 					
 				$entries[] = $entry;
