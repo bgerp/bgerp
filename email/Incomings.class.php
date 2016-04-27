@@ -862,7 +862,15 @@ class email_Incomings extends core_Master
      */
     protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
-        $hint = 'Възможен проблем|*' . '! ' . $errStr;
+        $hint = 'Възможен проблем|*!';
+        
+        if ($type != 'warning') {
+            $hint = "Възможност за измама|*! |Проверете по още един канал данните при превод на пари|*.";
+            $type = '/img/24/danger.png';
+        }
+        
+        $hint .= " |" . $errStr;
+        
         
         return ht::createHint($emailStr, $hint, $type);
     }
