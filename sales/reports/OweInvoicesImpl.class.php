@@ -181,6 +181,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 													'invId'=>$invRec->id,
 													'date'=>$invRec->date,
 													'number'=>$invRec->number,
+					                                'displayRate'=>$invRec->displayRate,
+					                                'rate'=>$invRec->rate,
 													'amountVat'=> $amountVat,
 													'amountRest'=> $toPaid ,
 													'paymentState'=>$recSale->paymentState,
@@ -190,6 +192,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			}
 		}
 
+
         foreach ($data->recs as $rec) { 
         	
         	if ($rec->dueDate == NULL || $rec->dueDate < dt::now()) { 
@@ -198,10 +201,16 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         	   unset($rec->amountRest);
         	}
         
-        	if ($rec->currencyId != $currencyNow) {
-        		$rec->amountVat = currency_CurrencyRates::convertAmount($rec->amountVat, $rec->date, $currencyNow, $rec->currencyId);
-        		$rec->amountRest = currency_CurrencyRates::convertAmount($rec->amountRest, $rec->date, $currencyNow, $rec->currencyId);
-        		$rec->amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->date, $currencyNow, $rec->currencyId);
+        	if ($rec->currencyId != $currencyNow) { 
+                $rec->amountVat /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        		$rec->amountVat = round($rec->amountVat, 2);
+        		
+        		$rec->amountRest /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        		$rec->amountRest = round($rec->amountRest, 2);
+        		
+        		$rec->amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        		$rec->amount = round($rec->amount, 2);
+        		
         	} 
 
         }
@@ -355,27 +364,14 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     	$tpl = $this->getReportLayout();
     	
     	$tpl->replace($this->getReportTitle(), 'TITLE');
-    
-    	$form = cls::get('core_Form');
-    
-    	$this->addEmbeddedFields($form);
-    
-    	$form->rec = $data->rec;
-    	$form->class = 'simpleForm';
 
     	$tpl->replace($data->contragent->titleLink, 'contragent');
     	$tpl->replace($data->contragent->vatId, 'eic');
+    	$tpl->replace($data->rec->from, 'from');
     	
     	$tpl->placeObject($data->rec);
 
-    	$f = cls::get('core_FieldSet');
-   
-    	$f->FLD('date', 'date');
-    	$f->FLD('number', 'int');
-    	$f->FLD('amountVat', 'double');
-    	$f->FLD('amountRest', 'double');
-    	$f->FLD('amount', 'double');
-    	$f->FLD('paymentState', 'varchar');
+    	$f = $this->getFields();
     	
     	$table = cls::get('core_TableView', array('mvc' => $f));
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
@@ -446,6 +442,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 			$number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
 			$row->number = ht::createLink($number,array('sales_Invoices','single', $rec->invId),FALSE, array('ef_icon' => 'img/16/invoice.png'));
 		}
+
 		$row->amountVat = $Double->toVerbal($rec->amountVat);
 		$row->amountRest = $Double->toVerbal($rec->amountRest);
 	    $row->amount = $Double->toVerbal($rec->amount);
@@ -493,28 +490,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	
 		return $title;
 	}
-	
-	
-	/**
-	 * Ще се експортирват полетата, които се
-	 * показват в табличния изглед
-	 *
-	 * @return array
-	 */
-	public function getExportFields ()
-	{
 
-		$exportFields['date']  = 'Дата';
-		$exportFields['number']  = 'Номер';
-		$exportFields['amountVat']  = 'Сума';
-		$exportFields['amountRest']  = 'Остатък';
-		$exportFields['amount']  = 'Просрочие';
-		$exportFields['paymentState']  = 'Състояние';
-
-	
-		return $exportFields;
-	}
-	
 
 	/**
 	 * Ако имаме в url-то export създаваме csv файл с данните
@@ -525,8 +501,6 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	public function exportCsv()
 	{
 
-		 $exportFields = $this->getExportFields();
-
          $conf = core_Packs::getConfig('core');
 
          if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
@@ -536,64 +510,46 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
          $csv = "";
 
          $rowContragent = "Клиент: " . $this->innerState->contragent->name ."\n";
-         $rowContragent .=  "ЗДДС № / EIC: " . $this->innerState->contragent->vatId;
-         foreach ($exportFields as $caption) {
-             $header .=  $caption. ',';
-         }
+         $rowContragent .=  "ЗДДС № / EIC: " . $this->innerState->contragent->vatId."\n";
+         $rowContragent .=  "Към дата: " . $this->innerForm->from;
 
+         $fields = $this->getFields();
+         $exportFields = $this->innerState->listFields;
          
          if(count($this->innerState->recs)) {
-			foreach ($this->innerState->recs as $id => $rec) {
-				
-				$rCsv = $this->generateCsvRows($rec);
-
-				
-				$csv .= $rCsv;
-				$csv .=  "\n";
-		
-			}
-
-			$csv = $rowContragent. "\n" . $header . "\n" . $csv;
+             foreach ($this->innerState->recs as $rec) {
+                 $state = array('pending' => "Чакащо", 'overdue' => "Просроченo", 'paid' => "Платенo", 'repaid' => "Издължено");
+                 
+                 $rec->paymentState = $state[$rec->paymentState];
+             }
+             
+             $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
+			 $csv = $rowContragent. "\n" . $csv;
 	    } 
 
         return $csv;
 	}
-
+	
 	
 	/**
-	 * Ще направим row-овете в CSV формат
+	 * Ще се експортирват полетата, които се
+	 * показват в табличния изглед
 	 *
-	 * @return string $rCsv
+	 * @return array
+	 * @todo да се замести в кода по-горе
 	 */
-	protected function generateCsvRows_($rec)
+	protected function getFields_()
 	{
+	    // Кои полета ще се показват
+	    $f = new core_FieldSet;
+   
+    	$f->FLD('date', 'date');
+    	$f->FLD('number', 'int');
+    	$f->FLD('amountVat', 'double');
+    	$f->FLD('amountRest', 'double');
+    	$f->FLD('amount', 'double');
+    	$f->FLD('paymentState', 'varchar');
 	
-		$exportFields =  $this->getExportFields();
-		$rec = self::getVerbal($rec);
-
-		$rCsv = '';
-	
-		foreach ($rec as $field => $value) {
-			$rCsv = '';
-	
-			foreach ($exportFields as $field => $caption) {
-					
-				if ($rec->{$field}) {
-	
-					$value = $rec->{$field};
-					$value = html2text_Converter::toRichText($value);
-					// escape
-					if (preg_match('/\\r|\\n|,|"/', $value)) {
-						$value = '"' . str_replace('"', '""', $value) . '"';
-					}
-					$rCsv .= $value .  ",";
-	
-				} else {
-					$rCsv .= '' . ",";
-				}
-			}
-		}
-		
-		return $rCsv;
+	    return $f;
 	}
 }

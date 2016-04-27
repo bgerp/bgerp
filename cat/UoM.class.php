@@ -86,7 +86,7 @@ class cat_UoM extends core_Manager
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка');
-        $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->->Дефолтно к-во');
+        $this->FLD('defQuantity', 'double(smartRound)', 'caption=Показване в документи->Дефолтно к-во');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
@@ -444,6 +444,7 @@ class cat_UoM extends core_Manager
     	$rec = $data->form->rec;
     	
     	if($rec->type == 'packaging'){
+    		$mvc->currentTab = 'Мерки->Опаковки';
     		$data->form->setField('name', 'caption=Опаковка');
     	}
     	

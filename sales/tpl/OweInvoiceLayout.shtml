@@ -9,6 +9,10 @@
     <!--ET_BEGIN eic-->
        <span>|ЗДДС № / EIC|*: <b>[#eic#]</b></span>
     <!--ET_END eic-->
+    <br>
+    <!--ET_BEGIN from-->
+       <span>|Към дата|*: <b>[#from#]</b></span>
+    <!--ET_END from-->
 
 </div>
 <br>

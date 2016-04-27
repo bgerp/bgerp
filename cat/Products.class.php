@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
     /**
@@ -347,7 +347,15 @@ class cat_Products extends embed_Manager {
             				unset($pRec->code);
             				$Cmd = Request::get('Cmd');
             				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
-            					Request::push($pRec->driverRec);
+            					if(empty($pRec->driverRec['measureId'])){
+            						$pRec->driverRec['measureId'] = $pRec->measureId;
+            					}
+            					
+            					foreach ($pRec->driverRec as $name => $value){
+            						$form->setDefault($name, $value);
+            					}
+            					
+            					//Request::push($pRec->driverRec);
             				}
             			}
             		}
@@ -748,7 +756,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни,closed=Закрити');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Закрити');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
@@ -756,7 +764,7 @@ class cat_Products extends embed_Manager {
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
     	'caption=Подредба,input,silent,remember,autoFilter');
-    	$listFilter->setDefault('order', 'alphabetic');
+    	$listFilter->setDefault('order', 'standard');
     	
     	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
     			'placeholder=Маркери,input,silent,remember,autoFilter');
@@ -784,17 +792,21 @@ class cat_Products extends embed_Manager {
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
         switch($data->listFilter->rec->order){
-        	case 'last':
-        		$data->query->orderBy('#createdOn=DESC');
+        	case 'all':
+        		$data->query->orderBy('#state,#name');
         		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
         		$data->query->orderBy('#state,#name');
         		break;
+			case 'last':
+        		$data->query->orderBy('#createdOn=DESC');
+        		break;
         	case 'closed':
         		$data->query->where("#state = 'closed'");
         		break;
         	default :
+        		$data->query->where("#isPublic = 'yes'");
         		$data->query->orderBy('#state,#name');
         		break;
         }
@@ -824,18 +836,16 @@ class cat_Products extends embed_Manager {
         
         if ($rec = self::fetch($objectId)) {
         	$Driver = cat_Products::getDriver($rec->id);
-
             if(!is_object($Driver)) return NULL;
-
-        	$pInfo = cat_Products::getProductInfo($objectId);
+            
         	if($rec->isPublic == 'no'){
         		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
         	}
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
-                'title'    => $pInfo->productRec->name,
-                'uomId'    => $pInfo->productRec->measureId,
+                'title'    => $rec->name,
+                'uomId'    => $rec->measureId,
                 'features' => array()
             );
             
@@ -1024,8 +1034,11 @@ class cat_Products extends embed_Manager {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
         }
-        
         Mode::setPermanent('cat_LastProductCode' , $rec->code);
+        
+        if(isset($rec->originId)){
+        	doc_DocumentCache::cacheInvalidation($rec->originId);
+        }
     }
     
     
