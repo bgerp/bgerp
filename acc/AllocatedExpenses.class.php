@@ -38,7 +38,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, acc_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank ';
     
     
@@ -51,13 +51,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
     
     
     /**
