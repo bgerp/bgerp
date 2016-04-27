@@ -1355,15 +1355,21 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError {
-    border: solid 1px red; 
+.formError, .formNotice {
     background-color: #ff6;
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
  }
- 
+
+.formNotice {
+	border: solid 1px green;
+}
+.formError {
+	border: solid 1px red;
+}
+
 .wide .formError {
     text-align: left;
     min-width: 300px;

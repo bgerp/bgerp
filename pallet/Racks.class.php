@@ -7,16 +7,22 @@
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_Racks extends core_Master
+class pallet_Racks extends core_Master
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'store_Racks';
+	
+	
     /**
      * Заглавие
      */
@@ -26,7 +32,7 @@ class store_Racks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, store_Wrapper';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, plg_RowTools, pallet_Wrapper';
     
     
     /**
@@ -38,43 +44,43 @@ class store_Racks extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,storeWorker';
+    var $canRead = 'ceo,pallet';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,storeWorker';
+    var $canEdit = 'ceo,pallet';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,storeWorker';
+    var $canAdd = 'ceo,pallet';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,storeWorker';
+	var $canList = 'ceo,pallet';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,storeWorker';
+	var $canSingle = 'ceo,pallet';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,storeWorker';
+    var $canView = 'ceo,pallet';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,storeWorker';
+    var $canDelete = 'ceo,pallet';
     
     
     /**
@@ -92,7 +98,7 @@ class store_Racks extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'store_RackDetails';
+    var $details = 'pallet_RackDetails';
     
     
     /**
@@ -137,7 +143,7 @@ class store_Racks extends core_Master
     static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
-            $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
+            $mvc->palletsInStoreArr = pallet_Pallets::getPalletsInStore();
             
             $rec = $mvc->fetch($rec->id);
             
@@ -154,24 +160,10 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListTitle($mvc, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $data)
     {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Стелажи в СКЛАД|* \"{$selectedStoreName}\"";
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на титлата в единичния изглед
-     */
-    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
-        
-        $data->title = "|СКЛАД|* \"{$selectedStoreName}\", |стелаж|* № {$data->rec->id}";
+        $selectedStoreName = store_Stores::getHyperlink(store_Stores::getCurrent(), TRUE);
+    	$data->title = "|Стелажи в склад|* <b style='color:green'>{$selectedStoreName}</b>";
     }
     
     
@@ -181,7 +173,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене на продукт в склада';
         $data->listFilter->view = 'horizontal';
@@ -213,7 +205,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -250,17 +242,17 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() && ($form->rec->id)) {
             $selectedStoreId = store_Stores::getCurrent();
-            $palletsInStoreArr = store_Pallets::getPalletsInStore();
+            $palletsInStoreArr = pallet_Pallets::getPalletsInStore();
             $rec = $form->rec;
             
             /* Ако стелажа съществува (edit) */
             if ($palletsInStoreArr[$rec->id]) {
-                $currentRows = store_Racks::fetchField($rec->id, 'rows');
-                $currentColumns = store_Racks::fetchField($rec->id, 'columns');
+                $currentRows = pallet_Racks::fetchField($rec->id, 'rows');
+                $currentColumns = pallet_Racks::fetchField($rec->id, 'columns');
                 
                 /* Ако новите редове са по-малко от текущите */
                 if ($rec->rows < $currentRows) {
@@ -403,13 +395,13 @@ class store_Racks extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->ROW_ATTR['class'] = 'noHover';
         
-        $palletsInStoreArr = store_Pallets::getPalletsInStore();
+        $palletsInStoreArr = pallet_Pallets::getPalletsInStore();
         
-        $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
+        $detailsForRackArr = pallet_RackDetails::getDetailsForRack($rec->id);
         
         $constrColumnsStep = $mvc->fetchField($rec->id, 'constrColumnsStep');
         
@@ -449,16 +441,16 @@ class store_Racks extends core_Master
                         
                         if (!empty($stateMovements)) {
                             if ($stateMovements == 'pending') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
                             }
                             
                             if ($stateMovements == 'active') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
                             }
-                        } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
+                        } else $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
                         
                         $html .= Ht::createLink($mvc->rackRowConv($r) . $c,
-                            array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
+                            array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
                             FALSE,
                             array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title']));
                     } else { // Ако няма палет на това палет място
@@ -466,17 +458,17 @@ class store_Racks extends core_Master
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
                             // Дали мястото е неизползваемо
                             if (isset($detailsForRackArr[$palletPlace]['outofuse'])) {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
                             } else {
                                 // Дали мястото е резервирано
                                 if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
-                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
+                                    $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
                                 } else {
-                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
+                                    $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
                                 }
                             }
                         } else {
-                            $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
+                            $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
                         }
                         
                         /* END Проверка за това палет място в детайлите */
@@ -509,29 +501,29 @@ class store_Racks extends core_Master
                         if (!empty($stateMovements)) {
                             if ($stateMovements == 'pending') {
                                 if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['productId']) {
-                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
+                                    $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
                                 } else {
-                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting out_of_filter'>";
+                                    $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting out_of_filter'>";
                                 }
                             }
                             
                             if ($stateMovements == 'active') {
                                 if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['productId']) {
-                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
+                                    $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
                                 } else {
-                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active out_of_filter'>";
+                                    $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active out_of_filter'>";
                                 }
                             }
                         } else {
                             if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['productId']) {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
                             } else {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use out_of_filter'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use out_of_filter'>";
                             }
                         }
                         
                         $html .= Ht::createLink($mvc->rackRowConv($r) . $c,
-                            array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
+                            array('pallet_Pallets', 'list', $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['palletId']),
                             FALSE,
                             array('title' => $palletsInStoreArr[$rec->id][$mvc->rackRowConv($r)][$c]['title']));
                         
@@ -541,18 +533,18 @@ class store_Racks extends core_Master
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
                             // Дали мястото е неизползваемо
                             if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
                             }
                             
                             // Дали мястото е резервирано
                             if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
+                                $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
                             }
                             
                             // Други проверки
                             // ...
                         } else {
-                            $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
+                            $html .= "<td class='pallet_place " . pallet_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
                         }
                         
                         /* END Проверка за това палет място в детайлите */
@@ -618,7 +610,7 @@ class store_Racks extends core_Master
      * @param stdClass $res
      * @param $query
      */
-    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    protected static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         
@@ -636,9 +628,9 @@ class store_Racks extends core_Master
      * @param stdClass $query
      * @param string $cond
      */
-    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-        store_RackDetails::delete("#rackId = {$query->deleteRecId}");
+        pallet_RackDetails::delete("#rackId = {$query->deleteRecId}");
         
         redirect(array($this));
     }
@@ -652,7 +644,7 @@ class store_Racks extends core_Master
      * @param int $constrColumnsStep
      * @return string
      */
-    static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
+    public static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
     {
         if ($c == 1) {
             return "constrColumnLeft";
@@ -675,7 +667,8 @@ class store_Racks extends core_Master
      * @param int $palletId
      * @return boolean
      */
-    static function checkIfProductGroupsAreAllowed($rackId, $productId) {
+    public static function checkIfProductGroupsAreAllowed($rackId, $productId) 
+    {
         $selectedStoreId = store_Stores::getCurrent();
         
         try {
@@ -717,7 +710,8 @@ class store_Racks extends core_Master
      * @param string $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceExists($palletPlace) {
+    public static function checkIfPalletPlaceExists($palletPlace) 
+    {
         // array letter to digit
         $rackRowsArr = array('A' => 1,
             'B' => 2,
@@ -737,7 +731,7 @@ class store_Racks extends core_Master
         $rackColumn = $positionArr[2];
         
         // Ако няма стелаж с това id
-        if (!$recRacks = store_Racks::fetch(array("#id = '[#1#]' AND #storeId = '[#2#]'", $rackId, $selectedStoreId))) return FALSE;
+        if (!$recRacks = pallet_Racks::fetch(array("#id = '[#1#]' AND #storeId = '[#2#]'", $rackId, $selectedStoreId))) return FALSE;
         
         // Ако реда не е сред ключовете на масива $rackRowsArr
         if (!array_key_exists($rackRow, $rackRowsArr)) return FALSE;
@@ -762,38 +756,38 @@ class store_Racks extends core_Master
      * @param string $palletPlace
      * @return array $fResult
      */
-    static function isSuitable($rackId, $productId, $palletPlace)
+    public static function isSuitable($rackId, $productId, $palletPlace)
     {
         $fResult = array();
         $fErrors = array();
         
         // Съществува в склада
-        if (store_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
+        if (pallet_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNE', 'Позицията не съществува в склада'));
         }
         
         // Заето
-        if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
+        if (pallet_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
         
         // Продуктовите групи
-        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
+        if (pallet_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
             array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
         }
         
         // Неизползваемо
-        if (store_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
+        if (pallet_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
             array_push($fErrors, array('PPOOFU', 'Позицията е неизползваема'));
         }
         
         // Резервирано
-        if (store_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
+        if (pallet_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
             array_push($fErrors, array('PPR', 'Позицията е резервирана'));
         }
         
         /*
-        if (store_Movements::checkIfPalletPlaceHasNoAppointedMovements($palletPlace) === FALSE) {\
+        if (pallet_Movements::checkIfPalletPlaceHasNoAppointedMovements($palletPlace) === FALSE) {\
             array_push($fErrors, array('PPM', 'Към това палет място има назначено движение!'));
         }
         */
@@ -814,13 +808,13 @@ class store_Racks extends core_Master
      * @param $arrayForExplode
      * @return array $fResult
      */
-    static function ppRackNum2rackId($stringForExplode)
+    public static function ppRackNum2rackId($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
         $positionArr = explode("-", $stringForExplode);
         
         $rackNum = $positionArr[0];
-        $rackId = store_Racks::fetchField("#num = {$rackNum}", 'id');
+        $rackId = pallet_Racks::fetchField("#num = {$rackNum}", 'id');
         
         if (!$rackId) {
             $fResult[0] = FALSE;
@@ -843,14 +837,14 @@ class store_Racks extends core_Master
      * @param $arrayForExplode
      * @return array $fResult
      */
-    static function ppRackId2RackNum($stringForExplode)
+    public static function ppRackId2RackNum($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
         $positionArr = explode("-", $stringForExplode);
         
         $rackId = $positionArr[0];
         
-        $rackNum = store_Racks::fetchField($rackId, 'num');
+        $rackNum = pallet_Racks::fetchField($rackId, 'num');
         
         if (!$rackNum) {
             $fResult[0] = FALSE;
@@ -875,7 +869,8 @@ class store_Racks extends core_Master
      * @param string|int $value
      * @return string|int
      */
-    static function rackRowConv($value) {
+    public static function rackRowConv($value) 
+    {
         $value = str::utf2ascii($value);
         
         $rowStringArr = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'ALL');

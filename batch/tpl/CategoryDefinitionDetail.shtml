@@ -3,6 +3,7 @@
 	<legend class='groupTitle'>[#title#] [#tools#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
+		    	[#CONTENT#]
 		    	<table>
 		    		<!--ET_BEGIN driverClass-->
 		    		<tr>

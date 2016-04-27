@@ -50,7 +50,7 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
     
     
     /**
@@ -97,6 +97,18 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Кой  може да клонира системни записи
+     */
+    public $canClonesysdata = 'cat,ceo,sales,purchase';
+    
+    
+    /**
+     * Кой  може да клонира запис
+     */
+    public $canClonerec = 'cat,ceo,sales,purchase';
+    
+    
+    /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Артикул";
@@ -123,13 +135,13 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да променя?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,sales';
+    public $canAdd = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -148,12 +160,6 @@ class cat_Products extends embed_Manager {
      * Кой може да го разгледа?
      */
     public $canList = 'powerUser';
-    
-    
-    /**
-     * Кой може да качва файлове
-     */
-    public $canWrite = 'cat,ceo';
     
     
     /**  
@@ -189,7 +195,7 @@ class cat_Products extends embed_Manager {
     /** 
 	 *  Полета по които ще се търси
 	 */
-	public $searchFields = 'name, code';
+	public $searchFields = 'name, code, info';
 	
 	
 	/**
@@ -318,16 +324,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	$info = strip_tags($mvc->getFieldType('info')->toVerbal($rec->info));
-    	$res .= " " . plg_Search::normalizeText($info);
-    }
-    
-    
-    /**
      * Изпълнява се след подготовка на Едит Формата
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -351,7 +347,15 @@ class cat_Products extends embed_Manager {
             				unset($pRec->code);
             				$Cmd = Request::get('Cmd');
             				if($Cmd['refresh'] && is_array($pRec->driverRec)) {
-            					Request::push($pRec->driverRec);
+            					if(empty($pRec->driverRec['measureId'])){
+            						$pRec->driverRec['measureId'] = $pRec->measureId;
+            					}
+            					
+            					foreach ($pRec->driverRec as $name => $value){
+            						$form->setDefault($name, $value);
+            					}
+            					
+            					//Request::push($pRec->driverRec);
             				}
             			}
             		}
@@ -752,7 +756,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Закрити');
     	if(!haveRole('cat,sales,ceo,purchase')){
     		unset($orderOptions['private']);
     	}
@@ -760,6 +764,7 @@ class cat_Products extends embed_Manager {
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
     	'caption=Подредба,input,silent,remember,autoFilter');
+    	$listFilter->setDefault('order', 'standard');
     	
     	$listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
     			'placeholder=Маркери,input,silent,remember,autoFilter');
@@ -777,23 +782,31 @@ class cat_Products extends embed_Manager {
     	static::expandFilter($data->listFilter);
 		
     	$data->listFilter->FNC('meta1', 'enum(all=Свойства,
-       				canSell=Продаваеми,
+       							canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими)', 'input,autoFilter');
+        					    canManifacture=Производими)', 'input,autoFilter');
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
         switch($data->listFilter->rec->order){
-        	case 'last':
-        		$data->query->orderBy('#createdOn=DESC');
+        	case 'all':
+        		$data->query->orderBy('#state,#name');
         		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
+        		$data->query->orderBy('#state,#name');
+        		break;
+			case 'last':
+        		$data->query->orderBy('#createdOn=DESC');
+        		break;
+        	case 'closed':
+        		$data->query->where("#state = 'closed'");
         		break;
         	default :
+        		$data->query->where("#isPublic = 'yes'");
         		$data->query->orderBy('#state,#name');
         		break;
         }
@@ -823,18 +836,16 @@ class cat_Products extends embed_Manager {
         
         if ($rec = self::fetch($objectId)) {
         	$Driver = cat_Products::getDriver($rec->id);
-
             if(!is_object($Driver)) return NULL;
-
-        	$pInfo = cat_Products::getProductInfo($objectId);
+            
         	if($rec->isPublic == 'no'){
         		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
         	}
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
-                'title'    => $pInfo->productRec->name,
-                'uomId'    => $pInfo->productRec->measureId,
+                'title'    => $rec->name,
+                'uomId'    => $rec->measureId,
                 'features' => array()
             );
             
@@ -1023,8 +1034,11 @@ class cat_Products extends embed_Manager {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
         }
-        
         Mode::setPermanent('cat_LastProductCode' , $rec->code);
+        
+        if(isset($rec->originId)){
+        	doc_DocumentCache::cacheInvalidation($rec->originId);
+        }
     }
     
     
@@ -1371,7 +1385,7 @@ class cat_Products extends embed_Manager {
     		}
     		
     		if(isset($rec->proto)){
-    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     				$row->proto = $mvc->getHyperlink($rec->proto);
     			}
     		}
@@ -1397,7 +1411,7 @@ class cat_Products extends embed_Manager {
             if($meta['canSell']) { 
                 if($rec->price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $rec->id)) {
                     $vat = self::getVat($rec->id);
-                    $rec->price *= (1+$vat);
+                    $rec->price *= (1 + $vat);
                     $row->price = $mvc->getVerbal($rec, 'price');
                 }
             }
@@ -1670,13 +1684,16 @@ class cat_Products extends embed_Manager {
     					$res = 'no_one';
     				}
     			}
-    			
-    			if(isset($rec->folderId)){
-    				$Cover = doc_Folders::getCover($rec->folderId);
-    				if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
-    					if(!haveRole('ceo,cat')){
-    						$res = 'no_one';
-    					}
+    		}
+    	}
+    	
+    	// Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
+    	if(($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)){
+			if(isset($rec->folderId)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
+    				if(!haveRole('ceo,cat')){
+    					$res = 'no_one';
     				}
     			}
     		}
@@ -2220,31 +2237,6 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->createdProducts[] = $rec;
-    }
-    
-    
-    /**
-     * Намира всички стандартни, продаваеми или купуваеми артикули
-     * 
-     * @param boolean $onlyStorable - дали да са само складируемите
-     * @return array $products - артикули
-     */
-    public static function getStandartProducts($onlyStorable = FALSE)
-    {
-    	$products = array();
-    	$pQuery = cat_Products::getQuery();
-    	$pQuery->where("#isPublic = 'yes'");
-    	$pQuery->where("#state = 'active'");
-    	$pQuery->where("#canBuy = 'yes' OR #canSell = 'yes'");
-    	if($onlyStorable === TRUE){
-    		$pQuery->where("#canStore = 'yes'");
-    	}
-    	
-    	while($pRec = $pQuery->fetch()){
-    		$products[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-    	}
-    	
-    	return $products;
     }
     
     

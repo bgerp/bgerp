@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State';
+    public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State,plg_RowTools2';
     
     
     /**
@@ -62,7 +62,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Наименование, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
+    public $listFields = 'productId=Наименование,quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, state';
     
     
     /**
@@ -81,7 +81,6 @@ class store_Products extends core_Manager
         $this->FLD('quantity', 'double', 'caption=Количество->Общо');
         $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden');
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
-        $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -105,20 +104,6 @@ class store_Products extends core_Manager
     	return $rec->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
     }
     
-    
-    /**
-     * Смяна на заглавието
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareListTitle($mvc, $data)
-    {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        $data->title = "|Продукти в склад|* \"{$selectedStoreName}\"";
-    }
-    
 
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -135,6 +120,8 @@ class store_Products extends core_Manager
         // Ако няма никакви записи - нищо не правим
         if(!count($recs)) return;
 	    
+        $makePallets = (core_Packs::isInstalled('pallet')) ? TRUE : FALSE;
+        
 	    foreach($rows as $id => &$row){
 	       $rec = &$recs[$id];
 	       $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
@@ -147,7 +134,10 @@ class store_Products extends core_Manager
 	        }
 	        	 
 	        if($rec->quantityNotOnPallets > 0){
-	        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+	        	if($makePallets){
+	        		core_RowToolbar::createIfNotExists($row->_rowTools);
+	        		$row->_rowTools->addLink('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/box.png,title=Палетиране на артикул');
+	        	}
 	        }
         }
     }
@@ -163,6 +153,10 @@ class store_Products extends core_Manager
     {
     	// Подготвяме формата
     	cat_Products::expandFilter($data->listFilter);
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
+    	$data->listFilter->setOptions('order', $orderOptions);
+		$data->listFilter->setDefault('order', 'standard');
+    	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
     	$data->listFilter->setField('storeId', 'autoFilter');
@@ -182,6 +176,8 @@ class store_Products extends core_Manager
         	
         	// И е избран склад, търсим склад
         	if(isset($rec->storeId)){
+        		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
+        		$data->title = "|Продукти в склад|* <b style='color:green'>{$selectedStoreName}</b>";
         		$data->query->where("#storeId = {$rec->storeId}");
         	}
         	
@@ -198,13 +194,21 @@ class store_Products extends core_Manager
         	// Подредба
         	if(isset($rec->order)){
         		switch($data->listFilter->rec->order){
-        			case 'last':
-        				$data->query->orderBy('#productCreatedOn=DESC');
-        				break;
-        			case 'private':
+        			case 'all':
+        				$data->query->orderBy('#state,#name');
+						break;
+		        	case 'private':
         				$data->query->where("#isPublic = 'no'");
+        				$data->query->orderBy('#state,#name');
+						break;
+					case 'last':
+			      		$data->query->orderBy('#createdOn=DESC');
+		        		break;
+        			case 'closed':
+        				$data->query->where("#state = 'closed'");
         				break;
         			default :
+        				$data->query->where("#isPublic = 'yes'");
         				$data->query->orderBy('#state,#name');
         				break;
         		}
@@ -230,7 +234,7 @@ class store_Products extends core_Manager
     public static function sync($all)
     {
     	$query = static::getQuery();
-    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
     	
@@ -254,7 +258,7 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,state');
     	
     	// Зануляваме к-та само на тези продукти, които още не са занулени
     	$query->where("#state = 'active'");
@@ -330,5 +334,26 @@ class store_Products extends core_Manager
     	store_Products::truncate();
     	 
     	return new Redirect(array($this, 'list'));
+    }
+    
+    
+    /**
+     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if(!core_Packs::isInstalled('pallet')){
+    		unset($data->listFields['quantityNotOnPallets']);
+    		unset($data->listFields['quantityOnPallets']);
+    		$data->listFields['quantity'] = 'Количество';
+    	}
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	
+    	// Тулбара го преместваме преди състоянието
+    	if(isset($data->listFields['_rowTools'])){
+    		$field = $data->listFields['_rowTools'];
+    		unset($data->listFields['_rowTools']);
+    		arr::placeInAssocArray($data->listFields, array('_rowTools' => $field), NULL, 'measureId');
+    	}
     }
 }

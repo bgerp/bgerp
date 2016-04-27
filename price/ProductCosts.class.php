@@ -111,10 +111,10 @@ class price_ProductCosts extends core_Manager
     /**
      * Рекалкулира себестойностите
      */
-    function act_Recalcbomcost()
+    function act_CachePrices()
     {
     	expect(haveRole('debug'));
-    	$this->cron_Recalcbomcost();
+    	$this->cron_CachePrices();
     }
     
     
@@ -124,7 +124,7 @@ class price_ProductCosts extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('debug')){
-    		$data->toolbar->addBtn('Преизчисли', array($mvc, 'Recalcbomcost'), NULL, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
+    		$data->toolbar->addBtn('Преизчисли', array($mvc, 'CachePrices'), NULL, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
     	}
     }
     
@@ -399,7 +399,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Обновяване на себестойностите по разписание
      */
-    function cron_Recalcbomcost()
+    function cron_CachePrices()
     {
     	core_App::setTimeLimit(360);
     	

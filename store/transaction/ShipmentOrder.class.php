@@ -226,8 +226,9 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         $entries = array();
         
         $sign = ($reverse) ? -1 : 1;
+        $rec->storeId = ($rec->storeId) ? $rec->storeId : $this->class->fetchField($rec->id, 'storeId');
+        acc_journal_Exception::expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         
-        expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         foreach ($rec->details as $detailRec) {
         	$pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
         	

@@ -3,20 +3,26 @@
 
 
 /**
- * Стратегия за подреждане на склада 'ArrangeStrategyTop'
+ * Стратегия за подреждане на склада 'ArrangeStrategyBottom'
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ArrangeStrategyTop
+class pallet_ArrangeStrategyBottom
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'store_ArrangeStrategyBottom';
+	
+	
     /**
      * Какви интерфeйси поддържа този мениджър
      */
@@ -32,7 +38,7 @@ class store_ArrangeStrategyTop
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
-        $palletPlaceAuto = "6-G-22";
+        $palletPlaceAuto = "1-A-1";
         
         return $palletPlaceAuto;
     }

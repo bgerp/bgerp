@@ -435,7 +435,7 @@ class price_Updates extends core_Manager
     	core_App::setTimeLimit(360);
     	
     	// Обновяваме кеширането на себестойностите
-    	cls::get('price_ProductCosts')->cron_Recalcbomcost();
+    	cls::get('price_ProductCosts')->cron_CachePrices();
     	
     	// Взимаме всички записи
     	$now = dt::now();

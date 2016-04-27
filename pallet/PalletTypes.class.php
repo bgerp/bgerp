@@ -7,16 +7,22 @@
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_PalletTypes extends core_Manager
+class pallet_PalletTypes extends core_Manager
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'store_PalletTypes';
+	
+	
     /**
      * Заглавие
      */
@@ -26,49 +32,49 @@ class store_PalletTypes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools2';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, pallet_Wrapper, plg_RowTools2';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,store';
+    var $canRead = 'ceo,pallet';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,store';
+    var $canEdit = 'ceo,pallet';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,store';
+    var $canAdd = 'ceo,pallet';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,store';
+    var $canView = 'ceo,pallet';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,store';
+    var $canDelete = 'ceo,pallet';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,store';
+	var $canList = 'ceo,pallet';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,store';
+	var $canSingle = 'ceo,pallet';
     
     
     /**

@@ -1081,10 +1081,15 @@ class email_Outgoings extends core_Master
     protected function checkHost($form, $errField)
     {
         if (core_App::checkCurrentHostIsPrivate()) {
-            $form->setWarning($errField, 'Изпращате от частна мрежа. Линковете към системата няма да работят.');
-        
+            
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            
+            $form->setWarning($errField, $err);
+            
             if ($form->isSubmitted()) {
-                self::logWarning('Изпращане на писмо с линкове към частна мрежа', $form->rec->id);
+                $this->logWarning('Изпращане на писмо с линкове към частна мрежа', $form->rec->id);
             }
         }
     }

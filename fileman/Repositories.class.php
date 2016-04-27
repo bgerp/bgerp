@@ -114,7 +114,7 @@ class fileman_Repositories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created, plg_State';
+    var $loadList = 'fileman_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Rejected';
     
     
     /**
@@ -853,7 +853,7 @@ class fileman_Repositories extends core_Master
             
         } catch (Exception $e) {
             
-            reportException($e);
+            self::logWarning('Не може да се обходи директорията', $repositoryId);
             
             return $res;
         }
@@ -1160,7 +1160,7 @@ class fileman_Repositories extends core_Master
         if ($rec && ($action == 'delete')) {
             
             // Ако състоянието е активно
-            if ($rec->state == 'active') {
+            if ($rec->state == 'active' || $rec->state == 'rejected') {
             
 				// Да не може да се изтрие
                 $requiredRoles = 'no_one';
@@ -1680,14 +1680,18 @@ class fileman_Repositories extends core_Master
      * 
      * @param integer $id - id на записа
      * @param string $fieldName - Името на полето, което ще се използва за линк
+     * @param boolean $absolute
+     * @param array $attr
      * 
      * @return core_Et - Линк към сингъла
      * 
      * @Override
      * @see core_Master::getLinkToSingle_
      */
-    static function getLinkToSingle_($repoId, $fieldName=NULL, $absolute=FALSE)
+    static function getLinkToSingle_($repoId, $fieldName=NULL, $absolute=FALSE, $attr = array())
     {
+        $attr = arr::make($attr);
+        
         // Ако не е зададено
         if (!$fieldName) {
             
@@ -1695,7 +1699,13 @@ class fileman_Repositories extends core_Master
             $fieldName = 'verbalName';
         }
         
-        return parent::getLinkToSingle_($repoId, $fieldName);
+        $rec = self::fetch($repoId);
+        
+        if ($rec->state == 'rejected') {
+            $attr['class'] .= ' state-rejected';
+        }
+        
+        return parent::getLinkToSingle_($repoId, $fieldName, $absolute, $attr);
     }
     
     
@@ -1714,7 +1724,7 @@ class fileman_Repositories extends core_Master
             
             // Вземаме всички записи
             $query = static::getQuery();
-            $query->where('1=1');
+            $query->where("#state != 'rejected'");
             
             // Обхождаме записите
             while ($rec = $query->fetch()) {

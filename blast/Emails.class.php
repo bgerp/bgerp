@@ -1024,13 +1024,7 @@ class blast_Emails extends core_Master
                 }
             }
             
-            if (core_App::checkCurrentHostIsPrivate()) {
-                $form->setWarning('sendPerCall', 'Ако изпращате от частен адрес, линковете към системата няма да работят.');
-                
-                if ($form->isSubmitted()) {
-                    self::logWarning('Активиране на изпращане на имейли от частна мрежа.', $form->rec->id);
-                }
-            }
+            $this->checkHost($form, 'sendPerCall');
         }
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
@@ -1129,6 +1123,25 @@ class blast_Emails extends core_Master
         $tpl->append($preview);
         
         return self::renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Помощна функция, за проверка дали се изпраща от частна мрежа и линковете ще са коректни
+     * 
+     * @param core_Form $form
+     * @param string $errField
+     */
+    protected function checkHost($form, $errField)
+    {
+        if (core_App::checkCurrentHostIsPrivate()) {
+            
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            
+            $form->setWarning($errField, $err);
+        }
     }
     
     
@@ -1697,6 +1710,10 @@ class blast_Emails extends core_Master
                     }
                 }
             }
+        }
+        
+        if ($form->isSubmitted()) {
+            $mvc->checkHost($form, 'body');
         }
     }
     

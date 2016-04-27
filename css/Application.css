@@ -2175,6 +2175,8 @@ span.sharing-history-title {
   display: block;
   margin: 0 auto;
   text-align: left; }
+  #all #searchform {
+    margin-bottom: 20px; }
 
 .wide #all {
   min-width: 500px; }
