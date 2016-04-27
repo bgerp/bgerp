@@ -91,11 +91,16 @@ class acc_plg_Contable extends core_Plugin
         }
         
         try {
+        	// Подсигуряваме се че записа е пълен
+        	$tRec = clone $rec;
+        	if(isset($rec->id)){
+        		$oldRec = $mvc->fetch($rec->id);
+        		$tRec = (object)arr::fillMissingKeys($tRec, $oldRec);
+        	}
+        	
             // Дали документа може да се активира
-            $canActivate = $mvc->canActivate($rec);
-            
-            // Извличане на транзакцията
-            $transaction = $mvc->getValidatedTransaction($rec);
+            $canActivate = $mvc->canActivate($tRec);
+            $transaction = $mvc->getValidatedTransaction($tRec);
             
             // Ако има валидна транзакция
             if($transaction !== FALSE){
