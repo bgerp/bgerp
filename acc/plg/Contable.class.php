@@ -120,7 +120,9 @@ class acc_plg_Contable extends core_Plugin
             $rec->isContable = 'no';
         }
        
-        $mvc->save_($rec, 'isContable');
+        if($rec->id){
+        	$mvc->save_($rec, 'isContable');
+        }
     }
     
     
