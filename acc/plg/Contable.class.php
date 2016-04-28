@@ -119,6 +119,8 @@ class acc_plg_Contable extends core_Plugin
         } catch (acc_journal_Exception $ex) {
             $rec->isContable = 'no';
         }
+       
+        $mvc->save_($rec, 'isContable');
     }
     
     
