@@ -78,6 +78,7 @@ class fconv_Setup extends core_ProtoSetup
     var $configDescription = array(
         'FCONV_TIME_LIMIT' => array ('varchar', 'caption=Убиване на увиснали скриптове->Скрипт'),                
         'FCONV_USE_TIME_LIMIT' => array ('enum(no=Не, yes=Да)', 'caption=Дали да се използва скрипт за убиване на увиснали програми->Избор'),                
+        'FCONV_SALT' => array ('varchar', 'caption=Ключ за отдалечено конвертиране->Ключ'),                
     );
     
     
