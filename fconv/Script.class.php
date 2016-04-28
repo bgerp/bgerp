@@ -363,7 +363,7 @@ class fconv_Script
                     
                     $this->remoteAfterConvertCallback = toUrl(array('fconv_Remote', 'afterConvertCallback', 'pid' => $this->id), 'absolute');
                     
-                    $script = urlencode(core_Crypt::encodeVar($this, fconv_Remote::$remoteKey));
+                    $script = urlencode(core_Crypt::encodeVar($this, fconv_Setup::get('SALT')));
             
                     $url = rtrim($rRec->address, '/');
             

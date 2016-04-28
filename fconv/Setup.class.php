@@ -20,6 +20,12 @@ defIfNot('FCONV_USE_TIME_LIMIT', "no");
 
 
 /**
+ * "Подправка" за кодиране на fconv
+ */
+defIfNot('FCONV_SALT', md5(EF_SALT . '_FCONV'));
+
+
+/**
  * Конвертиране на файлове
  *
  * @category  vendors
@@ -72,6 +78,7 @@ class fconv_Setup extends core_ProtoSetup
     var $configDescription = array(
         'FCONV_TIME_LIMIT' => array ('varchar', 'caption=Убиване на увиснали скриптове->Скрипт'),                
         'FCONV_USE_TIME_LIMIT' => array ('enum(no=Не, yes=Да)', 'caption=Дали да се използва скрипт за убиване на увиснали програми->Избор'),                
+        'FCONV_SALT' => array ('varchar', 'caption=Ключ за отдалечено конвертиране->Ключ'),                
     );
     
     

@@ -47,10 +47,29 @@ defIfNot('EF_USERS_MIN_TIME_WITHOUT_BLOCKING', 120);
 
 
 /**
+ * Писмо до потребителя за активация
+ */
+defIfNot('USERS_UNBLOCK_EMAIL',
+                "\n|Уважаеми|* [#names#]." .
+                "\n" .
+                "\n|Потребителят Ви в|* [#EF_APP_TITLE#] |е блокиран|*." .
+                "\n" .
+                "\n|За да се отблокирате, моля отворете следния линк|*: " .
+                "\n" .
+                "\n[#url#]" .
+                "\n" .
+                "\n|Линка ще изтече в|* [#regLifetime#]." .
+                "\n" .
+                "\n|Поздрави|*," .
+                "\n[#senderName#]");
+
+
+/**
  * Колко дни потребител може да не активира първоначално достъпа си
  * преди да бъде изтрит
  */
 defIfNot('USERS_DRAFT_MAX_DAYS', 3);
+
 
 /**
  * Ще има ли криптиращ протокол?
@@ -84,6 +103,8 @@ defIfNot('EF_HTTPS_PORT', 443);
  */
 class core_Users extends core_Manager
 {
+    
+    
     /**
      * Константа за id на системния потребител
      */
@@ -1051,16 +1072,16 @@ class core_Users extends core_Manager
             // Дали нямаме дублирано ползване?
             if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
-                dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING
-               
-                ) {
+                dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
                 // Блокираме потребителя
                 $userRec->state = 'blocked';
                 $Users->save($userRec, 'state');
                 
+                $Users->sendActivationLetter($userRec, USERS_UNBLOCK_EMAIL, 'Отблокиране на потребител', 'unblock');
+                
                 $Users->logAlert("Блокиран потребител", $userRec->id);
-                    
+                
                 core_LoginLog::add('block', $userRec->id);
             }
             
@@ -1079,13 +1100,13 @@ class core_Users extends core_Manager
         // Ако потребителя е блокиран - излизаме от сесията и показваме грешка        
         if ($userRec->state == 'blocked') {
             $Users->logout();
-            redirect(array('Index'), FALSE, '|Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
-                '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
+            redirect(array('Index'), FALSE, '|Този акаунт е блокиран|*.<BR>|Причината най-вероятно е едновременно използване от две места|*.' .
+                '<BR>|На имейлът от регистрацията е изпратена информация и инструкция за отблокиране|*.');
         }
         
         if ($userRec->state == 'draft') {
-            redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.|*<BR>' .
-                '|На имейлът от регистрацията е изпратена информация и инструкция за активация.');
+            redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран|*.<BR>' .
+                '|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
         }
         
         if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
@@ -1112,6 +1133,20 @@ class core_Users extends core_Manager
         }
         
         return $userRec;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param stdObject $rec
+     * @param string $tpl
+     * @param string $subject
+     * @param string $act
+     */
+    public static function sendActivationLetter_($rec, $tpl = USERS_UNBLOCK_EMAIL, $subject = 'Отблокиране на потребител', $act = 'unblock')
+    {
+        
     }
     
     

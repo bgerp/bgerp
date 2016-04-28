@@ -23,13 +23,17 @@
                                     <tr>
                                        <td>
                                        	   <div><span class='quiet'>|Артикул|*</span>: [#productId#]</div>
+                                    	   <!--ET_BEGIN debitAmount-->
+                                       	   <div><span class='quiet'>|Себестойност|*</span>: [#debitAmount#]</div>
+                                       	   <!--ET_END debitAmount-->
+                                    	   
                                     	   <!--ET_BEGIN storeId-->
                                        	   <div><span class='quiet'>|Засклаждане в|*</span>: [#storeId#]</div>
                                        	   <!--ET_END storeId-->
-                                       	   <!--ET_BEGIN saleId-->
-                                       	   <div><span class='quiet'>|Извършена услуга по сделка|*</span>:[#saleId#]</div>
-                                       	   <!--ET_END saleId-->
-                                    	   <div><span class='quiet'>|К-во|*</span>: [#quantity#]</div>
+                                       	   <!--ET_BEGIN dealId-->
+                                       	   <div><span class='quiet'>|Извършена услуга по продажба|*</span>:[#dealId#]</div>
+                                       	   <!--ET_END dealId-->
+                                    	   <div><span class='quiet'>|Количество|*</span>: [#quantity#]</div>
                                     	   <!--ET_BEGIN expenses-->
                                     	   		<div><span class='quiet'>|Режийни разходи|*</span>: [#expenses#]</div>
                                     	   <!--ET_END expenses-->

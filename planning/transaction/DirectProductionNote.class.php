@@ -36,12 +36,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		);
 	
 		// Ако има ид, добавяме записите
-		if(isset($rec->id)){
+		//if(isset($rec->id)){
 			$entries = $this->getEntries($rec, $result->totalAmount);
 			if(count($entries)){
 				$result->entries = $entries;
 			}
-		}
+		//}
 		
 		return $result;
 	}
@@ -93,38 +93,38 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		$pInfo = cat_Products::getProductInfo($rec->productId);
 		$canStore = isset($pInfo->meta['canStore']) ? TRUE : FALSE;
 		
-		$dQuery = planning_DirectProductNoteDetails::getQuery();
-		$dQuery->where("#noteId = {$rec->id}");
-		$dQuery->orderBy('id,type', 'ASC');
-		$dRecs = $dQuery->fetchAll();
-		
 		if($canStore === TRUE){
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$saleRec = sales_Sales::fetch($rec->saleId);
+			$doc = doc_Containers::getDocument($rec->dealId);
+			$saleRec = $doc->fetch();
 			$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
-								  array('sales_Sales', $rec->saleId),
+								  array($doc->getInstance()->className, $doc->that),
 								  array('cat_Products', $rec->productId));
+		}
+		
+		$dRecs = array();
+		if(isset($rec->id)){
+			$dQuery = planning_DirectProductNoteDetails::getQuery();
+			$dQuery->where("#noteId = {$rec->id}");
+			$dQuery->orderBy('id,type', 'ASC');
+			$dRecs = $dQuery->fetchAll();
 		}
 		
 		if(is_array($dRecs)){
 			
 			if(!count($dRecs) && empty($rec->inputStoreId)){
-				$amount = cat_Products::getWacAmountInStore($rec->quantity, $rec->productId, $rec->valior);
-				if(!$amount){
-					$amount = cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity, $rec->valior);
-				}
-				if(!$amount){
-					$amount = 0;
-				}
-				$costAmount = $amount;
+				$rec->debitAmount = ($rec->debitAmount) ? $rec->debitAmount : 0;
+				
+				$amount = $rec->debitAmount;
+				$costAmount = $rec->debitAmount;
 				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
 							   'debit' => $array,
 							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-				$total += $amount;
+				//$total += $amount;
 					
 				$entries[] = $entry;
 			} else {
@@ -154,18 +154,26 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				foreach ($dRecs as $dRec1){
 				
 					$sign = ($dRec1->type == 'input') ? 1 : -1;
-					$productInfo = cat_Products::getProductInfo($dRec1->productId);
-				
-					// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
-					if(isset($productInfo->meta['canStore'])){
-						$primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $rec->valior);
+					
+					if($dRec1->type == 'input'){
+						$productInfo = cat_Products::getProductInfo($dRec1->productId);
+						
+						// Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
+						if(isset($productInfo->meta['canStore'])){
+							$primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $rec->valior);
+						} else {
+							$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
+						}
+						
+						$sign = 1;
 					} else {
-						$primeCost = planning_ObjectResources::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $rec->valior);
+						$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, NULL, $rec->valior);
+						$sign = -1;
 					}
+					
 					if(!$primeCost){
 						$primeCost = 0;
 					}
-					
 					
 					$pAmount = $sign * $primeCost;
 					$costAmount += $pAmount;
@@ -200,7 +208,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			}
 			
 			// Ако има режийни разходи, разпределяме ги
-			if(isset($rec->expenses)){// bp($costAmount);
+			if(isset($rec->expenses)){
 				$costAmount = $costAmount * $rec->expenses;
 				$costAmount = round($costAmount, 2);
 				
@@ -217,7 +225,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						'credit' => array('61102'),
 						'reason' => 'Разпределени режийни разходи');
 					
-				//$total += abs($costAmount);
 				$entries[] = $costArray;
 			}
 		}
