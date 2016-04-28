@@ -36,12 +36,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		);
 	
 		// Ако има ид, добавяме записите
-		if(isset($rec->id)){
+		//if(isset($rec->id)){
 			$entries = $this->getEntries($rec, $result->totalAmount);
 			if(count($entries)){
 				$result->entries = $entries;
 			}
-		}
+		//}
 		
 		return $result;
 	}
@@ -93,11 +93,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		$pInfo = cat_Products::getProductInfo($rec->productId);
 		$canStore = isset($pInfo->meta['canStore']) ? TRUE : FALSE;
 		
-		$dQuery = planning_DirectProductNoteDetails::getQuery();
-		$dQuery->where("#noteId = {$rec->id}");
-		$dQuery->orderBy('id,type', 'ASC');
-		$dRecs = $dQuery->fetchAll();
-		
 		if($canStore === TRUE){
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
@@ -107,6 +102,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('703', array($saleRec->contragentClassId, $saleRec->contragentId),
 								  array($doc->getInstance()->className, $doc->that),
 								  array('cat_Products', $rec->productId));
+		}
+		
+		$dRecs = array();
+		if(isset($rec->id)){
+			$dQuery = planning_DirectProductNoteDetails::getQuery();
+			$dQuery->where("#noteId = {$rec->id}");
+			$dQuery->orderBy('id,type', 'ASC');
+			$dRecs = $dQuery->fetchAll();
 		}
 		
 		if(is_array($dRecs)){
