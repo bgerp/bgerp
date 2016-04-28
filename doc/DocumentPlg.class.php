@@ -1241,8 +1241,9 @@ class doc_DocumentPlg extends core_Plugin
             setIfNot($data->singleTitle, $mvc->singleTitle);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
-                list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title = tr(mb_strtolower($data->singleTitle)) . $in . $t;
+            	$firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
+            	$form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id);
+            	unset($title);
             }
         }
        
