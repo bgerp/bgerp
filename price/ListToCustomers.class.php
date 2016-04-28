@@ -84,6 +84,12 @@ class price_ListToCustomers extends core_Detail
     
 
     /**
+     * Предлог в формата за добавяне/редактиране
+     */
+    public $formTitlePreposition = 'за';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
