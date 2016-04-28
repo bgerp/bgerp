@@ -41,12 +41,6 @@ class fconv_Remote extends core_Manager
     
     
     /**
-     * Ключ, който ще се използва за криптиране на връзката
-     */
-    public static $remoteKey = 'REMOTE_KEY';
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -120,7 +114,7 @@ class fconv_Remote extends core_Manager
     {
         $filesArr = self::prepareConvertedFiles($script);
         
-        $files = urlencode(core_Crypt::encodeVar($filesArr, self::$remoteKey));
+        $files = urlencode(core_Crypt::encodeVar($filesArr, fconv_Setup::get('SALT')));
         $cUrl = $script->remoteAfterConvertCallback . '&files=' . $files;
         
         return file_get_contents($cUrl);
@@ -361,7 +355,7 @@ class fconv_Remote extends core_Manager
         
         expect(core_Locks::get($script, self::$lockTime));
         
-        $scriptObj = core_Crypt::decodeVar($script, self::$remoteKey);
+        $scriptObj = core_Crypt::decodeVar($script, fconv_Setup::get('SALT'));
         
         expect($scriptObj);
         
@@ -398,7 +392,7 @@ class fconv_Remote extends core_Manager
         
         $rRec = fconv_Processes::fetch(array("#processId = '[#1#]'", $pid));
         
-        $filesArr = core_Crypt::decodeVar($files, self::$remoteKey);
+        $filesArr = core_Crypt::decodeVar($files, fconv_Setup::get('SALT'));
         
         expect($filesArr !== FALSE);
         

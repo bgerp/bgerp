@@ -20,6 +20,12 @@ defIfNot('FCONV_USE_TIME_LIMIT', "no");
 
 
 /**
+ * "Подправка" за кодиране на fconv
+ */
+defIfNot('FCONV_SALT', md5(EF_SALT . '_FCONV'));
+
+
+/**
  * Конвертиране на файлове
  *
  * @category  vendors
