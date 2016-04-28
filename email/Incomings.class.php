@@ -684,6 +684,7 @@ class email_Incomings extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
+        $haveErr = FALSE;
         if(!$rec->subject) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
@@ -718,6 +719,7 @@ class email_Incomings extends core_Master
             if ($rec->AllTo && $rec->headers) {
                 if (!self::checkNamesInEmails($rec->AllTo)) {
                     $row->AllTo = self::addErrToEmailStr($row->AllTo, $errEmailInNameStr, 'error');
+                    $haveErr = TRUE;
                 }
             
                 if ($clostStr = $mvc->getClosestEmail($rec->AllTo)) {
@@ -733,6 +735,7 @@ class email_Incomings extends core_Master
             if ($rec->AllCc && $rec->headers) {
                 if (!self::checkNamesInEmails($rec->AllCc)) {
                     $row->AllCc = self::addErrToEmailStr($row->AllCc, $errEmailInNameStr,'error');
+                    $haveErr = TRUE;
                 }
                 
                 if ($clostStr = $mvc->getClosestEmail($rec->AllCc)) {
@@ -747,6 +750,7 @@ class email_Incomings extends core_Master
             if (trim($rec->fromEml) && $rec->headers) {
                 if (!self::checkNamesInEmails(array(array('address' => $rec->fromEml, 'name' => $rec->fromName)))) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, $errEmailInNameStr, 'error');
+                    $haveErr = TRUE;
                 }
             }
             
@@ -764,6 +768,7 @@ class email_Incomings extends core_Master
                     }
                     
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: " . $rEmailsStr, 'warning');
+                    $haveErr = TRUE;
                 }
             }
             
@@ -773,6 +778,7 @@ class email_Incomings extends core_Master
                 // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
+                    $haveErr = TRUE;
                 }
             }
         }
@@ -792,6 +798,16 @@ class email_Incomings extends core_Master
                 $row->fromEml->append(' (' . trim($row->fromName) . ')');
             } else {
                 $row->fromEml .= ' (' . trim($row->fromName) . ')';
+            }
+        }
+
+
+        if ($haveErr) {
+            if ($row->fromEml instanceof core_ET) {
+                $row->fromEml->prepend('<span class="textWithIcons">');
+                $row->fromEml->append('</span>');
+            } else {
+                $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
             }
         }
     }
@@ -863,16 +879,19 @@ class email_Incomings extends core_Master
     protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
         $hint = 'Възможен проблем|*!';
+
         
         if ($type != 'warning') {
             $hint = "Възможност за измама|*! |Проверете по още един канал данните при превод на пари|*.";
             $type = '/img/24/danger.png';
+        } else {
+            $type = '/img/24/warning.png';
         }
         
         $hint .= " |" . $errStr;
         
         
-        return ht::createHint($emailStr, $hint, $type);
+        return  ht::createHint($emailStr, $hint, $type);
     }
     
     
