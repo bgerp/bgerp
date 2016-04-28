@@ -876,7 +876,7 @@ class core_Html
     	if($appendToEnd === TRUE){
     		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
     	} else {
-    		$elementTpl = "<span class=''class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+    		$elementTpl = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
     	}
     	
     	$hint = str_replace("'", '"', $hint);

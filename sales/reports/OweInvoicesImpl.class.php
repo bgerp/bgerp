@@ -440,7 +440,8 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 	    
 		if ($rec->number) {
 			$number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-			$row->number = ht::createLink($number,array('sales_Invoices','single', $rec->invId),FALSE, array('ef_icon' => 'img/16/invoice.png'));
+			$url = toUrl(array('sales_Invoices','single', $rec->invId),'absolute');
+			$row->number = ht::createLink($number,$url,FALSE, array('ef_icon' => 'img/16/invoice.png'));
 		}
 
 		$row->amountVat = $Double->toVerbal($rec->amountVat);

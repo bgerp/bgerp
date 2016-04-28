@@ -312,7 +312,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 							'creditAmount'   => 'Кредит->Сума',
 							'blQuantity'     => 'Остатък->К-во',
 							'blAmount'       => 'Остатък->Сума',);
-		
+
 		switch ($data->rec->step){
 			case 'day':
 				$dateCaption = 'Ден';
@@ -322,6 +322,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				break;
 			case 'month':
 				$dateCaption = 'Месец';
+				break;
 			case 'year':
 				$dateCaption = 'Години';
 				break;
@@ -403,7 +404,8 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				if($canSeeHistory){
 					$histUrl['fromDate'] = $rec->from;
 					$histUrl['toDate'] = $rec->to;
-					$row->date = ht::createLink('', $histUrl, NULL, $attr) . " {$row->date}";
+					
+					$row->date = ht::createLink('', toUrl($histUrl,'absolute'), NULL, $attr) . " {$row->date}";
 				}
 				
 				$data->rows[] = $row;

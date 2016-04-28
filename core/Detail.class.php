@@ -260,7 +260,7 @@ class core_Detail extends core_Manager
      */
     function prepareEditTitle_($data)
     {
-    	$data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id);
+    	$data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
     }
     
     
@@ -273,10 +273,15 @@ class core_Detail extends core_Manager
      * @param int $masterId       - ид на мастъра
      * @param string $singleTitle - еденично заглавие
      * @param int|NULL $recId     - ид на записа, ако има
+     * @param string $preposition - предлог
      * @return string $title      - заглавието на формата на 'Детайла'
      */
-    public static function getEditTitle($master, $masterId, $singleTitle, $recId)
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL)
     {
+    	if(!$preposition){
+    		$preposition = 'към';
+    	}
+    	
     	$MasterMvc = cls::get($master);
     	$masterTitle = $MasterMvc->getTitleById($masterId);
     	$masterTitle = str::limitLen($masterTitle, 32);
@@ -287,10 +292,10 @@ class core_Detail extends core_Manager
     	}
     	 
     	if ($singleTitle) {
-    		$single = ' на| ' . mb_strtolower($singleTitle) . '|';
+    		$single = ' на| ' . mb_strtolower($singleTitle);
     	}
     	 
-    	$title = ($recId) ? "Редактиране{$single} в" : "Добавяне{$single} към";
+    	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
     	$title .= "|* <b style='color:#ffffcc;'>" . $masterTitle . "</b>";
     	
     	return $title;

@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
@@ -26,6 +25,7 @@ defIfNot('EF_MODE_SESSION_VAR', 'pMode');
  */
 class core_Mode
 {
+    
     
     /**
      * Масив в който се записват runtime стойностите на параметрите
@@ -192,5 +192,7 @@ class core_Mode
     static function destroy()
     {
         core_Session::set(EF_MODE_SESSION_VAR, NULL);
+        self::$mode = NULL;
+        self::$stack = array();
     }
 }
