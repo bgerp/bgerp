@@ -168,6 +168,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
+		$this->FLD('debitAmount', 'double(smartRound)', 'input=none');
 		
 		$this->setDbIndex('productId');
 	}
@@ -273,6 +274,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			batch_Defs::appendBatch($rec->productId, $rec->batch, $batch);
 			$row->batch = cls::get('type_RichText')->toVerbal($batch);
 		}
+		
+		if(isset($rec->debitAmount)){
+			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+			$row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
+		}
 	}
 	
 	
@@ -309,6 +315,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 								$requiredRoles = 'no_one';
 							}
 						}
+					}
+				}
+			}
+		}
+		
+		if($action == 'adddebitamount'){
+			$requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
+			if($requiredRoles != 'no_one'){
+				if(isset($rec)){
+					if(planning_DirectProductNoteDetails::fetch("#noteId = {$rec->id}")){
+						$requiredRoles = 'no_one';
 					}
 				}
 			}
@@ -537,13 +554,67 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$rec = $data->rec;
 	
 		if($rec->state == 'active'){
-			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
-				$bomUrl = array($mvc, 'createBom', $data->rec->id);
-				$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+			if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}")){
+				if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
+					$bomUrl = array($mvc, 'createBom', $data->rec->id);
+					$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+				}
+			}
+		}
+		
+		if($data->toolbar->hasBtn('btnConto')){
+			if($mvc->haveRightFor('adddebitamount', $rec)){
+				$data->toolbar->removeBtn('btnConto');
+				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
 			}
 		}
 	}
 	
+	
+	/**
+	 * Екшън изискващ подаване на себестойност, когато се опитваме да произведем артикул
+	 * без да сме специфицирали неговите материали
+	 * 
+	 * @return unknown
+	 */
+	public function act_addDebitAmount()
+	{
+		// Проверка на параметрите
+		$this->requireRightFor('adddebitamount');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetch($id));
+		$this->requireRightFor('adddebitamount', $rec);
+		
+		$form = cls::get('core_Form');
+		$url = $this->getSingleUrlArray($id);
+		$docTitle = ht::createLink($this->getTitleById($id), $url, FALSE, "ef_icon={$this->singleIcon},class=linkInTitle");
+		
+		// Подготовка на формата
+		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
+		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
+		$form->FLD('debitAmount', 'double(Min=0)', 'caption=Себестойност,mandatory');
+		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+		$form->setField('debitAmount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+		$form->input();
+		
+		if($form->isSubmitted()){
+			
+			// Ъпдейъваме подадената себестойност
+			$rec->debitAmount = $form->rec->debitAmount;
+			$this->save($rec, 'debitAmount');
+			
+			// Редирект към екшъна за контиране
+			redirect($this->getContoUrl($id));
+		}
+		
+		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		
+		$tpl = $form->renderHtml();
+		$tpl = $this->renderWrapping($tpl);
+		
+		return $tpl;
+	}
 	
 	/**
 	 * Екшън създаващ нова рецепта по протокола
@@ -600,16 +671,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		$rec = static::fetchRec($rec);
 		
-		if(empty($rec->inputStoreId)){
+		if(isset($rec->id)){
+			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'");
+			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'");
+			if($pop && !$input){
 			
-			return TRUE;
-		} elseif(isset($rec->id)) {
-			if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'")){
-				
-				return TRUE;
+				return FALSE;
 			}
 		}
 		
-		return FALSE;
+		return TRUE;
 	}
 }

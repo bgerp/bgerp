@@ -115,20 +115,16 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		if(is_array($dRecs)){
 			
 			if(!count($dRecs) && empty($rec->inputStoreId)){
-				$amount = cat_Products::getWacAmountInStore($rec->quantity, $rec->productId, $rec->valior);
-				if(!$amount){
-					$amount = cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity, $rec->valior);
-				}
-				if(!$amount){
-					$amount = 0;
-				}
-				$costAmount = $amount;
+				$rec->debitAmount = ($rec->debitAmount) ? $rec->debitAmount : 0;
+				
+				$amount = $rec->debitAmount;
+				$costAmount = $rec->debitAmount;
 				$array['quantity'] = $rec->quantity;
 				
 				$entry = array('amount' => $amount,
 							   'debit' => $array,
 							   'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-				$total += $amount;
+				//$total += $amount;
 					
 				$entries[] = $entry;
 			} else {

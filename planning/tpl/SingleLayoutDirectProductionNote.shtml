@@ -23,6 +23,10 @@
                                     <tr>
                                        <td>
                                        	   <div><span class='quiet'>|Артикул|*</span>: [#productId#]</div>
+                                    	   <!--ET_BEGIN debitAmount-->
+                                       	   <div><span class='quiet'>|Себестойност|*</span>: [#debitAmount#]</div>
+                                       	   <!--ET_END debitAmount-->
+                                    	   
                                     	   <!--ET_BEGIN storeId-->
                                        	   <div><span class='quiet'>|Засклаждане в|*</span>: [#storeId#]</div>
                                        	   <!--ET_END storeId-->
