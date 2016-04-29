@@ -417,8 +417,9 @@ class cms_Articles extends core_Master
             }
  
             // Добавя канонично URL
-            $url = toUrl(self::getUrl($rec, TRUE), 'absolute');
-            $content->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+            $url = self::getUrl($rec, TRUE);
+            $url = toUrl($url, 'absolute');
+            cms_Content::addCanonicalUrl($url, $content);
         }
         
         // Страницата да се кешира в браузъра за 1 час
@@ -584,9 +585,9 @@ class cms_Articles extends core_Master
 
         if($lang == 'bg' || $lang == 'en') {
             $lang = ucfirst($lang);
-            $res = array($lang, $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+            $res = array($lang, $rec->vid ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
         } else {
-            $res = array('A', 'a', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+            $res = array('A', 'a', $rec->vid ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
         }
 
         return $res;
