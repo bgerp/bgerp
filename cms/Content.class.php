@@ -557,4 +557,18 @@ class cms_Content extends core_Manager
         }
     }
 
+
+    /**
+     * Добавя към шаблона каноничното URL
+     */
+    public static function addCanonicalUrl($url, $tpl) 
+    {   
+        
+        $selfUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . rtrim($_SERVER['HTTP_HOST'], '/') . '/' . ltrim($_SERVER['REQUEST_URI'], '/');
+ 
+        if($url != $selfUrl) {
+            $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\">", 'HEAD');
+        }
+    }
+
  }

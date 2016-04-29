@@ -402,8 +402,10 @@ class blogm_Articles extends core_Master {
         }
 
         // Добавя канонично URL
-        $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
-        $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        $url = self::getUrl($data->rec, TRUE);
+        $url = toUrl($url, 'absolute');
+        
+        cms_Content::addCanonicalUrl($url, $tpl);
         
 		return $tpl;
 	}
@@ -1029,7 +1031,7 @@ class blogm_Articles extends core_Master {
      */
     static function getUrl($rec, $canonical = FALSE)
     {
-        $res = array('A', 'B', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        $res = array('A', 'B', $rec->vid ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
 
         return $res;
     }
