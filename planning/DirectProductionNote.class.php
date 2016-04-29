@@ -42,7 +42,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * , acc_plg_Contable
 	 */
 	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank, deals_plg_SelectDeal';
 	
 	
 	/**
@@ -129,13 +129,29 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'valior, title=Документ, productId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, productId, quantity=К-во, storeId=В склад,dealId=По сделка, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	public $hideListFieldsIfEmpty = 'deadline';
+	public $hideListFieldsIfEmpty = 'deadline,dealId,storeId';
+	
+	
+	/**
+	 * След кое поле да се покаже секцията за избор на сделка
+	 *
+	 * @see deals_plg_SelectDeal
+	 */
+	public $selectDealAfterField = 'expenses';
+	
+	
+	/**
+	 * От кои класове на сделки може да се избира
+	 *
+	 * @see deals_plg_SelectDeal
+	 */
+	public $selectedDealClasses = 'sales_Sales';
 	
 	
 	/**
@@ -151,8 +167,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
 		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses');
-		$this->FLD('saleId', 'key(mvc=sales_Sales,select=id)', 'caption=Сделка,input=none,before=inputStoreId');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
+		$this->FLD('debitAmount', 'double(smartRound)', 'input=none');
 		
 		$this->setDbIndex('productId');
 	}
@@ -196,12 +212,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$productInfo = cat_Products::getProductInfo($form->rec->productId);
 		
-		if(!isset($productInfo->meta['canStore'])){
-			$form->setField('saleId', 'input,mandatory,caption=Извършена услуга->По сделка,before=inputStoreId');
+		if(isset($productInfo->meta['canStore'])){
+			$form->setField('contragentFolderId', 'input=none');
+			$form->setField('dealHandler', 'input=none');
+			$form->setField('dealId', 'input=none');
+		} else {
+			$form->setField('dealHandler', 'mandatory');
 			$form->setField('storeId', 'input=none');
-			
-			$saleOptions = cls::get('sales_Sales')->makeArray4Select(NULL, "#state = 'active'", 'id');
-			$form->setOptions('saleId', array('' => '') + $saleOptions);
+		}
+	}
+	
+	
+	/**
+	 * Проверява хендлъра дали може да се избере
+	 *
+	 * @param core_Mvc $mvc  - класа
+	 * @param string $error  - текста на грешката
+	 * @param string $handle - хендлъра на сделката
+	 * @param stdClass $rec  - текущия запис
+	 */
+	public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
+	{
+		if($error) return $error;
+		$doc = doc_Containers::getDocumentByHandle($handle);
+		if(!$doc->isInstanceOf('sales_Sales')){
+			$error = 'Трябва да е избрана активна продажба';
 		}
 	}
 	
@@ -218,9 +253,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($form->isSubmitted()){
 			$productInfo = cat_Products::getProductInfo($form->rec->productId);
 			if(!isset($productInfo->meta['canStore'])){
-				unset($rec->storeId);
+				$rec->storeId = NULL;
 			} else {
-				unset($rec->saleId);
+				$rec->dealId = NULL;
 			}
 		}
 	}
@@ -240,8 +275,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$row->batch = cls::get('type_RichText')->toVerbal($batch);
 		}
 		
-		if(isset($rec->saleId)){
-			$row->saleId = sales_Sales::getLink($rec->saleId, 0);
+		if(isset($rec->debitAmount)){
+			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+			$row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
 		}
 	}
 	
@@ -279,6 +315,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 								$requiredRoles = 'no_one';
 							}
 						}
+					}
+				}
+			}
+		}
+		
+		if($action == 'adddebitamount'){
+			$requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
+			if($requiredRoles != 'no_one'){
+				if(isset($rec)){
+					if(planning_DirectProductNoteDetails::fetch("#noteId = {$rec->id}")){
+						$requiredRoles = 'no_one';
 					}
 				}
 			}
@@ -494,6 +541,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$origin = doc_Containers::getDocument($rec->originId);
 			
 			planning_Jobs::updateProducedQuantity($origin->that);
+			doc_DocumentCache::threadCacheInvalidation($rec->threadId);
 		}
 	}
 
@@ -506,13 +554,67 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$rec = $data->rec;
 	
 		if($rec->state == 'active'){
-			if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
-				$bomUrl = array($mvc, 'createBom', $data->rec->id);
-				$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+			if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}")){
+				if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'originId' => $rec->originId))){
+					$bomUrl = array($mvc, 'createBom', $data->rec->id);
+					$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+				}
+			}
+		}
+		
+		if($data->toolbar->hasBtn('btnConto')){
+			if($mvc->haveRightFor('adddebitamount', $rec)){
+				$data->toolbar->removeBtn('btnConto');
+				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
 			}
 		}
 	}
 	
+	
+	/**
+	 * Екшън изискващ подаване на себестойност, когато се опитваме да произведем артикул
+	 * без да сме специфицирали неговите материали
+	 * 
+	 * @return unknown
+	 */
+	public function act_addDebitAmount()
+	{
+		// Проверка на параметрите
+		$this->requireRightFor('adddebitamount');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetch($id));
+		$this->requireRightFor('adddebitamount', $rec);
+		
+		$form = cls::get('core_Form');
+		$url = $this->getSingleUrlArray($id);
+		$docTitle = ht::createLink($this->getTitleById($id), $url, FALSE, "ef_icon={$this->singleIcon},class=linkInTitle");
+		
+		// Подготовка на формата
+		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
+		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
+		$form->FLD('debitAmount', 'double(Min=0)', 'caption=Себестойност,mandatory');
+		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+		$form->setField('debitAmount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+		$form->input();
+		
+		if($form->isSubmitted()){
+			
+			// Ъпдейъваме подадената себестойност
+			$rec->debitAmount = $form->rec->debitAmount;
+			$this->save($rec, 'debitAmount');
+			
+			// Редирект към екшъна за контиране
+			redirect($this->getContoUrl($id));
+		}
+		
+		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		
+		$tpl = $form->renderHtml();
+		$tpl = $this->renderWrapping($tpl);
+		
+		return $tpl;
+	}
 	
 	/**
 	 * Екшън създаващ нова рецепта по протокола
@@ -569,16 +671,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		$rec = static::fetchRec($rec);
 		
-		if(empty($rec->inputStoreId)){
+		if(isset($rec->id)){
+			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'");
+			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'");
+			if($pop && !$input){
 			
-			return TRUE;
-		} elseif(isset($rec->id)) {
-			if(planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'")){
-				
-				return TRUE;
+				return FALSE;
 			}
 		}
 		
-		return FALSE;
+		return TRUE;
 	}
 }

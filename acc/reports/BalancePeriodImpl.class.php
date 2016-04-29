@@ -498,7 +498,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
    	    $bId = acc_Balances::fetchField("#periodId={$rec->period}", 'id');
    	    
    	    if (acc_Balances::haveRightFor('single', $bId)){
-   	        $row->periodId = ht::createLink($row->periodId, array('acc_Balances', 'single', $bId), FALSE, "ef_icon=img/16/table_sum.png, title = Към баланса за {$row->periodId}");
+   	        $row->periodId = ht::createLink($row->periodId, toUrl(array('acc_Balances', 'single', $bId),'absolute'), FALSE, "ef_icon=img/16/table_sum.png, title = Към баланса за {$row->periodId}");
    	    }
    	    
    	    foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){

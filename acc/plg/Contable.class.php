@@ -91,11 +91,16 @@ class acc_plg_Contable extends core_Plugin
         }
         
         try {
+        	// Подсигуряваме се че записа е пълен
+        	$tRec = clone $rec;
+        	if(isset($rec->id)){
+        		$oldRec = $mvc->fetch($rec->id);
+        		$tRec = (object)arr::fillMissingKeys($tRec, $oldRec);
+        	}
+        	
             // Дали документа може да се активира
-            $canActivate = $mvc->canActivate($rec);
-            
-            // Извличане на транзакцията
-            $transaction = $mvc->getValidatedTransaction($rec);
+            $canActivate = $mvc->canActivate($tRec);
+            $transaction = $mvc->getValidatedTransaction($tRec);
             
             // Ако има валидна транзакция
             if($transaction !== FALSE){
@@ -113,6 +118,10 @@ class acc_plg_Contable extends core_Plugin
             }
         } catch (acc_journal_Exception $ex) {
             $rec->isContable = 'no';
+        }
+       
+        if($rec->id){
+        	$mvc->save_($rec, 'isContable');
         }
     }
     
@@ -177,7 +186,7 @@ class acc_plg_Contable extends core_Plugin
         $journalRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
         
         if(($rec->state == 'active' || $rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
-            $journalUrl = array('acc_Journal', 'single', $journalRec->id);
+            $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
             $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
         }
     }

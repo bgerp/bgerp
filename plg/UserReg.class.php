@@ -12,9 +12,9 @@ defIfNot('USERREG_CACHE_TYPE', 'UserReg');
  */
 defIfNot('USERREG_THANK_FOR_REG_MSG',
     "Благодарим Ви за регистрациятa|*!" .
-    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Access activation\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|*
-    [#EF_APP_TITLE#] ." . "<br><br>|Поздрави от екипа!");
+    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Активация на потребител\"|*." .
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* [#EF_APP_TITLE#] ." .
+    "<br><br>|Поздрави от екипа!");
 
 
 /**
@@ -22,45 +22,45 @@ defIfNot('USERREG_THANK_FOR_REG_MSG',
  */
 defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
     "Заявката за смяната на паролата е приета|*!" .
-    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
-    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|*
-    [#EF_APP_TITLE#] ." . "<br><br>|Поздрави от екипа!");
+    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Промяна на парола\"|*." .
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* [#EF_APP_TITLE#] ." .
+    "<br><br>|Поздрави от екипа!");
 
 
 /**
  * Писмо до потребителя за активация
  */
 defIfNot('USERREG_ACTIVATION_EMAIL',
-    "|\nDear |*[#names#]|," .
+    "\n|Уважаеми|* [#names#]|," .
     "\n" .
-    "\nThank you for your registration." .
+    "\n|Благодарим за регистрацията Ви|*." .
     "\n" .
-    "\nTo setup your password, please use following URL:" .
+    "\n|За да активирате акаунта си, моля следвайте следния линк|*:" .
     "\n" .
-    "\n|*[#url#]|" .
+    "\n[#url#]" .
     "\n" .
-    "\nThe above URL will expired after [#regLifetime#] days." .
+    "\n|Линка ще изтече в|* [#regLifetime#]." .
     "\n" .
-    "\nRegards," .
-    "\n|*[#senderName#]|");
+    "\n|Поздрави|*," .
+    "\n[#senderName#]");
 
 
 /**
  * Писмо до потребителя за смяна на паролата
  */
 defIfNot('USERREG_RESET_PASS_EMAIL',
-    "\nDear [#names#]," .
+    "\n|Уважаеми|* [#names#]," .
     "\n" .
-    "\nWe have received request about reseting your password." .
+    "\n|Получихме заявка за промяна на паролата Ви|*." .
     "\n" .
-    "\nTo setup new password, please use following URL:" .
+    "\n|За да промените паролата, моля използвайте следния линк|*:" .
     "\n" .
     "\n[#url#]" .
     "\n" .
-    "\nThe above URL will expired after [#regLifetime#] days." .
+    "\n|Линка ще изтече в|* [#regLifetime#]." .
     "\n" .
-    "\nRegards," .
-    "\n|*[#senderName#]");
+    "\n|Поздрави|*," .
+    "\n[#senderName#]");
 
 
 /**
@@ -136,6 +136,29 @@ class plg_UserReg extends core_Plugin
     {
     	$conf = core_Packs::getConfig('core');
     	
+    	if ($act == 'activate' || $act == 'changepass' || ($act == 'unblock')) {
+    	    expect($id = Request::get('id', 'identifier'));
+    	    
+    	    $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
+    	    
+    	    if (!$userId || (!$rec = $mvc->fetch($userId))) {
+    	        redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
+    	    }
+    	    
+    	    // Проверка дали състоянието съответства на действието
+    	    if ($rec->state != 'draft' && $act == 'activate') {
+    	        redirect(array('Index'), FALSE, '|Този акаунт е вече активиран.', 'error');
+    	    }
+    	    
+    	    if ($rec->state == 'draft' && $act == 'changePass') {
+    	        redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.', 'error');
+    	    }
+    	    
+    	    if ($rec->state != 'blocked' && $act == 'unblock') {
+                redirect(array('Index'), FALSE, '|Този акаунт вече е бил отблокиран.', 'error');
+    	    }
+    	}
+    	
         if ($act == 'registernewuser') {
             
             $mvc->requireRightFor('registernewuserout');
@@ -190,9 +213,10 @@ class plg_UserReg extends core_Plugin
                     $mvc->save($rec);
                     
                     core_LoginLog::add('user_reg', $rec->id);
+                    $mvc->logLogin('Регистриране на потребител', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    if($this->sendActivationLetter($rec) == FALSE) {
+                    if ($mvc->sendActivationLetter($rec, USERREG_ACTIVATION_EMAIL, 'Активация на потребител', 'activate') == FALSE) {
                         redirect(array('Index'), FALSE, "За съжеление възникна грешка и не успяхме да изпратим имейла за активиране. Опитайте по-късно или се свържете със системния администратор", 'error');
                     }
                     
@@ -233,23 +257,6 @@ class plg_UserReg extends core_Plugin
             
             return FALSE;
         } elseif ($act == 'activate' || $act == 'changepass') {
-            
-            expect($id = Request::get('id', 'identifier'));
-            
-            $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
-            
-            if (!$userId || (!$rec = $mvc->fetch($userId))) {
-                redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
-            }
-            
-            // Проверка дали състоянието съответства на действието
-            if ($rec->state != 'draft' && $act == 'activate') {
-                redirect(array('Index'), FALSE, '|Този акаунт е вече активиран.', 'error');
-            }
-            
-            if ($rec->state == 'draft' && $act == 'changePass') {
-                redirect(array('Index'), FALSE, '|Този акаунт все още не е активиран.', 'error');
-            }
             
             $form = cls::get('core_Form');
             
@@ -327,8 +334,10 @@ class plg_UserReg extends core_Plugin
                     
                     if ($act == 'activate') {
                         core_LoginLog::add('user_activate', $rec->id);
+                        $mvc->logLogin('Активиране на потребител', $rec->id);
                     } else {
                         core_LoginLog::add('pass_change', $rec->id);
+                        $mvc->logLogin('Промяна на парола', $rec->id);
                     }
                     
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
@@ -380,9 +389,10 @@ class plg_UserReg extends core_Plugin
                     $rec = $mvc->fetch($id);
                     
                     core_LoginLog::add('pass_reset', $rec->id);
+                    $mvc->logLogin('Ресетване на парола', $rec->id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    if($this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass') == FALSE) {
+                    if ($mvc->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Промяна на парола', 'changePass') == FALSE) {
                         redirect(array('Index'), FALSE, "За съжеление възникна грешка и не успяхме да изпратим имейла за възстановяване на паролата. Опитайте по-късно или се свържете със системния администратор", 'error');
                     }
                     
@@ -412,6 +422,18 @@ class plg_UserReg extends core_Plugin
             $content = $form->renderHtml("email,captcha", $rec);
             
             return FALSE;
+        } elseif ($act == 'unblock') {
+            
+            $rec->state = isset($rec->exState) ? $rec->exState : 'active';
+                
+            $mvc->save($rec);
+            
+            $mvc->logLogin('Отблокиран потребител', $rec->id);
+            core_LoginLog::add('unblock', $rec->id);
+            
+            core_Cache::remove(USERREG_CACHE_TYPE, $id);
+
+            redirect(array('Index'), TRUE, '|Успешно отблокирахте потребителя');
         }
     }
     
@@ -467,10 +489,21 @@ class plg_UserReg extends core_Plugin
     
     /**
      * Изпращане на писмо за активиране на сметкатa
+     * 
+     * @param core_Users $mvc
+     * @param NULL|boolean $res
+     * @param stdObject $rec
+     * @param string $tpl
+     * @param string $subject
+     * @param string $act
      */
-    function sendActivationLetter_($rec, $tpl = USERREG_ACTIVATION_EMAIL, $subject = 'Account activation', $act = 'activate')
+    public static function on_AfterSendActivationLetter($mvc, &$res, $rec, $tpl = USERS_UNBLOCK_EMAIL, $subject = 'Отблокиране на потребител', $act = 'unblock')
     {
-        $h = core_Cache::set('UserReg', str::getRand(), $rec->id, USERS_DRAFT_MAX_DAYS * 60 * 24);
+        $subject = tr($subject);
+        
+        cls::load('core_Users');
+        
+        $h = core_Cache::set(USERREG_CACHE_TYPE, str::getRand(), $rec->id, USERS_DRAFT_MAX_DAYS * 60 * 24);
         
         // Търсим корпоративна сметка, ако има такава
         $corpAcc = email_Accounts::getCorporateAcc();
@@ -480,15 +513,20 @@ class plg_UserReg extends core_Plugin
         } else {
             $PML = cls::get('phpmailer_Instance', array('emailTo' =>$rec->email));
         }
-
         
         $rec1 = clone ($rec);
         
         setIfNot($rec1->url, toUrl(array('core_Users', $act, $h), 'absolute'));
         
-        setIfNot($rec1->senderName, PML_FROM_NAME);
+        setIfNot($rec1->senderName, phpmailer_Setup::get('PML_FROM_NAME', TRUE));
         
-        setIfNot($rec1->regLifetime, USERS_DRAFT_MAX_DAYS);
+        $expireDate = dt::addDays(USERS_DRAFT_MAX_DAYS);
+        $dt = cls::get('type_Datetime');
+        $expireDate = $dt->toVerbal($expireDate);
+        
+        setIfNot($rec1->regLifetime, $expireDate);
+        
+        setIfNot($rec1->EF_APP_TITLE, EF_APP_TITLE);
         
         $tpl = new ET($tpl);
         
@@ -503,7 +541,5 @@ class plg_UserReg extends core_Plugin
         $PML->AddAddress($rec->email);
         
         $res = $PML->Send();
-
-        return $res;
     }
 }

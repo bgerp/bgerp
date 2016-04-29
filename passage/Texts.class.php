@@ -108,9 +108,25 @@ class passage_Texts extends core_Manager
     }
 
 
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     * @internal param string $requiredRoles
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action == 'add') {
+            if (Mode::get('dialogOpened')) {
+                $res = 'no_one';
+            }
+        }
 
-
-
+    }
     /**
      * Извиква се преди рендирането на 'опаковката' на мениджъра
      *
@@ -144,7 +160,6 @@ class passage_Texts extends core_Manager
      */
     function renderDialog_($tpl)
     {
-
         return $tpl;
     }
 
@@ -190,26 +205,32 @@ class passage_Texts extends core_Manager
 //            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
             $title = ht::createLink($rec->title, '#', FALSE, $attr);
 
-//            $string= str_replace("\n", ' ', $rec->body);
-//            $string = str::limitLen($string, 100);
+            $string = str_replace(array("\r", "\n"), array('', ' '), $rec->body);
 
-            //$string = $mvc->getVerbal($rec, 'body');
+            Mode::set('text', 'plain');
+
+            $string =  $mvc->fields['body']->type->toVerbal($string);
+            Mode::push('text');
+            $rec->title = str::limitLen($title, 100);
+
+            $string = substr_replace($string, "[hide=Още]", 0, 0);
+            $string = substr_replace($string, "[/hide]", strlen($string), 0);
+            $string =  $mvc->fields['body']->type->toVerbal($string);
             $createdOn = $mvc->getVerbal($rec, 'createdOn');
             $createdBy = $mvc->getVerbal($rec, 'createdBy');
 
-            $row->body = $title . "<br>" . $row->body . "<br>" . $createdOn . ' - ' . $createdBy;
-//            bp($row);
+            $row->body = $title . "<br>" . $string  . $createdOn . ' - ' . $createdBy;
         }
     }
 
 
     /**
- * Извиква се преди подготовката на колоните ($data->listFields)
- *
- * @param core_Mvc $mvc
- * @param object $res
- * @param object $data
- */
+    * Извиква се преди подготовката на колоните ($data->listFields)
+    *
+    * @param core_Mvc $mvc
+    * @param object $res
+    * @param object $data
+    */
     static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         // Ако е отворен в диалоговия прозорец

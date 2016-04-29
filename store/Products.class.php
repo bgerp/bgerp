@@ -136,7 +136,7 @@ class store_Products extends core_Manager
 	        if($rec->quantityNotOnPallets > 0){
 	        	if($makePallets){
 	        		core_RowToolbar::createIfNotExists($row->_rowTools);
-	        		$row->_rowTools->addLink('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/box.png,title=Палетиране на продукт');
+	        		$row->_rowTools->addLink('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/box.png,title=Палетиране на артикул');
 	        	}
 	        }
         }
@@ -153,8 +153,9 @@ class store_Products extends core_Manager
     {
     	// Подготвяме формата
     	cat_Products::expandFilter($data->listFilter);
-    	$orderOptions = arr::make('alphabetic=Азбучно,last=Последно добавени,private=Нестандартни,closed=Изчерпани');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
     	$data->listFilter->setOptions('order', $orderOptions);
+		$data->listFilter->setDefault('order', 'standard');
     	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
@@ -193,16 +194,21 @@ class store_Products extends core_Manager
         	// Подредба
         	if(isset($rec->order)){
         		switch($data->listFilter->rec->order){
-        			case 'last':
-        				$data->query->orderBy('#productCreatedOn=DESC');
-        				break;
-        			case 'private':
+        			case 'all':
+        				$data->query->orderBy('#state,#name');
+						break;
+		        	case 'private':
         				$data->query->where("#isPublic = 'no'");
-        				break;
+        				$data->query->orderBy('#state,#name');
+						break;
+					case 'last':
+			      		$data->query->orderBy('#createdOn=DESC');
+		        		break;
         			case 'closed':
         				$data->query->where("#state = 'closed'");
         				break;
         			default :
+        				$data->query->where("#isPublic = 'yes'");
         				$data->query->orderBy('#state,#name');
         				break;
         		}
@@ -336,6 +342,13 @@ class store_Products extends core_Manager
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+    	if(!core_Packs::isInstalled('pallet')){
+    		unset($data->listFields['quantityNotOnPallets']);
+    		unset($data->listFields['quantityOnPallets']);
+    		$data->listFields['quantity'] = 'Количество';
+    	}
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	
     	// Тулбара го преместваме преди състоянието
     	if(isset($data->listFields['_rowTools'])){
     		$field = $data->listFields['_rowTools'];

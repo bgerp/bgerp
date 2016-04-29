@@ -54,7 +54,7 @@ class acc_plg_Registry extends core_Plugin
     /**
      * След запис
      */
-    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    public static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
     	$added = FALSE;
     	

@@ -3143,6 +3143,17 @@ div.location.public {
   .email-class h3 {
     margin: 10px 0 12px; }
 
+.textWithIcons {
+  display: inline-block;
+  margin-bottom: -12px; }
+  .textWithIcons a,
+  .textWithIcons span {
+    float: left;
+    margin-right: 5px; }
+  .textWithIcons span {
+    position: relative;
+    top: -3px !important; }
+
 .state-error-email {
   background-color: #f3bbaf; }
 

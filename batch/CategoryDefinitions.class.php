@@ -32,13 +32,20 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Заглавие
      */
-    public $singleTitle = 'Партида на категория';
+    public $singleTitle = 'Партидност към категория';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools';
+    public $loadList = 'plg_RowTools,cat_Wrapper';
+    
+    
+    /**
+     * Активен таб
+     */
+    public $currentTab = 'Категории';
+    
     
     
     /**
@@ -83,6 +90,16 @@ class batch_CategoryDefinitions extends embed_Manager {
     function description()
     {
     	$this->FLD('categoryId', 'key(mvc=cat_Categories, select=name)', 'caption=Категория,silent,mandatory,input=hidden');
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle('cat_Categories', $rec->categoryId, $mvc->singleTitle, $rec->id, ' ');
     }
     
     
@@ -135,7 +152,12 @@ class batch_CategoryDefinitions extends embed_Manager {
     	$tpl = getTplFromFile('batch/tpl/CategoryDefinitionDetail.shtml');
         $title = tr('Партидност на артикулите');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$tpl->placeObject($data->row);
+    	
+    	if(is_object($data->row)){
+    		$tpl->placeObject($data->row);
+    	} else {
+    		$tpl->append(tr("Няма запис"), 'CONTENT');
+    	}
     	
     	$tpl->append($title, 'title');
     	if(isset($data->addUrl)){
