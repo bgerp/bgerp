@@ -72,6 +72,8 @@ class cms_Domains extends core_Embedder
     
     // Админа може да редактира и изтрива създадените от системата записи
     public $canEditsysdata = 'admin';
+
+
     public $canDeletesysdata = 'admin';
 
 	/**
@@ -145,8 +147,6 @@ class cms_Domains extends core_Embedder
         // Език
         $this->FLD('lang', 'varchar(2)', 'caption=Език');
         
-        // Споделяне
-        $this->FLD('shared', 'userList(roles=cms|admin|ceo)', 'caption=Споделяне');
 
         // Singleton клас - източник на данните
         $this->FLD('theme', 'class(interface=cms_ThemeIntf, allowEmpty, select=title)', 'caption=Кожа,silent,mandatory,notFilter,refreshForm');
@@ -156,8 +156,21 @@ class cms_Domains extends core_Embedder
 
         // Извлечените данни за отчета. "Снимка" на състоянието на източника.
         $this->FLD('state', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
+        
+        // Споделяне
+        $this->FLD('shared', 'userList(roles=cms|admin|ceo)', 'caption=Споделяне');
 
         $this->setDbUnique('domain,lang');
+
+        // SEO Заглавие
+        $this->FLD('seoTitle', 'varchar(15)', 'caption=SEO->Title,autohide');
+        
+        // SEO Описание
+        $this->FLD('seoDescription', 'text(255,rows=3)', 'caption=SEO->Description,autohide');
+        
+        // SEO Ключови думи
+        $this->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,autohide');
+
     }
 
 
@@ -237,6 +250,10 @@ class cms_Domains extends core_Embedder
                 $domainRec->actualDomain = $domain;
         
                 Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+
+                if($domainRec->id) {
+                    self::selectCurrent($domainRec->id);
+                }
             }
         }
               
@@ -521,6 +538,15 @@ class cms_Domains extends core_Embedder
 
 
     /**
+     * Унищожава кеша след запис
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+        Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, NULL);
+    }
+
+
+    /**
      * Поне един домейн
      */
     function on_AfterSetupMVC()
@@ -530,6 +556,23 @@ class cms_Domains extends core_Embedder
             $rec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'bg');
             self::save($rec);
         }
+    }
+
+
+    /**
+     * Връща SEO залгавието за текущия домейн
+     */
+    public static function getSeoTitle()
+    {
+        $rec = self::getPublicDomain();
+
+        if($rec->seoTitle) {
+            $res = self::getVerbal($rec, 'seoTitle');
+        } else {
+            $res = core_Setup::get('EF_APP_TITLE', TRUE);
+        }
+
+        return $res;
     }
 
 

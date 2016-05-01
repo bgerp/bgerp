@@ -385,7 +385,11 @@ class blogm_Articles extends core_Master {
        
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
-		$tpl->prepend($data->ogp->siteInfo['Title'] . ' » ', 'PAGE_TITLE');
+        
+        $rec = clone($data->rec);
+        setIfNot($rec->seoTitle, $data->ogp->siteInfo['Title']);
+        cms_Content::setSeo($tpl, $rec);
+
 
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
@@ -601,10 +605,7 @@ class blogm_Articles extends core_Master {
 
         // Рендираме списъка
         $tpl = $this->renderBrowse($data);
-        
-        // Поставяме титлата
-        $tpl->prepend( strip_tags($data->title) . ' » ', 'PAGE_TITLE');
-
+     
         // Добавяме стиловете от темата
         $tpl->push($data->ThemeClass->getStyles(), 'CSS');
 
@@ -612,6 +613,9 @@ class blogm_Articles extends core_Master {
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
         $tpl->append($ogpHtml);
         
+        $row = (object) array('seoTitle' => $data->title);
+        cms_Content::setSeo($tpl, $row);
+
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->title ? str_replace('&nbsp;', ' ', strip_tags($data->title)) : tr('БЛОГ'));
         }
