@@ -62,7 +62,7 @@ class type_Richtext extends type_Blob
     /**
      * Шаблон за намиране на цитати в текст
      */
-    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#mis";
+    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#misu";
     
     
     /**
