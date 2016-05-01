@@ -1815,16 +1815,16 @@ function moveCursorToEnd(el) {
  * @param form
  */
 function addCmdRefresh(form) {
-
-	if(typeof form.elements["Cmd[refresh]"] != 'undefined') {
-		form.elements["Cmd[refresh]"].value = 1;
-	} else {
-		var input = document.createElement("input");
-		input.setAttribute("type", "hidden");
-		input.setAttribute("name", "Cmd[refresh]");
-		input.setAttribute("value", "1");
-		form.appendChild(input);
-	}
+	
+	// Премахва Cmd дефиниции
+	$('[name^="Cmd[default]"]').remove();
+	$('[name^="Cmd[refresh]"]').remove();
+ 
+	var input = document.createElement("input");
+	input.setAttribute("type", "hidden");
+	input.setAttribute("name", "Cmd[refresh]");
+	input.setAttribute("value", "1");
+	form.appendChild(input);
 }
 
 
