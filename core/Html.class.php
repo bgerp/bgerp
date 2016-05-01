@@ -24,6 +24,15 @@ class core_Html
     {   
         $attrStr = '';
 
+        if($name == 'img') {
+            if(!is_array($attributes)) {
+                $attributes = array();
+            }
+            if(!isset($attributes['alt'])) {
+                $attributes['alt'] = '';   
+            }
+        }
+
         if ($name) {
 
             if (is_array($attributes)) {
@@ -45,6 +54,7 @@ class core_Html
                     
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";                 
                 }
+
             }
 
             if ( ( $body === NULL || $body === FALSE)  && !$closeTag) {
@@ -1094,7 +1104,7 @@ class core_Html
     /**
      * Прави dump на масив в html представяне
      */
-    public static function arrayToHtml($arr)
+    public static function arrayToHtml($arr, $openLevels = 3, $viewLevels = 5)
     {
         $result = '';
 
@@ -1110,7 +1120,7 @@ class core_Html
             } else {
                 $prefix = '';
             }
-            $result .= self::mixedToHtml($item, 3, 5, $prefix);
+            $result .= self::mixedToHtml($item, $openLevels, $viewLevels, $prefix);
             $result .= "</div>";
         }
 

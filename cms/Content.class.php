@@ -127,17 +127,10 @@ class cms_Content extends core_Manager
      */
     static function setLang($lang)
     {
-        cms_Domains::getPublicDomain(NULL, $lang);
-        
         core_Lg::set($lang, !haveRole('user'));
+        cms_Domains::getPublicDomain(NULL, $lang);
     }
 
-    function act_Migrate()
-    {
-        $s = cls::get('cms_Setup');
-        return $s->contentOrder111();
-    }
- 
 
     /**
      * Екшън за избор на език на интерфейса за CMS часта
@@ -568,6 +561,38 @@ class cms_Content extends core_Manager
  
         if($url != $selfUrl) {
             $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\">", 'HEAD');
+        }
+    }
+
+
+
+    /**
+     * Добавя параметрите за SEO оптимизация
+     */
+    public static function setSeo($content, $sRec)
+    {
+        expect(is_object($sRec), $sRec);
+ 
+        $rec = clone($sRec);
+
+        if($rec->seoTitle) {
+            $content->prependOnce(type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle)))) . " » ", 'PAGE_TITLE');
+        }
+
+        if(!$rec->seoDescription) {
+            $rec->seoDescription =  cms_Domains::getPublicDomain('seoDescription');
+        }
+        
+        if($rec->seoDescription) {
+            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription)))), 'META_DESCRIPTION');
+        }
+        
+        if(!$rec->seoKeywords) {
+            $rec->seoKeywords = cms_Domains::getPublicDomain('seoKeywords');
+        }
+
+        if($rec->seoKeywords) {
+            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords)))), 'META_KEYWORDS');
         }
     }
 

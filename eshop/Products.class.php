@@ -147,8 +147,31 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(3=3 количества,2=2 количества,1=1 количество,0=Без количество)', 'caption=Запитване->Брой количества');
-        
-		$this->setDbUnique('code');
+    }
+
+
+    /**
+     * Проверка за дублиран код
+     */
+    public static function on_AfterInputeditForm($mvc, $form)
+    {
+        if($form->isSubmitted()) {
+            
+            $rec = $form->rec;
+            
+            $query = self::getQuery();
+            $query->EXT('menuId', 'eshop_Groups', 'externalName=menuId,externalKey=groupId');
+            if($rec->id) {
+                $query->where("#id != {$rec->id}");
+            }
+
+            $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
+
+            if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = [#2#]", $rec->code, $menuId))) {
+                $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
+            }
+
+        }
     }
 
 
@@ -331,13 +354,19 @@ class eshop_Products extends core_Master
         $tpl = eshop_Groups::getLayout();
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
-        $tpl->prepend($data->row->name . ' » ', 'PAGE_TITLE');
+        $rec = clone($data->rec);
+        setIfNot($rec->seoTitle, $data->row->name);
+        if(!$rec->seoDescription) {
+            $rec->seoDescription = $this->getVerbal($rec, 'info');
+        }
+
+        cms_Content::setSeo($tpl, $rec);
 
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
-        $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        cms_Content::addCanonicalUrl($url, $tpl);
 
         
         // Страницата да се кешира в браузъра
@@ -481,6 +510,13 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        if($id = $data->form->rec->id) {
+            $rec = self::fetch($id);
+            $gRec = eshop_Groups::fetch($rec->groupId);
+            $cRec = cms_Content::fetch($gRec->menuId);
+            cms_Domains::selectCurrent($cRec->domainId);
+        }
+
     	$form = &$data->form;
     	
     	if($form->rec->coDriver){
