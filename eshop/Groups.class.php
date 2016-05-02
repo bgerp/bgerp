@@ -154,7 +154,12 @@ class eshop_Groups extends core_Master
         
         $classId = core_Classes::getId($mvc->className);
         $domainId = cms_Domains::getCurrent();
-        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}")) {
+        if($menuId = $data->form->rec->menuId) {
+            $cond = "(#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}) || (#id = $menuId)";
+        } else {
+            $cond = "#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}";
+        }
+        while($rec = $cQuery->fetch($cond)) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
