@@ -169,7 +169,7 @@ class select2_Plugin extends core_Plugin
         
         $tpl->append("<input type='hidden' name='{$name}[" . self::$hiddenName . "]' value=1>");
         
-        $select = ($attr['placeholder']) ? ($attr['placeholder']) : html_entity_decode('&darr;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         
         if ($invoker->params['allowEmpty']) {
             $allowClear = true;
