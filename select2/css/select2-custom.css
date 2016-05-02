@@ -103,6 +103,20 @@ span.all-users{
 .inputError + .select2 {
     border: 1px solid red;
 }
+.inputError + .select2 {
+    border: 1px solid red;
+}
+
+.inputAdvanced + .select2 > .selection > .select2-selection {
+    background-color:#dfd !important;
+}
+
+.select2-search__field {
+	    background-image: url('../../img/16/darrow.png') !important;
+	    background-repeat: no-repeat !important;
+	 	background-position: center right !important;
+	    padding-right: 1em;
+}
 
 .inputWarning + .select2{
     border: solid 1px #ff9900;
