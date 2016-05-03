@@ -101,7 +101,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     public function description()
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,refreshForm,silent');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,refreshForm,silent,tdClass=productCell leftCol wrap');
     	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
     	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=Количество,smartCenter');
     	$this->FLD('vat', 'percent', 'caption=ДДС,smartCenter');
