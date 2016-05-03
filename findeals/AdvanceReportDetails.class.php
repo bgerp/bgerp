@@ -44,7 +44,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering';
+    public $loadList = 'plg_RowTools2, plg_Created, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering';
     
     
     /**
@@ -86,13 +86,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,productId,activityCenterId,measureId=Мярка,quantity,description,amount=Сума';
-    
-        
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'RowNumb';
+    public $listFields = 'productId,activityCenterId,measureId=Мярка,quantity,description,amount=Сума';
     
     
 	/**
@@ -189,7 +183,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
     	$row->measureId = cat_UoM::getShortName($measureId);
     	
-    	$row->activityCenterId = hr_Departments::getShortHyperlink($rec->activityCenterId);
+    	$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
     	
     	$masterRec = $mvc->Master->fetch($rec->reportId);
     	$rec->amount /= $masterRec->rate;
@@ -220,5 +214,14 @@ class findeals_AdvanceReportDetails extends doc_Detail
     protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
     {
     	unset($data->listFields['description']);
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, &$data)
+    {
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
     }
 }
