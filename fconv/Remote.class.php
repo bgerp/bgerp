@@ -238,8 +238,8 @@ class fconv_Remote extends core_Manager
      */
     protected static function prepareRemoteCmdParams($scriptObj, $nScriptObj)
     {
-        foreach ($scriptObj->cmdParams as $place => $val) {
-            $nScriptObj->setParam($place, $val, FALSE);
+        foreach ($scriptObj->cmdParamsOrig as $place => $val) {
+            $nScriptObj->setParam($place, $val);
         }
     }
     
@@ -256,6 +256,8 @@ class fconv_Remote extends core_Manager
             
             // Ако няма да се добавя при отдалечено стартиране
             if ($scriptObj->lineParams[$key]['skipOnRemote']) continue;
+            
+            $val = $nScriptObj->getCmdLine($val, FALSE);
             
             $lineParam = str_replace($scriptObj->tempDir, $nScriptObj->tempDir, $scriptObj->lineParams[$key]);
             $nScriptObj->lineExec($val, $lineParam);
@@ -353,7 +355,7 @@ class fconv_Remote extends core_Manager
         
         expect($script);
         
-        expect(core_Locks::get($script, self::$lockTime));
+         expect(core_Locks::get($script, self::$lockTime));
         
         $scriptObj = core_Crypt::decodeVar($script, fconv_Setup::get('SALT'));
         
