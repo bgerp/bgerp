@@ -364,8 +364,6 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
-    	
     	if($fields['-single']){
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
     		
@@ -373,10 +371,12 @@ class findeals_Deals extends deals_DealBase
     			$row->secondContragentId = cls::get($rec->secondContragentClassId)->getHyperLink($rec->secondContragentId, TRUE);
     		}
 
-    		$lastBalance = acc_Balances::getLastBalance();
-    		if(acc_Balances::haveRightFor('single', $lastBalance)){
-    			$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
-    			$row->accountId = ht::createLink($row->accountId, $accUrl);
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    			$lastBalance = acc_Balances::getLastBalance();
+    			if(acc_Balances::haveRightFor('single', $lastBalance)){
+    				$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
+    				$row->accountId = ht::createLink($row->accountId, $accUrl);
+    			}
     		}
     	}
     	
