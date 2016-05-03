@@ -17,12 +17,6 @@ class bank_Accounts extends core_Master {
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    public $interfaces = 'acc_RegisterIntf';
-    
-    
-    /**
      * Заглавие
      */
     public $title = 'Всички сметки';
@@ -44,12 +38,6 @@ class bank_Accounts extends core_Master {
      * Кои полета да се показват в листовия изглед
      */
     public $listFields = 'iban, contragent=Контрагент, currencyId';
-    
-    
-    /**
-     * Поле за показване на пулта за редакция
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -163,7 +151,7 @@ class bank_Accounts extends core_Master {
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
-    	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'в');
+    	$data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'на');
     }
     
     
