@@ -391,7 +391,6 @@ class fconv_Script
         // Ако е зададена програма, може да се пусне скрипта отдалечено, на друг сървър
         // и да се чака резултат от там
         if (!$this->stopRemote) {
-//         if (!$this->stopRemote && !core_App::checkCurrentHostIsPrivate()) {
             foreach ($this->programs as $program => $programPath) {
                 if ($rRec = fconv_Remote::fetch(array("#command = '[#1#]'", $program))) {
                     

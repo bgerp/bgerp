@@ -63,7 +63,7 @@ class fconv_Remote extends core_Manager
     public static function canRunRemote($commandName)
     {
         
-        return (boolean)(!core_App::checkCurrentHostIsPrivate() && fconv_Remote::getRemoteCommand($commandName));
+        return (boolean)(fconv_Remote::getRemoteCommand($commandName));
     }
     
     
@@ -370,7 +370,6 @@ class fconv_Remote extends core_Manager
         
         $nScript->params = $scriptObj->params;
         $nScript->runAsynch = $scriptObj->runAsynch;
-        $nScript->stopRemote = TRUE;
         $nScript->callBack('fconv_Remote::afterRemoteConv');
         $nScript->remoteAfterConvertCallback = $scriptObj->remoteAfterConvertCallback;
         
@@ -419,22 +418,6 @@ class fconv_Remote extends core_Manager
         // Извикваме callBack функците, за съответната обработка
         foreach ($scriptObj->callBack as $cb) {
             fconv_Processes::runCallbackFunc($pid, $cb);
-        }
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            if (core_Url::isPrivate($form->rec->address)) {
-                $form->setError('address', 'Не може да добавите УРЛ от частна мрежа.');
-            }
         }
     }
     
