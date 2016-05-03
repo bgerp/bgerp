@@ -274,9 +274,11 @@ class core_Detail extends core_Manager
      * @param string $singleTitle - еденично заглавие
      * @param int|NULL $recId     - ид на записа, ако има
      * @param string $preposition - предлог
+     * @param integer $len        - максимална дължина на стринга
+     * 
      * @return string $title      - заглавието на формата на 'Детайла'
      */
-    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL)
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL, $len = 32)
     {
     	if(!$preposition){
     		$preposition = 'към';
@@ -284,7 +286,7 @@ class core_Detail extends core_Manager
     	
     	$MasterMvc = cls::get($master);
     	$masterTitle = $MasterMvc->getTitleById($masterId);
-    	$masterTitle = str::limitLen($masterTitle, 32);
+    	$masterTitle = str::limitLen($masterTitle, $len);
     	 
     	$url = $MasterMvc->getSingleUrlArray($masterId);
     	if(count($url)) {
