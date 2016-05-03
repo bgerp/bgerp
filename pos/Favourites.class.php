@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -19,61 +19,61 @@ class pos_Favourites extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Продукти за бързи бутони";
+    public $title = "Продукти за бързи бутони";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
 
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
+    public $listFields = 'productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * Заглавие на единичния обект
      */
-    var $rowToolsField = 'tools';
+    public $singleTitle = 'бърз бутон';
     
-	
+    
 	/**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo, pos';
+    public $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'ceo, pos';
+    public $canAdd = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, ceo';
+    public $canEdit = 'pos, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,pos';
+	public $canList = 'ceo,pos';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,pos';
+	public $canSingle = 'ceo,pos';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, pos';
+    public $canDelete = 'ceo, pos';
     
 	
 	/**
@@ -94,7 +94,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Извиква се след подготовката на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	
@@ -181,7 +181,7 @@ class pos_Favourites extends core_Manager {
     /**
      * След запис в модела
      */
-	public static function on_AfterSave($mvc, &$id, $rec)
+	protected static function on_AfterSave($mvc, &$id, $rec)
     {
     	// Инвалидираме кеша
     	$cPoint = pos_Points::getCurrent('id', NULL, FALSE);
