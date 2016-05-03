@@ -788,8 +788,12 @@ class distro_Files extends core_Detail
                 
                 try {
                     
+                    $repoRec = fileman_Repositories::fetch($repoId);
+                    
+                    if ($repoRec->state == 'rejected') continue;
+                    
                     // Вземаме всички достъпни файлове в хранилището, само от основната директория
-                    $reposFileArr = fileman_Repositories::retriveFiles($repoId, $subPath, FALSE, 0);
+                    $reposFileArr = fileman_Repositories::retriveFiles($repoRec, $subPath, FALSE, 0);
                 } catch (core_exception_Expect $e) {
                     
                     // Ако възникне грешка
