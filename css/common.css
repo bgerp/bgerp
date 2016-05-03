@@ -524,10 +524,25 @@ select {
 /*
  * височини на някои от елементите, за да няма разминавания при някои устройства
  */
+@-moz-document url-prefix() {
+    select {
+    -moz-appearance: none;
+    background-image: url('../img/16/darrow.png') !important;
+    background-repeat: no-repeat !important;
+    background-position: center right !important;
+    padding-right: 1em;
+    padding-left: 0.2em;
+    -webkit-border-radius: 0; }
+ }
 /*
  * reseting webkit differences
  */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
+@media screen and (-webkit-min-device-pixel-ratio:0),
+@media screen and (-ms-high-contrast: active),
+(-ms-high-contrast: none) {
+  select::-ms-expand {
+    display: none; }
+
   select {
     -webkit-appearance: none;
     background-image: url('../img/16/darrow.png') !important;
@@ -1319,6 +1334,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .inputError {
   border: solid 1px red; }
+
+form .inputAdvanced {
+  background-color: #ddffdd !important; }
 
 .inputWarning {
   border: solid 1px #ff9900; }
