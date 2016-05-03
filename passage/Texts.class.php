@@ -2,8 +2,7 @@
 
 
 /**
- * Пасаж
- *
+ * Модул Пасаж
  *
  * @category  bgerp
  * @package   passage
@@ -14,6 +13,8 @@
  */
 class passage_Texts extends core_Manager
 {
+
+
     /**
      * Заглавие
      */
@@ -25,7 +26,13 @@ class passage_Texts extends core_Manager
      */
     public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, passage_DialogWrapper";
 
+
+    /**
+     * Избор на полетата, по които може да се осъществи търсенето
+     */
     public $searchFields = "title, body";
+
+
     /**
      * Време за опресняване информацията при лист на събитията
      */
@@ -164,6 +171,14 @@ class passage_Texts extends core_Manager
     }
 
 
+    /**
+     * Промяна да дължината на заглавието
+     *
+     * @param $mvc
+     * @param $id
+     * @param $rec
+     * @param null $fields
+     */
     static function on_BeforeSave($mvc, &$id, &$rec, $fields = NULL)
     {
         if(empty($rec->title)){
@@ -172,6 +187,15 @@ class passage_Texts extends core_Manager
         }
     }
 
+
+    /**
+     *
+     * Поставянето на полета за търсене
+     *
+     * @param $mvc
+     * @param $data
+     *
+     */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $form = $data->listFilter;
@@ -195,6 +219,15 @@ class passage_Texts extends core_Manager
         $data->query->orderBy('#createdOn', 'DESC');
     }
 
+
+    /**
+     * Променяне на вида на прозореца при отварянето му като диалог
+     *
+     * @param $mvc
+     * @param $row
+     * @param $rec
+     * @param null $fields
+     */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         if (Mode::get('dialogOpened')) {
@@ -207,10 +240,11 @@ class passage_Texts extends core_Manager
 
             $string = str_replace(array("\r", "\n"), array('', ' '), $rec->body);
 
-            Mode::set('text', 'plain');
+            Mode::push('text', 'plain');
 
             $string =  $mvc->fields['body']->type->toVerbal($string);
-            Mode::push('text');
+
+            Mode::pop('text');
             $rec->title = str::limitLen($title, 100);
 
             $string = substr_replace($string, "[hide=Още]", 0, 0);
@@ -230,6 +264,8 @@ class passage_Texts extends core_Manager
     * @param core_Mvc $mvc
     * @param object $res
     * @param object $data
+     *
+     * @return bool false
     */
     static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
@@ -242,12 +278,8 @@ class passage_Texts extends core_Manager
             // Задаваме, кои полета да се показва
             $data->listFields['body'] = "Пасаж";
 
-
             // Да не се извикат останалите
             return FALSE;
         }
     }
-
-
-
 }
