@@ -811,7 +811,7 @@ class fileman_Repositories extends core_Master
     /**
      * Връща двумерен масив с всички папки и файловете в тях
      * 
-     * @param integer|stdObject $repositoryId - id на хранилището
+     * @param integer|stdObject $repoRec - id|rec на хранилището
      * @param string $subPath - Подпапка в хранилището
      * @param boolean $useFullPath - Да се използва целия файл до папката
      * @param integer $depth - Дълбочината на папката, до която ще се търси
@@ -821,27 +821,23 @@ class fileman_Repositories extends core_Master
      * mTime - Дата на модифициране на директорията
      * files - Файлове в директорията
      */
-    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE, $useMTimeFromFile=FALSE)
+    static function retriveFiles($repoRec, $subPath = '', $useFullPath=FALSE, $depth=FALSE, $useMTimeFromFile=FALSE)
     {
         // Ако е обект
-        if (is_object($repositoryId)) {
-            
-            // Използваме записа
-            $rec = $repositoryId;
-        } else {
-            
+        if (!is_object($repoRec)) {
+
             // Очакваме да е число
-            expect(is_numeric($repositoryId));
+            expect(is_numeric($repoRec));
             
             // Вземаме записа
-            $rec = static::fetch($repositoryId);
+            $repoRec = static::fetch($repoRec);
         }
         
         // Масива, който ще връщаме
         $res = array();
         
         // Вземаме пътя до поддиректорията на съответното репозитори
-        $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
+        $fullPath = static::getFullPath($repoRec->basePath, $repoRec->subPath);
         
         // Обединяваме с подадена поддиректория
         $fullPath = static::getFullPath($fullPath, $subPath);
@@ -852,7 +848,7 @@ class fileman_Repositories extends core_Master
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
             
         } catch (Exception $e) {
-            self::logNotice('Не може да се обходи директорията', $rec->id);
+            self::logNotice('Не може да се обходи директорията', $repoRec->id);
             
             return $res;
         }
@@ -922,7 +918,7 @@ class fileman_Repositories extends core_Master
             } else {
                 
                 // Ако няма да се игнорира файла
-                if (!static::isForIgnore($rec->ignore, $fileName)) {
+                if (!static::isForIgnore($repoRec->ignore, $fileName)) {
                     
                     // Вземаме времето
                     $mTime = $iterator->current()->getMTime();

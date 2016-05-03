@@ -435,7 +435,6 @@ class distro_Group extends core_Master
     {
         // Вземаме всички активни групи, подредени в обратен ред
         $query = static::getQuery();
-        $query->where('1=1');
         $query->where("#state = 'active'");
         $query->orderBy('id', 'DESC');
         
