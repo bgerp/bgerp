@@ -69,7 +69,7 @@ class drdata_Emails extends core_BaseClass
         }
         
         // Проверка на MX записа на домейна
-        list($user, $domain) = split('@', $email);
+        list($user, $domain) = explode('@', $email);
         
 //        if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
         if (($mxhosts = $this->mxAndARecordsValidate($domain)) === FALSE) {
