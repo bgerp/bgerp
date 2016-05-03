@@ -20,13 +20,13 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_AllocatedExpense';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=acc_transaction_AllocatedExpense';
     
     
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Корекции на стойности";
+    public $title = "Корекции на стойности";
     
     
     /**
@@ -38,26 +38,20 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, acc_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank ';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,
+                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices, bgerp_plg_Blank,deals_plg_SelectDeal';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "6.9|Счетоводни";
+    public $newBtnGroup = "6.9|Счетоводни";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-   public $listFields = "tools=Пулт, valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "valior, title=Документ, amount, dealOriginId=Сделка->Основна, correspondingDealOriginId=Сделка->Кореспондент, state, createdOn, createdBy";
     
     
     /**
@@ -82,12 +76,6 @@ class acc_AllocatedExpenses extends core_Master
      * Заглавие на единичен документ
      */
     public $singleTitle = 'Корекция на стойности';
-    
-    
-    /**
-     * Икона на единичния изглед
-     */
-    //var $singleIcon = 'img/16/money_add.png';
     
     
     /**
@@ -133,6 +121,30 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
+     * Поле в което ще се записва контейнера на избраната сделка
+     * 
+     * @see deals_plg_SelectDeal
+     */
+    public $selectedDealOriginFieldName = 'correspondingDealOriginId';
+    
+    
+    /**
+     * След кое поле да се покаже секцията за избор на сделка
+     *
+     * @see deals_plg_SelectDeal
+     */
+    public $selectDealAfterField = 'allocateBy';
+    
+    
+    /**
+     * От кои класове на сделки може да се избира
+     *
+     * @see deals_plg_SelectDeal
+     */
+    public $selectedDealClasses = 'findeals_Deals,purchase_Purchases';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -144,9 +156,6 @@ class acc_AllocatedExpenses extends core_Master
     	
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
-    	$this->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Кореспондираща сделка->Контрагент,refreshForm,silent,input');
-    	$this->FNC('dealHandler', 'varchar', 'caption=Кореспондираща сделка->Номер,silent,input,hint=Въведете хендлър на документ');
-    	$this->FLD('correspondingDealOriginId', 'int', 'input=none,tdClass=leftColImportant');
     	
     	// Функционално поле за избор на артикули
     	$this->FNC('chosenProducts', 'text', 'caption=Корекция на стойността на->Артикули,mandatory,input');
@@ -155,9 +164,16 @@ class acc_AllocatedExpenses extends core_Master
     	$this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
     	
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
-    	
+    }
+    
+    
+    /**
+     * Извиква се след описанието на модела
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
     	// Поставяне на уникален индекс
-    	$this->setDbIndex('correspondingDealOriginId');
+    	$mvc->setDbIndex('correspondingDealOriginId');
     }
     
     
@@ -168,13 +184,12 @@ class acc_AllocatedExpenses extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->dealOriginId = $firstDoc->getLink(0);
-    	$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
     	$row->baseCurrencyCode = $rec->currencyId;
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
@@ -241,7 +256,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * След рендиране на единичния изглед
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	if(!count($data->rec->productsData)) return;
     	
@@ -313,28 +328,14 @@ class acc_AllocatedExpenses extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
     	$form->setDefault('valior', dt::today());
     	
-    	if(isset($rec->id)){
-    		if($rec->correspondingDealOriginId){
-    			$corespondent = doc_Containers::getDocument($rec->correspondingDealOriginId);
-    			$form->setDefault('dealHandler', $corespondent->getHandle());
-    		}
-    	}
-    	
     	// Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
     	expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
-    	$form->setOptions('contragentFolderId', array('' => '') + doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf'));
-
-    	// Ако има избрана папка на контрагент, зареждаме всички достъпни сделки като предложение
-    	if(isset($rec->contragentFolderId)){
-    		$suggestions = $mvc->getContragentDealSuggestions($rec->contragentFolderId);
-    		$form->setSuggestions('dealHandler', $suggestions);
-    	}
     	
     	// Намираме имали артикули, на които да се разпределят разходите
     	$products = $mvc->getChosenProducts($firstDoc);
@@ -455,44 +456,28 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
-     * Подготвяме предложенията за избор на сделки на контрагент
+     * Проверява хендлъра дали може да се избере
      * 
-     * @param int $folderId - папка на контрагента
-     * @return array $suggestions - масив с предложенията
+     * @param core_Mvc $mvc  - класа
+     * @param string $error  - текста на грешката
+     * @param string $handle - хендлъра на сделката
+     * @param stdClass $rec  - текущия запис
      */
-    private function getContragentDealSuggestions($folderId)
+    public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
     {
-    	$suggestions = array();
+    	if($error) return $error;
     	
-    	$after = dt::addMonths(-3, dt::today());
-    	$after = dt::verbal2mysql($after, FALSE);
-    	
-    	// За всички финансови сделки и покупки
-    	foreach (array('findeals_Deals', 'purchase_Purchases') as $cls){
-    		$Cls = cls::get($cls);
-    		
-    		// Намираме тези в папката на контрагента за един месец назад
-    		$fQuery = $Cls->getQuery();
-    		$fQuery->where("#folderId = {$folderId}");
-    		$fQuery->where("#state = 'active'");
-    		$fQuery->where("#createdOn >= '{$after}'");
-    		
-    		// За всеки запис подготвяме опциите показвайки за име вида 'хендлър / дата / сума валута'
-    		while($fRec = $fQuery->fetch()){
-    			$handle = $Cls->getHandle($fRec->id);
-    			$date = dt::mysql2verbal($fRec->{$Cls->filterDateField}, "d.m.Y");
-    			$amount = round($fRec->amountDeal / $fRec->currencyRate, 2);
-    		
-    			$suggestions[$handle] = "{$handle} / {$date} / $amount {$fRec->currencyId}";
+    	$firstDocumentHandle = doc_Threads::getFirstDocument($rec->threadId)->getHandle();
+    	if($rec->dealHandler && $rec->dealHandler != $firstDocumentHandle){
+    		$doc = doc_Containers::getDocumentByHandle($handle);
+    		if($doc){
+    			 
+    			// и да може да бъде избрана
+    			if(!$mvc->checkCorespondingDocument($doc)){
+    				$error = 'Трябва да е избрана активна финансова сделка или покупка само с услуги';
+    			}
     		}
     	}
-    	
-    	// Връщаме предложенията
-    	if(count($suggestions)){
-    		$suggestions = array('' => '') + $suggestions;
-    	}
-    	
-    	return $suggestions;
     }
     
     
@@ -502,7 +487,7 @@ class acc_AllocatedExpenses extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -528,23 +513,6 @@ class acc_AllocatedExpenses extends core_Master
     			
     			 // Намираме документа по хендлъра
     			 $doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
-    			 if(isset($doc) && !$doc->haveRightFor('single')){
-    			 	unset($doc);
-    			 }
-    			 
-    			 // Трябва да има такава сделка
-    			 if($doc){
-    			 	
-    			 	// и да може да бъде избрана
-    			 	if(!$mvc->checkCorespondingDocument($doc)){
-    			 		$form->setError('dealHandler', 'Трябва да е избрана активна финансова сделка или покупка само с услуги');
-    			 	}
-    			 } else {
-    			 	
-    			 	// Не може да е въведена невалидна сделка
-    			 	$form->setError('dealHandler', 'Няма сделка с такъв номер');
-    			 	return;
-    			 }
     		}
     		
     		$correpspondingContainerId = $doc->fetchField('containerId');
@@ -754,7 +722,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec)){
     		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);

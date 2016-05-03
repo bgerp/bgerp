@@ -41,7 +41,7 @@ class csv_tests_Lib extends unit_Class
     /**
      * Създава csv
      */
-    static function test_createCsv($recs, core_FieldSet $fieldSet, $listFields = NULL, $mode = array())
+    static function test_createCsv($mvc)
     {
         $format['length'] = 0;
         $format['delimiter'] = ',';
@@ -74,6 +74,8 @@ class csv_tests_Lib extends unit_Class
         
         $caption = array_slice ($resArr, 0, 1);
         $restData = array_slice ($resArr, 1, count($resArr)-1);
+        
+        $listFields = array();
         
         foreach ($caption as $header) {
             foreach (range(0, 9) as $i){

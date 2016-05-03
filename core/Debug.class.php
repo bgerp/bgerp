@@ -87,6 +87,18 @@ class core_Debug
 
 
     /**
+     * При дъмп - колко нива преглеждаме
+     */
+    public static $dumpOpenLevels = 3;
+    
+    
+    /**
+     * При дъмп - колко нива са отворени
+     */
+    public static $dumpViewLevels = 5;
+
+
+    /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}
@@ -495,7 +507,7 @@ class core_Debug
         // Дъмп
         if(!empty($state['dump'])) {
             $data['tabNav'] .= ' <li><a href="#">Дъмп</a></li>';
-            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::arrayToHtml($state['dump']) . '</div>';
+            $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Html::arrayToHtml($state['dump'], self::$dumpOpenLevels, self::$dumpViewLevels) . '</div>';
         }
 
         // Подготовка на стека

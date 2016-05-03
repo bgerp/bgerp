@@ -559,6 +559,8 @@ class core_Type extends core_BaseClass
             $size =  $this->params[0];
         }
 
+        if(is_array($this->options)) $size *= 1.1;
+
         if($size > 0 && $size <= 13) {
             $wClass = 'w25';
         } elseif($size > 0 && $size <= 35) {

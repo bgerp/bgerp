@@ -36,7 +36,16 @@ class cms_VerbalIdPlg extends core_Plugin
         // Добавяне на необходимите полета
         $this->fieldName = $mvc->vidFieldName ? $mvc->vidFieldName : 'vid';
         
-        $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=Вербално ID, column=none, width=100%');
+        $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=SEO->Вербално ID, column=none, width=100%,autohide=any');
+        
+        // SEO Заглавие
+        $mvc->FLD('seoTitle', 'varchar(64)', 'caption=SEO->Title,column=none, width=100%,autohide');
+        
+        // SEO Описание
+        $mvc->FLD('seoDescription', 'text(255,rows=3)', 'caption=SEO->Description,column=none, width=100%,autohide');
+        
+        // SEO Ключови думи
+        $mvc->FLD('seoKeywords', 'text(255,rows=3)', 'caption=SEO->Keywords,column=none, width=100%,autohide');
 
         $mvc->setDbUnique($this->fieldName);
         

@@ -154,7 +154,12 @@ class eshop_Groups extends core_Master
         
         $classId = core_Classes::getId($mvc->className);
         $domainId = cms_Domains::getCurrent();
-        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}")) {
+        if($menuId = $data->form->rec->menuId) {
+            $cond = "(#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}) || (#id = $menuId)";
+        } else {
+            $cond = "#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}";
+        }
+        while($rec = $cQuery->fetch($cond)) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
@@ -242,10 +247,9 @@ class eshop_Groups extends core_Master
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
 
-
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
-        $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        cms_Content::addCanonicalUrl($url, $layout);
         
         // Колко време страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
@@ -404,9 +408,12 @@ class eshop_Groups extends core_Master
                 $all->append($tpl);
             }
         }
+
+        $rec = new stdClass();  
+        $rec->seoTitle = tr('Всички продукти');
         
-        $all->prepend(tr('Всички продукти') . ' » ', 'PAGE_TITLE');
-        
+        cms_Content::setSeo($all, $rec);
+   
         return $all;
     }
     
@@ -421,7 +428,9 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
-        $groupTpl->prepend($data->row->name . ' » ', 'PAGE_TITLE');
+        setIfNot($data->rec->seoTitle, $data->rec->name);
+
+        cms_Content::setSeo($groupTpl, $data->rec);
         
         return $groupTpl;
     }

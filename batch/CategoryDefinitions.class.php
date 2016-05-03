@@ -32,7 +32,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Заглавие
      */
-    public $singleTitle = 'Партида на категория';
+    public $singleTitle = 'Партидност към категория';
     
     
     /**
@@ -90,6 +90,16 @@ class batch_CategoryDefinitions extends embed_Manager {
     function description()
     {
     	$this->FLD('categoryId', 'key(mvc=cat_Categories, select=name)', 'caption=Категория,silent,mandatory,input=hidden');
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle('cat_Categories', $rec->categoryId, $mvc->singleTitle, $rec->id, ' ');
     }
     
     

@@ -114,6 +114,7 @@ class core_LoginLog extends core_Manager
 									used_timestamp=Използван timestamp,
 									error=Грешка,
 									block=Блокиран,
+									unblock=Отблокиране,
 									reject=Оттеглен,
 									draft=Чернова,
 									user_reg=Регистриране,
