@@ -37,7 +37,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Заглавие на единичния обект
      */
-    public $singleTitle = 'бърз бутон';
+    public $singleTitle = 'Бърз бутон';
     
     
 	/**
