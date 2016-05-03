@@ -240,10 +240,11 @@ class passage_Texts extends core_Manager
 
             $string = str_replace(array("\r", "\n"), array('', ' '), $rec->body);
 
-            Mode::set('text', 'plain');
+            Mode::push('text', 'plain');
 
             $string =  $mvc->fields['body']->type->toVerbal($string);
-            Mode::push('text');
+
+            Mode::pop('text');
             $rec->title = str::limitLen($title, 100);
 
             $string = substr_replace($string, "[hide=Още]", 0, 0);
