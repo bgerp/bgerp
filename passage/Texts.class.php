@@ -13,6 +13,8 @@
  */
 class passage_Texts extends core_Manager
 {
+
+
     /**
      * Заглавие
      */
@@ -24,7 +26,13 @@ class passage_Texts extends core_Manager
      */
     public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, passage_DialogWrapper";
 
+
+    /**
+     * Избор на полетата, по които може да се осъществи търсенето
+     */
     public $searchFields = "title, body";
+
+
     /**
      * Време за опресняване информацията при лист на събитията
      */
