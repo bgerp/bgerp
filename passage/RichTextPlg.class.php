@@ -15,6 +15,7 @@
 class passage_RichTextPlg extends core_Plugin
 {
 
+
     /**
      * Добавя бутон за качване на документ
      *
@@ -36,7 +37,6 @@ class passage_RichTextPlg extends core_Plugin
 
             // Ако е мобилен/тесем режим
             if(Mode::is('screenMode', 'narrow')) {
-
                 // Парамтери към отварянето на прозореца
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             } else {
@@ -51,7 +51,6 @@ class passage_RichTextPlg extends core_Plugin
 
             // Бутон за отвяряне на прозореца
             $addPassage = new ET("<a class=rtbutton title='" . tr("Добавяне на пасаж ") . "' onclick=\"{$js}\">" . tr("Пасаж") . "</a>");
-
 
             // JS функцията
             $callback = "function {$callbackName}(passage) {
