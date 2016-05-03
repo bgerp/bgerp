@@ -133,11 +133,13 @@ class plg_State2 extends core_Plugin
                     array('style' => "text-align:center;"), $row->state);
 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-
+                $singleTitle = tr($mvc->singleTitle);
+                $singleTitle = mb_strtolower($singleTitle);
+                
                 if($rec->state == $this->activeState) {
-                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/lightbulb_off.png');
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb_off.png,title=Деактивиране на|* {$singleTitle}");
                 } else {
-                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/lightbulb.png');
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb.png,title=Активиране на|* {$singleTitle}");
                 }
 
             }
