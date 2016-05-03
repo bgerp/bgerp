@@ -57,7 +57,7 @@ class core_ProtoSetup
     /**
      * Стойности на константите за конфигурацията на пакета
      */
-    static $conf;
+    static $conf = array();
 
 
     /**
@@ -304,12 +304,12 @@ class core_ProtoSetup
      */
     public static function getConfig()
     {
-        if(!self::$conf) {
-            $packName = self::getPackName();
-            self::$conf = core_Packs::getConfig($packName);
+        $packName = self::getPackName();
+        if(!isset(self::$conf[$packName])) {
+            self::$conf[$packName] = core_Packs::getConfig($packName);
         }
         
-        return self::$conf;
+        return self::$conf[$packName];
     }
 
 
