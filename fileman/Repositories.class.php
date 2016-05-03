@@ -852,7 +852,7 @@ class fileman_Repositories extends core_Master
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
             
         } catch (Exception $e) {
-            self::logWarning('Не може да се обходи директорията', $rec->id);
+            self::logNotice('Не може да се обходи директорията', $rec->id);
             
             return $res;
         }
