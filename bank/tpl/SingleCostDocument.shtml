@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <div class='display-table'>
-            <table class='border-table'>
+            <table class='innerTable border-table paddingCells'>
                 <tr>
                     <td class='top-head'>
                         <b>|Платец|*</b>
