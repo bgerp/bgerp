@@ -535,13 +535,17 @@ class core_Type extends core_BaseClass
 
         if(!$size && !$this->maxFieldSize && is_array($options)) {
             $this->maxFieldSize = 1;
+            $i = 1;
             foreach($options as $opt) {
                 if(is_object($opt)) {
                     $title = $opt->title;
                 } else {
                     $title = $opt;
                 }
+                list($title,) = explode('||', $title);
+
                 $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
+                if($i++ > 100) break;
             }
             $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
         }

@@ -249,15 +249,6 @@ class store_Receipts extends store_DocumentMaster
         
         return $tpl->getContent();
     }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Складова разписка|* №") . $rec->id;
-    }
     
     
 	/**

@@ -1638,6 +1638,10 @@ td.formElement {
     }
 }
 
+.wide .vertical select.w100 {
+    width: 32em !important;
+}
+
 .narrow .vertical .formFields  {
 	 .w100 {
        width: 100%;

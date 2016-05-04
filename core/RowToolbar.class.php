@@ -204,7 +204,7 @@ class core_RowToolbar extends core_BaseClass
             $dropDownIcon = sbf("img/16/rowtools-btn.png", '');
             $layout = new ET("\n" . 
                             "<div class='modal-toolbar rowtoolsGroup'>[#ROW_LINKS#]</div>" .
-                            "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}'>");
+                            "<img class='more-btn toolbar-btn button' src='{$dropDownIcon}' alt=''>");
             // Сортираме бутоните
             arr::order($this->links);            
             

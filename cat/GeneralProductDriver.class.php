@@ -54,6 +54,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$measureName = $Driver->getDefaultUom();
 			$form->setDefault('measureId', cat_UoM::fetchBySinonim($measureName)->id);
 			$form->setField('measureId', 'display=hidden');
+			if($Embedder instanceof marketing_Inquiries2){
+				$form->setField('inqDescription', 'mandatory');
+			}
 		}
 		
 		// Само при добавянето на нов артикул

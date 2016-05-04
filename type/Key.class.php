@@ -294,6 +294,8 @@ class type_Key extends type_Int
                 
                 $titles = array();
                 
+                $i = 1;
+
                 foreach($options as $id => $title) {
                     
                     if(is_object($title)) continue;
@@ -302,9 +304,13 @@ class type_Key extends type_Int
                         $title = self::getUniqTitle($title, $id);
                     }
                     
+                    list($title, ) = explode('||', $title);
+
                     $titles[$title] = TRUE;
                     $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
                     $options[$id] = $title;
+
+                    if($i++ > 100) break;
                 }
             }
             

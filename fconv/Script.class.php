@@ -53,6 +53,12 @@ class fconv_Script
     
     
     /**
+     * @param array - Масив за параметрите на скрипта
+     */
+    public $cmdParamsOrig = array();
+    
+    
+    /**
      * @param string script - Текст на скрипта
      */
     public  $script;
@@ -201,12 +207,42 @@ class fconv_Script
      */
     function setParam($placeHolder, $value=NULL, $escape=TRUE)
     {
+        $this->cmdParamsOrig[$placeHolder] = $value;
+        
         if ($escape) {
 //            $this->cmdParams[$placeHolder] = escapeshellcmd($value);
             $this->cmdParams[$placeHolder] = escapeshellarg($value);
         } else {
             $this->cmdParams[$placeHolder] = $value;
         }
+    }
+    
+    
+    /**
+     * Връща линията за изпълнени
+     * 
+     * @param string $cmdLine
+     * @param boolean $silent
+     * 
+     * @return string
+     */
+    public function getCmdLine($cmdLine, $silent = FALSE)
+    {
+        $sepPos = strpos($cmdLine, '::');
+        
+        if (!$silent) {
+            expect($sepPos, 'Изпълнимият ред не може да се задава директно');
+        }
+        
+        if ($sepPos) {
+            list($cls, $p) = explode('::', $cmdLine);
+            if (cls::load($cls, $silent)) {
+                $clsInst = cls::get($cls);
+                $cmdLine = $clsInst->{$p};
+            }
+        }
+        
+        return $cmdLine;
     }
     
     
@@ -221,6 +257,8 @@ class fconv_Script
     {
         $this->cmdLine[] = $cmdLine;
         $this->lineParams[] = $params;
+        
+        $cmdLine = $this->getCmdLine($cmdLine, TRUE);
         
         $cmdArr = explode(' ', $cmdLine);
         $program = $cmdArr[0];
@@ -353,7 +391,6 @@ class fconv_Script
         // Ако е зададена програма, може да се пусне скрипта отдалечено, на друг сървър
         // и да се чака резултат от там
         if (!$this->stopRemote) {
-//         if (!$this->stopRemote && !core_App::checkCurrentHostIsPrivate()) {
             foreach ($this->programs as $program => $programPath) {
                 if ($rRec = fconv_Remote::fetch(array("#command = '[#1#]'", $program))) {
                     

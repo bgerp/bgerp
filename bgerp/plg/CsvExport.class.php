@@ -15,7 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_plg_CsvExport extends core_Manager {
+class bgerp_plg_CsvExport extends core_BaseClass {
     
     
     /**

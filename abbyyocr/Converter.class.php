@@ -46,6 +46,12 @@ class abbyyocr_Converter extends core_Manager
     
     
     /**
+     * Кода, който ще се изпълнява
+     */
+    public $fconvLineExec = 'abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]';
+    
+    
+    /**
      * Добавя бутон за стартиране на OCR процеса
      * 
      * @param core_Toolbar $toolbar
@@ -187,13 +193,10 @@ class abbyyocr_Converter extends core_Manager
         $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('PATH'));
         $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
         
-        // Добавяме към изпълнимия скрипт
-        $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";
-        
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
         
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
+        $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);

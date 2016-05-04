@@ -47,5 +47,7 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Settings', 'Вътрешни->Персонализация', 'debug');
         $this->TAB('core_Forwards', 'Вътрешни->Пренасочвания', 'debug');
         $this->TAB('core_CallOnTime', 'Вътрешни->Отложени', 'debug');
+
+        Mode::set('pageSubMenu', 'Админ');
     }
 }
