@@ -4264,6 +4264,8 @@ function mailServerSettings() {
 		}
 
     }
+    
+    location.reload();
 };
 
 
