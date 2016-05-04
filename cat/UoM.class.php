@@ -62,6 +62,12 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'мерна единица';
+    
+    
+    /**
      * Полета за лист изгледа
      */
     var $listFields = "id,name,shortName=Съкращение,sysId=System Id,state,round=Точност,showContents,defQuantity";

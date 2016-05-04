@@ -27,4 +27,4 @@ DEFINE('EF_DEBUG', FALSE);
 
 // Името на приложението. Допускат се само малки латински букви и цифри
 // Ако не е дефинирано, системата се опитва да го открие сама
- # DEFINE('EF_APP_CODE_NAME', 'PROJECT_CODE_NAME');
+ # DEFINE('EF_APP_CODE_NAME', 'bgerp');

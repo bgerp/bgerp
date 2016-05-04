@@ -1,21 +1,36 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <table class='border-table' style='margin-bottom:0px'>
-        <tr>
-            <td rowspan='2' class='no-border-bottom' style='padding-left:10px;width:60%;'>
-                <div class='document-title'>|АВАНСОВ ОТЧЕТ|*</div>
-                <div>№:[#number#] / [#valior#]</div>
-                <div style='margin:15px 0 3px 0;'>
-                    |Общо|*: [#total#] <span class='cCode'>[#currencyId#]</span>
-                </div>
-            </td>
-            <td class="cell custom-header-bg"><b>|Организация|*</b></td>
-        </tr>
-        <tr>
-            <td class='no-border-bottom'>
-                <b>[#MyCompany#]</b><br>
-                <br>
-                <!--ET_BEGIN MyAddress-->[#MyAddress#] <br><!--ET_END MyAddress-->
-            </td>
-        </tr>
-    </table>
+<table class='innerTable border-table paddingCells'>
+   <tr>
+      <td class='custom-header-bg' style="width: 35%"><b>|Подочетно лице|*</b></td>
+      <td  rowspan='2' class='centered'>
+         <div class="document-title">|авансов ордер|*</div>
+         <div style="padding-top:5px;">
+            № <span class="bigData">[#number#]</span> /
+            <span class="bigData">[#valior#]</span>
+         </div>
+         <!--ET_BEGIN state-->
+         <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+         <!--ET_END state-->
+         <div style='margin:15px 0 3px 0;'>
+            |Общо|*: [#total#] <span class='cCode'>[#currencyId#]</span>
+         </div>
+      </td>
+      <td class='custom-header-bg' style="width: 35%"><b>|Oрганизация|*</b></td>
+   </tr>
+   <tr>
+      <td>
+         <b>[#contragentName#]</b>
+         <div class='address-block'>
+            [#contragentAddress#]
+         </div>
+      </td>
+      <td class='align-top-td'>
+         <b>[#MyCompany#]</b>
+         <div class='address-block'>
+            [#MyAddress#]
+         </div>
+      </td>
+   </tr>
+</table>
+[#findeals_AdvanceReportDetails#]
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

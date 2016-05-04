@@ -61,6 +61,7 @@ class findeals_Setup extends core_ProtoSetup
     		'findeals_AdvanceReportDetails',
     		'migrate::removeOldRoles',
     		'migrate::updateDocuments',
+    		'migrate::updateReports',
         );
 
         
@@ -149,6 +150,31 @@ class findeals_Setup extends core_ProtoSetup
     			} catch(core_exception_Expect $e){
     				reportException($e);
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на авансовите отчети
+     */
+    function updateReports()
+    {
+    	$Reports = cls::get('findeals_AdvanceReports');
+    	$Reports->setupMvc();
+    	
+    	$query = $Reports->getQuery();
+    	$query->where("#contragentClassId IS NULL");
+    	$query->where("#contragentId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		try{
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			$rec->contragentClassId = $Cover->getClassId();
+    			$rec->contragentId = $Cover->that;
+    			$Reports->save_($rec, 'contragentClassId,contragentId');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
     		}
     	}
     }

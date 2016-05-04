@@ -16,18 +16,20 @@
 * @since     v 0.1
 * @title     Политика "По последна продажна цена"
 */
-class sales_SalesLastPricePolicy extends core_Manager
+class sales_SalesLastPricePolicy extends core_BaseClass
 {
+    
+    
     /**
      * Заглавие
      */
-    var $title = 'Последна цена';
+    public $title = 'Последна цена';
 
 
     /**
      * Интерфейс за ценова политика
      */
-    var $interfaces = 'price_PolicyIntf';
+    public $interfaces = 'price_PolicyIntf';
     
     
     /**
@@ -38,7 +40,7 @@ class sales_SalesLastPricePolicy extends core_Manager
      * 				  $rec->discount - отстъпка
      * 				  $rec->priority - приоритет на цената
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
     	$lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
         

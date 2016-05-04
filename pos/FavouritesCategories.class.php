@@ -77,6 +77,12 @@ class pos_FavouritesCategories extends core_Manager {
     
     
     /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'продуктова категория';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

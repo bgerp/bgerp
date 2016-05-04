@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <div class='display-table'>
-            <table class='border-table border-table'>
+            <table class='innerTable border-table paddingCells'>
                 <tr>
                     <td class='custom-header-bg' style="width: 35%"><b>|Вносител|*</b></td>
                     <td  rowspan='2' class='centered'>
