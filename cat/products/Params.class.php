@@ -103,6 +103,12 @@ class cat_products_Params extends doc_Detail
      */
     public $fetchFieldsBeforeDelete = 'id, productId, paramId';
     
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
+
     
     /**
      * Описание на модела (таблицата)
