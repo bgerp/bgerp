@@ -1853,25 +1853,22 @@ function refreshForm(form, removeFields) {
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 	
-	// Блокираме посочените полета да не се субмитват
-	if(typeof removeFields != 'undefined') {
-		var fieldsCnt = removeFields.length;
-		for (var i = 0; i < fieldsCnt; i++) {
-			$("[name='" + removeFields[i] + "']").prop('disabled', true);
-			$("[name^='" + removeFields[i] + "\\[']").prop('disabled', true);
-		}
-	}
-	
 	var frm = $(form);
 
 	frm.css('cursor', 'wait');
 	
+	var params = frm.serializeArray();
+
+	// Блокираме посочените полета да не се субмитват
+	var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
+	var serialized = $.param(filteredParams);
+
 	// form.submit();
 
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
-		data: frm.serialize() + '&ajax_mode=1',
+		data: serialized + '&ajax_mode=1',
 		dataType: 'json'
 	}).done( function(data) {
 			
@@ -4264,6 +4261,8 @@ function mailServerSettings() {
 		}
 
     }
+    
+    location.reload();
 };
 
 

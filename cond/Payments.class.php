@@ -34,6 +34,12 @@ class cond_Payments extends core_Manager {
     
     
     /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'безналично средство за плащане';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools, plg_State2, cond_Wrapper, acc_plg_Registry';

@@ -109,6 +109,12 @@ class blast_ListDetails extends doc_Detail
      */
     public $defaultState = 'active';
     
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'в';  
+
     
     /**
      * Описание на полетата на модела

@@ -50,6 +50,12 @@ class cond_Countries extends core_Manager
 	
 	
 	/**
+	 * Заглавие на единичния обект
+	 */
+	public $singleTitle = 'търговско условие за държава';
+	
+	
+	/**
 	 * Описание на модела (таблицата)
 	 */
 	function description()

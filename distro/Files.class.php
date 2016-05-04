@@ -939,7 +939,9 @@ class distro_Files extends core_Detail
         }
         
         // Изтриваме всички записи, за файлове които не се намират в някое хранилище
-        $resArr['delete'] = static::delete("#repos IS NULL OR #repos = '|'");
+        if ($delCnt = static::delete("#repos IS NULL OR #repos = '|'")) {
+            $resArr['delete'] = $delCnt;
+        }
         
         return $resArr;
     }

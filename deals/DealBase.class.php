@@ -417,7 +417,7 @@ abstract class deals_DealBase extends core_Master
     	$tpl->append($table->get($data->DealReport, $fields), 'DEAL_REPORT');
     	$tpl->append($data->reportPager->getHtml(), 'DEAL_REPORT');
     	
-    	if($this->haveRightFor('export', $data->rec)){
+    	if($this->haveRightFor('export', $data->rec) && count($data->DealReport)){
     		$expUrl = getCurrentUrl();;
     		$expUrl['export'] = TRUE;
     	

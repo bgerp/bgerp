@@ -15,6 +15,12 @@
 class email_Incomings extends core_Master
 {
     
+
+    /**
+     * Шаблон (ET) за заглавие на перо
+     */
+    public $recTitleTpl = '[#subject#]';
+    
     
     /**
      * Флаг, който указва, че документа е партньорски

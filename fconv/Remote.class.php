@@ -63,7 +63,7 @@ class fconv_Remote extends core_Manager
     public static function canRunRemote($commandName)
     {
         
-        return (boolean)(!core_App::checkCurrentHostIsPrivate() && fconv_Remote::getRemoteCommand($commandName));
+        return (boolean)(fconv_Remote::getRemoteCommand($commandName));
     }
     
     
@@ -238,8 +238,8 @@ class fconv_Remote extends core_Manager
      */
     protected static function prepareRemoteCmdParams($scriptObj, $nScriptObj)
     {
-        foreach ($scriptObj->cmdParams as $place => $val) {
-            $nScriptObj->setParam($place, $val, FALSE);
+        foreach ($scriptObj->cmdParamsOrig as $place => $val) {
+            $nScriptObj->setParam($place, $val);
         }
     }
     
@@ -256,6 +256,8 @@ class fconv_Remote extends core_Manager
             
             // Ако няма да се добавя при отдалечено стартиране
             if ($scriptObj->lineParams[$key]['skipOnRemote']) continue;
+            
+            $val = $nScriptObj->getCmdLine($val, FALSE);
             
             $lineParam = str_replace($scriptObj->tempDir, $nScriptObj->tempDir, $scriptObj->lineParams[$key]);
             $nScriptObj->lineExec($val, $lineParam);
@@ -353,7 +355,7 @@ class fconv_Remote extends core_Manager
         
         expect($script);
         
-        expect(core_Locks::get($script, self::$lockTime));
+         expect(core_Locks::get($script, self::$lockTime));
         
         $scriptObj = core_Crypt::decodeVar($script, fconv_Setup::get('SALT'));
         
@@ -368,9 +370,10 @@ class fconv_Remote extends core_Manager
         
         $nScript->params = $scriptObj->params;
         $nScript->runAsynch = $scriptObj->runAsynch;
-        $nScript->stopRemote = TRUE;
         $nScript->callBack('fconv_Remote::afterRemoteConv');
         $nScript->remoteAfterConvertCallback = $scriptObj->remoteAfterConvertCallback;
+        
+//         $nScript->stopRemote = TRUE;
         
         $nScript->run($nScript->params['asynch']);
     }
@@ -417,22 +420,6 @@ class fconv_Remote extends core_Manager
         // Извикваме callBack функците, за съответната обработка
         foreach ($scriptObj->callBack as $cb) {
             fconv_Processes::runCallbackFunc($pid, $cb);
-        }
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            if (core_Url::isPrivate($form->rec->address)) {
-                $form->setError('address', 'Не може да добавите УРЛ от частна мрежа.');
-            }
         }
     }
     

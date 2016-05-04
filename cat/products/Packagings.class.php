@@ -77,6 +77,12 @@ class cat_products_Packagings extends core_Detail
      */
     var $canDelete = 'ceo,cat';
     
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
+
     
     /**
      * Описание на модела (таблицата)

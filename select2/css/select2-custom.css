@@ -111,11 +111,13 @@ span.all-users{
     background-color:#dfd !important;
 }
 
-.select2-selection--multiple .select2-search__field {
+.select2-selection--multiple  {
 	    background-image: url('../../img/16/darrow.png') !important;
 	    background-repeat: no-repeat !important;
-	 	background-position: center left !important;
+	 	background-position: 10px center !important;
+        padding-right:10px;
         cursor: pointer;
+
 }
 
 .inputWarning + .select2{

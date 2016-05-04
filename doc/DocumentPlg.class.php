@@ -1242,7 +1242,7 @@ class doc_DocumentPlg extends core_Plugin
             
             if($thRec->firstContainerId != $form->rec->containerId) {
             	$firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
-            	$form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id);
+            	$form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, NULL, 50);
             	unset($title);
             }
         }
