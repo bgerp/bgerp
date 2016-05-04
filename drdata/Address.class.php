@@ -294,6 +294,10 @@ class drdata_Address extends core_MVC
              $cnt *= ($c / count($obj->_wordsLower) + 0.5);
         }
 
+        if(strpos($obj->line, '?')) {
+            $cnt -= 2;
+        }
+
         $obj->companyRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
     }
 
