@@ -603,4 +603,15 @@ abstract class store_DocumentMaster extends core_Master
     		$aggregator->pushToArray('productVatPrices', $dRec->packPrice, $index);
     	}
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(get_called_class());
+    	
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
+    }
 }
