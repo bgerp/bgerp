@@ -261,7 +261,8 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	for($i = 1; $i <= $quantityCount; $i++){
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
-    		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption}");
+    		$mandatory = ($i == 1) ? 'mandatory' : '';
+    		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption},{$mandatory}");
     		if(isset($form->rec->moq)){
     			$form->setFieldTypeParams("quantity{$i}", array('min' => $form->rec->moq));
     		}
