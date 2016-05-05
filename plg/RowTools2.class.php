@@ -23,7 +23,12 @@ class plg_RowTools2 extends core_Plugin
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
-    {
+    {   
+        static $titleDD;
+        if(!$titleDD) {
+            $titleDD = tr('Отваряне');
+        }
+
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
         
@@ -47,7 +52,7 @@ class plg_RowTools2 extends core_Plugin
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
             } else {
-                $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
+                $singleImg = "<img src=" . sbf($mvc->singleIcon) . " width='16' height='16' title='{$titleDD}' alt=''>";
                 $singleLink = ht::createLink($singleImg, $singleUrl);
             }
         }

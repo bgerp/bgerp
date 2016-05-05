@@ -352,15 +352,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	$res .= doc_TplManager::addOnce($this, $tplArr);
     }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Експедиционно нареждане|* №") . $rec->id;
-    }
     
     
     /**

@@ -365,8 +365,8 @@ class plg_TreeObject extends core_Plugin
 			if($rec->_childrenCount > 0){
 				$plusIcon = sbf('img/16/toggle-expand.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
-				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13' title = 'Показване на наследниците'/>";
-				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13' title = 'Скриване на наследниците'/>";
+				$plus = "<img class='toggleBtn plus' src='{$plusIcon}' alt='' width='13' height='13' title='" . tr('Показване на наследниците') . "'/>";
+				$minus = "<img class='toggleBtn minus' src='{$minusIcon}' alt='' width='13' height='13' title='" . tr('Скриване на наследниците') . "'/>";
 					
 				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
 			}
