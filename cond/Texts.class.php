@@ -96,6 +96,7 @@ class cond_Texts extends core_Manager
         $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
+        $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
     }
 
     /**
@@ -207,7 +208,7 @@ class cond_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
-        $form->showFields = 'search,author,langWithAllSelect';
+        $form->showFields = 'search,author,langWithAllSelect, group';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
         $form->class = 'simpleForm';
@@ -219,8 +220,15 @@ class cond_Texts extends core_Manager
                 $data->query->where("'{$rec->author}' LIKE CONCAT ('%|', #createdBy , '|%')");
             }
             if($rec->langWithAllSelect){
+
                 $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
             }
+            if($rec->group){
+                $data->query->likeKeylist('group', $rec->group);
+//                bp($data->query->where);
+//                $data->query->where(array("#gropu = '[#1#]'", $rec->langWithAllSelect));
+            }
+//            bp($rec);
         }
         $data->query->orderBy('#createdOn', 'DESC');
     }

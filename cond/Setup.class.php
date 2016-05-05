@@ -54,6 +54,7 @@ class cond_Setup  extends core_ProtoSetup
      */
     var $managers = array(
 			'cond_Texts',
+			'cond_Groups',
         	'cond_PaymentMethods',
         	'cond_DeliveryTerms',
         	'cond_Parameters',
