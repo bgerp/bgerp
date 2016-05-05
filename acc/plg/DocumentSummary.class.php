@@ -111,7 +111,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $rolesForTeams = implode('|', $rolesForTeams);
        
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm,remember');
+            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,autoFilter,remember');
             $cKey = $mvc->className . core_Users::getCurrent();
             
             $haveUsers = FALSE;
