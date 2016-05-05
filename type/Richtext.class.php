@@ -232,7 +232,11 @@ class type_Richtext extends type_Blob
         ini_set('pcre.backtrack_limit', '2M');
         
         // Намаляме стойността за да не гърми по-лош начин
-        ini_set('pcre.recursion_limit', '16777');
+        if (core_Os::isWindows()) {
+            ini_set('pcre.recursion_limit', '524');
+        } else {
+            ini_set('pcre.recursion_limit', '16777');
+        }
         
         // Заместваме й с ѝ
         $html = preg_replace('/(\ )(й)([\ \.\,\?\!]){1}/u', '${1}ѝ${3}', $html);
