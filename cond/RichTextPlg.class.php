@@ -6,14 +6,20 @@
  *
  *
  * @category  bgerp
- * @package   passage
+ * @package   cond
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class passage_RichTextPlg extends core_Plugin
+class cond_RichTextPlg extends core_Plugin
 {
+
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'passage_RichTextPlg';
+
 
 
     /**
@@ -44,7 +50,7 @@ class passage_RichTextPlg extends core_Plugin
             }
 
             // URL за добавяне на документи
-            $url = toUrl(array('passage_Texts', 'Dialog', 'callback' => $callbackName));
+            $url = toUrl(array('cond_Texts', 'Dialog', 'callback' => $callbackName));
 
             // JS фунцкията, която отваря прозореца
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";

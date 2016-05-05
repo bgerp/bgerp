@@ -1860,7 +1860,12 @@ function refreshForm(form, removeFields) {
 	var params = frm.serializeArray();
 
 	// Блокираме посочените полета да не се субмитват
-	var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
+	if (typeof removeFields == 'undefined') {
+		var filteredParams = params;
+	} else {
+		var filteredParams = params.filter(function(e){ return $.inArray(e.name, removeFields) == -1});
+	}
+	
 	var serialized = $.param(filteredParams);
 
 	// form.submit();

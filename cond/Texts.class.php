@@ -5,14 +5,20 @@
  * Модул Пасаж
  *
  * @category  bgerp
- * @package   passage
+ * @package   cond
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class passage_Texts extends core_Manager
+class cond_Texts extends core_Manager
 {
+
+
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'passage_Texts';
 
 
     /**
@@ -24,7 +30,7 @@ class passage_Texts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, passage_DialogWrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, cond_DialogWrapper";
 
 
     /**
@@ -90,6 +96,7 @@ class passage_Texts extends core_Manager
         $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
+        $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
     }
 
     /**
@@ -201,7 +208,7 @@ class passage_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
-        $form->showFields = 'search,author,langWithAllSelect';
+        $form->showFields = 'search,author,langWithAllSelect, group';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
         $form->class = 'simpleForm';
@@ -213,8 +220,15 @@ class passage_Texts extends core_Manager
                 $data->query->where("'{$rec->author}' LIKE CONCAT ('%|', #createdBy , '|%')");
             }
             if($rec->langWithAllSelect){
+
                 $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
             }
+            if($rec->group){
+                $data->query->likeKeylist('group', $rec->group);
+//                bp($data->query->where);
+//                $data->query->where(array("#gropu = '[#1#]'", $rec->langWithAllSelect));
+            }
+//            bp($rec);
         }
         $data->query->orderBy('#createdOn', 'DESC');
     }
