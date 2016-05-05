@@ -355,7 +355,7 @@ class fconv_Remote extends core_Manager
         
         expect($script);
         
-         expect(core_Locks::get($script, self::$lockTime));
+        expect(core_Locks::get($script, self::$lockTime));
         
         $scriptObj = core_Crypt::decodeVar($script, fconv_Setup::get('SALT'));
         
@@ -373,7 +373,7 @@ class fconv_Remote extends core_Manager
         $nScript->callBack('fconv_Remote::afterRemoteConv');
         $nScript->remoteAfterConvertCallback = $scriptObj->remoteAfterConvertCallback;
         
-//         $nScript->stopRemote = TRUE;
+//        $nScript->stopRemote = TRUE;
         
         $nScript->run($nScript->params['asynch']);
     }
