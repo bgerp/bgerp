@@ -132,20 +132,53 @@ class email_Fingerprints extends core_Manager
         
         return $hash;
     }
-
-
+	
+    
+    /**
+     * Изчислява хеша на част от хедърите на писмото
+     * 
+     * @param string $headers
+     * 
+     * @return string
+     */
+    private static function getHeaderPartHash($headersStr) 
+    {
+        static $headerHashArr = array();
+        
+        $headerHash = self::getHeaderHash($headersStr);
+        
+        if (!isset($headerHashArr[$headerHash])) {
+            $headerValArr = array('from', 'to', 'cc', 'bcc', 'subject', 'delivered-to', 'message-id', 'x-original-to', 'x-sender-ip');
+            
+            try {
+                $headersArr = email_Mime::parseHeaders($headersStr);
+                $hashStr = '|';
+                foreach ($headerValArr as $hVar) {
+                    $hashStr .= email_Mime::getHeadersFromArr($headersArr, $hVar, '*', FALSE) . '|';
+                }
+                $headerHashArr[$headerHash] = md5($hashStr);
+            } catch (Exception $e) {
+                reportException($e);
+                $headerHashArr[$headerHash] = $headerHash;
+            }
+        }
+        
+        return $headerHashArr[$headerHash];
+    }
+	
+	
     /**
      * Връща TRUE, ако писмо със същите хедъри е свалено преди,иначе FALSE
      */
     static function isDown($headers) 
     {
         $hash = self::getHeaderHash($headers);
-
-        $res = self::fetchField("#hash = '{$hash}'", 'id', FALSE) > 0;
-
+        $hashPart = self::getHeaderPartHash($headers);
+        $res = self::fetchField(array("#hash = '[#1#]' OR #hash = '[#2#]'", $hash, $hashPart), 'id', FALSE) > 0;
+		
         return $res;
     }
-
+	
     
     /**
      * Задава статуса по отношение на 
@@ -154,11 +187,9 @@ class email_Fingerprints extends core_Manager
     static function setStatus($headers, $status, $accId, $uid)
     {   
         $rec = new stdClass();
-
-        $rec->hash = self::getHeaderHash($headers);
-
+        $rec->hash = self::getHeaderPartHash($headers);
         if(self::fetchField("#hash = '{$rec->hash}'", 'id')) {
-
+			
             return FALSE;
         }
 
