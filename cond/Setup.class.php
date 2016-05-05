@@ -53,6 +53,8 @@ class cond_Setup  extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+			'cond_Texts',
+			'cond_Groups',
         	'cond_PaymentMethods',
         	'cond_DeliveryTerms',
         	'cond_Parameters',
@@ -63,6 +65,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',
     		'migrate::deleteParams2',
+
         );
 
         
@@ -99,7 +102,12 @@ class cond_Setup  extends core_ProtoSetup
     	if($roleRec = core_Roles::fetch("#role = 'salecond'")){
     		core_Roles::delete("#role = 'salecond'");
     	}
-    	
+
+		$Plugins = cls::get('core_Plugins');
+
+		// Замества handle' ите на документите с линк към документа
+		$html .= $Plugins->installPlugin('Плъгин за пасажи в RichEdit', 'cond_RichTextPlg', 'type_Richtext', 'private');
+
     	return $html;
     }
     
