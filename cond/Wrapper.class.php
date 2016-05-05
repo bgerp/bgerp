@@ -29,7 +29,7 @@ class cond_Wrapper extends plg_ProtoWrapper
         $this->TAB('cond_Countries', 'Търговски условия->По държави', 'cond,ceo');
         
         $this->TAB('cond_Parameters', 'Търговски условия->Видове', 'cond,ceo');
-        $this->TAB('passage_Texts', 'Пасажи', 'ceo,cond, admin');
+        $this->TAB('cond_Texts', 'Пасажи', 'ceo,cond, admin');
 
         $this->title = 'Терминология';
     }

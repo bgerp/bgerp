@@ -5,14 +5,20 @@
  * Модул Пасаж
  *
  * @category  bgerp
- * @package   passage
+ * @package   cond
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class passage_Texts extends core_Manager
+class cond_Texts extends core_Manager
 {
+
+
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'passage_Texts';
 
 
     /**
@@ -24,7 +30,7 @@ class passage_Texts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, passage_DialogWrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, cond_DialogWrapper";
 
 
     /**

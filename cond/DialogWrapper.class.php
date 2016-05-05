@@ -6,16 +6,22 @@
  *
  *
  * @category  bgerp
- * @package   passage
+ * @package   cond
  * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class passage_DialogWrapper extends core_Plugin
+class cond_DialogWrapper extends core_Plugin
 {
-    
-    
+
+
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'passage_DialogWrapper';
+
+
     /**
      * 
      * 
