@@ -1087,13 +1087,38 @@ class core_Form extends core_FieldSet
         }
 
         if($this->cmd == 'refresh' && Request::get('ajax_mode')) {
-            $tpl->ajaxOutput();
+            $this->ajaxOutput($tpl);
         }
         
         return $tpl;
     }
     
-    
+
+    /**
+     * Отпечатва съдържанието на шаблона като JSPN масив за ajax
+     */
+    public function ajaxOutput($tpl)
+    {
+        $res = new stdClass();
+        $res->css = array_keys(array_flip($tpl->getArray('CSS')));
+        foreach($res->css as $key => $file) {
+            $res->css[$key] = sbf($file, '');
+        }
+        
+        $res->js = array_keys(array_flip($tpl->getArray('JS')));
+        
+        foreach($res->js as $key => $file) {
+            $res->js[$key] = sbf($file, '');
+        }
+        $ajaxPage = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
+        "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);
+        $res->html = str_replace("</form>", '', $ajaxPage->getContent()) . '</form>';
+        $res->html = substr($res->html, strpos($res->html, '<form'));
+
+        core_App::getJson($res);
+    }
+
+
     /**
      * Добавя стойност/и на атрибут за INPUT елемент. Ако не е посочен елемент, то е за всички
      */

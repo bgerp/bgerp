@@ -923,27 +923,4 @@ class core_ET extends core_BaseClass
         return $matches[1];
     }
 
-
-    /**
-     * Отпечатва съдържанието на шаблона като JSPN масив за ajax
-     */
-    public function ajaxOutput()
-    {
-        $res = new stdClass();
-        $res->css = array_keys(array_flip($this->getArray('CSS')));
-        foreach($res->css as $key => $file) {
-            $res->css[$key] = sbf($file, '');
-        }
-        
-        $res->js = array_keys(array_flip($this->getArray('JS')));
-        
-        foreach($res->js as $key => $file) {
-            $res->js[$key] = sbf($file, '');
-        }
-        $ajaxPage = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
-        "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $this);
-        $res->html = str_replace("</form>", '', $ajaxPage->getContent()) . '</form>';
-
-        core_App::getJson($res);
-    }
 }
