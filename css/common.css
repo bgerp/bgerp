@@ -1527,9 +1527,6 @@ input:focus[type=button] {
     .wide .vertical .formFields .inlineTo .w25 {
       width: 7.5em; }
 
-.wide .vertical select.w100 {
-  width: 32em !important; }
-
   .narrow .vertical .formFields .w100 {
     width: 100%; }
   .narrow .vertical .formFields .w75 {
