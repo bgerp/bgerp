@@ -327,7 +327,11 @@ class eshop_Products extends core_Master
      * Показва единичен изглед за продукт във външната част
      */
     function act_Show()
-    {
+    {   
+        // Поставя временно външният език, за език на интерфейса
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
 
@@ -376,6 +380,9 @@ class eshop_Products extends core_Master
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add("Продукт «" . $data->rec->name ."»");
         }
+        
+        // Премахва зададения временно текущ език
+        core_Lg::pop();
 
         return $tpl;
     }
