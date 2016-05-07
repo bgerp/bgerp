@@ -177,10 +177,16 @@ class core_Html
     
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
         	}
-        	 //bp($groups);
+            
+            // bp($groups);
+
         	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
         	if(count($groups)){
-        		
+        		if(isset($groups[''])) {
+                    asort($groups['']);
+                    $newOptions += $groups[''];
+                    unset($groups['']);
+                }
         		foreach($groups as $group => $optArr) {
         		    // Добавяме името като OPTGROUP
                     if($group) {
@@ -189,6 +195,7 @@ class core_Html
                                     'group' => TRUE,
                             );
                     }
+                    asort($optArr);
                     $newOptions += $optArr;
                 }
 

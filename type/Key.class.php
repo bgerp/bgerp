@@ -545,6 +545,10 @@ class type_Key extends type_Int
             $options = $this->prepareOptions();
         }
         
+        if(($div = $this->params['groupByDiv'])) {
+            $options = ht::groupOptions($options, $div);
+        }
+
         if ($this->getSelectFld() || count($options)) {
             
             $optionsCnt = count($options);

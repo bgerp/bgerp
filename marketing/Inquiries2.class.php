@@ -713,7 +713,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$form->setDefault('proto', key($proto));
     			$form->setField('proto', 'input=hidden');
     		} else {
-    			$form->setField('proto', 'input,caption=Прототип||Prototype,placeholder=Артикули');
+    			$form->setField('proto', 'input,caption=Прототип||Prototype,placeholder=Артикули,groupByDiv=»');
     		}
     	} else {
     		$form->setField('proto', 'input=none');
