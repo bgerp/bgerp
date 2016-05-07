@@ -224,6 +224,10 @@ class eshop_Groups extends core_Master
      */
     function act_ShowAll()
     {
+        // Поставя временно външният език, за език на интерфейса
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+
         $data = new stdClass();
         $data->menuId = Request::get('cMenuId', 'int');
         
@@ -263,6 +267,9 @@ class eshop_Groups extends core_Master
             vislog_History::add("Всички групи «{$cRec->menu}»");
         }
         
+        // Премахва зададения временно текущ език
+        core_Lg::pop();
+        
         return $layout;
     }
 
@@ -289,6 +296,10 @@ class eshop_Groups extends core_Master
      */
     function act_Show()
     {
+        // Поставя временно външният език, за език на интерфейса
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+
         $data = new stdClass();
         
         $data->groupId = Request::get('id', 'int');
@@ -319,6 +330,9 @@ class eshop_Groups extends core_Master
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add("Група «" . $groupRec->name . "»");
         }
+        
+        // Премахва зададения временно текущ език
+        core_Lg::pop();
         
         return $layout;
     }
