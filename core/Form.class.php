@@ -641,14 +641,13 @@ class core_Form extends core_FieldSet
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
             	if($field->hideIfOne) {
+                    if($field->type instanceof type_Key) {
+                        $field->type->prepareOptions();
+                    }
 	                if((isset($field->options) && count($field->options) == 1)) {
 	                	unset($fields[$name]);
-                        $this->setField($name, 'input=hidden');
-                        $this->setDefault($name, key($field->options));
 	                } elseif(isset($field->type->options) && count($field->type->options) == 1) {
 	                	unset($fields[$name]);
-	                	$this->setField($name, 'input=hidden');
-	                	$this->setDefault($name, key($field->type->options));
 	                }
             	}
             }
@@ -691,7 +690,7 @@ class core_Form extends core_FieldSet
                 if($field->removeAndRefreshForm) {
                     $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
                     $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
-                } elseif($field->refreshForm) {
+                } elseif($field->refreshForm) { 
                     $attr['onchange'] .= "refreshForm(this.form);";
                 } elseif($field->autoFilter && strtolower($this->getMethod()) == 'get') {
                     $attr['onchange'] = 'this.form.submit();';

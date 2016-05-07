@@ -690,6 +690,11 @@ class marketing_Inquiries2 extends embed_Manager
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
     	$proto = keylist::toArray($proto);
+        
+        // Поставя временно външният език, за език на интерфейса
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+
     	if(count($proto)){
     		foreach ($proto as $pId => &$name){
     			$name = cat_Products::getTitleById($pId, FALSE);
@@ -795,6 +800,9 @@ class marketing_Inquiries2 extends embed_Manager
     		core_Lg::pop();
     	}
     	
+        // Премахва зададения временно текущ език
+        core_Lg::pop();
+
     	return $tpl;
     }
     
