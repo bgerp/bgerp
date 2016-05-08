@@ -321,7 +321,9 @@ class type_Key extends type_Int
             $options = $this->options;
         }
         
-        setIfNot($this->handler, md5(implode(',', array_keys($this->options))) );
+        if(!$this->handler) {
+            $this->handler = md5(implode(',', array_keys($this->options)));
+        }
         
         if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20)) {
             $cacheOpt = unserialize($optSz);
