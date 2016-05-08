@@ -89,6 +89,12 @@ class core_Mvc extends core_FieldSet
     protected $dbCollation;
 
 
+    /**
+     * Какъв да е минималния брой за кеширане при подготовката на MakeArray4Select
+     */
+    public $cacheLimitForMakeArray = 500;
+
+
 
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
@@ -542,7 +548,7 @@ class core_Mvc extends core_FieldSet
         
         $res = FALSE;
 	
-        if($query->count() > 500) {
+        if($query->count($where, $this->cacheLimitForMakeArray) >= $this->cacheLimitForMakeArray) {
 
             $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
 
@@ -573,7 +579,7 @@ class core_Mvc extends core_FieldSet
             
        }
         
-        if($handler) {
+        if($handler) { 
             core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
         }
  

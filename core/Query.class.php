@@ -558,7 +558,7 @@ class core_Query extends core_FieldSet
     /**
      * Преброява записите, които отговарят на условието, което се добавя като AND във WHERE
      */
-    function count($cond = NULL)
+    function count($cond = NULL, $limit = 0)
     {
         if($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === FALSE) {
             
@@ -568,6 +568,10 @@ class core_Query extends core_FieldSet
         $temp = clone($this);
         
         $temp->where($cond);
+
+        if($limit) {
+            $temp->limit($limit);
+        }
         
         $wh = $temp->getWhereAndHaving();
         
