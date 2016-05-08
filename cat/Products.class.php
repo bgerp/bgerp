@@ -63,7 +63,8 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,
+    Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -461,11 +462,11 @@ class cat_Products extends embed_Manager {
     	if(isset($defaultUomId)){
     		$form->setDefault('measureId', $defaultUomId);
     	}
-    	
+
     	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
     	if(isset($rec->id) && $data->action != 'clone'){
-    		if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id)){
-    			$form->setReadOnly('measureId');
+    		if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id, $form->rec->measureId)){
+    			$form->setReadOnly('measureId'); 
     		}
     	}
     }
