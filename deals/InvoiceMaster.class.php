@@ -247,7 +247,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+    	$row->MyCompany = core_Lg::transliterate(tr($row->MyCompany));
     	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
     	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
