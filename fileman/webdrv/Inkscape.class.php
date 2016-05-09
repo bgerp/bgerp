@@ -37,21 +37,64 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param string $type
      * @param string $name
      * 
-     * @return string - Манипулатора на PDF файла
+     * @return string|NULL - Манипулатора на PDF файла
      */
     public static function toPdf($file, $cmyk = FALSE, $type = 'auto', $name = '')
     {
+        
+        return self::convertTo($file, 'pdf', $type, $name, $cmyk);
+    }
+    
+    
+    /**
+     * Преобразува подадения файл в PNG
+     *
+     * @param string $file
+     * @param string $type
+     * @param string $name
+     *
+     * @return string|NULL - Манипулатора на PNG файла
+     */
+    public static function toPng($file, $type = 'auto', $name = '')
+    {
+        
+        return self::convertTo($file, 'png', $type, $name);
+    }
+    
+    
+    /**
+     * Преобразува подадения файл в различни формати
+     *
+     * @param string $file
+     * @param $to $file - pdf|png
+     * @param string $type
+     * @param string $name
+     * @param boolean $cmyk
+     *
+     * @return string|NULL - Манипулатора на PNG файла
+     */
+    protected static function convertTo($file, $to = 'pdf', $type = 'auto', $name = '', $cmyk = FALSE)
+    {
         if (!$file) return ;
+        
+        expect(in_array($to, array('pdf', 'png')));
+        
+        $lineExec = "inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-page";
+        
+        if ($to == 'png') {
+            $height = static::$pngExportHeight;
+            $lineExec = "inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing --export-height={$height}";
+        }
         
         cls::load('fileman_Files');
         
         $fileType = self::getFileTypeFromStr($file, $type);
-
+        
         if ($fileType == 'string') {
-            $name = ($name) ? $name : 'file.pdf';
+            $name = ($name) ? $name : 'file.' . $to;
             $file = fileman::addStrToFile($file, $name);
         }
-
+        
         if (!$name) {
             // Вземаме името на файла без разширението
             $name = fileman_Files::getFileNameWithoutExt($file);
@@ -67,7 +110,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $name = fileman_Files::getFileNameWithoutExt($file);
         
         // Задаваме пътя до изходния файла
-        $outFilePath = $Script->tempDir . $name . '_to.pdf';
+        $outFilePath = $Script->tempDir . $name . '_to.' . $to;
         
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $file);
@@ -78,12 +121,12 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-page", array('errFilePath' => $errFilePath));
+        $Script->lineExec($lineExec, array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
         
-        fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
+        fileman_Indexes::haveErrors($outFilePath, array('type' => $to, 'errFilePath' => $errFilePath));
         
         $resFileHnd = NULL;
         
@@ -100,10 +143,10 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
             }
-            
+        
             if ($fileType == 'string') {
                 fileman::deleteTempPath($file);
-            } 
+            }
         } else {
             if (is_file($errFilePath)) {
                 $err = @file_get_contents($errFilePath);
