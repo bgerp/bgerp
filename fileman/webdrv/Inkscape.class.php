@@ -91,7 +91,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $fileType = self::getFileTypeFromStr($file, $type);
         
         if ($fileType == 'string') {
-            $name = ($name) ? $name : 'file.' . $to;
+            $name = ($name) ? $name : 'file.svg';
             $file = fileman::addStrToFile($file, $name);
         }
         
