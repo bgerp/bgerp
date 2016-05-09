@@ -382,8 +382,8 @@ class fconv_Script
     /**
      * Изпълнява скрипта, като му дава време за изпълнение
      * 
-     * @param string $asynch
-     * @param number $time
+     * @param boolean $asynch
+     * @param integer $time
      * @param string $timeoutCallback
      */
     function run($asynch=TRUE, $time = 2, $timeoutCallback = '')
