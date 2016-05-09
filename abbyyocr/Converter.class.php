@@ -149,7 +149,7 @@ class abbyyocr_Converter extends core_Manager
         $retUrl = getRetUrl();
         
         // Ако не може да се определи
-        if (!$retUrl) {
+        if (empty($retUrl)) {
             
             // URL' то където ще редиректваме
             $retUrl = array('fileman_Files', 'single', $rec->fileHnd);
@@ -279,6 +279,8 @@ class abbyyocr_Converter extends core_Manager
                 return TRUE;
             }
         }
+        
+        return FALSE;
     }
     
     
