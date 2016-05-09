@@ -49,7 +49,7 @@ class zbar_Setup extends core_ProtoSetup
 	    
 	    if (core_Os::isWindows()) {
 	        $res = exec("{$program} --help", $output, $code);
-	        if ($code != 0) {
+	        if ($code !== 0) {
 	            $haveError = TRUE;
 	        }
 	    } else {
