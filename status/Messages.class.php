@@ -326,7 +326,7 @@ class status_Messages extends core_Manager
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $hitId - Уникално ID на хита
      * 
-     * @return string - 'div' със статус съобщенията
+     * @return array
      */
     static function getStatusesData_($hitTime, $idleTime, $hitId=NULL)
     {
