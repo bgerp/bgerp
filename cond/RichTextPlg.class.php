@@ -70,7 +70,7 @@ class cond_RichTextPlg extends core_Plugin
             $addPassage ->appendOnce($callback, 'SCRIPTS');
 
             // Добавяне в групата за добавяне на документ
-            $toolbarArr->add($addPassage , 'filesAndDoc', 1000.055);
+            $toolbarArr->add($addPassage , 'filesAndDoc', 1000.056);
         }
     }
 
