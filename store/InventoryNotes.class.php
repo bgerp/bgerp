@@ -81,7 +81,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_Wrapper,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -106,6 +106,12 @@ class store_InventoryNotes extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/SingleLayoutInventoryNote.shtml';
+    
+    
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
     
     
     /**
@@ -208,8 +214,20 @@ class store_InventoryNotes extends core_Master
     	if($mvc->haveRightFor('single', $data->rec->id)){
     		$url = array($mvc, 'single', $data->rec->id);
         	$url['Printing'] = 'yes';
-    		
+        	$url['Blank'] = 'yes';
+        	
     		$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/star_2.png,title=Принтиране на бланка,target=_blank');
+    	}
+    }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+    	if(Request::get('Blank', 'varchar')){
+    		Mode::set('blank');
     	}
     }
     
@@ -225,6 +243,18 @@ class store_InventoryNotes extends core_Master
     	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
     	$data->row->MyCompany = transliterate(tr($row->MyCompany));
     	$data->row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		$tpl->push('store/js/InventoryNotes.js', 'JS');
+    		jquery_Jquery::run($tpl, "noteActions();");
+    	}
     }
     
     
