@@ -170,6 +170,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	if(!Mode::get('blank')){
+    		
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     			if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
     				$url = array('store_InventoryNoteDetails', 'Insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'ret_url' => TRUE);
@@ -184,12 +185,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		$quantityTpl->removePlaces();
     		$row->quantitySum = $quantityTpl;
     		
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    			if($mvc->haveRightFor('togglecharge', $rec)){
-    				$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
-    				$row->charge = ht::createBtn($row->charge, array($mvc, 'togglecharge', $rec->id), FALSE, FALSE, "ef_icon=img/16/arrow_refresh.png,title=Смяна за сметка на {$type}");
-    			}
-    		}
+    		$row->charge = $mvc->renderCharge($rec);
     	}
     }
     
@@ -209,8 +205,7 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
-     * След подготовка на детайлите, изчислява се общата цена
-     * и данните се групират
+     * След подготовка на детайлите, изчислява се общата цена и данните се групират
      */
     public static function on_AfterPrepareDetail($mvc, $res, $data)
     {
@@ -333,6 +328,12 @@ class store_InventoryNoteSummary extends doc_Detail
     }
     
     
+    /**
+     * Подготвя историята
+     * 
+     * @param stdClass $rec
+     * @return stdClass
+     */
     private function prepareHistory($rec)
     {
     	$recs = $rows = array();
@@ -347,6 +348,13 @@ class store_InventoryNoteSummary extends doc_Detail
     	return (object)array('recs' => $recs, 'rows' => $rows);
     }
     
+    
+    /**
+     * Рендира историята
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
     private function renderHistory($data)
     {
     	$tpl = new core_ET("<!--ET_BEGIN BLOCK--><div style='color:darkgreen'>[#packQuantity#] <span class='quiet'>[#packagingId#]</span></div><!--ET_END BLOCK-->");
@@ -362,8 +370,16 @@ class store_InventoryNoteSummary extends doc_Detail
     }
     
     
+    /**
+     * Форсира запис
+     * 
+     * @param int $noteId    - ид на протокол
+     * @param int $productId - ид на артикула
+     * @return int           - ид на форсирания запис
+     */
     public static function force($noteId, $productId)
     {
+    	// Ако има запис връщаме го
     	if($rec = store_InventoryNoteSummary::fetch("#noteId = {$noteId} AND #productId = {$productId}")){
     		
     		return $rec->id;
@@ -373,10 +389,17 @@ class store_InventoryNoteSummary extends doc_Detail
     						  'productId' => $productId, 
     						  'groups'    => cat_Products::fetchField($productId, 'groups'));
     	
+    	// Ако няма запис, създаваме го
     	return self::save($sRec);
     }
     
     
+    /**
+     * Връща артикулите, които имат описание
+     * 
+     * @param int $noteId - ид на протокол
+     * @return array $res - масив с артикулите в описанието
+     */
     public static function getProductsInSummary($noteId)
     {
     	$res = array();
@@ -391,17 +414,56 @@ class store_InventoryNoteSummary extends doc_Detail
     }
     
     
+    /**
+     * Екшън за смяна на начисляването
+     */
     function act_ToggleCharge()
     {
     	$this->requireRightFor('togglecharge');
-    	expect($id = Request::get('id', "int"));
-    	expect($rec = $this->fetch($id));
+    	
+    	if(!$id = Request::get('id', 'int')){
+    		core_Statuses::newStatus('|Невалиден ред|*!', 'error');
+    		return status_Messages::returnStatusesArray();
+    	}
+    	
+    	if(!$rec = $this->fetch($id)){
+    		core_Statuses::newStatus('|Невалиден ред|*!', 'error');
+    		return status_Messages::returnStatusesArray();
+    	}
+    	
     	$this->requireRightFor('togglecharge', $rec);
     	
+    	// Сменяме начина на начисляване
     	$rec->charge = ($rec->charge == 'owner') ? 'responsible' : 'owner'; 
-    	$this->save($rec, 'charge');
     	
-    	return new Redirect(array('store_InventoryNotes', 'single', $rec->noteId), 'Начисляването е променено успешно');
+    	// Опитваме се да запишем
+    	if($this->save($rec, 'charge')){
+    		
+    		// Ако сме в AJAX режим
+    		if(Request::get('ajax_mode')) {
+    			$replaceId = md5(str::addHash($rec->id, 6, 'charge'));
+    			
+    			// Заместваме клетката по AJAX за да визуализираме промяната
+    			$resObj = new stdClass();
+    			$resObj->func = "html";
+    			$resObj->arg = array('id' => $replaceId, 'html' => $this->renderCharge($rec), 'replace' => TRUE);
+    			$statusData = status_Messages::returnStatusesArray();
+    			
+    			$res = array_merge(array($resObj), (array)$statusData);
+    			
+    			// Връщаме очаквания обект
+    			return $res;
+    		}
+    	} else {
+    		core_Statuses::newStatus('|Проблем при запис|*!', 'error');
+    	}
+    	
+    	// Редирект
+    	if (Request::get('ajax_mode')) {
+    		return status_Messages::returnStatusesArray();
+    	} else {
+    		redirect(array('store_InventoryNotes', 'single', $rec->noteId));
+    	}
     }
     
     
@@ -416,5 +478,41 @@ class store_InventoryNoteSummary extends doc_Detail
     		unset($data->listFields['blQuantity']);
     		$data->listFields['quantitySum'] = 'Количество';
     	}
+    }
+    
+    
+    /**
+     * Рендира бутона за смяна на начисляването
+     * Вика се и след смяната на начисляването по AJAX
+     * 
+     * @param stdClass $rec   - записа от модела
+     * @return string $charge - бутона за смяна
+     */
+    private function renderCharge($rec)
+    {
+    	$charge = $this->getVerbal($rec, 'charge');
+    	
+    	// Правим линк само ако не сме в някой от следните режими
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if($this->haveRightFor('togglecharge', $rec)){
+    			$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
+    	
+    			$toggleUrl = toUrl(array($this, 'togglecharge', $rec->id), 'local');
+    			$chargeAttr = array('class' => "toggle-charge",
+				    				'data-url'       => $toggleUrl,
+				    				'data-replaceId' => $attr['id'],
+				    				'title'          => "Смяна за сметка на {$type}",
+				    				'ef_icon'        => 'img/16/arrow_refresh.png');
+    	
+    			$charge = ht::createFnBtn($charge, NULL, NULL, $chargeAttr);
+    		}
+    	}
+    		
+    	// Слагаме уникално ид на обграждащия div
+    	$hashCharge = md5(str::addHash($rec->id, 6, 'charge'));
+    	$charge = "<div id='{$hashCharge}'>{$charge}</div>";
+    	
+    	// Връщаме бутона
+    	return $charge;
     }
 }
