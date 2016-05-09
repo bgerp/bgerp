@@ -430,4 +430,19 @@ class status_Messages extends core_Manager
         $rec->timeLimit = 40;
         $res .= core_Cron::addOnce($rec);
     }
+    
+    
+    /**
+     * Връща масив със чакащите статуси в момента
+     * @return array
+     */
+    public static function returnStatusesArray()
+    {
+    	$hitTime = Request::get('hitTime', 'int');
+    	$idleTime = Request::get('idleTime', 'int');
+    	$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+    
+    	// Връщаме статусите ако има
+    	return (array)$statusData;
+    }
 }
