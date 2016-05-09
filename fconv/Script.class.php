@@ -425,7 +425,7 @@ class fconv_Script
         
         $foldersArr = $this->getFolders();
         
-        if ($foldersArr) {
+        if (!empty($foldersArr)) {
             foreach ((array)$foldersArr as $placeHolder => $folderName) {
                 $nFolderPath = $this->tempDir . $folderName;
                 @mkdir($nFolderPath, 0777, TRUE);
