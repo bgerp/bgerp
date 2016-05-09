@@ -106,9 +106,6 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
         
-        // Вземаме името на файла без разширението
-        $name = fileman_Files::getFileNameWithoutExt($file);
-        
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '_to.' . $to;
         
