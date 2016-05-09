@@ -470,7 +470,7 @@ class blast_Emails extends core_Master
             $emailPlaceArr = self::getEmailFields($descArr);
             
             // Ако няма полета за имейли, няма смисъл да се праща
-            if (!$emailPlaceArr) continue;
+            if (empty($emailPlaceArr)) continue;
             
             $notSendDataArr = $dataArr;
             
