@@ -53,6 +53,12 @@ class fconv_Script
     
     
     /**
+     * @param array - Масив за допълнителни параметрите при изпълнение
+     */
+    public $params = array();
+    
+    
+    /**
      * @param array - Масив за параметрите на скрипта
      */
     public $cmdParamsOrig = array();
