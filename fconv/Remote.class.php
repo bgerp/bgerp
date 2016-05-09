@@ -391,7 +391,7 @@ class fconv_Remote extends core_Manager
         
         expect($pid && $files);
         
-        expect(core_Locks::get($script, self::$lockTime));
+        expect(core_Locks::get($files, self::$lockTime));
         
         $rRec = fconv_Processes::fetch(array("#processId = '[#1#]'", $pid));
         
