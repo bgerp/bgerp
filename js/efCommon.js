@@ -351,7 +351,7 @@ function comboBoxInit(id, selectId) {
         txtCombo.style.paddingRight = '2px';
 
         if (txtCombo.offsetHeight != selCombo.offsetHeight) {
-            txtCombo.style.height = (selCombo.offsetHeight - 0) + 'px';
+            txtCombo.style.height = (selCombo.height - 0) + 'px';
         }
 
         selCombo.style.visibility = 'visible';
