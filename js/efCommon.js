@@ -2281,7 +2281,7 @@ function checkForHiddenGroups() {
 function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
-		  if ($(e.target).is(".invertTitle, .invert-checkbox")) {
+		  if ($(e.target).is(".invert-checkbox")) {
 			  // ако групата е затворена, я отваряме
 			  if($(e.target).closest('.keylistCategory').hasClass('closed')) {
 				  toggleKeylistGroups(e.target);
