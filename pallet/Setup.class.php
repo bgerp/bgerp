@@ -8,9 +8,9 @@
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -71,7 +71,7 @@ class pallet_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.2, 'Логистика', 'Палетен склад', 'pallet_Movements', 'default', "pallet,storeWorker,ceo"),
+            array(3.2, 'Логистика', 'Палетен склад', 'pallet_Movements', 'default', "pallet,ceo"),
         );
     
     
