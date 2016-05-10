@@ -36,13 +36,14 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param boolean $cmyk
      * @param string $type
      * @param string $name
+     * @param array $otherParam
      * 
      * @return string|NULL - Манипулатора на PDF файла
      */
-    public static function toPdf($file, $cmyk = FALSE, $type = 'auto', $name = '')
+    public static function toPdf($file, $cmyk = FALSE, $type = 'auto', $name = '', $otherParam = array())
     {
         
-        return self::convertTo($file, 'pdf', $type, $name, $cmyk);
+        return self::convertTo($file, 'pdf', $type, $name, $cmyk, $otherParam);
     }
     
     
@@ -52,13 +53,14 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param string $file
      * @param string $type
      * @param string $name
+     * @param array $otherParam
      *
      * @return string|NULL - Манипулатора на PNG файла
      */
-    public static function toPng($file, $type = 'auto', $name = '')
+    public static function toPng($file, $type = 'auto', $name = '', $otherParam = array())
     {
         
-        return self::convertTo($file, 'png', $type, $name);
+        return self::convertTo($file, 'png', $type, $name, FALSE, $otherParam);
     }
     
     
@@ -70,10 +72,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      * @param string $type
      * @param string $name
      * @param boolean $cmyk
+     * @param array $otherParam
      *
      * @return string|NULL - Манипулатора на PNG файла
      */
-    protected static function convertTo($file, $to = 'pdf', $type = 'auto', $name = '', $cmyk = FALSE)
+    protected static function convertTo($file, $to = 'pdf', $type = 'auto', $name = '', $cmyk = FALSE, $otherParam = array())
     {
         if (!$file) return ;
         
@@ -83,7 +86,14 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         if ($to == 'png') {
             $height = static::$pngExportHeight;
-            $lineExec = "inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing --export-height={$height}";
+            $lineExec = "inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing";
+            if ($otherParam['exportHeight']) {
+                $lineExec .= ' --export-height=' . $otherParam['exportHeight'];
+            }
+            
+            if ($otherParam['exportWidth']) {
+                $lineExec .= ' --export-width=' . $otherParam['exportWidth'];
+            }
         }
         
         cls::load('fileman_Files');
