@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'опис на артикул';
+    public $singleTitle = 'артикул за опис';
     
     
     /**
@@ -50,7 +50,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'no_one';
     
     
     /**
@@ -68,7 +68,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'no_one';
     
         
     /**
@@ -291,13 +291,13 @@ class store_InventoryNoteDetails extends doc_Detail
     	$form->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'mandatory,silent,input=hidden');
     	$form->FLD('productId', 'key(mvc=cat_Products, select=name)', 'mandatory,silent,caption=Артикул,removeAndRefreshForm');
     	$form->FLD('edit', 'int', 'silent,input=hidden');
-    	$isAjax = Request::get('ajax_mode');
     	
+    	$form->input(NULL, 'silent');
+    	
+    	$isAjax = (Request::get('ajax_mode') && $form->cmd != 'refresh');
     	if($isAjax){
     		$form->fieldsLayout = getTplFromFile('store/tpl/InventoryNote/FormFieldsAjax.shtml');
     	}
-    	
-    	$form->input(NULL, 'silent');
     	
     	$rec = &$form->rec;
     	if($rec->edit){
@@ -306,7 +306,7 @@ class store_InventoryNoteDetails extends doc_Detail
     		$form->info = tr('Установено количество');
     		$form->setField('productId', 'input=hidden');
     	} else {
-    		$form->title = 'Добавяне на нов артикул за опис';
+    		$form->title = core_Detail::getEditTitle('store_InventoryNotes', $rec->noteId, $this->singleTitle, NULL);
     		$products = cat_Products::getByProperty('canStore');
 			$productsInSummary = store_InventoryNoteSummary::getProductsInSummary($rec->noteId);
 			$notUsedProducts = array_diff_key($products, $productsInSummary);
@@ -333,7 +333,7 @@ class store_InventoryNoteDetails extends doc_Detail
     			deals_Helper::getPackInfo($value, $rec->productId, $packId, $quantityInPack);
     			$value = cat_UoM::getShortName($packId);
     			
-    			if($isAjax){
+    			if($isAjax === TRUE){
     				$tplBlock = clone $form->fieldsLayout->getBlock('field_name');
     				$tplBlock->placeArray(array('field_name' => new core_ET("[#pack{$packId}#]"), 'caption' => $value));
     				$form->fieldsLayout->append($tplBlock, 'CONTENT');

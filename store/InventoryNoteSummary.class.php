@@ -355,6 +355,8 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+    	if($data->masterData->rec->state == 'rejected') return;
+    	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
     	$data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);

@@ -81,7 +81,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search';
+    public $loadList = 'plg_RowTools2, store_Wrapper,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg';
     
     
     /**
@@ -131,12 +131,16 @@ class store_InventoryNotes extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$form->setDefault('valior', dt::today());
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
+    	
+    	if(isset($form->rec->id)){
+    		$form->setReadOnly('storeId');
+    	}
     }
     
     
@@ -188,7 +192,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	core_App::setTimeLimit(300);
     	$products = $mvc->getProductsFromBalance($rec);
@@ -211,12 +215,14 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('single', $data->rec->id)){
-    		$url = array($mvc, 'single', $data->rec->id);
-        	$url['Printing'] = 'yes';
-        	$url['Blank'] = 'yes';
-        	
-    		$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/star_2.png,title=Принтиране на бланка,target=_blank');
+    	if($data->rec->state != 'rejected'){
+    		if($mvc->haveRightFor('single', $data->rec->id)){
+    			$url = array($mvc, 'single', $data->rec->id);
+    			$url['Printing'] = 'yes';
+    			$url['Blank'] = 'yes';
+    			 
+    			$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/blueprint.png,title=Разпечатване на бланката,target=_blank');
+    		}
     	}
     }
     
@@ -224,7 +230,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Преди подготовка на сингъла
      */
-    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
     	if(Request::get('Blank', 'varchar')){
     		Mode::set('blank');
@@ -235,21 +241,25 @@ class store_InventoryNotes extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
     	
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$data->row->MyCompany = transliterate(tr($row->MyCompany));
+    	$data->row->MyCompany = transliterate(tr($data->row->MyCompany));
     	$data->row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+ 	
+    	if($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')){
+    		$data->row->storeAddress = crm_Locations::getAddress($storeLocationId);
+    	}
     }
     
     
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('store/tpl/css/styles.css', 'CSS');
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
