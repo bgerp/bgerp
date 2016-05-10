@@ -1623,7 +1623,7 @@ class cat_Products extends embed_Manager {
     	$rec = $this->fetchRec($id);
     	$row = new stdClass();
         
-    	$row->title    = $this->getVerbal($rec, 'name');
+    	$row->title    = $this->getTitleById($rec->id);
         $row->authorId = $rec->createdBy;
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
