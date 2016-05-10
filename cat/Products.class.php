@@ -209,14 +209,6 @@ class cat_Products extends embed_Manager {
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
-	
-	
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     *
-     *  @var string
-     */
-    public $hideListFieldsIfEmpty = 'code';
     
     
 	/**
@@ -841,9 +833,7 @@ class cat_Products extends embed_Manager {
         	$Driver = cat_Products::getDriver($rec->id);
             if(!is_object($Driver)) return NULL;
             
-        	if($rec->isPublic == 'no'){
-        		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
-        	}
+            static::setCodeIfEmpty($rec);
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
@@ -863,6 +853,20 @@ class cat_Products extends embed_Manager {
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Задава код на артикула ако няма
+     * 
+     * @param stdClass $rec - запис
+     * @return void
+     */
+    private static function setCodeIfEmpty(&$rec)
+    {
+    	if($rec->isPublic == 'no'){
+    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+    	}
     }
     
     
@@ -1437,11 +1441,6 @@ class cat_Products extends embed_Manager {
     		$name = tr($rec->name);
     	}
     	
-    	if($rec->isPublic == 'no'){
-    		$hand = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
-    		$name .= " ($hand)";
-    	}
-    	
     	// Иначе го връщаме такова, каквото е
     	return $name;
     }
@@ -1458,6 +1457,12 @@ class cat_Products extends embed_Manager {
     		}
     		
     		$rec->name = static::getDisplayName($rec);
+    	} elseif($field == 'code'){
+    		if(!is_object($rec)) {
+    			$rec = new stdClass();
+    		}
+    		
+    		static::setCodeIfEmpty($rec);
     	}
     }
     
@@ -1468,6 +1473,7 @@ class cat_Products extends embed_Manager {
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec->name = static::getDisplayName($rec);
+    	static::setCodeIfEmpty($rec);
     	
     	return parent::getRecTitle($rec, $escaped);
     }
