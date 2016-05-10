@@ -990,8 +990,35 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
                 }
        
             }
-
-            $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
+            
+            if($this->innerState->summary) {
+                $afterRow = 'ОБЩО';
+    
+                $rec = $this->prepareEmbeddedData($this->innerState->recs)->summary;
+                 
+                foreach ($rec as $f => $value) {
+                    $rCsv = '';
+                    $rec->sum = $rec->creditAmount;
+                    foreach ($exportFields as $field => $caption) {
+                        if ($rec->{$field}) {
+                            if ($field == 'delta') {
+                                $rCsv .= '' . ",";
+                            } else {
+                                $value = $rec->{$field};
+                                $rCsv .= $value. ",";
+                            }
+                        }else {
+                            $rCsv .= '' . ",";
+                        }
+                    }
+                }
+                
+                $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
+                $csv .= "\n".$afterRow.$rCsv;
+                
+            } else {
+                $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
+            }
         	
         	return $csv;
         } 

@@ -480,7 +480,6 @@ class core_String
      * @param integer $maxLen
      * @param integer $showEndFrom
      * @param string $dots
-     * @param boolean $hyphen
      * 
      * @return string
      */

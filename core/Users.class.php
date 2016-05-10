@@ -370,7 +370,7 @@ class core_Users extends core_Manager
             $rec = core_Users::getCurrent();
         }
         
-        if (is_null($rec)) return ;
+        if (is_null($rec)) return FALSE;
         
         if (!is_object($rec)) {
             $rec = self::fetch($rec);

@@ -1421,7 +1421,7 @@ class fileman_Files extends core_Master
                 $size =  str_ireplace('&nbsp;', ' ', $size);
                     
                 //Добавяме към атрибута на линка информация за размера
-                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер|*: {$size}");
+                $attr['title'] .= ($attr['title'] ? "\n" : '') . "|Размер|*: {$size}";
                 
                 $attr['rel'] = 'nofollow';
                 
