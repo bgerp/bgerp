@@ -116,6 +116,16 @@ class bgerp_plg_Blank extends core_Plugin
             
             // Ако не е манипулатор, очакваме да е път
             $companyLogo = core_App::getFullPath($companyLogo);
+            
+            // Ако логото не се взема от частния пакет или няма частен пакет
+            // Използваме генерираното лого от SVG файла
+            if (!defined('EF_PRIVATE_PATH') || (strpos($companyLogo, EF_PRIVATE_PATH) !== 0)) {
+                $logoFromSvg = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO_SVG');
+                if (trim($logoFromSvg)) {
+                    $companyLogo = $logoFromSvg;
+                    $sourceType = 'fileman';
+                }
+            }
         }
         
         $isAbsolute = (boolean)Mode::is('text', 'xhtml');
