@@ -831,10 +831,33 @@ class crm_Companies extends core_Master
         
         $tpl = getTplFromFile('bgerp/tpl/svg.svg');
         $cRec = crm_Companies::fetchOwnCompany();
-        $tpl->append(tr($cRec->company), 'myCompanyName');
-        if ($cRec->address) {
-            $tpl->append(tr($cRec->address), 'address');
+        $tpl->append(transliterate(tr($cRec->company)), 'myCompanyName');
+        
+        // Подготвяме адреса
+        $fAddres = '';
+        if ($cRec->country) {
+            $fAddres .= transliterate($cRec->country);
         }
+        
+        if (trim($cRec->pCode)) {
+            $fAddres .= (trim($fAddres)) ? ', ' : '';
+            $fAddres .= transliterate($cRec->pCode);
+        }
+
+        if (trim($cRec->place)) {
+            if (trim($fAddres)) {
+                $fAddres .= (trim($cRec->pCode)) ? ' ' : ', ';
+            }
+            
+            $fAddres .= transliterate(tr($cRec->place));
+        }
+
+        if (trim($cRec->address)) {
+            $fAddres .= (trim($fAddres)) ? ', ' : '';
+            $fAddres .= transliterate(tr($cRec->address));
+        }
+        
+        $tpl->append($fAddres, 'address');
         $tpl->append($cRec->tel, 'tel');
         $tpl->append($cRec->fax, 'fax');
         $tpl->append($cRec->website, 'site');
