@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
+   xmlns="http://www.w3.org/2000/svg"
    width="750px"
    height="87px"
-   viewBox="0 0 7520 870"
+   viewBox="0 0 7500 870"
    version="1.1"
-   id="svg2"
-   sodipodi:docname="svg.svg">
-  <metadata
-     id="metadata29">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
+   id="svg2">
+
   <defs
      id="defs27" />
   <g
@@ -47,7 +36,7 @@
        d="m 0,0 3750,0 0,435 L 0,435 0,0 Z"
        id="path13"
        style="fill:url(#test);stroke:#aaaaaa;stroke-width:2;stroke-dasharray:10000, 1;stroke-opacity:1"
-       inkscape:connector-curvature="0" />
+    />
     <text
        x="50"
        y="238"
