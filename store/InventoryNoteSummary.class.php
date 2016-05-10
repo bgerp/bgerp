@@ -80,7 +80,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta, charge,group';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta, charge,group';
     
         
     /**
@@ -103,7 +103,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
@@ -157,15 +157,19 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->measureId = cat_Products::getVerbal($rec->productId, 'measureId');
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	$productRec = cat_Products::fetch($rec->productId);
+    	$row->measureId = cat_UoM::getShortName($productRec->measureId);
+    	$row->code = cat_Products::getVerbal($productRec, 'code');
+    	
+    	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+    	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
+    	$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
     	
     	if(!Mode::is('blank')){
     		$row->quantitySum = $mvc->renderQuantityCell($rec);
     		$row->quantitySum = "<div id='summary{$rec->id}'>{$row->quantitySum}</div>";
     	}
     	
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->charge = $mvc->renderCharge($rec);
     }
     
@@ -298,7 +302,8 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if(!$data->rows) return;
-    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	$data->listTableMvc->FLD('code', 'varchar', 'smartCenter,tdClass=small-field');
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
     	if(Mode::get('blank')){
     		$data->listTableMvc->setField('quantitySum', 'tdClass=medium-field');
