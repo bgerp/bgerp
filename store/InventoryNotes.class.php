@@ -105,7 +105,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutInventoryNote.shtml';
+    public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
     
     
     /**
@@ -251,6 +251,7 @@ class store_InventoryNotes extends core_Master
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
+    	$tpl->push('store/tpl/css/styles.css', 'CSS');
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		$tpl->push('store/js/InventoryNotes.js', 'JS');
     		jquery_Jquery::run($tpl, "noteActions();");
