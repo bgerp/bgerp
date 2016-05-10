@@ -1872,6 +1872,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	$data->form->toolbar->renameBtn('save', 'Запис');
+    	$data->form->toolbar->removeBtn('activate');
     }
     
     
