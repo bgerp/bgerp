@@ -106,6 +106,12 @@ defIfNot('BACKUP_CRYPT', 'no');
 
 
 /**
+ * Парола за криптиране на съхранените файлове
+ */
+defIfNot('BACKUP_PASS', '');
+
+
+/**
  * Данни за Amazon S3
  */
 defIfNot('AMAZON_KEY', '');
