@@ -766,7 +766,12 @@ class crm_Companies extends core_Master
     
     
     /**
-     * След всеки запис (@see core_Mvc::save_())
+     * След добавяне на запис в модела
+     * 
+     * @param crm_Companies $mvc
+     * @param integer $id
+     * @param stdObject $rec
+     * @param string|NULL $saveFileds
      */
     protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = NULL)
     {
@@ -781,6 +786,55 @@ class crm_Companies extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
+        
+        // Ако се редактира текущата фирма, генерираме лог от данните
+        if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
+            $mvc->prepareCompanyLogo();
+        }
+    }
+    
+    
+    /**
+     * Сетваме лого за компанията
+     */
+    protected static function prepareCompanyLogo()
+    {
+        self::setCompanyLogo('BGERP_COMPANY_LOGO_SVG');
+    
+        core_Lg::push('en');
+        self::setCompanyLogo('BGERP_COMPANY_LOGO_SVG_EN');
+        core_Lg::pop();
+    }
+    
+    
+    /**
+     * Помощна функция за сетване на лого на компанията
+     *
+     * @param string $companyConstName
+     */
+    protected static function setCompanyLogo($companyConstName)
+    {
+        $tpl = getTplFromFile('bgerp/tpl/svg.svg');
+        $cRec = crm_Companies::fetchOwnCompany();
+        $tpl->append(tr($cRec->company), 'myCompanyName');
+        if ($cRec->address) {
+            $tpl->append(tr($cRec->address), 'address');
+        }
+        $tpl->append($cRec->tel, 'tel');
+        $tpl->append($cRec->fax, 'fax');
+        $tpl->append($cRec->website, 'site');
+    
+        $content = $tpl->getContent();
+        
+        try {
+            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+        } catch (Exception $e) {
+            reportException($e);
+        }
+        
+        if ($pngHnd) {
+            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
+        }
     }
     
     
@@ -1282,6 +1336,7 @@ class crm_Companies extends core_Master
             $contrData->place = $company->place;
             $contrData->address = $company->address;
             $contrData->email = $company->email;
+            $contrData->website = $company->website;
             
             // Вземаме груповите имейли
             $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);    
