@@ -47,8 +47,8 @@ class backup_Local extends core_Master
         
         return $result;
     }
-    
-    
+
+
     /**
      * Записва файл в локалния архив
      *
@@ -56,9 +56,10 @@ class backup_Local extends core_Master
      *
      * @param string $fileName
      *
-     * @return boolean
+     * @param null $subDir
+     * @return bool
      */
-    static function putFile($fileName, $subDir = null)
+    static function putFile($fileName, $subDir = NULL)
     {
         $conf = core_Packs::getConfig('backup');
         if ($subDir) {
