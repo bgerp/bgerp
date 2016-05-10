@@ -43,22 +43,22 @@
        style="font-weight:bold;font-size:220px;font-family:Arial;fill:#000000"
        font-size="220"
        id="text15">[#myCompanyName#]</text>
-    <!-- ET_BEGIN tel-->
+    <!--ET_BEGIN tel-->
     <text
        x="2800"
        y="120"
        style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
        font-size="66"
        id="text17">|Тел.|*: [#tel#]</text>
-    <!-- ET_END tel-->
-    <!-- ET_BEGIN fax-->
+    <!--ET_END tel-->
+    <!--ET_BEGIN fax-->
     <text
        x="2800"
        y="230"
        style="font-weight:normal;font-size:66px;font-family:Arial;fill:#000000"
        font-size="66"
        id="text19">|Факс|*: [#fax#]</text>
-    <!-- ET_END fax-->
+    <!--ET_END fax-->
     <text
        x="2800"
        y="340"
