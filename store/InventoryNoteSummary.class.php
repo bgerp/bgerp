@@ -528,7 +528,7 @@ class store_InventoryNoteSummary extends doc_Detail
      * 
      * @param stdClass $data
      */
-    function prepareListRows111_(&$data)
+    function prepareListRows_(&$data)
     {
     	// Подготвяме ключа за кеширане
     	$cu = core_Users::getCurrent();
