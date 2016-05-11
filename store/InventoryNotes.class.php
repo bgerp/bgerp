@@ -196,11 +196,14 @@ class store_InventoryNotes extends core_Master
     {
     	core_App::setTimeLimit(300);
     	$products = $mvc->getProductsFromBalance($rec);
+    	$now = dt::now();
     	foreach ($products as $pRec){
     		$dRec = (object)array('noteId'     => $rec->id,
     							  'groups'     => $pRec->groups,
     							  'productId'  => $pRec->productId,
-    							  'blQuantity' => $pRec->quantity);
+    							  'blQuantity' => $pRec->quantity,
+    							  'modifiedOn' => $now,
+    		);
     	
     		store_InventoryNoteSummary::save($dRec);
     	}

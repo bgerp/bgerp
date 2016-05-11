@@ -80,7 +80,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta, charge,group';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta, charge,group,modifiedOn';
     
         
     /**
@@ -109,6 +109,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=id)', 'caption=Маркери');
         $this->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване,notNull,value=owner,smartCenter');
+        $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
         $this->setDbUnique('noteId,productId');
     }
@@ -431,9 +432,10 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Сменяме начина на начисляване
     	$rec->charge = ($rec->charge == 'owner') ? 'responsible' : 'owner'; 
+    	$rec->modifiedOn = dt::now();
     	
     	// Опитваме се да запишем
-    	if($this->save($rec, 'charge')){
+    	if($this->save($rec, 'charge,modifiedOn')){
     		
     		// Ако сме в AJAX режим
     		if(Request::get('ajax_mode')) {

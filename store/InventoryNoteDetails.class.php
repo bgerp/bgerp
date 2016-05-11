@@ -205,7 +205,8 @@ class store_InventoryNoteDetails extends doc_Detail
     		$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
     		
     		// Обновяваме количеството
-    		$sRec = (object)array('id' => $summeryId, 'quantity' => $quantity);
+    		$now = dt::now();
+    		$sRec = (object)array('id' => $summeryId, 'quantity' => $quantity, 'modifiedOn' => $now);
 			store_InventoryNoteSummary::save($sRec);
  			
 			// Ако сме в AJAX режим
