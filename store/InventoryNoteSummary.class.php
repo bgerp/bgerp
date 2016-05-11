@@ -545,6 +545,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Проверяваме имали кеш за $data->rows
     	$cache = core_Cache::get($this->Master->className, $key);
+    	$cacheRows = isset($data->listFilter->rec->search) ? FALSE : TRUE;
     	
     	// Ако има кеш за зашисите
     	if(!empty($cache)){
@@ -554,6 +555,11 @@ class store_InventoryNoteSummary extends doc_Detail
     		if(is_array($data->rows)){
     			foreach ($data->rows as $id => $row){
     				$rec = $data->recs[$id];
+    				
+    				if(is_null($rec)){
+    					unset($data->rows[$id]);
+    					continue;
+    				}
     				
     				// Тези които са с дата на модификация по-малка от тази на река им
     				if($rec->modifiedOn > $row->modifiedDate){
@@ -570,7 +576,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	// Кешираме $data->rows
-    	core_Cache::set($this->Master->className, $key, $data->rows, 1440);
+    	if($cacheRows === TRUE){
+    		core_Cache::set($this->Master->className, $key, $data->rows, 1440);
+    	}
     	
     	// Връщаме $data
     	return $data;
