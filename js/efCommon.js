@@ -4421,9 +4421,6 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
-function test(){
-	alert();
-}
 
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
