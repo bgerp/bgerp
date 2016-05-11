@@ -680,7 +680,7 @@ class type_Richtext extends type_Blob
             if ($boldTextPattern) {
                 
                 // Добавяме текста в шаблона
-                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n|^$]+))/ui";    
+                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак
