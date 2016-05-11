@@ -325,7 +325,7 @@ class core_Html
     {
         $optionsCnt = self::countOptions($options);
         
-        setIfNot($attr['name'], $name);
+        setIfNot($attr['data-hiddenName'], $name);
         
         // Очакваме да има поне една опция
         expect($optionsCnt > 0, "'Липсват опции за '{$name}'");
