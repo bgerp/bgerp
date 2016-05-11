@@ -235,17 +235,17 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		
     		if($pRec->measureId){
-    			$measureName = cat_UoM::getShortName($pRec->measureId);
-    		}
-    		$measureName = $data->Driver->getDefaultUom($measureName);
-    		if(!$measureName){
-    			$measureName = 'pcs';
+    			$measureId = $pRec->measureId;
+    		} elseif($data->Driver->getDefaultUomId()){
+    			$measureId = $data->Driver->getDefaultUomId();
+    		} else{
+    			$measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
     		}
     		
-    		$measureId = cat_UoM::fetchBySinonim($measureName)->id;
-    		$uom = cat_UoM::getShortName($measureId);
+    		if($measureId){
+    			$uom = cat_UoM::getShortName($measureId);
+    		}
     	
     		if(isset($form->rec->moq)){
     			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($form->rec->moq);
@@ -327,16 +327,18 @@ class marketing_Inquiries2 extends embed_Manager
     		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, $attr);
     	}
-    	 
-    	// До всяко количество се слага unit с мярката на продукта
+    	
     	if($Driver = $mvc->getDriver($rec->id)){
-    		$uomName = $Driver->getDefaultUom();
-    		if(!$uomName){
-    			$uomName = 'pcs';
-    		}
-    		$uomId = cat_UoM::fetchBySinonim($uomName)->id;
-    		$shortName = cat_UoM::getShortName($uomId);
+    		$measureId = $Driver->getDefaultUomId();
     	}
+    	if(!$measureId){
+    		$measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+    	}
+    	if(!$measureId){
+    		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
+    	}
+    	
+    	$shortName = cat_UoM::getShortName($measureId);
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	foreach (range(1, 3) as $i){

@@ -349,8 +349,6 @@ class cat_Products extends embed_Manager {
             					foreach ($pRec->driverRec as $name => $value){
             						$form->setDefault($name, $value);
             					}
-            					
-            					//Request::push($pRec->driverRec);
             				}
             			}
             		}
@@ -374,8 +372,6 @@ class cat_Products extends embed_Manager {
     			
     			if($Driver = $mvc->getDriver($rec)){
     				$defMetas = $Driver->getDefaultMetas($defMetas);
-    				$measureName = $Driver->getDefaultUom();
-    				$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
     			}
     		}
     		
@@ -405,9 +401,6 @@ class cat_Products extends embed_Manager {
     				if(count($categoryMeasures)){
     					if(isset($rec->measureId)){
     						$categoryMeasures[$rec->measureId] = $rec->measureId;
-    					}
-    					if(isset($defaultUomId)){
-    						$categoryMeasures[$defaultUomId] = $defaultUomId;
     					}
     					
     					$measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
@@ -447,18 +440,24 @@ class cat_Products extends embed_Manager {
     		}
     	}
     	
-    	// Задаваме позволените мерки като опция
-    	$form->setOptions('measureId', array('' => '') + $measureOptions);
-    	
     	// Ако има дефолтна мярка, избираме я
-    	if(isset($defaultUomId)){
-    		$form->setDefault('measureId', $defaultUomId);
-    	}
-
-    	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
-    	if(isset($rec->id) && $data->action != 'clone'){
-    		if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id, $form->rec->measureId)){
-    			$form->setReadOnly('measureId'); 
+    	if(is_object($Driver) && $Driver->getDefaultUomId()){
+    		$defaultUomId = $Driver->getDefaultUomId();
+    		$form->setReadOnly('measureId', $defaultUomId);
+    	} else {
+    		if($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')){
+    			$measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, FALSE);
+    			$form->setDefault('measureId', $defMeasure);
+    		}
+    		
+    		// Задаваме позволените мерки като опция
+    		$form->setOptions('measureId', array('' => '') + $measureOptions);
+    		
+    		// При редакция ако артикула е използван с тази мярка, тя не може да се променя
+    		if(isset($rec->id) && $data->action != 'clone'){
+    			if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id, $form->rec->measureId)){
+    				$form->setReadOnly('measureId');
+    			}
     		}
     	}
     }
