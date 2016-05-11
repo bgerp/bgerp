@@ -327,13 +327,21 @@ class store_InventoryNotes extends core_Master
     }
     
     
+    /**
+     * Връща ключа за кеширане на данните
+     * 
+     * @param stdClass $rec - запис
+     * @return string $key  - уникален ключ
+     */
     public static function getCacheKey($rec)
     {
     	// Подготвяме ключа за кеширане
     	$cu = core_Users::getCurrent();
     	$lg = core_Lg::getCurrent();
-    	$key = "ip{$cu}|{$lg}|{$rec->id}";
+    	$isNarrow = (Mode::is('screenMode', 'narrow')) ? TRUE : FALSE;
+    	$key = "ip{$cu}|{$lg}|{$rec->id}|{$isNarrow}|";
     	
+    	// Връщаме готовия ключ
     	return $key;
     }
 }
