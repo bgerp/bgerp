@@ -12,15 +12,13 @@ function noteActions() {
 	
 	$(document.body).on('click', ".inventoryNoteShowAddForm", function(e){
 		var url = $(this).attr("data-url");
-		var replaceId = $(this).attr("data-showinrow");
 		
 		if(!url) return;
-		var data = {replaceId:replaceId};
 		
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj, data);
+		getEfae().process(resObj);
 	});
 }
 

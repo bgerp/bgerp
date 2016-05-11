@@ -217,11 +217,11 @@ class store_InventoryNoteSummary extends doc_Detail
     	if(!Mode::is('blank')){
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
-    				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE);
+    				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
     				$url = toUrl($url, 'local');
     				
     				$link = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', ''),
-    						'data-url' => $url, 'data-showinrow' => "inlineform{$rec->id}", 'class' => 'inventoryNoteShowAddForm'));
+    						'data-url' => $url, 'class' => 'inventoryNoteShowAddForm'));
     				$link = "<span class='ajax-form-holder'><span class='ajax-form' id='inlineform{$rec->id}'></span>{$link}</span>";
     				
     				$quantityArr['link'] = $link;
