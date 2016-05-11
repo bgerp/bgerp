@@ -416,7 +416,7 @@ function toggleFormGroup(id)
 	}
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 	$('.fs-toggle' + id).toggleClass('openToggleRow');
-
+	
 }
 
 
@@ -1845,19 +1845,14 @@ function getType (val) {
  */
 function refreshForm(form, removeFields) {
 	
-	// Памет за заредените вече файлове
-    if ( typeof refreshForm.loadedFiles == 'undefined' ) {
-        refreshForm.loadedFiles = [];
-    }
-	
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 	
 	var frm = $(form);
-
+	
 	frm.css('cursor', 'wait');
-
-    frm.find('input, select, textarea').css('cursor', 'wait');
+	
+	frm.find('input, select, textarea').css('cursor', 'wait');
 	
 	var params = frm.serializeArray();
 
@@ -1878,89 +1873,107 @@ function refreshForm(form, removeFields) {
 		data: serialized + '&ajax_mode=1',
 		dataType: 'json'
 	}).done( function(data) {
-			
-			// Затваря всики select2 елементи
-			if ($.fn.select2) {
-				var selFind = frm.find('select');
-				if (selFind) {
-					$.each(selFind, function(a, elem){
-						try {
-							if ($(elem).select2()) {
-								$(elem).select2().select2("close");
-							}
-						} catch(e) {
-							
-						}
-					});
-				}
-			}
-			
-		if (getType(data) == 'array') {
-			var r1 = data[0];
-			if(r1['func'] == 'redirect') {
-				render_redirect(r1['arg']);
-			}
-		}
-
-		// Разрешаваме кеширането при зареждане по ajax
-		$.ajaxSetup ({cache: true});		
-		
-		// Зареждаме стиловете
-		$.each(data.css, function(i, css) {
-			if(refreshForm.loadedFiles.indexOf(css) < 0) {
-				$("<link/>", {
-				   rel: "stylesheet",
-				   type: "text/css",
-				   href: css
-				}).appendTo("head");
-				refreshForm.loadedFiles.push(css);
-			}
-		});
-		
-		// Забраняваме отново кеширането при зареждане по ajax
-		$.ajaxSetup ({cache: false});
-		
-		// Заместваме съдържанието на формата
-		frm.replaceWith(data.html);
-
-        var newParams = $('form').serializeArray();
-        var paramsArray = [];
-
-        $.each(params, function (i, el) {
-            paramsArray[el.name] = el.value;
-        });
-
-        $.each(newParams, function () {
-            // за всички елементи, които са видими
-            if($('*[name="' + this.name + '"]').attr('type') != 'hidden') {
-                // избираме новите или променените полета
-                if(typeof paramsArray[this.name] == 'undefined' || this.value != paramsArray[this.name]) {
-                    // добавяме класа, който използваме за пресветване и transition
-                    $('*[name="' + this.name + '"]').addClass('flashElem');
-                    $('*[name="' + this.name + '"]').siblings().addClass('flashElem');
-                    $('.flashElem, .flashElem.select2 > .selection > .select2-selection').css('transition', 'background-color linear 500ms');
-                    // махаме класа след 1сек
-                    setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
-                }
-            }
-        });
-
-		// Разрешаваме кеширането при зареждане по ajax
-		$.ajaxSetup ({cache: true});		
-		
-		// Зареждаме JS файловете синхронно
-		loadFiles(data.js, refreshForm.loadedFiles);
-		
-		// Забраняваме отново кеширането при зареждане по ajax
-		$.ajaxSetup ({cache: false});		
-
-		// Показваме нормален курсур
-		frm.css('cursor', 'default');
-        frm.find('input, select, textarea').css('cursor', 'default');
+		getEO().saveFormData(frm.attr('id'), data);
+		replaceFormData(frm, data);
 	});
 }
 
 
+/**
+ * Помощна функция за заместване на формата
+ * 
+ * @param object
+ * @param object
+ */
+function replaceFormData(frm, data)
+{
+	// Памет за заредените вече файлове
+    if ( typeof refreshForm.loadedFiles == 'undefined' ) {
+        refreshForm.loadedFiles = [];
+    }
+    
+    var params = frm.serializeArray();
+    
+	// Затваря всики select2 елементи
+	if ($.fn.select2) {
+		var selFind = frm.find('select');
+		if (selFind) {
+			$.each(selFind, function(a, elem){
+				try {
+					if ($(elem).select2()) {
+						$(elem).select2().select2("close");
+					}
+				} catch(e) {
+					
+				}
+			});
+		}
+	}
+	
+	if (getType(data) == 'array') {
+		var r1 = data[0];
+		if(r1['func'] == 'redirect') {
+			render_redirect(r1['arg']);
+		}
+	}
+
+	// Разрешаваме кеширането при зареждане по ajax
+	$.ajaxSetup ({cache: true});		
+	
+	// Зареждаме стиловете
+	$.each(data.css, function(i, css) {
+		if(refreshForm.loadedFiles.indexOf(css) < 0) {
+			$("<link/>", {
+			   rel: "stylesheet",
+			   type: "text/css",
+			   href: css
+			}).appendTo("head");
+			refreshForm.loadedFiles.push(css);
+		}
+	});
+	
+	// Забраняваме отново кеширането при зареждане по ajax
+	$.ajaxSetup ({cache: false});
+	
+	// Заместваме съдържанието на формата
+	frm.replaceWith(data.html);
+	
+	var newParams = $('form').serializeArray();
+	var paramsArray = [];
+	
+	$.each(params, function (i, el) {
+		paramsArray[el.name] = el.value;
+	});
+	
+	$.each(newParams, function () {
+		// за всички елементи, които са видими
+		if($('*[name="' + this.name + '"]').attr('type') != 'hidden') {
+			// избираме новите или променените полета
+			if(typeof paramsArray[this.name] == 'undefined' || this.value != paramsArray[this.name]) {
+				// добавяме класа, който използваме за пресветване и transition
+				$('*[name="' + this.name + '"]').addClass('flashElem');
+				$('*[name="' + this.name + '"]').siblings().addClass('flashElem');
+				$('.flashElem, .flashElem.select2 > .selection > .select2-selection').css('transition', 'background-color linear 500ms');
+				// махаме класа след 1сек
+				setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
+			}
+		}
+	});
+	
+	// Разрешаваме кеширането при зареждане по ajax
+	$.ajaxSetup ({cache: true});		
+	
+	// Зареждаме JS файловете синхронно
+	loadFiles(data.js, refreshForm.loadedFiles);
+	
+	// Забраняваме отново кеширането при зареждане по ajax
+	$.ajaxSetup ({cache: false});		
+
+	// Показваме нормален курсур
+	frm.css('cursor', 'default');
+	
+	frm.find('input, select, textarea').css('cursor', 'default');
+}
 /**
  * Зарежда подадените JS файлове синхронно
  * 
@@ -3625,6 +3638,9 @@ function Experta() {
     
     // Име на сесията за id-та на body тага
     Experta.prototype.bodyIdSessName = 'bodyIdArr';
+    
+    // Име на сесията за id-та на body тага
+    Experta.prototype.formSessName = 'refreshFormObj';
 }
 
 
@@ -4052,6 +4068,80 @@ Experta.prototype.checkBodyId = function(bodyId) {
 
 
 /**
+ * Записва данните за формата в id на страницата
+ */
+Experta.prototype.saveFormData = function(formId, data) {
+	
+	var maxItemOnSession = 3;
+	
+	bodyId = $('body').attr('id');
+	
+	if (!bodyId) return ;
+	
+	var formObj = sessionStorage.getItem(this.formSessName);
+	
+	var maxN = 0;
+	var minN = 0;
+	var minNKey;
+	
+	if (!formObj) {
+		formObj = {};
+	} else {
+		formObj = $.parseJSON(formObj);
+		
+		// Определяме най-голямата и най-малка стойност
+		// За да ги премахнем от сесията, при достигане на лимита
+		for (var key in formObj) {
+			if (maxN < formObj[key].num) {
+				maxN = formObj[key].num;
+			}
+			
+			if ((minN == 0) || minN > formObj[key].num) {
+				minN = formObj[key].num;
+				minNKey = key;
+			}
+		}
+	}
+	
+	if (!formObj[bodyId]) {
+		maxN++;
+	}
+	
+	if ((minN != maxN) && ((maxN - minN) >= maxItemOnSession)) {
+		delete formObj[minNKey];
+	}
+	
+	formObj[bodyId] = {'formId': formId, 'data': data, 'num': maxN};
+	
+	sessionStorage.setItem(this.formSessName, JSON.stringify(formObj));
+};
+
+
+/**
+ * Замества данните на формата
+ * Взема ги от сесията за съответната страница
+ */
+Experta.prototype.reloadFormData = function() {
+	
+	bodyId = $('body').attr('id');
+	
+	if (!bodyId) return ;
+	
+	var formObj = sessionStorage.getItem(this.formSessName);
+	
+	if (!formObj) return ;
+	
+	formObj = $.parseJSON(formObj);
+	
+	if (!formObj[bodyId]) return ;
+	
+	if (!formObj[bodyId].formId) return ;
+	
+	replaceFormData($('#' + formObj[bodyId].formId), formObj[bodyId].data);
+}
+
+
+/**
  * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
  */
 function reloadOnPageShow() {
@@ -4059,6 +4149,9 @@ function reloadOnPageShow() {
         if (getEO().checkBodyId()) {
         	location.reload();
         }
+        
+        // Заместваме данните от формата с предишно избраната стойност
+        getEO().reloadFormData();
     });
 }
 
