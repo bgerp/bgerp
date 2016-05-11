@@ -218,10 +218,15 @@ class store_InventoryNoteSummary extends doc_Detail
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
     				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
-    				$url = toUrl($url, 'local');
     				
-    				$link = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', ''),
-    						'data-url' => $url, 'class' => 'inventoryNoteShowAddForm'));
+    				if(Mode::is('screenMode', 'narrow')){
+    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add1-16.png,title=Промяна на установените количества');
+    				} else {
+    					$url = toUrl($url, 'local');
+    					$link = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', ''),
+    							'data-url' => $url, 'class' => 'inventoryNoteShowAddForm', 'title' => 'Промяна на установените количества'));
+    				}
+    				
     				$link = "<span class='ajax-form-holder'><span class='ajax-form' id='inlineform{$rec->id}'></span>{$link}</span>";
     				
     				$quantityArr['link'] = $link;
