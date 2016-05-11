@@ -176,7 +176,7 @@ class cat_Categories extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
+        $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
         $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
