@@ -266,9 +266,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$groups = keylist::toArray($data->masterData->rec->groups);
     	cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
-    	
-    	$options = cat_Groups::makeArray4Select();
-    	$intersect = array_intersect_key($options, $groups);
+    	$intersect = $groups;
     	
     	$lastRecs = array();
     	foreach ($rows as $id => &$row){
