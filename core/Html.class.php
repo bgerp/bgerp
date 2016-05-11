@@ -324,7 +324,9 @@ class core_Html
         $columns = NULL)
     {
         $optionsCnt = self::countOptions($options);
-
+        
+        setIfNot($attr['name'], $name);
+        
         // Очакваме да има поне една опция
         expect($optionsCnt > 0, "'Липсват опции за '{$name}'");
         
