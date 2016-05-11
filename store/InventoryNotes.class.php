@@ -107,7 +107,7 @@ class store_InventoryNotes extends core_Master
      */
     public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
     
-    
+
     /**
      * Да се забрани ли кеширането на документа
      */
@@ -251,14 +251,19 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
+    	$row = &$data->row;
     	
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$data->row->MyCompany = transliterate(tr($data->row->MyCompany));
-    	$data->row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
- 	
+    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+    	$row->MyCompany = transliterate(tr($row->MyCompany));
+    	$row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+ 		
+    	$toDate = dt::addDays(-1, $rec->valior);
+    	$toDate = dt::verbal2mysql($toDate, FALSE);
+    	$row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
+    	
     	if($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')){
-    		$data->row->storeAddress = crm_Locations::getAddress($storeLocationId);
+    		$row->storeAddress = crm_Locations::getAddress($storeLocationId);
     	}
     }
     
