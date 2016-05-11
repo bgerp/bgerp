@@ -265,16 +265,23 @@ class store_InventoryNoteSummary extends doc_Detail
     	$others = array();
     	
     	$groups = keylist::toArray($data->masterData->rec->groups);
+    	
     	cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
     	$intersect = $groups;
+    	$tmpCache = array();
     	
     	$lastRecs = array();
     	foreach ($rows as $id => &$row){
     		$rec1 = $data->recs[$id];
     		
-    		$exGroups = cat_Groups::getDescendantArray($rec1->groups);
+    		if(!array_key_exists($rec1->groups, $tmpCache)){
+    			$tmpCache[$rec1->groups] = cat_Groups::getDescendantArray($rec1->groups);
+    		}
+    		$exGroups = $tmpCache[$rec1->groups];
+    		
     		$firstArr = array_intersect_key($exGroups, $intersect);
     		$key = key($firstArr);
+    		
     		if($key){
     			$row->group = $intersect[$key];
     			$data->recs[$id]->group = $intersect[$key];
@@ -284,7 +291,6 @@ class store_InventoryNoteSummary extends doc_Detail
     			$lastRecs[$id] = $rec1;
     			unset($data->recs[$id]);
     		}
-    		
     	}
     	
     	// Сортираме опциите
@@ -523,7 +529,7 @@ class store_InventoryNoteSummary extends doc_Detail
      * 
      * @param stdClass $data
      */
-    function prepareListRowсs_(&$data)
+    function prepareListRows_(&$data)
     {
     	// Подготвяме ключа за кеширане
     	$cu = core_Users::getCurrent();
