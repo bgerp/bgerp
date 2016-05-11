@@ -186,16 +186,15 @@ class backup_Setup extends core_ProtoSetup
      */
     var $managers = array(
         // Архивиране в локалната файлова система;
-        'backup_Local',
+        //'backup_Local',
+        // Архивиране на Amazon
+        //'backup_Amazon'
         
         // Архивиране по ftp;
         //'backup_Ftp',
         
         // Архивиране по rsync
         //'backup_Rsync',
-        
-        // Архивиране на Amazon
-        //'backup_Amazon',
     );
     
     
@@ -288,7 +287,7 @@ class backup_Setup extends core_ProtoSetup
             unlink($touchFile);
         } else {
             unlink($touchFile);
-            return "|*<li class='debug-error'>|Няма права за писане в |*" . $conf->BACKUP_LOCAL_PATH . "</li>";
+            return "|*<li class='debug-error'>|Няма права за писане в |*" . get_class($storage) . "</li>";
         }
         
         // проверка дали всичко е наред с mysqldump-a

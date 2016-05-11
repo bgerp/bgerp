@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Локален файлов архив
  */
-class backup_Local extends core_Master
+class backup_Local extends core_BaseClass
 {
     
     

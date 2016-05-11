@@ -19,6 +19,17 @@ use Aws\S3\S3Client;
 class backup_Amazon extends core_BaseClass
 {
 
+    /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'backup_StorageIntf';
+    
+    
+    /**
+     * Заглавие
+     */
+    public $title = 'Архивиране в Amazon';
+    
     private static $s3Client;
     private static $bucket;
 
@@ -51,13 +62,19 @@ class backup_Amazon extends core_BaseClass
     static function getFile($sourceFile, $destFile)
     {
 
-        $object  = self::$s3Client->getObject(array(
-            'Bucket' => self::$bucket,
-            'Key'    => $sourceFile,
-            'SaveAs' => $destFile,
-        ));
-
-        return $object ?  true : false;
+        try {
+            $object = self::$s3Client->getObject(
+                array (
+                    'Bucket' => self::$bucket,
+                    'Key'    => $sourceFile,
+                    'SaveAs' => $destFile
+                    )
+            );
+        } catch (Exception $e) {
+            $object = FALSE;
+        }
+        
+        return $object ?  TRUE : FALSE;
     }
 
 
@@ -75,12 +92,19 @@ class backup_Amazon extends core_BaseClass
     {
         $key = $subDir ?  $subDir . '/' . basename($sourceFile) : basename($sourceFile);
 
-        $result = self::$s3Client->putObject([
-            'Bucket' => self::$bucket,
-            'Key'    => $key,
-            'Body'   => fopen( $sourceFile, 'r+')
-        ]);
-        return $result ? true : false;
+        try {
+            $result = self::$s3Client->putObject(
+                array (
+                    'Bucket' => self::$bucket,
+                    'Key'    => $key,
+                    'Body'   => fopen( $sourceFile, 'r+')
+                    )
+            );
+        } catch (Exception $e) {
+            $result = FALSE;
+        }
+        
+        return $result ? TRUE : FALSE;
     }
 
 
@@ -96,12 +120,18 @@ class backup_Amazon extends core_BaseClass
     static function removeFile($sourceFile)
     {
 
-        $result = self::$s3Client->deleteObject(array(
-            'Bucket' => self::$bucket,
-            'Key' => $sourceFile,
-        ));
+        try {
+            $result = self::$s3Client->deleteObject(
+                array (
+                    'Bucket' => self::$bucket,
+                    'Key' => $sourceFile,
+                    )
+            );
+        } catch (Exception $e) {
+            $result = FALSE;
+        }
 
-        return $result ? true : false;
+        return $result ? TRUE : FALSE;
     }
 
 }
