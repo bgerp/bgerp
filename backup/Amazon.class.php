@@ -3,7 +3,6 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use Aws\S3\S3Client;
-use Guzzle\Http\EntityBody;
 
 class backup_Amazon extends core_BaseClass
 {
@@ -67,7 +66,7 @@ class backup_Amazon extends core_BaseClass
         $result = self::$s3Client->putObject([
             'Bucket' => self::$bucket,
             'Key'    => $key,
-            'Body'   => EntityBody::factory(fopen( $sourceFile, 'r+'))
+            'Body'   => fopen( $sourceFile, 'r+')
         ]);
         return $result ? true : false;
     }
