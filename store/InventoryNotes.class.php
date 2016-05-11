@@ -140,6 +140,8 @@ class store_InventoryNotes extends core_Master
     	
     	if(isset($form->rec->id)){
     		$form->setReadOnly('storeId');
+    	} else {
+    		$form->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване');
     	}
     }
     
@@ -197,11 +199,13 @@ class store_InventoryNotes extends core_Master
     	core_App::setTimeLimit(300);
     	$products = $mvc->getProductsFromBalance($rec);
     	$now = dt::now();
+    	
     	foreach ($products as $pRec){
     		$dRec = (object)array('noteId'     => $rec->id,
     							  'groups'     => $pRec->groups,
     							  'productId'  => $pRec->productId,
     							  'blQuantity' => $pRec->quantity,
+    							  'charge'     => $rec->charge,
     							  'modifiedOn' => $now,
     		);
     	
