@@ -1472,6 +1472,17 @@ function getCalculatedElementWidth() {
 }
 
 
+function markElementsForRefresh() {
+    $('input, select').each(function(){
+        if($(this).attr('onchange') && $(this).attr('onchange').indexOf('refreshForm') != -1) {
+            $(this).addClass('contextCursor');
+            setTimeout(function(){
+                $('.contextCursor').siblings().addClass('contextCursor');
+            }, 0);
+        }
+    });
+}
+
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */

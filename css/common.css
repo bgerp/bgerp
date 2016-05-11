@@ -1739,9 +1739,6 @@ input:focus[type=button] {
   .flashEleminput.combo {
     background-color: none; }
 
-.select2 > .selection > .select2-selection {
-  transition: background-color linear 500; }
-
 .flashElem.select2 > .selection > .select2-selection,
 .flashElem {
   background-color: #fffa99 !important; }
@@ -1749,6 +1746,9 @@ input:focus[type=button] {
 /*
  * край на хоризонтални форми
  */
+.contextCursor {
+  cursor: context-menu; }
+
 /*
  * Загвавие, състоящо се от пътека
  */

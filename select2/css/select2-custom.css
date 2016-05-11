@@ -178,6 +178,14 @@ span.all-users{
 	top:4px;
 }
 
+.select2-container.contextCursor .select2-selection--single{
+    cursor: context-menu !important;
+}
+
+.select2 > .selection > .select2-selection {
+    transition: background-color linear 500ms;
+}
+
 @-moz-document url-prefix() { 
 	.narrow .color-preview {
 		vertical-align: -2px;
