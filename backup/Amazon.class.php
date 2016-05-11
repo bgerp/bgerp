@@ -4,6 +4,18 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Aws\S3\S3Client;
 
+
+/**
+ * Модул Пасаж
+ *
+ * @category  bgerp
+ * @package   cond
+ * @author    Kristiyan Serafimov <kristian.plamenov@gmail.com>
+ * @copyright 2006 - 2016 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @uses      Composer and Amazon SDK
+ */
 class backup_Amazon extends core_BaseClass
 {
 
@@ -26,7 +38,7 @@ class backup_Amazon extends core_BaseClass
 
 
     /**
-     * Копира файл съхраняван в сторидж на локалната файлова система в
+     * Копира файл съхраняван в сторидж на Amazon система в
      * посоченото в $fileName място
      *
      * Част от интерфейса: backup_StorageIntf
@@ -50,7 +62,7 @@ class backup_Amazon extends core_BaseClass
 
 
     /**
-     * Записва файл в локалния архив
+     * Записва файл в Amazon архива
      *
      * Част от интерфейса: backup_StorageIntf
      *
@@ -73,7 +85,7 @@ class backup_Amazon extends core_BaseClass
 
 
     /**
-     * Изтрива файл в локалния архив
+     * Изтрива файл в Amazon архива
      *
      * Част от интерфейса: backup_StorageIntf
      *
@@ -83,20 +95,13 @@ class backup_Amazon extends core_BaseClass
      */
     static function removeFile($sourceFile)
     {
-        $result = self::$S3Client->deleteObject(array(
+
+        $result = self::$s3Client->deleteObject(array(
             'Bucket' => self::$bucket,
             'Key' => $sourceFile,
         ));
 
         return $result ? true : false;
     }
-
-
-
-    public function act_Test()
-    {
-
-    }
-
 
 }
