@@ -177,9 +177,10 @@ class cat_Categories extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory,translate');
-        $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
+        $this->FLD('prefix', 'varchar(64)', 'caption=Артикули в категорията->Начало код');
+        $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Артикули в категорията->Подреждане по,notNull,value=name');
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като прототипи->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Маркери,columns=2');
