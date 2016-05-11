@@ -223,7 +223,7 @@ class store_InventoryNoteSummary extends doc_Detail
     				
     				$link = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', ''),
     						'data-url' => $url, 'data-showinrow' => "inlineform{$rec->id}", 'class' => 'inventoryNoteShowAddForm'));
-    				$link = "<span class='inventory-note-form-holder'><span class='inventory-note-form' id='inlineform{$rec->id}'></span>{$link}</span>";
+    				$link = "<span class='ajax-form-holder'><span class='ajax-form' id='inlineform{$rec->id}'></span>{$link}</span>";
     				
     				$quantityArr['link'] = $link;
     			}
@@ -523,7 +523,7 @@ class store_InventoryNoteSummary extends doc_Detail
      * 
      * @param stdClass $data
      */
-    function prepareListRows_(&$data)
+    function prepareListRowсs_(&$data)
     {
     	// Подготвяме ключа за кеширане
     	$cu = core_Users::getCurrent();

@@ -1,3 +1,25 @@
-.inventory-note-form-holder img{
+.ajax-form-holder img{
 	cursor: pointer;
+}
+
+.ajax-form-holder {
+	position: relative;
+}
+
+.ajax-form {
+	position: absolute;
+	top: -10px;
+	right: 15px;
+	text-align: left;
+}
+
+.wide #packWrapper .ajax-form .vertical .formSection {
+	min-width: 200px;
+}
+.ajax-form .formFields td{
+	border: none;
+}
+
+.doc_Containers table.listTable td  .ajax-form td {
+	vertical-align: middle;
 }
