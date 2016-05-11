@@ -1730,6 +1730,22 @@ input:focus[type=button] {
 .narrow .horizontal .formFields > div {
   margin-bottom: 10px; }
 
+.flashElem {
+  background-color: #fffa99;
+  transition: background-color linear 500; }
+  .flashElem input[type="checkbox"],
+  .flashElem input[type="radio"],
+  .flashElem label,
+  .flashEleminput.combo {
+    background-color: none; }
+
+.select2 > .selection > .select2-selection {
+  transition: background-color linear 500; }
+
+.flashElem.select2 > .selection > .select2-selection,
+.flashElem {
+  background-color: #fffa99 !important; }
+
 /*
  * край на хоризонтални форми
  */

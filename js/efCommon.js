@@ -416,7 +416,7 @@ function toggleFormGroup(id)
 	}
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 	$('.fs-toggle' + id).toggleClass('openToggleRow');
-	
+
 }
 
 
@@ -1856,6 +1856,8 @@ function refreshForm(form, removeFields) {
 	var frm = $(form);
 
 	frm.css('cursor', 'wait');
+
+    frm.find('input, select, textarea').css('cursor', 'wait');
 	
 	var params = frm.serializeArray();
 
@@ -1920,7 +1922,29 @@ function refreshForm(form, removeFields) {
 		
 		// Заместваме съдържанието на формата
 		frm.replaceWith(data.html);
-		
+
+        var newParams = $('form').serializeArray();
+        var paramsArray = [];
+
+        $.each(params, function (i, el) {
+            paramsArray[el.name] = el.value;
+        });
+
+        $.each(newParams, function () {
+            // за всички елементи, които са видими
+            if($('*[name="' + this.name + '"]').attr('type') != 'hidden') {
+                // избираме новите или променените полета
+                if(typeof paramsArray[this.name] == 'undefined' || this.value != paramsArray[this.name]) {
+                    // добавяме класа, който използваме за пресветване и transition
+                    $('*[name="' + this.name + '"]').addClass('flashElem');
+                    $('*[name="' + this.name + '"]').siblings().addClass('flashElem');
+                    $('.flashElem, .flashElem.select2 > .selection > .select2-selection').css('transition', 'background-color linear 500ms');
+                    // махаме класа след 1сек
+                    setTimeout(function(){ $('.flashElem').removeClass('flashElem')}, 1000);
+                }
+            }
+        });
+
 		// Разрешаваме кеширането при зареждане по ajax
 		$.ajaxSetup ({cache: true});		
 		
@@ -1932,6 +1956,7 @@ function refreshForm(form, removeFields) {
 
 		// Показваме нормален курсур
 		frm.css('cursor', 'default');
+        frm.find('input, select, textarea').css('cursor', 'default');
 	});
 }
 

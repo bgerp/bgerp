@@ -1873,6 +1873,23 @@ td.formElement {
 .narrow .horizontal .formFields > div {
 	margin-bottom: 10px;
 }
+
+
+.flashElem {
+	background-color: #fffa99;
+	transition: background-color linear 500ms;
+	&input.combo, input[type="checkbox"],
+	input[type="radio"], label {
+		background-color: none;
+	}
+}
+
+.select2 > .selection > .select2-selection {
+	transition: background-color linear 500ms;
+}
+.flashElem.select2 > .selection > .select2-selection , .flashElem {
+	background-color: #fffa99 !important;
+}
 /*край на хоризонтални форми*/
 
 
