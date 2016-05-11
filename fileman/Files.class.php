@@ -125,6 +125,8 @@ class fileman_Files extends core_Master
         
         $this->FLD("fileLen", "fileman_FileSize", 'caption=Размер');
         
+        $this->FLD("dangerRate", "percent(decimals=0)", 'caption=Риск от опасност');
+        
         // Индекси
         $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
@@ -668,10 +670,15 @@ class fileman_Files extends core_Master
         }
         
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-
+        $isAbsolute = (boolean) Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf');
+        
+        $dangerFileClass = '';
+        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
+            $dangerFileClass .= ' dangerFile';
+        }
+        
         // Вербалното име на файла
-        $row->fileName = "<span class='linkWithIcon' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
+        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style='margin-left:-7px; background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . $mvc->getVerbal($rec,'name') . "</span>";
         
         // Иконата за редактиране     
         $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
@@ -1376,7 +1383,7 @@ class fileman_Files extends core_Master
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
 
-        if($nameFix != $name) {
+        if ($nameFix != $name) {
             $attr['title'] = $name;
         }
 
@@ -1396,7 +1403,7 @@ class fileman_Files extends core_Master
             $url  = static::generateUrl($fh, $isAbsolute);
             
             // Ако сме в текстов режим
-            if(Mode::is('text', 'plain')) {
+            if (Mode::is('text', 'plain')) {
                 
                 //Добаваме линка към файла
                 $link = "{$linkFileTitlePlain}$name ( $url )";
@@ -1408,13 +1415,17 @@ class fileman_Files extends core_Master
                 //Преобразуваме големината на файла във вербална стойност
                 $size = $FileSize->toVerbal($fileLen);
                 
-                if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
                         
                     // Линка да се отваря на нова страница
                     $attr['target'] = '_blank';    
                 } else {
                     // Ако линка е в iframe да се отваря в родителския(главния) прозорец
                     $attr['target'] = "_parent";
+                    
+                    if (self::isDanger($fRec)) {
+                        $attr['class'] .= ' dangerFile';
+                    }
                 }
                 
                 //Заместваме &nbsp; с празен интервал
@@ -1446,6 +1457,25 @@ class fileman_Files extends core_Master
         }
         
         return $link;
+    }
+    
+    
+    /**
+     * Проверява дали файла е опасен
+     * 
+     * @param stdObject $rec
+     * 
+     * @return boolean
+     */
+    public static function isDanger($rec)
+    {
+        expect(is_object($rec));
+        
+        $dangerLevel = 0.1; // 10%
+        
+        if (isset($rec->dangerRate) && ($rec->dangerRate > $dangerLevel)) return TRUE;
+        
+        return FALSE;
     }
     
     
