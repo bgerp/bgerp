@@ -162,7 +162,6 @@ class store_InventoryNoteSummary extends doc_Detail
     	$row->measureId = cat_UoM::getShortName($productRec->measureId);
     	$row->code = cat_Products::getVerbal($productRec, 'code');
     	
-    	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
     	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
     	$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
     	
