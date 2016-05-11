@@ -80,7 +80,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta, charge,group,modifiedOn';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,group';
     
         
     /**
@@ -309,10 +309,12 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('code', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
+    	$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
+    	
     	if(Mode::get('blank')){
     		$data->listTableMvc->setField('quantitySum', 'tdClass=medium-field');
     	} else {
-    		$pager = cls::get('core_Pager',  array('itemsPerPage' => 300));
+    		$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
     		$pager->itemsCount = count($data->rows);
     		$data->pager = $pager;
     	}
@@ -490,23 +492,22 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     private function renderCharge($rec)
     {
-    	$charge = $this->getVerbal($rec, 'charge');
+    	$icon = ($rec->charge != 'owner') ? 'img/16/checked.png' : 'img/16/unchecked.png';
+    	$attr = array('src' => sbf($icon, ''));
     	
     	// Правим линк само ако не сме в някой от следните режими
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     		if($this->haveRightFor('togglecharge', $rec)){
     			$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
     	
-    			$toggleUrl = toUrl(array($this, 'togglecharge', $rec->id), 'local');
-    			$chargeAttr = array('class'          => "toggle-charge",
-				    				'data-url'       => $toggleUrl,
-				    				'title'          => "Смяна за сметка на {$type}",
-				    				'ef_icon'        => 'img/16/arrow_refresh.png');
-    	
-    			$charge = ht::createFnBtn($charge, NULL, NULL, $chargeAttr);
+    			$attr['class']    = "toggle-charge";
+    			$attr['data-url'] = toUrl(array($this, 'togglecharge', $rec->id), 'local');
+    			$attr['title']    = "Смяна за сметка на {$type}";
     		}
     	}
-    		
+    	
+    	$charge = ht::createElement('img', $attr);
+    	
     	// Слагаме уникално ид на обграждащия div
     	$charge = "<div id='charge{$rec->id}'>{$charge}</div>";
     	
