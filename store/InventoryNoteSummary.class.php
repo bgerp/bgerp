@@ -314,11 +314,11 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('code', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
-    	$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
     	
     	if(Mode::get('blank')){
     		$data->listTableMvc->setField('quantitySum', 'tdClass=medium-field');
     	} else {
+    		$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
     		$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
     		$pager->itemsCount = count($data->rows);
     		$data->pager = $pager;
@@ -530,13 +530,16 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     function prepareListRows_(&$data)
     {
+    	// Ако сме в режим за принтиране/бланка не правим кеширане
+    	if(Mode::is('printing')){
+    		return parent::prepareListRows_($data);
+    	}
+    	
     	// Подготвяме ключа за кеширане
-    	$cu = core_Users::getCurrent();
-    	$lg = core_Lg::getCurrent();
-    	$key = "ip{$cu}|{$lg}|{$data->masterId}";
+    	$key = store_InventoryNotes::getCacheKey($data->masterData->rec);
     	
     	// Проверяваме имали кеш за $data->rows
-    	$cache = core_Cache::get($this->className, $key);
+    	$cache = core_Cache::get($this->Master->className, $key);
     	
     	// Ако има кеш за зашисите
     	if(!empty($cache)){
@@ -562,7 +565,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	// Кешираме $data->rows
-    	core_Cache::set($this->className, $key, $data->rows, 1440);
+    	core_Cache::set($this->Master->className, $key, $data->rows, 1440);
     	
     	// Връщаме $data
     	return $data;

@@ -311,4 +311,29 @@ class store_InventoryNotes extends core_Master
     	// Връщаме намерените артикули
     	return $res;
     }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	$key = self::getCacheKey($rec);
+    	core_Cache::remove($mvc->className, $key);
+    }
+    
+    
+    public static function getCacheKey($rec)
+    {
+    	// Подготвяме ключа за кеширане
+    	$cu = core_Users::getCurrent();
+    	$lg = core_Lg::getCurrent();
+    	$key = "ip{$cu}|{$lg}|{$rec->id}";
+    	
+    	return $key;
+    }
 }
