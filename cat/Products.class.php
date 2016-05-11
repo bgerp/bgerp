@@ -1452,19 +1452,15 @@ class cat_Products extends embed_Manager {
     /**
      * Извиква се преди извличането на вербална стойност за поле от запис
      */
-    protected static function on_BeforeGetVerbal($mvc, &$part, $rec, $field)
+    protected static function on_BeforeGetVerbal($mvc, &$part, &$rec, $field)
     {
+    	if(!is_object($rec) && type_Int::isInt($rec)){
+    		 $rec = $mvc->fetchRec($rec);
+    	}
+    	
     	if($field == 'name') {
-    		if(!is_object($rec)) {
-    			$rec = new stdClass();
-    		}
-    		
     		$rec->name = static::getDisplayName($rec);
     	} elseif($field == 'code'){
-    		if(!is_object($rec)) {
-    			$rec = new stdClass();
-    		}
-    		
     		static::setCodeIfEmpty($rec);
     	}
     }
