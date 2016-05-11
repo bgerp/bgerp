@@ -103,7 +103,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=id)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
@@ -158,7 +158,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$productRec = cat_Products::fetch($rec->productId);
+    	$productRec = cat_Products::fetch($rec->productId, 'measureId,isPublic,code');
     	$row->measureId = cat_UoM::getShortName($productRec->measureId);
     	$row->code = cat_Products::getVerbal($productRec, 'code');
     	
@@ -172,6 +172,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	$row->charge = $mvc->renderCharge($rec);
+    	
+    	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
+    	$row->modifiedDate = $rec->modifiedOn;
     }
     
     
@@ -509,5 +512,53 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Връщаме бутона
     	return $charge;
+    }
+    
+    
+    /**
+     * Подготвя редовете във вербална форма.
+     * Правим кеширане на всичко в $data->rows,
+     * и само променените записи ще ги подготвяме наново
+     * 
+     * @param stdClass $data
+     */
+    function prepareListRows_(&$data)
+    {
+    	// Подготвяме ключа за кеширане
+    	$cu = core_Users::getCurrent();
+    	$lg = core_Lg::getCurrent();
+    	$key = "ip{$cu}|{$lg}|{$data->masterId}";
+    	
+    	// Проверяваме имали кеш за $data->rows
+    	$cache = core_Cache::get($this->className, $key);
+    	
+    	// Ако има кеш за зашисите
+    	if(!empty($cache)){
+    		$data->rows = $cache;
+    		
+    		// Обхождаме ги
+    		if(is_array($data->rows)){
+    			foreach ($data->rows as $id => $row){
+    				$rec = $data->recs[$id];
+    				
+    				// Тези които са с дата на модификация по-малка от тази на река им
+    				if($rec->modifiedOn > $row->modifiedDate){
+    					
+    					// Регенерираме им $row-а наново
+    					$data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+    				}
+    			}
+    		}
+    	} else {
+    		
+    		// Ако няма кеш подготвяме $data->rows стандартно
+    		$data = parent::prepareListRows_($data);
+    	}
+    	
+    	// Кешираме $data->rows
+    	core_Cache::set($this->className, $key, $data->rows, 1440);
+    	
+    	// Връщаме $data
+    	return $data;
     }
 }
