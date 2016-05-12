@@ -545,7 +545,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Проверяваме имали кеш за $data->rows
     	$cache = core_Cache::get($this->Master->className, $key);
-    	$cacheRows = isset($data->listFilter->rec->search) ? FALSE : TRUE;
+    	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
     	
     	// Ако има кеш за зашисите
     	if(!empty($cache)){
@@ -582,5 +582,18 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Връщаме $data
     	return $data;
+    }
+    
+    
+    /**
+     * След генериране на ключовите думи
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if(isset($rec->productId)){
+    		$code = cat_Products::getVerbal($rec->productId, 'code');
+    		
+    		$res .= " " . plg_Search::normalizeText($code);
+    	}
     }
 }
