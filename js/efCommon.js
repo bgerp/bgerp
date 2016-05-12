@@ -1474,7 +1474,7 @@ function getCalculatedElementWidth() {
 
 function markElementsForRefresh() {
     $('input, select').each(function(){
-        if($(this).attr('onchange') && $(this).attr('onchange').indexOf('refreshForm') != -1) {
+        if($(this).attr('onchange') && $(this).attr('onchange').indexOf('refreshForm') != -1 && !$(this).hasClass('readonly')) {
             $(this).addClass('contextCursor');
             setTimeout(function(){
                 $('.contextCursor').siblings().addClass('contextCursor');
@@ -1955,7 +1955,7 @@ function replaceFormData(frm, data)
 	$.each(params, function (i, el) {
 		paramsArray[el.name] = el.value;
 	});
-	
+
 	$.each(newParams, function () {
 		// за всички елементи, които са видими
 		if($('*[name="' + this.name + '"]').attr('type') != 'hidden') {
