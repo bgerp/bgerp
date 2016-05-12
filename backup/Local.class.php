@@ -40,10 +40,10 @@ class backup_Local extends core_BaseClass
      *
      * @return boolean
      */
-    static function getFile($fileName)
+    static function getFile($sourceFile, $destFile)
     {
         $conf = core_Packs::getConfig('backup');
-        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $fileName, EF_TEMP_PATH . "/" . $fileName);
+        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $sourceFile, $destFile);
         
         return $result;
     }
