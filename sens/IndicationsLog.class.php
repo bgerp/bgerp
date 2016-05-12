@@ -85,6 +85,8 @@ class sens_IndicationsLog extends core_Manager
         $this->FLD('time', 'datetime', 'caption=Време, chart=ax');
         
         $this->setDbIndex('time');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     

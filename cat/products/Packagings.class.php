@@ -77,6 +77,12 @@ class cat_products_Packagings extends core_Detail
      */
     var $canDelete = 'ceo,cat';
     
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
+
     
     /**
      * Описание на модела (таблицата)
@@ -244,12 +250,12 @@ class cat_products_Packagings extends core_Detail
 
         // Групираме опциите, ако има такива
         $options = array();
-        if(count($uomArr)){
-        	$options = array('u' => (object)array('group' => TRUE, 'title' => tr('Мерки'))) + $uomArr;
+        if(count($packArr)){
+        	$options = array('p' => (object)array('group' => TRUE, 'title' => tr('Опаковки'))) + $packArr;
         }
         
-        if(count($packArr)){
-        	$options += array('p' => (object)array('group' => TRUE, 'title' => tr('Опаковки'))) + $packArr;
+        if(count($uomArr)){
+        	$options += array('u' => (object)array('group' => TRUE, 'title' => tr('Мерки'))) + $uomArr;
         }
         
         // Връщаме намерените опции
@@ -433,8 +439,7 @@ class cat_products_Packagings extends core_Detail
     			         'sales_QuotationsDetails', 
     			         'sales_InvoiceDetails', 
     			         'purchase_InvoiceDetails', 
-    			         'planning_DirectProductNoteDetails', 
-    			         'planning_ProductionNoteDetails', 
+    			         'planning_DirectProductNoteDetails',
     			         'planning_ConsumptionNoteDetails', 
     			         'cat_BomDetails', 
     			         'sales_ProformaDetails', 
@@ -447,12 +452,12 @@ class cat_products_Packagings extends core_Detail
     	$isUsed = FALSE;
     	foreach ($details as $Detail){
     		if($Detail == 'cat_BomDetails'){
-    			if($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'")){
+    			if($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')){
     				$isUsed = TRUE;
     				break;
     			}
     		} else {
-    			if($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'")){
+    			if($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')){
     				$isUsed = TRUE;
     				break;
     			}

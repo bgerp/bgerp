@@ -182,6 +182,10 @@ class doc_plg_TplManager extends core_Plugin
     		$content = doc_TplManager::getTemplate($data->rec->template);
     		$tpl->replace($content, $mvc->templateFld);
     	}
+    	
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+    		$tpl->removeBlock('shareLog');
+    	}
     }
     
     
@@ -247,15 +251,15 @@ class doc_plg_TplManager extends core_Plugin
 			 
 			// Заместваме вербалното състояние и име с тези според езика на текущата сесия
 			if($mvc->getFieldType('state', FALSE)){
-				$row->state = $mvc->getFieldType('state')->toVerbal($rec->state);
+				$row->state = $mvc->getVerbal($rec, 'state');
 			}
 			
 			if($mvc->getFieldType('createdOn', FALSE)){
-				$row->createdOn = $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
+				$row->createdOn = $mvc->getVerbal($rec, 'createdOn');
 			}
 			
 			if($mvc->getFieldType('modifiedOn', FALSE)){
-				$row->modifiedOn = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+				$row->modifiedOn = $mvc->getVerbal($rec, 'modifiedOn');
 			}
 			
 			$row->singleTitle = tr($mvc->singleTitle);

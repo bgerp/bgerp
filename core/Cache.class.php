@@ -96,6 +96,8 @@ class core_Cache extends core_Manager
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -409,15 +411,18 @@ class core_Cache extends core_Manager
         $keepSeconds = $keepMinutes * 60;
 
         if (function_exists('apc_store')) {
-            apc_store($key, $data, $keepSeconds);
-            $saved = TRUE;
+            $saved = apc_store($key, $data, $keepSeconds);
+            if (!$saved) {
+                self::logNotice('Грешка при записване в APC_STORE');
+            }
         } elseif (function_exists('xcache_set')) {
-            xcache_set($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
+            $saved = xcache_set($key, serialize($data), $keepSeconds);
+            if (!$saved) {
+                self::logNotice('Грешка при записване в XCACHE');
+            }
         }
 
         $rec = new stdClass();
-        
         
         // Задаваме ключа
         $rec->key = $key;

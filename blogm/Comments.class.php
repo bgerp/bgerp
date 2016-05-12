@@ -271,7 +271,7 @@ class blogm_Comments extends core_Detail {
 
         // Ако е написано за над 24 часа
         if(isset($rec->userDelay) && $rec->userDelay > 24*3600) {
-            $sr += 1;
+            $sr += round($rec->userDelay / (24*3600));
         }
 
         // Изключваме текущия запис, ако е записан
@@ -303,7 +303,7 @@ class blogm_Comments extends core_Detail {
             $artRec = $mvc->Master->fetch($rec->articleId);
             $title = $mvc->Master->getVerbal($artRec, 'title');
             bgerp_Notifications::add(
-                "Нов коменрар към \"{$title}\"", // съобщение
+                "Нов коментар към \"{$title}\"", // съобщение
                 array($mvc->Master, 'single', $rec->articleId), // URL
                 $artRec->createdBy
             );

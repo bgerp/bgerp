@@ -172,7 +172,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 				}
 			}
 			
-			$entry['reason'] = 'Разлики от закръгления';
+			$entry['reason'] = 'Разлики от закръгляния';
 			$entries[] = $entry;
 		}
 		

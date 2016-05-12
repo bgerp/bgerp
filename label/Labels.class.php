@@ -175,30 +175,39 @@ class label_Labels extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Вземаме данните от предишния запис
-        $dataArr = $data->form->rec->params;
+        $readOnlyArr = $dataArr = $data->form->rec->params;
         
         // Ако формата не е субмитната и не я редактираме
-        if (!$data->form->isSubmitted() && !$data->form->rec->id) {
+        if (!$data->form->isSubmitted()) {
             
-            // id на шаблона
-            $templateId = Request::get('templateId', 'int');
-            
-            // Ако не е избрано id на шаблона
-            if (!$templateId) {
+            if (!$data->form->rec->id) {
+                // id на шаблона
+                $templateId = Request::get('templateId', 'int');
                 
-                // Редиректваме към екшъна за избор на шаблон
-                redirect(array($mvc, 'selectTemplate'));
-            }
-            
-            // Ако се създава етикет от обект, използваме неговите данни
-            Request::setProtected('classId, objId');
-            $classId = Request::get('classId');
-            $objId = Request::get('objId');
-            if ($classId && $objId) {
-                $clsInst = cls::get($classId);
-                $dataArr = (array) $clsInst->getLabelData($objId, 0);
-                $data->form->setDefault('classId', $objId);
-                $data->form->setDefault('objId', $classId);
+                // Ако не е избрано id на шаблона
+                if (!$templateId) {
+                
+                    // Редиректваме към екшъна за избор на шаблон
+                    redirect(array($mvc, 'selectTemplate'));
+                }
+                
+                // Ако се създава етикет от обект, използваме неговите данни
+                Request::setProtected('classId, objId');
+                $classId = Request::get('classId');
+                $objId = Request::get('objId');
+                if ($classId && $objId) {
+                    $clsInst = cls::get($classId);
+                    $readOnlyArr = $dataArr = (array) $clsInst->getLabelData($objId, 0);
+                    $data->form->setDefault('classId', $objId);
+                    $data->form->setDefault('objId', $classId);
+                }
+            } else {
+                
+                // Полетата, които идват от обекта, да не могат да се редактират
+                if ($data->form->rec->classId && $data->form->rec->objId) {
+                    $clsInst = cls::get($data->form->rec->classId);
+                    $readOnlyArr = (array) $clsInst->getLabelData($data->form->rec->objId, 0);
+                }
             }
         }
         
@@ -218,6 +227,8 @@ class label_Labels extends core_Master
         // Обхождаме масива
         foreach ((array)$dataArr as $fieldName => $value) {
             
+            $oFieldName = $fieldName;
+            
             $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
             
             // Добавяме данните от записите
@@ -225,7 +236,7 @@ class label_Labels extends core_Master
             
             // Стойностите от обекта да не може да се променят
             if ($data->form->rec->objId && $data->form->rec->classId) {
-                if ($data->form->fields[$fieldName]) {
+                if ($data->form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {
                     $data->form->setReadonly($fieldName);
                 }
             }
@@ -430,6 +441,9 @@ class label_Labels extends core_Master
                 Request::setProtected('classId, objId');
                 $redirectUrl['classId'] = $classId;
                 $redirectUrl['objId'] = $objId;
+                if($title = Request::get('title', 'varchar')){
+                	$redirectUrl['title'] = $title;
+                }
             } else {
                 foreach ($labelDataArr as $labelName => $val) {
                     $redirectUrl[$labelName] = $val;
@@ -814,7 +828,7 @@ class label_Labels extends core_Master
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty,autoFilter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят

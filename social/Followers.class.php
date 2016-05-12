@@ -31,7 +31,7 @@ class social_Followers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg, plg_AutoFilter';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg';
     
     
     /**
@@ -121,7 +121,7 @@ class social_Followers extends core_Master
 			$url = array('social_Followers', 'Redirect', $socialNetwork->id);
 				
 			// Създаваме линка на бутона
-			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following noSelect", "target"=>"_blank", "rel"=>"nofollow", "title" => tr('Последвайте ни в '). $socialNetwork->title));
+			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following noSelect", "target"=>"_blank", "rel"=>"nofollow", "title" => tr($socialNetwork->title)));
        
 			// Добавямего към шаблона
 			$tpl->append($link);  

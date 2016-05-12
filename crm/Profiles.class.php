@@ -138,8 +138,8 @@ class crm_Profiles extends core_Master
      */
     function description()
     {
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull,smartCenter');
-        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,smartCenter');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
+        $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull,tdClass=nowrap');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none,smartCenter');
         $this->XPR('lastTime',  'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)', 'input=none,smartCenter');
 
@@ -370,11 +370,8 @@ class crm_Profiles extends core_Master
                         reset($userTeams);
                         $userId = key($userTeams);
                         
-                        $attr = array();
-                        $attr['class'] = 'linkWithIcon';
-        		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-        		        $attr['title'] = tr('Логвания на потребителя');
-                        
+                        $attr = array('ef_icon' => '/img/16/page_go.png', 'title' => tr('Логвания на потребителя'));
+                         
                         // URL за промяна
                         $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
                         

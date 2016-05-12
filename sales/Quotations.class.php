@@ -45,7 +45,7 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
                     doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues';
        
     
@@ -94,7 +94,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, date, title=Документ, folderId, state, createdOn, createdBy';
+    public $listFields = 'date, title=Документ, folderId, state, createdOn, createdBy';
     
 
     /**
@@ -120,13 +120,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId, id';
-    
-   
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
     
     
     /**
@@ -200,11 +194,11 @@ class sales_Quotations extends core_Master
     	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
-        $this->FLD('chargeVat', 'enum(yes=Включено ДДС, separate=Отделно ДДС, exempt=Освободено от ДДС, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
+        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
         
@@ -460,7 +454,7 @@ class sales_Quotations extends core_Master
     	
     			if($ownCompanyData->$fld){
     				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
-    				$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
+    				$row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
     			}
     		}
     			
@@ -573,12 +567,16 @@ class sales_Quotations extends core_Master
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
+        $handle = $this->getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата оферта") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
@@ -598,7 +596,7 @@ class sales_Quotations extends core_Master
     	$threadRec = doc_Threads::fetch($threadId);
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -609,7 +607,7 @@ class sales_Quotations extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     

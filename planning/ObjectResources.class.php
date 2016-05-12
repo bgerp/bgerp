@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,12 +17,6 @@ class planning_ObjectResources extends core_Manager
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_ObjectResources';
-	
-	
     /**
      * Заглавие
      */
@@ -32,7 +26,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
     
     
     /**
@@ -68,7 +62,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'likeProductId=Влагане като,conversionRate=Отношение';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като';
     
     
     /**
@@ -80,7 +74,10 @@ class planning_ObjectResources extends core_Manager
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Информация за влагане';
+    public $singleTitle = 'Заместващ артикул';
+    
+    
+    protected static $cache = array();
     
     
     /**
@@ -93,7 +90,7 @@ class planning_ObjectResources extends core_Manager
     	
     	$this->FLD('resourceId', 'int', 'caption=Ресурс,input=none');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
-    	$this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение');
+    	$this->FLD('conversionRate', 'double(smartRound,Min=0)', 'caption=Отношение,input=none');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('objectId');
@@ -133,12 +130,28 @@ class planning_ObjectResources extends core_Manager
      */
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$url = cat_Products::getSingleUrlArray($data->form->rec->objectId);
-    	$objectName = cat_Products::getTitleById($data->form->rec->objectId);
-    	$objectName = ht::createLink($objectName, $url, NULL, array('ef_icon' => cls::get('cat_Products')->singleIcon, 'class' => 'linkInTitle'));
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle('cat_Products', $rec->objectId, $mvc->singleTitle, $rec->id);
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
     	
-    	$title = ($data->form->rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
-    	$data->form->title = $title . "|* <b style='color:#ffffcc;'>". $objectName . "</b>";
+    	if($form->isSubmitted()){
+    		$equivalentProducts = self::getEquivalentProducts($rec->likeProductId, $rec->id);
+    		
+    		if(array_key_exists($rec->objectId, $equivalentProducts)){
+    			$form->setError('likeProductId', 'Артикулът вече е взаимозаменяем с избрания');
+    		}
+    	}
     }
     
     
@@ -262,16 +275,6 @@ class planning_ObjectResources extends core_Manager
     			$res = 'no_one';
     		}
     	}
-    	
-    	if($action == 'delete' && isset($rec)){
-    		
-    		// Ако обекта е използван вече в протокол за влагане, да не може да се изтрива докато протокола е активен
-    		$consumptionQuery = planning_ConsumptionNoteDetails::getQuery();
-    		$consumptionQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
-    		if($consumptionQuery->fetch("#productId = {$rec->objectId} AND #state = 'active'")){
-    			$res = 'no_one';
-    		}
-    	}
     }
     
     
@@ -286,10 +289,6 @@ class planning_ObjectResources extends core_Manager
     {
     	if(isset($rec->likeProductId)){
     		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
-    	}
-    	
-    	if(!$rec->conversionRate){
-    		$row->conversionRate = 1;
     	}
     }
     
@@ -348,7 +347,8 @@ class planning_ObjectResources extends core_Manager
     	$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
     	if(isset($item1)){
     		// Намираме сумата която струва к-то от артикула в склада
-    		$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL);
+    		$maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+    		$selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, NULL, NULL, $maxTry);
     		if($selfValue){
     			$selfValue = round($selfValue, 4);
     		}
@@ -359,37 +359,34 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * Връща информацията даден артикул като
-     * кой може да се вложи и в какво количество
+     * Намира еквивалентите за влагане артикули на даден артикул
      * 
-     * @param int $productId - ид на артикул
-     * @param sdtClass
-     * 			o productId - ид на артикула, в който ще се вложи (ако няма такъв се влага в себе си)
-     * 			o quantity  - количеството
+     * @param int $likeProductId - на кой артикул му търсим еквивалентните
+     * @param int $ignoreRecId - ид на ред, който да се игнорира
+     * @return array - масив за избор с еквивалентни артикули
      */
-    public static function getConvertedInfo($productId, $quantity)
+    public static function getEquivalentProducts($likeProductId, $ignoreRecId = NULL)
     {
-    	$convertProductId = $productId;
-    	$convertQuantity = $quantity;
-    	
-    	if($info = planning_ObjectResources::fetch("#objectId = {$productId}")){
-    		$convertProductId = $info->likeProductId;
-    		if(!$convertProductId) {
-    			$convertProductId = $productId;
-    		}
-    		
-    		if(empty($info->conversionRate)){
-    			$mProdMeasureId = cat_Products::getProductInfo($productId)->productRec->measureId;
-    			$lProdMeasureId = cat_Products::getProductInfo($info->likeProductId)->productRec->measureId;
-    			if($convAmount = cat_UoM::convertValue($convertQuantity, $mProdMeasureId, $lProdMeasureId)){
-    				$convertQuantity = $convAmount;
-    			}
-    		} else {
-    			$convertQuantity = $info->conversionRate * $convertQuantity;
-    		}
+		$array = array();
+    	$query = self::getQuery();
+    	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
+    	$query->where("#state = 'active'");
+    	if(isset($ignoreRecId)){
+    		$query->where("#id != {$ignoreRecId}");
     	}
     	
-    	return (object)array('productId' => $convertProductId, 'quantity' => $convertQuantity);
+    	$query->show("objectId,likeProductId");
+    	while ($dRec = $query->fetch()){
+    		$array[$dRec->objectId] = $dRec->likeProductId;
+    	}
+    	
+    	$res = array();
+    	self::fetchConvertableProducts($likeProductId, $array, $res);
+    	foreach ($res as $id => &$v){
+    		$v = cat_Products::getTitleById($id, FALSE);
+    	}
+    	
+    	return $res;
     }
     
     
@@ -399,30 +396,74 @@ class planning_ObjectResources extends core_Manager
      * @param int $productId - ид на продукта, като който ще се влагат
      * @return array - намерените артикули
      */
-    public static function fetchConvertableProducts($productId)
+    private static function fetchConvertableProducts($productId, $array, &$res = array())
     {
-    	$res = array();
-    	
-    	$query = self::getQuery();
-    	$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=objectId');
-    	$query->where("#state = 'active'");
-    	$query->show("objectId,likeProductId");
-    	
-    	$query2 = clone $query;
-    	$query->where("#likeProductId = '{$productId}' AND #objectId IS NOT NULL AND #objectId != '{$productId}'");
-    	while($rec = $query->fetch()){
-    		$res[$rec->objectId] = cat_Products::getTitleById($rec->objectId, FALSE);
+    	if(isset($array[$productId]) && $res[$array[$productId]] !== TRUE){
+    		$res[$array[$productId]] = TRUE;
+    		self::fetchConvertableProducts($array[$productId], $array, $res);
     	}
     	
-    	$query2->where("#objectId = {$productId} AND #likeProductId != {$productId}");
-    	while($rec = $query2->fetch()){
-    		if($rec->likeProductId){
-    			$res[$rec->likeProductId] = cat_Products::getTitleById($rec->likeProductId, FALSE);
-    			$replaceable = self::fetchConvertableProducts($rec->likeProductId);
-    			$res += $replaceable;
+    	if(is_array($array)){
+    		foreach($array as $key => $value){
+    			if($value == $productId){
+    				if($res[$key] !== TRUE){
+    					$res[$key] = TRUE;
+    					self::fetchConvertableProducts($key, $array, $res);
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Намира средната еденична цена на всички заместващи артикули на подаден артикул
+     * 
+     * @param int $productId         - артикул, чиято средна цена търсим
+     * @param string|NULL $date      - към коя дата
+     * @return NULL|double $avgPrice - средна цена
+     */
+    public static function getAvgPriceEquivalentProducts($productId, $date = NULL)
+    {
+    	$avgPrice = NULL;
+    	expect($productId);
+    	
+    	// Проверяваме за тази група артикули, имали кеширана средна цена
+    	$cachePrice = static::$cache[current(preg_grep("|{$productId}|", array_keys(static::$cache)))];
+    	if($cachePrice) return $cachePrice;
+    	
+    	// Ако артикула не е вложим, не търсим средна цена
+    	$isConvertable = cat_Products::fetchField($productId, "canConvert");
+    	if($isConvertable != 'yes') return $avgPrice;
+    	
+    	// Ако няма заместващи артикули, не търсим средна цена
+    	$equivalentProducts = static::getEquivalentProducts($productId);
+    	if(!count($equivalentProducts)) return $avgPrice;
+    	
+    	// Ще се опитаме да намерим средната цена на заместващите артикули
+    	$priceSum = $count = 0;
+    	$listId = price_ListRules::PRICE_LIST_COST;
+    	price_ListToCustomers::canonizeTime($date);
+    	foreach ($equivalentProducts as $pId => $pName){
+    		$price = price_ListRules::getPrice($listId, $pId, NULL, $date);
+    		
+    		// Ако има себестойност прибавяме я към средната
+    		if(isset($price)){
+    			$priceSum += $price;
+    			$count++;
     		}
     	}
     	
-    	return $res;
+    	// Ако има намерена ненулева цена, изчисляваме средната
+    	if($count !== 0){
+    		$avgPrice = round($priceSum / $count, 8);
+    	}
+		
+    	// За тази група артикули, кеширваме в паметта средната цена
+    	$index = keylist::fromArray($equivalentProducts);
+    	static::$cache[$index] = $avgPrice;
+    	
+    	// Връщаме цената ако е намерена
+    	return $avgPrice;
     }
 }

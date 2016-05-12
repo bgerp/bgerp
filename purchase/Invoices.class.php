@@ -20,7 +20,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
     
     
     /**
@@ -44,7 +44,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, doc_DocumentPlg,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, acc_plg_DocumentSummary, plg_Search';
     
@@ -52,7 +52,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type';
+    public $listFields = 'number, date, place, folderId, dealValue=Стойност, valueNoVat=Без ДДС, vatAmount, type';
     
     
     /**
@@ -151,11 +151,11 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контирана, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контирана, rejected=Оттеглен)', 'caption=Статус, input=none,export=Csv');
     	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие, dc_note=Известие)', 'caption=Вид, input=hidden');
     }
     
@@ -165,7 +165,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-		$origin = $mvc->getOrigin($data->form->rec);
+		$rec = $data->form->rec;
+    	$origin = $mvc->getOrigin($data->form->rec);
     	if($origin->isInstanceOf('findeals_AdvanceReports')){
     		$data->form->setOptions('vatRate', arr::make('separate=Отделно, exempt=Oсвободено, no=Без начисляване'));
     		$data->form->setField('vatRate', 'input');
@@ -193,6 +194,11 @@ class purchase_Invoices extends deals_InvoiceMaster
     	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
     		$data->form->setField('vatReason', 'mandatory');
     	}
+    	
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	if($rec->contragentCountryId == $bgId){
+    		$data->form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
+    	}
     }
     
     
@@ -205,12 +211,15 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
+    		if(empty($rec->number)){
+    			$rec->number = NULL;
+    		}
     		
     		// изискваме за контрагент с този номер да няма фактура със този номер
     		foreach (array('contragentVatNo', 'uicNo') as $fld){
-    			if(isset($rec->{$fld})){
+    			if(isset($rec->{$fld}) && !empty($rec->number)){
     				if($mvc->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}'")){
-    					$form->setError($fld, 'Има вече входяща фактура с този номер, за този');
+    					$form->setError("{$fld},number", 'Има вече входяща фактура с този номер, за този контрагент');
     				}
     			}
     		}
@@ -348,19 +357,6 @@ class purchase_Invoices extends deals_InvoiceMaster
    					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
    				}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-    	$rec = $mvc->fetchRec($id);
-    	
-    	if(empty($rec->number)){
-    		redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
     	}
     }
     

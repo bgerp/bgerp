@@ -55,19 +55,19 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo, store, purchase, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo, store, purchase, sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo, store, purchase, sales';
     
     
     /**

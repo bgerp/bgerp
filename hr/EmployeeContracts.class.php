@@ -19,7 +19,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
+    public $interfaces = 'acc_RegisterIntf, hr_ContractAccRegIntf, doc_DocumentIntf';
     
     
     /**
@@ -56,7 +56,7 @@ class hr_EmployeeContracts extends core_Master
      */
     public $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg';
+                     doc_plg_BusinessDoc, doc_SharablePlg, bgerp_plg_Blank';
     
     
     /**
@@ -749,14 +749,14 @@ class hr_EmployeeContracts extends core_Master
         // Кой е графика
         $scheduleId = static::getWorkingSchedule($id);
         
-         // Каква продължителност има
-        $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
+        // Каква продължителност има
+        if($scheduleId){
+          $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
+        }
         
         if (!$duration) {
         	redirect(array('hr_WorkingCycles', 'list'), FALSE, '|Не сте въвели продължителност на графика!');
         }
-        
-       
         
         // Извличане на данните за циклите
         $stateDetails = hr_WorkingCycleDetails::getQuery();

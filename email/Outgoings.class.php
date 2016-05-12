@@ -15,6 +15,12 @@
 class email_Outgoings extends core_Master
 {
     
+
+    /**
+     * Шаблон (ET) за заглавие на перо
+     */
+    public $recTitleTpl = '[#subject#]';
+    
     
     /**
      * Флаг, който указва, че документа е партньорски
@@ -1066,6 +1072,31 @@ class email_Outgoings extends core_Master
                     $form->setWarning('attachmentsSet, documentsSet', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
                 }
             }
+            
+            $mvc->checkHost($form, 'boxFrom');
+        }
+    }
+    
+    
+    /**
+     * Помощна функция, за проверка дали се изпраща от частна мрежа и линковете ще са коректни
+     * 
+     * @param core_Form $form
+     * @param string $errField
+     */
+    protected function checkHost($form, $errField)
+    {
+        if (core_App::checkCurrentHostIsPrivate()) {
+            
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            
+            $form->setWarning($errField, $err);
+            
+            if ($form->isSubmitted()) {
+                $this->logWarning('Изпращане на писмо с линкове към частна мрежа', $form->rec->id);
+            }
         }
     }
     
@@ -1107,6 +1138,8 @@ class email_Outgoings extends core_Master
                     //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                     $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресат|*->|Имейл|*</b>.");
                 }
+                
+                $mvc->checkHost($form, 'subject');
             }
             
             if (trim($form->rec->body) && (preg_match_all(type_Richtext::QUOTE_PATTERN, $form->rec->body, $matches))) {
@@ -1379,10 +1412,26 @@ class email_Outgoings extends core_Master
         
         // Бутон за изпращане
         if ($faxTo || stripos($emailTo, '@fax.man') || (!$rec->email && $rec->fax) || stripos($rec->email, '@fax.man')) {
+            
             $mvc->singleTitle = "Факс";
-            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => tr('Изпращане на имейла по факс')));
+            
+            $btnParamsArr = array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => 'Изпращане на имейла по факс');
+            
+            if (!email_FaxSent::haveRightFor('send')) {
+                $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
+            }
+            
+            $form->toolbar->addSbBtn('Изпрати', 'sendingFax', NULL, $btnParamsArr);
         } else {
-            $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => tr('Изпращане на имейла')));
+            
+            $btnParamsArr = array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => 'Изпращане на имейла');
+            
+            $defaultBoxFromId = self::getDefaultInboxId($rec->folderId);
+            if (!isset($defaultBoxFromId)) {
+                $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
+            }
+            
+            $form->toolbar->addSbBtn('Изпрати', 'sending', NULL, $btnParamsArr);
         }
         
         $pContragentData = NULL;
@@ -1506,7 +1555,8 @@ class email_Outgoings extends core_Master
             
             $data->__bodyLgArr = array('hint' => $hintStr, 'lg' => $emailLg, 'data' => $bodyLangArr);
             $data->form->layout = new ET($data->form->renderLayout());
-            $data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
+            
+            jquery_Jquery::run($form->layout, "prepareLangBtn(" . json_encode($data->__bodyLgArr) . ");");
             
             core_Lg::pop();
             
@@ -1929,10 +1979,14 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото наимей по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id, $forward)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
         // Ако препращаме
         if ($forward) {
@@ -2034,7 +2088,7 @@ class email_Outgoings extends core_Master
             
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
-                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => tr('Премахване на изчакването за отговор')));
+                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => 'Премахване на изчакването за отговор'));
             }
         }
         

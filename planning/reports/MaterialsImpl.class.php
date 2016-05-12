@@ -361,7 +361,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	    // Кои полета ще се показват
 	    $f = new core_FieldSet;
 	
-	    $f->FLD('id', 'varchar');
+	    $f->FLD('id', 'key(mvc=cat_Products,select=name)');
 	    $f->FLD('quantity', 'double');
 	    $f->FLD('store', 'double');
 	    
@@ -382,16 +382,9 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $fields = $this->getFields();
 
         $dataRecs = array();
-        if (is_array($this->innarState->recs)) {
-            foreach ($this->innarState->recs as $id => $rec) {
-                $dataRecs[] = $this->getVerbal($rec);
-                
-                if(!is_null($rec->id)) {
-                    $dataRecs[id]->id = trim(html_entity_decode(strip_tags($dataRecs[id]->id)));
-                }
-            }
+        if (is_array($this->innerState->recs)) {
             
-            $csv = csv_Lib::createCsv($dataRecs, $fields, $exportFields);
+            $csv = csv_Lib::createCsv($this->innerState->recs, $fields, $exportFields);
         }
          
         return $csv;

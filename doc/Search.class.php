@@ -103,7 +103,7 @@ class doc_Search extends core_Manager
         $data->listFilter->setField('scopeFolderId', 'input');
     	
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-    	$data->listFilter->setField('search', 'refreshForm,caption=Ключови думи');
+    	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
     
         $data->listFilter->setDefault('author', 'all_users');
@@ -359,19 +359,19 @@ class doc_Search extends core_Manager
         // Ако няма информация, да не се изпълнява
         if ($info && $info['className'] && $info['id']) {
             $className = $info['className'];
-        
+            
             $rec = $className::fetchByHandle($info);
             
             // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
-            redirect(array($info['className'], 'single', $rec->id));
+            redirect($className::getSingleUrlArray($rec->id));
         } else {
             $search = ltrim($search, '#');
             
             $rec = cat_Products::fetch(array("#code = '[#1#]'", $search));
             
-            if ($rec && cat_Products::haveRightFor('single', $rec)) {
+            if ($rec && ($singleUrl = cat_Products::getSingleUrlArray($rec->id))) {
                 
-                redirect(array('cat_Products', 'single', $rec->id));
+                redirect($singleUrl);
             }
         }
     }

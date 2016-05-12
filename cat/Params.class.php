@@ -8,8 +8,8 @@
  *
  * @category  bgerp
  * @package   cat
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Продуктови параметри
@@ -27,103 +27,85 @@ class cat_Params extends embed_Manager
     /**
      * Заглавие
      */
-    var $title = "Параметри";
+    public $title = "Параметри";
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = "Параметър";
+    public $singleTitle = "Параметър";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,typeExt,driverClass=Тип,lastUsedOn';
+    public $listFields = 'tools=Пулт,typeExt,driverClass=Тип,lastUsedOn';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'typeExt';
+    public $rowToolsSingleField = 'typeExt';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'cat,ceo';
+	public $canList = 'cat,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'cat,ceo';
+	public $canSingle = 'cat,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
+    public $canDelete = 'cat,ceo';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutParams.shtml';
-    
-    
-    /**
-     * Масив за съответствие на типовете на параметрите с тези в системата
-     */
-    public static $typeMap = array('double'  => 'type_Double',
-    							   'weight'  => 'cat_type_Weight',
-        						   'size'    => 'cat_type_Size',
-    							   'density' => 'cat_type_Density',
-        						   'volume'  => 'cat_type_Volume',
-        						   'date'    => 'type_Date',
-        						   'varchar' => 'type_Varchar',
-        						   'percent' => 'type_Percent',
-        						   'enum'    => 'type_Enum',
-        						   'int'     => 'type_Int',
-    							   'time'    => 'type_Time',
-    							   'text'    => 'type_Text',
-    );
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutParams.shtml';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    public $canEditsysdata = 'cat,ceo';
     
     
     /**
@@ -149,7 +131,7 @@ class cat_Params extends embed_Manager
     /**
      * Изчисляване на typeExt
      */
-    static function on_CalcTypeExt($mvc, $rec)
+    protected static function on_CalcTypeExt($mvc, $rec)
     {
         $rec->typeExt = $rec->name;
         
@@ -205,7 +187,7 @@ class cat_Params extends embed_Manager
      * Подготвя опциите за селектиране на параметър като към името се
      * добавя неговия suffix 
      */
-    static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+    public static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
     	$query = static::getQuery();
     	if(strlen($where)){
@@ -222,41 +204,6 @@ class cat_Params extends embed_Manager
     	}
     	
     	return $options;
-    }
-    
-    
-    /**
-     * Помощна функция връщаща инстанция на класа от системата
-     * отговарящ на типа на параметъра с опции зададените стойности
-     * ако е enum или същите като предложения. Използва се и от
-     * cond_ConditionsToCustomers
-     * 
-     * @deprecated
-     * @param int $paramId - ид на параметър
-     * @param string $className - в кой мениджър се намрират параметрите
-     * @return core_Type $Type - типа от системата
-     */
-    public static function getParamTypeClass($id, $className)
-    {
-    	expect($Class = cls::get($className));
-    	expect($rec = $Class::fetch($id));
-    	
-        if($rec->options) {
-            $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
-            
-            $options = explode(',', $rec->options);
-            
-            $options = array('' => '') + array_combine($options, $options);
-            $os = array($optType => $options);
-        }
-		
-	    expect($Type = cls::get(static::$typeMap[$rec->type], $os));
-    	
-	    if($rec->type == 'text'){
-	    	$Type->params['rows'] = 3;
-	    }
-	    
-	    return $Type;
     }
     
     

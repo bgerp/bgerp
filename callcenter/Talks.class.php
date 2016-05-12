@@ -1336,10 +1336,10 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
         
         // Функционално поле за търсене по статус и тип на разговора
-        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,refreshForm');
+        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,autoFilter');
         
         // Полета за търсене по дата
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,input');

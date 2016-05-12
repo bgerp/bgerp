@@ -55,15 +55,18 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
      */
-    public $rowToolsField = 'tools';
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument';
     
     
     /**
@@ -115,7 +118,7 @@ class sales_QuotationsDetails extends doc_Detail {
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
-        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent');
+        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent,notNull,value=no');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
         $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
     }
@@ -352,7 +355,12 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	if($form->isSubmitted()){
     		if(!isset($form->rec->packQuantity)){
-    			$form->rec->packQuantity = 1;
+    			$defQuantity = cat_UoM::fetchField($form->rec->packagingId, 'defQuantity');
+    			if(!empty($defQuantity)){
+    				$rec->packQuantity = $defQuantity;
+    			} else {
+    				$form->setError('packQuantity', 'Не е въведено количество');
+    			}
     		}
     		
     		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
@@ -411,9 +419,11 @@ class sales_QuotationsDetails extends doc_Detail {
     			    }
     			}
     			
-    			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    				if($sameProduct->id != $rec->id){
-    					$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    			if(Request::get('Act') != 'CreateProduct'){
+    				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
+    					if($sameProduct->id != $rec->id){
+    						$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
+    					}
     				}
     			}
     			
@@ -464,6 +474,7 @@ class sales_QuotationsDetails extends doc_Detail {
     protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	unset($data->toolbar->buttons['btnAdd']);
+    	unset($data->toolbar->buttons['btnNewProduct']);
     }
     
     
@@ -494,9 +505,13 @@ class sales_QuotationsDetails extends doc_Detail {
     			$error = "error=Няма продаваеми артикули,";
     		}
     	
-    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на офериран артикул към офертата");
+    		$data->addNotOptionalBtn = ht::createBtn('Добавяне',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
     		$data->addOptionalBtn = ht::createBtn('Опционален артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
-    	}
+    		
+    		if($this->haveRightFor('createProduct', (object)array('quotationId' => $data->masterId))){
+    			$data->addNewProductBtn = ht::createBtn('Създаване',  array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'ret_url' => TRUE),  FALSE, FALSE, "id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/shopping.png,order=12");
+    		}
+		}
     	
     	// Ако няма записи не правим нищо
     	if(!$data->rows) return;
@@ -588,7 +603,6 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Шаблон за опционалните продукти
     	$optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
     	
-    	
     	$oTpl = getTplFromFile($optionalTemplateFile);
     	$oTpl->removeBlock("totalPlace");
     	$oCount = $dCount = 1;
@@ -599,6 +613,8 @@ class sales_QuotationsDetails extends doc_Detail {
 	    	foreach($data->rows as $index => $arr){
 	    		list($pId, $optional) = explode("|", $index);
 	    		foreach($arr as $key => $row){
+	    			core_RowToolbar::createIfNotExists($row->_rowTools);
+	    			$row->tools = $row->_rowTools->renderHtml($this->rowToolsMinLinksToShow);
 	    			
 	    			// Взависимост дали е опционален продукта го добавяме към определения шаблон
 	    			if($optional == 'no'){
@@ -691,6 +707,10 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if(isset($data->addNotOptionalBtn)){
     			$dTpl->append($data->addNotOptionalBtn, 'ADD_BTN');
+    		}
+    		
+    		if(isset($data->addNewProductBtn)){
+    			$dTpl->append($data->addNewProductBtn, 'ADD_BTN');
     		}
     		
     		$dTpl->removeBlocks();
@@ -792,12 +812,19 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
     		if($quoteState != 'draft'){
-    			$res = 'no_one';
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'createproduct' && isset($rec->cloneId)){
+    		$cloneRec = $mvc->fetch($rec->cloneId);
+    		if($cloneRec->optional != 'no'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

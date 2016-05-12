@@ -122,7 +122,7 @@ class cams_driver_IpDevice extends core_BaseClass {
     	$url = $this->getParamsUrl();
     	$res = url::loadURL($url);
 		
-    	$resArr = parse_ini_string($res);
+    	$resArr = @parse_ini_string($res);
     	
     	if (!$resArr) {
     		

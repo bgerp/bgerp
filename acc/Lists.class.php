@@ -19,7 +19,7 @@ class acc_Lists extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'acc_WrapperSettings, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
+    var $loadList = 'acc_WrapperSettings, plg_RowTools2,plg_State2, plg_Sorting, plg_Created';
     
     
     /**
@@ -61,13 +61,13 @@ class acc_Lists extends core_Manager {
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    //var $rowToolsField = 'tools';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num=№,nameLink=Наименование,regInterfaceId,itemsCnt,systemId,lastUseOn,isDimensional,tools=Пулт';
+    var $listFields = 'nameLink=Наименование,num=Код,itemsCnt=Пера,lastUseOn,isDimensional,featureList';
     
     
     /**
@@ -76,7 +76,7 @@ class acc_Lists extends core_Manager {
     function description()
     {
         // Трибуквен, уникален номер
-        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
+        $this->FLD('num', 'int(3,size=3)', 'caption=Код,remember=info,mandatory,notNull,export');
         
         // Име на номенклатурата
         $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
@@ -106,8 +106,11 @@ class acc_Lists extends core_Manager {
         $this->FNC('title', 'html', 'column=none');
         
         // Дали елементите имат размерност
-        $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност, export,maxRadio=2,width=8em');
+        $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност,smartCenter,export,maxRadio=2');
         
+        // Списък със свойствата, които се поддържат от тази номенклатура
+        $this->FLD('featureList', 'blob(serialize)', 'caption=Свойства,input=none,single=none');
+      
         // Уникални индекси
         $this->setDbUnique('num');
         $this->setDbUnique('name');
@@ -223,6 +226,17 @@ class acc_Lists extends core_Manager {
         }
         
         $data->form->setDefault('isDimensional', 'no');
+    }
+
+
+    /**
+     * Изпълнява се след конвертирането на вербалния запис
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    {
+    	if(is_array($rec->featureList)){ 
+    		$row->featureList = type_Varchar::escape(implode(', ', $rec->featureList));
+    	}
     }
     
     
@@ -578,8 +592,27 @@ class acc_Lists extends core_Manager {
         $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
         $rec->state = 'active';
     }
-    
-    
+
+
+    /**
+     * Обновява списъка с възможни свойства за дадена номенклатура
+     * 
+     * @param   int $listId id на номенклатура
+     */
+    public static function updateFeatureList($listId)
+    {
+        $rec = self::fetch($listId);
+        $items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
+        $features = array();
+        if(count($items)) {
+            $features = acc_Features::getFeatureOptions(array_keys($items));
+        }
+        $rec->featureList = $features;
+
+        self::save($rec, 'featureList');
+    }
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

@@ -42,13 +42,13 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol,batch_MovementSourceIntf=batch_movements_ConsignmentProtocol';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol,batch_MovementSourceIntf=batch_movements_ConsignmentProtocol';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
@@ -97,7 +97,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, contragentId=Контрагент, folderId, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, contragentId=Контрагент, folderId, createdOn, createdBy';
     
     
     /**
@@ -131,12 +131,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
@@ -162,7 +156,7 @@ class store_ConsignmentProtocols extends core_Master
     	$this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
     	$this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)',
     			'caption=Статус, input=none'
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
@@ -386,7 +380,7 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('crm_ContragentAccRegIntf');
     }
     
     
@@ -400,7 +394,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     
-    	return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass);
     }
     
     
@@ -416,7 +410,7 @@ class store_ConsignmentProtocols extends core_Master
     	$threadRec = doc_Threads::fetch($threadId);
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	 
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -426,7 +420,8 @@ class store_ConsignmentProtocols extends core_Master
     function loadSetupData()
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml', 
+    			 'narrowContent' => 'store/tpl/SingleLayoutConsignmentProtocolNarrow.shtml', 'lang' => 'bg');
     	
     	$res = '';
     	$res .= doc_TplManager::addOnce($this, $tplArr);

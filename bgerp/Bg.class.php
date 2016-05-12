@@ -56,13 +56,14 @@ class bgerp_Bg extends core_Mvc
                 break;
             
             case 'products' :
-                // Вземаме записа, който отговаря на първото меню, сочещо към групите за Bg език
-                $cMenuId = cms_Content::getDefaultMenuId('eshop_Groups');
-                
-                // Връщаме за резултат, породения HTML/ЕТ код от ShowAll метода на eshop_Groups
-                $res = Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll', 'cMenuId' => $cMenuId));
-                break;
-            
+            	if(core_Packs::isInstalled('eshop')){
+            		// Вземаме записа, който отговаря на първото меню, сочещо към групите за Bg език
+            		$cMenuId = cms_Content::getDefaultMenuId('eshop_Groups');
+            		
+            		// Връщаме за резултат, породения HTML/ЕТ код от ShowAll метода на eshop_Groups
+            		$res = Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll', 'cMenuId' => $cMenuId));
+            		break;
+            	}
             default :
             $res = Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $vid));
         }

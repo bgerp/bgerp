@@ -272,7 +272,7 @@ class sales_Routes extends core_Manager {
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		$data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Търговец,silent,refreshForm');
+		$data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
 
         $data->listFilter->showFields = 'search,user, date';
@@ -407,8 +407,14 @@ class sales_Routes extends core_Manager {
     {
     	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
-    	if($this->haveRightFor('list')){
-    		$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговски маршрути');
+    	$listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт');
+    	
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		if($this->haveRightFor('list')){
+    			$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговски маршрути');
+    		}
+    	} else {
+    		unset($listFields['tools']);
     	}
     	
     	if ($data->addUrl) {
@@ -419,7 +425,7 @@ class sales_Routes extends core_Manager {
     	$tpl->replace($title, 'title');
     	
     	$table = cls::get('core_TableView');
-    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт');
+    	$tableTpl = $table->get($data->rows, $listFields);
     	$tpl->append($tableTpl, 'content');
 
     	return $tpl;

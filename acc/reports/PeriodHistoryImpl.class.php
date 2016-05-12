@@ -312,7 +312,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 							'creditAmount'   => 'Кредит->Сума',
 							'blQuantity'     => 'Остатък->К-во',
 							'blAmount'       => 'Остатък->Сума',);
-		
+
 		switch ($data->rec->step){
 			case 'day':
 				$dateCaption = 'Ден';
@@ -322,6 +322,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				break;
 			case 'month':
 				$dateCaption = 'Месец';
+				break;
 			case 'year':
 				$dateCaption = 'Години';
 				break;
@@ -359,10 +360,8 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 		$data->hasSameValues = TRUE;
 		
 		// Може ли потребителя да вижда хронологията на сметката
-		$attr = array();
-		$attr['class'] = 'linkWithIcon';
-		$attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
-		$attr['title'] = tr("Хронологична справка");
+        $attr = array('title' => "Хронологична справка");
+        $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
 		
 		$canSeeHistory = acc_BalanceDetails::haveRightFor('history', (object)array('ent1Id' => $data->rec->ent1Id, 'ent2Id' => $data->rec->ent2Id, 'ent3Id' => $data->rec->ent3Id));
 		if($canSeeHistory){
@@ -405,7 +404,8 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				if($canSeeHistory){
 					$histUrl['fromDate'] = $rec->from;
 					$histUrl['toDate'] = $rec->to;
-					$row->date = ht::createLink('', $histUrl, NULL, $attr) . " {$row->date}";
+					
+					$row->date = ht::createLink('', toUrl($histUrl,'absolute'), NULL, $attr) . " {$row->date}";
 				}
 				
 				$data->rows[] = $row;

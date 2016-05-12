@@ -844,7 +844,6 @@ en,Копие,Copy
 en,Корекции на ст_8f058,Value adjustments
 en,Корекции,Corrections
 en,Корекционна,Correctional
-en,Корекция на грешки от закръгления,Error correction rounding
 en,Корекция на грешки от закръгляне,Balance repairs from rounding
 en,Корекция,Correction
 en,Коригиращи дей_d8b4,Correcting actions
@@ -998,7 +997,7 @@ en,Молби,Applications
 en,Моля запознайт_181f,Please see the attached invoice:
 en,Моля запознайте се с нашата вносна бележка,Please see our deposit slip
 en,Моля запознайте се с нашата декларация за съответствие,Please see our declaration of compliance
-en,Моля запознайте се с нашата оферта,Please see our quotations
+en,Моля запознайте се с нашата оферта,Please see our quotation
 en,Моля запознайте се с нашата складова разписка,Please see our store receipt
 en,Моля запознайте се с нашата,Please see our
 en,Моля запознайте се с нашето експедиционно нареждане,Please see our shipping order
@@ -2361,3 +2360,14 @@ bg,Export CSV,Експорт CSV
 en,по проформа,from pro forma
 en,по фактура,from invoice
 en,Словом,Say words
+en,Папка към,Folder for
+en,Създаване на папка за документи към,Create folder for documents for
+en,Отваряне на папката,Open folder
+en,Показване на debug информация,Show debug info
+en,Превключване на системата в мобилен режим,Switch to mobile view
+en,Превключване на системата в десктоп режим,Switch to desktop view
+en,Излизане от системата,Logout from the system
+en,Изпращане на сигнал към разработчиците на bgERP,Send signal to bgERP developers
+en,Прекъсване на сесията,Logout from the system
+en,Деактивиране,Deactivate
+en,УниКредит Булбанк АД,UniCredit Bulbank

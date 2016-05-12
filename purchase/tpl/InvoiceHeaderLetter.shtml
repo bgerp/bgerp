@@ -66,16 +66,12 @@
                                         <!--ET_BEGIN accountId-->
                                         <div>
                                             <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
+                                            <!--ET_BEGIN bankInfo-->
+                                            [#bankInfo#]
                                             <div class="smallData">
-                                                <!--ET_BEGIN bank-->
-                                                <div>
-                                                    [#bank#]
-                                                    <!--ET_END bank-->
-                                                    <!--ET_BEGIN bic-->
-                                                    , BIC: [#bic#]
-                                                </div>
-                                                <!--ET_END bic-->
+                                                <!--ET_BEGIN bank-->[#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, BIC: [#bic#]<!--ET_END bic-->
                                             </div>
+                                            <!--ET_END bankInfo-->
                                         </div>
                                         <!--ET_END accountId-->
                                         <!--ET_END payment_block-->
@@ -147,7 +143,7 @@
                                                 <td colspan='3' style='text-align:right'>
                                                     <!--ET_BEGIN sayWords-->
                                                     <hr>
-                                                    |С думи|*:
+                                                    |Словом|*:
                                                     [#sayWords#]
                                                     <!--ET_END sayWords-->
                                                 </td>

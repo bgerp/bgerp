@@ -69,11 +69,11 @@ class core_page_Internal extends core_page_Active
         if(Mode::is('screenMode', 'wide')){
         	$this->append("scaleViewport();", "START_SCRIPTS");
         } else {
-        	$this->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+        	jquery_Jquery::run($this, "checkForElementWidthChange();");
         }
         
         // Опаковките и главното съдържание заемат екрана до долу
-        $this->append("runOnLoad(setMinHeight);", "JQRUN");
+        jquery_Jquery::run($this, "setMinHeight();");
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
@@ -191,6 +191,7 @@ class core_page_Internal extends core_page_Active
                     $notFirst = TRUE;
                 }
             }
+            jquery_Jquery::run($tpl, "removeNarrowScroll();");
         } else {
             // Ако сме в широк формат
             // Отпечатваме менютата
@@ -241,7 +242,7 @@ class core_page_Internal extends core_page_Active
         
         if(Mode::is('screenMode', 'narrow')) {
             if($nick) {
-                $tpl->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
+                $tpl->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на |*" . $nick)));
             }
                         
             if($isGet) {
@@ -253,7 +254,7 @@ class core_page_Internal extends core_page_Active
             }
 
             $tpl->append("&nbsp;<small>|</small>&nbsp;");
-            $tpl->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
+            $tpl->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => 'Страницата е заредена на|*' . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
             if($nick) {
                 $tpl->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));

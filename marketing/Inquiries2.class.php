@@ -195,7 +195,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Съобщение,mandatory,before=name');
+    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Съобщение,before=name');
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
@@ -261,7 +261,8 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	for($i = 1; $i <= $quantityCount; $i++){
     		$fCaption = ($quantityCount === 1) ? 'Количество' : "Количество|* {$i}";
-    		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption}");
+    		$mandatory = ($i == 1) ? 'mandatory' : '';
+    		$form->setField("quantity{$i}", "input,unit={$uom},caption={$caption}->{$fCaption},{$mandatory}");
     		if(isset($form->rec->moq)){
     			$form->setFieldTypeParams("quantity{$i}", array('min' => $form->rec->moq));
     		}
@@ -298,7 +299,7 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass);
     }
     
     
@@ -559,12 +560,13 @@ class marketing_Inquiries2 extends embed_Manager
     	if($rec->state == 'active'){
     
     		if($pId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
-    			$data->toolbar->addBtn('Артикул', array('cat_Products', 'single', $pId), "ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване");
+    			$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    			$data->toolbar->addBtn("Артикул|* {$arrow}", array('cat_Products', 'single', $pId), "ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване");
     		} else {
     			// Създаване на нов артикул от запитването
     			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
     				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId, 'proto' => $rec->proto, 'ret_url' => TRUE);
-    				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
+    				if(doc_Folders::getCover($rec->folderId)->haveInterface('crm_ContragentAccRegIntf')){
     					$url['folderId'] = $rec->folderId; 
     					$url['threadId'] = $rec->threadId;
     				}
@@ -582,7 +584,7 @@ class marketing_Inquiries2 extends embed_Manager
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
     		$conf = core_Packs::getConfig('marketing');
     		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
-    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
+    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
     		}
     	}
     }
@@ -641,12 +643,16 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$rec = static::fetch($id);
+    	$rec = $this->fetch($id);
     	$date = dt::mysql2verbal($rec->createdOn, 'd-M');
     	$time = dt::mysql2verbal($rec->createdOn, 'H:i');
     	
@@ -662,7 +668,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('crm_ContragentAccRegIntf');
     }
     
     
@@ -684,6 +690,11 @@ class marketing_Inquiries2 extends embed_Manager
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
     	$proto = keylist::toArray($proto);
+        
+        // Поставя временно външният език, за език на интерфейса
+        $lang = cms_Domains::getPublicDomain('lang');
+        core_Lg::push($lang);
+
     	if(count($proto)){
     		foreach ($proto as $pId => &$name){
     			$name = cat_Products::getTitleById($pId, FALSE);
@@ -707,7 +718,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$form->setDefault('proto', key($proto));
     			$form->setField('proto', 'input=hidden');
     		} else {
-    			$form->setField('proto', 'input,caption=Вид,placeholder=Артикули');
+    			$form->setField('proto', 'input,caption=Прототип||Prototype,placeholder=Артикули,groupByDiv=»');
     		}
     	} else {
     		$form->setField('proto', 'input=none');
@@ -789,6 +800,9 @@ class marketing_Inquiries2 extends embed_Manager
     		core_Lg::pop();
     	}
     	
+        // Премахва зададения временно текущ език
+        core_Lg::pop();
+
     	return $tpl;
     }
     

@@ -24,6 +24,15 @@ class core_Html
     {   
         $attrStr = '';
 
+        if($name == 'img') {
+            if(!is_array($attributes)) {
+                $attributes = array();
+            }
+            if(!isset($attributes['alt'])) {
+                $attributes['alt'] = '';   
+            }
+        }
+
         if ($name) {
 
             if (is_array($attributes)) {
@@ -45,6 +54,7 @@ class core_Html
                     
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";                 
                 }
+
             }
 
             if ( ( $body === NULL || $body === FALSE)  && !$closeTag) {
@@ -118,7 +128,7 @@ class core_Html
 
         $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
 
-        $tpl->appendOnce("\n runOnLoad(function(){comboBoxInit('{$attr['id']}', '{$selectId}');})", 'JQRUN');
+       	jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
 
         $attr['id'] = $selectId;
         $name = $attr['name'] = $selectId;
@@ -167,10 +177,16 @@ class core_Html
     
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
         	}
-        	 //bp($groups);
+            
+            // bp($groups);
+
         	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
         	if(count($groups)){
-        		
+        		if(isset($groups[''])) {
+                    asort($groups['']);
+                    $newOptions += $groups[''];
+                    unset($groups['']);
+                }
         		foreach($groups as $group => $optArr) {
         		    // Добавяме името като OPTGROUP
                     if($group) {
@@ -179,6 +195,7 @@ class core_Html
                                     'group' => TRUE,
                             );
                     }
+                    asort($optArr);
                     $newOptions += $optArr;
                 }
 
@@ -490,6 +507,8 @@ class core_Html
         return $input;
     }
 
+
+
    
     /**
      * Създава бутон, който при натискане предизвиква съобщение за грешка
@@ -511,9 +530,9 @@ class core_Html
      */
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
+        
         $title = tr($title);
-
-        $attr = arr::make($attr);
 
         // Ако URL-то е празно - забраняваме бутона
         if((is_array($url) && count($url) == 0) || !$url) {
@@ -553,14 +572,11 @@ class core_Html
         }
 
         // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
+        if (!Mode::is('screenMode', 'narrow') ) {
+            $attr = self::addBackgroundIcon($attr);
+        } else {
             unset($attr['ef_icon']);
         }
-
 
         // Ако нямаме JavaScript правим хипервръзка
         if ( Mode::is('javascript', 'no') ) {
@@ -575,12 +591,6 @@ class core_Html
 
             return self::createElement('a', $attr, "$title");
         }
-
-        // Вкарваме предупреждението
-        if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
-        }
-
         
         // Вкарваме JavaScript-a
         if ($newWindow) {
@@ -613,12 +623,7 @@ class core_Html
      */
     static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
-        $attr = arr::make($attr);
-
-        // Вкарваме предупреждението
-        if ($warning) {
-            $attr['onclick'] = " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; " . $attr['onclick'];
-        }
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
 
         $attr['name'] .= "Cmd[{$cmd}]";
 
@@ -646,11 +651,9 @@ class core_Html
         }
         
         // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
+        if (!Mode::is('screenMode', 'narrow') ) {
+            $attr = self::addBackgroundIcon($attr);
+        } else {
             unset($attr['ef_icon']);
         }
 
@@ -668,13 +671,7 @@ class core_Html
      */
     static function createFnBtn($title, $function, $warning = NULL, $attr = array())
     {
-        $attr = arr::make($attr);
-
-        // Вкарваме предупреждението, ако има такова
-        if ($warning) {
-            $attr['onclick'] .= " if (!confirm('" .
-            str_replace("'", "\'", tr($warning)) . "')) return false; ";
-        }
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
 
         $attr['onclick'] .= $function;
 
@@ -690,11 +687,9 @@ class core_Html
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
         
         // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
+        if (!Mode::is('screenMode', 'narrow') ) {
+            $attr = self::addBackgroundIcon($attr);
+        } else {
             unset($attr['ef_icon']);
         }
 
@@ -717,12 +712,7 @@ class core_Html
      */
     static function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
-        $attr = arr::make($attr);
-
-        if ($warning) {
-            $attr['onclick'] = "if (!confirm('" . str_replace("'", "\'", $warning) .
-            "')) return false; " . $attr['onclick'];
-        }
+        $attr = self::prepareLinkAndBtnAttr($attr, $warning);
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
@@ -754,15 +744,24 @@ class core_Html
             }
         }
 
-        if($attr['ef_icon']) {
-            $iconSrc = sbf($attr['ef_icon'], '', Mode::is('text', 'xhtml'));
+        if($icon = $attr['ef_icon']) {
             
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-                $icon    = "<img src='$iconSrc' width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
+            if ( (Mode::is('text', 'xhtml') || Mode::is('printing'))) {
+
+                $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
+                $srcset  = '';
+
+                if(Mode::get('devicePixelRatio') > 1.5) {
+                    $icon2 = str_replace('/16/', '/32/', $icon);
+                    if(getFullPath($icon2)) {
+                        $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
+                    }
+                }
+                $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
                 $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
-                $attr['class'] .= ' linkWithIcon';
-                $attr['style'] .= "background-image:url('{$iconSrc}');";
+                // Добавяме икона на бутона, ако има
+                $attr = self::addBackgroundIcon($attr);
             }
 
             unset($attr['ef_icon']);
@@ -892,16 +891,18 @@ class core_Html
     	$iconHtml = ht::createElement("img", array('src' => sbf($iconPath, '')));
     	
     	if($appendToEnd === TRUE){
-    		$elementTpl = "[#body#] <span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+    		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
     	} else {
-    		$elementTpl = "<span style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+    		$elementTpl = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
     	}
+    	
+    	$hint = str_replace("'", '"', $hint);
     	
     	$element = new core_ET($elementTpl);
         $element->append($body, 'body');
         $element->append($hint, 'hint');
         $element->append($iconHtml, 'icon');
-               
+        
     	return $element;
     }
     
@@ -1110,7 +1111,7 @@ class core_Html
     /**
      * Прави dump на масив в html представяне
      */
-    public static function arrayToHtml($arr)
+    public static function arrayToHtml($arr, $openLevels = 3, $viewLevels = 5)
     {
         $result = '';
 
@@ -1126,7 +1127,7 @@ class core_Html
             } else {
                 $prefix = '';
             }
-            $result .= self::mixedToHtml($item, 3, 5, $prefix);
+            $result .= self::mixedToHtml($item, $openLevels, $viewLevels, $prefix);
             $result .= "</div>";
         }
 
@@ -1165,4 +1166,73 @@ class core_Html
         
         return $text; 
     } 
+
+
+    /**
+     * Добавя икона като бекграунд в атрибутите
+     */
+    public static function addBackgroundIcon($attr, $icon = NULL)
+    {
+        if(!$icon) {
+            $icon = $attr['ef_icon'];
+            unset($attr['ef_icon']);
+        }
+
+        if(!empty($icon) && getFullPath($icon)) {
+
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            
+            $attr['style'] = self::getIconStyle($icon, $attr['style']);
+        }
+
+        return $attr;
+    }
+
+
+    /**
+     * Връща стил с включен бекграунд за икона
+     */
+    static function getIconStyle($icon, $style = 'background-size:16px 16px;')
+    {
+        if(!empty($icon)) {
+            if(Mode::get('devicePixelRatio') > 1.5) {
+                $icon2 = str_replace('/16/', '/32/', $icon);
+                if(getFullPath($icon2)) {
+                    $icon = $icon2;
+                }
+            }
+
+            $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
+            
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            
+            $style = rtrim($style, ' ;');
+
+            $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
+        }
+
+        return $style;
+    }
+    
+    
+    /**
+     * Подготвя атрибутите на бутон или хипервръзка
+     */
+    private static function prepareLinkAndBtnAttr($attr, $warning = '')
+    {
+        $attr = arr::make($attr);
+        
+        if($attr['title']) {
+            $attr['title'] = tr($attr['title']);
+        }
+
+        // Вкарваме предупреждението
+        if ($warning) {
+            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
+        }
+
+        return $attr;
+    }
+
+
 }

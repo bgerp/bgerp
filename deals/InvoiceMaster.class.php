@@ -90,7 +90,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
     	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
+    	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
     	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
@@ -248,8 +248,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
     	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-    	$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
     	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
     	if($uic != $ownCompanyData->vatNo){
@@ -332,15 +331,18 @@ abstract class deals_InvoiceMaster extends core_Master
     
 
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейла по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$handle = static::getHandle($id);
-    	$me = cls::get(get_called_class());
+    	$handle = $this->getHandle($id);
     	
-    	if($me->getField('type', FALSE)){
+    	if($this->getField('type', FALSE)){
     		$rec = static::fetch($id);
     		switch($rec->type){
     			case 'invoice':
@@ -487,7 +489,10 @@ abstract class deals_InvoiceMaster extends core_Master
    {
 	   	$Source = $mvc->getSourceOrigin($rec);
 	   	if(!$Source) return;
-		
+
+	   	// Инвалидираме кеша на документа
+	   	doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
+	  
 	   	if($rec->_isClone === TRUE) return;
 	   	
 	   	// Само ако записа е след редакция
@@ -657,6 +662,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($form->rec->currencyId == acc_Periods::getBaseCurrencyCode($form->rec->date)){
     		$form->setField('displayRate', 'input=hidden');
     	}
+    	
+    	$noReason1 = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
+    	$noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
+    	$suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
+    	$form->setSuggestions('vatReason', $suggestions);
     }
     
     
@@ -732,8 +742,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
-    
-    	acc_Periods::checkDocumentDate($form);
+    	
     	$form->rec->_edited = TRUE;
     	
     	// Метод който да бъде прихванат от deals_plg_DpInvoice
@@ -793,14 +802,26 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
+    		$noVat = $rec->dealValue - $rec->discountAmount;
+    		
     		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
+    		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
     		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->dealValue;
-    	
+    		$row->valueNoVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->valueNoVat;
+    		
     		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
     		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>&nbsp;" . $row->vatAmount;
     	}
     	
     	if($fields['-single']){
+    		if(empty($rec->vatReason)){
+    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
+    				$row->vatReason = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
+    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    				$row->vatReason = acc_Setup::get('VAT_REASON_IN_EU');
+    			}
+    		}
+    		
     		core_Lg::push($rec->tplLang);
     		
     		if($rec->originId && $rec->type != 'invoice'){
@@ -862,8 +883,9 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$row = static::recToVerbal($rec, 'type,number,-list');
-    	$row->number = strip_tags($row->number);
+    	$row = new stdClass();
+    	$row->type = static::getVerbal($rec, 'type');
+    	$row->number = strip_tags(static::getVerbal($rec, 'number'));
     	$num = ($row->number) ? $row->number : $rec->id;
     
     	return tr("|{$row->type}|* №{$num}");
@@ -1099,5 +1121,15 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	return $details;
+    }
+
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if(!count($data->rows)) return;
+    	$data->listTableMvc->FNC('valueNoVat', 'int');
     }
 }

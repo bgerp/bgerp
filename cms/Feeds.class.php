@@ -29,7 +29,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, cms_Wrapper, plg_AutoFilter';
+	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, cms_Wrapper';
 	
 
     /**
@@ -311,7 +311,7 @@ class cms_Feeds extends core_Manager {
 	       		}
 	       		
        			// Натрупваме генерираният хедър в шаблона, ако хранилката е от същия език, като на външната част
-       			$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+       			$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}'>");
 	       	}
         }
 		

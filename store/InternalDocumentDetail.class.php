@@ -135,10 +135,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
     	if(!count($data->rows)) return;
+    	$unsetAmounts = TRUE; 
     	
     	foreach ($data->rows as $i => &$row) {
     		$rec = &$data->recs[$i];
-    		
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     		
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
@@ -148,6 +148,14 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		
     		// Показваме подробната информация за опаковката при нужда
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+    		if(!empty($rec->packPrice)){
+    			$unsetAmounts = FALSE;
+    		}
+    	}
+    	
+    	if($unsetAmounts === TRUE){
+    		unset($data->listFields['packPrice']);
+    		unset($data->listFields['amount']);
     	}
     }
     

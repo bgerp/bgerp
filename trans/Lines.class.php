@@ -129,6 +129,12 @@ class trans_Lines extends core_Master
 
     
     /**
+     * Файл за единичния изглед в мобилен
+     */
+    public $singleLayoutFileNarrow = 'trans/tpl/SingleLayoutLinesNarrow.shtml';
+    		
+    		
+    /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/lorry_go.png';
@@ -159,6 +165,7 @@ class trans_Lines extends core_Master
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Превозвач->Превозно средство');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
+    	$this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
     }
     
     
@@ -284,7 +291,8 @@ class trans_Lines extends core_Master
 	    	
 	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
 	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	    	$row->logistic = core_Users::getCurrent('names');
+	    	
+	    	$row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     	
     	$row->handler = $mvc->getLink($rec->id, 0);

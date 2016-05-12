@@ -39,13 +39,13 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_AdvanceReport, bgerp_DealIntf, email_DocumentIntf, deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
+    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
 
@@ -95,7 +95,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,valior,title=Документ,number,currencyId=Валута, total,folderId,createdOn,createdBy';
+    public $listFields = 'valior,title=Документ,number,currencyId=Валута, total,folderId,createdOn,createdBy';
 
     
    /**
@@ -132,12 +132,6 @@ class findeals_AdvanceReports extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "4.7|Финанси";
-   
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -170,8 +164,10 @@ class findeals_AdvanceReports extends core_Master
     	$this->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
     	$this->FLD('total', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторниран)', 'caption=Статус, input=none');
-    
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
+    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	
     	$this->setDbUnique('number');
     }
     
@@ -193,6 +189,10 @@ class findeals_AdvanceReports extends core_Master
     	$data->form->setDefault('operationSysId', 'debitDeals');
     	
     	$data->form->setDefault('currencyId', currency_Currencies::getIdByCode($dealInfo->get('currency')));
+    	$Cover = doc_Folders::getCover($data->form->rec->folderId);
+    	
+    	$data->form->setDefault('contragentClassId', $Cover->getClassId());
+    	$data->form->setDefault('contragentId', $Cover->that);
     }
     
     
@@ -371,20 +371,31 @@ class findeals_AdvanceReports extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+    	$rec = $data->rec;
+    	
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$data->row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
+    	$data->row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE);
+    	
+    	$ContragentClass = cls::get($data->rec->contragentClassId);
+    	$cData = $ContragentClass->getContragentData($data->rec->contragentId);
+    	$data->row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
+    	$data->row->contragentAddress = $ContragentClass->getFullAdress($data->rec->contragentId)->getContent();
     }
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$handle = static::getHandle($id);
+    	$handle = $this->getHandle($id);
     	$tpl = new ET(tr("Моля запознайте се с нашия авансов отчет") . ': #[#handle#]');
     	$tpl->append($handle, 'handle');
     

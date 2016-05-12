@@ -35,7 +35,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
 		$mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,smartCenter');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,input=input');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
@@ -115,7 +115,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->packQuantity)){
-				$rec->packQuantity = 1;
+				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
+    			if(!empty($defQuantity)){
+    				$rec->packQuantity = $defQuantity;
+    			} else {
+    				$form->setError('packQuantity', 'Не е въведено количество');
+    			}
 			}
 			
 			// Закръгляме количеството спрямо допустимото от мярката

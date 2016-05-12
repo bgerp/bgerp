@@ -57,7 +57,7 @@ class core_ProtoSetup
     /**
      * Стойности на константите за конфигурацията на пакета
      */
-    static $conf;
+    static $conf = array();
 
 
     /**
@@ -193,12 +193,11 @@ class core_ProtoSetup
      * Зареждане на първоначалните данни
      * Извиква метода '->loadSetupData()' на мениджърите, които го имат
      */
-    public function loadSetupData()
+    public function loadSetupData($itr = '')
     {
         $htmlRes = '';
         
-
-        // Създаване на кофи за файлове
+        $method = 'loadSetupData' . $itr;
 
 
         // Зареждане на данните в моделите
@@ -208,8 +207,8 @@ class core_ProtoSetup
                 continue;
             }
             $instances[$man] = &cls::get($man);
-            if(method_exists($instances[$man], 'loadSetupData')) {
-                $htmlRes .= $instances[$man]->loadSetupData();
+            if(method_exists($instances[$man], $method)) {
+                $htmlRes .= $instances[$man]->{$method}();
             }
         }
         
@@ -305,12 +304,12 @@ class core_ProtoSetup
      */
     public static function getConfig()
     {
-        if(!self::$conf) {
-            $packName = self::getPackName();
-            self::$conf = core_Packs::getConfig($packName);
+        $packName = self::getPackName();
+        if(!isset(self::$conf[$packName])) {
+            self::$conf[$packName] = core_Packs::getConfig($packName);
         }
         
-        return self::$conf;
+        return self::$conf[$packName];
     }
 
 

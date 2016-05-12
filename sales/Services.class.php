@@ -31,16 +31,25 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf, acc_TransactionSourceIntf=sales_transaction_Service,deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealIntf, acc_TransactionSourceIntf=sales_transaction_Service,deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices';
+					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg';
 
+    
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, sales';
+    
     
     /**
      * Кой има право да чете?
@@ -93,7 +102,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior,title=Документ, folderId, amountDeliveredVat, createdOn, createdBy';
+    public $listFields = 'valior,title=Документ, folderId, amountDeliveredVat, createdOn, createdBy';
 
 
     /**
@@ -183,16 +192,16 @@ class sales_Services extends deals_ServiceMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Протокол за извършени услуги', 
-    					  'content' => 'sales/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
+    					  'content' => 'sales/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
-    					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	$tplArr[] = array('name' => 'Delivery protocol',
-		    			  'content' => 'sales/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesEN.shtml', 'lang' => 'en', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesNarrowEN.shtml',
 		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Delivery protocol with prices',
-		    			  'content' => 'sales/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en',
+		    			  'content' => 'sales/tpl/SingleLayoutServicesPricesEN.shtml', 'lang' => 'en', 'narrowContent' =>  'sales/tpl/SingleLayoutServicesPricesNarrowEN.shtml',
 		    			  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -247,6 +256,11 @@ class sales_Services extends deals_ServiceMaster
     	$query->where("#shipmentId = {$rec->id}");
     	while($dRec = $query->fetch()){
     		$dRec->quantity /= $dRec->quantityInPack;
+    		if(!($forMvc instanceof sales_Proformas)){
+    			$dRec->price -= $dRec->price * $dRec->discount;
+    			unset($dRec->discount);
+    		}
+    		
     		unset($dRec->id);
     		unset($dRec->shipmentId);
     		unset($dRec->createdOn);
@@ -276,12 +290,12 @@ class sales_Services extends deals_ServiceMaster
     			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Proformas::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode("&#9660;");
-    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към предавателния протокол,ef_icon=img/16/invoice.png');
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към предавателния протокол,ef_icon=img/16/proforma.png');
     				}
     			} else {
     				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/star_2.png');
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
     				}
     			}
     		} elseif($rec->state == 'active'){
@@ -289,12 +303,12 @@ class sales_Services extends deals_ServiceMaster
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Invoices::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode("&#9660;");
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
     					$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към предавателния протокол,ef_icon=img/16/invoice.png');
     				}
     			} else {
     				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към предавателния протокол,ef_icon=img/16/star_2.png');
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към предавателния протокол,ef_icon=img/16/invoice.png');
     				}
     			}
     		}

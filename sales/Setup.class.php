@@ -62,18 +62,6 @@ defIfNot('SALE_FISC_PRINTER_DRIVER', '');
 
 
 /**
- * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
- */
-defIfNot('SALES_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
-
-
-/**
- * Основание за неначисляване на ДДС за контрагент извън ЕС
- */
-defIfNot('SALES_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
-
-
-/**
  * Кой да е по подразбиране драйвера за фискален принтер
  */
 defIfNot('SALE_INV_VAT_DISPLAY', 'no');
@@ -176,9 +164,6 @@ class sales_Setup extends core_ProtoSetup
 	
 			'SALE_INVOICE_DEF_TPL_BG'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
 			'SALE_INVOICE_DEF_TPL_EN'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
-			
-			'SALES_VAT_REASON_OUTSIDE_EU' => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
-			'SALES_VAT_REASON_IN_EU'      => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
 			'SALES_USE_RATE_IN_CONTRACTS' => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
 	);
 	
@@ -199,6 +184,7 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
+    		'migrate::cacheInvoicePaymentType',
         );
 
         
@@ -263,9 +249,9 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Зареждане на данни
      */
-    function loadSetupData()
+    function loadSetupData($itr = '')
     {
-    	$res = parent::loadSetupData();
+    	$res = parent::loadSetupData($itr);
     	
     	// Ако няма посочени от потребителя сметки за синхронизация
     	$config = core_Packs::getConfig('sales');
@@ -295,5 +281,32 @@ class sales_Setup extends core_ProtoSetup
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Ъпдейт на кеширването на начина на плащане на ф-те
+     */
+    function cacheInvoicePaymentType()
+    {
+    	core_App::setTimeLimit(300);
+    	$Invoice = cls::get('sales_Invoices');
+    	$Invoice->setupMvc();
+    	
+    	$iQuery = $Invoice->getQuery();
+    	$iQuery->where("#autoPaymentType IS NULL");
+    	$iQuery->where("#threadId IS NOT NULL");
+    	$iQuery->show('threadId,dueDate,date,folderId');
+    	
+    	while($rec = $iQuery->fetch()){
+    		try{
+    			$rec->autoPaymentType = $Invoice->getAutoPaymentType($rec);
+    			if($rec->autoPaymentType){
+    				$Invoice->save_($rec, 'autoPaymentType');
+    			}
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
     }
 }

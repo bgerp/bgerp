@@ -192,6 +192,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Екшън за преглеждане на всички дъски
 	 */
+
 	function act_Forum()
 	{
 		// Създаваме празен $data обект
@@ -216,8 +217,8 @@ class forum_Boards extends core_Master {
        
         return $layout;
 	}
-	
-	
+
+
 	/**
 	 *  Подготовка на списъка с дъски, разпределени по техните категории
 	 */

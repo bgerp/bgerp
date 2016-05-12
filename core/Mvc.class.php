@@ -78,6 +78,25 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * Енджина за таблицата в DB
+     */
+    protected $dbEngine;
+    
+
+    /**
+     *  Колация за символите в DB
+     */
+    protected $dbCollation;
+
+
+    /**
+     * Какъв да е минималния брой за кеширане при подготовката на MakeArray4Select
+     */
+    public $cacheLimitForMakeArray = 500;
+
+
+
+    /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
@@ -529,7 +548,7 @@ class core_Mvc extends core_FieldSet
         
         $res = FALSE;
 	
-        if($query->count() > 500) {
+        if($query->count($where, $this->cacheLimitForMakeArray) >= $this->cacheLimitForMakeArray) {
 
             $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
 
@@ -560,7 +579,7 @@ class core_Mvc extends core_FieldSet
             
        }
         
-        if($handler) {
+        if($handler) { 
             core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
         }
  
@@ -834,12 +853,17 @@ class core_Mvc extends core_FieldSet
             $tableName = $this->dbTableName;
 
             $db = $this->db;     // За краткост
+
+            // Параметри на таблицата
+            $tableParams = array('ENGINE' => $this->dbEngine, 
+                                 'CHARACTER' => $this->dbCharacter,
+                                 'COLLATION' => $this->dbCollation);
             // Създаваме таблицата, ако не е създадена
-            $action = $db->forceTable($tableName) ?
+            $action = $db->forceTable($tableName, $tableParams, $debugLog) ?
             '<li class="debug-new">Създаване на таблица:  ' :
             '<li class="debug-info">Съществуваща от преди таблица:  ';
 
-            $html .= "{$action}<b>{$this->dbTableName}</b></li>";
+            $html .= "{$action}<b>{$this->dbTableName}</b></li>" . $debugLog;
 
             foreach ($fields as $name => $field) {
 
@@ -1381,7 +1405,7 @@ class core_Mvc extends core_FieldSet
             
             if (!$name) continue;
             
-            $dbTableRes = $dbTable->query("OPTIMIZE TABLE $name");
+            $dbTableRes = $dbTable->query("OPTIMIZE TABLE `{$name}`");
             
             if (!is_object($dbTableRes)) continue;
             

@@ -27,13 +27,13 @@ class doc_TplManager extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Мениджър на шаблони за документи";
+    public $title = "Изгледи на документи";
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Шаблон";
+    public $singleTitle = "Изглед";
     
     
     /**
@@ -303,6 +303,8 @@ class doc_TplManager extends core_Master
     	if(empty($content)){
     		$content = $rec->content;
     	}
+    	
+    	$content = core_ET::loadFilesRecursivelyFromString($content);
     	
     	return new ET(tr("|*" . $content));
     }

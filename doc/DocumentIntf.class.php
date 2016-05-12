@@ -236,7 +236,7 @@ class doc_DocumentIntf
      * 
      * @return FALSE|string
      */
-    static function generateCacheKey($rec, $document)
+    function generateCacheKey($rec, $document)
     {
         
         return $this->class->generateCacheKey($rec, $document);

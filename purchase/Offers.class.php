@@ -21,7 +21,7 @@ class purchase_Offers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
@@ -57,8 +57,7 @@ class purchase_Offers extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
-						purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg,
-						plg_AutoFilter';
+						purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
 
     
     
@@ -159,30 +158,21 @@ class purchase_Offers extends core_Master
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща данните за адресата
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getContragentData1($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        //TODO
+        $handle = $this->getHandle($id);
         
-        return $contragentData;
-    }
-    
-    
-    /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото наимей по подразбиране
-     */
-    static function getDefaultEmailBody($id)
-    {
-        //TODO
-        $handle = purchase_Offers::getHandle($id);
-        
-        //Създаваме шаблона
+        // Създаваме шаблона
         $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта: ") . '#[#handle#]');
         
-        //Заместваме датата в шаблона
+        // Заместваме датата в шаблона
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
@@ -195,7 +185,7 @@ class purchase_Offers extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('crm_ContragentAccRegIntf');
     }
     
     
@@ -225,7 +215,7 @@ class purchase_Offers extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     

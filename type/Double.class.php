@@ -148,6 +148,7 @@ class type_Double extends core_Type {
         
         // Ако закръгляме умно
         if($this->params['smartRound']){
+        	$oldDecimals = $this->params['decimals'];
         	
         	// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
         	$this->params['decimals'] = min(strlen(substr(strrchr($value, '.'), 1)), $this->params['decimals']);
@@ -160,6 +161,12 @@ class type_Double extends core_Type {
         
         if(!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
+        }
+        
+        if($this->params['smartRound']){
+        	// След умното закръгляне, връщаме старата стойност за брой десетични знаци.
+        	// Така се подсигуряваме че след последователно викане на стойноста винаги ще се изчислява на момента
+        	$this->params['decimals'] = $oldDecimals;
         }
         
         return $value;

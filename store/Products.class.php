@@ -8,8 +8,8 @@
  *
  * @category  bgerp
  * @package   store
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State, plg_LastUsedKeys';
+    public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State,plg_RowTools2';
     
     
     /**
@@ -62,25 +62,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, tools=Пулт, productId=Наименование, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'storeId';
-    
-    
-    /**
-     * Полета за търсене
-     */
-    public $searchField = 'productId';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'productId=Наименование,quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, state';
     
     
     /**
@@ -99,7 +81,6 @@ class store_Products extends core_Manager
         $this->FLD('quantity', 'double', 'caption=Количество->Общо');
         $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden');
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
-        $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -107,8 +88,12 @@ class store_Products extends core_Manager
     }
     
     
-	/**
-     * Изчисляване на заглавието спрямо продуктовия мениджър
+    /**
+     * Изчисляване на функционално поле
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return void|number
      */
     public static function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
     {
@@ -117,21 +102,6 @@ class store_Products extends core_Manager
     	}
     	
     	return $rec->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
-    }
-    
-    
-    /**
-     * Смяна на заглавието
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareListTitle($mvc, $data)
-    {
-        // Взема селектирания склад
-        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
-        
-        $data->title = "|Продукти в склад|* \"{$selectedStoreName}\"";
     }
     
 
@@ -150,6 +120,8 @@ class store_Products extends core_Manager
         // Ако няма никакви записи - нищо не правим
         if(!count($recs)) return;
 	    
+        $makePallets = (core_Packs::isInstalled('pallet')) ? TRUE : FALSE;
+        
 	    foreach($rows as $id => &$row){
 	       $rec = &$recs[$id];
 	       $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
@@ -162,28 +134,93 @@ class store_Products extends core_Manager
 	        }
 	        	 
 	        if($rec->quantityNotOnPallets > 0){
-	        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+	        	if($makePallets){
+	        		core_RowToolbar::createIfNotExists($row->_rowTools);
+	        		$row->_rowTools->addLink('Палетиране', array('pallet_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/box.png,title=Палетиране на артикул');
+	        	}
 	        }
-	        	
-	        $row->TR_CLASS = 'active';
         }
     }
     
     
     /**
      * След подготовка на филтъра
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'search';
-        $data->listFilter->input();
+    	// Подготвяме формата
+    	cat_Products::expandFilter($data->listFilter);
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
+    	$data->listFilter->setOptions('order', $orderOptions);
+		$data->listFilter->setDefault('order', 'standard');
+    	
+    	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+    	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
+    	$data->listFilter->setField('storeId', 'autoFilter');
+    	
+    	// Подготвяме в заявката да може да се търси по полета от друга таблица
+    	$data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
+    	$data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+    	$data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+    	$data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
+    	$data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
+    	
+        $data->listFilter->showFields = 'storeId,search,order,groupId';
+        $data->listFilter->input('storeId,order,groupId,search', 'silent');
         
-        $selectedStoreId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$selectedStoreId}");
-        $data->query->orderBy('state');
+        // Ако има филтър
+        if($rec = $data->listFilter->rec){
+        	
+        	// И е избран склад, търсим склад
+        	if(isset($rec->storeId)){
+        		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
+        		$data->title = "|Продукти в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+        		$data->query->where("#storeId = {$rec->storeId}");
+        	}
+        	
+        	// Ако се търси по ключови думи, търсим по тези от външното поле
+        	if(isset($rec->search)){
+        	 	plg_Search::applySearch($rec->search, $data->query, 'keywords');
+            
+            	// Ако ключовата дума е число, търсим и по ид
+            	if (type_Int::isInt($rec->search)) {
+            		$data->query->orWhere("#productId = {$rec->search}");
+            	}
+        	}
+        	
+        	// Подредба
+        	if(isset($rec->order)){
+        		switch($data->listFilter->rec->order){
+        			case 'all':
+        				$data->query->orderBy('#state,#name');
+						break;
+		        	case 'private':
+        				$data->query->where("#isPublic = 'no'");
+        				$data->query->orderBy('#state,#name');
+						break;
+					case 'last':
+			      		$data->query->orderBy('#createdOn=DESC');
+		        		break;
+        			case 'closed':
+        				$data->query->where("#state = 'closed'");
+        				break;
+        			default :
+        				$data->query->where("#isPublic = 'yes'");
+        				$data->query->orderBy('#state,#name');
+        				break;
+        		}
+        	}
+        	
+        	// Филтър по маркери на артикула
+        	if (!empty($rec->groupId)) {
+        		$descendants = cat_Groups::getDescendantArray($rec->groupId);
+        		$keylist = keylist::fromArray($descendants);
+        		$data->query->likeKeylist("groups", $keylist);
+        	}
+        }
     }
     
     
@@ -197,7 +234,7 @@ class store_Products extends core_Manager
     public static function sync($all)
     {
     	$query = static::getQuery();
-    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
     	
@@ -221,7 +258,7 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,state');
     	
     	// Зануляваме к-та само на тези продукти, които още не са занулени
     	$query->where("#state = 'active'");
@@ -270,9 +307,6 @@ class store_Products extends core_Manager
 	    
 	    return $products;
     }
-    
-    
-
 
 
     /**
@@ -300,5 +334,26 @@ class store_Products extends core_Manager
     	store_Products::truncate();
     	 
     	return new Redirect(array($this, 'list'));
+    }
+    
+    
+    /**
+     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     */
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+    	if(!core_Packs::isInstalled('pallet')){
+    		unset($data->listFields['quantityNotOnPallets']);
+    		unset($data->listFields['quantityOnPallets']);
+    		$data->listFields['quantity'] = 'Количество';
+    	}
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	
+    	// Тулбара го преместваме преди състоянието
+    	if(isset($data->listFields['_rowTools'])){
+    		$field = $data->listFields['_rowTools'];
+    		unset($data->listFields['_rowTools']);
+    		arr::placeInAssocArray($data->listFields, array('_rowTools' => $field), NULL, 'measureId');
+    	}
     }
 }

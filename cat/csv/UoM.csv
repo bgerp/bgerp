@@ -6,7 +6,7 @@
 "кубичен метър","куб.м",,1,"active","cub.m","|kubichen metar|kubichni metri|kub.m|kub.metra|kub. metri|kub. metra|kubichni metri|kub. metar|",3,uom
 "литър","л","кубичен метър",0.001,"active","l","|l|litar|litri|",3,uom
 "милилитър","мл","кубичен метър",0.000001,"active","ml","|ml|mililitar|", 0,uom
-"брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|",0,uom
+"брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|",0,uom,1
 "хиляди бройки","хил. бр.","брой",1000,"active","K pcs","|hilqdi brojki|hilqda brojki|",3,uom
 "секунда","сек.","секунда",1,"active","s",'|sec|secunda|seconds|second|secundi|',0,uom
 "минута","мин.","секунда",60,"active","min","|min|minuta|minuti|minutes|minute|",0,uom
@@ -29,12 +29,12 @@
 "грам на кубичен сантиметър","г/см3","килограм на кубичен метър",1000,"closed","g/cm3","|gram na kubichen santimetar|",0,uom
 "килограм на литър","кг/л","килограм на кубичен метър",1000,"closed","kg/l","|килограм на литър|",3,uom
 "грам на квадратен метър","г/м2","грам на квадратен метър",1,"closed","g/m2","|gram na kvadraten metar|",1,uom
-пакет,пакет,,,active,,,0,packaging
-стек,стек,,,active,,,0,packaging
-кашон,кашон,,,active,,,0,packaging
-ролка,ролка,,,active,,,0,packaging
-чувал,чувал,,,active,,,0,packaging
-бака,бака,,,active,,,0,packaging
-варел,варел,,,active,,,0,packaging
-клетка,клетка,,,active,,,0,packaging
-палет,палет,,,active,,,0,packaging
+пакет,пакет,,,active,,,0,packaging,1
+стек,стек,,,active,,,0,packaging,1
+кашон,кашон,,,active,,,0,packaging,1
+ролка,ролка,,,active,,,0,packaging,1
+чувал,чувал,,,active,,,0,packaging,1
+бака,бака,,,active,,,0,packaging,1
+варел,варел,,,active,,,0,packaging,1
+клетка,клетка,,,active,,,0,packaging,1
+палет,палет,,,active,,,0,packaging,1

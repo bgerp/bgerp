@@ -26,19 +26,19 @@ class cat_BomDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $title = "Детайл на технологичната рецепта";
+    public $title = "Детайл на технологичната рецепта";
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'bomId';
+    public $masterKey = 'bomId';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, plg_AlignDecimals2, planning_plg_ReplaceEquivalentProducts';
     
     
     /**
@@ -50,67 +50,86 @@ class cat_BomDetails extends doc_Detail
     /**
      * Активен таб
      */
-    var $currentTab = 'Рецепти';
+    public $currentTab = 'Рецепти';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Детайл на технологична рецепта';
+    public $singleTitle = 'Детайл на технологична рецепта';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,cat,techno,sales';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canSingle = 'no_one';
+    public $canRead = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,cat,techno,sales';
+    public $canEdit = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да разгъва?
      */
-    var $canExpand = 'ceo,cat,techno,sales';
+    public $canExpand = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да свива?
      */
-    var $canShrink = 'ceo,cat,techno,sales';
+    public $canShrink = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,cat,techno,sales';
+    public $canAdd = 'ceo,cat,techno,sales';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,cat,sales,techno';
+    public $canDelete = 'ceo,cat,sales,techno';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    
+    
+    /**
+     * Поле за заместване на артикул
+     * 
+     * @see planning_plg_ReplaceEquivalentProducts
+     */
+    public $replaceProductFieldName = 'resourceId';
+    
+    
+    /**
+     * Поле за количеството на заместващ артикул
+     * 
+     * @see planning_plg_ReplaceEquivalentProducts
+     */
+    public $replaceProductQuantityFieldName = 'propQuantity';
+    
+    
+    /**
+     * При колко линка в тулбара на реда да не се показва дропдауна
+     *
+     * @param int
+     * @see plg_RowTools2
+     */
+    public $rowToolsMinLinksToShow = 2;
     
     
     /**
@@ -161,9 +180,6 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->FNC('likeProductId', 'key(mvc=cat_Products)', 'input=hidden');
-    	$form->setDefault('likeProductId', Request::get('likeProductId', 'int'));
-    	
     	$rec = &$form->rec;
     	
     	$matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
@@ -187,14 +203,6 @@ class cat_BomDetails extends doc_Detail
     	
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
-    	
-    	$likeProductId = $form->rec->likeProductId;
-    	if(isset($rec->id) && isset($likeProductId)){
-    		$convertable = planning_ObjectResources::fetchConvertableProducts($likeProductId);
-    		$convertable = array('x' => (object)array('title' => tr('Заместващи'), 'group' => TRUE)) + $convertable;
-    		$convertable = array($likeProductId => $products[$likeProductId]) + $convertable;
-    		$form->setOptions('resourceId', $convertable);
-    	}
     	
     	$form->setDefault('type', 'input');
     	$quantity = $data->masterRec->quantity;
@@ -247,6 +255,12 @@ class cat_BomDetails extends doc_Detail
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
 
     	if(is_array($params)){
+    		
+    		// Да не променяме логиката, не позволяваме на потребителя да въвежда тиражът ръчно
+    		$expr = str_replace('1/$T*', '_TEMP_', $expr);
+    		$expr = str_replace('$T', '$Trr', $expr);
+    		$expr = str_replace('_TEMP_', '1/$T*', $expr);
+    		
     		$expr = strtr($expr, $params);
     	}
     	
@@ -277,8 +291,9 @@ class cat_BomDetails extends doc_Detail
     	$context = array();
     	if(is_array($params)){
     		foreach ($params as $var => $val){
-    			if($value !== self::CALC_ERROR) {
-    				$context[$var] = "<span style='color:blue' title='{$val}'>{$var}</span>";
+    			if($value !== self::CALC_ERROR && $var != '$T') {
+    				$Double = cls::get('type_Double', array('params' => array('smartRound' => TRUE)));
+    				$context[$var] = "<span style='color:blue' title='{$Double->toVerbal($val)}'>{$var}</span>";
     			} else {
     				$context[$var] = "<span title='{$val}'>{$var}</span>";
     			}
@@ -355,7 +370,7 @@ class cat_BomDetails extends doc_Detail
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
     		$params = cat_Boms::getProductParams($masterProductId);
-    		 
+    		
     		$path = $mvc->getProductPath($rec);
     		foreach ($path as $pId){
     			$newParams = cat_Boms::getProductParams($pId);
@@ -366,10 +381,12 @@ class cat_BomDetails extends doc_Detail
     		$scope = cat_Boms::getScope($params);
     		$scope['$T'] = 1;
     		$scope['$Начално='] = '$Начално=';
+    		
     		$rec->params = $scope;
-    		 
+    		
     		$context = array_keys($scope);
     		$context = array_combine($context, $context);
+    		unset($context['$T']);
     		$form->setSuggestions('propQuantity', $context);
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
@@ -421,7 +438,7 @@ class cat_BomDetails extends doc_Detail
     		if($rec->type == 'pop'){
     			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId);
     			if(!isset($selfValue)){
-    				$form->setWarning('resourceId', 'Отпадакът няма себестойност');
+    				$form->setWarning('resourceId', 'Отпадъкът няма себестойност');
     			}
     		} else {
     			
@@ -536,15 +553,6 @@ class cat_BomDetails extends doc_Detail
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     		$extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
     		
-    		if($mvc->haveRightFor('edit', $rec)){
-    			$convertableOptions = planning_ObjectResources::fetchConvertableProducts($rec->resourceId);
-    			if(count($convertableOptions)){
-    				core_RowToolbar::createIfNotExists($row->_rowTools);
-    				$row->_rowTools->addLink('Заместване', array($mvc, 'edit', $rec->id, 'likeProductId' => $rec->resourceId, 'ret_url' => TRUE), array('ef_icon' => "img/16/dropdown.gif", 'title' => "Избор на заместващ материал"));
-    				$row->resourceId = ht::createHint($row->resourceId, 'Артикулът може да бъде заместен');
-    			}
-    		}
-    		
     		// Може ли да се разпъне реда
 	    	if($mvc->haveRightFor('expand', $rec)){
 	    		$link = ht::createLink('', array($mvc, 'expand', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/toggle-expand.png,title=Направи етап');
@@ -590,14 +598,14 @@ class cat_BomDetails extends doc_Detail
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     		$row->primeCost = "<span class='red'>???</span>";
-    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойноста', 'warning');
+    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойноста', 'warning', FALSE);
     	} else {
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
     	}
     	
     	if(!$rec->primeCost && $rec->type != 'stage'){
     		$row->primeCost = "<span class='red'>???</span>";
-    		$row->primeCost = ht::createHint($row->primeCost, 'Няма себестойност', 'warning');
+    		$row->primeCost = ht::createHint($row->primeCost, 'Няма себестойност', 'warning', FALSE);
     	}
     	
     	if(is_numeric($rec->propQuantity)){
@@ -736,6 +744,13 @@ class cat_BomDetails extends doc_Detail
     			if(!$mvc->checkComponents($rec)){
     				$requiredRoles = 'no_one';
     			}
+    		}
+    	}
+    	
+    	// Етап не може да се замества
+    	if($action == 'replaceproduct' && isset($rec)){
+    		if($rec->type == 'stage'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

@@ -922,4 +922,5 @@ class core_ET extends core_BaseClass
         
         return $matches[1];
     }
+
 }

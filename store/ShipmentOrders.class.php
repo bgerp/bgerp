@@ -39,17 +39,26 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
                           acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments,deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg';
 
+    
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see doc_SharablePlg
+     */
+    public $shareUserRoles = 'ceo, store';
+    
     
     /**
      * Кой има право да чете?
@@ -72,7 +81,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
@@ -84,7 +93,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,store,sales,purchase';
 
 
     /**
@@ -102,7 +111,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
 
     
     /**
@@ -126,7 +135,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
+    public $singleLayoutFile = 'store/tpl/SingleStoreDocument.shtml';
 
    
     /**
@@ -148,6 +157,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -161,7 +176,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
     	parent::setDocFields($this);
-    	
+
+		$this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
     	$this->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма');
         $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
@@ -226,6 +242,18 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	
     	core_Lg::pop();
+    	
+    	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
+    	if(!empty($rec->palletCountInput)){
+    		$row->palletCountInput = $mvc->getVerbal($rec, 'palletCountInput');
+    	} else {
+    		unset($row->palletCountInput);
+    	}
+
+		if(isset($rec->createdBy)){
+			$row->username = core_Users::fetchField($rec->createdBy, "names");
+		}
+
     }
     
     
@@ -275,19 +303,24 @@ class store_ShipmentOrders extends store_DocumentMaster
     	if(count($data->shipmentOrders)){
     		$table = cls::get('core_TableView');
     		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
-    		 
+    		$fields = core_TableView::filterEmptyColumns($data->shipmentOrders, $fields, 'collection,palletCount');
+    		
     		return $table->get($data->shipmentOrders, $fields);
     	}
     }
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
+        $handle = $this->getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашето експедиционно нареждане") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
@@ -302,31 +335,22 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Експедиционно нареждане', 
-    					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
-    					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg',
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
     	$tplArr[] = array('name' => 'Packaging list', 
-    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packing list',
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packing list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
-    					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg',
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Packaging list with Declaration',
-    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration',
+    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
     	$res .= doc_TplManager::addOnce($this, $tplArr);
-    }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Експедиционно нареждане|* №") . $rec->id;
     }
     
     
@@ -354,6 +378,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	while($dRec = $query->fetch()){
     		$dRec->quantity /= $dRec->quantityInPack;
+    		if(!($forMvc instanceof sales_Proformas)){
+    			$dRec->price -= $dRec->price * $dRec->discount;
+    			unset($dRec->discount);
+    		}
     		unset($dRec->id);
     		unset($dRec->shipmentId);
     		unset($dRec->createdOn);
@@ -383,12 +411,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Proformas::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode("&#9660;");
-    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/proforma.png');
     				}
     			} else {
     				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/star_2.png');
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
     				}
     			}
     			
@@ -397,16 +425,57 @@ class store_ShipmentOrders extends store_DocumentMaster
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
     				if(sales_Invoices::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode("&#9660;");
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
     					$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
     				}
     			} else {
     				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/star_2.png');
+    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png');
     				}
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Изчислява броя колети в ЕН-то ако има
+     * 
+     * @param int $id - ид на ЕН
+     * @return int $count- брой колети/палети
+     */
+    public static function countCollets($id)
+    {
+    	$rec = static::fetchRec($id);
+    	$dQuery = store_ShipmentOrderDetails::getQuery();
+    	$dQuery->where("#shipmentId = {$rec->id}");
+    	$dQuery->where("#info IS NOT NULL");
+    	$count = 0;
     	
+    	$resArr = array();
+    	while($dRec = $dQuery->fetch()){
+    		
+    		// Разбиване на записа
+    		$info = explode(',', $dRec->info);
+    		if(!count($info)) continue;
+    		
+    		foreach ($info as &$seq){
+    				 
+    			// Ако е посочен интервал от рода 1-5
+    			$seq = explode('-', $seq);
+    			if(count($seq) == 1){
+    				$resArr[$seq[0]] = $seq[0];
+    			} else {
+    				foreach (range($seq[0], $seq[1]) as $i){
+    					$resArr[$i] = $i;
+    				}
+    			}
+    		}
+    	}
+    	 
+    	// Връщане на броя на колетите
+    	$count = count($resArr);
+    	
+    	return $count;
     }
 }

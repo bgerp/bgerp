@@ -42,8 +42,8 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
+                        plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument';
     
     
     /**
@@ -87,6 +87,14 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImport = 'ceo, sales';
+    
+    
+    /**
      * Брой записи на страница
      * 
      * @var integer
@@ -99,12 +107,6 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
     
-        
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'RowNumb';
-
 
     /**
      * Полета свързани с цени
@@ -168,13 +170,13 @@ class sales_SalesDetails extends deals_DealDetail
     			if(isset($pInfo->meta['canStore']) && $data->masterData->rec->state == 'draft'){
     				$warning = deals_Helper::getQuantityHint($rec->productId, $storeId, $rec->quantity);
     				if(strlen($warning)){
-    					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning');
+    					$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
     				}
     			}
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning');
+    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
     		}
     	}
     }
@@ -237,9 +239,10 @@ class sales_SalesDetails extends deals_DealDetail
     	}
     	
     	if(!empty($jobRec)){
-    		$row->quantity = $jobRec->quantity;
-    		$row->quantityFromTasks = planning_TaskActions::getQuantityForJob($jobRec->id, 'product');
-    		$row->quantityProduced = $jobRec->quantityProduced;
+    		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
+    		$row->quantity = $Double->toVerbal($jobRec->quantity);
+    		$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jobRec->id, 'product'));
+    		$row->quantityProduced = $Double->toVerbal($jobRec->quantityProduced);
     		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			$row->dueDate = cls::get('type_Date')->toVerbal($jobRec->dueDate);

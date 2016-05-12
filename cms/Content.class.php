@@ -37,7 +37,7 @@ class cms_Content extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter,cms_DomainPlg';
+    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,cms_DomainPlg';
 
 
     /**
@@ -127,17 +127,10 @@ class cms_Content extends core_Manager
      */
     static function setLang($lang)
     {
-        cms_Domains::getPublicDomain(NULL, $lang);
-        
         core_Lg::set($lang, !haveRole('user'));
+        cms_Domains::getPublicDomain(NULL, $lang);
     }
 
-    function act_Migrate()
-    {
-        $s = cls::get('cms_Setup');
-        return $s->contentOrder111();
-    }
- 
 
     /**
      * Екшън за избор на език на интерфейса за CMS часта
@@ -287,7 +280,7 @@ class cms_Content extends core_Manager
      */
     static function getContentUrl($rec, $absolute = FALSE) 
     {
-        if($rec->source && cls::load($rec->source, TRUE)) {
+        if($rec->source && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
@@ -365,7 +358,7 @@ class cms_Content extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
         if($rec->source) {
-        	if(cls::load($rec->source, TRUE)){
+        	if(cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)){
         		$Source = cls::getInterface('cms_SourceIntf', $rec->source);
         		$workUrl = $Source->getWorkshopUrl($rec->id);
         		$row->source = ht::createLink($row->source, $workUrl);
@@ -527,7 +520,7 @@ class cms_Content extends core_Manager
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'delete' && isset($rec->id, $rec->source) ) {
-			if(cls::load($rec->source, TRUE)){
+			if(isset($rec->source) && cls::load($rec->source, TRUE) && cls::haveInterface('cms_SourceIntf', $rec->source)){
 				$source = cls::get($rec->source);
 				if($source->getUrlByMenuId($rec->id) != '#') {
 					$res = 'no_one';
@@ -554,6 +547,52 @@ class cms_Content extends core_Manager
                list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastOrder)); 
             } 
             $rec->order = $typeOrder->fromVerbal($lastOrder + 10);
+        }
+    }
+
+
+    /**
+     * Добавя към шаблона каноничното URL
+     */
+    public static function addCanonicalUrl($url, $tpl) 
+    {   
+        
+        $selfUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . rtrim($_SERVER['HTTP_HOST'], '/') . '/' . ltrim($_SERVER['REQUEST_URI'], '/');
+ 
+        if($url != $selfUrl) {
+            $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\">", 'HEAD');
+        }
+    }
+
+
+
+    /**
+     * Добавя параметрите за SEO оптимизация
+     */
+    public static function setSeo($content, $sRec)
+    {
+        expect(is_object($sRec), $sRec);
+ 
+        $rec = clone($sRec);
+
+        if($rec->seoTitle) {
+            $content->prependOnce(type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle)))) . " » ", 'PAGE_TITLE');
+        }
+
+        if(!$rec->seoDescription) {
+            $rec->seoDescription =  cms_Domains::getPublicDomain('seoDescription');
+        }
+        
+        if($rec->seoDescription) {
+            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoDescription)))), 'META_DESCRIPTION');
+        }
+        
+        if(!$rec->seoKeywords) {
+            $rec->seoKeywords = cms_Domains::getPublicDomain('seoKeywords');
+        }
+
+        if($rec->seoKeywords) {
+            $content->replace(ht::escapeAttr(trim(strip_tags(html_entity_decode($rec->seoKeywords)))), 'META_KEYWORDS');
         }
     }
 

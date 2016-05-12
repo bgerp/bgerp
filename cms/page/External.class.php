@@ -34,7 +34,7 @@ class cms_page_External extends core_page_Active
    	
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
-        $this->prepend(tr($conf->EF_APP_TITLE), 'PAGE_TITLE');
+        $this->prepend(cms_Domains::getSeoTitle(), 'PAGE_TITLE'); // tr($conf->EF_APP_TITLE)
 
         // Ако е логнат потребител
         if (haveRole('user')) {
@@ -80,8 +80,8 @@ class cms_page_External extends core_page_Active
         }
     	
         // Скрипт за генериране на min-height, според устройството
-        $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
-              
+        jquery_Jquery::run($this, "setMinHeightExt();");
+        
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('log_Browsers');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');

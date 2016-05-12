@@ -2,12 +2,6 @@
 
 
 /**
- * Версията на продукта
- */
-defIfNot('MEJS_VERSION', '2.11.0.0');
-
-
-/**
  * Създава плейър за изпълнение на видео и аудио
  * 
  * @category  vendors
@@ -134,10 +128,10 @@ class mejs_Adapter
         $tpl->append("<script> $('{$type}').mediaelementplayer({$paramsStr}); </script>");
         
         // Добавяме CSS
-        $tpl->push('mejs/' . MEJS_VERSION . '/build/mediaelementplayer.css', 'CSS');
+        $tpl->push('mejs/' . mejs_Setup::get('VERSION') . '/build/mediaelementplayer.css', 'CSS');
         
         // Добавяме JS
-    	$tpl->push('mejs/' . MEJS_VERSION . '/build/mediaelement-and-player.js', 'JS');
+    	$tpl->push('mejs/' . mejs_Setup::get('VERSION') . '/build/mediaelement-and-player.js', 'JS');
     }
     
     

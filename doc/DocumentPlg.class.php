@@ -322,6 +322,18 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Подготовка на филтър формата
+     * 
+     * @param core_Manager $mvc
+     * @param stdObject $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        doc_Threads::restrictAccess($data->query);
+    }
+    
+    
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
@@ -340,14 +352,17 @@ class doc_DocumentPlg extends core_Plugin
             if(!$row->singleTitle) {
                 $row->singleTitle = tr($invoker->singleTitle);
             }
-
-            if($rec->state == 'rejected') {
-                $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
-                $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+            
+            // Ако документа е скрит и е оттеглен, показваме от кого
+            if(doc_HiddenContainers::isHidden($rec->containerId)){
+            	if($rec->state == 'rejected') {
+            		$tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+            		$row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+            	}
             }
             
             if (Mode::is('screenMode', 'narrow')) {
-                unset($row->state);
+            	unset($row->state);
             }
         }
         
@@ -1226,8 +1241,9 @@ class doc_DocumentPlg extends core_Plugin
             setIfNot($data->singleTitle, $mvc->singleTitle);
             
             if($thRec->firstContainerId != $form->rec->containerId) {
-                list($t,) = explode('<div', doc_Threads::recToVerbal($thRec)->title);
-                $title = tr(mb_strtolower($data->singleTitle)) . $in . $t;
+            	$firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
+            	$form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, NULL, 50);
+            	unset($title);
             }
         }
        
@@ -2391,7 +2407,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
     {
-    	$query = doc_Folders::restrictAccess($query);
+    	$query = doc_Folders::restrictAccess($query, NULL, FALSE);
     }
     
     
@@ -3026,6 +3042,12 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderSingleLayout($mvc, &$tpl, &$data)
     {
+    	// Ако документа е оттеглен се подсигуряваме че ще се покаже от кого е оттеглен и кога
+    	if($data->rec->state == 'rejected') {
+    		$nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+    		$data->row->state .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
+    	}
+    	
     	// При генерирането за външно показване, махаме състоянието, защото е вътрешна информация
     	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
     

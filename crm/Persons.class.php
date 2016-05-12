@@ -299,7 +299,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,autoFilter');
         
         // Вземаме стойността по подразбиране, която може да се покаже
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
@@ -316,10 +316,10 @@ class crm_Persons extends core_Master
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
 
-        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent,refreshForm');
+        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent,autoFilter');
                                          
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent,refreshForm');
-        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent,refreshForm');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent,autoFilter');
+        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent,autoFilter');
 
         $data->listFilter->view = 'horizontal';
 
@@ -403,8 +403,10 @@ class crm_Persons extends core_Master
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
         }
 
-        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
-            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
+    	if(!empty($data->listFilter->rec->groupId)){
+        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
+        	$keylist = keylist::fromArray($descendants);
+        	$data->query->likeKeylist("groupList", $keylist);
         }
     }
 
@@ -622,7 +624,7 @@ class crm_Persons extends core_Master
         $currentId = $mvc->getVerbal($rec, 'id');
 
 
-        $row->nameList = '<div class="namelist">'. $row->nameList . $row->folder .'</div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
       
         $row->title =  $mvc->getTitleById($rec->id);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
@@ -1075,9 +1077,11 @@ class crm_Persons extends core_Master
         }
         
         if(crm_Persons::haveRightFor('add') && crm_Companies::haveRightFor('edit', $data->masterId)){
-        	$img = sbf('img/16/add.png');
 		    $addUrl = array('crm_Persons', 'add', 'buzCompanyId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на представител')); 
+		    
+		    if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+		    	$data->addBtn = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на представител'));
+		    }
         }
     }
 
@@ -2505,10 +2509,12 @@ class crm_Persons extends core_Master
     
     /**
      * Връща пълния конкатениран адрес на контрагента
+     * 
      * @param int $id - ид на контрагент
-     * @return param $adress - адреса
+     * @param boolean $translitarate - дали да се транслитерира адреса
+     * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id)
+    public function getFullAdress($id, $translitarate = FALSE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2522,6 +2528,11 @@ class crm_Persons extends core_Master
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
     			$obj->$fld = $Varchar->toVerbal($rec->$fld);
+    			if($translitarate === TRUE){
+    				if($fld != 'pCode'){
+    					$obj->$fld = transliterate($obj->{$fld});
+    				}
+    			}
     		}
     	}
     	

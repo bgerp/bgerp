@@ -34,4 +34,33 @@ class core_exception_Db extends core_exception_Expect
         return $res;
     }
 
+
+    /**
+     * Опит за самопоправка на DB
+     */
+    public function repairDB($link)
+    {
+        $tableName = NULL;
+        
+        if (strlen($this->dump['query']) && isset($this->dump['mysqlErrCode'])) {
+            list($l, $r) = explode('FROM', $this->dump['query']);
+            $q = $r ? $r : $l;
+            $parts = explode('`', $q);
+            $tableName = $parts[1];
+        }
+        
+        if (isset($tableName) && ($this->dump['mysqlErrCode'] ==  1062)) {
+            $query = "SELECT max(id) as m FROM `{$tableName}`";
+            $dbRes = $link->query($query);  
+            $res = $dbRes->fetch_object();
+            $link->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = {$res->m}+10");
+        }
+        
+        if (isset($tableName) && in_array($this->dump['mysqlErrCode'], array(126, 127, 132, 134, 141, 144, 145)) ) {
+            $query = "REPAIR TABLE `{$tableName}`";
+            $dbRes = $link->query($query);  
+        }
+    }
+
+
 }

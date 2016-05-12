@@ -49,6 +49,12 @@ class crm_ext_CourtReg extends core_Detail
      * Кой може да редактира
      */
     var $canEdit = 'powerUser';
+
+
+    /**  
+     * Предлог в формата за добавяне/редактиране  
+     */  
+    public $formTitlePreposition = 'на';  
     
     
     /**

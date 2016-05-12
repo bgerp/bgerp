@@ -128,7 +128,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$error = "error=Няма {$text} артикули,";
 			}
 	
-			$data->toolbar->addBtn('Артикули', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
+			$data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
 					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
 			
 		}
@@ -246,7 +246,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			if($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !count($data->rows))){
 				// При дебитни и кредитни известия показваме основанието
 				$data->listFields = array();
-				$data->listFields['number'] = '№';
+				$data->listFields['RowNumb'] = '№';
 				$data->listFields['reason'] = 'Основание';
 				$data->listFields['amount'] = 'Сума';
 				$data->rows = array();
@@ -262,7 +262,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 				
 				$data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => TRUE);
-				$data->rows['advance'] = (object) array('number' => 1,
+				$data->rows['advance'] = (object) array('RowNumb' => 1,
 						'reason' => $reason,
 						'amount' => $amount);
 			} 
@@ -385,7 +385,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->quantity)){
-				$rec->quantity = 1;
+				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
+    			if(!empty($defQuantity)){
+    				$rec->quantity = $defQuantity;
+    			} else {
+    				$form->setError('quantity', 'Не е въведено количество');
+    			}
 			}
 			
 			// Закръгляме количеството спрямо допустимото от мярката
@@ -469,7 +474,20 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 			if($masterRec->type === 'dc_note'){
 				$cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId);
-				$cache = $cache[$rec->productId][$rec->packagingId];
+				
+				// За да проверим дали има променено и количество и цена
+				// намираме този запис кой пдоред детайл е на нареждането
+				// и намираме от кешираните стойности оригиналните количества за сравняване
+				$recs = array();
+				$query = $mvc->getQuery();
+				$query->where("#invoiceId = {$masterRec->id}");
+				$query->orderBy('id', 'ASC');
+				$query->show('id');
+				while($dRec = $query->fetch()){
+					$recs[] = $dRec->id;
+				}
+				$index = array_search($rec->id, $recs);
+				$cache = $cache[$index][$rec->productId];
 				
 				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && round($cache['price'], 5) != round($rec->packPrice, 5)){
 					//$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');

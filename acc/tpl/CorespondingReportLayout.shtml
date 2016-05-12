@@ -31,10 +31,11 @@
         </table>
 </div>
 <div class='clearfix21'></div>
-<div>
+
+<div style='margin-bottom: 10px;'>
  [#buttonList#][#buttonPie#][#buttonBar#]
-        
 </div>
+
 [#PAGER#]
 <div class='overflow-scroll'>
     [#CONTENT#]

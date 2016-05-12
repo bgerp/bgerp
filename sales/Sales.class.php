@@ -37,9 +37,10 @@ class sales_Sales extends deals_DealMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
-                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf';
+                          bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
+                          acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf';
     
     
     /**
@@ -47,7 +48,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,doc_plg_BusinessDoc';
     
     
     /**
@@ -343,7 +344,14 @@ class sales_Sales extends deals_DealMaster
         }
        
         $form->setOptions('bankAccountId', $options);
-        $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('bankAccountId', FALSE));
+        if($bankAccountId = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
+        	$accountRec = bank_Accounts::fetch($bankAccountId);
+        	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
+        	
+        	if($form->rec->currencyId == $bankCurrencyCode){
+        		$form->setDefault('bankAccountId', $bankAccountId);
+        	}
+        }
        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
@@ -706,11 +714,11 @@ class sales_Sales extends deals_DealMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg' , 'narrowContent' => 'sales/tpl/sales/SaleNarrow.shtml');
-    	$tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrow.shtml');
+    	$tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ServiceNarrow.shtml');
+    	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml');
+    	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml');
+    	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml');
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
@@ -966,7 +974,7 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'productId=Артикул,jobId=Задание,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планувано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');
@@ -1034,4 +1042,17 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     }
+
+
+    /**
+     * В кои корици може да се вкарва документа
+     * 
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+        
+    	return array('crm_ContragentAccRegIntf');
+    }
+
 }

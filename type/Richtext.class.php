@@ -62,7 +62,7 @@ class type_Richtext extends type_Blob
     /**
      * Шаблон за намиране на цитати в текст
      */
-    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#mis";
+    const QUOTE_PATTERN = "#\[bQuote(=([^\]]+)|)\]((?:[^[]|\[(?!/?bQuote(=([^\]]+)|)\])|(?R))+)\[\/bQuote\]#misu";
     
     
     /**
@@ -150,17 +150,17 @@ class type_Richtext extends type_Blob
             $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
             
             // Добавяме функцията за апендване на цитата
-            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}', {$line});});", 'SCRIPTS');
+            jquery_Jquery::run($tpl, "appendQuote('{$attr['id']}', {$line});");
         }
         
-    	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "hideRichtextEditGroups();");
     	
-    	$tpl->append("\n runOnLoad(function(){getEO().saveSelTextInTextarea('{$attr['id']}');});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
     	
-    	$tpl->append("\n runOnLoad(function(){bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'))});", 'SCRIPTS');
+    	jquery_Jquery::run($tpl, "bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'));");
     	 
     	if(Mode::is('screenMode', 'wide')) {
-    		$tpl->append("\n runOnLoad(function(){setRicheditWidth('{$attr['id']}');});", 'SCRIPTS');
+    		jquery_Jquery::run($tpl, "setRicheditWidth('{$attr['id']}');");
     	}
     	
     	return $tpl;
@@ -232,7 +232,11 @@ class type_Richtext extends type_Blob
         ini_set('pcre.backtrack_limit', '2M');
         
         // Намаляме стойността за да не гърми по-лош начин
-        ini_set('pcre.recursion_limit', '16777');
+        if (core_Os::isWindows()) {
+            ini_set('pcre.recursion_limit', '524');
+        } else {
+            ini_set('pcre.recursion_limit', '16777');
+        }
         
         // Заместваме й с ѝ
         $html = preg_replace('/(\ )(й)([\ \.\,\?\!]){1}/u', '${1}ѝ${3}', $html);
@@ -1392,12 +1396,14 @@ class type_Richtext extends type_Blob
             
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP3');
             $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event);\"><img src=" . sbf('img/16/paper_clip.png') . " height='15' width='15'></a>", 'TBL_GROUP3');
+           
             $emot6 = 'richtext-holder-group-after';
-            $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} left'>", 'TBL_GROUP3');
+            $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} addElements left'>", 'TBL_GROUP3');
         	$toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.020);
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.010);
-    	    $toolbarArr->add("</span>", 'TBL_GROUP3');
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.010);
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]\\n', document.getElementById('{$formId}'), true)\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.030);
+
+            $toolbarArr->add("</span>", 'TBL_GROUP3');
             $toolbarArr->add("</span><div class='clearfix21'></div>", 'TBL_GROUP3');
         } else {
             $toolbarArr->add("<span class='richtext-relative-group simple-toolbar'>", 'TBL_GROUP1');

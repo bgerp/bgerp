@@ -360,18 +360,16 @@ class batch_Items extends core_Master {
     	$data->Tab = 'top';
     	$data->recs = $data->rows = array();
     	
-    	$attr = array();
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
-        $attr['title'] = tr("История на движенията");
-        
+        $attr = array('title' => "История на движенията");
+        $attr = ht::addBackgroundIcon($attr, 'img/16/clock_history.png');
+
         // Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
         
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->view = 'horizontal';
         $form->setAction(getCurrentUrl());
-        $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
         
         // Инпутваме формата
         $form->input();

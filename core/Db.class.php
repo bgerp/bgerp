@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ *
+ */
+defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
+
 
 /**
  * Задава кодировката на базата данни по подразбиране
@@ -143,12 +148,8 @@ class core_Db extends core_BaseClass
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
-            // Запомняме връзката към MySQL сървъра за по-късна употреба
-            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}");
-            $link->query("SET COLLATION_CONNECTION={$this->dbCollation}");
-            $link->query("SET CHARACTER_SET_CLIENT={$this->dbCharsetClient}");
- 
-
+            $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient};");
+            
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
@@ -337,7 +338,7 @@ class core_Db extends core_BaseClass
         $tableName = $this->escape($tableName);
 
         $dbRes = $this->query("SHOW TABLES LIKE '{$tableName}'", TRUE);
-        
+     
         $res = $dbRes->num_rows > 0;
 
         $this->freeResult($dbRes);
@@ -367,23 +368,42 @@ class core_Db extends core_BaseClass
     /**
      * Създава таблица в БД, ако тя вече не е създадена.
      */
-    function forceTable($tableName, $params = array())
+    function forceTable($tableName, $params = array(), &$debugLog = '')
     {
+        // Установяване на параметрите по подразбиране
+        setIfNot($params, array(
+                'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
+                'CHARACTER' => 'utf8',
+                'COLLATION' => 'utf8_bin'
+            ));
+
         // Ако таблицата съществува, връщаме сигнал, че нищо не сме направили
-        if ($this->tableExists($tableName)) {
+        if($res = $this->tableExists($tableName)) {
+            
+            $tableName = $this->escape($tableName);
+
+            $dbRes = $this->query("SHOW TABLE STATUS LIKE '{$tableName}'", TRUE);
+            $tableParams = $dbRes->fetch_array(MYSQLI_ASSOC);
+            foreach($tableParams as $key => $value) {
+                $key = strtoupper($key);
+                if(isset($params[$key]) && strtoupper($params[$key]) != strtoupper($value)) {
+                    if($key == 'ENGINE') {
+                        $dbRes = $this->query("ALTER TABLE `{$tableName}` ENGINE " . $params['ENGINE'] . ";" , TRUE);
+                        $debugLog .= "<li class='debug-new'>Сменен DB ENGINE=" . strtoupper($params['ENGINE']) . "</li>";
+                    }
+                    if($key == 'COLLATION') { 
+                        $dbRes = $this->query("ALTER TABLE `{$tableName}` COLLATE " . $params['COLLATION'] . ";" , TRUE);
+                        $debugLog .= "<li class='debug-new'>Сменен COLLATE=" . strtoupper($params['COLLATION']) . "</li>";
+                    }
+                }
+            }
             
             return FALSE;
         }
         
-        // Установяване на параметрите по подразбиране
-        setIfNot($params, array(
-                'ENGINE' => 'MYISAM',
-                'CHARACTER' => 'utf8',
-                'COLLATE' => 'utf8_bin'
-            ));
         
         // Правим допълнителните параметри към заявката
-        $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATE'] . ";";
+        $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATION'] . ";";
         
         $dbRes = $this->query("CREATE TABLE `$tableName` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}");
         

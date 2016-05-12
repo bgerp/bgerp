@@ -35,6 +35,18 @@ defIfNot('ACC_DETAILED_BALANCE_ROWS', 500);
 
 
 /**
+ * Основание за неначисляване на ДДС за контрагент контрагент от държава в ЕС (без България)
+ */
+defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
+
+
+/**
+ * Основание за неначисляване на ДДС за контрагент извън ЕС
+*/
+defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -105,11 +117,14 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceRepairDetails',
     	'acc_BalanceTransfers',
     	'acc_AllocatedExpenses',
+        'acc_FeatureTitles',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     	'migrate::updateClosedItems3',
     	'migrate::fixExpenses',
     	'migrate::updateItemsEarliestUsedOn',
+        'migrate::updateAllFL',
+        'migrate::updateFeatureTitles',
     );
     
     
@@ -120,6 +135,8 @@ class acc_Setup extends core_ProtoSetup
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
         'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
     	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
+    	'ACC_VAT_REASON_OUTSIDE_EU' => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
+    	'ACC_VAT_REASON_IN_EU'      => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
     );
     
     
@@ -146,7 +163,7 @@ class acc_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     var $systemActions = array(
-        array('title' => 'Реконтиране', 'url' => array('acc_Journal', 'reconto', 'ret_url' => TRUE), 'params' => array('title' => 'Реконтиране на документите'))
+        array('title' => 'Реконтиране', 'url' => array('acc_Journal', 'reconto', 'ret_url' => TRUE), 'params' => array('title' => 'Реконтиране на документите', 'ef_icon' => 'img/16/arrow_refresh.png'))
     );
     
     
@@ -206,7 +223,8 @@ class acc_Setup extends core_ProtoSetup
     var $defClasses = "acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
-    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales";
+    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
+                        acc_reports_MovementsBetweenAccounts";
     
     
     /**
@@ -284,6 +302,18 @@ class acc_Setup extends core_ProtoSetup
         }
     }
     
+    
+    /**
+     * Обновява всички свойства, които имат перата от списъците
+     */
+    function updateAllFL()
+    {
+        $query = acc_Lists::getQuery();
+        while($rec = $query->fetch()) {
+            acc_Lists::updateFeatureList($rec->id);
+        }
+    }
+
     
     /**
      * Ъпдейт на затворените пера
@@ -365,5 +395,27 @@ class acc_Setup extends core_ProtoSetup
     			}
     		}
     	}
+    }
+
+
+    /**
+     *
+     */
+    function updateFeatureTitles()
+    {
+        // Ако полето липсва в таблицата на модела да не се изпълнява
+        $cls = cls::get('acc_Features');
+        $cls->db->connect();
+        $featureField = str::phpToMysqlName('feature');
+        if (!$cls->db->isFieldExists($cls->dbTableName, $featureField)) return ;
+        
+        $fQuery = $cls->getQuery();
+        
+        unset($fQuery->fields['feature']);
+        $fQuery->FLD('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
+
+        while($fRec = $fQuery->fetch()) {  
+            acc_Features::save($fRec);
+        }
     }
 }

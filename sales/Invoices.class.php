@@ -20,7 +20,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf=sales_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=sales_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
     
     
     /**
@@ -50,7 +50,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, crm_plg_UpdateContragentData, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search, change_Plugin';
     
@@ -58,7 +58,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type';
+    public $listFields = 'number, date, place, folderId, dealValue=Общо, valueNoVat=Без ДДС, vatAmount, type';
     
     
     /**
@@ -215,10 +215,11 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
-       
+        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+        
         $this->setDbUnique('number');
     }
 	
@@ -229,12 +230,16 @@ class sales_Invoices extends deals_InvoiceMaster
     function loadSetupData()
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура за факторинг', 'content' => 'sales/tpl/InvoiceFactoring.shtml', 'lang' => 'bg');
-    	
-    	$tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
-        $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 
+    			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml',
+    			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrow.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура за факторинг', 'content' => 'sales/tpl/InvoiceFactoring.shtml',
+    			'narrowContent' =>  'sales/tpl/InvoiceFactoringNarrow.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml',
+    			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrowEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
+        $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 
+        		'narrowContent' =>  'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
        
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -356,7 +361,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Ако има дефолтен текст за фактура добавяме и него
     	if($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')){
-    		$defInfo .= $invText;
+    		$defInfo .= "\n" .$invText;
     	}
     	
     	// Задаваме дефолтния текст
@@ -403,6 +408,11 @@ class sales_Invoices extends deals_InvoiceMaster
         		$rec->number = self::getNextNumber($rec);
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
+        }
+        
+        if(empty($rec->id)){
+        	// Първоначално изчислен начин на плащане
+        	$rec->autoPaymentType = $mvc->getAutoPaymentType($rec);
         }
     }
     
@@ -482,44 +492,48 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    		
-    		if(empty($rec->vatReason)){
-    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
-    				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
-    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
-    				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');  
-    			}
-    		}
-    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
-    			if($rec->tplLang != 'bg'){
-    				$row->bank = str::utf2ascii($row->bank);
-    				$row->place = str::utf2ascii($row->place);
-    			}
-    			$row->bic = $Varchar->toVerbal($ownAcc->bic);
-    		}
-    		
-    		$makeHint = FALSE;
-    		if(empty($rec->paymentType)){
-    			$rec->paymentType = $mvc->getAutoPaymentType($rec);
-    			$makeHint = TRUE;
-    		}
-    		
-    		if(!empty($rec->paymentType)){
-    			$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
     			
     			core_Lg::push($rec->tplLang);
-    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    			$row->bank = transliterate(tr($row->bank));
+    			$row->place = transliterate($row->place);
     			core_Lg::pop();
     			
-    			if($makeHint === TRUE){
-    				$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
-    			}
+    			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
+    	}
+    	
+    	$makeHint = FALSE;
+    	
+    	if(empty($rec->paymentType)){
+    		$rec->paymentType = $rec->autoPaymentType;
+    		$makeHint = TRUE;
+    	}
+    	
+    	if(!empty($rec->paymentType)){
+    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->paymentType);
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		core_Lg::push($rec->tplLang);
+    	}
+    	
+    	if(!empty($rec->paymentType)){
+    		$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    	} else {
+    		$makeHint = FALSE;
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		core_Lg::pop();
+    	}
+    	
+    	if($makeHint === TRUE){
+    		$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
     	}
     }
 
@@ -550,7 +564,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $self->fetch($id);
         
         if (!$rec->number) {
-            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
+            $hnd = $self->abbr . $rec->id;
         } else {
             $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
             $hnd = $self->abbr . $number;
@@ -717,7 +731,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$conf = core_Packs::getConfig('sales');
    		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
    			$data->listFields['paymentType'] = 'Плащане';
-   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
+   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане)', 'caption=Начин на плащане,input');
    			$data->listFilter->showFields .= ",payType";
    		}
    		$data->listFilter->showFields .= ',invType';
@@ -736,7 +750,7 @@ class sales_Invoices extends deals_InvoiceMaster
    			
    			if($rec->payType){
    				if($rec->payType != 'all'){
-   					$data->query->where("#paymentType = '{$rec->payType}'");
+   					$data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
    				}
    			}
    		}
@@ -808,7 +822,9 @@ class sales_Invoices extends deals_InvoiceMaster
    	/**
    	 * Намира автоматичния метод на плащане
    	 * 
-   	 * Проверява се какъв тип документи за плащане (активни) имаме в нишката. Ако имаме само ПКО - полето е "В брой", ако имаме само "ПБД" - полето е "По банков път", ако имаме само Прихващания - полето е "С прихващане".
+   	 * Проверява се какъв тип документи за плащане (активни) имаме в нишката.
+   	 * Ако е бърза продажба е в брой.
+   	 * Ако имаме само ПКО - полето е "В брой", ако имаме само "ПБД" - полето е "По банков път", ако имаме само Прихващания - полето е "С прихващане".
    	 * ако във фактурата имаме плащане с по-късна дата от сегашната - "По банка"
    	 * каквото е било плащането в предишната фактура на същия контрагент
    	 * ако по никакъв начин не може да се определи
@@ -819,6 +835,19 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public function getAutoPaymentType($rec)
    	{
+   		if(empty($rec->threadId)){
+   			$rec->threadId = $this->fetchField($rec->id, 'threadId');
+   		}
+   		
+   		if(empty($rec->folderId)){
+   			$rec->folderId = $this->fetchField($rec->id, 'folderId');
+   		}
+   		
+   		// Ако със самата продажба е направено плащане, то винаги е в брой
+   		$firstDocRec = doc_Threads::getFirstDocument($rec->threadId)->rec();
+   		$contoActions = type_Set::toArray($firstDocRec->contoActions);
+   		if(isset($contoActions['pay'])) return 'cash';
+   		
    		// Проверяваме имали ПБД-та, ПКО-та или Прихващания
    		$hasPko = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		$hasBankDocument = bank_IncomeDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
@@ -840,7 +869,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		
    		// От последната фактура за клиента
    		$iQuery = $this->getQuery();
-   		$iQuery->where("#folderId = {$rec->folderId} AND #state = 'active' AND #id != {$rec->id}");
+   		$iQuery->where("#folderId = '{$rec->folderId}' AND #state = 'active' AND #id != '{$rec->id}'");
    		$iQuery->where("#paymentType IS NOT NULL");
    		$iQuery->orderBy("id", "DESC");
    		$iQuery->show('paymentType');
@@ -853,5 +882,26 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    		
    		return NULL;
+   	}
+   	
+   	
+   	/**
+   	 * Ъпдейтва начина на плащане на фактурите в нишката
+   	 * 
+   	 * @param int $threadId - ид на крака
+   	 * @return void
+   	 */
+   	public static function updateAutoPaymentTypeInThread($threadId)
+   	{
+   		$me = cls::get(get_called_class());
+   		$query = $me->getQuery();
+   		$query->where("#threadId = '{$threadId}'");
+   		$query->show('threadId,dueDate,date,folderId,containerId');
+   		
+   		while($rec = $query->fetch()){
+   			$rec->autoPaymentType = $me->getAutoPaymentType($rec);
+   			$me->save_($rec, 'autoPaymentType');
+   			doc_DocumentCache::cacheInvalidation($rec->containerId);
+   		}
    	}
 }

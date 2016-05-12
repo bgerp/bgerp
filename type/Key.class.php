@@ -181,7 +181,7 @@ class type_Key extends type_Int
      * 
      * @param string|int|NULL $key
      * 
-     * @return mixed
+     * @return string
      */
     public function prepareKey($key)
     {
@@ -294,6 +294,8 @@ class type_Key extends type_Int
                 
                 $titles = array();
                 
+                $i = 1;
+
                 foreach($options as $id => $title) {
                     
                     if(is_object($title)) continue;
@@ -302,9 +304,13 @@ class type_Key extends type_Int
                         $title = self::getUniqTitle($title, $id);
                     }
                     
+                    list($title, ) = explode('||', $title);
+
                     $titles[$title] = TRUE;
                     $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
                     $options[$id] = $title;
+
+                    if($i++ > 100) break;
                 }
             }
             
@@ -315,7 +321,9 @@ class type_Key extends type_Int
             $options = $this->options;
         }
         
-        setIfNot($this->handler, md5(implode(',', array_keys($this->options))) );
+        if(!$this->handler) {
+            $this->handler = md5(implode(',', array_keys($this->options)));
+        }
         
         if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20)) {
             $cacheOpt = unserialize($optSz);
@@ -539,6 +547,10 @@ class type_Key extends type_Int
             $options = $this->prepareOptions();
         }
         
+        if(($div = $this->params['groupByDiv'])) {
+            $options = ht::groupOptions($options, $div);
+        }
+
         if ($this->getSelectFld() || count($options)) {
             
             $optionsCnt = count($options);

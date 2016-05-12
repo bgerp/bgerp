@@ -92,6 +92,14 @@
 		top:0;
 		bottom:0;
 		margin: 0;
+		padding-bottom: 0 !important;
+		.tab {
+		  margin-top: 3px !important;
+		  margin-bottom: 0px !important;
+		}
+	}
+	.tab-page {
+	   padding-top: 10px !important;
 	}
 }
 .sidemenu-push-toright {
@@ -514,6 +522,10 @@ body {
     z-index: 2;
 }
 
+#nav-panel .open .submenuBlock {
+  display: block;
+}
+
 .btn-sidemenu {
     padding: 3px;
     width: 20px;
@@ -717,7 +729,7 @@ body {
 		font-size: 0.8em;
 		height: auto;
 		a, span {
-			margin: 0px 2px 3px;
+			margin: 0px 2px 2px;
 			padding-top: 1px;
 			display: block;
 		}
@@ -806,7 +818,7 @@ body {
 	z-index: 1 !important;
 }
 .narrow .tooltip-text {
-    top: 5px !important;
+    top: -3px !important;
 }
 .tooltip-button img {
 	width: 13px !important;
@@ -1111,7 +1123,7 @@ div.tab-control.deal-history-tab .tab-row .tab {
     }
 }
 
-@media handheld, only screen and (max-width: 600px) {
+@media handheld, only screen and (max-width: 640px) {
     .inner-framecontentTop{
         padding: 7px 7px 9px 7px !important;
     }
@@ -1128,8 +1140,11 @@ div.tab-control.deal-history-tab .tab-row .tab {
         margin: 0;
     }
     #main-container > .tab-control > .tab-row {
-        padding: 0 6px 1px !important;
+        padding: 3px 6px 1px !important;
         top: 44px;
+        a {
+            margin-bottom: 1px !important;
+        }
     }
     .bookmarkLink {
         &.addBookmarkLink {

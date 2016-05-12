@@ -94,6 +94,8 @@ class core_Cron extends core_Manager
         $this->FLD('lastDone', 'datetime', 'caption=Последно->Приключване,input=none');
 
         $this->setDbUnique('systemId,offset,delay');
+		
+        $this->dbEngine = 'InnoDB';
     }
     
     
@@ -228,7 +230,7 @@ class core_Cron extends core_Manager
         $query = $this->getQuery();
         $query->where("#state = 'locked'");
         $now = dt::verbal2mysql();
-        $query->where("ADDTIME(#lastStart, SEC_TO_TIME(#timeLimit)) < '{$now}'");
+        $query->where("DATE_ADD(#lastStart, INTERVAL #timeLimit SECOND) < '{$now}'");
         
         while ($rec = $query->fetch()) {
             $rec->state = 'free';
@@ -281,7 +283,7 @@ class core_Cron extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Екшън за стартиране на единичен процес
      */
     function act_ProcessRun()
     {
@@ -326,7 +328,7 @@ class core_Cron extends core_Manager
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date("Y-m-d H:i:00", time());
         if ($nowMinute <= $rec->lastStart && !$forced) {
-            $this->logThenStop("Процесът е стартиран повторно по крон в една и съща минута", $id, 'warning');
+            $this->logThenStop("Процесът е стартиран повторно по крон в една и съща минута", $id, 'notice');
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -338,7 +340,7 @@ class core_Cron extends core_Manager
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
             sleep($rec->delay);
-            Debug::log('Sleep {$rec->delay} sec. in' . __CLASS__);
+            Debug::log("Sleep {$rec->delay} sec. in" . __CLASS__);
         }
         
         // Стартираме процеса

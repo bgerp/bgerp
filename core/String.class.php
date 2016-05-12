@@ -73,11 +73,14 @@ class core_String
     
     /**
      * Прави първия символ на стринга главна буква (за многобайтови символи)
+     * 
      * @param string $string - стринга който ще се рансформира
+     * @return string $string - стринга с първа главна буква
      */
 	public static function mbUcfirst($string) 
 	{
-        $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+		$string = trim($string);
+		$string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
         
         return $string;
     }
@@ -468,11 +471,38 @@ class core_String
       return mb_substr($str, 0, $length) . $append;
     }
     
-
+    
     /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
+     * В допълнение, ако е необходимо, хифенира текста
+     * 
+     * @param string $str
+     * @param integer $maxLen
+     * @param integer $showEndFrom
+     * @param string $dots
+     * @param boolean $hyphen
+     * 
+     * @return string
      */
-    static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = " ... ")
+    public static function limitLenAndHyphen($str, $maxLen, $showEndFrom = 20, $dots = " ... ")
+    {
+        
+        return self::limitLen($str, $maxLen, $showEndFrom, $dots, TRUE);
+    }
+    
+    
+    /**
+     * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
+     * 
+     * @param string $str
+     * @param integer $maxLen
+     * @param integer $showEndFrom
+     * @param string $dots
+     * @param boolean $hyphen
+     * 
+     * @return string
+     */
+    static function limitLen($str, $maxLen, $showEndFrom = 20, $dots = " ... ", $hyphen = FALSE)
     {
         if(Mode::is('screenMode', 'narrow')) {
             $maxLen = round($maxLen/1.25);
@@ -486,6 +516,8 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
+        } elseif($hyphen && (mb_strlen($str) > $maxLen/2)) {
+            $str = str::hyphenText($str);
         }
         
         return $str;
@@ -918,5 +950,57 @@ class core_String
             
             return $shortestW;
         }
+    }
+    
+    
+    /**
+     * Замества последното срещане на търсения стринг с друг стринг
+     * 
+     * @param string $string  - стринг в който търсим
+     * @param string $search  - стринг, който търсим
+     * @param string $replace - стринг, който да заместим
+     * @return string $string - заместения стринг
+     */
+    public static function replaceLastOccurence($string, $search, $replace)
+    {
+    	if((($stringLen = strlen($string)) == 0) || (($searchLen = strlen($search)) == 0)) return $string;
+    	$pos = strrpos($string, $search);
+    
+    	if($pos > 0) return substr($string,0,$pos) . $replace . substr($string, $pos + $searchLen, max(0, $stringLen - ($pos + $searchLen)));
+    
+    	return $string;
+    }
+
+
+    /**
+     * 
+     * Хифинира текст, така че да няма много дължи, не-пренодими думи
+     * 
+     * @param string $text
+     * @param integer $maxWordLen
+     * 
+     * @return string
+     */
+    public static function hyphenText($text, $maxWordLen = 20)
+    {
+        $hyphSign = html_entity_decode('&#45;');
+
+        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $maxWordLen . ",}/s", array('core_String', 'hyphenWord'), $text);
+
+        return $text;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param array $matches
+     * 
+     * @return string
+     */
+    private static function hyphenWord($matches)
+    {
+     	
+    	return hyphen_Plugin::getHyphenWord($matches[0]);
     }
 }

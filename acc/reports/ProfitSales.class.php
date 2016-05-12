@@ -56,12 +56,13 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         $form->setDefault('corespondentAccountId', $corespondentAccId);
         $form->setHidden('corespondentAccountId');
         
-        $form->setHidden('compare');
-        
         $form->setDefault('side', 'all');
         $form->setHidden('side');
         
         $form->setDefault('orderBy', 'DESC');
+        
+        $form->setDefault('compare', 'no');
+        $form->setHidden('compare');
         
         $form->setDefault('orderField', 'blAmount');
         $form->setOptions('orderField', array('blAmount' => "Сума"));
@@ -79,11 +80,11 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
     public function checkEmbeddedForm(core_Form &$form)
     {
     	// Размяна, ако периодите са объркани
-    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
-    		$mid = $form->rec->from;
-    		$form->rec->from = $form->rec->to;
-    		$form->rec->to = $mid;
-    	}
+        if($form->isSubmitted()){
+            if($form->rec->to < $form->rec->from){
+                $form->setError('to, from', 'Началната дата трябва да е по-малка от крайната');
+            }
+        }
     }
 
 
@@ -140,7 +141,9 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-   
+  
+      
+       
 		unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
@@ -153,7 +156,6 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         unset($data->listFields['blQuantityCompare']);
         
         $data->listFields['blAmount'] = "Сума";
-
     }
     
 
@@ -176,7 +178,7 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
     public function getEarlyActivation()
     {
         $today = dt::today();
-    	$activateOn = "{$today} 13:59:59";
+    	$activateOn = "{$this->innerForm->to} 13:59:59";
 
         return $activateOn;
     }

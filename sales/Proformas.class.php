@@ -20,7 +20,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,deals_InvoiceSourceIntf';
     
     
     /**
@@ -50,7 +50,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, crm_plg_UpdateContragentData, plg_Printing, Sale=sales_Sales,
                     doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone';
     
@@ -118,7 +118,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, folderId, id, contragentName';
+    public $searchFields = 'number, folderId, contragentName';
     
     
     /**
@@ -148,7 +148,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount';
+    public $listFields = 'number, date, place, folderId, dealValue, vatAmount';
     
     
     /**
@@ -273,8 +273,15 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	if(empty($rec->number)){
-    		$rec->number = $rec->id;
+    	$number = ($rec->number) ? $rec->number : $mvc->fetchField($rec->id, 'number');
+    	
+    	if(empty($number)){
+    		$query = $mvc->getQuery();
+    		$query->XPR('maxNumber', 'int', 'MAX(#number)');
+    		
+    		$number = $query->fetch()->maxNumber;
+    		$number += 1;
+    		$rec->number = $number;
     		$mvc->save_($rec, 'number');
     	}
     }
@@ -303,21 +310,13 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
 		
     	if($fields['-single']){
-    		if(empty($rec->vatReason)){
-    			if(!drdata_Countries::isEu($rec->contragentCountryId)){
-    				$row->vatReason = sales_Setup::get('VAT_REASON_OUTSIDE_EU');
-    			} elseif(!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
-    				$row->vatReason = sales_Setup::get('VAT_REASON_IN_EU');
-    			}
-    		}
-    		
-    		if($rec->accountId){
+    		if(isset($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
     			core_Lg::push($rec->tplLang);
-    			$row->bank = core_Lg::transliterate($Varchar->toVerbal($ownAcc->bank));
-    			core_Lg::pop($rec->tplLang);
+    			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
+    			core_Lg::pop();
     			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
@@ -394,7 +393,7 @@ class sales_Proformas extends deals_InvoiceMaster
     		
     		if($methodId){
     			core_Lg::push($rec->tplLang);
-    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'description');
+    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'title');
     			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}

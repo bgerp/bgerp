@@ -201,11 +201,18 @@ class acc_Articles extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = $data->form;
+        
         // Ако потребителя може да избира приключени пера, показваме опцията за избор на формата
         if($mvc->canUseClosedItems === TRUE){
-            
-            $data->form->setField('useCloseItems', 'input');
-            $data->form->setDefault('useCloseItems', 'no');
+            $form->setField('useCloseItems', 'input');
+            $form->setDefault('useCloseItems', 'no');
+        }
+        
+        if(isset($form->rec->id)){
+        	if(acc_ArticleDetails::fetchField("#articleId = {$form->rec->id}")){
+        		$form->setReadOnly('useCloseItems');
+        	}
         }
     }
     
@@ -228,10 +235,14 @@ class acc_Articles extends core_Master
     {
         if(empty($rec->totalAmount)){
             $row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal(0);
+            $row->totalAmount = "<b class='quiet'>{$row->totalAmount}</b>";
+        } elseif($rec->totalAmount < 0){
+        	$row->totalAmount = "<span class='red'>{$row->totalAmount}</span>";
+        } else {
+        	$row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         }
         
         $row->title = $mvc->getLink($rec->id, 0);
-        $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     
     
@@ -341,7 +352,7 @@ class acc_Articles extends core_Master
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return cls::haveInterface('doc_ContragentDataIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
+        return cls::haveInterface('crm_ContragentAccRegIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
     }
     
     
@@ -381,10 +392,11 @@ class acc_Articles extends core_Master
         $mvc = cls::get($journlRec->docType);
         
         $articleRec = (object)array(
-            'reason'      => tr('Сторниране на') . " " .  mb_strtolower($mvc->singleTitle) . " №{$journlRec->docId} / " . acc_Journal::recToVerbal($journlRec, 'valior')->valior,
-            'valior'      => dt::now(),
-            'totalAmount' => $journlRec->totalAmount,
-            'state'       => 'draft',
+            'reason'        => tr('Сторниране на') . " " .  mb_strtolower($mvc->singleTitle) . " №{$journlRec->docId} / " . acc_Journal::recToVerbal($journlRec, 'valior')->valior,
+            'valior'        => dt::now(),
+            'useCloseItems' => 'yes',
+            'totalAmount'   => $journlRec->totalAmount,
+            'state'         => 'draft',
         );
         
         $journalDetailsQuery = acc_JournalDetails::getQuery();

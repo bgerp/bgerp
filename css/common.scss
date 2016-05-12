@@ -538,18 +538,35 @@ select {
 }
 
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
+@-moz-document url-prefix() {
+    select {
+   	    -moz-appearance: none;
+	    background-image: url('../img/16/darrow.png') !important;
+	    background-repeat: no-repeat !important;
+	 	background-position: center right !important;
+	    padding-right: 1em;
+		padding-left: 0.2em;
+	    -webkit-border-radius: 0;
+    }
+}
 
 
 /*reseting webkit differences*/
-@media screen and (-webkit-min-device-pixel-ratio:0) {
+@media screen and (-webkit-min-device-pixel-ratio:0), @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {  
+    select::-ms-expand {
+        display: none;
+        
+    }
     select {
 	    -webkit-appearance: none;
 	    background-image: url('../img/16/darrow.png') !important;
 	    background-repeat: no-repeat !important;
 	 	background-position: center right !important;
 	    padding-right: 1em;
+		padding-left: 0.2em;
 	    -webkit-border-radius: 0;
     }
+
     .wide select {
       padding-top: 1px;
     }
@@ -878,6 +895,7 @@ table .linkWithIcon {
 	padding-left: 25px !important;  
 	background-repeat: no-repeat !important;
 	background-position: 3px center;
+    background-size 
 	&.sick {
 		background-image: url('../img/16/sick.png');
 	}
@@ -905,6 +923,7 @@ table .linkWithIcon {
 	&.nameday {
 		background-image: url('../img/16/orthodox.png');
 	}
+    background-size: 16px 16px;
 }
 
 a.linkInTitle {
@@ -1157,7 +1176,7 @@ a.profile {
 }
 
 .state-closed {
-    background-color: #ddd;
+    background-color: #f1f1f1;
 }
 
 .state-stopped, .state-blocked {
@@ -1169,7 +1188,7 @@ a.profile {
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
+.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span:not(.state), .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
 .state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
     color: #999 !important;
     text-decoration: line-through !important;
@@ -1189,6 +1208,10 @@ a.profile {
     }
 }
 
+.document .state-rejected.state, .document .state-rejected.state a {
+	color: #444 !important;
+	text-decoration: none !important;
+}
 .detail-info.state-rejected {
     td, th, a, p, span, ul, ol, li, div {
         color: #999 !important;
@@ -1226,7 +1249,7 @@ a.profile {
 }
 
 .state-wakeup {
-    background-color: #259641;
+    background-color: #2baf4c;
 }
 
 .row-negative {
@@ -1277,7 +1300,10 @@ table.listTable {
     }
     > tbody > tr.row-error > td {
         color: #900;
-    } 
+    }
+	.rowNumColumn {
+		width: 1%;
+	}
 }
 .narrow table.listTable {
 	margin-bottom: 12px;
@@ -1306,7 +1332,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 	    background-color: darken(#ecf, 5%);
 	}
 	&.state-closed {
-	    background-color: darken(#ddd, 5%);
+	    background-color: darken(#f1f1f1, 5%);
 	}
 	&.state-stopped, &.state-blocked {
 	    background-color: darken(#fa0, 2%);
@@ -1324,7 +1350,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 	    background-color: darken(#cc9933, 10%);
 	}
 	&.state-wakeup {
-	    background-color: darken(#259641, 5%);
+	    background-color: darken(#2baf4c, 5%);
 	}
 }
 
@@ -1332,20 +1358,34 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 	margin-bottom: 12px;
 	font-size: 1.2em;
 }
+
+.wide table.listAction {
+    min-width:760px;
+}
+
+.wide .remote_Authorizations table.listAction {
+	min-width: 0;
+}
 /* край на стилове за елемента 'list Table' */
 
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError {
-    border: solid 1px red; 
+.formError, .formNotice {
     background-color: #ff6;
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
  }
- 
+
+.formNotice {
+	border: solid 1px green;
+}
+.formError {
+	border: solid 1px red;
+}
+
 .wide .formError {
     text-align: left;
     min-width: 300px;
@@ -1367,6 +1407,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .inputError {
     border: solid 1px red;
+}
+
+form .inputAdvanced {
+    background-color:#dfd !important;
 }
 
 .inputWarning {
@@ -1594,6 +1638,7 @@ td.formElement {
     }
 }
 
+
 .narrow .vertical .formFields  {
 	 .w100 {
        width: 100%;
@@ -1607,6 +1652,11 @@ td.formElement {
 	  .w25 {
        width: 50%;
     }
+	.inlineTo {
+		.w25 {
+			max-width: 40%;
+		}
+	}
 }
 /* край на общи стилове за елементите на формите*/
 
@@ -1701,6 +1751,7 @@ td.formElement {
 	border-bottom: none;
 	padding: 8px;
 	vertical-align: middle !important;
+	word-wrap: break-word;
 	@include border-radius4(5px, 5px, 0, 0);
 	img {
 		vertical-align: middle !important;
@@ -1737,6 +1788,10 @@ td.formElement {
     padding-bottom: 0;
     color: black;
     vertical-align: top;
+}
+
+.wide #packWrapper .vertical .formSection {
+	min-width: 34em;
 }
 
 .narrow .vertical .formSection {
@@ -1825,6 +1880,7 @@ td.formElement {
 .path-title {
     font-size: 0.9em;
     display: inline;
+	word-wrap: break-word;
 }
 
 .wide .path-title {
@@ -2557,9 +2613,13 @@ a.lang {
     display: none;
     a.rtbutton {
         text-align: left;
+		display: table-cell;
+		min-width: 65px;
 	}
 }
-
+.narrow .richtext-emoticons6 a.rtbutton{
+	min-width: 72px;
+}
 .richtext-emoticons5 {
     left: -260%;
 }

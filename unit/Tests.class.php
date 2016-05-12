@@ -46,6 +46,9 @@ class unit_Tests extends core_Manager
         
         // Правим тестове на всички открити файлове
         if(count($tests)) {
+            
+            Debug::startTimer('unit_Tests');
+            
             foreach($tests as $class => $testClass) {
 
                 $this->testLog[] = "<h3>Тестване на <b style='color:blue;'>{$class}</b></h3><ul>";
@@ -88,6 +91,8 @@ class unit_Tests extends core_Manager
                 
                 $this->testLog[] = "</ul>";
             }
+            
+            Debug::stopTimer('unit_Tests');
         }
 
         $res = implode("\n", $this->testLog);

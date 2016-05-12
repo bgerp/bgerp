@@ -39,10 +39,10 @@ class cms_CopyTextPlg extends core_Plugin
                 $selfUrl = urlencode(toUrl($cUrl, 'absolute'));
                 
                 // подаване на съкратеното URL
-                $invoker->append("\n runOnLoad(function(){getShortURL('{$selfUrl}');});", "JQRUN");
+                jquery_Jquery::run($invoker, "getShortURL('{$selfUrl}');");
                 
                 // Слагане на функцията при копиране
-                $invoker->append("\n runOnLoad(function(){document.oncopy = function(){addLinkOnCopy('{$textOnCopy}');}});", "JQRUN");
+             	jquery_Jquery::run($invoker, "document.oncopy = function(){addLinkOnCopy('{$textOnCopy}');}");
             }
 		}
 	}

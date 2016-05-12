@@ -119,6 +119,8 @@ class log_Data extends core_Manager
          $this->setDbIndex('type');
          $this->setDbIndex('actionCrc');
          $this->setDbIndex('classCrc,objectId');
+
+         $this->dbEngine = 'InnoDB';
     }
     
     
@@ -173,7 +175,7 @@ class log_Data extends core_Manager
      */
     public static function canViewUserLog($userId, $currUserId = NULL)
     {
-        if (!$currUserId) {
+        if (!isset($currUserId)) {
             $currUserId = core_Users::getCurrent();
         }
         
@@ -251,7 +253,7 @@ class log_Data extends core_Manager
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
         
-        if ($type) {
+        if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));
         }
         
@@ -285,7 +287,7 @@ class log_Data extends core_Manager
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
         
-        if ($type) {
+        if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));
         }
         
@@ -340,7 +342,7 @@ class log_Data extends core_Manager
     public static function flush()
     {
         // Ако няма данни за добавяне, няма нужда да се изпълнява
-        if (!self::$toAdd) return ;
+        if (empty(self::$toAdd)) return ;
         
         $ipId = log_Ips::getIpId();
         $bridId = log_Browsers::getBridId();
@@ -378,11 +380,11 @@ class log_Data extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fieldsArr = array())
     {
-        if (!$fieldsArr || $fieldsArr['brId']) {
+        if (empty($fieldsArr) || $fieldsArr['brId']) {
             $row->brId = log_Browsers::getLinkFromId($rec->brId);
         }
         
-        if ($rec->time && (!$fieldsArr || $fieldsArr['actTime'])) {
+        if ($rec->time && (empty($fieldsArr) || $fieldsArr['actTime'])) {
             $time = dt::timestamp2Mysql($rec->time);
             $row->actTime = dt::mysql2verbal($time, 'smartTime');
         }
@@ -397,25 +399,25 @@ class log_Data extends core_Manager
         
         $action = tr($action);
         
-        if (!$fieldsArr || $fieldsArr['actionCrc']) {
+        if (empty($fieldsArr) || $fieldsArr['actionCrc']) {
             $typeVarchar = cls::get('type_Varchar');
             $row->actionCrc = str_replace(self::$objReplaceInAct, '', $action);
             $row->actionCrc = $typeVarchar->toVerbal($row->actionCrc);
         }
         
         $className = log_Classes::getClassFromCrc($rec->classCrc);
-        if (!$fieldsArr || $fieldsArr['classCrc']) {
+        if (empty($fieldsArr) || $fieldsArr['classCrc']) {
             $typeClass = cls::get('type_Class');
             $row->classCrc = $typeClass->toVerbal($className);
         }
         
-        if (!$fieldsArr || $fieldsArr['text']) {
+        if (empty($fieldsArr) || $fieldsArr['text']) {
             $row->text = self::prepareText($action, $className, $rec->objectId);
             
             // Добавяме линк към реферера
             $refRec = log_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
             if ($refRec && log_Referer::haveRightFor('single', $refRec)) {
-                $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
+                $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => 'Реферер|*: ' . $refRec->ref));
             }
         }
         
@@ -453,6 +455,20 @@ class log_Data extends core_Manager
                         reportException($e);
                     }
                 }
+                
+                if ($clsInst instanceof core_Detail) {
+                    $singleTitle = '';
+                    if (is_object($clsInst->Master)) {
+                        $singleTitle = $clsInst->Master->singleTitle;
+                        $singleTitle = mb_strtolower($singleTitle);
+                    }
+                    
+                    if (!$singleTitle) {
+                        $singleTitle = 'детайл';
+                    }
+                    
+                    $action .= ' ' . tr('на') . ' ' . tr($singleTitle);
+                }
             }
             
             if (!$link) {
@@ -486,24 +502,20 @@ class log_Data extends core_Manager
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
-        $data->listFilter->fields['type']->caption = 'Тип';
-        $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
-        $data->listFilter->fields['type']->refreshForm = 'refreshForm';
-        
-        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител, silent, refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител, silent, autoFilter');
         
         $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
 		$data->listFilter->FNC('to', 'datetime', 'caption=До');
 		$data->listFilter->FNC('class', 'varchar', 'caption=Клас,removeAndRefreshForm=object, allowEmpty, silent');
-		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,refreshForm, allowEmpty, silent');
+		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,autoFilter, allowEmpty, silent');
         
 		$def = setIfNot($def, Request::get('users'), 'all_users');
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);
         $data->listFilter->setDefault('users', $default);
         
-        $data->listFilter->showFields = 'users, message, class, object, type, ip, from, to';
+        $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -535,7 +547,7 @@ class log_Data extends core_Manager
                 $actArr[$actRec->id] = $actRec->crc;
             }
             
-            if ($actArr) {
+            if (!empty($actArr)) {
                 $query->in('actionCrc', $actArr);
             } else {
                 
@@ -556,7 +568,7 @@ class log_Data extends core_Manager
                 $ipArr[$ipRec->id] = $ipRec->id;
             }
             
-            if ($ipArr) {
+            if (!empty($ipArr)) {
                 $query->in('ipId', $ipArr);
             } else {
                 // Ако няма намерен текст, да не се показва никакъв резултат
@@ -609,7 +621,7 @@ class log_Data extends core_Manager
             }
         }
         
-        if ($classSuggArr) {
+        if (!empty($classSuggArr)) {
             $classSuggArr = array('' => '') + $classSuggArr;
             $data->listFilter->setOptions('class', $classSuggArr);
         }
@@ -617,7 +629,7 @@ class log_Data extends core_Manager
         // Филтрираме по клас
         if (trim($rec->class)) {
             $crc = log_Classes::getClassCrc($rec->class, FALSE);
-            if ($crc) {
+            if (isset($crc)) {
                 $query->where("#classCrc = '{$crc}'");
             } else {
                 $query->where("1=2");
@@ -672,18 +684,13 @@ class log_Data extends core_Manager
         }
         
         // Добавяме обектите, за които има запис
-        if ($objSuggArr) {
+        if (!empty($objSuggArr)) {
             $objSuggArr = array('' => '') + $objSuggArr;
             $data->listFilter->setOptions('object', $objSuggArr);
         }
         
         if ($rec->object) {
             $query->where(array("#objectId = '[#1#]'", $rec->object));
-        }
-        
-        // Филтрираме по тип
-        if (trim($rec->type)) {
-            $query->where(array("#type = '[#1#]'", $rec->type));
         }
     }
     

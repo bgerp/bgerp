@@ -462,6 +462,9 @@ tr.row-removed {
   .wide .user-profile .listBlock .listRows > table.listTable {
     width: 100%; }
 
+.narrow .user-profile .listBlock .listRows > table.listTable {
+  width: 100%; }
+
 /*
  * потребителски профил
  */
@@ -534,9 +537,6 @@ tr.row-removed {
     .user-profile .profile-image div img {
       width: auto;
       height: 100px; }
-  .user-profile .linkWithIcon {
-    height: 19px;
-    padding-top: 1px; }
   .user-profile > .groupList {
     margin-left: 10px; }
   .user-profile .card-profile {
@@ -818,6 +818,8 @@ div.mobile {
   padding-top: 2px;
   margin-bottom: 4px;
   display: block; }
+  .namelist .icon {
+    margin: 0 5px; }
 
 .number-block {
   padding: 2px;
@@ -1025,6 +1027,9 @@ div.acc-detail {
       .portal.planning .state-closed:hover,
       .portal.detail-info .state-closed:hover {
         background-color: #d0d0d0; }
+    .portal.planning table.listTable th,
+    .portal.detail-info table.listTable th {
+      vertical-align: middle !important; }
   .portal .legend {
     position: absolute;
     top: -16px;
@@ -1158,7 +1163,6 @@ td.portal-date {
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 20px;
-  float: left;
   line-height: 120%;
   margin-top: 10px; }
   .document .corrected {
@@ -1240,6 +1244,9 @@ td.portal-date {
     white-space: nowrap; }
   .document .tab-control .detail-info {
     font-size: 0.9em; }
+  .document .business-doc-summary-table > tbody > tr > td {
+    padding: 3px !important;
+    border: 0px !important; }
 
 .small-padding td {
   padding: 3px !important; }
@@ -1322,6 +1329,20 @@ td.portal-date {
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
 
+.narrow .document-settings,
+.narrow .document-settings-left,
+.narrow .document-title-group {
+  display: inline;
+  float: none; }
+  .narrow .document-settings .liked,
+  .narrow .document-settings .disliked,
+  .narrow .document-settings-left .liked,
+  .narrow .document-settings-left .disliked,
+  .narrow .document-title-group .liked,
+  .narrow .document-title-group .disliked {
+    position: relative;
+    top: 3px; }
+
 .document-settings-left,
 .document-title-group {
   float: left;
@@ -1368,9 +1389,6 @@ td.portal-date {
 
 .lighterBold {
   color: #666666; }
-
-.selectRows .listTable > tbody > tr > td:first-child {
-  text-align: center; }
 
 .document-title {
   font-size: 16pt;
@@ -1439,7 +1457,6 @@ pre.document {
   -webkit-box-shadow: none;
   box-shadow: none;
   padding: 0;
-  float: left;
   margin: 2px 0 0 0; }
 
 .antetka {
@@ -2158,6 +2175,8 @@ span.sharing-history-title {
   display: block;
   margin: 0 auto;
   text-align: left; }
+  #all #searchform {
+    margin-bottom: 20px; }
 
 .wide #all {
   min-width: 500px; }
@@ -2300,7 +2319,10 @@ span.sharing-history-title {
 #cmsNavigation div.nav_item {
   padding: 1px;
   line-height: normal;
-  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif; }
+  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
+  display: block;
+  clear: both;
+  margin-bottom: 3px; }
 
 #cmsNavigation a {
   -moz-border-radius: 3px;
@@ -2310,10 +2332,25 @@ span.sharing-history-title {
   padding: 1px 4px;
   display: inline-block; }
 
+  #cmsNavigation.articles-menu .nav_item a,
+  #cmsNavigation.articles-menu .nav_item span {
+    float: left; }
+  #cmsNavigation.articles-menu .nav_item:after {
+    content: '';
+    display: block;
+    clear: both; }
+
+#cmsNavigation a.linkWithIcon {
+  display: inline-block;
+  height: 21px;
+  float: left;
+  margin-left: 5px;
+  background-position: center !important; }
+
 #cmsNavigation .level1 {
   font-size: 16px;
   font-weight: bold;
-  margin-top: 10px;
+  padding-top: 10px;
   margin-bottom: 2px; }
 
 #cmsNavigation div:first-child {
@@ -2333,6 +2370,14 @@ span.sharing-history-title {
 
 #cmsNavigation div.nav_item {
   font-size: 1em; }
+
+#cmsNavigation .addPage {
+  clear: both;
+  padding: 2px;
+  border: solid 1px #cccccc;
+  background-color: #eeeeee;
+  margin: 5px 0;
+  font-size: 0.7em; }
 
 .narrow .articles-navigation {
   background-color: #cccccc;
@@ -3097,6 +3142,17 @@ div.location.public {
   max-width: 600px; }
   .email-class h3 {
     margin: 10px 0 12px; }
+
+.textWithIcons {
+  display: inline-block;
+  margin-bottom: -12px; }
+  .textWithIcons a,
+  .textWithIcons span {
+    float: left;
+    margin-right: 5px; }
+  .textWithIcons span {
+    position: relative;
+    top: -3px !important; }
 
 .state-error-email {
   background-color: #f3bbaf; }
@@ -4614,13 +4670,13 @@ only screen and (max-width: 320px) {
   .treeView .hidden {
     display: none; }
   .treeView .treeLevel1 .leafName {
-    text-indent: 50px; }
+    text-indent: 40px; }
   .treeView .treeLevel2 .leafName {
-    text-indent: 80px; }
+    text-indent: 60px; }
   .treeView .treeLevel3 .leafName {
-    text-indent: 110px; }
+    text-indent: 80px; }
   .treeView .treeLevel4 .leafName {
-    text-indent: 140px; }
+    text-indent: 100px; }
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
@@ -4695,6 +4751,9 @@ only screen and (max-width: 320px) {
   right: 10px;
   left: auto;
   margin: 0; }
+
+.narrow .elem-holder .endTooltip {
+  float: right; }
 
 /*
  * край на стилове за външната част при потребител контрактор

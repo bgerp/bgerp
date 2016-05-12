@@ -134,7 +134,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
 		
 		// Плащане
-		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
+		$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
 		$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
 		$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
 		$mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
@@ -144,7 +144,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Наш персонал->Търговец');
 		
 		// Допълнително
-		$mvc->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
+		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС');
 		$mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2');
 		$mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
 		
@@ -153,7 +153,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo,repaid=Издължено)', 'caption=Плащане, input=none');
+		$mvc->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просрочено,paid=Платено,repaid=Издължено)', 'caption=Плащане, input=none');
 	}
 
 
@@ -175,9 +175,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
 		}
-		
 		$form->setDefault('makeInvoice', 'yes');
-		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
 		
 		// Поле за избор на локация - само локациите на контрагента по покупката
 		$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
@@ -252,9 +250,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $Companies = cls::get('crm_Companies');
         $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
         $row->MyCompany = transliterate(tr($row->MyCompany));
-        
-        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-        $row->MyAddress = core_Lg::transliterate($row->MyAddress);
+        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
@@ -268,7 +264,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
     	
     	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    	$row->contragentAddress = core_Lg::transliterate($row->contragentAddress);
     }
 
 
@@ -419,7 +414,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
     }
     
     
@@ -516,17 +511,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * При нова сделка, се ънсетва threadId-то, ако има
-     */
-    public static function on_AfterPrepareDocumentLocation11111111111($mvc, $form)
-    {   
-    	if($form->rec->threadId && !$form->rec->id){
-		     unset($form->rec->threadId);
-		}
-    }
-    
-    
-    /**
      * Преди запис на документ
      */
     public static function on_BeforeSave($mvc, $res, $rec)
@@ -581,14 +565,17 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    public static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-        $handle = static::getHandle($id);
-        $self = cls::get(get_called_class());
-        $title = tr(mb_strtolower($self->singleTitle));
+        $handle = $this->getHandle($id);
+        $title = tr(mb_strtolower($this->singleTitle));
         
         $tpl = new ET(tr("|Моля запознайте се с нашата|* {$title}") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
@@ -1083,11 +1070,11 @@ abstract class deals_DealMaster extends deals_DealBase
     			$options['ship'] = $opt['service'];
     		}
     	}
-    	 
+    	
     	// ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
     	if($rec->amountDeal && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)){
     
-    		// може да се плати с продуктите
+    		// Може да се плати с продуктите
     		$caseName = cash_Cases::getTitleById($rec->caseId);
     		$options['pay'] = "{$opt['pay']} \"$caseName\"";
     	}
@@ -1129,12 +1116,13 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Подготовка на полето за избор на операция и инпут на формата
     	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
+    	$map = ($this instanceof sales_Sales) ? self::$contoMap['sales'] : self::$contoMap['purchase'];
     	
     	$selected = array();
     	
     	// Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
     	if($options['ship'] && $rec->shipmentStoreId){
-    		if($rec->shipmentStoreId === $curStoreId){
+    		if($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship']){
     			$selected[] = 'ship';
     		}
     	} elseif($options['ship']){
@@ -1319,10 +1307,6 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$tpl->removeBlock('shareLog');
-    	}
-    	
     	if($data->paymentPlan){
     		$tpl->placeObject($data->paymentPlan);
     	}
@@ -1427,7 +1411,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
     	 
     	// Ако няма платежен план, това е плащане в брой
-    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_PaymentMethods::fetchField("#name = 'Cash on Delivery'", 'id') : $fields['paymentMethodId'];
+    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_PaymentMethods::fetchField("#sysId = 'COD'", 'id') : $fields['paymentMethodId'];
     	 
     	// Ако няма търговец, това е текущия потребител
     	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
@@ -1679,8 +1663,10 @@ abstract class deals_DealMaster extends deals_DealBase
     		$products = $agreed;
     		$invoiced = array();
     		foreach ($products as $product1){
-    			$product1->price *= 1 - $product1->discount;
-    			unset($product1->discount);
+    			if(!($forMvc instanceof sales_Proformas)){
+    				$product1->price -= $product1->price * $product1->discount;
+    				unset($product1->discount);
+    			}
     		}
     	}
     	

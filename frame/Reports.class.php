@@ -164,7 +164,7 @@ class frame_Reports extends core_Embedder
     function description()
     {
         // Singleton клас - източник на данните
-        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Вид,silent,mandatory,notFilter,refreshForm');
+        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Отчет,silent,mandatory,notFilter,refreshForm');
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('filter', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
@@ -329,12 +329,16 @@ class frame_Reports extends core_Embedder
     
     
     /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
      */
-    static function getDefaultEmailBody($id)
+    public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$handle = static::getHandle($id);
+    	$handle = $this->getHandle($id);
     	$tpl = new ET(tr('Моля запознайте се с нашата справка ') . ': #[#handle#]');
     	$tpl->append($handle, 'handle');
     
@@ -481,7 +485,7 @@ class frame_Reports extends core_Embedder
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('changestate', $data->rec)){
-    		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документа да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
+    		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документът да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
     	}
     	
     	if($mvc->haveRightFor('export', $data->rec)){

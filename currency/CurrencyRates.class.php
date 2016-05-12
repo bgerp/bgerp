@@ -97,10 +97,10 @@ class currency_CurrencyRates extends core_Detail
      */
     function description()
     {
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,chart=diff');
-        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Курс->База,width=6em');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,chart=diff,smartCenter');
+        $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Курс->База,width=6em,smartCenter');
         $this->FLD('date', 'date', 'caption=Курс->Дата,chart=ax');
-        $this->FLD('rate', 'double(decimals=5)', 'caption=Курс->Стойност,chart=ay');
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Курс->Стойност,chart=ay,smartCenter');
         
         $this->setDbUnique('currencyId,baseCurrencyId,date');
     }
@@ -233,7 +233,7 @@ class currency_CurrencyRates extends core_Detail
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $chart = Request::get('Chart');
-        $data->listFilter->FNC('currencySearch', 'key(mvc=currency_Currencies, select=code, allowEmpty, where=#code !\\= \\\'EUR\\\')', 'caption=Валута,refreshForm,input=input');
+        $data->listFilter->FNC('currencySearch', 'key(mvc=currency_Currencies, select=code, allowEmpty, where=#code !\\= \\\'EUR\\\')', 'caption=Валута,autoFilter,input=input');
         
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');

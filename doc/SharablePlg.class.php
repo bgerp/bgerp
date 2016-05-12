@@ -53,6 +53,8 @@ class doc_SharablePlg extends core_Plugin
             
             $rec = &$form->rec;
             
+            $sharedUsersArr = array();
+            
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array)$mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
@@ -61,7 +63,7 @@ class doc_SharablePlg extends core_Plugin
                     
                     // Вземаме споделените потребители
                     $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (!$sharedUsersArr) continue;
+                    if (empty($sharedUsersArr)) continue;
                     
                     // Обединяваме всички потребители от споделянията
                     $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
@@ -69,7 +71,7 @@ class doc_SharablePlg extends core_Plugin
             }
             
             // Ако има споделяния
-            if ($sharedUsersArr) {
+            if (!empty($sharedUsersArr)) {
                 
                 // Добавяме id-тата на споделените потребители
                 foreach ((array)$sharedUsersArr as $nick) {
@@ -241,11 +243,23 @@ class doc_SharablePlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+        
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
+        }
+         
+        if(isset($mvc->shareUserRoles)){
+        	$sharedRoles = arr::make($mvc->shareUserRoles, TRUE);
+        	$sharedRoles = implode(',', $sharedRoles);
+        	
+        	// Ако има зададени роли за търсене
+        	if($form->getField('sharedUsers', FALSE)){
+        		$form->setFieldTypeParams('sharedUsers', array('roles' => $sharedRoles));
+        	}
         }
     }
     
@@ -305,7 +319,7 @@ class doc_SharablePlg extends core_Plugin
     {
         $res = arr::make($res, TRUE);
         
-        if (!$originId) return ;
+        if (!isset($originId)) return ;
         
         if (!$mvc->autoShareOriginShared) return ;
         

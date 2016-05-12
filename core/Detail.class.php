@@ -21,14 +21,20 @@ class core_Detail extends core_Manager
     /**
      * Полето-ключ към мастъра
      */
-    var $masterKey;
+    public $masterKey;
+
+
+    /**
+     * Инстанция към мастера
+     */
+    public $Master;
     
     
     /**
      * По колко реда от резултата да показва на страница в детайла на документа
      * Стойност '0' означава, че детайла няма да се странира
      */
-    var $listItemsPerPage = 0;
+    public $listItemsPerPage = 0;
     
     
     /**
@@ -153,6 +159,7 @@ class core_Detail extends core_Manager
         $tpl->append($this->renderListSummary($data), 'ListSummary');
         
         // Попълваме таблицата с редовете
+        setIfNot($data->listTableMvc, clone $this);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -248,25 +255,57 @@ class core_Detail extends core_Manager
 
     /**
      * Подготвя заглавието на формата
+     * 
+     * @param stdClass $data
      */
     function prepareEditTitle_($data)
     {
-    	$title = $data->masterMvc->getTitleById($data->masterId);
-    	$title = str::limitLen($title, 32);
+    	$data->form->title = self::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
+    }
+    
+    
+    /**
+     * Помощна ф-я, която връща заглавие за формата при добавяне на детайл към клас
+     * Изнесена е статично за да може да се използва и от класове, които не наследяват core_Detail,
+     * Но реално се добавят като детайли към друг клас
+     * 
+     * @param mixed $master       - ид на класа на мастъра
+     * @param int $masterId       - ид на мастъра
+     * @param string $singleTitle - еденично заглавие
+     * @param int|NULL $recId     - ид на записа, ако има
+     * @param string $preposition - предлог
+     * @param integer|NULL $len   - максимална дължина на стринга
+     * 
+     * @return string $title      - заглавието на формата на 'Детайла'
+     */
+    public static function getEditTitle($master, $masterId, $singleTitle, $recId, $preposition = NULL, $len = NULL)
+    {
+    	if(!$preposition){
+    		$preposition = 'към';
+    	}
     	
-    	$url = $data->masterMvc->getSingleUrlArray($data->masterId);
+    	$MasterMvc = cls::get($master);
+    	$masterTitle = $MasterMvc->getTitleById($masterId);
     	
+    	if (!isset($len)) {
+    	    $len = Mode::is('screenMode', 'narrow') ? 32 : 48;
+    	}
+    	
+    	$masterTitle = str::limitLen($masterTitle, $len);
+    	 
+    	$url = $MasterMvc->getSingleUrlArray($masterId);
     	if(count($url)) {
-    		$title = ht::createLink($title, $url, NULL, array('ef_icon' => $data->masterMvc->singleIcon, 'class' => 'linkInTitle'));
+    		$masterTitle = ht::createLink($masterTitle, $url, NULL, array('ef_icon' => $MasterMvc->singleIcon, 'class' => 'linkInTitle'));
     	}
-    	
-    	if ($data->singleTitle) {
-    		$single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
-    		 
+    	 
+    	if ($singleTitle) {
+    		$single = ' на| ' . mb_strtolower($singleTitle);
     	}
+    	 
+    	$title = ($recId) ? "Редактиране{$single} {$preposition}" : "Добавяне{$single} {$preposition}";
+    	$title .= "|* <b style='color:#ffffcc;'>" . $masterTitle . "</b>";
     	
-    	$data->form->title = $data->form->rec->id ? "Редактиране{$single} в" : "Добавяне{$single} към";
-    	$data->form->title .= "|* <b style='color:#ffffcc;'>" . $title . "</b>";
+    	return $title;
     }
     
     
@@ -450,10 +489,8 @@ class core_Detail extends core_Manager
         $me = get_called_class();
         $inst = cls::get($me);
         
-        if ($objId) {
+        if (isset($objId) && ($masterKey = $inst->masterKey) && is_object($inst->Master)) {
             $rec = $inst->fetch($objId);
-            
-            $masterKey = $inst->masterKey;
             
             $masterId = $rec->{$masterKey};
             

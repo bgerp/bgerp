@@ -77,6 +77,8 @@ class status_Retrieving extends core_Manager
         $this->FLD('idleTime', 'int', 'caption=Бездействие, notNull');
         
         $this->setDbUnique('messageId, hitTime, sid, userId');
+        
+        $this->dbEngine = 'InnoDB';
     }
     
     

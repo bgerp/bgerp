@@ -37,7 +37,6 @@ class doc_reports_Docs extends frame_BaseDriver
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-    
 
 
     /**
@@ -81,7 +80,6 @@ class doc_reports_Docs extends frame_BaseDriver
 	 */
 	public $canList = 'powerUser';
 
-    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -130,15 +128,13 @@ class doc_reports_Docs extends frame_BaseDriver
      * @param core_Form $form
      */
     public function checkEmbeddedForm(core_Form &$form)
-    {
-    	    	 
+    {  	 
     	// Размяна, ако периодите са объркани
     	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
     		$mid = $form->rec->from;
     		$form->rec->from = $form->rec->to;
     		$form->rec->to = $mid;
     	}
-
     }  
     
     
@@ -225,9 +221,7 @@ class doc_reports_Docs extends frame_BaseDriver
         $Class->params['select'] = "title";
         $Class->params['allowEmpty'] = "allowEmpty";
 
-        $Users = cls::get('type_Users');
         $Int = cls::get('type_Int');
-
         
         foreach ($rec as $docClass => $userCnt) {
             foreach ($userCnt as $user => $cnt) {
@@ -241,9 +235,10 @@ class doc_reports_Docs extends frame_BaseDriver
                 } elseif($user == -1) {
                     $row->createdBy = "Система";
                 } else {
-                    $row->createdBy = $Users->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+                    $names = core_Users::fetchField($user, 'names');
+                    $row->createdBy = $names . ' ' . crm_Profiles::createLink($user);
                 }
-        
+
                 $rows[] = $row;
             }
         }
@@ -283,13 +278,9 @@ class doc_reports_Docs extends frame_BaseDriver
     	 
     	$tpl->placeObject($data->row);
     
-    	
-    	$tableMvc = new core_Mvc;
-    	$tableMvc->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
-    	$tableMvc->FLD('createdBy', 'key(mvc=core_Users,select=names)','tdClass=itemClass');
-    	$tableMvc->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
-    	
-    	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
+    	$f = $this->getFields();
+
+    	$table = cls::get('core_TableView', array('mvc' => $f));
     	
     	$tpl->append($table->get($data->rows, "docClass=Създадени документи->Тип,
     	                                       createdBy=Създадени документи->Автор,
@@ -314,9 +305,9 @@ class doc_reports_Docs extends frame_BaseDriver
     {
         // Кои полета ще се показват
         $f = new core_FieldSet;
-        $f->FLD('docClass', 'varchar');
-        $f->FLD('createdBy', 'varchar');
-        $f->FLD('cnt', 'int');
+        $f->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'tdClass=itemClass');
+        $f->FLD('createdBy', 'key(mvc=core_Users,select=names)','tdClass=itemClass');
+        $f->FLD('cnt', 'int', 'tdClass=itemClass,smartCenter');
     
         return $f;
     }
@@ -349,11 +340,18 @@ class doc_reports_Docs extends frame_BaseDriver
     {
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
-        
         $dataRec = array();
-        foreach ($this->prepareEmbeddedData()->rows as $id => $row) {
-            $dataRec[$id] = $row;
-            $dataRec[$id]->createdBy = html_entity_decode(strip_tags($row->createdBy));
+
+        foreach ($this->innerState->docCnt as $docClass => $docCnt) { 
+            foreach ($docCnt  as $userId => $cnt) {
+                $row = new stdClass();
+                
+                $row->docClass = $docClass;
+                $row->cnt = $cnt;
+                $row->createdBy = $userId;
+                
+                $dataRec[] = $row;
+            }
         }
 
         $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);

@@ -18,7 +18,7 @@ class hr_Departments extends core_Master
      /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf,bgerp_plg_Blank, doc_FolderIntf';
+    public $interfaces = 'acc_RegisterIntf,hr_DepartmentAccRegIntf, doc_FolderIntf';
 
     
     /**
@@ -66,8 +66,8 @@ class hr_Departments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
-                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject, plg_Modified';
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
+                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject, plg_Modified, bgerp_plg_Blank';
     
     
     /**
@@ -133,7 +133,7 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, type, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
+    public $listFields = 'name, type, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
 
     
     /**

@@ -25,7 +25,7 @@ class fconv_Script
     /**
      * Масив за папките
      */
-    protected $folders = array();
+    public $folders = array();
     
     
     /**
@@ -35,15 +35,69 @@ class fconv_Script
     
     
     /**
-     * @param array params - Масив за параметрите на скрипта
+     * Масив с програмите и пътя в конфига към тях
      */
-    public $params = array();
+    public $programPaths = array();
+    
+    
+    /**
+     * Ако е зададено да се спре, няма да се пуска отдалечена обработка
+     */
+    public $stopRemote = FALSE;
+    
+    
+    /**
+     * @param array - Масив за параметрите на скрипта
+     */
+    public $cmdParams = array();
+    
+    
+    /**
+     * @param array - Масив за параметрите на скрипта
+     */
+    public $cmdParamsOrig = array();
     
     
     /**
      * @param string script - Текст на скрипта
      */
     public  $script;
+    
+    
+    /**
+     * Масив с изпълнимите стрингове, без обработки
+     */
+    public $cmdLine = array();
+    
+    
+    /**
+     * Параметрите на изпълнимите стрингове
+     */
+    public $lineParams = array();
+    
+    
+    /**
+     * Масив с подадените callback функции
+     */
+    public $callBack = array();
+
+    
+    /**
+     * УРЛ, което ще се извика след приключване на отдалеченото конвертиране
+     */
+    public $remoteAfterConvertCallback = '';
+    
+    
+    /**
+     * Дали скрипта е пуснат синхронно или асинхронно
+     */
+    public $runAsynch = TRUE;
+    
+    
+    /**
+     * Масив с файлове, които няма да се връщата обратно след приключване на обработките
+     */
+    public $skipOnRemote = array();
     
     
     /**
@@ -62,6 +116,7 @@ class fconv_Script
     /**
      * 
      * 
+     * @param string $placeHolder
      * @param string $folder
      */
     public function setFolders($placeHolder, $folder)
@@ -84,6 +139,10 @@ class fconv_Script
     
     /**
      * Задаване на входен файл
+     * 
+     * @param string $placeHolder
+     * @param string $file
+     * @param boolean $checkFile
      */
     function setFile($placeHolder, $file, $checkFile = FALSE)
     {
@@ -112,6 +171,10 @@ class fconv_Script
     
     /**
      * Задаване на път до изпълнима външна програма
+     * 
+     * @param string $name
+     * @param string $binPath
+     * @param boolean $escape
      */
     function setProgram($name, $binPath, $escape=TRUE)
     {
@@ -128,32 +191,83 @@ class fconv_Script
     
     
     /**
+     * Задаване на команда и пътя до командата в конфига на пакета
+     * 
+     * @param string $name
+     * @param string $path
+     */
+    function setProgramPath($name, $path)
+    {
+        $this->programPaths[$name] = $path;
+    }
+    
+    
+    /**
      * Задаване на друго общи за целия скрипт параметри
      */
     function setParam($placeHolder, $value=NULL, $escape=TRUE)
     {
+        $this->cmdParamsOrig[$placeHolder] = $value;
+        
         if ($escape) {
-//            $this->params[$placeHolder] = escapeshellcmd($value);
-            $this->params[$placeHolder] = escapeshellarg($value);
+//            $this->cmdParams[$placeHolder] = escapeshellcmd($value);
+            $this->cmdParams[$placeHolder] = escapeshellarg($value);
         } else {
-            $this->params[$placeHolder] = $value;
+            $this->cmdParams[$placeHolder] = $value;
         }
     }
     
     
     /**
+     * Връща линията за изпълнени
+     * 
+     * @param string $cmdLine
+     * @param boolean $silent
+     * 
+     * @return string
+     */
+    public function getCmdLine($cmdLine, $silent = FALSE)
+    {
+        $sepPos = strpos($cmdLine, '::');
+        
+        if (!$silent) {
+            expect($sepPos, 'Изпълнимият ред не може да се задава директно');
+        }
+        
+        if ($sepPos) {
+            list($cls, $p) = explode('::', $cmdLine);
+            if (cls::load($cls, $silent)) {
+                $clsInst = cls::get($cls);
+                $cmdLine = $clsInst->{$p};
+            }
+        }
+        
+        return $cmdLine;
+    }
+    
+    
+    /**
      * Добавя извикване на външна програма в текста на скрипта
+     * 
+     * @param string $cmdLine
+     * @param array $params
+     * @param boolean $addTimeLimit
      */
     function lineExec($cmdLine, $params = array(), $addTimeLimit = TRUE)
     {
+        $this->cmdLine[] = $cmdLine;
+        $this->lineParams[] = $params;
+        
+        $cmdLine = $this->getCmdLine($cmdLine, TRUE);
+        
         $cmdArr = explode(' ', $cmdLine);
         $program = $cmdArr[0];
         $binPath = $this->programs[$program] ? $this->programs[$program] : $program;
         $cmdArr[0] = $binPath;
         $cmdLine = implode(' ', $cmdArr);
         
-        if (count($this->params)) {
-            foreach ($this->params as $placeHolder => $value) {
+        if (count($this->cmdParams)) {
+            foreach ($this->cmdParams as $placeHolder => $value) {
                 $cmdLine = str_replace("[#{$placeHolder}#]", $value, $cmdLine);
             }
         }
@@ -198,6 +312,10 @@ class fconv_Script
     
     /**
      * Добавя нов ред
+     * 
+     * @param string $cmdLine
+     * 
+     * @return string
      */
     function nl($cmdLine)
     {
@@ -213,33 +331,41 @@ class fconv_Script
     
     /**
      * Добавя линия Bash Script. Изпълнява се само ако текущата OS е Linux
+     * 
+     * @param string $cmd
      */
     function lineSH($cmd)
     {
-        if (stristr(PHP_OS, 'WIN')) {
-            return ;
-        }
+        if (stristr(PHP_OS, 'WIN')) return ;
+        
         $this->script .= $this->nl($cmd);
     }
     
     
     /**
      * Добавя линия Visual Basic Script. Изпълнява се само ако текущата OS е Windows
+     * 
+     * @param string $cmd
      */
     function lineVBS($cmd)
     {
-        if (!stristr(PHP_OS, 'WIN')) {
-            return ;
-        }
+        if (!stristr(PHP_OS, 'WIN')) return ;
+        
         $this->script .= $this->nl($cmd);
     }
     
     
     /**
      * Добавя текст в скрипта, който извиква указания callback
+     * 
+     * @param string $callback
      */
     function callBack($callback)
     {
+        $this->callBack[] = $callback;
+        
+        Request::setProtected('pid, func');
+        
         $url = toUrl(array('fconv_Processes',
                 'CallBack', 'func' => $callback, 'pid' => $this->id), 'absolute');
         
@@ -249,15 +375,47 @@ class fconv_Script
             $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
         }
         
-        $this->lineExec($cmdLine);
+        $this->lineExec($cmdLine, array('skipOnRemote' => TRUE));
     }
     
     
     /**
-     * изпълнява скрипта, като му дава време за изпълнение
+     * Изпълнява скрипта, като му дава време за изпълнение
+     * 
+     * @param string $asynch
+     * @param number $time
+     * @param string $timeoutCallback
      */
     function run($asynch=TRUE, $time = 2, $timeoutCallback = '')
     {
+        // Ако е зададена програма, може да се пусне скрипта отдалечено, на друг сървър
+        // и да се чака резултат от там
+        if (!$this->stopRemote) {
+            foreach ($this->programs as $program => $programPath) {
+                if ($rRec = fconv_Remote::fetch(array("#command = '[#1#]'", $program))) {
+                    
+                    $this->runAsynch = $asynch;
+                    
+                    fconv_Remote::prepareFiles($this);
+                    
+                    $this->remoteAfterConvertCallback = toUrl(array('fconv_Remote', 'afterConvertCallback', 'pid' => $this->id), 'absolute');
+                    
+                    $script = urlencode(core_Crypt::encodeVar($this, fconv_Setup::get('SALT')));
+            
+                    $url = rtrim($rRec->address, '/');
+            
+                    $url .= '/fconv_Remote/convert/?script=' . $script;
+                    
+                    fconv_Processes::add($this->id, serialize($this), $time, $timeoutCallback);
+                    
+                    file_get_contents($url);
+                    
+                    log_System::add('fconv_Remote', "Стартиран скрипт: " . $url, $rRec->id);
+                    
+                    return ;
+                }
+            }
+        }
         
         if (!stristr(PHP_OS, 'WIN')) {
             $this->script = "#!/bin/bash \n" . $this->script;
@@ -297,17 +455,16 @@ class fconv_Script
         }
         
         $shellName = $this->tempDir . $this->id . $this->addExtensionScript();
-        $fh = fopen($shellName, 'w') or die("can't open file");
+        
+        $this->skipOnRemote[$shellName] = $shellName;
+        
+        if (!($fh = fopen($shellName, 'w'))) {
+            die("can't open file");
+        }
         fwrite($fh, $this->script);
         fclose($fh);
         
-        $rec = new stdClass();
-        $rec->processId = $this->id;
-        $rec->start = dt::verbal2mysql();
-        $rec->script = serialize($this);
-        $rec->timeOut = $time;
-        $rec->callBack = $timeoutCallback;
-        fconv_Processes::save($rec);
+        fconv_Processes::add($this->id, serialize($this), $time, $timeoutCallback);
         
         chmod($shellName, 0777);
         
@@ -326,6 +483,10 @@ class fconv_Script
     
     /**
      * Проверява и генерира уникално име на файла
+     * 
+     * @param string $fname
+     * @param string $fpath
+     * @return string|boolean
      */
     function getUniqName($fname, $fpath)
     {
@@ -357,6 +518,10 @@ class fconv_Script
     
     /**
      * Копира избрания файл или създава софт линк под Linux
+     * 
+     * @param string $fileName
+     * @param string $filePath
+     * @return boolean
      */
     function copy($fileName, $filePath) {
         if (is_file($filePath)) {
@@ -367,6 +532,9 @@ class fconv_Script
                 $copyPath = escapeshellarg($this->tempDir . $fileName);
                 $copied = exec("ln -s {$filePath} {$copyPath}");
             }
+            
+            $fPath = $this->tempDir . $fileName;
+            $this->skipOnRemote[$fPath] = $fPath;
         }
         
         return TRUE;
@@ -375,6 +543,8 @@ class fconv_Script
     
     /**
      * Добавя разширение в зависимост от ОС, към файла на скрипта
+     * 
+     * @return string
      */
     function addExtensionScript()
     {
@@ -389,6 +559,8 @@ class fconv_Script
     
     /**
      * Добавя разширение за асинхронно стартиране на скрипта за Линукс
+     * 
+     * @return string
      */
     function addRunAsinchronLinux()
     {
@@ -403,6 +575,8 @@ class fconv_Script
     
     /**
      * Добавя разширение за асинхронно стартиране на скрипта за Windows
+     * 
+     * @return string
      */
     function addRunAsinchronWin()
     {

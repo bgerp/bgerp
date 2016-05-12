@@ -1,9 +1,9 @@
 <div class="groupList" id="profileLoginLog">
-    <table style='min-width:440px'>
+    <table style='min-width:440px; width: 100%'>
        <!--ET_BEGIN log-->
        <tr class='[#logClass#]'>
-            <td>[#createdOn#]</td>
-           <td>[#status#]</td>
+           <td>[#createdOn#]</td>
+           <td class='nowrap'>[#status#]</td>
            <td class='aright'>[#ip#]</td>
        </tr>
        <!--ET_END log-->

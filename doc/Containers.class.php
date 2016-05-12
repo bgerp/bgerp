@@ -36,6 +36,12 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Документ в нишка";
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "created=Създаване,document=Документи";
@@ -378,7 +384,7 @@ class doc_Containers extends core_Manager
         // Заглавие на треда
         $document = $mvc->getDocument($data->threadRec->firstContainerId);
         $docRow = $document->getDocumentRow();
-        $docTitle = str::limitLen($docRow->title, 70);
+        $docTitle = str::limitLenAndHyphen($docRow->title, 70);
         $title->replace($docTitle, 'threadTitle');
         
         $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
@@ -399,7 +405,7 @@ class doc_Containers extends core_Manager
         $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
         bgerp_Notifications::clear($url);
         
-        $tpl->appendOnce("\n runOnLoad(function(){flashHashDoc(flashDocInterpolation);});", 'JQRUN');
+        jquery_Jquery::run($tpl, "flashHashDoc(flashDocInterpolation);", TRUE);
         
         if(Mode::is('screenMode', 'narrow')) {
         	jquery_Jquery::run($tpl, "setThreadElemWidth();");
@@ -592,6 +598,10 @@ class doc_Containers extends core_Manager
             
         	if(doc_Threads::haveRightFor('move', $data->threadRec)){
         		$data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png', 'title=Преместване на нишката в нова папка');
+        	}
+        	
+        	if(doc_Threads::haveRightFor('single', $data->threadRec)){
+        	    $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'threadId' => $data->threadId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
         	}
         }
         
@@ -1409,7 +1419,7 @@ class doc_Containers extends core_Manager
                     $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn($mvc->singleTitle, 
                         array($class, 'add', 
                             'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => TRUE), 
-                            NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;")));
+                            NULL, NULL, "ef_icon={$mvc->singleIcon},style=width:100%;text-align:left;")));
                 }
                 
                 $tpl->append("</li>"); 
@@ -1463,13 +1473,9 @@ class doc_Containers extends core_Manager
                 $instanceArr[$id] = cls::get($className);
                 
                 $abbr = strtoupper($instanceArr[$id]->abbr);
-                
-                // Ако сме в дебъг режим
-                if (isDebug()) {
-                    
-//                    expect(trim($instanceArr[$id]->abbr), $instanceArr[$id]);
-                    expect(!$abbrArr[$abbr], $abbr, $abbrArr[$abbr], $className);
-                }
+				
+                expect(i18n_Charset::is7Bit($abbr), $abbr, $abbrArr[$abbr], $className);
+                expect(!$abbrArr[$abbr], $abbr, $abbrArr[$abbr], $className);
                 
                 // Ако няма абревиатура
                 if (!trim($abbr)) continue;

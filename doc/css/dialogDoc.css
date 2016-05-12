@@ -35,3 +35,18 @@
   padding-bottom: 0px;
   color: #335533; }
 
+.wide .passageDialog table.listAction,
+.wide .passageDialog .listTopContainer {
+  width: 100%;
+  min-width: 0; }
+
+.modal-toolbar .linkWithIcon {
+  display: block; }
+
+.rowtools-column {
+  width: 1%; }
+
+  .passageDialog select,
+  .passageDialog input {
+    max-width: 350px; }
+

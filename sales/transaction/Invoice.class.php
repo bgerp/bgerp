@@ -50,12 +50,19 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     	if($rec->type != 'invoice') {
     		$origin = $this->class->getOrigin($rec);
     		
-    		$type = $this->class->getVerbal($rec, 'type');
+    		$type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';
     		if(!$origin) return $result;
-    		$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+    		$result->reason = "{$type} към фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
     	
     		// Намираме оридиджана на фактурата върху която е ДИ или КИ
     		$origin = $origin->getOrigin();
+    		
+    		// Ако е Ди или Ки без промяна не може да се контира
+    		if(Mode::get('saveTransaction')){
+    			if(!$rec->dealValue){
+    				acc_journal_RejectRedirect::expect(FALSE, "Дебитното/кредитното известие не може да бъде контирано, докато сумата е нула");
+    			}
+    		}
     	}
     
     	// Ако фактурата е от пос продажба не се контира ддс
@@ -74,7 +81,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     	}
     
     	$result->entries = $entries;
-    	 
+    	// bp($result);
     	return $result;
     }
 }

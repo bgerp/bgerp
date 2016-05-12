@@ -91,11 +91,16 @@ class acc_plg_Contable extends core_Plugin
         }
         
         try {
+        	// Подсигуряваме се че записа е пълен
+        	$tRec = clone $rec;
+        	if(isset($rec->id)){
+        		$oldRec = $mvc->fetch($rec->id);
+        		$tRec = (object)arr::fillMissingKeys($tRec, $oldRec);
+        	}
+        	
             // Дали документа може да се активира
-            $canActivate = $mvc->canActivate($rec);
-            
-            // Извличане на транзакцията
-            $transaction = $mvc->getValidatedTransaction($rec);
+            $canActivate = $mvc->canActivate($tRec);
+            $transaction = $mvc->getValidatedTransaction($tRec);
             
             // Ако има валидна транзакция
             if($transaction !== FALSE){
@@ -113,6 +118,10 @@ class acc_plg_Contable extends core_Plugin
             }
         } catch (acc_journal_Exception $ex) {
             $rec->isContable = 'no';
+        }
+       
+        if($rec->id){
+        	$mvc->save_($rec, 'isContable');
         }
     }
     
@@ -136,11 +145,17 @@ class acc_plg_Contable extends core_Plugin
                 $error = ",error={$error}";
             }
             
-            $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
+            if($rec->isContable == 'activate'){
+            	$caption = 'Активиране';
+            	$action = 'активиран';
+            } else {
+            	$caption = 'Контиране';
+            	$action = 'контиран';
+            }
            
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
-            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документът да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         if ($mvc->haveRightFor('revert', $rec)) {
@@ -151,7 +166,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->getClassId(),
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документът да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
         } else {
         	
         	// Ако потребителя може да създава коригиращ документ, слагаме бутон
@@ -171,7 +186,7 @@ class acc_plg_Contable extends core_Plugin
         $journalRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
         
         if(($rec->state == 'active' || $rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
-            $journalUrl = array('acc_Journal', 'single', $journalRec->id);
+            $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
             $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
         }
     }
@@ -258,8 +273,8 @@ class acc_plg_Contable extends core_Plugin
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Само активни документи с транзакция и в незатворен период могат да се сторнират
-                if (($periodRec->state != 'closed') || ($rec->state != 'active') || empty($jRec)) {
-                    $requiredRoles = 'no_one';
+                if (($periodRec->state != 'closed') || ($rec->state != 'active' && $rec->state != 'closed') || empty($jRec)) {
+                   $requiredRoles = 'no_one';
                 }
             }
         } elseif ($action == 'reject') {
@@ -513,15 +528,12 @@ class acc_plg_Contable extends core_Plugin
         		// Ако има основание, връщаме му вербалното представяне
         		$res = acc_Operations::getTitleById($reasonCode, FALSE);
         	} else {
+        		$rec = $mvc->fetchRec($id);
+        		$Cover = doc_Folders::getCover($rec->folderId);
         		
-        		// Ако документа е в папка на контрагент връщаме му името за основание
-        		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
-        			 $rec = $mvc->fetchRec($id);
-        			 $Cover = doc_Folders::getCover($rec->folderId);
-        				
-        			 $res = $Cover->getShortHyperLink();
+        		if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+        			$res = $Cover->getShortHyperLink();
         		} else {
-        			
         			// Aко няма основание, но журнала на документа има връщаме него
         			if($jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $id)){
         				$Varchar = cls::get('type_Varchar');
@@ -556,6 +568,53 @@ class acc_plg_Contable extends core_Plugin
     	if(!$res){
     		$rec = $mvc->fetchRec($rec);
     		$res = $rec->{$mvc->valiorFld};
+    	}
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+    	// Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
+    	if($part == 'state'){
+    		if($rec->state == 'rejected' && $rec->brState == 'active'){
+    			$num = tr('Анулиран');
+    		} elseif($rec->state == 'active'){
+    			if($rec->isContable == 'activate'){
+    				$num = tr('Активиран');
+    			} elseif($rec->isContable == 'yes'){
+    				$num = tr('Контиран');
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if(Request::get('Rejected', 'int')){
+    		$data->listFields['state'] = 'Състояние';
+    	}
+    }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		$valior = $mvc->getValiorValue($rec);
+    	
+    		if($warning = acc_Periods::checkDocumentDate($valior)){
+    			$form->setWarning($mvc->valiorFld, $warning);
+    		}
     	}
     }
 }

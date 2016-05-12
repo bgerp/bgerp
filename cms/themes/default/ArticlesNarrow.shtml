@@ -7,7 +7,7 @@
         <!--ET_END SOCIAL-->
     </div>
     <!--ET_BEGIN NAVIGATION-->
-    <div   id='cmsNavigation'  style='margin:2%'>
+    <div   id='cmsNavigation' class='articles-menu'  style='margin:2%'>
         <div class='articles-navigation'>
             |Навигация|*
         </div>

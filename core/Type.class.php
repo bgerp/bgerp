@@ -268,7 +268,7 @@ class core_Type extends core_BaseClass
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
             if (!$res['error'] && isset($this->params['regexp'])) {
                 if (!preg_match($this->params['regexp'], $value)) {
-                    $res['error'] = 'Синтактична грешка';
+                    $res['error'] = 'Неправилен формат на данните';
                 }
             }
             
@@ -535,13 +535,17 @@ class core_Type extends core_BaseClass
 
         if(!$size && !$this->maxFieldSize && is_array($options)) {
             $this->maxFieldSize = 1;
+            $i = 1;
             foreach($options as $opt) {
                 if(is_object($opt)) {
                     $title = $opt->title;
                 } else {
                     $title = $opt;
                 }
+                list($title,) = explode('||', $title);
+
                 $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
+                if($i++ > 100) break;
             }
             $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
         }
@@ -558,6 +562,8 @@ class core_Type extends core_BaseClass
         if(!$size && $this->params[0]) {
             $size =  $this->params[0];
         }
+
+        if(is_array($this->options)) $size *= 1.1;
 
         if($size > 0 && $size <= 13) {
             $wClass = 'w25';

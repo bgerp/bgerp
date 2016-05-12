@@ -886,11 +886,11 @@ class fileman_Files extends core_Master
     /**
      * Връща разширението на файла, от името му
      */
-    static function getExt($name)
+    static function getExt($name, $maxLen = 10)
     {
         if(($dotPos = mb_strrpos($name, '.')) !== FALSE) {
             $ext =  mb_strtolower(mb_substr($name, $dotPos + 1));
-            $pattern = "/^[a-zA-Z0-9_\$]{1,10}$/i";
+            $pattern = "/^[a-zA-Z0-9_\$]{1," . $maxLen . "}$/i";
             if(!preg_match($pattern, $ext)) {
                 $ext = '';
             }
@@ -986,6 +986,7 @@ class fileman_Files extends core_Master
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
+        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
         
         // Вземаме конфигурацията за fileman
         $conf = core_Packs::getConfig('fileman');
@@ -1000,7 +1001,9 @@ class fileman_Files extends core_Master
                 // Добавяме бутон в тулбара
                 $OcrInst->addOcrBtn($data->toolbar, $data->rec);
             }
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+        }
     }
     
     
@@ -1105,8 +1108,8 @@ class fileman_Files extends core_Master
         
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('fName', 'varchar', 'caption=Име на файл,input,silent');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
-        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent,autoFilter');
         
         // В хоризонтален вид
         $data->listFilter->view = 'vertical';
@@ -1254,7 +1257,8 @@ class fileman_Files extends core_Master
     {
         // Това е хак, за някои случаи когато има манипулатори, които са защитени допълнителни (в стари системи)
         // Ако манипулатора на файла е по дълъг манипулатора по подразбиране
-        if (mb_strlen($id) > FILEMAN_HANDLER_LEN) {
+        $idLen = mb_strlen($id);
+        if ($idLen > FILEMAN_HANDLER_LEN && (($idLen - EF_ID_CHECKSUM_LEN) == FILEMAN_HANDLER_LEN)) {
             
             // Променлива, в която държим старото състояние
             $old = $this->protectId;
@@ -1316,6 +1320,8 @@ class fileman_Files extends core_Master
     	
         //Намираме записа на файла
         $fRec = static::fetchByFh($fh);
+        
+        fileman::updateLastUse($fRec);
         
         //Проверяваме дали сме отркили записа
         if(!$fRec) {
