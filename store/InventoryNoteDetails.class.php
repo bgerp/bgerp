@@ -207,7 +207,7 @@ class store_InventoryNoteDetails extends doc_Detail
     		// Обновяваме количеството
     		$now = dt::now();
     		$sRec = (object)array('id' => $summeryId, 'quantity' => $quantity, 'modifiedOn' => $now);
-			store_InventoryNoteSummary::save($sRec);
+			cls::get('store_InventoryNoteSummary')->save_($sRec);
  			
 			// Ако сме в AJAX режим
 			if(Request::get('ajax_mode')) {
