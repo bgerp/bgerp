@@ -1454,13 +1454,17 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_BeforeGetVerbal($mvc, &$part, &$rec, $field)
     {
-    	if(!is_object($rec) && type_Int::isInt($rec)){
-    		 $rec = $mvc->fetchRec($rec);
-    	}
-    	
     	if($field == 'name') {
+    		if(!is_object($rec) && type_Int::isInt($rec)){
+    			$rec = $mvc->fetchRec($rec);
+    		}
+    		
     		$rec->name = static::getDisplayName($rec);
     	} elseif($field == 'code'){
+    		if(!is_object($rec) && type_Int::isInt($rec)){
+    			$rec = $mvc->fetchRec($rec);
+    		}
+    		
     		static::setCodeIfEmpty($rec);
     	}
     }
