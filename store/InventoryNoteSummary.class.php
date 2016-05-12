@@ -80,13 +80,13 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,group';
+    public $listFields = 'id,code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,folderName';
     
         
     /**
      * По кое поле да се групира
      */
-    public $groupByField = 'group';
+    public $groupByField = 'folderName';
     
     
     /**
@@ -107,7 +107,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=id)', 'caption=Маркери');
+        $this->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
         $this->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване,notNull,value=owner,smartCenter');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
@@ -160,7 +160,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	$productRec = cat_Products::fetch($rec->productId, 'measureId,isPublic,code');
     	$row->measureId = cat_UoM::getShortName($productRec->measureId);
-    	$row->code = cat_Products::getVerbal($productRec, 'code');
+    	$row->code = $rec->verbalCode;
     	
     	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
     	$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
@@ -174,6 +174,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
     	$row->modifiedDate = $rec->modifiedOn;
+    	
+    	$row->folderName = $rec->folderName;
     }
     
     
@@ -253,59 +255,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		if($state != 'draft'){
     			$requiredRoles = 'no_one';
     		}
-    	}
-    }
-    
-    
-    /**
-     * След подготовка на детайлите, изчислява се общата цена и данните се групират
-     */
-    protected static function on_AfterPrepareDetail($mvc, $res, $data)
-    {
-    	$recs = &$data->recs;
-    	$rows = &$data->rows;
-    	
-    	if(!$recs) return;
-    	$others = array();
-    	
-    	$groups = keylist::toArray($data->masterData->rec->groups);
-    	
-    	cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
-    	$intersect = $groups;
-    	$tmpCache = array();
-    	
-    	$lastRecs = array();
-    	foreach ($rows as $id => &$row){
-    		$rec1 = $data->recs[$id];
-    		
-    		if(!array_key_exists($rec1->groups, $tmpCache)){
-    			$tmpCache[$rec1->groups] = cat_Groups::getDescendantArray($rec1->groups);
-    		}
-    		$exGroups = $tmpCache[$rec1->groups];
-    		
-    		$firstArr = array_intersect_key($exGroups, $intersect);
-    		$key = key($firstArr);
-    		
-    		if($key){
-    			$row->group = $intersect[$key];
-    			$data->recs[$id]->group = $intersect[$key];
-    		} else {
-    			$rec1->group = tr('Други');
-    			$row->group = tr('Други');
-    			$lastRecs[$id] = $rec1;
-    			unset($data->recs[$id]);
-    		}
-    	}
-    	
-    	// Сортираме опциите
-    	uasort($recs, function($a, $b)
-    	{
-    		if($a->group == $b->group) return 0;
-    		return (strnatcasecmp($a->group, $b->group) < 0) ? -1 : 1;
-    	});
-    	
-    	if(count($lastRecs)){
-    		$recs = $recs + $lastRecs;
     	}
     }
     
@@ -399,7 +348,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$sRec = (object)array('noteId'    => $noteId, 
     						  'productId' => $productId, 
-    						  'groups'    => cat_Products::fetchField($productId, 'groups'));
+    						  'folderId'  => cat_Products::fetchField($productId, 'folderId'));
     	
     	// Ако няма запис, създаваме го
     	return self::save($sRec);
@@ -527,6 +476,130 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	
+    	// Извличаме наведнъж записите за всички артикули в протокола
+    	$allProducts = array_map(create_function('$o', 'return $o->productId;'), $data->recs);
+    	$productIds = array_values($allProducts);
+    	
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->show('isPublic,code,name');
+    	$pQuery->in('id', $productIds);
+    	$tmpRecs = $pQuery->fetchAll();
+    	
+    	// Добавяме в река данни така че да ни е по-лесно за филтриране
+    	foreach ($data->recs as $id => &$rec){
+    		
+    		// Взимаме записа от кеша
+    		$pRec = $tmpRecs[$rec->productId];
+    		
+    		// Вербализираме и нормализираме кода, за да можем да подредим по него
+    		$rec->orderCode = cat_Products::getVerbal($pRec, 'code');
+    		$rec->verbalCode = $rec->orderCode;
+    		$rec->orderCode = strtolower(str::utf2ascii($rec->orderCode));
+    		
+    		// Вербализираме и нормализираме името, за да можем да подредим по него
+    		$rec->orderName = cat_Products::getVerbal($pRec, 'name');
+    		$rec->orderName = strtolower(str::utf2ascii($rec->orderName));
+    	}
+    }
+    
+    
+    /**
+     * Филтрираме записи по подходящ начин
+     * 
+     * @param stdClass $masterRec
+     * @param array $recs
+     * @return void
+     */
+    private function filterRecs($masterRec, &$recs)
+    {
+    	// Ако няма записи не правим нищо
+    	if(!is_array($recs)) return;
+    	
+    	// Вербалните имена на папката
+    	$folders = keylist::toArray($masterRec->folders);
+    	foreach ($folders as $id => &$title){
+    		$title = doc_Folders::getVerbal($id, 'title');
+    	}
+    	 
+    	// Сортираме папките по име
+    	uasort($folders, function($a, $b){
+    							if($a == $b) return 0;
+    							return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
+    	});
+    	
+    	// Тук ще събираме подредените записи
+    	$ordered = array();
+    	
+    	// За всяка от избраните папки
+    	foreach ($folders as $fId => $fTitle){
+    		
+    		// Намираме тези записи, които са от текущата папка
+    		$res = array_filter($recs, function ($e) use ($fId) {
+    					return $e->folderId == $fId;
+    		});
+    	
+    		// Ако има намерени резултати
+    		if(count($res)  && is_array($res)){
+    			
+    			// Ако папката е категория проверяваме по-кое поле ще сортираме
+    			$orderProductBy = cat_Categories::fetchField("#folderId = {$fId}", 'orderProductBy');
+    			if($orderProductBy === 'code'){
+    				$field = 'orderCode';
+    			} else {
+    				
+    				// По дефолт сортираме по име
+    				$field = 'orderName';
+    			}
+    				 
+    			// Сортираме артикулите от папката по-посоченото поле
+    			uasort($res, function($a, $b) use ($field){
+    					if($a->{$field} == $b->{$field}) return 0;
+    					return (strnatcasecmp($a->{$field}, $b->{$field}) < 0) ? -1 : 1;
+    			});
+
+    			// Добавяме подредените артикули
+    			$ordered += $res;
+    		}
+    	}
+    	 
+    	// Търсим артикулите от папки, не посочени във филтъра
+    	$rest = array_diff_key($recs, $ordered);
+    	
+    	if(count($rest) && is_array($rest)){
+    		
+    		// Ако има такива сортираме ги по име
+    		uasort($rest, function($a, $b){
+    			if($a->orderName == $b->orderName) return 0;
+    			return (strnatcasecmp($a->orderName, $b->orderName) < 0) ? -1 : 1;
+    		});
+    		
+    		// Добавяме ги най-накрая
+    		$ordered += $rest;
+    	}
+    	 
+    	// Подготвяме името на папката, по която ще се групират
+    	foreach ($ordered as $id => &$rec){
+    		if(array_key_exists($rec->folderId, $folders)){
+    			$rec->folderName = $folders[$rec->folderId];
+    		} else {
+    			
+    			// Ако не е в посочените папки, ще ги показваме в една сумарна група
+    			$rec->folderName = tr('Други');
+    		}
+    	}
+    	 
+    	// Заместваме намерените записи
+    	$recs = $ordered;
+    }
+    
+    
+    /**
      * Подготвя редовете във вербална форма.
      * Правим кеширане на всичко в $data->rows,
      * и само променените записи ще ги подготвяме наново
@@ -535,6 +608,8 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     function prepareListRows_(&$data)
     {
+    	$this->filterRecs($data->masterData->rec, $data->recs);
+    	
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);
@@ -590,10 +665,8 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-    	if(isset($rec->productId)){
-    		$code = cat_Products::getVerbal($rec->productId, 'code');
+    	$code = cat_Products::getVerbal($rec->productId, 'code');
     		
-    		$res .= " " . plg_Search::normalizeText($code);
-    	}
+    	$res .= " " . plg_Search::normalizeText($code);
     }
 }

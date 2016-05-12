@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'store_InventoryNotes'
  *
@@ -18,8 +20,6 @@ class store_InventoryNotes extends core_Master
     
     /**
      * Заглавие
-     * 
-     * @var string
      */
     public $title = 'Протоколи за инвентаризация';
     
@@ -121,7 +121,7 @@ class store_InventoryNotes extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
-    	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
+    	$this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки');
     }
     
     
@@ -137,12 +137,48 @@ class store_InventoryNotes extends core_Master
     	$form->setDefault('valior', dt::today());
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
+    	$form->setSuggestions('folders', array('' => '') + $mvc->getFolderSuggestions());
     	
     	if(isset($form->rec->id)){
     		$form->setReadOnly('storeId');
     	} else {
     		$form->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване');
     	}
+    }
+    
+    
+    /**
+     * Връща подходящи опции за избор на папки
+     * 
+     * @return array $options - Опции за избор
+     */
+    private function getFolderSuggestions()
+    {
+    	$categoryClassId = cat_Categories::getClassId();
+    	
+    	$query = doc_Folders::getQuery();
+    	$contragents = core_Classes::getOptionsByInterface('cat_ProductFolderCoverIntf', 'title');
+    	$contragents = array_keys($contragents);
+    	$query->in('coverClass', $contragents);
+    	$query->where("#state != 'rejected'");
+    	doc_Folders::restrictAccess($query);
+    	
+    	$categories = $contragents = array();
+    	while($rec = $query->fetch()){
+    		if($rec->coverClass == $categoryClassId){
+    			$arr = &$categories;
+    		} else {
+    			$arr = &$contragents;
+    		}
+    		
+    		$arr[$rec->id] = doc_Folders::getTitleById($rec->id, FALSE);
+    	}
+    	
+    	$categories = array('c' => (object)array('group' => TRUE, 'title' => tr('Категории'))) + $categories;
+    	$contragents = array('co' => (object)array('group' => TRUE, 'title' => tr('Контрагенти'))) + $contragents;
+    	$options = $categories + $contragents;
+    	
+    	return $options;
     }
     
     
@@ -202,7 +238,7 @@ class store_InventoryNotes extends core_Master
     	
     	foreach ($products as $pRec){
     		$dRec = (object)array('noteId'     => $rec->id,
-    							  'groups'     => $pRec->groups,
+    							  'folderId'   => $pRec->folderId,
     							  'productId'  => $pRec->productId,
     							  'blQuantity' => $pRec->quantity,
     							  'charge'     => $rec->charge,
@@ -287,7 +323,7 @@ class store_InventoryNotes extends core_Master
      * @param stClass $rec
      * @return array
      * 		o productId - ид на артикул
-     * 	    o groups    - списък с маркери
+     * 	    o folderId  - в коя папка е артикула
      *  	o quantity  - к-во
      */
     private function getProductsFromBalance($rec)
@@ -312,7 +348,7 @@ class store_InventoryNotes extends core_Master
     		foreach ($bRecs as $bRec){
     			$productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
     			$res[$productId] = (object)array("productId" => $productId,
-    											 "groups"    => cat_Products::fetchField($productId, 'groups'),
+    											 "folderId"    => cat_Products::fetchField($productId, 'folderId'),
     								   			 "quantity"  => $bRec->blQuantity,);
     		}
     	}
