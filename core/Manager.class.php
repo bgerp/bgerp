@@ -47,7 +47,7 @@ class core_Manager extends core_Mvc
     /**
      * По подразбиране колко резултата да показва на страница
      */
-    var $listItemsPerPage = 20;
+    public $listItemsPerPage = 20;
     
     
     /**

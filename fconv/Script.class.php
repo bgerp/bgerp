@@ -53,6 +53,12 @@ class fconv_Script
     
     
     /**
+     * @param array - Масив за допълнителни параметрите при изпълнение
+     */
+    public $params = array();
+    
+    
+    /**
      * @param array - Масив за параметрите на скрипта
      */
     public $cmdParamsOrig = array();
@@ -382,8 +388,8 @@ class fconv_Script
     /**
      * Изпълнява скрипта, като му дава време за изпълнение
      * 
-     * @param string $asynch
-     * @param number $time
+     * @param boolean $asynch
+     * @param integer $time
      * @param string $timeoutCallback
      */
     function run($asynch=TRUE, $time = 2, $timeoutCallback = '')
@@ -425,7 +431,7 @@ class fconv_Script
         
         $foldersArr = $this->getFolders();
         
-        if ($foldersArr) {
+        if (!empty($foldersArr)) {
             foreach ((array)$foldersArr as $placeHolder => $folderName) {
                 $nFolderPath = $this->tempDir . $folderName;
                 @mkdir($nFolderPath, 0777, TRUE);

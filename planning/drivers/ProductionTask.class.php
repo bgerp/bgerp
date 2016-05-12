@@ -65,7 +65,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * След преобразуване на записа в четим за хора вид.
 	 */
-	public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
+	public static function on_AfterRecToVerbal(planning_drivers_ProductionTask $Driver, embed_Manager $Embedder, &$row, $rec, $fields = array())
 	{
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		if(!$rec->totalQuantity){
