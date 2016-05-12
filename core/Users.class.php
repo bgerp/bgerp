@@ -1863,13 +1863,6 @@ class core_Users extends core_Manager
         return $id;
     }
     
-    function act_Test()
-    {
-    	$url = core_App::getSelfURL();
-    	self::redirectToEnableHttps();
-    	
-    }
-    
     
 	/**
      * Проверявамед дали потребителя е активен
