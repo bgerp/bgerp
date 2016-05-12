@@ -147,7 +147,7 @@ class cond_Texts extends core_Manager
      * @param core_Mvc $mvc
      * @param string $res
      * @param core_Et $tpl
-     * @param object $data.
+     * @param object $data
      *
      * @return boolean
      */

@@ -2655,7 +2655,24 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if ($rec) {
-            $mvc->save($rec, 'modifiedOn, modifiedBy');
+            
+            $cu = Users::getCurrent();
+            // Задаваме стойностите на полетата за последно модифициране
+            $rec->modifiedBy = $cu ? $cu : 0;
+            $rec->modifiedOn = dt::verbal2Mysql();
+            
+            $mvc->save_($rec, 'modifiedOn, modifiedBy');
+            $cid = $rec->containerId;
+            
+            if ($cid) {
+                $cRec = new stdClass();
+                $cRec->id = $cid;
+                $cRec->modifiedOn = $rec->modifiedOn;
+                $cRec->modifiedBy = $rec->modifiedBy;
+                
+                $containersInst = cls::get('doc_Containers');
+                $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            }
         }
     }
     

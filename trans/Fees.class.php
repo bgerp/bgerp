@@ -107,21 +107,19 @@ class trans_Fees extends core_Detail
 
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
-     * @param int       $countryId          id на съотверната държава
-     * @param string    $pCode              пощенски код
-     *
-     * @param double    $totalWeight        Посоченото тегло
-     * @param int       $singleWeight
-     *
-     * @return int      0                   Ако не може да бъде намерена зона, в която принадлежи пакета
-     *
-     * @return array[0] $finalPrice         Обработената цена
-     * @return array[1] $result             Резултат за подадената единица $singleWeight
-     * @return array[1] $zoneId             Id на зоната
+     * 
+     * @param int $countryId - id на съотверната държава
+     * @param string $pCode - пощенски код
+     * @param double $totalWeight - Посоченото тегло
+     * @param int $singleWeight
+     * 
+     * @return int|array - Ако не може да бъде намерена зона, в която принадлежи пакета
+     * [0] - Обработената цена
+     * [1] - Резултат за подадената единица $singleWeight
+     * [2] - Id на зоната
      */
     public static function calcFee($countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
-
         expect(is_numeric($totalWeight) && is_numeric($singleWeight) && $totalWeight > 0, $totalWeight, $singleWeight);
 
         //Определяне на зоната на транспорт
@@ -129,6 +127,7 @@ class trans_Fees extends core_Detail
 
         //Ако не се намери зона се връща 0
         if($zone == null){
+            
             return 0;
         }
 

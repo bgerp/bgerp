@@ -245,8 +245,8 @@ class core_Array
      * 
      * @return string $str - Стринга, който ще връщаме
      */
-    function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
-    { 
+    public static function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
+    {
         // Стринга, който ще връщаме
         $str = '';
         

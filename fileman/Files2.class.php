@@ -947,6 +947,11 @@ class fileman_Files2 extends core_Master
         
         $attr['rel'] = 'nofollow';
         
+        $isAbsolute = (boolean)(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
+        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
+            $attr['class'] .= ' dangerFile';
+        }
+        
         // Вземаме линка
         $link = ht::createLink($fileName, $url, FALSE, $attr);
         

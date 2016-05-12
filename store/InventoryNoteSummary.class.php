@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_GroupByField, plg_RowTools2, store_Wrapper,plg_AlignDecimals2,plg_Search';
+    public $loadList = 'plg_GroupByField, store_Wrapper,plg_AlignDecimals2,plg_Search';
     
     
     /**
@@ -56,31 +56,37 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     * Кой има право да променя начисляването?
+     */
+    public $canTogglecharge = 'ceo, store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'no_one';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta, charge,group';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,folderName';
     
         
     /**
      * По кое поле да се групира
      */
-    public $groupByField = 'group';
+    public $groupByField = 'folderName';
     
     
     /**
@@ -97,12 +103,13 @@ class store_InventoryNoteSummary extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
-        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none');
+        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=id)', 'caption=Маркери');
+        $this->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
         $this->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване,notNull,value=owner,smartCenter');
+        $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
         $this->setDbUnique('noteId,productId');
     }
@@ -111,7 +118,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    public function on_CalcDelta(core_Mvc $mvc, $rec)
+    protected static function on_CalcDelta(core_Mvc $mvc, $rec)
     {
     	if (!isset($rec->blQuantity)) return;
     
@@ -125,7 +132,7 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = $data->form;
     	if(isset($form->rec->id)){
@@ -149,89 +156,122 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->measureId = cat_Products::getVerbal($rec->productId, 'measureId');
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+    	$productRec = cat_Products::fetch($rec->productId, 'measureId,isPublic,code');
+    	$row->measureId = cat_UoM::getShortName($productRec->measureId);
+    	$row->code = $rec->verbalCode;
     	
-    	$quantityArr = array('quantity' => $row->quantity);
+    	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
+    	$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
+    	
+    	if(!Mode::is('blank')){
+    		$row->quantitySum = $mvc->renderQuantityCell($rec);
+    		$row->quantitySum = "<div id='summary{$rec->id}'>{$row->quantitySum}</div>";
+    	}
+    	
+    	$row->charge = $mvc->renderCharge($rec);
+    	
+    	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
+    	$row->modifiedDate = $rec->modifiedOn;
+    	
+    	$row->folderName = $rec->folderName;
+    }
+    
+    
+    /**
+     * Рендира разликата
+     * 
+     * @param stdClass $rec - запис
+     * @return core_ET      - стойноста на клетката
+     */
+    public static function renderDeltaCell($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	$deltaRow = $Double->toVerbal($rec->delta);
+    	
+    	return new core_ET($deltaRow);
+    }
+    
+    
+    /**
+     * Рендира установеното количество
+     *
+     * @param stdClass $rec - запис
+     * @return core_ET      - стойноста на клетката
+     */
+    public static function renderQuantityCell($rec)
+    {
+    	$rec = self::fetchRec($rec);
+    	$quantity = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->quantity);
+    	$newQuantity = $quantity;
+    	
+    	$quantityArr = array('quantity' => $quantity);
+    	$quantityTpl = new core_ET("<span><b>[#quantity#]</b></span>[#test#]<!--ET_BEGIN link--><span style='margin-left:3px'>[#link#]</span><!--ET_END link--><!--ET_BEGIN history--><div><small>[#history#]</small></div><!--ET_END history-->");
+    
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    		if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
-    			$url = array('store_InventoryNoteDetails', 'Insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'ret_url' => TRUE);
-    			$icon = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', '')));
-    			$link = ht::createLink($icon, $url, FALSE, 'title=Добавяне на установено количество');
-    			$quantityArr['link'] = $link;
+    		if($history = store_InventoryNoteDetails::getHistory($rec)){
+    			$quantityArr['history'] = $history;
     		}
     	}
+    
+    	if(!Mode::is('blank')){
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
+    				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
+    				
+    				if(Mode::is('screenMode', 'narrow')){
+    					unset($url['replaceId']);
+    					if(isset($rec->nextId)){
+    						$nextRec = static::fetch($rec->nextId, 'productId,noteId');
+    						$retUrl = $url;
+    						$retUrl['noteId'] = $nextRec->noteId;
+    						$retUrl['productId'] = $nextRec->productId;
+    						$url['ret_url'] = $retUrl;
+    					}
+    					
+    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add1-16.png,title=Промяна на установените количества');
+    				} else {
+    					$url = toUrl($url, 'local');
+    					$attr = array('src'      => sbf('img/16/add1-16.png', ''),
+    								  'id'       => "inventoryNoteShowAddForm{$rec->id}",
+    								  'data-url' => $url, 
+    								  'class'    => 'inventoryNoteShowAddForm', 
+    								  'title'    => 'Промяна на установените количества');
+    					
+    					if(isset($rec->nextId)){
+    						$attr['data-nextelement'] = "inventoryNoteShowAddForm{$rec->nextId}";
+    					}
+    					
+    					$link = ht::createElement('img', $attr);
+    				}
+    				
+    				$link = "<span class='ajax-form-holder'><span class='ajax-form' id='inlineform{$rec->id}'></span>{$link}</span>";
+    				$quantityArr['link'] = $link;
+    			}
+    		}
     	
-    	$quantityTpl = new core_ET("<span><b>[#quantity#]</b></span><!--ET_BEGIN link--><span style='margin-left:3px'>[#link#]</span><!--ET_END link--><!--ET_BEGIN history--><div><small>[#history#]</small></div><!--ET_END history-->");
-    	if($history = $mvc->getHistory($rec)){
-    		$quantityArr['history'] = $history;
+    		$quantityTpl->placeArray($quantityArr);
+    		$quantityTpl->removeBlocks();
+    		$quantityTpl->removePlaces();
+    		$newQuantity = $quantityTpl;
     	}
     	
-    	$quantityTpl->placeArray($quantityArr);
-    	$quantityTpl->removeBlocks();
-    	$quantityTpl->removePlaces();
-    	$row->quantitySum = $quantityTpl;
+    	return $newQuantity;
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'delete'){
-    		$requiredRoles = 'no_one';
-    	}
-    }
-    
-    
-    /**
-     * След подготовка на детайлите, изчислява се общата цена
-     * и данните се групират
-     */
-    public static function on_AfterPrepareDetail($mvc, $res, $data)
-    {
-    	$recs = &$data->recs;
-    	$rows = &$data->rows;
-    	
-    	if(!$recs) return;
-    	$others = array();
-    	
-    	$groups = keylist::toArray($data->masterData->rec->groups);
-    	$options = cat_Groups::makeArray4Select();
-    	$intersect = array_intersect_key($options, $groups);
-    	
-    	$lastRecs = array();
-    	foreach ($rows as $id => &$row){
-    		$rec1 = $data->recs[$id];
-    		
-    		$exGroups = cat_Groups::getDescendantArray($rec1->groups);
-    		$firstArr = array_intersect_key($exGroups, $intersect);
-    		$key = key($firstArr);
-    		if($key){
-    			$row->group = $intersect[$key];
-    			$data->recs[$id]->group = $intersect[$key];
-    		} else {
-    			$rec1->group = tr('Други');
-    			$row->group = tr('Други');
-    			$lastRecs[$id] = $rec1;
-    			unset($data->recs[$id]);
+    	if($action == 'togglecharge' && isset($rec)){
+    		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');
+    		if($state != 'draft'){
+    			$requiredRoles = 'no_one';
     		}
-    		
-    	}
-    	
-    	// Сортираме опциите
-    	uasort($recs, function($a, $b)
-    	{
-    		if($a->group == $b->group) return 0;
-    		return (strnatcasecmp($a->group, $b->group) < 0) ? -1 : 1;
-    	});
-    	
-    	if(count($lastRecs)){
-    		$recs = $recs + $lastRecs;
     	}
     }
     
@@ -242,20 +282,31 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if(!$data->rows) return;
-    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	$data->listTableMvc->FLD('code', 'varchar', 'smartCenter,tdClass=small-field');
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
     	
-    	$pager = cls::get('core_Pager',  array('itemsPerPage' => 300));
-    	$pager->itemsCount = count($data->rows);
-    	$data->pager = $pager;
+    	if(Mode::get('blank')){
+    		$data->listTableMvc->setField('quantitySum', 'tdClass=medium-field');
+    	} else {
+    		$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
+    		$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
+    		$pager->itemsCount = count($data->rows);
+    		$data->pager = $pager;
+    	}
     	
     	foreach ($data->rows as $id => &$row){
-    		if(!$data->pager->isOnPage()) {
+    		$rec = &$data->recs[$id];
+    		
+    		if(isset($rec)){
+    			$row->delta = static::renderDeltaCell($rec);
+    			$row->delta = "<div id='delta{$rec->id}'>{$row->delta}</div>";
+    		}
+    		
+    		if(isset($data->pager) && !$data->pager->isOnPage()) {
     			unset($data->rows[$id]);
     			continue;
     		}
-    		
-			$rec = &$data->recs[$id];
     		
     		if(!isset($rec->quantity)){
     			$row->delta = "<span class='red'>{$row->delta}</span>";
@@ -275,8 +326,8 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	
-    	if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $data->rec->noteId))){
-    		$data->toolbar->addBtn('Артикул', array('store_InventoryNoteDetails', 'Insert', 'noteId' => $data->masterId, 'ret_url' => TRUE), 'ef_icon=img/16/star_2.png,title=Добавяне на нов артикул за опис');
+    	if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $data->masterId))){
+    		$data->toolbar->addBtn('Артикул', array('store_InventoryNoteDetails', 'insert', 'noteId' => $data->masterId, 'ret_url' => TRUE), 'ef_icon=img/16/star_2.png,title=Добавяне на нов артикул за опис');
     	}
     }
     
@@ -286,6 +337,8 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+    	if($data->masterData->rec->state == 'rejected') return;
+    	
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
     	$data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
@@ -295,46 +348,16 @@ class store_InventoryNoteSummary extends doc_Detail
     }
     
     
-    private function getHistory($rec)
-    {
-    	$data = $this->prepareHistory($rec);
-    	$tpl = $this->renderHistory($data);
-    	
-    	return $tpl;
-    }
-    
-    
-    private function prepareHistory($rec)
-    {
-    	$recs = $rows = array();
-    	$dQuery = store_InventoryNoteDetails::getQuery();
-    	$dQuery->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
-    	while($dRec = $dQuery->fetch()){
-    		$recs[$dRec->id] = $dRec;
-    		$row = store_InventoryNoteDetails::recToVerbal($dRec);
-    		$rows[$dRec->id] = $row;
-    	}
-    	
-    	return (object)array('recs' => $recs, 'rows' => $rows);
-    }
-    
-    private function renderHistory($data)
-    {
-    	$tpl = new core_ET("<!--ET_BEGIN BLOCK--><div style='color:darkgreen'>[#packQuantity#] <span class='quiet'>[#packagingId#]</span></div><!--ET_END BLOCK-->");
-    	foreach ($data->rows as $id => $row){
-    		$blockTpl = clone $tpl->getBlock('BLOCK');
-    		$blockTpl->placeObject($row);
-    		$blockTpl->removeBlocks();
-    		$blockTpl->removePlaces();
-    		$blockTpl->append2Master();
-    	}
-    	
-    	return $tpl;
-    }
-    
-    
+    /**
+     * Форсира запис
+     * 
+     * @param int $noteId    - ид на протокол
+     * @param int $productId - ид на артикула
+     * @return int           - ид на форсирания запис
+     */
     public static function force($noteId, $productId)
     {
+    	// Ако има запис връщаме го
     	if($rec = store_InventoryNoteSummary::fetch("#noteId = {$noteId} AND #productId = {$productId}")){
     		
     		return $rec->id;
@@ -342,12 +365,19 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$sRec = (object)array('noteId'    => $noteId, 
     						  'productId' => $productId, 
-    						  'groups'    => cat_Products::fetchField($productId, 'groups'));
+    						  'folderId'  => cat_Products::fetchField($productId, 'folderId'));
     	
+    	// Ако няма запис, създаваме го
     	return self::save($sRec);
     }
     
     
+    /**
+     * Връща артикулите, които имат описание
+     * 
+     * @param int $noteId - ид на протокол
+     * @return array $res - масив с артикулите в описанието
+     */
     public static function getProductsInSummary($noteId)
     {
     	$res = array();
@@ -362,8 +392,308 @@ class store_InventoryNoteSummary extends doc_Detail
     }
     
     
+    /**
+     * Екшън за смяна на начисляването
+     */
     function act_ToggleCharge()
     {
-    	$id = Request::get('id', "key(mvc=store_InventoryNoteSummary)");
+    	$this->requireRightFor('togglecharge');
+    	
+    	if(!$id = Request::get('id', 'int')){
+    		core_Statuses::newStatus('|Невалиден ред|*!', 'error');
+    		return status_Messages::returnStatusesArray();
+    	}
+    	
+    	if(!$rec = $this->fetch($id)){
+    		core_Statuses::newStatus('|Невалиден ред|*!', 'error');
+    		return status_Messages::returnStatusesArray();
+    	}
+    	
+    	$this->requireRightFor('togglecharge', $rec);
+    	
+    	// Сменяме начина на начисляване
+    	$rec->charge = ($rec->charge == 'owner') ? 'responsible' : 'owner'; 
+    	$rec->modifiedOn = dt::now();
+    	
+    	// Опитваме се да запишем
+    	if($this->save($rec, 'charge,modifiedOn')){
+    		
+    		// Ако сме в AJAX режим
+    		if(Request::get('ajax_mode')) {
+    			
+    			// Заместваме клетката по AJAX за да визуализираме промяната
+    			$resObj = new stdClass();
+    			$resObj->func = "html";
+    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => $this->renderCharge($rec), 'replace' => TRUE);
+    			$statusData = status_Messages::returnStatusesArray();
+    			
+    			$res = array_merge(array($resObj), (array)$statusData);
+    			
+    			// Връщаме очаквания обект
+    			return $res;
+    		}
+    	} else {
+    		core_Statuses::newStatus('|Проблем при запис|*!', 'error');
+    	}
+    	
+    	// Редирект
+    	if (Request::get('ajax_mode')) {
+    		return status_Messages::returnStatusesArray();
+    	} else {
+    		redirect(array('store_InventoryNotes', 'single', $rec->noteId));
+    	}
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if(Mode::get('blank')){
+    		unset($data->listFields['delta']);
+    		unset($data->listFields['charge']);
+    		unset($data->listFields['blQuantity']);
+    		$data->listFields['quantitySum'] = 'Количество';
+    	}
+    }
+    
+    
+    /**
+     * Рендира бутона за смяна на начисляването
+     * Вика се и след смяната на начисляването по AJAX
+     * 
+     * @param stdClass $rec   - записа от модела
+     * @return string $charge - бутона за смяна
+     */
+    private function renderCharge($rec)
+    {
+    	$icon = ($rec->charge != 'owner') ? 'img/16/checked.png' : 'img/16/unchecked.png';
+    	$attr = array('src' => sbf($icon, ''));
+    	
+    	// Правим линк само ако не сме в някой от следните режими
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
+    		if($this->haveRightFor('togglecharge', $rec)){
+    			$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
+    	
+    			$attr['class']    = "toggle-charge";
+    			$attr['data-url'] = toUrl(array($this, 'togglecharge', $rec->id), 'local');
+    			$attr['title']    = "Смяна за сметка на {$type}";
+    		}
+    	}
+    	
+    	$charge = ht::createElement('img', $attr);
+    	
+    	// Слагаме уникално ид на обграждащия div
+    	$charge = "<div id='charge{$rec->id}'>{$charge}</div>";
+    	
+    	// Връщаме бутона
+    	return $charge;
+    }
+    
+    
+    /**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	
+    	// Извличаме наведнъж записите за всички артикули в протокола
+    	$allProducts = array_map(create_function('$o', 'return $o->productId;'), $data->recs);
+    	$productIds = array_values($allProducts);
+    	
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->show('isPublic,code,name');
+    	$pQuery->in('id', $productIds);
+    	$tmpRecs = $pQuery->fetchAll();
+    	
+    	// Добавяме в река данни така че да ни е по-лесно за филтриране
+    	foreach ($data->recs as $id => &$rec){
+    		
+    		// Взимаме записа от кеша
+    		$pRec = $tmpRecs[$rec->productId];
+    		
+    		// Вербализираме и нормализираме кода, за да можем да подредим по него
+    		$rec->orderCode = cat_Products::getVerbal($pRec, 'code');
+    		$rec->verbalCode = $rec->orderCode;
+    		$rec->orderCode = strtolower(str::utf2ascii($rec->orderCode));
+    		
+    		// Вербализираме и нормализираме името, за да можем да подредим по него
+    		$rec->orderName = cat_Products::getVerbal($pRec, 'name');
+    		$rec->orderName = strtolower(str::utf2ascii($rec->orderName));
+    	}
+    }
+    
+    
+    /**
+     * Филтрираме записи по подходящ начин
+     * 
+     * @param stdClass $masterRec
+     * @param array $recs
+     * @return void
+     */
+    private function filterRecs($masterRec, &$recs)
+    {
+    	// Ако няма записи не правим нищо
+    	if(!is_array($recs)) return;
+    	
+    	// Вербалните имена на папката
+    	$folders = keylist::toArray($masterRec->folders);
+    	foreach ($folders as $id => &$title){
+    		$title = doc_Folders::getVerbal($id, 'title');
+    	}
+    	 
+    	// Сортираме папките по име
+    	uasort($folders, function($a, $b){
+    							if($a == $b) return 0;
+    							return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
+    	});
+    	
+    	// Тук ще събираме подредените записи
+    	$ordered = array();
+    	
+    	// За всяка от избраните папки
+    	foreach ($folders as $fId => $fTitle){
+    		
+    		// Намираме тези записи, които са от текущата папка
+    		$res = array_filter($recs, function ($e) use ($fId) {
+    					return $e->folderId == $fId;
+    		});
+    	
+    		// Ако има намерени резултати
+    		if(count($res)  && is_array($res)){
+    			
+    			// Ако папката е категория проверяваме по-кое поле ще сортираме
+    			$orderProductBy = cat_Categories::fetchField("#folderId = {$fId}", 'orderProductBy');
+    			if($orderProductBy === 'code'){
+    				$field = 'orderCode';
+    			} else {
+    				
+    				// По дефолт сортираме по име
+    				$field = 'orderName';
+    			}
+    				 
+    			// Сортираме артикулите от папката по-посоченото поле
+    			uasort($res, function($a, $b) use ($field){
+    					if($a->{$field} == $b->{$field}) return 0;
+    					return (strnatcasecmp($a->{$field}, $b->{$field}) < 0) ? -1 : 1;
+    			});
+
+    			// Добавяме подредените артикули
+    			$ordered += $res;
+    		}
+    	}
+    	 
+    	// Търсим артикулите от папки, не посочени във филтъра
+    	$rest = array_diff_key($recs, $ordered);
+    	
+    	if(count($rest) && is_array($rest)){
+    		
+    		// Ако има такива сортираме ги по име
+    		uasort($rest, function($a, $b){
+    			if($a->orderName == $b->orderName) return 0;
+    			return (strnatcasecmp($a->orderName, $b->orderName) < 0) ? -1 : 1;
+    		});
+    		
+    		// Добавяме ги най-накрая
+    		$ordered += $rest;
+    	}
+    	 
+    	// Подготвяме името на папката, по която ще се групират
+    	foreach ($ordered as $id => &$rec){
+    		if(array_key_exists($rec->folderId, $folders)){
+    			$rec->folderName = $folders[$rec->folderId];
+    		} else {
+    			
+    			// Ако не е в посочените папки, ще ги показваме в една сумарна група
+    			$rec->folderName = tr('Други');
+    		}
+    	}
+    	
+    	$orderedValues = array_values($ordered);
+    	for ($i = 0; $i < count($orderedValues); $i++) {
+    		$r = $orderedValues[$i];
+    		$nextId = $orderedValues[$i + 1]->id;
+    		
+    		// Записваме в река ид-то на записа, който е след него
+    		$ordered[$r->id]->nextId = $nextId; 
+    	}
+    	
+    	// Заместваме намерените записи
+    	$recs = $ordered;
+    }
+    
+    
+    /**
+     * Подготвя редовете във вербална форма.
+     * Правим кеширане на всичко в $data->rows,
+     * и само променените записи ще ги подготвяме наново
+     * 
+     * @param stdClass $data
+     */
+    function prepareListRows_(&$data)
+    {
+    	// Филтрираме записите
+    	$this->filterRecs($data->masterData->rec, $data->recs);
+    	
+    	// Ако сме в режим за принтиране/бланка не правим кеширане
+    	if(Mode::is('printing')){
+    		return parent::prepareListRows_($data);
+    	}
+    	
+    	// Подготвяме ключа за кеширане
+    	$key = store_InventoryNotes::getCacheKey($data->masterData->rec);
+    	
+    	// Проверяваме имали кеш за $data->rows
+    	$cache = core_Cache::get($this->Master->className, $key);
+    	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
+    	
+    	// Ако има кеш за зашисите
+    	if(!empty($cache)){
+    		$data->rows = $cache;
+    		
+    		// Обхождаме ги
+    		if(is_array($data->rows)){
+    			foreach ($data->rows as $id => $row){
+    				$rec = $data->recs[$id];
+    				
+    				if(is_null($rec)){
+    					unset($data->rows[$id]);
+    					continue;
+    				}
+    				
+    				// Тези които са с дата на модификация по-малка от тази на река им
+    				if($rec->modifiedOn > $row->modifiedDate){
+    					
+    					// Регенерираме им $row-а наново
+    					$data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+    				}
+    			}
+    		}
+    	} else {
+    		
+    		// Ако няма кеш подготвяме $data->rows стандартно
+    		$data = parent::prepareListRows_($data);
+    	}
+    	
+    	// Кешираме $data->rows
+    	if($cacheRows === TRUE){
+    		core_Cache::set($this->Master->className, $key, $data->rows, 1440);
+    	}
+    	
+    	// Връщаме $data
+    	return $data;
+    }
+    
+    
+    /**
+     * След генериране на ключовите думи
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$code = cat_Products::getVerbal($rec->productId, 'code');
+    		
+    	$res .= " " . plg_Search::normalizeText($code);
     }
 }

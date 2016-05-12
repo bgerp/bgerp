@@ -1730,9 +1730,25 @@ input:focus[type=button] {
 .narrow .horizontal .formFields > div {
   margin-bottom: 10px; }
 
+.flashElem {
+  background-color: #fffa99;
+  transition: background-color linear 500; }
+  .flashElem input[type="checkbox"],
+  .flashElem input[type="radio"],
+  .flashElem label,
+  .flashEleminput.combo {
+    background-color: none; }
+
+.flashElem.select2 > .selection > .select2-selection,
+.flashElem {
+  background-color: #fffa99 !important; }
+
 /*
  * край на хоризонтални форми
  */
+.contextCursor {
+  cursor: context-menu; }
+
 /*
  * Загвавие, състоящо се от пътека
  */
@@ -3081,4 +3097,7 @@ td.centerCol {
 td.leftColImportant {
   white-space: nowrap;
   text-align: left !important; }
+
+.dangerFile {
+  color: #990000 !important; }
 

@@ -123,7 +123,7 @@ class log_System extends core_Manager
      * Добавяне на събитие в лога
      * 
      * @param string $className
-     * @param integer|NULL $objectId
+     * @param integer|NULL|stdObject $objectId
      * @param string $action
      * @param string $type
      * @param integer $lifeDays
@@ -132,6 +132,10 @@ class log_System extends core_Manager
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
+        }
+        
+        if (is_object($objectId)) {
+            $objectId = $objectId->id;
         }
         
         $logStr = $className;
@@ -401,13 +405,19 @@ class log_System extends core_Manager
             $rec = new stdClass();
             $rec->className = get_called_class();
             $rec->detail = $nErrStr;
-            if ($errArr['time']) {
+            if (isset($errArr['time'])) {
                 $rec->createdOn = $errArr['time'];
             }
             $rec->type = $errType;
             
+            if ($rec->createdOn) {
+                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]' AND #createdOn = '[#4#]'", $rec->className, $rec->detail, $rec->type, $rec->createdOn));
+            } else {
+                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]'", $rec->className, $rec->detail, $rec->type));
+            }
+            
             // Ако сме достигнали до съществуващ запис спираме процеса
-            if (self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #createdOn = '[#3#]' AND #type = '[#4#]'", $rec->className, $rec->detail, $rec->createdOn, $rec->type))) break;
+            if ($oRec) break;
             
             // Да не се добавят стари записи, които ще се изтрият веднага по крон
             $before = dt::subtractSecs($lifeDays * 86400);

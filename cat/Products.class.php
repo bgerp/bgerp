@@ -209,14 +209,6 @@ class cat_Products extends embed_Manager {
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
-	
-	
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     *
-     *  @var string
-     */
-    public $hideListFieldsIfEmpty = 'code';
     
     
 	/**
@@ -357,8 +349,6 @@ class cat_Products extends embed_Manager {
             					foreach ($pRec->driverRec as $name => $value){
             						$form->setDefault($name, $value);
             					}
-            					
-            					//Request::push($pRec->driverRec);
             				}
             			}
             		}
@@ -382,8 +372,6 @@ class cat_Products extends embed_Manager {
     			
     			if($Driver = $mvc->getDriver($rec)){
     				$defMetas = $Driver->getDefaultMetas($defMetas);
-    				$measureName = $Driver->getDefaultUom();
-    				$defaultUomId = cat_UoM::fetchBySinonim($measureName)->id;
     			}
     		}
     		
@@ -413,9 +401,6 @@ class cat_Products extends embed_Manager {
     				if(count($categoryMeasures)){
     					if(isset($rec->measureId)){
     						$categoryMeasures[$rec->measureId] = $rec->measureId;
-    					}
-    					if(isset($defaultUomId)){
-    						$categoryMeasures[$defaultUomId] = $defaultUomId;
     					}
     					
     					$measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
@@ -455,18 +440,24 @@ class cat_Products extends embed_Manager {
     		}
     	}
     	
-    	// Задаваме позволените мерки като опция
-    	$form->setOptions('measureId', array('' => '') + $measureOptions);
-    	
     	// Ако има дефолтна мярка, избираме я
-    	if(isset($defaultUomId)){
-    		$form->setDefault('measureId', $defaultUomId);
-    	}
-
-    	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
-    	if(isset($rec->id) && $data->action != 'clone'){
-    		if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id, $form->rec->measureId)){
-    			$form->setReadOnly('measureId'); 
+    	if(is_object($Driver) && $Driver->getDefaultUomId()){
+    		$defaultUomId = $Driver->getDefaultUomId();
+    		$form->setReadOnly('measureId', $defaultUomId);
+    	} else {
+    		if($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')){
+    			$measureOptions[$defMeasure] = cat_UoM::getTitleById($defMeasure, FALSE);
+    			$form->setDefault('measureId', $defMeasure);
+    		}
+    		
+    		// Задаваме позволените мерки като опция
+    		$form->setOptions('measureId', array('' => '') + $measureOptions);
+    		
+    		// При редакция ако артикула е използван с тази мярка, тя не може да се променя
+    		if(isset($rec->id) && $data->action != 'clone'){
+    			if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id, $form->rec->measureId)){
+    				$form->setReadOnly('measureId');
+    			}
     		}
     	}
     }
@@ -841,9 +832,7 @@ class cat_Products extends embed_Manager {
         	$Driver = cat_Products::getDriver($rec->id);
             if(!is_object($Driver)) return NULL;
             
-        	if($rec->isPublic == 'no'){
-        		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
-        	}
+            static::setCodeIfEmpty($rec);
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
@@ -863,6 +852,24 @@ class cat_Products extends embed_Manager {
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Задава код на артикула ако няма
+     * 
+     * @param stdClass $rec - запис
+     * @return void
+     */
+    private static function setCodeIfEmpty(&$rec)
+    {
+    	if($rec->isPublic == 'no'){
+    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+    	} else {
+    		if(empty($rec->code)){
+    			$rec->code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;
+    		}
+    	}
     }
     
     
@@ -1137,9 +1144,11 @@ class cat_Products extends embed_Manager {
 		// Само активни артикули
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
+    	$reverseOrder = FALSE;
     	
     	// Ако е зададен контрагент, оставяме смао публичните + частните за него
     	if(isset($customerClass) && isset($customerId)){
+    		$reverseOrder = TRUE;
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
     		$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
     		
@@ -1196,7 +1205,11 @@ class cat_Products extends embed_Manager {
     	if(count($private)){
     		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
     		
-    		$products = $private + $products;
+    		if($reverseOrder === TRUE){
+    			$products = $private + $products;
+    		} else {
+    			$products = $products + $private;
+    		}
     	}
     	
     	return $products;
@@ -1437,11 +1450,6 @@ class cat_Products extends embed_Manager {
     		$name = tr($rec->name);
     	}
     	
-    	if($rec->isPublic == 'no'){
-    		$hand = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
-    		$name .= " ($hand)";
-    	}
-    	
     	// Иначе го връщаме такова, каквото е
     	return $name;
     }
@@ -1450,14 +1458,20 @@ class cat_Products extends embed_Manager {
     /**
      * Извиква се преди извличането на вербална стойност за поле от запис
      */
-    protected static function on_BeforeGetVerbal($mvc, &$part, $rec, $field)
+    protected static function on_BeforeGetVerbal($mvc, &$part, &$rec, $field)
     {
     	if($field == 'name') {
-    		if(!is_object($rec)) {
-    			$rec = new stdClass();
+    		if(!is_object($rec) && type_Int::isInt($rec)){
+    			$rec = $mvc->fetchRec($rec);
     		}
     		
     		$rec->name = static::getDisplayName($rec);
+    	} elseif($field == 'code'){
+    		if(!is_object($rec) && type_Int::isInt($rec)){
+    			$rec = $mvc->fetchRec($rec);
+    		}
+    		
+    		static::setCodeIfEmpty($rec);
     	}
     }
     
@@ -1468,6 +1482,7 @@ class cat_Products extends embed_Manager {
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec->name = static::getDisplayName($rec);
+    	static::setCodeIfEmpty($rec);
     	
     	return parent::getRecTitle($rec, $escaped);
     }
@@ -1617,7 +1632,7 @@ class cat_Products extends embed_Manager {
     	$rec = $this->fetchRec($id);
     	$row = new stdClass();
         
-    	$row->title    = $this->getVerbal($rec, 'name');
+    	$row->title    = $this->getTitleById($rec->id);
         $row->authorId = $rec->createdBy;
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
@@ -1866,6 +1881,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	$data->form->toolbar->renameBtn('save', 'Запис');
+    	$data->form->toolbar->removeBtn('activate');
     }
     
     

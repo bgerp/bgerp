@@ -3,7 +3,7 @@
 
 
 /**
- * Стратегия за подреждане на склада 'ArrangeStrategyBottom'
+ * Стратегия за подреждане на склада 'pallet_ArrangeStrategyBottom'
  *
  *
  * @category  bgerp

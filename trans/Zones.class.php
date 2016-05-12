@@ -163,22 +163,24 @@ class trans_Zones extends core_Detail
 
     /**
      * Връща името на транспортната зона според държавата, усложието на доставката и п.Код
-     * @param int       $countryId      id на съотверната държава
-     * @param string    $pCode          пощенски код
-     * @return array['zoneId']          id на намерената зона
-     * @return array['zoneName']        име на намерената зона
-     * @return array['deliveryTermId']  Условие на доставка
+     * 
+     * @param int $countryId - id на съотверната държава
+     * @param string $pCode - пощенски код
+     * 
+     * @return array
+     * ['zoneId'] - id на намерената зона
+     * ['zoneName'] - име на намерената зона
+     * ['deliveryTermId'] - Условие на доставка
      */
     public static function getZoneIdAndDeliveryTerm($countryId, $pCode = "")
     {
-//       bp($pCode, empty($pCode));
         $query = self::getQuery();
         if(empty($pCode)){
             $query->where(array("#countryId = [#1#] AND #pCode = '[#2#]'", $countryId, $pCode));
             $rec = $query->fetch();
-//            bp($rec);
             $bestZone = $rec;
         }
+        
         //Обхождане на trans_zones базата и намиране на най-подходящата зона
         else{
         $query->where(array('#countryId = [#1#]', $countryId));

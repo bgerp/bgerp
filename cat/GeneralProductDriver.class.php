@@ -51,9 +51,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			$form->setField('photo', 'input=none');
-			$measureName = $Driver->getDefaultUom();
-			$form->setDefault('measureId', cat_UoM::fetchBySinonim($measureName)->id);
-			$form->setField('measureId', 'display=hidden');
+			$uomId = $Driver->getDefaultUomId();
+			if(!$uomId){
+				$uomId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+			}
+			
+			if($uomId){
+				$form->setDefault('measureId', $uomId);
+				$form->setField('measureId', 'display=hidden');
+			}
+			
 			if($Embedder instanceof marketing_Inquiries2){
 				$form->setField('inqDescription', 'mandatory');
 			}
@@ -291,26 +298,5 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		return $tpl;
-	}
-	
-	
-	/**
-	 * Връща дефолтната основна мярка, специфична за технолога
-	 *
-	 * @param int $measureId - мярка
-	 * @return int - ид на мярката
-	 */
-	public function getDefaultUom($measureName = NULL)
-	{
-		if(!isset($measureName)){
-			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
-			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
-			$measureName = cat_UoM::getShortName($defMeasure);
-			
-			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
-			return $measureName;
-		}
-	
-		return $measureName;
 	}
 }

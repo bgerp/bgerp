@@ -326,7 +326,7 @@ class status_Messages extends core_Manager
      * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $hitId - Уникално ID на хита
      * 
-     * @return string - 'div' със статус съобщенията
+     * @return array
      */
     static function getStatusesData_($hitTime, $idleTime, $hitId=NULL)
     {
@@ -429,5 +429,20 @@ class status_Messages extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 40;
         $res .= core_Cron::addOnce($rec);
+    }
+    
+    
+    /**
+     * Връща масив със чакащите статуси в момента
+     * @return array
+     */
+    public static function returnStatusesArray()
+    {
+    	$hitTime = Request::get('hitTime', 'int');
+    	$idleTime = Request::get('idleTime', 'int');
+    	$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+    
+    	// Връщаме статусите ако има
+    	return (array)$statusData;
     }
 }
