@@ -130,7 +130,7 @@ class log_Data extends core_Manager
      * @param string $type
      * @param string $message
      * @param string|object|NULL $className
-     * @param integer|NULL $objectId
+     * @param integer|NULL|stdObject $objectId
      * @param integer $lifeDays
      */
     public static function add($type, $message, $className = NULL, $objectId = NULL, $lifeDays = 180)
@@ -143,6 +143,11 @@ class log_Data extends core_Manager
         }
         
         if (isset($objectId)) {
+            
+            if (is_object($objectId)) {
+                $objectId = $objectId->id;
+            }
+            
             if (!is_numeric($objectId)) {
                 $objectId = NULL;
             }
