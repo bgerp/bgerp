@@ -1144,9 +1144,11 @@ class cat_Products extends embed_Manager {
 		// Само активни артикули
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
+    	$reverseOrder = FALSE;
     	
     	// Ако е зададен контрагент, оставяме смао публичните + частните за него
     	if(isset($customerClass) && isset($customerId)){
+    		$reverseOrder = TRUE;
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
     		$sharedProducts = cat_products_SharedInFolders::getSharedProducts($folderId);
     		
@@ -1203,7 +1205,11 @@ class cat_Products extends embed_Manager {
     	if(count($private)){
     		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
     		
-    		$products = $private + $products;
+    		if($reverseOrder === TRUE){
+    			$products = $private + $products;
+    		} else {
+    			$products = $products + $private;
+    		}
     	}
     	
     	return $products;
