@@ -12,13 +12,15 @@ function noteActions() {
 	
 	$(document.body).on('click', ".inventoryNoteShowAddForm", function(e){
 		var url = $(this).attr("data-url");
+		var nextelement = $(this).attr("data-nextelement");
 		
 		if(!url) return;
+		var data = {nextelement:nextelement};
 		
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj);
+		getEfae().process(resObj, data);
 	});
 }
 
@@ -27,7 +29,15 @@ function cancelForm(form){
 	frm.hide();
 }
 
-function submitShowAddForm(form) {
+function submitAndCloseForm(form) {
+	submitShowAddForm(form, true);
+}
+
+function submitShowAddForm(form, stop) {
+	if (typeof stop === "undefined" || stop === null) { 
+		stop = false; 
+	}
+	
 	var frm = $(form);
 	frm.css('cursor', 'wait');
 	
@@ -65,6 +75,18 @@ function submitShowAddForm(form) {
 		
 		if(hide == true){
 			frm.hide();
+		}
+		
+		if(stop == true){
+			return;
+		}
+		
+		if(typeof data[2] != 'undefined'){
+			var r3 = data[2];
+			var nextelement = r3['arg']['nextelement'];
+			
+			var event = jQuery.Event("click");
+			$("#" + nextelement).trigger(event);
 		}
 	});
 }

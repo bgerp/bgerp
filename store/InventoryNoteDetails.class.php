@@ -225,25 +225,31 @@ class store_InventoryNoteDetails extends doc_Detail
 				$resObj1->func = "html";
 				$resObj1->arg = array('id' => "delta{$summeryId}", 'html' => $replaceDeltaHtml, 'replace' => TRUE);
 				
-				$res = array_merge(array($resObj), array($resObj1));
+				$resObj2 = new stdClass();
+				$resObj2->arg = array('nextelement' => $rec->nextelement);
+				
+				$res = array_merge(array($resObj), array($resObj1), array($resObj2));
 				
 				// Връщаме очаквания обект
 				core_App::getJson($res);
 			} else {
 				
 				// Ако не сме по аякс правим редирект
-				redirect(array('store_InventoryNotes', 'single', $rec->noteId), FALSE, 'Количествата са променени успешно');
+				followRetUrl();
+				//redirect(array('store_InventoryNotes', 'single', $rec->noteId), FALSE, 'Количествата са променени успешно');
 			}
 			
     	}
     	
     	// Ако сме в аякс режим добавяме JS бутони
     	if(Request::get('ajax_mode') && $form->cmd != 'refresh'){
-    		$form->toolbar->addFnBtn('Запис', "submitShowAddForm(this.form)", "id=save,ef_icon = img/16/disk.png");
-    		$form->toolbar->addFnBtn('Отказ', "cancelForm(this.form)", "id=cancel, ef_icon = img/16/close16.png");
+    		$form->toolbar->addFnBtn('Запис и Нов', "submitShowAddForm(this.form)", "id=saveAjaxAndNew,ef_icon = img/16/disk.png");
+    		$form->toolbar->addFnBtn('Запис', "submitAndCloseForm(this.form)", "id=saveAjax,ef_icon = img/16/disk.png");
+    		$form->toolbar->addFnBtn('Отказ', "cancelForm(this.form)", "id=cancelAjax, ef_icon = img/16/close16.png");
     	} else {
     		
     		// Иначе добавяме нормални бутони
+    		//$form->toolbar->addFnBtn('Запис и Нов', "saveAndNew", "id=saveAndNew,ef_icon = img/16/disk.png");
     		$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
     		$form->toolbar->addBtn('Отказ', array('store_InventoryNotes', 'single', $noteId),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
     	}
@@ -292,6 +298,8 @@ class store_InventoryNoteDetails extends doc_Detail
     	$form->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'mandatory,silent,input=hidden');
     	$form->FLD('productId', 'key(mvc=cat_Products, select=name)', 'mandatory,silent,caption=Артикул,removeAndRefreshForm');
     	$form->FLD('edit', 'int', 'silent,input=hidden');
+    	$form->FLD('nextelement', 'varchar', 'silent,input=hidden');
+    	$form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
     	
     	$form->input(NULL, 'silent');
     	

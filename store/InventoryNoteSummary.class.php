@@ -80,7 +80,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,folderName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,folderName';
     
         
     /**
@@ -215,22 +215,39 @@ class store_InventoryNoteSummary extends doc_Detail
     			$quantityArr['history'] = $history;
     		}
     	}
-    	 
+    
     	if(!Mode::is('blank')){
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
     				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
     				
     				if(Mode::is('screenMode', 'narrow')){
+    					unset($url['replaceId']);
+    					if(isset($rec->nextId)){
+    						$nextRec = static::fetch($rec->nextId, 'productId,noteId');
+    						$retUrl = $url;
+    						$retUrl['noteId'] = $nextRec->noteId;
+    						$retUrl['productId'] = $nextRec->productId;
+    						$url['ret_url'] = $retUrl;
+    					}
+    					
     					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add1-16.png,title=Промяна на установените количества');
     				} else {
     					$url = toUrl($url, 'local');
-    					$link = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', ''),
-    							'data-url' => $url, 'class' => 'inventoryNoteShowAddForm', 'title' => 'Промяна на установените количества'));
+    					$attr = array('src'      => sbf('img/16/add1-16.png', ''),
+    								  'id'       => "inventoryNoteShowAddForm{$rec->id}",
+    								  'data-url' => $url, 
+    								  'class'    => 'inventoryNoteShowAddForm', 
+    								  'title'    => 'Промяна на установените количества');
+    					
+    					if(isset($rec->nextId)){
+    						$attr['data-nextelement'] = "inventoryNoteShowAddForm{$rec->nextId}";
+    					}
+    					
+    					$link = ht::createElement('img', $attr);
     				}
     				
     				$link = "<span class='ajax-form-holder'><span class='ajax-form' id='inlineform{$rec->id}'></span>{$link}</span>";
-    				
     				$quantityArr['link'] = $link;
     			}
     		}
@@ -593,7 +610,16 @@ class store_InventoryNoteSummary extends doc_Detail
     			$rec->folderName = tr('Други');
     		}
     	}
-    	 
+    	
+    	$orderedValues = array_values($ordered);
+    	for ($i = 0; $i < count($orderedValues); $i++) {
+    		$r = $orderedValues[$i];
+    		$nextId = $orderedValues[$i + 1]->id;
+    		
+    		// Записваме в река ид-то на записа, който е след него
+    		$ordered[$r->id]->nextId = $nextId; 
+    	}
+    	
     	// Заместваме намерените записи
     	$recs = $ordered;
     }
@@ -608,6 +634,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     function prepareListRows_(&$data)
     {
+    	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
     	
     	// Ако сме в режим за принтиране/бланка не правим кеширане
