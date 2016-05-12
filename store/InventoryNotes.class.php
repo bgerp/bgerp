@@ -148,7 +148,8 @@ class store_InventoryNotes extends core_Master
     	if(isset($form->rec->id)){
     		$form->setReadOnly('storeId');
     	} else {
-    		$form->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване');
+    		$form->FLD('charge', 'enum(owner=Не,responsible=Да)', 'caption=Начет МОЛ,maxRadio=2');
+    		$form->setDefault('charge', 'owner');
     	}
     }
     
