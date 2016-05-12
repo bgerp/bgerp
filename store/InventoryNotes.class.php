@@ -115,6 +115,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'valior,title=Документ,storeId,folderId,createdOn,createdBy,modifiedOn,modifiedBy';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -388,5 +394,22 @@ class store_InventoryNotes extends core_Master
     	
     	// Връщаме готовия ключ
     	return $key;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     * @param array $fields
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($fields['-list'])){
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		$row->title = $mvc->getLink($rec->id, 0);
+    	}
     }
 }
