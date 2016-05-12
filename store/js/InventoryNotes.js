@@ -1,5 +1,6 @@
 function noteActions() {
 	
+	// Смяна на начисляването при клик на бутон
 	$(document.body).on('click', ".toggle-charge", function(e){
 		var url = $(this).attr("data-url");
 		if(!url) return;
@@ -10,11 +11,14 @@ function noteActions() {
 		getEfae().process(resObj);
 	});
 	
+	// При натискане на бутона за показване на форма
 	$(document.body).on('click', ".inventoryNoteShowAddForm", function(e){
 		var url = $(this).attr("data-url");
 		var nextelement = $(this).attr("data-nextelement");
 		
 		if(!url) return;
+		
+		// Кой ще е следващия елемент
 		var data = {nextelement:nextelement};
 		
 		resObj = new Object();
@@ -22,18 +26,32 @@ function noteActions() {
 		
 		getEfae().process(resObj, data);
 	});
+	
+	// При натискане на бутон, когато е отворена формата
+	$(document.body).on("keypress", ".inventoryNoteInsertForm", function(event) { 
+		if (event.keyCode == 13) {
+	       
+			// При натискане на 'ENTER' не искаме да се събмитне формата
+			event.preventDefault();
+	    }
+	});
 }
 
+// Затваряне на формата
 function cancelForm(form){
 	var frm = $(form);
 	frm.hide();
 }
 
+// Събмитва формата и не отваря нова след това
 function submitAndCloseForm(form) {
 	submitShowAddForm(form, true);
 }
 
+// Субмитва формата за добавяне на установено количество
 function submitShowAddForm(form, stop) {
+	
+	// Ако не е зададено изрично винаги след запис отваряме следващата форма
 	if (typeof stop === "undefined" || stop === null) { 
 		stop = false; 
 	}
@@ -42,20 +60,23 @@ function submitShowAddForm(form, stop) {
 	frm.css('cursor', 'wait');
 	
 	var params = frm.serializeArray();
-	
 	var serialized = $.param(params);
 	
+	// Събмитваме формата по AJAX
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
 		data: serialized + '&ajax_mode=1&Cmd[default]=1',
 		dataType: 'json'
 	}).done( function(data) {
+		
+		// При успех
 		var r1 = data[0];
 		var id = r1['arg']['id'];
 		var html = r1['arg']['html'];
 		var hide = true;
 		
+		// При грешка реплейсваме формата
 		if(typeof data[0]['arg']['replaceFormOnError'] != 'undefined'){
 			id = r1['arg']['replaceFormOnError'];
 			hide = false;
@@ -63,8 +84,10 @@ function submitShowAddForm(form, stop) {
 		
 		id = "#" + id;
 		
+		// Подмяна на съдържанието на обекта
 		$(id).html(html);
 		
+		// Ако има втори обект за подмяна на съдържанието му
 		if(typeof data[1] != 'undefined'){
 			var r2 = data[1];
 			var id2 = r2['arg']['id'];
@@ -73,18 +96,22 @@ function submitShowAddForm(form, stop) {
 			$(id2).html(html2);
 		}
 		
+		// Ако искаме да затворим формата, затваряме я
 		if(hide == true){
 			frm.hide();
 		}
 		
+		// Ако не искаме да се отваря нова форма, излизаме от функцията
 		if(stop == true){
 			return;
 		}
 		
+		// Ако има е респонса трети параметър
 		if(typeof data[2] != 'undefined'){
 			var r3 = data[2];
 			var nextelement = r3['arg']['nextelement'];
 			
+			// Генерираме събитие за натискане на следващия елемент
 			var event = jQuery.Event("click");
 			$("#" + nextelement).trigger(event);
 		}

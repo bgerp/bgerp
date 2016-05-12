@@ -159,6 +159,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	
     	// Подготвяме формата
     	$form = $this->getInsertForm($rec);
+    	$form->class = 'inventoryNoteInsertForm';
     	
     	// Задаваме екшън на формата
     	$form->setAction(array($this, 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId));
