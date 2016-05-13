@@ -275,7 +275,7 @@ class commformat_Plugin extends core_Plugin
         		$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
         		// Иконата на класа
-        		$icon = sbf("img/16/msn.png.png", '', $isAbsolute);
+        		$icon = sbf("img/16/msn.png", '', $isAbsolute);
 
         	case 'msn' :
         		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>{$email}";
