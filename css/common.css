@@ -1733,14 +1733,14 @@ input:focus[type=button] {
 .flashElem {
   background-color: #fffa99;
   transition: background-color linear 500; }
-  .flashElem input[type="checkbox"],
-  .flashElem input[type="radio"],
   .flashElem label,
-  .flashEleminput.combo {
-    background-color: none; }
+  .flashEleminput.combo,
+  .flashEleminput[type="checkbox"],
+  .flashEleminput[type="radio"],
+  small.flashElem {
+    background: none; }
 
-.flashElem.select2 > .selection > .select2-selection,
-.flashElem {
+.flashElem.select2 > .selection > .select2-selection {
   background-color: #fffa99 !important; }
 
 /*

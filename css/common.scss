@@ -1874,17 +1874,16 @@ td.formElement {
 	margin-bottom: 10px;
 }
 
-
 .flashElem {
 	background-color: #fffa99;
 	transition: background-color linear 500ms;
-	&input.combo, input[type="checkbox"],
-	input[type="radio"], label {
-		background-color: none;
+	&input.combo, &input[type="checkbox"],
+	&input[type="radio"], label, small& {
+		background: none;
 	}
 }
 
-.flashElem.select2 > .selection > .select2-selection , .flashElem {
+.flashElem.select2 > .selection > .select2-selection {
 	background-color: #fffa99 !important;
 }
 /*край на хоризонтални форми*/
