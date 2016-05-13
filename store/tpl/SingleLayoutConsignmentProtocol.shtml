@@ -48,7 +48,7 @@
                 <tbody>
                     <tr>
                         <td class="topCell first vtop" style='width:50%;'>
-                            <table class='shipment-table' style='width:100%;'>
+                            <table class='shipment-table'>
                                 <tr>
                                     <td class='quiet nowrap aright'>|Валута|*:</td>
                                     <td>[#currencyId#]</td>
@@ -87,25 +87,27 @@
                                     <td>[#palletCountInput#]</td>
                                 </tr>
                                 <!--ET_END palletCountInput-->
-                               
-                                 <!--ET_BEGIN note-->
-                                <tr>
-                                    <td colspan="2" >
-                                        <hr>
-                                        [#note#]
-                                    </td>
-                                </tr>
-                                <!--ET_END note-->
                             </table>
-                         
-                            <!--ET_BEGIN responsible-->
+                            <!--ET_BEGIN note-->
                             <hr>
-                            <div>|Получил|*:  [#responsible#]</div>
-                            <!--ET_END responsible-->
-                            
-                            <!--ET_BEGIN username-->
-                            <div>|Съставил|*:  [#username#]</div>
-                            <!--ET_END username-->
+                            [#note#]
+                            <!--ET_END note-->
+                        </td>
+                        <td>
+                            <table class='centered special-borders' style='width:100%;margin-top: 10px;'>
+                                <tr>
+                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
+                                    <td class='centered'>|Съставил|*:</td>
+                                </tr>
+                                <tr>
+                                    <td class='centered border-right' style='height:40px;'></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     <tr class='footerDocInfo'>
