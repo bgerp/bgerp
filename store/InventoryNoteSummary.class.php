@@ -80,13 +80,13 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,folderName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantitySum=Количество->Установено,delta,charge,groupName';
     
         
     /**
      * По кое поле да се групира
      */
-    public $groupByField = 'folderName';
+    public $groupByField = 'groupName';
     
     
     /**
@@ -107,7 +107,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
-        $this->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
         $this->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване,notNull,value=owner,smartCenter');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
@@ -175,7 +175,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
     	$row->modifiedDate = $rec->modifiedOn;
     	
-    	$row->folderName = $rec->folderName;
+    	$row->groupName = $rec->groupName;
     }
     
     
@@ -365,7 +365,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$sRec = (object)array('noteId'    => $noteId, 
     						  'productId' => $productId, 
-    						  'folderId'  => cat_Products::fetchField($productId, 'folderId'));
+    						  'groups'    => cat_Products::fetchField($productId, 'groups'));
     	
     	// Ако няма запис, създаваме го
     	return self::save($sRec);
@@ -504,7 +504,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$productIds = array_values($allProducts);
     	
     	$pQuery = cat_Products::getQuery();
-    	$pQuery->show('isPublic,code,name');
+    	$pQuery->show('isPublic,code,name,createdOn');
     	$pQuery->in('id', $productIds);
     	$tmpRecs = $pQuery->fetchAll();
     	
@@ -537,87 +537,67 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Ако няма записи не правим нищо
     	if(!is_array($recs)) return;
-    	
-    	// Вербалните имена на папката
-    	$folders = keylist::toArray($masterRec->folders);
-    	foreach ($folders as $id => &$title){
-    		$title = doc_Folders::getVerbal($id, 'title');
-    	}
-    	 
-    	// Сортираме папките по име
-    	uasort($folders, function($a, $b){
-    							if($a == $b) return 0;
-    							return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
-    	});
-    	
-    	// Тук ще събираме подредените записи
     	$ordered = array();
     	
-    	// За всяка от избраните папки
-    	foreach ($folders as $fId => $fTitle){
-    		
-    		// Намираме тези записи, които са от текущата папка
-    		$res = array_filter($recs, function ($e) use ($fId) {
-    					return $e->folderId == $fId;
-    		});
+    	// Вербализираме и подреждаме маркерите
+    	$groups = keylist::toArray($masterRec->groups);
+    	cls::get('cat_Groups')->invoke('AfterMakeArray4Select', array(&$groups));
     	
+    	// За всеки маркер
+    	foreach ($groups as $grId => $groupName){
+    		
+    		// Отделяме тези записи, които съдържат текущия маркер
+    		$res = array_filter($recs, function (&$e) use ($grId, $groupName) {
+    			if(keylist::isIn($grId, $e->groups)){
+    				$e->groupName = $groupName;
+    				return TRUE;
+    			} else {
+    				return FALSE;
+    			}
+    		});
+    		
     		// Ако има намерени резултати
     		if(count($res)  && is_array($res)){
     			
-    			// Ако папката е категория проверяваме по-кое поле ще сортираме
-    			$orderProductBy = cat_Categories::fetchField("#folderId = {$fId}", 'orderProductBy');
-    			if($orderProductBy === 'code'){
-    				$field = 'orderCode';
-    			} else {
-    				
-    				// По дефолт сортираме по име
-    				$field = 'orderName';
-    			}
-    				 
-    			// Сортираме артикулите от папката по-посоченото поле
-    			uasort($res, function($a, $b) use ($field){
-    					if($a->{$field} == $b->{$field}) return 0;
-    					return (strnatcasecmp($a->{$field}, $b->{$field}) < 0) ? -1 : 1;
-    			});
-
-    			// Добавяме подредените артикули
+    			// От $recs, премахваме отделените записи, да не се обхождат отново
+    			$recs = array_diff_key($recs, $res);
+    			
+    			// Проверяваме как трябва да се сортират артикулите вътре по код или по име
+    			$orderProductBy = cat_Groups::fetchField($grId, 'orderProductBy');
+    			$field = ($orderProductBy === 'code') ? 'orderCode' : 'orderName';
+    			
+    			// Сортираме артикулите в маркера
+    			arr::natOrder($res, $field);
+    			
+    			// Добавяме артикулите към подредените
     			$ordered += $res;
     		}
     	}
-    	 
-    	// Търсим артикулите от папки, не посочени във филтъра
-    	$rest = array_diff_key($recs, $ordered);
     	
+    	// В $recs трябва да са останали несортираните
+    	$rest = $recs;
     	if(count($rest) && is_array($rest)){
     		
-    		// Ако има такива сортираме ги по име
-    		uasort($rest, function($a, $b){
-    			if($a->orderName == $b->orderName) return 0;
-    			return (strnatcasecmp($a->orderName, $b->orderName) < 0) ? -1 : 1;
-    		});
+    		// Ще ги показваме в маркер 'Други'
+    		foreach ($rest as &$r){
+    			$r->groupName = tr('Други'); 
+    		}
     		
+    		// Подреждаме ги по име
+    		arr::natOrder($rest, 'orderName');
+    	
     		// Добавяме ги най-накрая
     		$ordered += $rest;
     	}
-    	 
-    	// Подготвяме името на папката, по която ще се групират
-    	foreach ($ordered as $id => &$rec){
-    		if(array_key_exists($rec->folderId, $folders)){
-    			$rec->folderName = $folders[$rec->folderId];
-    		} else {
-    			
-    			// Ако не е в посочените папки, ще ги показваме в една сумарна група
-    			$rec->folderName = tr('Други');
-    		}
-    	}
     	
+    	// След всеки подреден запис, записваме кой следва след него
     	$orderedValues = array_values($ordered);
     	for ($i = 0; $i < count($orderedValues); $i++) {
     		$r = $orderedValues[$i];
     		$nextId = $orderedValues[$i + 1]->id;
-    		
+    	
     		// Записваме в река ид-то на записа, който е след него
-    		$ordered[$r->id]->nextId = $nextId; 
+    		$ordered[$r->id]->nextId = $nextId;
     	}
     	
     	// Заместваме намерените записи

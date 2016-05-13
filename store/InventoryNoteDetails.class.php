@@ -234,12 +234,12 @@ class store_InventoryNoteDetails extends doc_Detail
 				// Връщаме очаквания обект
 				core_App::getJson($res);
 			} else {
-				
+				store_InventoryNotes::invalidateCache($rec->noteId);
+				//bp();
 				// Ако не сме по аякс правим редирект
 				followRetUrl();
 				//redirect(array('store_InventoryNotes', 'single', $rec->noteId), FALSE, 'Количествата са променени успешно');
 			}
-			
     	}
     	
     	// Ако сме в аякс режим добавяме JS бутони
