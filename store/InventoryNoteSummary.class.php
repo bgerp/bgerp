@@ -158,8 +158,6 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$productRec = cat_Products::fetch($rec->productId, 'measureId,isPublic,code');
-    	$row->measureId = cat_UoM::getShortName($productRec->measureId);
     	$row->code = $rec->verbalCode;
     	
     	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
@@ -174,8 +172,16 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
     	$row->modifiedDate = $rec->modifiedOn;
-    	
     	$row->groupName = $rec->groupName;
+    	
+    	if(Mode::is('blank')){
+    		$packs = cat_Products::getPacks($rec->productId);
+    		$measureId = key($packs);
+    	} else {
+    		$measureId = cat_Products::fetchField('productId', 'measureId');
+    	}
+    	
+    	$row->measureId = cat_UoM::getShortName($measureId);
     }
     
     
