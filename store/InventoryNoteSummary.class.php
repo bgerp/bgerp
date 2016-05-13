@@ -90,6 +90,12 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'groupName';
+    
+    
+    /**
      * Брой записи на страница
      *
      * @var integer
@@ -180,7 +186,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		$packs = cat_Products::getPacks($rec->productId);
     		$measureId = key($packs);
     	} else {
-    		$measureId = cat_Products::fetchField('productId', 'measureId');
+    		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     	}
     	
     	$row->measureId = cat_UoM::getShortName($measureId);
@@ -198,6 +204,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	$rec = static::fetchRec($rec);
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$deltaRow = $Double->toVerbal($rec->delta);
+    	if($rec->delta < 0){
+    		$deltaRow = "<span class='red'>{$deltaRow}</span>";
+    	}
     	
     	return new core_ET($deltaRow);
     }
@@ -626,7 +635,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	
+    	return parent::prepareListRows_($data);
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);

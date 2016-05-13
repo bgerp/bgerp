@@ -18,6 +18,12 @@ class store_InventoryNotes extends core_Master
 {
     
     
+	/**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=store_transaction_InventoryNote';
+    
+    
     /**
      * Заглавие
      */
@@ -81,7 +87,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_ActivatePlg';
+    public $loadList = 'plg_RowTools2, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -334,15 +340,17 @@ class store_InventoryNotes extends core_Master
      * 
      * @param stClass $rec
      * @return array
-     * 		o productId  - ид на артикул
-     * 	    o groups     - в кои маркери е
-     *  	o blQuantity - к-во
-     *  	o modifiedOn - текуща дата
+     * 		o productId      - ид на артикул
+     * 	    o groups         - в кои маркери е
+     *  	o blQuantity     - к-во
+     *  	o searchKeywords - ключови думи
+     *  	o modifiedOn     - текуща дата
      */
     private function getProductsFromBalance($rec)
     {
     	$res = array();
     	$rGroup = keylist::toArray($rec->groups);
+    	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
     	$from = dt::addMonths(-2, $rec->valior);
@@ -368,6 +376,7 @@ class store_InventoryNotes extends core_Master
     								  "groups"     => NULL,
     								  "modifiedOn" => $now,
     								  "blQuantity" => $bRec->blQuantity,);
+    			$aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
     			
     			$groups = cat_Products::fetchField($productId, 'groups');
     			if(count($groups)){
@@ -403,7 +412,7 @@ class store_InventoryNotes extends core_Master
      * @param stdClass $rec
      * @return void
      */
-    private function sync($id)
+    public function sync($id)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -428,7 +437,7 @@ class store_InventoryNotes extends core_Master
     	 
     	// На останалите им обновяваме определени полета
     	if(count($syncedArr['update'])){
-    		$Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn');
+    		$Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn,searchKeywords');
     	}
     	 
     	$deleted = 0;
@@ -526,5 +535,14 @@ class store_InventoryNotes extends core_Master
     		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
+    }
+    
+    
+    /**
+     * Документа не може да се активира ако има детайл с количество 0
+     */
+    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    {
+    	$res = TRUE;
     }
 }

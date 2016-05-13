@@ -275,8 +275,14 @@ class store_InventoryNoteDetails extends doc_Detail
         		unset($resObj->arg['replaceFormOnError']);
         	}
         	
+        	$resObj2 = new stdClass();
+        	$resObj2->func = "setFocus";
+        	$resObj2->arg = array('id' => 'focusAjaxField');
+        	
+        	$res = array_merge(array($resObj), array($resObj2));
+        	
         	// Връщаме очаквания обект
-        	core_App::getJson(array($resObj));
+        	core_App::getJson($res);
         } else {
         	
         	// Опаковаме изгледа
@@ -328,8 +334,10 @@ class store_InventoryNoteDetails extends doc_Detail
     		$refreshForm = array();
     		$packs = cat_Products::getPacks($rec->productId);
     		
+    		$count = 1;
     		foreach ($packs as $packId => $value){
-    			$form->FLD("pack{$packId}", 'double(min=0)');
+    			$attr = ($count == 1) ? array('attr' => array('id' => 'focusAjaxField')) : NULL;
+    			$form->FLD("pack{$packId}", 'double(min=0)', $attr);
     			
     			$exRec = store_InventoryNoteDetails::fetch("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packId}");
     			if($exRec){
@@ -357,6 +365,7 @@ class store_InventoryNoteDetails extends doc_Detail
     			$form->setDefault("quantityInPack{$packId}", $quantityInPack);
     			$refreshForm[] = "pack{$packId}";
     			$refreshForm[] = "quantityInPack{$packId}";
+    			$count++;
     		}
     		
     		$refreshForm = implode('|', $refreshForm);
