@@ -617,7 +617,6 @@ class store_InventoryNoteSummary extends doc_Detail
     function prepareListRows_(&$data)
     {
     	// Филтрираме записите
-    	$r = $data->recs;
     	$this->filterRecs($data->masterData->rec, $data->recs);
     	
     	// Ако сме в режим за принтиране/бланка не правим кеширане
