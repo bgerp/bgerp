@@ -160,6 +160,7 @@ class store_ConsignmentProtocols extends core_Master
     			'caption=Статус, input=none'
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
+    	$this->FLD('responsible', 'varchar', 'caption=Получил');
     	
     	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
     	$this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -213,6 +214,7 @@ class store_ConsignmentProtocols extends core_Master
     		
     		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
     		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
+    		$row->username = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     }
     
