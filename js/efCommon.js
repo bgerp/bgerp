@@ -1960,9 +1960,13 @@ function replaceFormData(frm, data)
         if (this.name.indexOf('[') == -1 && this.name.indexOf('_') == -1  ) {
             var matchVisibleElements =  ($('*[name="' + this.name + '"]').attr('type') != 'hidden');
             var matchSmartSelects = $('input[name="' + this.name + '"]').attr('type') == 'hidden'  && $('select[data-hiddenname=' + this.name + ']').length;
+            var prevElem = frm.find('input[name="' + this.name + '"][type="hidden"]')
+            var newElem = $('form').find('input[name="' + this.name + '"]');
+            // елементи, които са със същата стойност, но от скрити стават видими
+            var matchPrevHidden = prevElem.length && newElem.length && newElem.attr('type') != 'hidden' && prevElem.val() == newElem.val();
             // за всички елементи, които са видими или смарт селект
             if(matchVisibleElements || matchSmartSelects) {
-                if( (typeof paramsArray[this.name] == 'undefined' || this.value != paramsArray[this.name])) {
+                if( (typeof paramsArray[this.name] == 'undefined' || this.value != paramsArray[this.name] || matchPrevHidden )) {
                     // добавяме класа, който използваме за пресветване и transition
                     $('*[name="' + this.name + '"]').addClass('flashElem');
                     $('select[data-hiddenname=' +  this.name + ']').addClass('flashElem');
