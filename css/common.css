@@ -643,7 +643,7 @@ select.combo {
 input[type=checkbox],
 input[type=radio] {
   border: none !important;
-  box-shadow: none;
+  box-shadow: none !important;
   background-color: transparent;
   outline: none; }
 
