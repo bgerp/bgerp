@@ -764,7 +764,7 @@ class email_Incomings extends core_Master
             if ($rec->headers) {
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
-                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails, FALSE, TRUE)) {
                     $returnPathEmailsUniq = array_unique($returnPathEmails);
                     $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
                     $rEmailsStr = type_Varchar::escape($rEmailsStr);
@@ -970,15 +970,16 @@ class email_Incomings extends core_Master
     /**
      * Проверява дали имейла може да е еднакъв с подадения масив
      * Публичните трябва да съвпадат точно
-     * При останалите домейна трябва да съвпада
+     * При останалите - домейна трябва да съвпада
      * 
      * @param string $email
      * @param array $emailsArr
      * @param boolean $emailsArr
+     * @param boolean $removeSubdomains
      * 
      * @return boolean
      */
-    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE)
+    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE, $removeSubdomains = FALSE)
     {
         if (!$emailsArr) {
             if ($mandatory) {
@@ -1011,6 +1012,16 @@ class email_Incomings extends core_Master
             } else {
                 $cDomain = type_Email::domain($emailCheck);
                 $cDomain = strtolower($cDomain);
+                
+                // Правим проверка без да сравняваме поддомейните
+                if ($removeSubdomains) {
+                    $cDomain = core_Url::parseUrl($cDomain);
+                    $cDomain = $cDomain['domain'];
+                
+                    $domain = core_Url::parseUrl($domain);
+                    $domain = $domain['domain'];
+                }
+                
                 if ($domain == $cDomain) {
                     
                     return TRUE;
