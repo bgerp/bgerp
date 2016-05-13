@@ -340,15 +340,17 @@ class store_InventoryNoteDetails extends doc_Detail
     				$quantityInPack = ($pRec) ? $pRec->quantity : 1;
     			}
     			
-    			deals_Helper::getPackInfo($value, $rec->productId, $packId, $quantityInPack);
     			$value = cat_UoM::getShortName($packId);
+    			deals_Helper::getPackInfo($value, $rec->productId, $packId, $quantityInPack);
+    			$value = strip_tags($value);
+    			$value = str_replace('&nbsp;', '', $value);
     			
     			if($isAjax === TRUE){
     				$tplBlock = clone $form->fieldsLayout->getBlock('field_name');
     				$tplBlock->placeArray(array('field_name' => new core_ET("[#pack{$packId}#]"), 'caption' => $value));
     				$form->fieldsLayout->append($tplBlock, 'CONTENT');
     			} else {
-    				$form->setField("pack{$packId}", "caption={$value}");
+    				$form->setField("pack{$packId}", "caption=|*{$value}");
     			}
     			
     			$form->FLD("quantityInPack{$packId}", 'double', "input=hidden");

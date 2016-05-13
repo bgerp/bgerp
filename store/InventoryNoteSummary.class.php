@@ -120,7 +120,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_CalcDelta(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->blQuantity)) return;
+    	if (!isset($rec->blQuantity) || !isset($rec->quantity)) return;
     
     	$rec->delta = $rec->quantity - $rec->blQuantity;
     }
@@ -523,6 +523,8 @@ class store_InventoryNoteSummary extends doc_Detail
     		$rec->orderName = cat_Products::getVerbal($pRec, 'name');
     		$rec->orderName = strtolower(str::utf2ascii($rec->orderName));
     	}
+    	
+    	//bp($data->recs);
     }
     
     
@@ -579,8 +581,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	if(count($rest) && is_array($rest)){
     		
     		// Ще ги показваме в маркер 'Други'
-    		foreach ($rest as &$r){
-    			$r->groupName = tr('Други'); 
+    		foreach ($rest as &$r1){
+    			$r1->groupName = tr('Други'); 
     		}
     		
     		// Подреждаме ги по име
@@ -615,6 +617,7 @@ class store_InventoryNoteSummary extends doc_Detail
     function prepareListRows_(&$data)
     {
     	// Филтрираме записите
+    	$r = $data->recs;
     	$this->filterRecs($data->masterData->rec, $data->recs);
     	
     	// Ако сме в режим за принтиране/бланка не правим кеширане
