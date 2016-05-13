@@ -15,7 +15,20 @@
 class email_Incomings extends core_Master
 {
     
-
+    
+    /**
+     * Масив с IP-та, които се приемат за рискови и контрагента, ако не е от същата държава
+     * Трбва да дава предупреждение за измама
+     * 
+     * GH - Ghana
+     * NG - Nigeria
+     * VN - Viet Nam
+     * SN - Senegal
+     * SL - Sierra Leone
+     */
+    protected $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL');
+    
+    
     /**
      * Шаблон (ET) за заглавие на перо
      */
@@ -785,6 +798,36 @@ class email_Incomings extends core_Master
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
                     $haveErr = TRUE;
+                }
+            }
+            
+            // Ако IP-то на изпращача е от рискова зона
+            // Показваме предупреждение след имейла
+            if ($rec->fromIp) {
+                
+                $showIpErr = TRUE;
+                $errIpCountryName = '';
+                
+                $ipCoutryCode = drdata_IpToCountry::get($rec->fromIp);
+                $errIpCountryName = ' - ' . drdata_Countries::getCountryName($ipCoutryCode);
+                if ($rec->folderId) {
+                    if ($ipCoutryCode) {
+                        if (in_array($ipCoutryCode, $mvc->riskIpArr)) {
+                            $cData = doc_Folders::getContragentData($rec->folderId);
+                            if (isset($cData) && isset($cData->countryId)) {
+                                $coutryCode = drdata_Countries::fetchField((int)$cData->countryId, 'letterCode2');
+                                if ($coutryCode == $ipCoutryCode) {
+                                    $showIpErr = FALSE;
+                                }
+                            }
+                        } else {
+                            $showIpErr = FALSE;
+                        }
+                    }
+                }
+                
+                if ($showIpErr) {
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова държава|*{$errIpCountryName}!", 'error');
                 }
             }
         }
