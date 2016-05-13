@@ -293,7 +293,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('quantitySum', 'double');
     	
     	if(Mode::get('blank')){
-    		$data->listTableMvc->setField('quantitySum', 'tdClass=medium-field');
+    		$data->listTableMvc->setField('quantitySum', 'tdClass=large-field');
     	} else {
     		$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
     		$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
