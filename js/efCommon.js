@@ -1623,6 +1623,16 @@ function setRicheditWidth(el) {
     $('.formElement textarea').css('width', width);
 }
 
+/**
+ * Ако имаме 6 бутона в richedit, да излизат в 2 колони
+ */
+function prepareRichtextAddElements(){
+    if($('.richedit-toolbar .addElements').length && $('.richedit-toolbar .addElements').children().length == 6) {
+        $( "<span class='clearfix21'></span>" ).insertAfter( '.richedit-toolbar .addElements a:odd' );
+        $('.richedit-toolbar .addElements a' ).css('display', 'table-cell');
+    }
+}
+
 
 /**
  * Скролира listTable, ако е необходимо

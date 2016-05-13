@@ -154,6 +154,8 @@ class type_Richtext extends type_Blob
         }
         
     	jquery_Jquery::run($tpl, "hideRichtextEditGroups();");
+
+        jquery_Jquery::run($tpl, "prepareRichtextAddElements();");
     	
     	jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
     	
@@ -1290,11 +1292,11 @@ class type_Richtext extends type_Blob
         if (core_Users::haveRole('user')) {
         
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP1');
-           	$toolbarArr->add("<a class='rtbutton richtext-group-title'  title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group1', event)\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  alt='smile'></a>", 'TBL_GROUP1');
+           	$toolbarArr->add("<a class='rtbutton richtext-group-title'  title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group1', event)\"><img src=" . sbf('img/16/smile.png') . " height='15' width='15'  alt='smile'></a>", 'TBL_GROUP1');
             $emot1 = 'richtext-holder-group-after';
             $toolbarArr->add("<span id='{$attr['id']}-group1' class='richtext-emoticons richtext-holder-group {$emot1}'>", 'TBL_GROUP1');
-           	$toolbarArr->add("<a class='rtbutton' title='" . tr('Усмивка') .  "' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  alt='smile'></a>", 'TBL_GROUP1');
-    	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Широка усмивка') .  "' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15' alt='bigsmile'></a>", 'TBL_GROUP1');
+           	$toolbarArr->add("<a class='rtbutton' title='" . tr('Усмивка') .  "' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/16/smile.png') . " height='15' width='15'  alt='smile'></a>", 'TBL_GROUP1');
+    	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Широка усмивка') .  "' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/16/big-smile.png') . " height='15' width='15' alt='bigsmile'></a>", 'TBL_GROUP1');
     	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Супер!') .  "' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' alt='cool'></a>", 'TBL_GROUP1');
     	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Бира') .  "' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'),0)\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a><span class='clearfix21'></span>", 'TBL_GROUP1');
     	   	$toolbarArr->add("<a class='rtbutton' title='" . tr('Въпрос?') .  "' onclick=\"rp('[em=question]', document.getElementById('{$formId}'),0)\"><img alt='Въпрос?' src=" . sbf('img/em15/em.icon.question.gif') . " height='15' width='15' ></a>", 'TBL_GROUP1');
