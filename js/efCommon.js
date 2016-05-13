@@ -3255,6 +3255,15 @@ function render_html(data) {
 
 
 /**
+ * Фокусира поле с определено ид
+ */
+function render_setFocus(data){
+	var id = data.id;
+	$("#"+id).focus();
+}
+
+
+/**
  * Функция, която променя броя на нотификациите
  * Може да се комбинира с efae
  *
