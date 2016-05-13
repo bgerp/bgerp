@@ -469,7 +469,10 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	$mvc->sync($rec);
+    	// Синхронизираме данните само в чернова
+    	if($rec->state == 'draft'){
+    		$mvc->sync($rec);
+    	}
     	
     	static::invalidateCache($rec);
     }
