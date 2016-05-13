@@ -161,7 +161,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	$row->code = $rec->verbalCode;
     	
     	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
-    	$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		$row->productId = ht::createLinkRef($row->productId, $singleUrlArray);
+    	}
     	
     	if(!Mode::is('blank')){
     		$row->quantitySum = $mvc->renderQuantityCell($rec);
