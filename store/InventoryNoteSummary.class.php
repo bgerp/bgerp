@@ -357,10 +357,12 @@ class store_InventoryNoteSummary extends doc_Detail
     			$filterByGroup = TRUE;
     		}
     	} else {
-    		$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
-    		$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
-    		$pager->itemsCount = count($data->rows);
-    		$data->pager = $pager;
+    		if(!Mode::get('printing')){
+    			$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
+    			$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
+    			$pager->itemsCount = count($data->rows);
+    			$data->pager = $pager;
+    		}
     	}
     	
     	foreach ($data->rows as $id => &$row){
