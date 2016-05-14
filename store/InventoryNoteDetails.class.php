@@ -175,79 +175,94 @@ class store_InventoryNoteDetails extends doc_Detail
     	if($form->isSubmitted()){
     		$rec = $form->rec;
     		$arr = (array)$rec;
+    		$masterRec = store_InventoryNotes::fetch($rec->noteId);
     		
     		$quantity = NULL;
     		
-    		foreach ($arr as $key => $value){
-    			$recToClone = (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId);
-    			
-    			// За всяка опаковка
-    			if(strpos($key, 'pack') !== FALSE){
-    				$packagingId = str_replace('pack', '', $key);
-    				
-    				// Ако има стойност я добавяме
-    				if(isset($value)){
-    					$dRec = clone $recToClone;
-    					$dRec->packagingId = $packagingId;
-    					$dRec->quantityInPack = ($rec->{"quantityInPack{$packagingId}"}) ? $rec->{"quantityInPack{$packagingId}"} : 1;
-    					$dRec->quantity = $value * $dRec->quantityInPack;
-    					
-    					$this->isUnique($dRec, $fields, $exRec);
-    					if($exRec){
-    						$dRec->id = $exRec->id;
-    					}
-    					
-    					// Сумираме и записваме новата стойност
-    					$quantity += $dRec->quantity;
-    					store_InventoryNoteDetails::save($dRec);
-    				} else {
-    					
-    					// Ако за опаковката няма стойност изтриваме я
-    					store_InventoryNoteDetails::delete("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packagingId}");
-    				}
-    			}
+    		$date = dt::now();
+    		
+    		// Артикулът трябва да има себестойност
+    		$price = cat_Products::getWacAmountInStore(1, $rec->productId, $date, $masterRec->storeId);
+    		if(!$price){
+    			$price = cat_Products::getSelfValue($rec->productId);
     		}
     		
-    		// Форсираме съмарито на записа
-    		$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
+    		if(!$price){
+    			$form->setError('productId', 'Артикулът няма себестойност');
+    		}
     		
-    		// Обновяваме количеството
-    		$now = dt::now();
-    		$sRec = (object)array('id' => $summeryId, 'quantity' => $quantity, 'modifiedOn' => $now);
-			cls::get('store_InventoryNoteSummary')->save_($sRec);
- 			
-			// Ако сме в AJAX режим
-			if(Request::get('ajax_mode')) {
-				
-				// Ще рендираме наново колоните за количество и разлика
-				$replaceHtml = store_InventoryNoteSummary::renderQuantityCell($summeryId)->getContent();
-				$replaceDeltaHtml = store_InventoryNoteSummary::renderDeltaCell($summeryId)->getContent();
-				
-				// Заместваме клетката по AJAX за да визуализираме промяната
-				$resObj = new stdClass();
-				$resObj->func = "html";
-				$resObj->arg = array('id' => "summary{$summeryId}", 'html' => $replaceHtml, 'replace' => TRUE);
-				
-				$resObj1 = new stdClass();
-				$resObj1->func = "html";
-				$resObj1->arg = array('id' => "delta{$summeryId}", 'html' => $replaceDeltaHtml, 'replace' => TRUE);
-				
-				$resObj2 = new stdClass();
-				$resObj2->arg = array('nextelement' => $rec->nextelement);
-				
-				$resObj3 = new stdClass();
-				$resObj3->func = "html";
-				$resObj3->arg = array('id' => "charge{$summeryId}", 'html' => store_InventoryNoteSummary::renderCharge($summeryId), 'replace' => TRUE);
-				
-				$res = array_merge(array($resObj), array($resObj1), array($resObj2), array($resObj3));
-				
-				// Връщаме очаквания обект
-				core_App::getJson($res);
-			} else {
-				store_InventoryNotes::invalidateCache($rec->noteId);
-				// Ако не сме по аякс правим редирект
-				followRetUrl();
-			}
+    		if(!$form->gotErrors()){
+    			foreach ($arr as $key => $value){
+    				$recToClone = (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId);
+    				 
+    				// За всяка опаковка
+    				if(strpos($key, 'pack') !== FALSE){
+    					$packagingId = str_replace('pack', '', $key);
+    			
+    					// Ако има стойност я добавяме
+    					if(isset($value)){
+    						$dRec = clone $recToClone;
+    						$dRec->packagingId = $packagingId;
+    						$dRec->quantityInPack = ($rec->{"quantityInPack{$packagingId}"}) ? $rec->{"quantityInPack{$packagingId}"} : 1;
+    						$dRec->quantity = $value * $dRec->quantityInPack;
+    							
+    						$this->isUnique($dRec, $fields, $exRec);
+    						if($exRec){
+    							$dRec->id = $exRec->id;
+    						}
+    							
+    						// Сумираме и записваме новата стойност
+    						$quantity += $dRec->quantity;
+    						store_InventoryNoteDetails::save($dRec);
+    					} else {
+    							
+    						// Ако за опаковката няма стойност изтриваме я
+    						store_InventoryNoteDetails::delete("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packagingId}");
+    					}
+    				}
+    			}
+    			
+    			// Форсираме съмарито на записа
+    			$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
+    			
+    			// Обновяваме количеството
+    			$now = dt::now();
+    			$sRec = (object)array('id' => $summeryId, 'quantity' => $quantity, 'modifiedOn' => $now);
+    			cls::get('store_InventoryNoteSummary')->save_($sRec);
+    			
+    			// Ако сме в AJAX режим
+    			if(Request::get('ajax_mode')) {
+    			
+    				// Ще рендираме наново колоните за количество и разлика
+    				$replaceHtml = store_InventoryNoteSummary::renderQuantityCell($summeryId)->getContent();
+    				$replaceDeltaHtml = store_InventoryNoteSummary::renderDeltaCell($summeryId)->getContent();
+    			
+    				// Заместваме клетката по AJAX за да визуализираме промяната
+    				$resObj = new stdClass();
+    				$resObj->func = "html";
+    				$resObj->arg = array('id' => "summary{$summeryId}", 'html' => $replaceHtml, 'replace' => TRUE);
+    			
+    				$resObj1 = new stdClass();
+    				$resObj1->func = "html";
+    				$resObj1->arg = array('id' => "delta{$summeryId}", 'html' => $replaceDeltaHtml, 'replace' => TRUE);
+    			
+    				$resObj2 = new stdClass();
+    				$resObj2->arg = array('nextelement' => $rec->nextelement);
+    			
+    				$resObj3 = new stdClass();
+    				$resObj3->func = "html";
+    				$resObj3->arg = array('id' => "charge{$summeryId}", 'html' => store_InventoryNoteSummary::renderCharge($summeryId), 'replace' => TRUE);
+    			
+    				$res = array_merge(array($resObj), array($resObj1), array($resObj2), array($resObj3));
+    			
+    				// Връщаме очаквания обект
+    				core_App::getJson($res);
+    			} else {
+    				store_InventoryNotes::invalidateCache($rec->noteId);
+    				// Ако не сме по аякс правим редирект
+    				followRetUrl();
+    			}
+    		}
     	}
     	
     	// Ако сме в аякс режим добавяме JS бутони
