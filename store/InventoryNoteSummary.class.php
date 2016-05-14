@@ -182,7 +182,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		$row->quantitySum = "<div id='summary{$rec->id}'>{$row->quantitySum}</div>";
     	}
     	
-    	$row->charge = $mvc->renderCharge($rec);
+    	$row->charge = static::renderCharge($rec);
     	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
     	$row->modifiedDate = $rec->modifiedOn;
@@ -447,10 +447,9 @@ class store_InventoryNoteSummary extends doc_Detail
     			// Заместваме клетката по AJAX за да визуализираме промяната
     			$resObj = new stdClass();
     			$resObj->func = "html";
-    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => $this->renderCharge($rec), 'replace' => TRUE);
-    			$statusData = status_Messages::returnStatusesArray();
+    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec), 'replace' => TRUE);
     			
-    			$res = array_merge(array($resObj), (array)$statusData);
+    			$res = array_merge(array($resObj));
     			
     			// Връщаме очаквания обект
     			return $res;
@@ -489,18 +488,18 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param stdClass $rec   - записа от модела
      * @return string $charge - бутона за смяна
      */
-    private function renderCharge($rec)
+    public static function renderCharge($rec)
     {
     	$icon = ($rec->charge != 'owner') ? 'img/16/checked.png' : 'img/16/unchecked.png';
     	$attr = array('src' => sbf($icon, ''));
     	
     	// Правим линк само ако не сме в някой от следните режими
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
-    		if($this->haveRightFor('togglecharge', $rec)){
+    		if(static::haveRightFor('togglecharge', $rec)){
     			$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
     	
     			$attr['class']    = "toggle-charge";
-    			$attr['data-url'] = toUrl(array($this, 'togglecharge', $rec->id), 'local');
+    			$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'togglecharge', $rec->id), 'local');
     			$attr['title']    = "Смяна за сметка на {$type}";
     		}
     	}
