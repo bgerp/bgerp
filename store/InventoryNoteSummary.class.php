@@ -60,9 +60,15 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Кой има достъп до листовия изглед
+     */
+    public $canList = 'no_one';
+    
+    
+    /**
      * Кой има право да променя начисляването?
      */
-    public $canTogglecharge = 'ceo, store';
+    public $canTogglecharge = 'ceo, storeMaster';
     
     
     /**

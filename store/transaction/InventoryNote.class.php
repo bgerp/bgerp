@@ -29,18 +29,16 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 		expect($rec = $this->class->fetchRec($id));
 		
 		$result = (object)array(
-				'reason' => "Протоколи за инвентаризация №{$rec->id}",
-				'valior' => $rec->valior,
+				'reason'      => "Протоколи за инвентаризация №{$rec->id}",
+				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
-				'entries' => array()
+				'entries'     => array()
 		);
 		
 		if($rec->id){
-			if($rec->state == 'draft'){
-				//$this->class->sync($rec);
+			if(Mode::get('saveTransaction')){
+				$this->class->sync($rec);
 			}
-			
-			//$result->entries = $this->getEntries($rec);
 		}
 		
 		return $result;

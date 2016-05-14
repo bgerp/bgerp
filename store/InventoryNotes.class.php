@@ -57,13 +57,13 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,storeMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,storeMaster';
     
     
     /**

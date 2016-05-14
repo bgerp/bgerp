@@ -48,6 +48,12 @@ class store_InventoryNoteDetails extends doc_Detail
     
     
     /**
+     * Кой има достъп до листовия изглед?
+     */
+    public $canList = 'no_one';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
@@ -62,7 +68,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canInsert = 'ceo, store';
+    public $canInsert = 'ceo, storeMaster';
     
     
     /**
@@ -235,10 +241,8 @@ class store_InventoryNoteDetails extends doc_Detail
 				core_App::getJson($res);
 			} else {
 				store_InventoryNotes::invalidateCache($rec->noteId);
-				//bp();
 				// Ако не сме по аякс правим редирект
 				followRetUrl();
-				//redirect(array('store_InventoryNotes', 'single', $rec->noteId), FALSE, 'Количествата са променени успешно');
 			}
     	}
     	
