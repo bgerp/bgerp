@@ -60,4 +60,19 @@
 	select, input {
 		max-width: 350px;
 	}
+	.passageHolder {
+		.file-log-link, .richtext {
+			display: inline-block;
+			float: left;
+		}
+		.richtext .more-btn {
+			position: relative;
+			top: -2px;
+		}
+	}
+	.createdInfo {
+		white-space: nowrap;
+		width: 1%;
+		text-align: center;
+	}
 }
