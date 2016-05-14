@@ -2536,7 +2536,7 @@ class crm_Persons extends core_Master
     			$obj->$fld = $Varchar->toVerbal($rec->$fld);
     			if($translitarate === TRUE){
     				if($fld != 'pCode'){
-    					$obj->$fld = transliterate($obj->{$fld});
+    					$obj->$fld = transliterate(tr($obj->{$fld}));
     				}
     			}
     		}
