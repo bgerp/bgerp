@@ -328,35 +328,40 @@ class sales_Invoices extends deals_InvoiceMaster
     	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
     	core_Lg::push($tLang);
     	
-    	// Ако продажбата има референтен номер, попълваме го в забележката
-    	if($firstRec->reff){
-    		
-    		// Ако рефа е по офертата на сделката към която е фактурата
-    		if(isset($firstRec->originId)){
-    			$origin = doc_Containers::getDocument($firstRec->originId);
-    			if($firstRec->reff == $origin->getHandle()){
-    				$firstRec->reff = "#" . $firstRec->reff;
+    	$showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
+    	
+    	if($showSale == 'yes'){
+    		// Ако продажбата приключва други продажби също ги попълва в забележката
+    		if($firstRec->closedDocuments){
+    			$docs = keylist::toArray($firstRec->closedDocuments);
+    			$closedDocuments = '';
+    			foreach ($docs as $docId){
+    				$dRec = sales_Sales::fetch($docId);
+    				$date = sales_Sales::getVerbal($dRec, 'valior');
+    				$handle = sales_Sales::getHandle($dRec->id);
+    				$closedDocuments .= " #{$handle}/{$date},";
+    			}
+    			$closedDocuments = trim($closedDocuments, ", ");
+    			$defInfo .= tr('|Съгласно сделки|*: ') . $closedDocuments . PHP_EOL;
+    		} else {
+    			$handle = sales_Sales::getHandle($firstRec->id);
+    			$defInfo .= tr("Съгласно сделка") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
+    			
+    			// Ако продажбата има референтен номер, попълваме го в забележката
+    			if($firstRec->reff){
+    				
+    				// Ако рефа е по офертата на сделката към която е фактурата
+    				if(isset($firstRec->originId)){
+    					$origin = doc_Containers::getDocument($firstRec->originId);
+    					if($firstRec->reff == $origin->getHandle()){
+    						$firstRec->reff = "#" . $firstRec->reff;
+    					}
+    				}
+    				$defInfo .= " " . tr("({$firstRec->reff})") . PHP_EOL;
     			}
     		}
-    		$defInfo .= tr("|Ваш реф.|* {$firstRec->reff}") . PHP_EOL;
     	}
     	
-    	// Ако продажбата приключва други продажби също ги попълва в забележката
-    	if($firstRec->closedDocuments){
-    		$docs = keylist::toArray($firstRec->closedDocuments);
-    		$closedDocuments = '';
-    		foreach ($docs as $docId){
-    			$dRec = sales_Sales::fetch($docId);
-    			$date = sales_Sales::getVerbal($dRec, 'valior');
-    			$handle = sales_Sales::getHandle($dRec->id);
-    			$closedDocuments .= " #{$handle}/{$date},";
-    		}
-    		$closedDocuments = trim($closedDocuments, ", ");
-    		$defInfo .= tr('|Съгласно сделки|*: ') . $closedDocuments . PHP_EOL;
-    	} else {
-    		$handle = sales_Sales::getHandle($firstRec->id);
-    		$defInfo .= tr("Съгласно сделка") . " :#{$handle}/{$firstDoc->getVerbal('valior')}";
-    	}
     	core_Lg::pop();
     	
     	// Ако има дефолтен текст за фактура добавяме и него
