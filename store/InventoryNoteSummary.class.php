@@ -305,6 +305,40 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * След рендиране на името на групата
+     *
+     * @see plg_GroupByField
+     * @param core_Mvc $mvc           - модела
+     * @param string $res             - името на групата
+     * @param stdClass $data          - датата
+     * @param string $groupName       - вътршното представяне на групата
+     * @param string $groupVerbalName - текущото вербално име на групата
+     */
+    public static function on_AfterRenderGroupName($mvc, &$res, $data, $groupName, $groupVerbalName)
+    {
+    	$blankUrl = array();
+    	$masterRec = $data->masterData->rec;
+    	if($masterRec->state != 'rejected'){
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
+    			if(store_InventoryNotes::haveRightFor('single', $masterRec)){
+    				$blankUrl = array('store_InventoryNotes', 'single', $data->masterId);
+    				$blankUrl['Printing'] = 'yes';
+    				$blankUrl['Blank'] = 'yes';
+    				$blankUrl[$mvc->groupByField] = $groupName;
+    			}
+    		}
+    	}
+    	
+    	// Ако можем добавяме към името на раздела бутон за принтиране на бланка само за артикулите с въпросната група
+    	if(count($blankUrl)){
+    		$title = "Принтиране на бланка за|* '{$groupName}'"; 
+    		$link = ht::createLink('', $blankUrl, FALSE, "target=_blank,title={$title},ef_icon=img/16/print_go.png");
+    		$res .= " <span style='margin-left:7px'>{$link}</span>";
+    	}
+    }
+    
+    
+    /**
      *  Преди рендиране на лист таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
@@ -314,8 +348,14 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
     	
+    	$filterByGroup = FALSE;
     	if(Mode::get('blank')){
     		$data->listTableMvc->setField('quantitySum', 'tdClass=large-field');
+    		
+    		$filterName = Request::get($mvc->groupByField, 'varchar');
+    		if($filterName){
+    			$filterByGroup = TRUE;
+    		}
     	} else {
     		$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
     		$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
@@ -335,7 +375,23 @@ class store_InventoryNoteSummary extends doc_Detail
     			unset($data->rows[$id]);
     			continue;
     		}
-    		 
+    		
+    		if($filterByGroup === TRUE && isset($filterName)){
+    			if((!$row instanceof core_ET) && isset($rec)){
+    				
+    				if($rec->{$mvc->groupByField} != $filterName){
+	    				unset($data->rows[$id]);
+	    				continue;
+    				}
+    			} else {
+    				$fId = "|{$filterName}";
+    				if($id != $fId){
+    					unset($data->rows[$id]);
+    					continue;
+    				}
+    			}
+    		}
+    		
     		if($rec->blQuantity < 0 ){
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
@@ -643,7 +699,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	
+    	return parent::prepareListRows_($data);
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);

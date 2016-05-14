@@ -260,7 +260,7 @@ class store_InventoryNotes extends core_Master
     			$url['Printing'] = 'yes';
     			$url['Blank'] = 'yes';
     			 
-    			$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/blueprint.png,title=Разпечатване на бланката,target=_blank');
+    			$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
     		}
     	}
     }
