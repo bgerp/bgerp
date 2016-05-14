@@ -210,9 +210,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	$rec = static::fetchRec($rec);
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$deltaRow = $Double->toVerbal($rec->delta);
-    	if($rec->delta < 0){
-    		$deltaRow = "<span class='red'>{$deltaRow}</span>";
-    	}
+    	$class = ($rec->delta < 0) ? 'red' : (($rec->delta > 0) ? 'green' : 'quiet');
+    	$deltaRow = "<span class='{$class}'>{$deltaRow}</span>";
     	
     	return new core_ET($deltaRow);
     }
@@ -295,6 +294,12 @@ class store_InventoryNoteSummary extends doc_Detail
     		if($state != 'draft'){
     			$requiredRoles = 'no_one';
     		}
+
+    		if($requiredRoles != 'no_one'){
+    			if(!isset($rec->delta) || (isset($rec->delta) && $rec->delta >= 0)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
     
@@ -329,10 +334,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		if(isset($data->pager) && !$data->pager->isOnPage()) {
     			unset($data->rows[$id]);
     			continue;
-    		}
-    		
-    		if(!isset($rec->quantity)){
-    			$row->delta = "<span class='red'>{$row->delta}</span>";
     		}
     		 
     		if($rec->blQuantity < 0 ){
@@ -490,21 +491,23 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     public static function renderCharge($rec)
     {
-    	$icon = ($rec->charge != 'owner') ? 'img/16/checked.png' : 'img/16/unchecked.png';
-    	$attr = array('src' => sbf($icon, ''));
+    	$rec = static::fetchRec($rec);
+    	$charge = '';
     	
     	// Правим линк само ако не сме в някой от следните режими
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     		if(static::haveRightFor('togglecharge', $rec)){
+    			$icon = ($rec->charge != 'owner') ? 'img/16/checked.png' : 'img/16/unchecked.png';
+    			$attr = array('src' => sbf($icon, ''));
     			$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
     	
     			$attr['class']    = "toggle-charge";
     			$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'togglecharge', $rec->id), 'local');
     			$attr['title']    = "Смяна за сметка на {$type}";
+    		
+    			$charge = ht::createElement('img', $attr);
     		}
     	}
-    	
-    	$charge = ht::createElement('img', $attr);
     	
     	// Слагаме уникално ид на обграждащия div
     	$charge = "<div id='charge{$rec->id}'>{$charge}</div>";
@@ -640,7 +643,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	
+    	return parent::prepareListRows_($data);
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);

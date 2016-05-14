@@ -101,6 +101,16 @@ function submitShowAddForm(form, stop) {
 			frm.hide();
 		}
 		
+		// Ако има трети обект за подмяна на съдържанието му
+		if(typeof data[3] != 'undefined'){
+			
+			var r3 = data[3];
+			var id3 = r3['arg']['id'];
+			var html3 = r3['arg']['html'];
+			id3 = "#" + id3;
+			$(id3).html(html3);
+		}
+		
 		// Ако не искаме да се отваря нова форма, излизаме от функцията
 		if(stop == true){
 			return;
