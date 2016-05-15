@@ -594,6 +594,8 @@ class core_Query extends core_FieldSet
             $query .= $wh->w;
             $query .= $temp->getGroupBy();
             $query .= $wh->h;
+            $query .= $temp->getLimit();
+
             $db = $temp->mvc->db;
             
             DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
