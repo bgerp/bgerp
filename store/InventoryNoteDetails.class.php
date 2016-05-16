@@ -380,9 +380,8 @@ class store_InventoryNoteDetails extends doc_Detail
     				$tplBlock = clone $form->fieldsLayout->getBlock('field_name');
     				$tplBlock->placeArray(array('field_name' => new core_ET("[#pack{$packId}#]"), 'caption' => $value));
     				$form->fieldsLayout->append($tplBlock, 'CONTENT');
-    			} else {
-    				$form->setField("pack{$packId}", "caption=|*{$value}");
     			}
+    			$form->setField("pack{$packId}", "caption=|*{$value}");
     			
     			$form->FLD("quantityInPack{$packId}", 'double', "input=hidden");
     			$form->setDefault("quantityInPack{$packId}", $quantityInPack);
