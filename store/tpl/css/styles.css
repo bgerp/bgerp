@@ -52,8 +52,8 @@
 	border: none !important;
 }
 
-.formTitle {
-	max-width: 400px;
+.formTitle, .formTable {
+	width: 100%;
 }
 
 .ui-widget-overlay {

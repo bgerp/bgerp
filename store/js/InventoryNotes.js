@@ -1,8 +1,6 @@
 var dialog;
 
 function noteActions() {
-
-
 	var ajaxForm = document.createElement("div");
 	var ajaxFormHolder = document.createElement("div");
 
@@ -45,7 +43,7 @@ function noteActions() {
 		dialog = $("#ajax-form").dialog({
 			autoOpen: false,
 			height: 300,
-			width: 500,
+			width: 450,
 			modal: true
 		});
 
