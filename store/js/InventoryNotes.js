@@ -49,7 +49,6 @@ function noteActions() {
 		});
 
 		dialog.dialog("open");
-
 	});
 
 	// При натискане на бутона за показване на форма
@@ -60,9 +59,12 @@ function noteActions() {
 	// При натискане на бутон, когато е отворена формата
 	$(document.body).on("keypress", ".inventoryNoteInsertForm", function (event) {
 		if (event.keyCode == 13) {
-
-			// При натискане на 'ENTER' не искаме да се събмитне формата
+			// При натискане на 'ENTER' не искаме да се събмитне формата по стандартния начин
 			event.preventDefault();
+			submitShowAddForm($(event.target).closest('form'));
+		}
+		if (event.keyCode == 27) {
+			dialog.dialog('close');
 		}
 	});
 }
