@@ -291,11 +291,11 @@ class store_InventoryNoteDetails extends doc_Detail
         	// Подготвяме данните за реплейсване на формата
         	$resObj = new stdClass();
         	$resObj->func = "html";
-        	$resObj->arg = array('id' => 'ajax-form', 'html' => $tpl->getContent(), 'replace' => TRUE, 'replaceFormOnError' => "ajax-form");
+        	$resObj->arg = array('id' => 'ajax-form', 'html' => $tpl->getContent(), 'replace' => TRUE, 'hasError' => TRUE);
         	
         	// Ако няма грешки
         	if(!$form->gotErrors()){
-        		unset($resObj->arg['replaceFormOnError']);
+        		unset($resObj->arg['hasError']);
         	}
         	
         	$resObj2 = new stdClass();

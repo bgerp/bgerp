@@ -69,7 +69,6 @@ function cancelForm(){
 // Събмитва формата и не отваря нова след това
 function submitAndCloseForm(form) {
 	submitShowAddForm(form, true);
-	cancelForm();
 }
 
 // Субмитва формата за добавяне на установено количество
@@ -100,9 +99,8 @@ function submitShowAddForm(form, stop) {
 		var html = r1['arg']['html'];
 		var hide = true;
 		
-		// При грешка реплейсваме формата
-		if(typeof data[0]['arg']['replaceFormOnError'] != 'undefined'){
-			id = r1['arg']['replaceFormOnError'];
+		// При грешка не затваряме формата
+		if(typeof data[0]['arg']['hasError'] != 'undefined'){
 			hide = false;
 		}
 		
@@ -122,7 +120,7 @@ function submitShowAddForm(form, stop) {
 		
 		// Ако искаме да затворим формата, затваряме я
 		if(hide == true){
-			frm.hide();
+			cancelForm();
 		}
 		
 		// Ако има трети обект за подмяна на съдържанието му
