@@ -1,5 +1,15 @@
 function noteActions() {
-	
+	var dialog;
+
+	var ajaxForm = document.createElement( "div" );
+	var ajaxFormHolder = document.createElement( "div" );
+
+	$(ajaxFormHolder).addClass('ajaxFormHolder');
+	$(ajaxForm).attr('id', 'ajax-form');
+	$(ajaxForm).attr('class', 'ajax-form');
+	$('body').append( $( ajaxFormHolder ) );
+	$('.ajaxFormHolder').append( $( ajaxForm ) );
+
 	// Смяна на начисляването при клик на бутон
 	$(document.body).on('change', ".toggle-charge", function(e){
 		var url = $(this).attr("data-url");
@@ -16,6 +26,7 @@ function noteActions() {
 	
 	// При натискане на бутона за показване на форма
 	$(document.body).on('click', ".inventoryNoteShowAddForm", function(e){
+
 		var url = $(this).attr("data-url");
 		var nextelement = $(this).attr("data-nextelement");
 		
@@ -28,6 +39,16 @@ function noteActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, data);
+
+		dialog = $("#ajax-form" ).dialog({
+			autoOpen: false,
+			height: 300,
+			width: 500,
+			modal: true
+		});
+
+		dialog.dialog( "open" );
+
 	});
 	
 	// При натискане на бутон, когато е отворена формата
@@ -89,7 +110,7 @@ function submitShowAddForm(form, stop) {
 		
 		// Подмяна на съдържанието на обекта
 		$(id).html(html);
-		
+
 		// Ако има втори обект за подмяна на съдържанието му
 		if(typeof data[1] != 'undefined'){
 			var r2 = data[1];

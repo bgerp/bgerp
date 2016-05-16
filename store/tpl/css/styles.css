@@ -23,3 +23,40 @@
 .doc_Containers table.listTable td  .ajax-form td {
 	vertical-align: middle;
 }
+.ui-dialog {
+	padding: 0 !important;
+}
+.ui-dialog-titlebar {
+	display: none;
+}
+
+.ui-dialog .ui-dialog-content {
+	padding: 0;
+	z-index: 100;
+}
+
+.clearfix21.vertical .formTable{
+	margin: 0 auto;
+}
+.ui-widget {
+	font-size: 1em !important;
+}
+
+.ui-widget .toolbar input {
+	font-size: 0.85em !important;
+}
+.ui-widget-content {
+	background: none !important;
+	border: none !important;
+}
+
+.formTitle {
+	max-width: 400px;
+}
+
+.ui-widget-overlay {
+	z-index: 20 !important;
+}
+.ui-dialog {
+	z-index: 100;
+}
