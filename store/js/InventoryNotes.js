@@ -1,5 +1,7 @@
+var dialog;
+
 function noteActions() {
-	var dialog;
+
 
 	var ajaxForm = document.createElement("div");
 	var ajaxFormHolder = document.createElement("div");
