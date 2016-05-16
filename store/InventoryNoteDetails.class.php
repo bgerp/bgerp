@@ -249,11 +249,7 @@ class store_InventoryNoteDetails extends doc_Detail
     				$resObj2 = new stdClass();
     				$resObj2->arg = array('nextelement' => $rec->nextelement);
     			
-    				$resObj3 = new stdClass();
-    				$resObj3->func = "html";
-    				$resObj3->arg = array('id' => "charge{$summeryId}", 'html' => store_InventoryNoteSummary::renderCharge($summeryId), 'replace' => TRUE);
-    			
-    				$res = array_merge(array($resObj), array($resObj1), array($resObj2), array($resObj3));
+    				$res = array_merge(array($resObj), array($resObj1), array($resObj2));
     			
     				// Връщаме очаквания обект
     				core_App::getJson($res);

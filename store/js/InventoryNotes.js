@@ -1,14 +1,17 @@
 function noteActions() {
 	
 	// Смяна на начисляването при клик на бутон
-	$(document.body).on('click', ".toggle-charge", function(e){
+	$(document.body).on('change', ".toggle-charge", function(e){
 		var url = $(this).attr("data-url");
+		var selectedUser = this.value;
+		
 		if(!url) return;
 		
+		var data = {userId:selectedUser};
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj);
+		getEfae().process(resObj,data);
 	});
 	
 	// При натискане на бутона за показване на форма

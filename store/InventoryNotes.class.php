@@ -61,6 +61,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Кой може да създава продажба към отговорника на склада?
+     */
+    public $canMakesale = 'ceo,storeMaster';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,storeMaster';
@@ -154,9 +160,6 @@ class store_InventoryNotes extends core_Master
     	
     	if(isset($form->rec->id)){
     		$form->setReadOnly('storeId');
-    	} else {
-    		$form->FLD('charge', 'enum(owner=Не,responsible=Да)', 'caption=Начет МОЛ,maxRadio=2,after=groups');
-    		$form->setDefault('charge', 'owner');
     	}
     }
     
@@ -254,13 +257,22 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->state != 'rejected'){
-    		if($mvc->haveRightFor('single', $data->rec->id)){
-    			$url = array($mvc, 'single', $data->rec->id);
+    	$rec = $data->rec;
+    	
+    	if($rec->state != 'rejected'){
+    		if($mvc->haveRightFor('single', $rec->id)){
+    			$url = array($mvc, 'single', $rec->id);
     			$url['Printing'] = 'yes';
     			$url['Blank'] = 'yes';
     			 
     			$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
+    		}
+    	}
+    	
+    	if($rec->state == 'active'){
+    		
+    		if($mvc->haveRightFor('makesale', $rec)){
+    			$data->toolbar->addBtn('Начет. МОЛ', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
     		}
     	}
     }

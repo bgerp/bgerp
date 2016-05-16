@@ -68,7 +68,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кой има право да променя начисляването?
      */
-    public $canTogglecharge = 'ceo, storeMaster';
+    public $canSetresponsibleperson = 'ceo, storeMaster';
     
     
     /**
@@ -98,7 +98,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'groupName';
+    public $hideListFieldsIfEmpty = 'groupName,charge';
     
     
     /**
@@ -120,7 +120,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
-        $this->FLD('charge', 'enum(owner=Собственик,responsible=Отговорник)', 'caption=Начисляване,notNull,value=owner,smartCenter');
+        $this->FLD('charge', 'user', 'caption=Начет,smartCenter');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
         $this->setDbUnique('noteId,productId');
@@ -181,8 +181,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		$row->quantitySum = $mvc->renderQuantityCell($rec);
     		$row->quantitySum = "<div id='summary{$rec->id}'>{$row->quantitySum}</div>";
     	}
-    	
-    	$row->charge = static::renderCharge($rec);
     	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
     	$row->modifiedDate = $rec->modifiedOn;
@@ -289,7 +287,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'togglecharge' && isset($rec)){
+    	if($action == 'setresponsibleperson' && isset($rec)){
     		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');
     		if($state != 'draft'){
     			$requiredRoles = 'no_one';
@@ -358,7 +356,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		}
     	} else {
     		if(!Mode::get('printing')){
-    			$data->listFields['charge'] = "Начет|*<br>|МОЛ|*";
     			$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
     			$pager->itemsCount = count($data->rows);
     			$data->pager = $pager;
@@ -477,9 +474,9 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Екшън за смяна на начисляването
      */
-    function act_ToggleCharge()
+    function act_SetResponsibleperson()
     {
-    	$this->requireRightFor('togglecharge');
+    	$this->requireRightFor('setresponsibleperson');
     	
     	if(!$id = Request::get('id', 'int')){
     		core_Statuses::newStatus('|Невалиден ред|*!', 'error');
@@ -491,31 +488,17 @@ class store_InventoryNoteSummary extends doc_Detail
     		return status_Messages::returnStatusesArray();
     	}
     	
-    	$this->requireRightFor('togglecharge', $rec);
+    	$userId = Request::get('userId', 'int');
+    	$this->requireRightFor('setresponsibleperson', $rec);
+    	if(!$userId){
+    		$userId = NULL;
+    	}
     	
     	// Сменяме начина на начисляване
-    	$rec->charge = ($rec->charge == 'owner') ? 'responsible' : 'owner'; 
+    	$rec->charge = $userId; 
     	$rec->modifiedOn = dt::now();
     	
-    	// Опитваме се да запишем
-    	if($this->save($rec, 'charge,modifiedOn')){
-    		
-    		// Ако сме в AJAX режим
-    		if(Request::get('ajax_mode')) {
-    			
-    			// Заместваме клетката по AJAX за да визуализираме промяната
-    			$resObj = new stdClass();
-    			$resObj->func = "html";
-    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec), 'replace' => TRUE);
-    			
-    			$res = array_merge(array($resObj));
-    			
-    			// Връщаме очаквания обект
-    			return $res;
-    		}
-    	} else {
-    		core_Statuses::newStatus('|Проблем при запис|*!', 'error');
-    	}
+    	$this->save($rec, 'charge,modifiedOn');
     	
     	// Редирект
     	if (Request::get('ajax_mode')) {
@@ -537,41 +520,6 @@ class store_InventoryNoteSummary extends doc_Detail
     		unset($data->listFields['blQuantity']);
     		$data->listFields['quantitySum'] = 'Количество';
     	}
-    }
-    
-    
-    /**
-     * Рендира бутона за смяна на начисляването
-     * Вика се и след смяната на начисляването по AJAX
-     * 
-     * @param stdClass $rec   - записа от модела
-     * @return string $charge - бутона за смяна
-     */
-    public static function renderCharge($rec)
-    {
-    	$rec = static::fetchRec($rec);
-    	$charge = '';
-    	
-    	// Правим линк само ако не сме в някой от следните режими
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
-    		if(static::haveRightFor('togglecharge', $rec)){
-    			$icon = ($rec->charge != 'owner') ? 'img/16/checked.png' : 'img/16/unchecked.png';
-    			$attr = array('src' => sbf($icon, ''));
-    			$type = ($rec->charge == 'owner') ? 'отговорника' : 'собственика';
-    	
-    			$attr['class']    = "toggle-charge";
-    			$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'togglecharge', $rec->id), 'local');
-    			$attr['title']    = "Смяна за сметка на {$type}";
-    		
-    			$charge = ht::createElement('img', $attr);
-    		}
-    	}
-    	
-    	// Слагаме уникално ид на обграждащия div
-    	$charge = "<div id='charge{$rec->id}'>{$charge}</div>";
-    	
-    	// Връщаме бутона
-    	return $charge;
     }
     
     
@@ -606,8 +554,44 @@ class store_InventoryNoteSummary extends doc_Detail
     		$rec->orderName = cat_Products::getVerbal($pRec, 'name');
     		$rec->orderName = strtolower(str::utf2ascii($rec->orderName));
     	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	if(!count($data->recs)) return;
+    	$rows = &$data->rows;
+    	$masterRec = $data->masterData->rec;
     	
-    	//bp($data->recs);
+    	$responsibles = array();
+    	$chiefs = keylist::toArray(store_Stores::fetchField($masterRec->storeId, 'chiefs'));
+    	foreach ($chiefs as $c){
+    		$responsibles[$c] = core_Users::getVerbal($c, 'nick');
+    	}
+    	$responsibles = array('' => '') + $responsibles;
+    	
+    	foreach ($rows as $id => &$row){
+    		$rec = $data->recs[$id];
+    		if($masterRec->state == 'draft'){
+    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
+    				if(static::haveRightFor('setresponsibleperson', $rec)){
+    					$attr['class']    = "toggle-charge";
+    					$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
+    					$attr['title']    = "Избор на материално отговорно лице";
+    					
+    					$row->charge = ht::createSmartSelect($responsibles, 'charge', $rec->charge, $attr);
+    				}
+    			}
+    		} else {
+    			if((isset($rec->delta) && $rec->delta <= 0 && isset($rec->charge))){
+    				$row->charge = crm_Profiles::createLink($rec->charge);
+    			}
+    		}
+    		
+    	}
     }
     
     
@@ -701,7 +685,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	
+    	return parent::prepareListRows_($data);
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);
