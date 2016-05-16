@@ -25,8 +25,9 @@ class email_Incomings extends core_Master
      * VN - Viet Nam
      * SN - Senegal
      * SL - Sierra Leone
+     * HK - Hong Kong
      */
-    protected $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL');
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK');
     
     
     /**
@@ -804,30 +805,13 @@ class email_Incomings extends core_Master
             // Ако IP-то на изпращача е от рискова зона
             // Показваме предупреждение след имейла
             if ($rec->fromIp) {
+                $badIpArr = $mvc->getBadIpArr(array($rec->fromIp), $rec->folderId);
                 
-                $showIpErr = TRUE;
-                $errIpCountryName = '';
-                
-                $ipCoutryCode = drdata_IpToCountry::get($rec->fromIp);
-                $errIpCountryName = ' - ' . drdata_Countries::getCountryName($ipCoutryCode);
-                if ($rec->folderId) {
-                    if ($ipCoutryCode) {
-                        if (in_array($ipCoutryCode, $mvc->riskIpArr)) {
-                            $cData = doc_Folders::getContragentData($rec->folderId);
-                            if (isset($cData) && isset($cData->countryId)) {
-                                $coutryCode = drdata_Countries::fetchField((int)$cData->countryId, 'letterCode2');
-                                if ($coutryCode == $ipCoutryCode) {
-                                    $showIpErr = FALSE;
-                                }
-                            }
-                        } else {
-                            $showIpErr = FALSE;
-                        }
-                    }
-                }
-                
-                if ($showIpErr) {
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова държава|*{$errIpCountryName}!", 'error');
+                if (!empty($badIpArr)) {
+                    $countryCode = $badIpArr[$rec->fromIp];
+                    $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode);
+                    
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
                 }
             }
         }
@@ -859,6 +843,45 @@ class email_Incomings extends core_Master
                 $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
             }
         }
+    }
+    
+    
+    /**
+     * От подадения масив с IP адреси връща само лошите (от рискова зона)
+     * Изключват се IP-та от държавите със същата корица и подадените в масива за изключения
+     * 
+     * @param array $ipArr
+     * @param NULL|integer $folderId
+     * @param array $skipCountryArr
+     */
+    public static function getBadIpArr($ipArr, $folderId = NULL, $skipCountryArr = array())
+    {
+        $resArr = array();
+        
+        foreach ($ipArr as $ip) {
+            if (!trim($ip)) continue ;
+            
+            $ipCoutryCode = drdata_IpToCountry::get($ip);
+            
+            if (!in_array($ipCoutryCode, self::$riskIpArr)) continue ;
+            
+            if (isset($folderId)) {
+                $cData = doc_Folders::getContragentData($folderId);
+                
+                // Ако папката е от рисковите държави
+                // Ip-то не се добавя към рисковите
+                if (isset($cData) && isset($cData->countryId)) {
+                    $coutryCode = drdata_Countries::fetchField((int)$cData->countryId, 'letterCode2');
+                    if ($coutryCode == $ipCoutryCode) continue ;
+                }
+            }
+            
+            if (!empty($skipCountryArr) && isset($skipCountryArr[$ipCoutryCode])) continue ;
+            
+            $resArr[$ip] = $ipCoutryCode;
+        }
+        
+        return $resArr;
     }
     
     
@@ -925,7 +948,7 @@ class email_Incomings extends core_Master
      * 
      * @return string
      */
-    protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
+    public static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
         $hint = 'Възможен проблем|*!';
 
