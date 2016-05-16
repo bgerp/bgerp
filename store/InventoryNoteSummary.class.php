@@ -344,7 +344,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if(!$data->rows) return;
-    	$data->listTableMvc->FLD('code', 'varchar', 'smartCenter,tdClass=small-field');
+    	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
     	
