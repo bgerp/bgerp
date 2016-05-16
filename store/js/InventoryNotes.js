@@ -44,11 +44,17 @@ function noteActions() {
 			autoOpen: false,
 			height: 350,
 			width: 450,
-			modal: true
+			modal: true,
+			clickOutside: true
 		});
 
 		dialog.dialog("open");
 
+	});
+
+	// При натискане на бутона за показване на форма
+	$(document.body).on('click', ".ui-widget-overlay", function (e) {
+		dialog.dialog('close');
 	});
 
 	// При натискане на бутон, когато е отворена формата
