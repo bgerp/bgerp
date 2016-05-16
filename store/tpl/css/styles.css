@@ -51,8 +51,10 @@
 	background: none !important;
 	border: none !important;
 }
-
-.formTitle, .formTable {
+.formTable { 
+	width: 400px;	
+}
+.formTitle {
 	width: 100%;
 }
 
@@ -61,4 +63,8 @@
 }
 .ui-dialog {
 	z-index: 100;
+}
+
+.inventoryNoteInsertForm .clearfix21.vertical {
+	margin-top: 10px !important;
 }

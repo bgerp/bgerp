@@ -98,7 +98,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'groupName,charge';
+    public $hideListFieldsIfEmpty = 'groupName';
     
     
     /**
@@ -171,6 +171,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->code = $rec->verbalCode;
+    	$row->ROW_ATTR['id'] = "row->{$rec->id}";
     	
     	$singleUrlArray = cat_Products::getSingleUrlArray($rec->productId);
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
@@ -555,6 +556,13 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     }
     
+    public static function renderRow($rec)
+    {
+    	$row = static::recToVerbal($rec);
+    	
+    	ht::createElement('tr',$rowAttr,new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . "</td>"));
+    }
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -575,6 +583,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	foreach ($rows as $id => &$row){
     		$rec = $data->recs[$id];
     		if($masterRec->state == 'draft'){
+    			$unsetCharge = TRUE;
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     				if(static::haveRightFor('setresponsibleperson', $rec)){
     					$attr['class']    = "toggle-charge";
@@ -582,14 +591,17 @@ class store_InventoryNoteSummary extends doc_Detail
     					$attr['title']    = "Избор на материално отговорно лице";
     					
     					$row->charge = ht::createSmartSelect($responsibles, 'charge', $rec->charge, $attr);
+    					$unsetCharge = FALSE;
     				}
+    			}
+    			if($unsetCharge === TRUE){
+    				unset($row->charge);
     			}
     		} else {
     			if((isset($rec->delta) && $rec->delta <= 0 && isset($rec->charge))){
     				$row->charge = crm_Profiles::createLink($rec->charge);
     			}
     		}
-    		
     	}
     }
     
