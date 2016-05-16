@@ -391,6 +391,10 @@ class store_InventoryNoteSummary extends doc_Detail
     			}
     		}
     		
+    		if(isset($rec)){
+    			$row->charge = static::renderCharge($rec);
+    		}
+    		
     		if($rec->blQuantity < 0 ){
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
@@ -497,15 +501,25 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Сменяме начина на начисляване
     	$rec->charge = $userId; 
     	$rec->modifiedOn = dt::now();
+    	$this->save($rec);
     	
-    	$this->save($rec, 'charge,modifiedOn');
-    	
-    	// Редирект
-    	if (Request::get('ajax_mode')) {
-    		return status_Messages::returnStatusesArray();
-    	} else {
-    		redirect(array('store_InventoryNotes', 'single', $rec->noteId));
+    	// Опитваме се да запишем
+    	if($this->save($rec)){
+    		
+    		// Ако сме в AJAX режим
+    		if(Request::get('ajax_mode')) {
+    			
+    			// Заместваме клетката по AJAX за да визуализираме промяната
+    			$resObj = new stdClass();
+    			$resObj->func = "html";
+    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec), 'replace' => TRUE);
+    			$res = array_merge(array($resObj));
+    			
+    			return $res;
+    		}
     	}
+    	
+    	redirect(array('store_InventoryNotes', 'single', $rec->noteId));
     }
     
     
@@ -556,53 +570,48 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     }
     
-    public static function renderRow($rec)
-    {
-    	$row = static::recToVerbal($rec);
-    	
-    	ht::createElement('tr',$rowAttr,new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . "</td>"));
-    }
-    
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Рендира колонката за начисляване на МОЛ-а
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    public static function renderCharge($rec)
     {
-    	if(!count($data->recs)) return;
-    	$rows = &$data->rows;
-    	$masterRec = $data->masterData->rec;
+    	$rec = static::fetchRec($rec);
+    	$charge = '';
+    	$masterRec = store_InventoryNotes::fetch($rec->noteId);
     	
     	$responsibles = array();
     	$chiefs = keylist::toArray(store_Stores::fetchField($masterRec->storeId, 'chiefs'));
+    	if(isset($rec->charge)){
+    		$chiefs[$rec->charge] = $rec->charge;
+    	}
+    	
     	foreach ($chiefs as $c){
     		$responsibles[$c] = core_Users::getVerbal($c, 'nick');
     	}
     	$responsibles = array('' => '') + $responsibles;
     	
-    	foreach ($rows as $id => &$row){
-    		$rec = $data->recs[$id];
-    		if($masterRec->state == 'draft'){
-    			$unsetCharge = TRUE;
-    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
-    				if(static::haveRightFor('setresponsibleperson', $rec)){
-    					$attr['class']    = "toggle-charge";
-    					$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
-    					$attr['title']    = "Избор на материално отговорно лице";
-    					
-    					$row->charge = ht::createSmartSelect($responsibles, 'charge', $rec->charge, $attr);
-    					$unsetCharge = FALSE;
-    				}
-    			}
-    			if($unsetCharge === TRUE){
-    				unset($row->charge);
-    			}
-    		} else {
-    			if((isset($rec->delta) && $rec->delta <= 0 && isset($rec->charge))){
-    				$row->charge = crm_Profiles::createLink($rec->charge);
+    	if($masterRec->state == 'draft'){
+    		$unsetCharge = TRUE;
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
+    			if(static::haveRightFor('setresponsibleperson', $rec)){
+    				$attr['class']    = "toggle-charge";
+    				$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
+    				$attr['title']    = "Избор на материално отговорно лице";
+
+    				$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
+    				$unsetCharge = FALSE;
     			}
     		}
+    	} else {
+    		if((isset($rec->delta) && $rec->delta <= 0 && isset($rec->charge))){
+    			$charge = crm_Profiles::createLink($rec->charge);
+    		}
     	}
+    	
+    	$charge = "<span id='charge{$rec->id}'>{$charge}</span>";
+    	
+    	return $charge;
     }
     
     
@@ -696,7 +705,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	return parent::prepareListRows_($data);
+    	
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);
