@@ -34,7 +34,9 @@
 	padding: 0;
 	z-index: 100;
 }
-
+.inventoryNoteShowAddForm {
+	cursor: pointer;
+}
 .clearfix21.vertical .formTable{
 	margin: 0 auto;
 }

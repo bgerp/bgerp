@@ -1,75 +1,75 @@
 function noteActions() {
 	var dialog;
 
-	var ajaxForm = document.createElement( "div" );
-	var ajaxFormHolder = document.createElement( "div" );
+	var ajaxForm = document.createElement("div");
+	var ajaxFormHolder = document.createElement("div");
 
 	$(ajaxFormHolder).addClass('ajaxFormHolder');
 	$(ajaxForm).attr('id', 'ajax-form');
 	$(ajaxForm).attr('class', 'ajax-form');
-	$('body').append( $( ajaxFormHolder ) );
-	$('.ajaxFormHolder').append( $( ajaxForm ) );
+	$('body').append($(ajaxFormHolder));
+	$('.ajaxFormHolder').append($(ajaxForm));
 
 	// Смяна на начисляването при клик на бутон
 	$(document.body).on('change', ".toggle-charge", function(e){
 		var url = $(this).attr("data-url");
 		var selectedUser = this.value;
-		
+
 		if(!url) return;
-		
+
 		var data = {userId:selectedUser};
 		resObj = new Object();
 		resObj['url'] = url;
 		
 		getEfae().process(resObj,data);
 	});
-	
+
 	// При натискане на бутона за показване на форма
-	$(document.body).on('click', ".inventoryNoteShowAddForm", function(e){
+	$(document.body).on('click', ".inventoryNoteShowAddForm", function (e) {
 
 		var url = $(this).attr("data-url");
 		var nextelement = $(this).attr("data-nextelement");
-		
-		if(!url) return;
-		
+
+		if (!url) return;
+
 		// Кой ще е следващия елемент
-		var data = {nextelement:nextelement};
-		
+		var data = {nextelement: nextelement};
+
 		resObj = new Object();
 		resObj['url'] = url;
-		
+
 		getEfae().process(resObj, data);
 
-		dialog = $("#ajax-form" ).dialog({
+		dialog = $("#ajax-form").dialog({
 			autoOpen: false,
 			height: 300,
 			width: 500,
 			modal: true
 		});
 
-		dialog.dialog( "open" );
+		dialog.dialog("open");
 
 	});
-	
+
 	// При натискане на бутон, когато е отворена формата
-	$(document.body).on("keypress", ".inventoryNoteInsertForm", function(event) { 
+	$(document.body).on("keypress", ".inventoryNoteInsertForm", function (event) {
 		if (event.keyCode == 13) {
-	       
+
 			// При натискане на 'ENTER' не искаме да се събмитне формата
 			event.preventDefault();
-	    }
+		}
 	});
 }
 
 // Затваряне на формата
-function cancelForm(form){
-	var frm = $(form);
-	frm.hide();
+function cancelForm(){
+	dialog.dialog( "close" );
 }
 
 // Събмитва формата и не отваря нова след това
 function submitAndCloseForm(form) {
 	submitShowAddForm(form, true);
+	cancelForm();
 }
 
 // Субмитва формата за добавяне на установено количество

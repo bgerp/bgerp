@@ -265,7 +265,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	if(Request::get('ajax_mode') && $form->cmd != 'refresh'){
     		$form->toolbar->addFnBtn('Запис и Нов', "submitShowAddForm(this.form)", "id=saveAjaxAndNew,ef_icon = img/16/disk.png");
     		$form->toolbar->addFnBtn('Запис', "submitAndCloseForm(this.form)", "id=saveAjax,ef_icon = img/16/disk.png");
-    		$form->toolbar->addFnBtn('Отказ', "cancelForm(this.form)", "id=cancelAjax, ef_icon = img/16/close16.png");
+    		$form->toolbar->addFnBtn('Отказ', "cancelForm()", "id=cancelAjax, ef_icon = img/16/close16.png");
     	} else {
     		
     		// Иначе добавяме нормални бутони
