@@ -14,6 +14,20 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 
 
 /**
+ * FileHandler на логото на фирмата на английски
+ * Генерирано от svg файл
+ */
+defIfNot(BGERP_COMPANY_LOGO_SVG_EN, '');
+
+
+/**
+ * FileHandler на логото на фирмата на български
+ * Генерирано от svg файл
+*/
+defIfNot(BGERP_COMPANY_LOGO_SVG, '');
+
+
+/**
  * След колко време, ако не работи крона да бие нотификация
  */
 defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
@@ -309,3 +323,4 @@ class bgerp_Setup extends core_ProtoSetup {
         }
     }
 }
+

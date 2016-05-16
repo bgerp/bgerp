@@ -70,40 +70,7 @@ class cond_RichTextPlg extends core_Plugin
             $addPassage ->appendOnce($callback, 'SCRIPTS');
 
             // Добавяне в групата за добавяне на документ
-            $toolbarArr->add($addPassage , 'filesAndDoc', 1000.055);
+            $toolbarArr->add($addPassage , 'filesAndDoc', 1000.056);
         }
-    }
-
-
-    /**
-     * Прихваща никовете и създава линкове към сингъла на профилите
-     *
-     * @param array $match
-     *
-     * @return string
-     */
-    function _catchNick($match)
-    {
-        // Да не сработва в текстов режим
-        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) return $match[0];
-
-        // Вземаме id на записа от ника
-        $nick = $match['nick'];
-        $nick = strtolower($nick);
-        $id = core_Users::fetchField(array("LOWER (#nick) = '[#1#]'", $nick));
-
-        if (!$id) return $match[0];
-
-        // Добавяме в борда
-        $place = $this->mvc->getPlace();
-
-        // За ника използваме и префикса от стринга
-        $nick = $match['pre'] . type_Nick::normalize($match['nick']);
-
-        $profileId = crm_Profiles::getProfileId($id);
-
-        $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
-
-        return "[#{$place}#]";
     }
 }

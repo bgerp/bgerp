@@ -643,7 +643,7 @@ select.combo {
 input[type=checkbox],
 input[type=radio] {
   border: none !important;
-  box-shadow: none;
+  box-shadow: none !important;
   background-color: transparent;
   outline: none; }
 
@@ -1730,9 +1730,25 @@ input:focus[type=button] {
 .narrow .horizontal .formFields > div {
   margin-bottom: 10px; }
 
+.flashElem {
+  background-color: #fffa99;
+  transition: background-color linear 500; }
+  .flashElem label,
+  .flashEleminput.combo,
+  .flashEleminput[type="checkbox"],
+  .flashEleminput[type="radio"],
+  small.flashElem {
+    background: none; }
+
+.flashElem.select2 > .selection > .select2-selection {
+  background-color: #fffa99 !important; }
+
 /*
  * край на хоризонтални форми
  */
+.contextCursor {
+  cursor: context-menu; }
+
 /*
  * Загвавие, състоящо се от пътека
  */
@@ -2399,11 +2415,10 @@ a.lang {
   display: none; }
   .richtext-emoticons6 a.rtbutton {
     text-align: left;
-    display: table-cell;
     min-width: 65px; }
 
 .narrow .richtext-emoticons6 a.rtbutton {
-  min-width: 72px; }
+  min-width: 74px; }
 
 .richtext-emoticons5 {
   left: -260%; }
@@ -3081,4 +3096,7 @@ td.centerCol {
 td.leftColImportant {
   white-space: nowrap;
   text-align: left !important; }
+
+.dangerFile {
+  color: #990000 !important; }
 

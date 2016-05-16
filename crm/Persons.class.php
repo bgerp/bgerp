@@ -1971,11 +1971,17 @@ class crm_Persons extends core_Master
             // Вземаме всички допустими обръщения
             $salutationOpt = $form->getOptions('salutation');
             
-            // Проверяваме дали обръщението го има в масив, като го превеждаме
-            $salutationKey = array_search(tr($currVcard['name']['prefix']), $salutationOpt);
+            if (is_null($salutationOpt)) {
+                $salutationOpt = $form->fields['salutation']->type->options;
+            } 
             
-            // Задаваме по подразбиране да е избано обръщението, което сме определили
-            $form->setDefault('salutation', $salutationKey);    
+            if (isset($salutationOpt)) {
+                // Проверяваме дали обръщението го има в масив, като го превеждаме
+                $salutationKey = array_search(tr($currVcard['name']['prefix']), $salutationOpt);
+                
+                // Задаваме по подразбиране да е избано обръщението, което сме определили
+                $form->setDefault('salutation', $salutationKey);
+            }
         }
         
         // Ако има зададен рожден ден
@@ -2530,7 +2536,7 @@ class crm_Persons extends core_Master
     			$obj->$fld = $Varchar->toVerbal($rec->$fld);
     			if($translitarate === TRUE){
     				if($fld != 'pCode'){
-    					$obj->$fld = transliterate($obj->{$fld});
+    					$obj->$fld = transliterate(tr($obj->{$fld}));
     				}
     			}
     		}

@@ -237,7 +237,7 @@ class doc_Threads extends core_Manager
      * 
      * 
      * @param integer $id
-     * @param boolean $escape
+     * @param boolean $escaped
      */
     public static function getTitleForId_($id, $escaped = TRUE)
     {
@@ -1251,7 +1251,7 @@ class doc_Threads extends core_Manager
                 $usersArr = bgerp_Notifications::getNotifiedUserArr($urlArr);
                 $nRec = doc_Threads::fetch($id, '*', FALSE);
                 
-                if ($usersArr) {
+                if (!empty($usersArr)) {
                     foreach ((array)$usersArr as $userId => $hidden) {
                         
                         // Ако има права до сингъла
@@ -2182,7 +2182,7 @@ class doc_Threads extends core_Manager
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
      * @see core_SettingsIntf
      */
     static function canModifySettings($key, $userOrRole=NULL)

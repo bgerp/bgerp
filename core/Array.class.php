@@ -217,6 +217,38 @@ class core_Array
 
 
     /**
+     * Сортиране на масив от обекти, по дадено поле използвайки 'natural order' алгоритъма
+     * подреждащ стринговете по начин по който човек би ги подредил, запазвайки ключовете
+     * 
+     * Пример:
+     * Стандартно сортиране
+     * 
+     * [3] => img1.png
+     * [1] => img10.png
+     * [0] => img12.png
+     * [2] => img2.png
+     * 
+     * Natural order sorting
+     * [3] => img1.png
+     * [2] => img2.png
+     * [1] => img10.png
+     * [0] => img12.png
+     * 
+     * @param array $array - масив за сортиране
+     * @param string $field - поле по което ще се сортира
+     * @return void
+     */
+    public static function natOrder(&$array, $field)
+    {
+    	// Ако има такива сортираме ги по име
+    	uasort($array, function($a, $b) use ($field){
+    		if($a->{$field} == $b->{$field}) return 0;
+    		return (strnatcasecmp($a->{$field}, $b->{$field}) < 0) ? -1 : 1;
+    	});
+    }
+    
+    
+    /**
      * Групира масив от записи (масиви или обекти) по зададено поле-признак
      *
      * @param array $data масив от асоциативни масиви и/или обекти
@@ -245,8 +277,8 @@ class core_Array
      * 
      * @return string $str - Стринга, който ще връщаме
      */
-    function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
-    { 
+    public static function extractMultidimensionArray($array, $field=FALSE, $delimiter=', ') 
+    {
         // Стринга, който ще връщаме
         $str = '';
         

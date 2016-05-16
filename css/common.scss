@@ -651,7 +651,7 @@ select.combo {
 
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
-	box-shadow: none;
+	box-shadow: none !important;
 	background-color: transparent;
 	outline: none;
 }
@@ -1578,7 +1578,7 @@ td.formElement {
 	*width: auto;
 }
 
-.formFields input, textarea, select { 
+.formFields input, textarea, select {
 	margin-top: 0;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset ;
@@ -1873,8 +1873,23 @@ td.formElement {
 .narrow .horizontal .formFields > div {
 	margin-bottom: 10px;
 }
-/*край на хоризонтални форми*/
 
+.flashElem {
+	background-color: #fffa99;
+	transition: background-color linear 500ms;
+	&input.combo, &input[type="checkbox"],
+	&input[type="radio"], label, small& {
+		background: none;
+	}
+}
+
+.flashElem.select2 > .selection > .select2-selection {
+	background-color: #fffa99 !important;
+}
+/*край на хоризонтални форми*/
+.contextCursor {
+	cursor: context-menu;
+}
 
 /*Загвавие, състоящо се от пътека*/
 .path-title {
@@ -2613,13 +2628,13 @@ a.lang {
     display: none;
     a.rtbutton {
         text-align: left;
-		display: table-cell;
 		min-width: 65px;
 	}
 }
 .narrow .richtext-emoticons6 a.rtbutton{
-	min-width: 72px;
+	min-width: 74px;
 }
+
 .richtext-emoticons5 {
     left: -260%;
 }
@@ -3378,4 +3393,8 @@ td.centerCol {
 td.leftColImportant {
 	white-space:nowrap;
 	text-align:left !important;
+}
+
+.dangerFile {
+    color: #900 !important;
 }

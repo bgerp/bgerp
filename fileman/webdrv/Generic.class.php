@@ -361,6 +361,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Линк за сваляне
         $link = bgerp_F::getLink($fileHnd, $expireOn);
+        $linkText = '';
         if ($link) {
             $linkText = tr("Линк|*: ");
             
@@ -379,11 +380,18 @@ class fileman_webdrv_Generic extends core_Manager
 	        // Няма да се показват документите
 		}
 		
+		$dangerRate = '';
+		if (fileman_Files::isDanger($fRec)) {
+		    $dangerRate = fileman_Files::getVerbal($fRec, 'dangerRate');
+		    $dangerRate = '<span class = "dangerFile">' . tr("Ниво на опасност|*: ") . $dangerRate . "</span>\n";
+		}
+		
 		// Ако сме намерили някой файлове, където се използва
+		$containsIn = '';
         if ($documentWithFile) {
             
             // Добавяме към съдържанието на инфото
-            $containsIn = tr("Съдържа се в|*: ") . $documentWithFile . "\n";    
+            $containsIn = tr("Съдържа се в|*: ") . $documentWithFile . "\n";
         }
         
         // Типа на файла
@@ -391,6 +399,8 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вербалния размер на файла
         $size = fileman_Data::getFileSize($fRec->dataId);
+        
+        $sizeText = '';
         
         // Ако има размер
         if ($size) {
@@ -410,7 +420,7 @@ class fileman_webdrv_Generic extends core_Manager
         $createdText = tr("|Добавен на|* : {$createdOn} |от|* {$createdBy}") . "\n";
         
         // Добавяме в текста
-        $content = $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
+        $content = $dangerRate . $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
         
         // Инстанция на класа
         $pageInst = cls::get(Mode::get('wrapper'));

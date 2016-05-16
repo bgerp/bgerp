@@ -14,6 +14,8 @@
  */
 class email_Fingerprints extends core_Manager
 {
+    
+    
     /**
      * Плъгини за работа
      */
@@ -137,7 +139,7 @@ class email_Fingerprints extends core_Manager
     /**
      * Изчислява хеша на част от хедърите на писмото
      * 
-     * @param string $headers
+     * @param string $headersStr
      * 
      * @return string
      */

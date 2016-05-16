@@ -108,8 +108,25 @@ defIfNot('BACKUP_CRYPT', 'no');
 /**
  * Парола за криптиране на съхранените файлове
  */
-defIfNot('BACKUP_PASS', 'bgerp123');
+defIfNot('BACKUP_PASS', '');
 
+
+/**
+ * Данни за Amazon S3
+ */
+defIfNot('AMAZON_KEY', '');
+
+
+/**
+ * Данни за Amazon S3
+ */
+defIfNot('AMAZON_SECRET', '');
+
+
+/**
+ * Кофа на Amazon
+ */
+defIfNot('AMAZON_BUCKET', '');
 
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
@@ -150,14 +167,17 @@ class backup_Setup extends core_ProtoSetup
     var $configDescription = array (
         
         'BACKUP_PREFIX'   => array ('varchar', 'caption=Имена на архивираните файлове->Префикс'),
-        'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, ftp=FTP, rsync=Rsync)', 'caption=Място за съхранение на архива->Тип'),
+        'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, amazon=S3Amazon, ftp=FTP, rsync=Rsync)', 'caption=Място за съхранение на архива->Тип'),
         'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
         'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
         'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
         'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),
         'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Колко пълни бекъп-и да се пазят?->Брой'),
         'BACKUP_CRYPT'     => array ('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Сигурност на архивите->Криптиране'),
-        'BACKUP_PASS'     => array ('password', 'caption=Сигурност на архивите->Парола')
+        'BACKUP_PASS'     => array ('password', 'caption=Сигурност на архивите->Парола'),
+        "AMAZON_KEY" => array ('password(show)', 'caption=Амазон->Ключ'),
+        "AMAZON_SECRET"    => array ('password(show)', 'caption=Амазон->Секрет'),
+        "AMAZON_BUCKET"  => array('varchar', 'caption=Амазон->Кофа'),
     );
     
     
@@ -166,16 +186,15 @@ class backup_Setup extends core_ProtoSetup
      */
     var $managers = array(
         // Архивиране в локалната файлова система;
-        'backup_Local',
+        //'backup_Local',
+        // Архивиране на Amazon
+        //'backup_Amazon'
         
         // Архивиране по ftp;
         //'backup_Ftp',
         
         // Архивиране по rsync
         //'backup_Rsync',
-        
-        // Архивиране на Amazon
-        //'backup_Amazon',
     );
     
     
@@ -264,11 +283,11 @@ class backup_Setup extends core_ProtoSetup
         $touchFile = tempnam(EF_TEMP_PATH, "bgERP");
         file_put_contents($touchFile, "1");
         
-        if (@$storage->putFile($touchFile) && @$storage->removeFile($touchFile)) {
+        if (@$storage->putFile($touchFile) && @$storage->removeFile(basename($touchFile))) {
             unlink($touchFile);
         } else {
             unlink($touchFile);
-            return "|*<li class='debug-error'>|Няма права за писане в |*" . $conf->BACKUP_LOCAL_PATH . "</li>";
+            return "|*<li class='debug-error'>|Няма права за писане в |*" . get_class($storage) . "</li>";
         }
         
         // проверка дали всичко е наред с mysqldump-a

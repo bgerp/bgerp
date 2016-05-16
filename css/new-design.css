@@ -800,9 +800,6 @@ a.linkWithIcon {
   line-height: 120%;
   display: inline-block; }
 
-a.linkInTitle {
-  color: #222222 !important; }
-
 .portal-filter .button,
 .portal-filter .button:focus {
   border: none !important;

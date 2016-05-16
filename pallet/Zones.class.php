@@ -3,11 +3,11 @@
 
 
 /**
- * Зони
+ * Зони в палетния склад
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3

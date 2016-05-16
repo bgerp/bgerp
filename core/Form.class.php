@@ -487,6 +487,9 @@ class core_Form extends core_FieldSet
                 
                 jquery_Jquery::run($this->layout, "setFormElementsWidth();");
                 jquery_Jquery::runAfterAjax($this->layout, "setFormElementsWidth");
+
+                jquery_Jquery::run($this->layout, "markElementsForRefresh();");
+
                 jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
             }
             

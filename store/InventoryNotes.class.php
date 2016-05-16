@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'store_InventoryNotes'
  *
@@ -16,10 +18,14 @@ class store_InventoryNotes extends core_Master
 {
     
     
+	/**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=store_transaction_InventoryNote';
+    
+    
     /**
      * Заглавие
-     * 
-     * @var string
      */
     public $title = 'Протоколи за инвентаризация';
     
@@ -51,13 +57,19 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,storeMaster';
+    
+    
+    /**
+     * Кой може да създава продажба към отговорника на склада?
+     */
+    public $canMakesale = 'ceo,storeMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,storeMaster';
     
     
     /**
@@ -81,7 +93,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -105,7 +117,19 @@ class store_InventoryNotes extends core_Master
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutInventoryNote.shtml';
+    public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
+    
+
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'valior,title=Документ,storeId,folderId,createdOn,createdBy,modifiedOn,modifiedBy';
     
     
     /**
@@ -116,6 +140,7 @@ class store_InventoryNotes extends core_Master
     	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
+    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните маркери->Избор, mandatory, notNULL,value=yes,maxRadio=2');
     }
     
     
@@ -125,12 +150,57 @@ class store_InventoryNotes extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$form->setDefault('valior', dt::today());
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
+    	$form->setDefault('hideOthers', 'yes');
+    	
+    	if(isset($form->rec->id)){
+    		$form->setReadOnly('storeId');
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		if(isset($rec->groups)){
+    			$error = FALSE;
+    			
+    			// Кои са недопустимите маркери
+    			$notAllowed = array();
+    			$groups = keylist::toArray($rec->groups);
+    			
+    			foreach ($groups as $grId){
+    				
+    				// Ако текущия маркер е в недопустимите сетваме грешка
+    				if(array_key_exists($grId, $notAllowed)){
+    					$error = TRUE;
+    					break;
+    				}
+    				
+    				// Иначе добавяме него и наследниците му към недопустимите маркери
+    				$descendant = cat_Groups::getDescendantArray($grId);
+    				$notAllowed += $descendant;
+    			}
+    			
+    			if($error === TRUE){
+    				
+    				// Сетваме грешка ако са избрани маркери, които са вложени един в друг
+    				$form->setError('groups', 'Избрани са вложени маркери');
+    			}
+    		}
+    	}
     }
     
     
@@ -180,24 +250,6 @@ class store_InventoryNotes extends core_Master
     
     
     /**
-     * Изпълнява се след създаване на нов запис
-     */
-    public static function on_AfterCreate($mvc, $rec)
-    {
-    	core_App::setTimeLimit(300);
-    	$products = $mvc->getProductsFromBalance($rec);
-    	foreach ($products as $pRec){
-    		$dRec = (object)array('noteId'     => $rec->id,
-    							  'groups'     => $pRec->groups,
-    							  'productId'  => $pRec->productId,
-    							  'blQuantity' => $pRec->quantity);
-    	
-    		store_InventoryNoteSummary::save($dRec);
-    	}
-    }
-    
-    
-    /**
      * След подготовка на тулбара на единичен изглед.
      *
      * @param core_Mvc $mvc
@@ -205,11 +257,34 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('single', $data->rec->id)){
-    		$url = array($mvc, 'single', $data->rec->id);
-        	$url['Printing'] = 'yes';
+    	$rec = $data->rec;
+    	
+    	if($rec->state != 'rejected'){
+    		if($mvc->haveRightFor('single', $rec->id)){
+    			$url = array($mvc, 'single', $rec->id);
+    			$url['Printing'] = 'yes';
+    			$url['Blank'] = 'yes';
+    			 
+    			$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
+    		}
+    	}
+    	
+    	if($rec->state == 'active'){
     		
-    		$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/star_2.png,title=Принтиране на бланка,target=_blank');
+    		if($mvc->haveRightFor('makesale', $rec)){
+    			$data->toolbar->addBtn('Начет. МОЛ', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+    	if(Request::get('Blank', 'varchar')){
+    		Mode::set('blank');
     	}
     }
     
@@ -217,14 +292,59 @@ class store_InventoryNotes extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
+    	$row = &$data->row;
     	
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-    	$data->row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$data->row->MyCompany = transliterate(tr($row->MyCompany));
-    	$data->row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+    	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+    	$row->MyCompany = transliterate(tr($row->MyCompany));
+    	$row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
+ 		
+    	$toDate = dt::addDays(-1, $rec->valior);
+    	$toDate = dt::verbal2mysql($toDate, FALSE);
+    	$row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
+    	
+    	if($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')){
+    		$row->storeAddress = crm_Locations::getAddress($storeLocationId);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tpl->push('store/tpl/css/styles.css', 'CSS');
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    		$tpl->push('store/js/InventoryNotes.js', 'JS');
+    		jquery_Jquery::run($tpl, "noteActions();");
+			jqueryui_Ui::enable($tpl);
+		}
+    }
+    
+    
+    /**
+     * Връща артикулите в протокола
+     * 
+     * @param stdClass $rec - ид или запис
+     * @return array $res - масив с артикули
+     */
+    private function getCurrentProducts($rec)
+    {
+    	$res = array();
+    	$rec = $this->fetchRec($rec);
+    	
+    	$query = store_InventoryNoteSummary::getQuery();
+    	$query->where("#noteId = {$rec->id}");
+    	$query->show('noteId,productId,blQuantity,groups,modifiedOn');
+    	while($dRec = $query->fetch()){
+    		$res[] = $dRec;
+    	}
+    	
+    	return $res;
     }
     
     
@@ -233,19 +353,24 @@ class store_InventoryNotes extends core_Master
      * 
      * @param stClass $rec
      * @return array
-     * 		o productId - ид на артикул
-     * 	    o groups    - списък с маркери
-     *  	o quantity  - к-во
+     * 		o productId      - ид на артикул
+     * 	    o groups         - в кои маркери е
+     *  	o blQuantity     - к-во
+     *  	o searchKeywords - ключови думи
+     *  	o modifiedOn     - текуща дата
      */
     private function getProductsFromBalance($rec)
     {
     	$res = array();
+    	$rGroup = keylist::toArray($rec->groups);
+    	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
     	$from = dt::addMonths(-2, $rec->valior);
     	$from = dt::verbal2mysql($from, FALSE);
     	$to = dt::addDays(-1, $rec->valior);
     	$to = dt::verbal2mysql($to, FALSE);
+    	$now = dt::now();
     	
     	// Изчисляваме баланс за подадения период за склада
     	$storeItemId = acc_items::fetchItem('store_Stores', $rec->storeId)->id;
@@ -257,14 +382,180 @@ class store_InventoryNotes extends core_Master
     	// Подготвяме записите в нормален вид
     	if(is_array($bRecs)){
     		foreach ($bRecs as $bRec){
+    			
     			$productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
-    			$res[$productId] = (object)array("productId" => $productId,
-    											 "groups"    => cat_Products::fetchField($productId, 'groups'),
-    								   			 "quantity"  => $bRec->blQuantity,);
+    			$aRec = (object)array("noteId"     => $rec->id,
+    								  "productId"  => $productId,
+    								  "groups"     => NULL,
+    								  "modifiedOn" => $now,
+    								  "blQuantity" => $bRec->blQuantity,);
+    			$aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
+    			
+    			$groups = cat_Products::fetchField($productId, 'groups');
+    			if(count($groups)){
+    				$groups = cat_Groups::getDescendantArray($groups);
+    				$groups = keylist::fromArray($groups);
+    				$aRec->groups = $groups;
+    			}
+    			
+    			$add = TRUE;
+    			
+    			// Ако е указано че искаме само артикулите с тези маркери
+    			if($rec->hideOthers == 'yes'){
+    				if(!keylist::isIn($rGroup, $aRec->groups)){
+    					$add = FALSE;
+    				}
+    			}
+    			
+    			if($add === TRUE){
+    				$res[] = $aRec;
+    			}
     		}
     	}
     	
     	// Връщаме намерените артикули
     	return $res;
+    }
+    
+    
+    /**
+     * Синхронизиране на множеството на артикулите идващи от баланса
+     * и текущите записи.
+     * 
+     * @param stdClass $rec
+     * @return void
+     */
+    public function sync($id)
+    {
+    	expect($rec = $this->fetchRec($id));
+    	
+    	// Дигаме тайм лимита
+    	core_App::setTimeLimit(600);
+    	
+    	// Извличаме артикулите от баланса
+    	$balanceArr = $this->getProductsFromBalance($rec);
+    	
+    	// Извличаме текущите записи
+    	$currentArr = $this->getCurrentProducts($rec);
+    	 
+    	// Синхронизираме двата масива
+    	$syncedArr = arr::syncArrays($balanceArr, $currentArr, 'noteId,productId', 'blQuantity,groups,modifiedOn');
+    	 
+    	$Summary = cls::get('store_InventoryNoteSummary');
+    	
+    	// Ако има нови артикули, добавяме ги
+    	if(count($syncedArr['insert'])){
+    		$Summary->saveArray($syncedArr['insert']);
+    	}
+    	 
+    	// На останалите им обновяваме определени полета
+    	if(count($syncedArr['update'])){
+    		$Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn,searchKeywords');
+    	}
+    	 
+    	$deleted = 0;
+    	
+    	// Ако трябва да се трият артикули
+    	if(count($syncedArr['delete'])){
+    		foreach ($syncedArr['delete'] as $deleteId){
+    			
+    			// Трием само тези, които нямат въведено количество
+    			$quantity = store_InventoryNoteSummary::fetchField($deleteId, 'quantity');
+    			if(!isset($quantity)){
+    				$deleted++;
+    				store_InventoryNoteSummary::delete($deleteId);
+    			}
+    		}
+    	}
+    	 
+    	// Дебъг информация
+    	if(haveRole('debug')){
+    		core_Statuses::newStatus("Данните са синхронизирани");
+    		if($deleted){
+    			core_Statuses::newStatus("Изтрити са {$deleted} реда");
+    		}
+    	
+    		if($added = count($syncedArr['insert'])){
+    			core_Statuses::newStatus("Добавени са {$added} реда");
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Синхронизираме данните само в чернова
+    	if($rec->state == 'draft'){
+    		$mvc->sync($rec);
+    	}
+    	
+    	static::invalidateCache($rec);
+    }
+    
+    
+    /**
+     * Инвалидиране на кеша на документа
+     * 
+     * @param mixed $rec – ид или запис
+     * @return void 
+     */
+    public static function invalidateCache($rec)
+    {
+    	$rec = static::fetchRec($rec);
+    	$key = self::getCacheKey($rec);
+    	
+    	core_Cache::remove('store_InventoryNotes', $key);
+    }
+    
+    
+    /**
+     * Връща ключа за кеширане на данните
+     * 
+     * @param stdClass $rec - запис
+     * @return string $key  - уникален ключ
+     */
+    public static function getCacheKey($rec)
+    {
+    	// Подготвяме ключа за кеширане
+    	$cu = core_Users::getCurrent();
+    	$lg = core_Lg::getCurrent();
+    	$isNarrow = (Mode::is('screenMode', 'narrow')) ? TRUE : FALSE;
+    	$key = "ip{$cu}|{$lg}|{$rec->id}|{$isNarrow}|";
+    	
+    	// Връщаме готовия ключ
+    	return $key;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     * @param array $fields
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($fields['-list'])){
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		$row->title = $mvc->getLink($rec->id, 0);
+    	}
+    }
+    
+    
+    /**
+     * Документа не може да се активира ако има детайл с количество 0
+     */
+    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    {
+    	$res = TRUE;
     }
 }

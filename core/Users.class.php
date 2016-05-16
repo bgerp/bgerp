@@ -370,7 +370,7 @@ class core_Users extends core_Manager
             $rec = core_Users::getCurrent();
         }
         
-        if (is_null($rec)) return ;
+        if (is_null($rec)) return FALSE;
         
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
@@ -1861,13 +1861,6 @@ class core_Users extends core_Manager
         $id = self::fetchField("#roles LIKE '%|$adminId|%' AND #state != 'rejected'", 'id');
         
         return $id;
-    }
-    
-    function act_Test()
-    {
-    	$url = core_App::getSelfURL();
-    	self::redirectToEnableHttps();
-    	
     }
     
     
