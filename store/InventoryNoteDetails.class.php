@@ -343,7 +343,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	$rec = &$form->rec;
     	if($rec->edit){
     		$pTitle = cat_Products::getTitleById($rec->productId);
-    		$form->title = "|*<b>{$pTitle}</b>";
+    		$form->title = "|*<b style='color:#222222;'>{$pTitle}</b>";
     		$form->info = tr('Установено количество');
     		$form->setField('productId', 'input=hidden');
     	} else {
@@ -471,6 +471,10 @@ class store_InventoryNoteDetails extends doc_Detail
     		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');
     		if($state != 'draft'){
     			$requiredRoles = 'no_one';
+    		} else {
+    			if(!store_InventoryNotes::haveRightFor('edit', $rec->noteId)){
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
     }
