@@ -1361,6 +1361,9 @@ td.portal-date {
   top: 50%;
   margin-top: -10px; }
 
+.narrow .document-settings-left span {
+  white-space: nowrap; }
+
 .snapshot {
   margin-top: 10px;
   padding: 10px;
