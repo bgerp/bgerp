@@ -53,7 +53,8 @@ class core_exception_Db extends core_exception_Expect
             $query = "SELECT max(id) as m FROM `{$tableName}`";
             $dbRes = $link->query($query);  
             $res = $dbRes->fetch_object();
-            $link->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = {$res->m}+10");
+            $autoIncrement = $res->m + 10;
+            $link->query("ALTER TABLE `{$tableName}` AUTO_INCREMENT = {$autoIncrement}");
         }
         
         if (isset($tableName) && in_array($this->dump['mysqlErrCode'], array(126, 127, 132, 134, 141, 144, 145)) ) {
