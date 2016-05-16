@@ -1413,7 +1413,7 @@ class doclog_Documents extends core_Manager
      * Извлича записите по подаден cid
      * 
      * @param integer $cid
-     * @param string|NULL $action
+     * @param NULL|string|array $action
      * 
      * @return array
      */
@@ -1444,7 +1444,7 @@ class doclog_Documents extends core_Manager
      * Връща масив с IP-адреси от които е видян/свален документа
      * 
      * @param unknown $cid
-     * @param string $action
+     * @param NULL|string|array $action
      * 
      * @return array
      */
