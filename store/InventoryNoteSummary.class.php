@@ -231,7 +231,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$quantityArr = array('quantity' => $quantity);
     	$quantityTpl = new core_ET("<span><b>[#quantity#]</b></span>[#test#]<!--ET_BEGIN link--><span style='margin-left:3px'>[#link#]</span><!--ET_END link--><!--ET_BEGIN history--><div><small>[#history#]</small></div><!--ET_END history-->");
-    
+
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		if($history = store_InventoryNoteDetails::getHistory($rec)){
     			$quantityArr['history'] = $history;
@@ -268,9 +268,8 @@ class store_InventoryNoteSummary extends doc_Detail
     					
     					$link = ht::createElement('img', $attr);
     				}
-    				
-    				$link = "<span class='ajax-form-holder'><span class='ajax-form' id='inlineform{$rec->id}'></span>{$link}</span>";
-    				$quantityArr['link'] = $link;
+
+    				$quantityArr['link'] = "{$link}";
     			}
     		}
     	

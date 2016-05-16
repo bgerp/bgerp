@@ -309,7 +309,8 @@ class store_InventoryNotes extends core_Master
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		$tpl->push('store/js/InventoryNotes.js', 'JS');
     		jquery_Jquery::run($tpl, "noteActions();");
-    	}
+			jqueryui_Ui::enable($tpl);
+		}
     }
     
     

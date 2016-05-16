@@ -188,7 +188,7 @@ class store_InventoryNoteDetails extends doc_Detail
     		}
     		
     		if(!$price){
-    			$form->setError('productId', 'Артикулът няма себестойност');
+    			//$form->setError('productId', 'Артикулът няма себестойност');
     		}
     		
     		if(!$form->gotErrors()){
@@ -291,7 +291,7 @@ class store_InventoryNoteDetails extends doc_Detail
         	// Подготвяме данните за реплейсване на формата
         	$resObj = new stdClass();
         	$resObj->func = "html";
-        	$resObj->arg = array('id' => $replaceId, 'html' => $tpl->getContent(), 'replace' => TRUE, 'replaceFormOnError' => "summary{$id}");
+        	$resObj->arg = array('id' => 'ajax-form', 'html' => $tpl->getContent(), 'replace' => TRUE, 'replaceFormOnError' => "ajax-form");
         	
         	// Ако няма грешки
         	if(!$form->gotErrors()){
