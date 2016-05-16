@@ -68,3 +68,10 @@
 .inventoryNoteInsertForm .clearfix21.vertical {
 	margin-top: 10px !important;
 }
+
+.table-border {
+	border: 1px solid #ccc;
+}
+.table-border 	td {
+		padding: 5px;
+	}
