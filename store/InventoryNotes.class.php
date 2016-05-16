@@ -63,7 +63,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да създава продажба към отговорника на склада?
      */
-    public $canMakesale = 'ceo,storeMaster';
+    public $canMakesale = 'ceo,sale';
     
     
     /**
@@ -141,6 +141,44 @@ class store_InventoryNotes extends core_Master
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
     	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните маркери->Избор, mandatory, notNULL,value=yes,maxRadio=2');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'makesale' && isset($rec->id)){
+    		if($rec->state != 'active'){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			$responsible = $mvc->getSelectedResponsiblePersons($rec);
+    			if(!count($responsible)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Намира МОЛ-те на които ще начитаме липсите
+     * 
+     * @param stdClass $rec
+     * @return array $options
+     */
+    private static function getSelectedResponsiblePersons($rec)
+    {
+    	$options = array();
+    	
+    	$dQuery = store_InventoryNoteSummary::getResponsibleRecsQuery($rec->id);
+    	$dQuery->show('charge');
+    	while($dRec = $dQuery->fetch()){
+    		$options[$dRec->charge] = core_Users::getVerbal($dRec->charge, 'nick');
+    	}
+    	
+    	return $options;
     }
     
     
@@ -269,12 +307,72 @@ class store_InventoryNotes extends core_Master
     		}
     	}
     	
-    	if($rec->state == 'active'){
-    		
-    		if($mvc->haveRightFor('makesale', $rec)){
-    			$data->toolbar->addBtn('Начет. МОЛ', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
-    		}
+    	if($mvc->haveRightFor('makesale', $rec)){
+    		$url = array($mvc, 'makeSale', $rec->id, 'ret_url' => TRUE);
+    		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
     	}
+    }
+    
+    
+    /**
+     * Екшън създаващ продажба в папката на избран МОЛ
+     */
+    function act_makeSale()
+    {
+    	// Проверка за права
+    	$this->requireRightFor('makesale');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('makesale', $rec);
+    	
+    	// Имали пторебители за начет
+    	$options = $this->getSelectedResponsiblePersons($rec);
+    	
+    	// Подготвяме формата
+    	$form = cls::get('core_Form');
+    	$form->title = "Избор на МОЛ за начет";
+    	$form->FLD('userId', 'key(mvc=core_Users,select=nick)', 'caption=МОЛ,mandatory');
+    	
+    	$form->setOptions('userId', array('' => '') + $options);
+    	if(count($options) == 1){
+    		$form->setDefault('userId', key($options));
+    	}
+    	$form->input();
+    	
+    	// Ако е събмитната
+    	if($form->isSubmitted()){
+    		
+    		// Кой е избрания потребител?
+    		$userId = $form->rec->userId;
+    		$personId = crm_Profiles::fetchField($userId, 'personId');
+    		
+    		// Създаваме продажба в папката му
+    		$fields = array('shipmentStoreId' => $rec->storeId, 'valior' => $rec->valior);
+    		$saleId = sales_Sales::createNewDraft('crm_Persons', $personId, $fields);
+    		
+    		// Добавяме редовете, които са за неговото начисляване
+    		$dQuery = store_InventoryNoteSummary::getResponsibleRecsQuery($rec->id);
+    		$dQuery->where("#charge = {$userId}");
+    		while($dRec = $dQuery->fetch()){
+    			$quantity = abs($dRec->delta);
+    			sales_Sales::addRow($saleId, $dRec->productId, $quantity);
+    		}
+    		
+    		
+    		// Редирект при успех
+    		redirect(array('sales_Sales', 'single', $saleId));
+    	}
+    	
+    	// Добавяме бутони
+    	$form->toolbar->addSbBtn('Продажба', 'save', 'id=save, ef_icon = img/16/cart_go.png', 'title=Създаване на продажба');
+    	$form->toolbar->addBtn('Отказ', array('store_InventoryNotes', 'single', $noteId),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	
+    	// Рендираме формата
+    	$tpl = $form->renderHtml();
+    	$tpl = $this->renderWrapping($tpl);
+    	
+    	// Връщаме шаблона
+    	return $tpl;
     }
     
     

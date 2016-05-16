@@ -361,8 +361,11 @@ class store_InventoryNoteDetails extends doc_Detail
     		
     		$count = 1;
     		foreach ($packs as $packId => $value){
-    			$attr = ($count == 1) ? array('attr' => array('id' => 'focusAjaxField')) : NULL;
-    			$form->FLD("pack{$packId}", 'double(min=0)', $attr);
+    			$attr = array('autocomplete' => 'off');
+    			if($count == 1){
+    				$attr['id'] = 'focusAjaxField';
+    			}
+    			$form->FLD("pack{$packId}", 'double(min=0,autocomplete=off)', $attr);
     			
     			$exRec = store_InventoryNoteDetails::fetch("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packId}");
     			if($exRec){

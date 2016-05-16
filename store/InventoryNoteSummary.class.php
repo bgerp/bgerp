@@ -98,7 +98,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'groupName';
+    public $hideListFieldsIfEmpty = 'groupName,charge';
     
     
     /**
@@ -120,10 +120,30 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Маркери');
-        $this->FLD('charge', 'user', 'caption=Начет,smartCenter');
+        $this->FLD('charge', 'user', 'caption=Начет');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
         
         $this->setDbUnique('noteId,productId');
+    }
+    
+    
+    /**
+     * Заявка за редовете за начет към МОЛ
+     * 
+     * @param int $noteId - ид на протокол
+     * @return core_Query $query - заявка
+     */
+    public static function getResponsibleRecsQuery($noteId)
+    {
+    	// Връщаме заявка селектираща само редовете с количество, и избран МОЛ за начет
+    	$query = static::getQuery();
+    	$query->where("#noteId = {$noteId}");
+    	$query->where("#quantity IS NOT NULL");
+    	$query->where("#charge IS NOT NULL");
+    	$query->XPR('diff', 'double', 'ROUND(#quantity - #blQuantity, 2)');
+    	$query->where("#diff < 0");
+    	
+    	return $query;
     }
     
     
@@ -609,7 +629,9 @@ class store_InventoryNoteSummary extends doc_Detail
     		}
     	}
     	
-    	$charge = "<span id='charge{$rec->id}'>{$charge}</span>";
+    	if($masterRec->state == 'draft'){
+    		$charge = "<span id='charge{$rec->id}'>{$charge}</span>";
+    	}
     	
     	return $charge;
     }
