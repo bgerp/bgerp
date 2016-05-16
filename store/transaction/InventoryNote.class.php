@@ -29,7 +29,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 		expect($rec = $this->class->fetchRec($id));
 		
 		$result = (object)array(
-				'reason'      => "Протоколи за инвентаризация №{$rec->id}",
+				'reason'      => "Протокол за инвентаризация №{$rec->id}",
 				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
 				'entries'     => array()

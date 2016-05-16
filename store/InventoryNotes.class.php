@@ -347,7 +347,7 @@ class store_InventoryNotes extends core_Master
     		$personId = crm_Profiles::fetchField($userId, 'personId');
     		
     		// Създаваме продажба в папката му
-    		$fields = array('shipmentStoreId' => $rec->storeId, 'valior' => $rec->valior);
+    		$fields = array('shipmentStoreId' => $rec->storeId, 'valior' => $rec->valior, 'originId' => $rec->containerId);
     		$saleId = sales_Sales::createNewDraft('crm_Persons', $personId, $fields);
     		
     		// Добавяме редовете, които са за неговото начисляване
