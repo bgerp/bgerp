@@ -615,11 +615,15 @@ class store_InventoryNoteSummary extends doc_Detail
     		$unsetCharge = TRUE;
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     			if(static::haveRightFor('setresponsibleperson', $rec)){
+    				$attr = array();
     				$attr['class']    = "toggle-charge";
     				$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
     				$attr['title']    = "Избор на материално отговорно лице";
-
+    				$attr['placeholder'] = 'Собственик';
+    				
     				$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
+    				$charge->removePlaces();
+    				
     				$unsetCharge = FALSE;
     			}
     		}
