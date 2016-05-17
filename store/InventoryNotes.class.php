@@ -684,4 +684,13 @@ class store_InventoryNotes extends core_Master
     {
     	$res = TRUE;
     }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
 }

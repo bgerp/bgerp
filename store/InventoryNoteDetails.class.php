@@ -80,7 +80,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Активен таб
      */
-    //public $currentTab = 'Трансфери';
+    public $currentTab = 'Документи->Инвентаризация';
     
     
     /**
