@@ -22,6 +22,16 @@
             <div class='address-block'>
                [#storeAddress#]
             </div>
+            <br>
+            <!--ET_BEGIN SALES_BLOCK-->
+            <div><b>|Продажби за начет|*</b></div>
+            <div class='address-block'>
+             [#SALES_BLOCK#]
+            </div>
+            <!--ET_END SALES_BLOCK-->
+            <!--ET_BEGIN link-->
+            <div>[#link#]: [#sales#]</div>
+            <!--ET_END link-->
          </td>
          <td class="cell">
             <b>[#MyCompany#]</b>

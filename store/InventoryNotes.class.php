@@ -407,6 +407,34 @@ class store_InventoryNotes extends core_Master
     	if($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')){
     		$row->storeAddress = crm_Locations::getAddress($storeLocationId);
     	}
+    	
+    	$row->sales = array();
+    	$sQuery = sales_Sales::getQuery();
+    	$sQuery->where("#originId = {$rec->containerId}");
+    	$sQuery->show('id,contragentClassId,contragentId');
+    	while ($sRec = $sQuery->fetch()){
+    		$index = $sRec->contragentClassId . "|" . $sRec->contragentId;
+    		if(!array_key_exists($index, $row->sales)){
+    			$userId = crm_Profiles::fetchField("#personId = {$sRec->contragentId}", 'userId');
+    			$row->sales[$index] = (object)array('sales' => array(), 'link' => crm_Profiles::createLink($userId));
+    		}
+    		$row->sales[$index]->sales[] = sales_Sales::getLink($sRec->id, 0);
+    	}
+    }
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	foreach ($data->row->sales as $saleObject){
+    		$saleObject->sales = implode(', ', $saleObject->sales);
+    		$block = clone $tpl->getBlock('link');
+    		$block->placeObject($saleObject);
+    		$block->removeBlocks();
+    		$block->removePlaces();
+    		$tpl->append($block, 'SALES_BLOCK');
+    	}
     }
     
     
