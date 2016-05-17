@@ -22,6 +22,16 @@
             <div class='address-block'>
                [#storeAddress#]
             </div>
+            <br>
+            <!--ET_BEGIN SALES_BLOCK-->
+            <div><b>|Продажби за начет|*</b></div>
+            <div class='address-block'>
+             [#SALES_BLOCK#]
+            </div>
+            <!--ET_END SALES_BLOCK-->
+            <!--ET_BEGIN link-->
+            <div>[#link#]: [#sales#]</div>
+            <!--ET_END link-->
          </td>
          <td class="cell">
             <b>[#MyCompany#]</b>
@@ -38,24 +48,26 @@
    </div>
 </div>
 <div class="lines"></div>
-<table style="width: 100%;" class="table-border centered">
+<table style="width: 100%;" class="table-border">
     <tr>
-        <td style="width: 1%;;">Броил: </td>
-        <td class='nowrap' style='padding-top: 45px;table-layout: fixed;'>
+        <td style="width: 1%;" class="nowrap">|Броил|* 1: </td>
+        <td class='nowrap' style='padding-top: 35px;table-layout: fixed;'>
             <span class="sign_names">
                 <!--ET_BEGIN counter1-->
                  /[#counter1#]/
                 <!--ET_END counter1-->
             </span>
         </td>
-        <td class='nowrap' style='padding-top: 45px;'>
+        <td style="width: 1%;" class="nowrap">|Броил|* 2 : </td>
+        <td class='nowrap' style='padding-top: 35px;'>
             <span class="sign_names">
                 <!--ET_BEGIN counter2-->
                  /[#counter2#]/
                 <!--ET_END counter2-->
             </span>
         </td>
-        <td class='nowrap' style='padding-top: 45px;'>
+        <td style="width: 1%;" class="nowrap">|Броил|* 3 : </td>
+        <td class='nowrap' style='padding-top: 35px;'>
             <span class="sign_names">
                 <!--ET_BEGIN counter3-->
                  /[#counter3#]/

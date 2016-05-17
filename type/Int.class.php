@@ -65,17 +65,10 @@ class type_Int extends core_Type {
         
         $val = str_replace($from, $to, trim($val));
         
-        if ((int)$val !== 0) {
-            if ($this->params['allowOct'] != 'allowOct') {
-                if ($val{1} != 'x') {
-                    $val = ltrim($val, 0);
-                }
-            }
-            
-            if ($this->params['allowHex'] != 'allowHex') {
-                $val = ltrim($val, '0x');
-            }
-        }
+        $allowOct = (boolean) ($this->params['allowOct'] == 'allowOct');
+        $allowHex = (boolean) ($this->params['allowHex'] == 'allowHex');
+		
+        $val = $this->prepareVal($val, $allowOct, $allowHex);
         
         if($val === '') return NULL;
         
@@ -83,7 +76,7 @@ class type_Int extends core_Type {
         //$val = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$val));
         
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if(preg_replace('`([^+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
+        if(preg_replace('`([^x+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
             $this->error = "Недопустими символи в число/израз";
             
             return FALSE;
@@ -215,5 +208,36 @@ class type_Int extends core_Type {
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Премахва символите за осмична и шестнайсетична бройна система, ако не са позволени
+     * 
+     * @param integer $number
+     * @param boolean $allowOct
+     * @param boolean $allowHex
+     * 
+     * @return string
+     */
+    protected function prepareVal($number, $allowOct = FALSE, $allowHex = FALSE)
+    {
+        if (!$number) return $number;
+        
+        if ($allowOct && $allowHex) return $number;
+        
+        if (!$allowOct && !$allowHex) {
+            $pattern = '0|0x';
+        } elseif (!$allowOct) {
+            $pattern = '0';
+        } else {
+            $pattern = '0x';
+        }
+        
+        $pattern = "/(^|[^0-9]+)({$pattern})+([0-9]+)/";
+        
+        $number = preg_replace($pattern, "$1$3", $number);
+        
+        return $number;
     }
 }

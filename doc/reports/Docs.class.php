@@ -189,20 +189,24 @@ class doc_reports_Docs extends frame_BaseDriver
         // Подготвяме страницирането
         $data = $res;
         
-        $pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+        if(!Mode::is('printing')){
+            $pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+            $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+            $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+            
+            $pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
+            
+            $pager->calc();
+            $data->pager = $pager;
+        }
         
-        $pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
-        
-        $pager->calc();
-        $data->pager = $pager;
-
         $rows = $mvc->getVerbal($data->docCnt);
         
         if(is_array($rows)) {
             foreach ($rows as $id => $row) {
-                if (!$pager->isOnPage()) continue;
+                if(!Mode::is('printing')){
+                    if (!$pager->isOnPage()) continue;
+                }
         
                 $data->rows[$id] = $row;
             }

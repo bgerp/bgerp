@@ -204,18 +204,20 @@ class fileman_reports_FileInfo extends frame_BaseDriver
     {
         // Ако има намерени записи
         if(count($data->files)){
-        
-            // Подготвяме страницирането
-            $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-            $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
-            $data->Pager = $pager;
-            $data->Pager->itemsCount = count($data->files);
-          
+            if(!Mode::is('printing')){
+                // Подготвяме страницирането
+                $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+                $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+                $data->Pager = $pager;
+                $data->Pager->itemsCount = count($data->files);
+            }
             // За всеки запис
             foreach ($data->files as $keyId => &$fArr){
                  
-                // Ако не е за текущата страница не го показваме
-                if(!$data->Pager->isOnPage()) continue;
+                if(!Mode::is('printing')){
+                    // Ако не е за текущата страница не го показваме
+                    if(!$data->Pager->isOnPage()) continue;
+                }
 
                 // Вербално представяне на записа
                 $data->rows[] = $mvc->getVerbal($keyId, $fArr);

@@ -224,6 +224,22 @@ class store_Stores extends core_Master
     
     
     /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	
+    	if(store_InventoryNotes::haveRightFor('single', (object)array('folderId' => $rec->folderId))){
+    		$data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => TRUE), 'ef_icon=img/16/shipment.png,title = Създаване на протокол за инвентаризация');
+    	}
+    }
+    
+    
+    /**
      * Имплементация на @see intf_Register::getAccItemRec()
      */
     public static function getAccItemRec($rec)
@@ -388,6 +404,7 @@ class store_Stores extends core_Master
     	$res = array();
     	$res[] = planning_ConsumptionNotes::getClassId();
     	$res[] = store_Transfers::getClassId();
+    	$res[] = store_InventoryNotes::getClassId();
     	
     	return $res;
     }

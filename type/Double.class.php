@@ -55,16 +55,10 @@ class type_Double extends core_Type {
     {
         $value = trim($value);
         
-        if ($this->params['allowOct'] != 'allowOct') {
-            
-            if ($value{1} != 'x' && $value{1} != '.' && $value{1} != ',' && strlen($value) != 1) {
-                $value = ltrim($value, 0);
-            }
-        }
+        $allowOct = (boolean) ($this->params['allowOct'] == 'allowOct');
+        $allowHex = (boolean) ($this->params['allowHex'] == 'allowHex');
         
-        if ($this->params['allowHex'] != 'allowHex' && $value{1} == 'x' && strlen($value) != 1) {
-            $value = ltrim($value, '0x');
-        }
+        $value = $this->prepareVal($value, $allowOct, $allowHex);
         
         if(!strlen($value)) return NULL;
         
@@ -170,4 +164,34 @@ class type_Double extends core_Type {
         return $value;
     }
     
+    
+    /**
+     * Премахва символите за осмична и шестнайсетична бройна система, ако не са позволени
+     * 
+     * @param string $double
+     * @param boolean $allowOct
+     * @param boolean $allowHex
+     * 
+     * @return string
+     */
+    protected function prepareVal($double, $allowOct = FALSE, $allowHex = FALSE)
+    {
+        if (!$double) return $double;
+        
+        if ($allowOct && $allowHex) return $double;
+        
+        if (!$allowOct && !$allowHex) {
+            $pattern = '0|0x';
+        } elseif (!$allowOct) {
+            $pattern = '0';
+        } else {
+            $pattern = '0x';
+        }
+        
+        $pattern = "/(^|[^\.0-9]+)({$pattern})+([0-9][\.0-9]+)/";
+        
+        $double = preg_replace($pattern, "$1$3", $double);
+        
+        return $double;
+    }
 }
