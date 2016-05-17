@@ -30,6 +30,10 @@ class cms_DefaultTheme extends core_ProtoInner {
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
+        $form->FLD('loginText', 'varchar(20)', "caption=Линк за вход в системата->Текст");
+        $form->FLD('position', 'enum(topRight=Горе/дясно,topLeft=Горе/ляво, downRight=Долу/дясно, downLeft=Долу/ляво)', "caption=Линк за вход в системата->Позиция");
+        $form->FLD('color', 'color_Type', "caption=Линк за вход в системата->Цвят");
+
         $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 1");
         $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 2");
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 3");
@@ -69,7 +73,8 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     
     public function prepareWrapper($tpl)
-    {   
+    {
+
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         
@@ -85,6 +90,12 @@ class cms_DefaultTheme extends core_ProtoInner {
             }
             $title = "<span{$style}>" . $title . "</span>";
         }
+
+        $loginText = $this->innerForm->loginText ? $this->innerForm->loginText : tr("Вход");
+        $color = $this->innerForm->color ? $this->innerForm->color : "#fff";
+        $link = ht::createLink($loginText, array('bgerp_Portal', 'show'), FALSE, "class=login-link {$this->innerForm->position}");
+        $css .= "\n   .login-link {color:{$color} !important;}";
+        $tpl->replace($link, 'LОGIN_LINK');
 
         if($title) {
             $tpl->replace($title, 'CORE_APP_NAME');

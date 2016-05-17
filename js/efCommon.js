@@ -1532,6 +1532,11 @@ function setFormElementsWidth() {
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
 
+        $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
+        $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
+        $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
+        $('.formTable .hiddenFormRow select.w25').css('width', formElWidth/2);
+
         $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);

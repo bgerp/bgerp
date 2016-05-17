@@ -10,18 +10,17 @@ function noteActions() {
 	$('body').append($(ajaxFormHolder));
 	$('.ajaxFormHolder').append($(ajaxForm));
 
-	// Смяна на начисляването при клик на бутон
-	$(document.body).on('change', ".toggle-charge", function(e){
+	$(document.body).on('change', ".toggle-charge", function (e) {
 		var url = $(this).attr("data-url");
 		var selectedUser = this.value;
-
+		
 		if(!url) return;
-
 		var data = {userId:selectedUser};
+		
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj,data);
+		getEfae().process(resObj, data);
 	});
 
 	// При натискане на бутона за показване на форма
@@ -53,7 +52,7 @@ function noteActions() {
 
 	// При натискане на бутона за показване на форма
 	$(document.body).on('click', ".ui-widget-overlay", function (e) {
-		dialog.dialog('close');
+		cancelForm();
 	});
 
 	// При натискане на бутон, когато е отворена формата
@@ -72,6 +71,7 @@ function noteActions() {
 // Затваряне на формата
 function cancelForm(){
 	dialog.dialog( "close" );
+	$('.inventoryNoteInsertForm').remove();
 }
 
 // Събмитва формата и не отваря нова след това
