@@ -635,6 +635,10 @@ class store_InventoryNoteSummary extends doc_Detail
     				$unsetCharge = FALSE;
     			}
     		}
+    	} else {
+    		if((isset($rec->delta) && $rec->delta <= 0 && isset($rec->charge))){
+    			$charge = crm_Profiles::createLink($rec->charge);
+    		}
     	}
     	
     	if($masterRec->state == 'draft'){
@@ -735,7 +739,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	
+    	return parent::prepareListRows_($data);
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);
