@@ -514,7 +514,7 @@ class store_InventoryNotes extends core_Master
     	$now = dt::now();
     	
     	// Изчисляваме баланс за подадения период за склада
-    	$storeItemId = acc_items::fetchItem('store_Stores', $rec->storeId)->id;
+    	$storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
     	$Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => FALSE, 'item1' => $storeItemId));
     	$bRecs = $Balance->getBalance('321');
     	
