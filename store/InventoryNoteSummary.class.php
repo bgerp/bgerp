@@ -262,7 +262,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
     				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
     				
-    				if(Mode::is('screenMode', 'narrow')){
+    				if(!Mode::is('screenMode', 'narrow')){
     					unset($url['replaceId']);
     					if(isset($rec->nextId)){
     						$nextRec = static::fetch($rec->nextId, 'productId,noteId');
@@ -317,6 +317,10 @@ class store_InventoryNoteSummary extends doc_Detail
     			if(!isset($rec->delta) || (isset($rec->delta) && $rec->delta >= 0)){
     				$requiredRoles = 'no_one';
     			}
+    		}
+    		
+    		if(!store_InventoryNotes::haveRightFor('edit', $rec->noteId)){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
@@ -419,6 +423,8 @@ class store_InventoryNoteSummary extends doc_Detail
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
     	}
+    	
+    	//bp($data->rows);
     }
     
     
@@ -597,7 +603,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public static function renderCharge($rec)
     {
     	$rec = static::fetchRec($rec);
-    	$charge = '';
+    	$charge = new core_ET('');
     	$masterRec = store_InventoryNotes::fetch($rec->noteId);
     	
     	$responsibles = array();
@@ -609,20 +615,42 @@ class store_InventoryNoteSummary extends doc_Detail
     	foreach ($chiefs as $c){
     		$responsibles[$c] = core_Users::getVerbal($c, 'nick');
     	}
-    	$responsibles = array('' => '') + $responsibles;
+    	$responsibles = array(NULL => 'Собственик') + $responsibles;
     	
     	if($masterRec->state == 'draft'){
     		$unsetCharge = TRUE;
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     			if(static::haveRightFor('setresponsibleperson', $rec)){
-    				$attr = array();
-    				$attr['class']    = "toggle-charge";
-    				$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
-    				$attr['title']    = "Избор на материално отговорно лице";
-    				$attr['placeholder'] = 'Собственик';
+    				$url = array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id);
     				
-    				$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
-    				$charge->removePlaces();
+    				
+    				
+    				//$attr['class']    = "toggle-charge";
+    				//$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
+    				//$attr['title']    = "Избор на материално отговорно лице";
+    				//$attr['placeholder'] = 'Собственик';
+    				
+    				$toolbar = cls::get('core_RowToolbar');
+    				foreach ($responsibles as $userId => $nick){
+    					$attr = array();
+    					$url['userId'] = $userId;
+    					$attr['data-url'] = toUrl($url, 'local');
+    					$attr['title'] = "|Избор на|* {$nick} |за начет|*";
+    					$attr['ef_icon'] = 'img/16/star_2,png';
+    					//$attr['ef_icon']
+    					//echo "<li>" . $attr['data-url'];
+    					$toolbar->addFnLink($nick, "", $attr);
+    					//$toolbar->addLink($nick, $url, $attr);
+    				}
+    				//bp($toolbar->renderHtml());
+    				$charge->append($toolbar->renderHtml());
+    				//$charge = $toolbar;
+    				//$charge = $charge->getContent();
+    				//bp($charge);
+    				
+    				
+    				//$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
+    				//charge->removePlaces();
     				
     				$unsetCharge = FALSE;
     			}
@@ -634,9 +662,12 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	if($masterRec->state == 'draft'){
-    		$charge = "<span id='charge{$rec->id}'>{$charge}</span>";
+    		$resTpl = new core_ET("<span id='charge{$rec->id}'>[#CONTENT#]</span>");
+    		$resTpl->append($charge);
+    		$charge = $resTpl;
     	}
     	
+    	//if()
     	return $charge;
     }
     
@@ -731,7 +762,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	
+    	return parent::prepareListRows_($data);
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);
