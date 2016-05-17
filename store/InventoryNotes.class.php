@@ -507,10 +507,12 @@ class store_InventoryNotes extends core_Master
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
-    	$from = dt::addMonths(-2, $rec->valior);
-    	$from = dt::verbal2mysql($from, FALSE);
     	$to = dt::addDays(-1, $rec->valior);
     	$to = dt::verbal2mysql($to, FALSE);
+    	
+    	$from = dt::addMonths(-2, $to);
+    	$from = dt::verbal2mysql($from, FALSE);
+    	
     	$now = dt::now();
     	
     	// Изчисляваме баланс за подадения период за склада
