@@ -62,7 +62,7 @@ class type_Double extends core_Type {
             }
         }
         
-        if ($this->params['allowHex'] != 'allowHex'  && strlen($value) != 1) {
+        if ($this->params['allowHex'] != 'allowHex' && $value{1} == 'x' && strlen($value) != 1) {
             $value = ltrim($value, '0x');
         }
         
