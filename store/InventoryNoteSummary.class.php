@@ -590,11 +590,9 @@ class store_InventoryNoteSummary extends doc_Detail
     		// Вербализираме и нормализираме кода, за да можем да подредим по него
     		$rec->orderCode = cat_Products::getVerbal($pRec, 'code');
     		$rec->verbalCode = $rec->orderCode;
-    		$rec->orderCode = strtolower(str::utf2ascii($rec->orderCode));
     		
     		// Вербализираме и нормализираме името, за да можем да подредим по него
     		$rec->orderName = cat_Products::getVerbal($pRec, 'name');
-    		$rec->orderName = strtolower(str::utf2ascii($rec->orderName));
     	}
     }
     
