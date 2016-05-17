@@ -785,23 +785,35 @@ class cat_Products extends embed_Manager {
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
+        // Сортираме по име
+        $order = 'name';
+        
+        // Ако е избран маркер и той е указано да се подрежда по код, сортираме по код
+        if (!empty($data->listFilter->rec->groupId)) {
+        	$gRec = cat_Groups::fetch($data->listFilter->rec->groupId);
+        	if($gRec->orderProductBy == 'code'){
+        		$order = 'code';
+        	}
+        }
+        
         switch($data->listFilter->rec->order){
         	case 'all':
-        		$data->query->orderBy('#state,#name');
+        		$data->query->orderBy("#state,#{$order}");
         		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
-        		$data->query->orderBy('#state,#name');
+        		$data->query->orderBy("#state,#{$order}");
         		break;
 			case 'last':
-        		$data->query->orderBy('#createdOn=DESC');
+        		$data->query->orderBy("#createdOn=DESC");
         		break;
         	case 'closed':
         		$data->query->where("#state = 'closed'");
+        		$data->query->orderBy("#{$order}");
         		break;
         	default :
         		$data->query->where("#isPublic = 'yes'");
-        		$data->query->orderBy('#state,#name');
+        		$data->query->orderBy("#state,#{$order}");
         		break;
         }
         
