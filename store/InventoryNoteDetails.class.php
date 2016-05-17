@@ -343,7 +343,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	$rec = &$form->rec;
     	if($rec->edit){
     		$pTitle = cat_Products::getTitleById($rec->productId);
-    		$form->title = "|*<b style='color:#222222;'>{$pTitle}</b>";
+    		$form->title = "|*<b>{$pTitle}</b>";
     		$form->info = tr('Установено количество');
     		$form->setField('productId', 'input=hidden');
     	} else {
