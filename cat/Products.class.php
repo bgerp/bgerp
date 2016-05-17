@@ -864,7 +864,8 @@ class cat_Products extends embed_Manager {
     private static function setCodeIfEmpty(&$rec)
     {
     	if($rec->isPublic == 'no'){
-    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($rec->createdOn, 'd.m');
+    		$createdOn = ($rec->createdOn) ? $rec->createdOn : (($rec->id) ? static::fetchField($rec->id, 'createdOn') : NULL);
+    		$rec->code = "Art{$rec->id}/" . dt::mysql2verbal($createdOn, 'd.m');
     	} else {
     		if(empty($rec->code)){
     			$rec->code = ($rec->id) ? static::fetchField($rec->id, 'code') : NULL;

@@ -564,17 +564,19 @@ class core_Type extends core_BaseClass
         }
 
         if(is_array($this->options)) $size *= 1.1;
+        
+        if(!preg_match("/(w25|w50|w75|w100)/", $attr['class'])) {
+            if($size > 0 && $size <= 13) {
+                $wClass = 'w25';
+            } elseif($size > 0 && $size <= 35) {
+                $wClass = 'w50';
+            } elseif($size > 0 && $size <= 55) {
+                $wClass = 'w75';
+            } else {
+                $wClass = 'w100';
+            }
 
-        if($size > 0 && $size <= 13) {
-            $wClass = 'w25';
-        } elseif($size > 0 && $size <= 35) {
-            $wClass = 'w50';
-        } elseif($size > 0 && $size <= 55) {
-            $wClass = 'w75';
-        } else {
-            $wClass = 'w100';
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . $wClass;
         }
-
-        $attr['class'] .= ($attr['class'] ? ' ' : '') . $wClass;
     }
 }

@@ -1509,6 +1509,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		$Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
     		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity);
     		$price = $policyInfo->price;
+    		if(!isset($discount) && isset($policyInfo->discount)){
+    			$discount = $policyInfo->discount;
+    		}
     	}
     	
     	$packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);

@@ -37,4 +37,33 @@
       [#store_InventoryNoteSummary#]
    </div>
 </div>
+<div class="lines"></div>
+<table style="width: 100%;" class="table-border centered">
+    <tr>
+        <td style="width: 1%;;">Броил: </td>
+        <td class='nowrap' style='padding-top: 45px;table-layout: fixed;'>
+            <span class="sign_names">
+                <!--ET_BEGIN counter1-->
+                 /[#counter1#]/
+                <!--ET_END counter1-->
+            </span>
+        </td>
+        <td class='nowrap' style='padding-top: 45px;'>
+            <span class="sign_names">
+                <!--ET_BEGIN counter2-->
+                 /[#counter2#]/
+                <!--ET_END counter2-->
+            </span>
+        </td>
+        <td class='nowrap' style='padding-top: 45px;'>
+            <span class="sign_names">
+                <!--ET_BEGIN counter3-->
+                 /[#counter3#]/
+                <!--ET_END counter3-->
+            </span>
+        </td>
+    </tr>
+
+</table>
+<div class="clearfix21"></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -413,7 +413,7 @@ class blast_Emails extends core_Master
             // Ако е свършило времето
             if (!$this->checkTimelimit()) {
                 
-                $this->logWarning('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
                 
                 break;
             }
@@ -483,7 +483,7 @@ class blast_Emails extends core_Master
                     // Маркираме неизпратените имейли
                     blast_EmailSend::removeMarkAsSent($notSendDataArr);
                     
-                    $this->logWarning('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                    $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
                     
                     break;
                 }

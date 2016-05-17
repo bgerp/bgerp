@@ -88,6 +88,12 @@ class cond_Texts extends core_Manager
 
 
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'body, created=Автор';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -261,39 +267,23 @@ class cond_Texts extends core_Manager
             Mode::pop('text');
             $rec->title = str::limitLen($title, 100);
 
-            $string = substr_replace($string, "[hide=Още]", 0, 0);
+            $string = substr_replace($string, "[hide]", 0, 0);
             $string = substr_replace($string, "[/hide]", strlen($string), 0);
             $string =  $mvc->fields['body']->type->toVerbal($string);
             $createdOn = $mvc->getVerbal($rec, 'createdOn');
             $createdBy = $mvc->getVerbal($rec, 'createdBy');
 
-            $row->body = $title . "<br>" . $string  . $createdOn . ' - ' . $createdBy;
+            $row->body = "<span class='passageHolder'>" . $title . $string . "</span>";
+            $row->created = $createdOn . '<br>' . $createdBy;
         }
     }
 
 
     /**
-    * Извиква се преди подготовката на колоните ($data->listFields)
-    *
-    * @param core_Mvc $mvc
-    * @param object $res
-    * @param object $data
-     *
-     * @return bool false
+    * Преди рендиране на таблицата
     */
-    static function on_BeforePrepareListFields($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        // Ако е отворен в диалоговия прозорец
-        if (Mode::get('dialogOpened')) {
-
-            // Нулираме, ако е имало нещо
-            $data->listFields = array();
-
-            // Задаваме, кои полета да се показва
-            $data->listFields['body'] = "Пасаж";
-
-            // Да не се извикат останалите
-            return FALSE;
-        }
+        $data->listTableMvc->FLD('created', 'varchar', 'tdClass=createdInfo');
     }
 }

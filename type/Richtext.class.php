@@ -154,6 +154,8 @@ class type_Richtext extends type_Blob
         }
         
     	jquery_Jquery::run($tpl, "hideRichtextEditGroups();");
+
+        jquery_Jquery::run($tpl, "prepareRichtextAddElements();");
     	
     	jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
     	

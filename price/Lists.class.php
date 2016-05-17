@@ -121,7 +121,7 @@ class price_Lists extends core_Master
         $this->FNC('customer', 'varchar', 'caption=Прикрепяне->Клиент,input=hidden');
         $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
-        $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
+        $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
