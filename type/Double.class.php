@@ -56,12 +56,13 @@ class type_Double extends core_Type {
         $value = trim($value);
         
         if ($this->params['allowOct'] != 'allowOct') {
-            if ($value{1} != 'x' && $value{1} != '.' && $value{1} != ',') {
+            
+            if ($value{1} != 'x' && $value{1} != '.' && $value{1} != ',' && strlen($value) != 1) {
                 $value = ltrim($value, 0);
             }
         }
-            
-        if ($this->params['allowHex'] != 'allowHex') {
+        
+        if ($this->params['allowHex'] != 'allowHex'  && strlen($value) != 1) {
             $value = ltrim($value, '0x');
         }
         
