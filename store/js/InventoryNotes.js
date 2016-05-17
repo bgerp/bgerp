@@ -10,18 +10,16 @@ function noteActions() {
 	$('body').append($(ajaxFormHolder));
 	$('.ajaxFormHolder').append($(ajaxForm));
 
-	// Смяна на начисляването при клик на бутон
-	$(document.body).on('change', ".toggle-charge", function(e){
+	$(".toggle-charge").on("click", function(e) {
+		e.preventDefault();
 		var url = $(this).attr("data-url");
-		var selectedUser = this.value;
 
 		if(!url) return;
 
-		var data = {userId:selectedUser};
 		resObj = new Object();
 		resObj['url'] = url;
 		
-		getEfae().process(resObj,data);
+		getEfae().process(resObj);
 	});
 
 	// При натискане на бутона за показване на форма

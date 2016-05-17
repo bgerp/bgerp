@@ -262,7 +262,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			if(store_InventoryNoteDetails::haveRightFor('insert', (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId))){
     				$url = array('store_InventoryNoteDetails', 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'edit' => TRUE, 'replaceId' => "inlineform{$rec->id}");
     				
-    				if(!Mode::is('screenMode', 'narrow')){
+    				if(Mode::is('screenMode', 'narrow')){
     					unset($url['replaceId']);
     					if(isset($rec->nextId)){
     						$nextRec = static::fetch($rec->nextId, 'productId,noteId');
@@ -528,6 +528,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Сменяме начина на начисляване
     	$rec->charge = $userId; 
     	$rec->modifiedOn = dt::now();
+    	
     	$this->save($rec);
     	
     	// Опитваме се да запишем
@@ -539,7 +540,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			// Заместваме клетката по AJAX за да визуализираме промяната
     			$resObj = new stdClass();
     			$resObj->func = "html";
-    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec), 'replace' => TRUE);
+    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec)->getContent(), 'replace' => TRUE);
     			$res = array_merge(array($resObj));
     			
     			return $res;
@@ -624,13 +625,6 @@ class store_InventoryNoteSummary extends doc_Detail
     			if(static::haveRightFor('setresponsibleperson', $rec)){
     				$url = array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id);
     				
-    				
-    				
-    				//$attr['class']    = "toggle-charge";
-    				//$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
-    				//$attr['title']    = "Избор на материално отговорно лице";
-    				//$attr['placeholder'] = 'Собственик';
-    				
     				$toolbar = cls::get('core_RowToolbar');
     				foreach ($responsibles as $userId => $nick){
     					$attr = array();
@@ -641,13 +635,9 @@ class store_InventoryNoteSummary extends doc_Detail
     					$attr['class'] = "toggle-charge";
     					
     					$res = ht::createElement('span', $attr, $nick);
-    					//$charge->append($res);
-    					//$attr['ef_icon']
-    					//echo "<li>" . $attr['data-url'];
-    					//$toolbar->addFnLink($nick, "", $attr);
-    					$toolbar->addLink($nick, array(), $attr);
+    					$toolbar->addLink($nick, $url, $attr);
     				}
-    				//bp($toolbar->renderHtml());
+    				
     				$charge->append($toolbar->renderHtml());
     				//$charge = $toolbar;
     				//$charge = $charge->getContent();
@@ -660,10 +650,6 @@ class store_InventoryNoteSummary extends doc_Detail
     				$unsetCharge = FALSE;
     			}
     		}
-    	} else {
-    		if((isset($rec->delta) && $rec->delta <= 0 && isset($rec->charge))){
-    			$charge = crm_Profiles::createLink($rec->charge);
-    		}
     	}
     	
     	if($masterRec->state == 'draft'){
@@ -672,7 +658,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		$charge = $resTpl;
     	}
     	
-    	//if()
+    	$charge->append();
     	return $charge;
     }
     
