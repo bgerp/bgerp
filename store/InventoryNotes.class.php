@@ -524,6 +524,9 @@ class store_InventoryNotes extends core_Master
     	if(is_array($bRecs)){
     		foreach ($bRecs as $bRec){
     			
+    			// Записите, които не са от избрания склад ги пропускаме
+    			if($bRec->ent1Id != $storeItemId) continue;
+    			
     			$productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
     			$aRec = (object)array("noteId"     => $rec->id,
     								  "productId"  => $productId,
