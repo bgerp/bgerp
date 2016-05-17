@@ -159,6 +159,14 @@ class store_InventoryNotes extends core_Master
     			}
     		}
     	}
+    	
+    	if(($action == 'add' || $action == 'edit') && isset($rec)){
+    		if(isset($rec->folderId)){
+    			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
     }
     
     
