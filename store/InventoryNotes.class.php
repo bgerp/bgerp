@@ -133,6 +133,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Име на документа в бързия бутон за добавяне в папката
+     */
+    public $buttonInFolderTitle = 'Инвентаризация';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

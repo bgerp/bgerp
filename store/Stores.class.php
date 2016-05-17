@@ -404,6 +404,7 @@ class store_Stores extends core_Master
     	$res = array();
     	$res[] = planning_ConsumptionNotes::getClassId();
     	$res[] = store_Transfers::getClassId();
+    	$res[] = store_InventoryNotes::getClassId();
     	
     	return $res;
     }
