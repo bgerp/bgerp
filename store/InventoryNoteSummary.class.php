@@ -369,6 +369,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
+    	$data->listTableMvc->setField('charge', 'tdClass=charge-td');
     	
     	$filterByGroup = FALSE;
     	if(Mode::get('blank')){
@@ -638,10 +639,13 @@ class store_InventoryNoteSummary extends doc_Detail
     					$attr['title'] = "|Избор на|* {$nick} |за начет|*";
     					$attr['ef_icon'] = 'img/16/star_2,png';
     					$attr['class'] = "toggle-charge";
+    					
+    					$res = ht::createElement('span', $attr, $nick);
+    					//$charge->append($res);
     					//$attr['ef_icon']
     					//echo "<li>" . $attr['data-url'];
-    					$toolbar->addFnLink($nick, "", $attr);
-    					//$toolbar->addLink($nick, $url, $attr);
+    					//$toolbar->addFnLink($nick, "", $attr);
+    					$toolbar->addLink($nick, array(), $attr);
     				}
     				//bp($toolbar->renderHtml());
     				$charge->append($toolbar->renderHtml());
@@ -663,7 +667,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	if($masterRec->state == 'draft'){
-    		$resTpl = new core_ET("<span id='charge{$rec->id}' class='change-charge-holder'>[#CONTENT#]</span>");
+    		$resTpl = new core_ET("<span id='charge{$rec->id}'>[#CONTENT#]</span>");
     		$resTpl->append($charge);
     		$charge = $resTpl;
     	}
