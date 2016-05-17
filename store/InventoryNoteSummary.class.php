@@ -637,6 +637,7 @@ class store_InventoryNoteSummary extends doc_Detail
     					$attr['data-url'] = toUrl($url, 'local');
     					$attr['title'] = "|Избор на|* {$nick} |за начет|*";
     					$attr['ef_icon'] = 'img/16/star_2,png';
+    					$attr['class'] = "toggle-charge";
     					//$attr['ef_icon']
     					//echo "<li>" . $attr['data-url'];
     					$toolbar->addFnLink($nick, "", $attr);
@@ -662,7 +663,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	if($masterRec->state == 'draft'){
-    		$resTpl = new core_ET("<span id='charge{$rec->id}'>[#CONTENT#]</span>");
+    		$resTpl = new core_ET("<span id='charge{$rec->id}' class='change-charge-holder'>[#CONTENT#]</span>");
     		$resTpl->append($charge);
     		$charge = $resTpl;
     	}
