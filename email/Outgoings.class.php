@@ -2199,6 +2199,30 @@ class email_Outgoings extends core_Master
         
         if ($fields['-single']) {
             $row->singleTitle = tr('Изходящ имейл');
+            
+            $isAbsolute = (boolean) Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf');
+            
+            if (!$isAbsolute && core_Users::isPowerUser()) {
+                $sendEmailsArr = doclog_Documents::getSendEmails($rec->containerId);
+                
+                $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
+                
+                $viewIp = doclog_Documents::getViewIp($rec->containerId);
+                
+                $badIpArr = email_Incomings::getBadIpArr($viewIp, $rec->folderId, $emailsTld);
+                
+                if (!empty($badIpArr)) {
+                    $row->IpErrorString = tr('Писмото е видяно от потребител в рискова зона|* - ');
+                    $countryName = '';
+                    foreach ($badIpArr as $ip => $countryCode) {
+                        $row->IpErrorString .= ($countryName) ? ', ' : '';
+                        $countryName = drdata_Countries::getCountryName($countryCode);
+                        $row->IpErrorString .= $countryName;
+                    }
+                    
+                    $row->IpErrorString = email_Incomings::addErrToEmailStr($row->IpErrorString, '', 'error');
+                }
+            }
         }
     }
     

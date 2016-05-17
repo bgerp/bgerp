@@ -293,7 +293,9 @@ class cms_Content extends core_Manager
             // expect(FALSE);
             $url = '';
         }
- 
+        
+        core_Request::addUrlHash($url);  
+       
         if($absolute && is_array($url)) {
             $domain = cms_Domains::fetch($rec->domainId)->domain;
             if($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
@@ -476,7 +478,8 @@ class cms_Content extends core_Manager
         Mode::set('cMenuId', $menuId);
         
         if ($rec && ($url = $this->getContentUrl($rec))) {
- 
+            
+     
             return Request::forward($url);
         } else {
 

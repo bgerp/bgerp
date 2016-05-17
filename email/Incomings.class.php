@@ -15,7 +15,21 @@
 class email_Incomings extends core_Master
 {
     
-
+    
+    /**
+     * Масив с IP-та, които се приемат за рискови и контрагента, ако не е от същата държава
+     * Трбва да дава предупреждение за измама
+     * 
+     * GH - Ghana
+     * NG - Nigeria
+     * VN - Viet Nam
+     * SN - Senegal
+     * SL - Sierra Leone
+     * HK - Hong Kong
+     */
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK');
+    
+    
     /**
      * Шаблон (ET) за заглавие на перо
      */
@@ -764,7 +778,7 @@ class email_Incomings extends core_Master
             if ($rec->headers) {
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
-                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails)) {
+                if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails, FALSE, TRUE)) {
                     $returnPathEmailsUniq = array_unique($returnPathEmails);
                     $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
                     $rEmailsStr = type_Varchar::escape($rEmailsStr);
@@ -785,6 +799,19 @@ class email_Incomings extends core_Master
                 if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
                     $row->fromEml = self::addErrToEmailStr($row->fromEml, 'В тази нишка няма кореспонденция с този имейл и не е в списъка с имейлите на контрагента|*.', 'error');
                     $haveErr = TRUE;
+                }
+            }
+            
+            // Ако IP-то на изпращача е от рискова зона
+            // Показваме предупреждение след имейла
+            if ($rec->fromIp) {
+                $badIpArr = $mvc->getBadIpArr(array($rec->fromIp), $rec->folderId);
+                
+                if (!empty($badIpArr)) {
+                    $countryCode = $badIpArr[$rec->fromIp];
+                    $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode);
+                    
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
                 }
             }
         }
@@ -816,6 +843,45 @@ class email_Incomings extends core_Master
                 $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
             }
         }
+    }
+    
+    
+    /**
+     * От подадения масив с IP адреси връща само лошите (от рискова зона)
+     * Изключват се IP-та от държавите със същата корица и подадените в масива за изключения
+     * 
+     * @param array $ipArr
+     * @param NULL|integer $folderId
+     * @param array $skipCountryArr
+     */
+    public static function getBadIpArr($ipArr, $folderId = NULL, $skipCountryArr = array())
+    {
+        $resArr = array();
+        
+        foreach ($ipArr as $ip) {
+            if (!trim($ip)) continue ;
+            
+            $ipCoutryCode = drdata_IpToCountry::get($ip);
+            
+            if (!in_array($ipCoutryCode, self::$riskIpArr)) continue ;
+            
+            if (isset($folderId)) {
+                $cData = doc_Folders::getContragentData($folderId);
+                
+                // Ако папката е от рисковите държави
+                // Ip-то не се добавя към рисковите
+                if (isset($cData) && isset($cData->countryId)) {
+                    $coutryCode = drdata_Countries::fetchField((int)$cData->countryId, 'letterCode2');
+                    if ($coutryCode == $ipCoutryCode) continue ;
+                }
+            }
+            
+            if (!empty($skipCountryArr) && isset($skipCountryArr[$ipCoutryCode])) continue ;
+            
+            $resArr[$ip] = $ipCoutryCode;
+        }
+        
+        return $resArr;
     }
     
     
@@ -882,7 +948,7 @@ class email_Incomings extends core_Master
      * 
      * @return string
      */
-    protected static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
+    public static function addErrToEmailStr($emailStr, $errStr = '', $type = 'warning')
     {
         $hint = 'Възможен проблем|*!';
 
@@ -970,15 +1036,16 @@ class email_Incomings extends core_Master
     /**
      * Проверява дали имейла може да е еднакъв с подадения масив
      * Публичните трябва да съвпадат точно
-     * При останалите домейна трябва да съвпада
+     * При останалите - домейна трябва да съвпада
      * 
      * @param string $email
      * @param array $emailsArr
      * @param boolean $emailsArr
+     * @param boolean $removeSubdomains
      * 
      * @return boolean
      */
-    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE)
+    public static function checkEmailIsExist($email, $emailsArr, $mandatory = FALSE, $removeSubdomains = FALSE)
     {
         if (!$emailsArr) {
             if ($mandatory) {
@@ -1011,6 +1078,16 @@ class email_Incomings extends core_Master
             } else {
                 $cDomain = type_Email::domain($emailCheck);
                 $cDomain = strtolower($cDomain);
+                
+                // Правим проверка без да сравняваме поддомейните
+                if ($removeSubdomains) {
+                    $cDomain = core_Url::parseUrl($cDomain);
+                    $cDomain = $cDomain['domain'];
+                
+                    $domain = core_Url::parseUrl($domain);
+                    $domain = $domain['domain'];
+                }
+                
                 if ($domain == $cDomain) {
                     
                     return TRUE;

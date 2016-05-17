@@ -987,6 +987,7 @@ class core_Form extends core_FieldSet
                     $hiddens[$field->name] = $vars[$field->name];
                 }
             }
+            core_Request::addUrlHash($hiddens);
         }
         
         // Вкарваме скритите полета

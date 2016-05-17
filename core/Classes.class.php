@@ -192,8 +192,10 @@ class core_Classes extends core_Manager
         
         $options = self::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
         
-        foreach($options as $cls => &$name) {
-            $name = tr($name);
+        if(is_array($options)){
+        	foreach($options as $cls => &$name) {
+        		$name = tr($name);
+        	}
         }
  
         return $options;

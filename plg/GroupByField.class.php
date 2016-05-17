@@ -51,8 +51,8 @@ class plg_GroupByField extends core_Plugin
 		 
 		// За всяко поле за групиране
 		foreach ($groups as $groupId => $groupVerbal){
-			$groupVerbal = isset($groupVerbal) ? "<b>{$groupVerbal}</b>" : '<div style = "height:12px"></div>';
-	
+			$groupVerbal = $mvc->renderGroupName($data, $groupId, $groupVerbal);
+			
 			// Създаваме по един ред с името му, разпънат в цялата таблица
 			if(strstr($rowAttr['class'], 'group-by-field-row') === FALSE){
 				$rowAttr['class'] .= ' group-by-field-row';
@@ -79,5 +79,22 @@ class plg_GroupByField extends core_Plugin
 		}
 		
 		$data->rows = $rows;
+	}
+	
+	
+	/**
+	 * След рендиране на името на групата
+	 * 
+	 * @param core_Mvc $mvc           - модела
+	 * @param string $res             - името на групата
+	 * @param stdClass $data          - датата
+	 * @param string $groupName       - вътршното представяне на групата
+	 * @param string $groupVerbalName - текущото вербално име на групата
+	 */
+	public static function on_AfterRenderGroupName($mvc, &$res, $data, $groupName, $groupVerbalName)
+	{
+		if(!$res){
+			$res = isset($groupVerbalName) ? "<b>{$groupVerbalName}</b>" : '<div style = "height:12px"></div>';
+		}
 	}
 }

@@ -669,7 +669,7 @@ class core_App
     public static function getRetUrl()
     {
         $retUrl = core_Request::get('ret_url');
-        
+ 
         $res = self::parseLocalUrl($retUrl);
 
         return $res;
@@ -823,9 +823,7 @@ class core_App
         }
 
         // Ако ret_url е масив - кодирамего към локално URL
-        if(is_array($params['ret_url'])) {  
-            $params['ret_url'] = self::toUrl($params['ret_url'], 'local');
-        }
+        core_Request::addUrlHash($params);  
         
         if($protect) {
             $Request->doProtect($params);

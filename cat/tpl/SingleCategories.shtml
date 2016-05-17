@@ -24,9 +24,6 @@
             [#SETTINGS#]
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Настройки|*</legend>
-				<!--ET_BEGIN orderProductBy-->
-					<div class="groupList"><span class='quiet'>|Подреждане на артикулите по|*</span>: [#orderProductBy#]</div>
-				<!--ET_END orderProductBy-->
 				
 				<!--ET_BEGIN prefix-->
 					<div class="groupList"><span class='quiet'>|Начало код|*</span>: [#prefix#]</div>

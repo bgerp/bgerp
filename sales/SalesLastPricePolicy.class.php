@@ -16,7 +16,7 @@
 * @since     v 0.1
 * @title     Политика "По последна продажна цена"
 */
-class sales_SalesLastPricePolicy extends core_BaseClass
+class sales_SalesLastPricePolicy extends core_Mvc
 {
     
     

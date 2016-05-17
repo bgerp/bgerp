@@ -66,6 +66,47 @@ class type_Emails extends type_Varchar {
     
     
     /**
+     * Връща държавите от TLD на подадените имейли (ако не са публични имейли)
+     * 
+     * @param array $emailsArr
+     * @param string $field
+     * 
+     * @return array
+     */
+    public static function getCountryFromTld($emailsArr, $field = 'id')
+    {
+        $domainsArr = array();
+        foreach ($emailsArr as $email) {
+            list(, $domain) = explode('@', $email);
+            $domainsArr[$domain] = $domain;
+        }
+        
+        $tldArr = array();
+        
+        $resArr = array();
+        
+        foreach ($domainsArr as $key => $domain) {
+            if (drdata_Domains::isPublic($domain)) continue ;
+            
+            $parseArr = core_Url::parseUrl($domain);
+            
+            $tld = $parseArr['tld'];
+            if (!isset($tld)) continue ;
+            
+            if (isset($tldArr[$tld])) continue ;
+            
+            $cRec = drdata_Countries::fetch(array("#domain = '[#1#]'", '.' . $tld));
+            
+            if (!$cRec) continue ;
+            
+            $resArr[$cRec->{$field}] = $cRec->{$field};
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Превръща вербална стойност на списък имейли към вътрешно представяне
      */
     function fromVerbal($value)

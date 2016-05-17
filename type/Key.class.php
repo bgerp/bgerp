@@ -83,7 +83,7 @@ class type_Key extends type_Int
                 
                 // Ако е указано - правим превод
                 if($this->params['translate']) {
-                    $v = tr($v);
+                    $v = tr($v); 
                 }
 
                 return $v;
@@ -247,7 +247,7 @@ class type_Key extends type_Int
         
         // Ако опциите вече са генерирани - не ги подготвяме отново
         if (!is_array($this->options) || !count($this->options)) {
-        
+    
             $mvc = cls::get($this->params['mvc']);
 
             if($this->getSelectFld() == '*') {
@@ -270,22 +270,22 @@ class type_Key extends type_Int
             $options = array();
             
             $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this));
-
+ 
             if (!count($options)) {
                 
                 if (!is_array($this->options)) {
                     
                     $keyIndex = $this->getKeyField();
                     
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);  
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
-                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex);
+                    $this->handler = md5($field . $where . $this->params['mvc'] . $keyIndex);  
                 } else {
                     foreach($this->options as $id => $v) {
                         $options[$id] = $v;
-                    }
+                    }  
                 }
             }
             
@@ -303,12 +303,11 @@ class type_Key extends type_Int
                     if ($titles[$title]) {
                         $title = self::getUniqTitle($title, $id);
                     }
-                    
-                    list($title, ) = explode('||', $title);
-
                     $titles[$title] = TRUE;
-                    $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
                     $options[$id] = $title;
+
+                    list($title1, ) = explode('||', $title);
+                    $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title1));
 
                     if($i++ > 100) break;
                 }
@@ -339,8 +338,8 @@ class type_Key extends type_Int
         
         Mode::pop('text');
 
-        if($this->params['translate']) {
-            $options = self::translateOptions($options);
+        if($this->params['translate']) { 
+            $options = self::translateOptions($options);  
         }
         
         $this->options = $options;
