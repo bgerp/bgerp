@@ -194,6 +194,7 @@ class store_InventoryNotes extends core_Master
     	$form->setDefault('valior', dt::today());
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
+    	$form->setReadOnly('storeId');
     	$form->setDefault('hideOthers', 'yes');
     	
     	if(isset($form->rec->id)){
