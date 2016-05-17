@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -13,10 +14,253 @@
  * @since     v 0.1
  * @link
  */
+
 class unit_MinkPbgERP extends core_Manager {
-    //bgERP
-    /////http://localhost/unit_MinkP/CreateCase/
+     
+    //bgERP 16-05-2016
+    ///http://localhost/unit_MinkPbgERP/CreateSale/
     //return  $browser->getHtml();
+
+    /**
+     * Нова продажба на съществуваща фирма с папка
+     */
+    function act_CreateSale()
+    {
+
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+        //проверка потребител/парола
+        //Грешка:Грешна парола или ник!
+        //return  $browser->getHtml();
+        //$browser->hasText('Известия');
+        //$browser->hasText('Pavlinka');
+
+        //Отваряме папката на фирмата
+        $browser->click('Визитник');
+        //$Company = 'Детелина';
+        $browser->click('F');
+         
+        $Company = 'Фирма bgErp';
+        //$browser->hasText($Company);
+
+        $browser->click($Company);
+         
+        //Проверка дали сме в папката на фирмата
+        //$browser->hasText($Company );
+
+        $browser->press('Папка');
+
+        // нова продажба - има ли бутон?
+
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+
+        $endhour=strtotime("+5 hours");
+        $enddate=strtotime("+1 Day");
+        //$enddate = strtotime("+3 weeks");
+         
+        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
+        //$browser->setValue('deliveryTime[d]', date('d-m-Y'));
+
+        $browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
+        //$browser->setValue('deliveryTime[t]', '10:30');
+
+        $browser->setValue('reff', 'А1234');
+        $browser->setValue('bankAccountId', 1);
+        $browser->setValue('note', 'С куриер');
+        $browser->setValue('pricesAtDate', date('d-m-Y'));
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+         
+        // Записваме дотук черновата на продажбата
+        $browser->press('Чернова');
+
+        // Добавяме нов артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', '7');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 133);
+        $browser->setValue('packPrice', 179.693);
+        $browser->setValue('discount', 3);
+
+        // Записваме артикула и добавяме нов - услуга
+        $browser->press('Запис и Нов');
+        $browser->setValue('productId', '9');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', 1887);
+        $browser->setValue('packPrice', 1.6987);
+        $browser->setValue('discount', 1);
+
+        // Записваме артикула
+        $browser->press('Запис');
+        // Игнорираме предупреждението за липсваща стока
+        //$browser->setValue('Ignore', 1);
+        //$browser->press('Запис');
+
+        // активираме продажбата
+        $browser->press('Активиране');
+        //return  $browser->getHtml();
+        //$browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), '749,03')) {
+        } else {
+            return Err1;
+        }
+
+        if(strpos($browser->gettext(), 'Тридесет и една хиляди шестстотин двадесет и шест')) {
+             
+        } else {
+            return Err2;
+        }
+
+        //if(strpos($browser->gettext(), '26 355,59')) {
+
+        ////if(strpos($browser->gettext(), '5 271,12')) {
+
+        //} else {
+        //  return Err2;
+        //}
+
+        //if(strpos($browser->gettext(), '31 626,71')) {
+
+        //} else {
+        //  return Err3;
+        //}
+
+        // експедиционно нареждане
+        $browser->press('Експедиране');
+        $browser->setValue('storeId', 1);
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        // тази проверка не работи
+        //if(strpos($browser->gettext(), 'Контиране')) {
+        //$browser->press('Контиране');
+        //}
+        //if(strpos($browser->gettext(), 'Двадесет и седем хиляди осемстотин и осемнадесет')) {
+        // връща грешка, ако не е избрано ЕН с цени     
+        //} else {
+        //    return Err3;
+        //}
+         
+        // протокол
+
+        $browser->press('Пр. услуги');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+        //if(strpos($browser->gettext(), 'Контиране')) {
+        //  $browser->press('Контиране');
+        //}
+
+
+
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        //return  $browser->getHtml();
+        //return 'paymentType';
+        //$browser->setValue('paymentType', "bank");
+
+        $browser->press('Контиране');
+
+        //if(strpos($browser->gettext(), '23 182,19')) {
+
+        //} else {
+        //    return Err7;
+        //}
+         
+        // ПКО
+        $browser->press('ПКО');
+        $browser->setValue('depositor', 'Иван Петров');
+        $browser->setValue('amountDeal', '100');
+        $browser->setValue('peroCase', '1');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+
+        // ПБД
+        $browser->press('ПБД');
+         
+        $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
+        $browser->setValue('amountDeal', '100');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+
+        // Приключване
+        //$browser->selectNode("#Sal89 > td:nth-child(2) > div:nth-child(1) > div:nth-child(1) > input:nth-child(1)");
+        //$browser->click();
+
+        $browser->press('Приключване');
+        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
+        $browser->press('Чернова');
+        //return  $browser->getHtml();
+        $browser->press('Контиране');
+
+    }
+  
+    /**
+     *Рецепта - не приема мярката, като я няма - също не записва
+     *
+     */
+    function act_CreateBom()
+    {
+    
+        $browser = cls::get('unit_Browser');
+        $browser->start('http://localhost/');
+    
+        // Логваме се
+        $browser->click('Вход');
+        $browser->setValue('nick', 'Pavlinka');
+        $browser->setValue('pass', '111111');
+        $browser->press('Вход');
+        //проверка потребител/парола
+        //Грешка:Грешна парола или ник!
+        //return  $browser->getHtml();
+        //$browser->hasText('Известия');
+        //$browser->hasText('Pavlinka');
+    
+        $browser->click('Каталог');
+        $browser->click('Продукти');
+        $browser->click('Други продукти');
+        
+        $browser->click('Рецепти');
+        
+        $browser->click('Добавяне на нова търговска технологична рецепта');
+        //Return $browser->getHtml();
+        //$browser->hasText('Добавяне на търговска рецепта към');
+        $browser->setValue('expenses', '13');
+        $browser->setValue('quantityForPrice', '100');
+        $browser->press('Чернова');
+        $browser->press('Влагане');
+        $browser->setValue('resourceId', '1');
+        $browser->setValue('propQuantity', '19');
+        //не приема мярката, като я няма - също не записва
+        $browser->setValue('measureId', '3');
+        return $browser->getHtml();
+        $browser->press('Запис и нов');
+        
+       
+        $browser->setValue('resourceId', '1');
+        $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->press('Запис');
+       
+        $browser->press('Активиране');
+        $browser->press('OK');
+        //
+      
+        }
+         
+    
     
     /**
      * Запитване от съществуваща фирма с папка
@@ -106,7 +350,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         
         // Добавяме артикул - нестандартен
-        $browser->press('Артикул');
+        $browser->press('Добавяне');
         $browser->setValue('productId', '13');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
@@ -297,7 +541,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     function act_CreateProduct1()
     {
-         
+        //http://localhost/unit_MinkPbgERP/CreateProduct1/
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
     
@@ -317,25 +561,60 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
          
         
-        $browser->setValue('name', 'Плик 1 л');
-        $browser->setValue('code', 'plik1');
+        $browser->setValue('name', 'Плик 7 л');
+        $browser->setValue('code', 'plik7');
         $browser->setValue('measureId', '9');
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
-            Return Грешка;
+            $browser->click('Плик 7 л');
+        //Return $browser->getHtml();
         }
-        //Добавяне рецепти?
+        //Добавяне рецепта
         $browser->click('Рецепти');
-        $browser->click('Добавяне на нова търговска технологична рецепта');
-        //$browser->hasText('Добавяне на търговска рецепта към');
         
+        $browser->click('Добавяне на нова търговска технологична рецепта');
+        //Return $browser->getHtml();
+        //$browser->hasText('Добавяне на търговска рецепта към');
+        $browser->setValue('expenses', '13');
+        $browser->setValue('quantityForPrice', '166');
+        
+        $browser->press('Чернова');
+        $browser->press('Влагане');
+        
+        $browser->setValue('resourceId', '3');
+       
+        if(strpos($browser->gettext(), 'Други външни услуги')) {
+            //return 'Други външни услуги';
+        } else {
+            return 'артикул';
+        }
+        
+        //$browser->setValue('packagingId', '9');
+        $browser->setValue('propQuantity', '19');
+        
+        if(strpos($browser->gettext(), 'packagingId')) {
+            //return 'packagingId' ;
+        } else {
+            return 'мярка';
+        }
+        //Return $browser->getHtml();
+        
+        ///// Дава грешка за мярката!!!
+        //Return $browser->getHtml();               
+        $browser->press('Запис и нов');
+        $browser->setValue('resourceId', '1');
+        $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->press('Запис');
+       
+        $browser->press('Активиране');
+        $browser->press('OK');
     }
     
     
     /**
-     * Създава нов артикул - продукт
+     * Създава нов артикул - продукт, ако го има - редакция
      */
     
     function act_CreateProduct()
@@ -374,6 +653,18 @@ class unit_MinkPbgERP extends core_Manager {
         
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
+            $browser->click('Продукти');
+            $browser->click('Чувал голям');
+            $browser->press('Редакция');
+            $browser->setValue('info', 'черен');
+            $browser->press('Запис');
+            $browser->click('Добавяне на нов параметър');
+            $browser->setValue('paramId', 'Дължина (см)');
+            
+            ///// Дава грешка на стойността на параметъра!!!
+            $browser->setValue('paramValue', '12');
+            Return $browser->getHtml();
+            $browser->press('Запис');
         }
         //Добавяне рецепти?  
         $browser->click('Рецепти');
@@ -451,9 +742,12 @@ class unit_MinkPbgERP extends core_Manager {
     }
        
     /**
-     * Търсим фирма, ако я има - отваряме и редактираме, ако не - създаваме нова фирма
+     * Търсим фирма, ако я има - отваряме и редактираме, ако не - създаваме нова фирма. Не работи добре.
      */
-       function act_Test5()
+    //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
+    //if(strpos($browser->gettext(), $Company)) {намира фирмата, но дава грешка при търсене на несъществуваща,
+       
+    function act_TestFirm()
     {
         
         $browser = cls::get('unit_Browser');
@@ -519,139 +813,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     }
      
-    /**
-     * Нова продажба на съществуваща фирма с папка
-     */
-    function act_CreateSale()
-    {
-      
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
-        
-        // Логваме се
-        $browser->click('Вход');
-        $browser->setValue('nick', 'Pavlinka');
-        $browser->setValue('pass', '111111');
-        $browser->press('Вход');
-        // проверка потребител/парола
-        //Грешка:Грешна парола или ник!
-         
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pavlinka');
     
-        //Отваряме папката на фирмата
-        $browser->click('Визитник');
-        $Company = "Детелина";
-        //$browser->hasText($Company);
-        
-        $browser->click($Company);
-        
-        //Проверка дали сме в папката на фирмата
-        //$browser->hasText($Company );
-    
-        $browser->press('Папка'); 
-        
-        // нова продажба - има ли бутон?
-        
-        if(strpos($browser->gettext(), 'Продажба')) {
-            $browser->press('Продажба'); 
-        } else {
-            $browser->press('Нов...');
-            $browser->press('Продажба'); 
-        }
-           
-        //$browser->hasText('Създаване на продажба');
-        
-        $endhour=strtotime("+5 hours");
-        $enddate=strtotime("+1 Month");
-        //$enddate = strtotime("+3 weeks");
-       
-        $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
-        //$browser->setValue('deliveryTime[d]', date('d-m-Y'));
-        
-        $browser->setValue('deliveryTime[t]', date('h:i:sa', $endhour));
-        //$browser->setValue('deliveryTime[t]', '10:30');
-        $browser->setValue('reff', 'А1234455');
-        $browser->setValue('caseId', 1);
-        $browser->setValue('note', 'С куриер');
-        $browser->setValue('pricesAtDate', date('d-m-Y'));
-       
-        // Записваме дотук черновата на продажбата
-        $browser->press('Чернова');
-            
-        // Добавяме нов артикул
-        $browser->press('Артикул');
-        $browser->setValue('productId', '7');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1);
-        $browser->setValue('packPrice', 1);
-        $browser->setValue('discount', 1);
-      
-        // Записваме артикула и добавяме нов - услуга
-        $browser->press('Запис и Нов');
-        $browser->setValue('productId', '9');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 2);
-        $browser->setValue('packPrice', 2);
-        $browser->setValue('discount', 2);
-        
-        // Записваме артикула
-        $browser->press('Запис');
-        // Игнорираме предупреждението за липсваща стока
-        //$browser->setValue('Ignore', 1);
-        //$browser->press('Запис');
-        
-        // активираме продажбата
-        $browser->press('Активиране');
-        $browser->press('Активиране/Контиране');
-        
-        // експедиционно нареждане 
-        $browser->press('Експедиране');
-        $browser->setValue('storeId', 1);
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        // тази проверка не работи
-        //if(strpos($browser->gettext(), 'Контиране')) {
-            //$browser->press('Контиране');
-        //}
-        
-               
-        // протокол
-        
-        $browser->press('Пр. услуги');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Контиране')) {
-          //  $browser->press('Контиране');
-        //}
-        
-        // Фактура
-        $browser->press('Фактура');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        
-        // ПКО
-        $browser->press('ПКО');
-        $browser->setValue('depositor', 'Иван Петров');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        
-        // ПБД
-        //$browser->press('ПБД');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
-        
-        // Приключване 
-        //$browser->selectNode("#Sal89 > td:nth-child(2) > div:nth-child(1) > div:nth-child(1) > input:nth-child(1)");
-        //$browser->click();
-        
-        $browser->press('Приключване');
-        $browser->setValue('valiorStrategy', 'Най-голям вальор в нишката');
-        $browser->press('Чернова');
-        $browser->press('Активиране');
-        
-    }
-   
     /**
      * редакция на фирма OK
      */
@@ -750,7 +912,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     
-    function act_Test1()
+    function act_TestReload()
     {
         //добавяне и редакция Reload
         
@@ -832,56 +994,5 @@ class unit_MinkPbgERP extends core_Manager {
         
     }
     
-
-    function act_Test()
-    {
-        // Отваряме bgERP-а
-        $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/root/bgerp/');
-        
-        // Логваме се
-        $browser->click('Enter');
-        $browser->setValue('nick', 'milen');
-        $browser->setValue('pass', 'parola');
-        $browser->press('Вход');
-        
-        // Отваряме папката на фирма Експерта
-        $browser->click('Всички');
-        //$browser->hasText('Експерта ООД - В. Търново');
-        $browser->click('Експерта ООД - В. Търново');
-        
-        // Правим нова продажба
-        $browser->press('Нов...');
-        $browser->press('Продажба');
-        
-        // Попълваме някои полета
-        $browser->setValue('deliveryTime[d]', date('d-m-Y'));
-        $browser->setValue('deliveryTime[t]', '08:30');
-        $browser->setValue('shipmentStoreId', 'Основен');
-
-        // Записваме дотук черновата на продажбата
-        $browser->press('Чернова');
-
-        // Пак я редактираме
-        $browser->press('Редакция');
-        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
-        $browser->press('Чернова');
-        
-        // Добавяме нов артикул
-        $browser->press('Артикул');
-        $browser->setValue('productId', 'ЕП 22 (13)');
-        $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 10);
-        $browser->setValue('packPrice', 2);
-        
-        // Записваме артикула
-        $browser->press('Запис');
-
-        // Игнорираме предупреждението за липсваща стока
-        $browser->setValue('Ignore', 1);
-        $browser->press('Запис');
-
-        return $browser->getText();
-    }
-
 }
+   
