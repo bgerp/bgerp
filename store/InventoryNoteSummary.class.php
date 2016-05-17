@@ -370,6 +370,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
     	$data->listTableMvc->setField('charge', 'tdClass=charge-td');
+    	$masterRec = $data->masterData->rec;
     	
     	$filterByGroup = FALSE;
     	if(Mode::get('blank')){
@@ -424,8 +425,6 @@ class store_InventoryNoteSummary extends doc_Detail
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
     	}
-    	
-    	//bp($data->rows);
     }
     
     
@@ -540,7 +539,8 @@ class store_InventoryNoteSummary extends doc_Detail
     			// Заместваме клетката по AJAX за да визуализираме промяната
     			$resObj = new stdClass();
     			$resObj->func = "html";
-    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec)->getContent(), 'replace' => TRUE);
+    			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec), 'replace' => TRUE);
+    			
     			$res = array_merge(array($resObj));
     			
     			return $res;
@@ -605,7 +605,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public static function renderCharge($rec)
     {
     	$rec = static::fetchRec($rec);
-    	$charge = new core_ET('');
+    	$charge = '';
     	$masterRec = store_InventoryNotes::fetch($rec->noteId);
     	
     	$responsibles = array();
@@ -617,35 +617,20 @@ class store_InventoryNoteSummary extends doc_Detail
     	foreach ($chiefs as $c){
     		$responsibles[$c] = core_Users::getVerbal($c, 'nick');
     	}
-    	$responsibles = array(NULL => 'Собственик') + $responsibles;
+    	
+    	$responsibles = array('' => '') + $responsibles;
     	
     	if($masterRec->state == 'draft'){
     		$unsetCharge = TRUE;
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     			if(static::haveRightFor('setresponsibleperson', $rec)){
-    				$url = array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id);
+    				$attr = array();
+    				$attr['class']       = "toggle-charge";
+    				$attr['data-url']    = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
+    				$attr['title']       = "Избор на материално отговорно лице";
     				
-    				$toolbar = cls::get('core_RowToolbar');
-    				foreach ($responsibles as $userId => $nick){
-    					$attr = array();
-    					$url['userId'] = $userId;
-    					$attr['data-url'] = toUrl($url, 'local');
-    					$attr['title'] = "|Избор на|* {$nick} |за начет|*";
-    					$attr['ef_icon'] = 'img/16/star_2,png';
-    					$attr['class'] = "toggle-charge";
-    					
-    					$res = ht::createElement('span', $attr, $nick);
-    					$toolbar->addLink($nick, $url, $attr);
-    				}
-    				
-    				$charge->append($toolbar->renderHtml());
-    				//$charge = $toolbar;
-    				//$charge = $charge->getContent();
-    				//bp($charge);
-    				
-    				
-    				//$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
-    				//charge->removePlaces();
+    				$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
+    				$charge->removePlaces();
     				
     				$unsetCharge = FALSE;
     			}
@@ -653,12 +638,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	if($masterRec->state == 'draft'){
-    		$resTpl = new core_ET("<span id='charge{$rec->id}'>[#CONTENT#]</span>");
-    		$resTpl->append($charge);
-    		$charge = $resTpl;
+    		$charge = "<span id='charge{$rec->id}'>{$charge}</span>";
     	}
     	
-    	$charge->append();
     	return $charge;
     }
     
@@ -753,7 +735,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	// Филтрираме записите
     	$this->filterRecs($data->masterData->rec, $data->recs);
-    	return parent::prepareListRows_($data);
+    	
     	// Ако сме в режим за принтиране/бланка не правим кеширане
     	if(Mode::is('printing')){
     		return parent::prepareListRows_($data);
