@@ -52,7 +52,7 @@ function noteActions() {
 
 	// При натискане на бутона за показване на форма
 	$(document.body).on('click', ".ui-widget-overlay", function (e) {
-		dialog.dialog('close');
+		cancelForm();
 	});
 
 	// При натискане на бутон, когато е отворена формата
@@ -71,6 +71,7 @@ function noteActions() {
 // Затваряне на формата
 function cancelForm(){
 	dialog.dialog( "close" );
+	$('.inventoryNoteInsertForm').remove();
 }
 
 // Събмитва формата и не отваря нова след това
