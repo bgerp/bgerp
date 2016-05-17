@@ -637,8 +637,9 @@ class store_InventoryNoteSummary extends doc_Detail
     					$attr['data-url'] = toUrl($url, 'local');
     					$attr['title'] = "|Избор на|* {$nick} |за начет|*";
     					$attr['ef_icon'] = 'img/16/star_2,png';
+    					//$attr['ef_icon']
     					//echo "<li>" . $attr['data-url'];
-    					$toolbar->addFnLink($nick, "this.form.action=('{$httpsUrl}');this.form.submit();", $attr);
+    					$toolbar->addFnLink($nick, "", $attr);
     					//$toolbar->addLink($nick, $url, $attr);
     				}
     				//bp($toolbar->renderHtml());
