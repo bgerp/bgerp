@@ -919,7 +919,10 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$rec->ip = core_Users::getRealIpAddr();
     	$rec->brid = log_Browsers::getBrid();
-    	$rec->state = 'active';
+    	
+    	if($rec->state != 'rejected'){
+    		$rec->state = 'active';
+    	}
     }
     
     
