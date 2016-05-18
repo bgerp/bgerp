@@ -344,7 +344,7 @@ class bank_Accounts extends core_Master {
             		$title = 'Добавяне на нова банкова сметка';
             	}
             	
-            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr($title)), 'title');
+            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . $title), 'title');
             }
         }
         
