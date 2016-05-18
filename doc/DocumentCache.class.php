@@ -178,14 +178,14 @@ class doc_DocumentCache extends core_Master
 	 */
 	public static function threadCacheInvalidation($threadId)
 	{
+		$res = 0;
+		if(!(doc_Setup::get('CACHE_LIFETIME') > 0)) return $res;
 		expect($threadId);
 		
 		// Намираме контейнерите в нишката
 		$query = doc_Containers::getQuery();
 		$query->where("#threadId = {$threadId}");
 		$query->show('id');
-		
-		$res = 0;
 		
 		// За всеки инвалидираме му кеша
 		while($cRec = $query->fetch()){
@@ -207,5 +207,33 @@ class doc_DocumentCache extends core_Master
 		expect($containerId);
 		
 		return self::delete("#containerId = '{$containerId}'");
+	}
+	
+	
+	/**
+	 * Инвалидира кешовете на документите с посочен originId
+	 * 
+	 * @param int $originId - ид на контейнера, на източника на документа
+	 * @return int $deleted - броя изтрити записи
+	 */
+	public static function invalidateByOriginId($originId)
+	{
+		$deleted = 0;
+		
+		// Ако не кешираме, няма какво да инвалидираме
+		if(!(doc_Setup::get('CACHE_LIFETIME') > 0)) return $deleted;
+		
+		// Намираме контейнерите, които са с този ориджин
+		$query = doc_Containers::getQuery();
+		$query->where("#originId = {$originId}");
+		$query->show('id');
+		while($rec = $query->fetch()){
+			
+			// Инвалидираме им кеша
+			$delCount = static::cacheInvalidation($rec->id);
+			$deleted += $delCount;
+		}
+		
+		return $deleted;
 	}
 }

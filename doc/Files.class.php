@@ -279,7 +279,7 @@ class doc_Files extends core_Manager
             $docProxyRow = $docProxy->getDocumentRow();
             
             // Атрибутеите на линка
-            $attr['title'] = tr('Първи документ|*: ') . $docProxyRow->title;
+            $attr['title'] = 'Първи документ|*: ' . $docProxyRow->title;
             
             // Темата да е линк към single' а на първиа документ документа
             $firstContainerLink = $docProxy->getLink(35, $attr);

@@ -629,7 +629,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
 			$form->setReadOnly("grouping{$i}");
 		}
 		 
-		$features = acc_Features::getFeatureOptions(array_keys($items));
+		$features = acc_Features::getFeatureOptions(array_keys(array($items)));
 		$features = array('' => '') + $features + array('*' => $caption);
 		$form->FLD("feat{$i}", 'varchar', "caption=|*{$caption}->|Свойство|*,width=330px,input");
 		$form->setOptions("feat{$i}", $features);

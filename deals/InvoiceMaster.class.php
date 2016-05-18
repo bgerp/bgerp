@@ -904,7 +904,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec = $this->fetchRec($id);
     	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
-    
+ 
+    	$aggregator->push('invoices', array('valior' => $rec->date, 'total' => $total));
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	
@@ -1013,12 +1014,28 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	// Не може да се оттеглят документи, към които има създадени КИ и ДИ
     	if($action == 'reject' && isset($rec)){
     		if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
     	}
     	
+    	// Ако възстановяваме известие и оригиналът му е оттеглен, не можем да го възстановим
+    	if($action == 'restore' && isset($rec)){
+    		if($rec->type != 'invoice'){
+    			if($mvc->fetch("#containerId = {$rec->originId} AND #state = 'rejected'")){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	// Към ф-ра не можем да правим корекция, трябва да направим КИ или ДИ
+    	if($action == 'correction' && isset($rec)){
+    		$res = 'no_one';
+    	}
+    	
+    	// Може да се генерира фактура само в нишка с начало сделка, или от друга фактура
     	if($action == 'add' && isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
     		$state = $origin->rec()->state;
@@ -1131,5 +1148,33 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	if(!count($data->rows)) return;
     	$data->listTableMvc->FNC('valueNoVat', 'int');
+    }
+    
+    
+    /**
+     * Оттегляне на документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int $id
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	doc_DocumentCache::invalidateByOriginId($rec->containerId);
     }
 }

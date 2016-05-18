@@ -17,6 +17,12 @@ class bgerp_iface_DealAggregator
 {
     
 	
+	/**
+	 * Масив с издадените фактури към момента
+	 */
+	public $invoices = array();
+	
+	
     /**
      * Задава стойност на пропърти, ако няма
      *

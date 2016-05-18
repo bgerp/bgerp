@@ -36,8 +36,12 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 		);
 		
 		if($rec->id){
+			
+			// При контиране за първи път
 			if(Mode::get('saveTransaction')){
-				$this->class->sync($rec);
+				if($rec->state == 'draft'){
+					$this->class->sync($rec);
+				}
 			}
 			
 			$result->entries = $this->getEntries($rec, $result->totalAmount);
@@ -45,7 +49,6 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 		
 		return $result;
 	}
-	
 	
 	
 	/**
@@ -75,12 +78,12 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 			
 			// Ако разликата е положителна, тоест имаме излишък
 			if($dRec->delta > 0){
+				
 				// Артикулът трябва да има себестойност
     			$amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
     			if(!$amount){
     				$amount = $dRec->delta * cat_Products::getSelfValue($dRec->productId, NULL, $dRec->delta, $rec->valior);
     			}
-    			//$amount = 0;
     			
     			if(!$amount){
     				$errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);

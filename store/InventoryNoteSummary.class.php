@@ -216,8 +216,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$row->measureId = cat_UoM::getShortName($measureId);
     	
-    	if(!isset($rec->quantity)){
-    		$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+    	if(!isset($rec->quantity) && !Mode::is('printing')){
+    		$row->ROW_ATTR['class'] = " quiet";
     	}
     }
     
@@ -276,10 +276,10 @@ class store_InventoryNoteSummary extends doc_Detail
     						$url['ret_url'] = $retUrl;
     					}
     					
-    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add1-16.png,title=Промяна на установените количества');
+    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на установените количества');
     				} else {
     					$url = toUrl($url, 'local');
-    					$attr = array('src'      => sbf('img/16/add1-16.png', ''),
+    					$attr = array('src'      => sbf('img/16/edit-icon.png', ''),
     								  'id'       => "inventoryNoteShowAddForm{$rec->id}",
     								  'data-url' => $url, 
     								  'class'    => 'inventoryNoteShowAddForm', 
