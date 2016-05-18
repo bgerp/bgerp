@@ -178,14 +178,14 @@ class doc_DocumentCache extends core_Master
 	 */
 	public static function threadCacheInvalidation($threadId)
 	{
+		$res = 0;
+		if(!(doc_Setup::get('CACHE_LIFETIME') > 0)) return $res;
 		expect($threadId);
 		
 		// Намираме контейнерите в нишката
 		$query = doc_Containers::getQuery();
 		$query->where("#threadId = {$threadId}");
 		$query->show('id');
-		
-		$res = 0;
 		
 		// За всеки инвалидираме му кеша
 		while($cRec = $query->fetch()){
