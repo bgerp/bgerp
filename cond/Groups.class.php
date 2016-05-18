@@ -29,43 +29,43 @@ class cond_Groups extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin';
+    var $canRead = 'ceo,admin, powerUser';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin';
+    var $canEdit = 'ceo,admin, powerUser';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin';
+    var $canAdd = 'ceo,admin, powerUser';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin';
+    var $canList = 'ceo,admin, powerUser';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,admin';
+    var $canSingle = 'ceo,admin, powerUser';
 
 
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,admin';
+    var $canView = 'ceo,admin, powerUser';
 
 
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,admin,trans';
+    var $canDelete = 'ceo,admin,trans, powerUser';
 
 
     /**
@@ -73,6 +73,18 @@ class cond_Groups extends core_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(256)', 'caption=Общи');
+        $this->FLD('title', 'varchar', 'caption=Група');
+        $this->setDbUnique('title');
+    }
+
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $rec = new stdClass();
+
+        $rec->title = 'Общи';
+        $id = $mvc->save($rec, 'title', 'IGNORE');
+
+        $res .= $id ? "<li>Добавен е един запис успешно!</li>" : "<li>Не е добавено ново поле</li>";
+
     }
 }

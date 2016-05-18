@@ -48,25 +48,25 @@ class cond_Texts extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin';
+    var $canRead = 'ceo,admin, powerUser';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin';
+    var $canEdit = 'ceo,admin,powerUser';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin';
+    var $canAdd = 'ceo,admin,powerUser';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin';
+    var $canList = 'powerUser';
 
 
     /**
@@ -99,7 +99,7 @@ class cond_Texts extends core_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Описание, mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage=Общи)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
@@ -110,6 +110,8 @@ class cond_Texts extends core_Manager
      */
     function act_Dialog()
     {
+        Request::setProtected('groupName');
+
         Mode::set('wrapper', 'page_Dialog');
 
         // Вземаме callBack'а
@@ -119,6 +121,7 @@ class cond_Texts extends core_Manager
         Mode::set('dialogOpened', TRUE);
         Mode::set('callback', $callback);
       // Mode::set('bucketId', $bucketId);
+
 
         // Вземаме шаблона
         $tpl = $this->act_List();
@@ -141,6 +144,12 @@ class cond_Texts extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'add') {
+            if (Mode::get('dialogOpened')) {
+                $res = 'no_one';
+            }
+        }
+
+        if ($action == 'edit') {
             if (Mode::get('dialogOpened')) {
                 $res = 'no_one';
             }
@@ -214,13 +223,25 @@ class cond_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
+
+        Request::setProtected('groupName');
+        $group = Request::get('groupName');
+
+        if (isset($group)) {
+            $groupId = cond_Groups::fetchField(array("#title = '[#1#]'", $group), 'id');
+
+            $default = type_Keylist::fromArray(array($groupId => $groupId));
+
+            $form->setDefault('group', $default);
+        }
+
         $form->showFields = 'search,author,langWithAllSelect, group';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
         $form->class = 'simpleForm';
 
         $form->input();
-        if($form->isSubmitted()){
+
             $rec = $form->rec;
             if($rec->author){
                 $data->query->where("'{$rec->author}' LIKE CONCAT ('%|', #createdBy , '|%')");
@@ -234,8 +255,6 @@ class cond_Texts extends core_Manager
 //                bp($data->query->where);
 //                $data->query->where(array("#gropu = '[#1#]'", $rec->langWithAllSelect));
             }
-//            bp($rec);
-        }
         $data->query->orderBy('#createdOn', 'DESC');
     }
 
