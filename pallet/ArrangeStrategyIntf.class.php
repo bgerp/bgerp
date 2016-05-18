@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_iface_ArrangeStrategyIntf
+class pallet_ArrangeStrategyIntf
 {
     
     
