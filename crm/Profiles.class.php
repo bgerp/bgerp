@@ -997,7 +997,7 @@ class crm_Profiles extends core_Master
     				$attr['class'] .= ' state-' . $userRec->state;
     			}
     			
-    			$attr['title'] = $userRec->names;
+    			$attr['title'] = "|*" . $userRec->names;
     			
     			$link = ht::createLink($title, $url, $warning, $attr);
     		} else {
