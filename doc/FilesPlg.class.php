@@ -113,7 +113,7 @@ class doc_FilesPlg extends core_Plugin
             $attr = array();
             
             // Атрибутеите на линка
-            $attr['title'] = tr('Документ') . ': ' . $docRow->title;
+            $attr['title'] = 'Документ|*: ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
             $documentLink = $doc->getLink(35, $attr);
@@ -135,7 +135,7 @@ class doc_FilesPlg extends core_Plugin
                     $attr = array();
                     
                     // Атрибутеите на линка
-                    $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
+                    $attr['title'] = 'Нишка|*: ' . $docProxyRow->title;
                     
                     // Темата да е линк към single' а на първиа документ документа
                     $threadLink = $docProxy->getLink(35, $attr);    
