@@ -452,7 +452,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	if($data->masterData->rec->state == 'rejected') return;
     	
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
     	$data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
     	$data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
     	$data->listFilter->showFields = 'search';
