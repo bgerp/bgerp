@@ -1287,6 +1287,7 @@ en,Офис,Office
 en,Оценка на сигнал,Issue Evaluation
 en,Оценки,Ratings
 en,Очаквано начало,Estimated start
+en,Очаквано,Expected
 en,Още...,More...
 en,П - почивка,R - rest
 en,П. код,Post code
@@ -1333,6 +1334,7 @@ en,Персонализиране,Customize
 en,Пет,Fri
 en,Печалба по арт_373cd,Profit per articles
 en,Печалба по кли_0b887,Profit per customers
+en,Печат на страницата,Print page
 en,Печат,Print
 en,Писма,Letters
 en,Писмо,Letter
@@ -1649,6 +1651,7 @@ en,Разглеждане,View
 en,Разговори,Calls
 en,Разделител,Delimiter
 en,Разкачане на в_800a0,Disconnect the business card from the user
+en,Разлика,Difference
 en,Размер,Size
 en,Размер:,Size:
 en,Размерност,Dimensionality
@@ -1728,7 +1731,7 @@ en,Само моите,Only mine
 en,Само фирми,Companies only
 en,Самостоятелна,Separate
 en,Свален файл,Downloaded file
-en,Сваляне на док_7060b,Document download
+en,Сваляне на док_7060b,Download document
 en,Сваляне,Download
 en,Сваляния,Downloads
 en,Свойства,Properties
