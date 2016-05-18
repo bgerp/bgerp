@@ -234,7 +234,6 @@ class doc_DocumentCache extends core_Master
 			$deleted += $delCount;
 		}
 		
-		core_Statuses::newStatus($deleted, 'warning');
 		return $deleted;
 	}
 }
