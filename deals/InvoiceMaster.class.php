@@ -1149,4 +1149,32 @@ abstract class deals_InvoiceMaster extends core_Master
     	if(!count($data->rows)) return;
     	$data->listTableMvc->FNC('valueNoVat', 'int');
     }
+    
+    
+    /**
+     * Оттегляне на документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int $id
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
 }
