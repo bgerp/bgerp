@@ -1030,6 +1030,11 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
+    	// Към ф-ра не можем да правим корекция, трябва да направим КИ или ДИ
+    	if($action == 'correction' && isset($rec)){
+    		$res = 'no_one';
+    	}
+    	
     	// Може да се генерира фактура само в нишка с начало сделка, или от друга фактура
     	if($action == 'add' && isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
