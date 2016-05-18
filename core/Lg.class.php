@@ -260,7 +260,6 @@ class core_Lg extends core_Manager
         
         $key = static::prepareKey($key);
         
-        
         if(!count($this->dict)) {
             $this->dict = core_Cache::get('translation', $lg, 2 * 60 * 24, array('core_Lg'));
             
@@ -301,8 +300,10 @@ class core_Lg extends core_Manager
                 $rec->translated = $translated;
                 $rec->lg = $lg;
                 
-                // Записваме в модела
-                $this->save($rec);
+                // Само потребители с определена роля могат да добавят (автоматично) в превода
+                if (haveRole('translate')) {
+                    $this->save($rec);
+                }
                 
                 // Записваме в кеш-масива
                 $this->dict[$key][$lg] = type_Varchar::escape($rec->translated);

@@ -189,6 +189,12 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
+     * Роли, които ще се добавят при инсталация
+     */
+    public $roles = 'translate';
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
@@ -258,7 +264,8 @@ class core_Setup extends core_ProtoSetup {
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
-        'migrate::clearApcCache3'
+        'migrate::clearApcCache3',
+        'migrate::removeFalseTranslate'
     );
     
     
@@ -498,6 +505,37 @@ class core_Setup extends core_ProtoSetup {
             apc_clear_cache();
         }
     }
+    
+    
+    /**
+     * Премахва ненужните преводи, добавени по погрешка
+     */
+    static function removeFalseTranslate()
+    {
+        $query = core_Lg::getQuery();
+        $query->where("1=1");
+        
+        $deleteArr = array();
+        
+        // Ако намери стрингкове, които не са преведени, ги премахваме от модела
+        while ($rec = $query->fetch()) {
+            $translated = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $rec->translated);
+        
+            $translated = core_Lg::prepareKey($translated);
+            
+            if ($translated == $rec->kstring) {
+                $deleteArr[$rec->id] = $rec->id;
+            }
+        }
+        
+        if (!empty($deleteArr)) {
+            $in = implode(', ', $deleteArr);
+            $delCnt = core_Lg::delete("#id IN ({$in})");
+            
+            core_Lg::logNotice("Изтрити {$delCnt} брой ненужни записи");
+        }
+    }
+    
 
     /**
      * Връща JS файлове, които са подходящи за компактиране
