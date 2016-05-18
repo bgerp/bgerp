@@ -6,7 +6,7 @@ use Aws\S3\S3Client;
 
 
 /**
- * Модул Пасаж
+ * Модул backUp чрез Amazon Web Services (главно S3)
  *
  * @category  bgerp
  * @package   cond

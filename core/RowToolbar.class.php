@@ -196,7 +196,7 @@ class core_RowToolbar extends core_BaseClass
         	$layout = new core_ET("<span>[#ROW_TOOLS#]</span>");
         	foreach ($this->links as $linkObj){
         		setIfNot($linkObj->attr['hint'], $linkObj->title);
-        		$linkObj->attr['title'] = tr($linkObj->attr['title']);
+        		$linkObj->attr['title'] = $linkObj->attr['title'];
         		$btn = ht::createLink('', $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $linkObj->attr);
         		$layout->append($btn, 'ROW_TOOLS');
         	}

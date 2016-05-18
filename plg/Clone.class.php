@@ -250,7 +250,7 @@ class plg_Clone extends core_Plugin
         $cloneSbf = sbf("img/16/clone.png");
         
         // Ако не е подадено заглавиет, създаваме линк с иконата
-        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=' . tr('Клониране'));
+        $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, NULL, 'title=Клониране');
     }
     
     
