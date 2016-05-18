@@ -157,7 +157,7 @@ class social_Sharings extends core_Master
                                     NULL, 
                                     array(
                                         "class"   => "soc-sharing", 
-                                        "title"   => tr('Споделете в') . ' ' . $socialNetwork->name,
+                                        "title"   => 'Споделете в|* ' . $socialNetwork->name,
                                         "rel"     => "nofollow",
                                         "onclick" => "window.open('http' + '{$url}')"));
 				

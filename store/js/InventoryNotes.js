@@ -141,6 +141,14 @@ function submitShowAddForm(form, stop) {
 			$(id3).html(html3);
 		}
 		
+		if(typeof data[4] != 'undefined'){
+			if(data[4] == true){
+				$(id).closest("tr").addClass("quiet");
+			} else {
+				$(id).closest("tr").removeClass("quiet");
+			}
+		}
+		
 		// Ако не искаме да се отваря нова форма, излизаме от функцията
 		if(stop == true){
 			return;

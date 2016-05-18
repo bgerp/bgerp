@@ -155,7 +155,7 @@ class crm_Personalization extends core_Detail
             $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
             
             // Създаме линка
-            $link = ht::createLink($img, $url, FALSE,'title=' . tr('Промяна на персонализация'));
+            $link = ht::createLink($img, $url, FALSE,'title=Промяна на персонализация');
             
             // Добавяме линка
             $tpl->append($link,'title');

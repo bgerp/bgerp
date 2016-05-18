@@ -32,8 +32,7 @@ class cond_RichTextPlg extends core_Plugin
     public static function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има права за добавяне
-        if (haveRole('powerUser')) {
-
+        if (cond_Texts::haveRightFor('list') && $mvc->params['passage']) {
             // id
             ht::setUniqId($attr);
             $id = $attr['id'];
@@ -49,8 +48,10 @@ class cond_RichTextPlg extends core_Plugin
                 $args = 'width=600,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             }
 
+            Request::setProtected('groupName');
+
             // URL за добавяне на документи
-            $url = toUrl(array('cond_Texts', 'Dialog', 'callback' => $callbackName));
+            $url = toUrl(array('cond_Texts', 'Dialog', 'callback' => $callbackName, 'groupName' => $mvc->params['passage']));
 
             // JS фунцкията, която отваря прозореца
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";

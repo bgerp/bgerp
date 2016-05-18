@@ -253,7 +253,13 @@ class store_InventoryNoteDetails extends doc_Detail
     				$resObj3->func = "html";
     				$resObj3->arg = array('id' => "charge{$summeryId}", 'html' => store_InventoryNoteSummary::renderCharge($summeryId), 'replace' => TRUE);
     				
-    				$res = array_merge(array($resObj), array($resObj1), array($resObj2), array($resObj3));
+    				// Връщаме дали ще скрием класа на реда
+    				$showClass = false;
+    				if(is_null($quantity)){
+    					$showClass = true;
+    				}
+    				
+    				$res = array_merge(array($resObj), array($resObj1), array($resObj2), array($resObj3), array($showClass));
     			
     				// Връщаме очаквания обект
     				core_App::getJson($res);
