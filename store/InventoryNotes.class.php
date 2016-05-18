@@ -133,6 +133,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Име на документа в бързия бутон за добавяне в папката
+     */
+    public $buttonInFolderTitle = 'Инвентаризация';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -155,6 +161,14 @@ class store_InventoryNotes extends core_Master
     		} else {
     			$responsible = $mvc->getSelectedResponsiblePersons($rec);
     			if(!count($responsible)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	if(($action == 'add' || $action == 'edit') && isset($rec)){
+    		if(isset($rec->folderId)){
+    			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -194,6 +208,7 @@ class store_InventoryNotes extends core_Master
     	$form->setDefault('valior', dt::today());
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
+    	$form->setReadOnly('storeId');
     	$form->setDefault('hideOthers', 'yes');
     	
     	if(isset($form->rec->id)){
@@ -303,7 +318,7 @@ class store_InventoryNotes extends core_Master
     			$url['Printing'] = 'yes';
     			$url['Blank'] = 'yes';
     			 
-    			$data->toolbar->addBtn('Бланка', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
+    			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
     		}
     	}
     	
@@ -407,6 +422,34 @@ class store_InventoryNotes extends core_Master
     	if($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')){
     		$row->storeAddress = crm_Locations::getAddress($storeLocationId);
     	}
+    	
+    	$row->sales = array();
+    	$sQuery = sales_Sales::getQuery();
+    	$sQuery->where("#originId = {$rec->containerId}");
+    	$sQuery->show('id,contragentClassId,contragentId');
+    	while ($sRec = $sQuery->fetch()){
+    		$index = $sRec->contragentClassId . "|" . $sRec->contragentId;
+    		if(!array_key_exists($index, $row->sales)){
+    			$userId = crm_Profiles::fetchField("#personId = {$sRec->contragentId}", 'userId');
+    			$row->sales[$index] = (object)array('sales' => array(), 'link' => crm_Profiles::createLink($userId));
+    		}
+    		$row->sales[$index]->sales[] = sales_Sales::getLink($sRec->id, 0);
+    	}
+    }
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	foreach ($data->row->sales as $saleObject){
+    		$saleObject->sales = implode(', ', $saleObject->sales);
+    		$block = clone $tpl->getBlock('link');
+    		$block->placeObject($saleObject);
+    		$block->removeBlocks();
+    		$block->removePlaces();
+    		$tpl->append($block, 'SALES_BLOCK');
+    	}
     }
     
     
@@ -464,14 +507,16 @@ class store_InventoryNotes extends core_Master
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
-    	$from = dt::addMonths(-2, $rec->valior);
-    	$from = dt::verbal2mysql($from, FALSE);
     	$to = dt::addDays(-1, $rec->valior);
     	$to = dt::verbal2mysql($to, FALSE);
+    	
+    	$from = dt::addMonths(-2, $to);
+    	$from = dt::verbal2mysql($from, FALSE);
+    	
     	$now = dt::now();
     	
     	// Изчисляваме баланс за подадения период за склада
-    	$storeItemId = acc_items::fetchItem('store_Stores', $rec->storeId)->id;
+    	$storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
     	$Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => FALSE, 'item1' => $storeItemId));
     	$bRecs = $Balance->getBalance('321');
     	
@@ -480,6 +525,9 @@ class store_InventoryNotes extends core_Master
     	// Подготвяме записите в нормален вид
     	if(is_array($bRecs)){
     		foreach ($bRecs as $bRec){
+    			
+    			// Записите, които не са от избрания склад ги пропускаме
+    			if($bRec->ent1Id != $storeItemId) continue;
     			
     			$productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
     			$aRec = (object)array("noteId"     => $rec->id,
@@ -655,5 +703,14 @@ class store_InventoryNotes extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
     	$res = TRUE;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
     }
 }

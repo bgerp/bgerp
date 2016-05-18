@@ -180,20 +180,24 @@ class vislog_reports_Resources extends frame_BaseDriver
     {
         // Подготвяме страницирането
         $data = $res;
-        
-        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-        
-        $pager->itemsCount = count($data->resourceCnt, COUNT_RECURSIVE);
-        $pager->calc();
-        $data->pager = $pager;
+
+        if(!Mode::is('printing')){
+            $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+            $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+            $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+            
+            $pager->itemsCount = count($data->resourceCnt, COUNT_RECURSIVE);
+            $pager->calc();
+            $data->pager = $pager;
+        }
         
         $rows = $mvc->getVerbal($data->resourceCnt);
         
         if(is_array($rows)) {
             foreach ($rows as $id => $row) {
-                if (!$pager->isOnPage()) continue;
+                if(!Mode::is('printing')){
+                    if (!$pager->isOnPage()) continue;
+                }
         
                 $data->rows[$id] = $row;
             }

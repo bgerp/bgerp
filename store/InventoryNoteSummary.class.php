@@ -215,6 +215,10 @@ class store_InventoryNoteSummary extends doc_Detail
     	}
     	
     	$row->measureId = cat_UoM::getShortName($measureId);
+    	
+    	if(!isset($rec->quantity)){
+    		$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+    	}
     }
     
     
@@ -318,6 +322,10 @@ class store_InventoryNoteSummary extends doc_Detail
     				$requiredRoles = 'no_one';
     			}
     		}
+    		
+    		if(!store_InventoryNotes::haveRightFor('edit', $rec->noteId)){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
@@ -365,6 +373,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
     	$data->listTableMvc->FLD('quantitySum', 'double');
+    	$data->listTableMvc->setField('charge', 'tdClass=charge-td');
+    	$masterRec = $data->masterData->rec;
     	
     	$filterByGroup = FALSE;
     	if(Mode::get('blank')){
@@ -442,7 +452,7 @@ class store_InventoryNoteSummary extends doc_Detail
     {
     	if($data->masterData->rec->state == 'rejected') return;
     	
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
     	$data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
     	$data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
     	$data->listFilter->showFields = 'search';
@@ -521,6 +531,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Сменяме начина на начисляване
     	$rec->charge = $userId; 
     	$rec->modifiedOn = dt::now();
+    	
     	$this->save($rec);
     	
     	// Опитваме се да запишем
@@ -533,6 +544,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			$resObj = new stdClass();
     			$resObj->func = "html";
     			$resObj->arg = array('id' => "charge{$rec->id}", 'html' => static::renderCharge($rec), 'replace' => TRUE);
+    			
     			$res = array_merge(array($resObj));
     			
     			return $res;
@@ -582,11 +594,9 @@ class store_InventoryNoteSummary extends doc_Detail
     		// Вербализираме и нормализираме кода, за да можем да подредим по него
     		$rec->orderCode = cat_Products::getVerbal($pRec, 'code');
     		$rec->verbalCode = $rec->orderCode;
-    		$rec->orderCode = strtolower(str::utf2ascii($rec->orderCode));
     		
     		// Вербализираме и нормализираме името, за да можем да подредим по него
     		$rec->orderName = cat_Products::getVerbal($pRec, 'name');
-    		$rec->orderName = strtolower(str::utf2ascii($rec->orderName));
     	}
     }
     
@@ -609,6 +619,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	foreach ($chiefs as $c){
     		$responsibles[$c] = core_Users::getVerbal($c, 'nick');
     	}
+    	
     	$responsibles = array('' => '') + $responsibles;
     	
     	if($masterRec->state == 'draft'){
@@ -616,10 +627,9 @@ class store_InventoryNoteSummary extends doc_Detail
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')){
     			if(static::haveRightFor('setresponsibleperson', $rec)){
     				$attr = array();
-    				$attr['class']    = "toggle-charge";
-    				$attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
-    				$attr['title']    = "Избор на материално отговорно лице";
-    				$attr['placeholder'] = 'Собственик';
+    				$attr['class']       = "toggle-charge";
+    				$attr['data-url']    = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
+    				$attr['title']       = "Избор на материално отговорно лице";
     				
     				$charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
     				$charge->removePlaces();

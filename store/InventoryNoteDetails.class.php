@@ -80,7 +80,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Активен таб
      */
-    //public $currentTab = 'Трансфери';
+    public $currentTab = 'Документи->Инвентаризация';
     
     
     /**
@@ -343,7 +343,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	$rec = &$form->rec;
     	if($rec->edit){
     		$pTitle = cat_Products::getTitleById($rec->productId);
-    		$form->title = "|*<b style='color:#222222;'>{$pTitle}</b>";
+    		$form->title = "|*<b>{$pTitle}</b>";
     		$form->info = tr('Установено количество');
     		$form->setField('productId', 'input=hidden');
     	} else {
@@ -361,11 +361,11 @@ class store_InventoryNoteDetails extends doc_Detail
     		
     		$count = 1;
     		foreach ($packs as $packId => $value){
-    			$attr = array('autocomplete' => 'off');
+    			$attr = array('attr' => array('autocomplete' => 'off'));
     			if($count == 1){
-    				$attr['id'] = 'focusAjaxField';
+    				$attr['attr']['id'] = 'focusAjaxField';
     			}
-    			$form->FLD("pack{$packId}", 'double(min=0,autocomplete=off)', $attr);
+    			$form->FLD("pack{$packId}", 'double(min=0)', $attr);
     			
     			$exRec = store_InventoryNoteDetails::fetch("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packId}");
     			if($exRec){

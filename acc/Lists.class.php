@@ -604,7 +604,7 @@ class acc_Lists extends core_Manager {
         $rec = self::fetch($listId);
         $items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
         $features = array();
-        if(count($items)) {
+        if(is_array($items)) {
             $features = acc_Features::getFeatureOptions(array_keys($items));
         }
         $rec->featureList = $features;
