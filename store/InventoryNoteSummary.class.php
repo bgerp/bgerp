@@ -217,7 +217,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	$row->measureId = cat_UoM::getShortName($measureId);
     	
     	if(!isset($rec->quantity)){
-    		$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+    		$row->ROW_ATTR['class'] = " quiet";
     	}
     }
     
