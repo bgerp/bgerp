@@ -227,7 +227,7 @@ class doc_FilesPlg extends core_Plugin
             $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
-            $attr['title'] = tr('Документ') . ': ' . $docRow->title;
+            $attr['title'] = 'Документ|*: ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
             $documentLink = ht::createLink(str::limitLen($docRow->title, 70), array($doc->className, 'single', $doc->that), NULL, $attr);
@@ -252,7 +252,7 @@ class doc_FilesPlg extends core_Plugin
                 $attr = array();
                 $attr['class'] = 'linkWithIcon';
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($doc->that)) . ');';
-                $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
+                $attr['title'] = 'Нишка|*: ' . $docProxyRow->title;
                 
                 // Темата да е линк към single' а на първиа документ документа
                 $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 70), array($docProxy->className, 'single', $docProxy->that), NULL, $attr); 
