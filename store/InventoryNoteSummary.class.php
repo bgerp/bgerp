@@ -276,10 +276,10 @@ class store_InventoryNoteSummary extends doc_Detail
     						$url['ret_url'] = $retUrl;
     					}
     					
-    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add1-16.png,title=Промяна на установените количества');
+    					$link = ht::createLink('', $url, FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на установените количества');
     				} else {
     					$url = toUrl($url, 'local');
-    					$attr = array('src'      => sbf('img/16/add1-16.png', ''),
+    					$attr = array('src'      => sbf('img/16/edit-icon.png', ''),
     								  'id'       => "inventoryNoteShowAddForm{$rec->id}",
     								  'data-url' => $url, 
     								  'class'    => 'inventoryNoteShowAddForm', 
