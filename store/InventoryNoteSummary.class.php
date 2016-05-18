@@ -216,7 +216,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	
     	$row->measureId = cat_UoM::getShortName($measureId);
     	
-    	if(!isset($rec->quantity)){
+    	if(!isset($rec->quantity) && !Mode::is('printing')){
     		$row->ROW_ATTR['class'] = " quiet";
     	}
     }
