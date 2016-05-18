@@ -208,4 +208,33 @@ class doc_DocumentCache extends core_Master
 		
 		return self::delete("#containerId = '{$containerId}'");
 	}
+	
+	
+	/**
+	 * Инвалидира кешовете на документите с посочен originId
+	 * 
+	 * @param int $originId - ид на контейнера, на източника на документа
+	 * @return int $deleted - броя изтрити записи
+	 */
+	public static function invalidateByOriginId($originId)
+	{
+		$deleted = 0;
+		
+		// Ако не кешираме, няма какво да инвалидираме
+		if(!(doc_Setup::get('CACHE_LIFETIME') > 0)) return $deleted;
+		
+		// Намираме контейнерите, които са с този ориджин
+		$query = doc_Containers::getQuery();
+		$query->where("#originId = {$originId}");
+		$query->show('id');
+		while($rec = $query->fetch()){
+			
+			// Инвалидираме им кеша
+			$delCount = static::cacheInvalidation($rec->id);
+			$deleted += $delCount;
+		}
+		
+		core_Statuses::newStatus($deleted, 'warning');
+		return $deleted;
+	}
 }
