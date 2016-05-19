@@ -188,7 +188,7 @@ class store_InventoryNoteDetails extends doc_Detail
     		}
     		
     		if(!$price){
-    			//$form->setError('productId', 'Артикулът няма себестойност');
+    			$form->setError('productId', 'Артикулът няма себестойност');
     		}
     		
     		if(!$form->gotErrors()){

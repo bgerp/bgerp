@@ -234,6 +234,8 @@ class type_Int extends core_Type {
             $pattern = '0x';
         }
         
+        $number = str_replace(' ', '', $number);
+        
         $pattern = "/(^|[^0-9]+)({$pattern})+([0-9]+)/";
         
         $number = preg_replace($pattern, "$1$3", $number);

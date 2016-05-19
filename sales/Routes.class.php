@@ -315,9 +315,11 @@ class sales_Routes extends core_Manager {
     	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
     	
     	if($rec->state == 'active'){
-    		if(sales_Sales::haveRightFor('add')){
-    			$row->btn = ht::createBtn('ПР', array('crm_Locations', 'createSale', $rec->locationId), FALSE, TRUE, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към локацията');
-    			$row->contragent = "{$row->btn} " . $row->contragent;
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+    			if(sales_Sales::haveRightFor('add')){
+    				$row->btn = ht::createBtn('ПР', array('crm_Locations', 'createSale', $rec->locationId), FALSE, TRUE, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към локацията');
+    				$row->contragent = "{$row->btn} " . $row->contragent;
+    			}
     		}
     	} else {
     		unset($row->nextVisit);

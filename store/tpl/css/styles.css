@@ -76,6 +76,7 @@
 
 .table-border td {
 	padding: 15px 10px 5px;
+	vertical-align: top;
 }
 
 .ui-widget-overlay {

@@ -30,7 +30,7 @@ class cond_Texts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, cond_DialogWrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, cond_Wrapper, plg_Search, cond_DialogWrapper";
 
 
     /**
@@ -120,8 +120,6 @@ class cond_Texts extends core_Manager
         // Сетваме нужните променливи
         Mode::set('dialogOpened', TRUE);
         Mode::set('callback', $callback);
-      // Mode::set('bucketId', $bucketId);
-
 
         // Вземаме шаблона
         $tpl = $this->act_List();

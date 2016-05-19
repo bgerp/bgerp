@@ -192,21 +192,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Връща датата на последната ф-ра
-     */
-    protected function getNewestInvoiceDate()
-    {
-    	$query = $this->getQuery();
-    	$query->where("#state = 'active'");
-    	$query->orderBy('date', 'DESC');
-    	$query->limit(1);
-    	$lastRec = $query->fetch();
-    	
-    	return $lastRec->date;
-    }
-    
-    
-    /**
      * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
      *
      * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата.
@@ -291,14 +276,28 @@ abstract class deals_InvoiceMaster extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	
     	if($invArr['type'] != 'dc_note'){
-    		$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
-    		$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
-    		
-    		if($invArr['dpOperation'] == 'accrued'){
+    		$show = TRUE;
+    		if(isset($form->rec->id)){
+    			$Detail = cls::get($this->mainDetail);
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->where("#invoiceId = {$form->rec->id}");
     			
-    			// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
-    			$caption = '|Промяна на авансово плащане|*';
-    			$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    			if($dQuery->count()){
+    				$show = FALSE;
+    			}
+    		}
+    		
+    		if($show === TRUE){
+    			$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
+    			$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
+    			$form->setFieldTypeParams('changeAmount', array('min' => -1 * $invArr['dealValue']));
+    			
+    			if($invArr['dpOperation'] == 'accrued'){
+    				 
+    				// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
+    				$caption = '|Промяна на авансово плащане|*';
+    				$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    			}
     		}
     	}
     
@@ -885,6 +884,10 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$row = new stdClass();
     	$row->type = static::getVerbal($rec, 'type');
+    	if($rec->type == 'dc_note'){
+    		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    	}
+    	
     	$row->number = strip_tags(static::getVerbal($rec, 'number'));
     	$num = ($row->number) ? $row->number : $rec->id;
     

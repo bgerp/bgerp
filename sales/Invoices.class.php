@@ -648,7 +648,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($action == 'conto' && isset($rec)){
     	
     		// Не може да се контира, ако има ф-ра с по нова дата
-    		$lastDate = $mvc->getNewestInvoiceDate();
+    		$lastDate = $mvc->getNewestInvoiceDate($rec->numlimit);
     		if($lastDate > $rec->date) {
     			$res = 'no_one';
     		}
@@ -789,6 +789,22 @@ class sales_Invoices extends deals_InvoiceMaster
    		return round($amount, 2);
    	}
 
+
+	/**
+   	 * Връща датата на последната ф-ра
+   	 */
+   	protected function getNewestInvoiceDate($diapason)
+   	{
+   		$query = $this->getQuery();
+   		$query->where("#state = 'active'");
+   		$query->where("#numlimit = {$diapason}");
+   		$query->orderBy('date', 'DESC');
+   		$query->limit(1);
+   		$lastRec = $query->fetch();
+   		 
+   		return $lastRec->date;
+   	}
+   	
    	
    	/**
    	 * Валидиране на полето 'date' - дата на фактурата
@@ -796,13 +812,13 @@ class sales_Invoices extends deals_InvoiceMaster
    	 */
    	public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
    	{
-   		$newDate = $mvc->getNewestInvoiceDate();
+   		$newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
    		if($newDate > $rec->date) {
    	
    			// Най-новата валидна ф-ра в БД е по-нова от настоящата.
    			$form->setError('date',
-   					'Не може да се запише фактура с дата по-малка от последната активна фактура (' .
-   					dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
+   					'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
+   					dt::mysql2verbal($newDate, 'd.m.y') .
    					')'
    			);
    		}
