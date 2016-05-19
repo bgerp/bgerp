@@ -885,6 +885,10 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$row = new stdClass();
     	$row->type = static::getVerbal($rec, 'type');
+    	if($rec->type == 'dc_note'){
+    		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    	}
+    	
     	$row->number = strip_tags(static::getVerbal($rec, 'number'));
     	$num = ($row->number) ? $row->number : $rec->id;
     
