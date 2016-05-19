@@ -1288,7 +1288,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .wide table.listAction {
   min-width: 760px; }
 
-.wide .remote_Authorizations table.listAction {
+.wide .user-profile .remote_Authorizations table.listAction {
   min-width: 0; }
 
 /*
