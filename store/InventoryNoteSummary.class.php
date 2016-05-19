@@ -372,12 +372,12 @@ class store_InventoryNoteSummary extends doc_Detail
     	if(!$data->rows) return;
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter,tdClass=small-field');
-    	$data->listTableMvc->FLD('quantitySum', 'double');
     	$data->listTableMvc->setField('charge', 'tdClass=charge-td');
     	$masterRec = $data->masterData->rec;
     	
     	$filterByGroup = FALSE;
     	if(Mode::get('blank')){
+    		$data->listTableMvc->FLD('quantitySum', 'varchar');
     		$data->listTableMvc->setField('quantitySum', 'tdClass=large-field');
     		
     		$filterName = Request::get($mvc->groupByField, 'varchar');
@@ -385,6 +385,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			$filterByGroup = TRUE;
     		}
     	} else {
+    		$data->listTableMvc->FLD('quantitySum', 'double');
     		if(!Mode::get('printing')){
     			$pager = cls::get('core_Pager',  array('itemsPerPage' => 200));
     			$pager->itemsCount = count($data->rows);

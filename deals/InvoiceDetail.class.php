@@ -356,7 +356,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$rec = &$form->rec;
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 	
-		if($form->rec->productId){
+		if($form->rec->productId && $masterRec->type != 'dc_note'){
 			$vat = cat_Products::getVat($rec->productId);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			

@@ -1363,7 +1363,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     min-width:760px;
 }
 
-.wide .remote_Authorizations table.listAction {
+.wide .user-profile .remote_Authorizations table.listAction {
 	min-width: 0;
 }
 /* край на стилове за елемента 'list Table' */
@@ -2628,7 +2628,7 @@ a.lang {
     display: none;
     a.rtbutton {
         text-align: left;
-		min-width: 65px;
+		min-width: 70px;
 	}
 }
 .narrow .richtext-emoticons6 a.rtbutton{
