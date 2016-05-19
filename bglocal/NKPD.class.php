@@ -64,14 +64,9 @@ class bglocal_NKPD extends core_Master
      */
     static function on_BeforeSave($mvc, $res, $rec)
     {
-        if(isset($rec->csv_key)){ 
-            if($rec->csv_title == '') { 
-                $rec->key = $rec->csv_key . $rec->csv_position;
-                $rec->title = $rec->csv_key . " " . $rec->csv_position;
-            } else {
-                $rec->key = $rec->csv_key . $rec->csv_title;
-                $rec->title = $rec->key . " " . $rec->csv_position;
-            }
+        if(isset($rec->csv_key)){
+            $rec->key = $rec->csv_key . $rec->csv_title;
+            $rec->title = $rec->key . " " . $rec->csv_position;
         }
     }
     
