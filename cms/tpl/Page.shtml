@@ -3,11 +3,6 @@
         <div id="cmsTop">
             [#HEADER_IMG#]
             [#PAGE_HEADER#]
-
-            <!--ET_BEGIN LОGIN_LINK-->
-            [#LОGIN_LINK#]
-            <!--ET_END LОGIN_LINK-->
-
             <!--ET_BEGIN CORE_APP_NAME-->
                 <div class='app-name'>[#CORE_APP_NAME#]</div> 
             <!--ET_END CORE_APP_NAME-->
