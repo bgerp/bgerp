@@ -192,21 +192,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Връща датата на последната ф-ра
-     */
-    protected function getNewestInvoiceDate()
-    {
-    	$query = $this->getQuery();
-    	$query->where("#state = 'active'");
-    	$query->orderBy('date', 'DESC');
-    	$query->limit(1);
-    	$lastRec = $query->fetch();
-    	
-    	return $lastRec->date;
-    }
-    
-    
-    /**
      * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
      *
      * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата.
