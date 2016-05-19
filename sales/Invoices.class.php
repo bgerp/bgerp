@@ -818,7 +818,7 @@ class sales_Invoices extends deals_InvoiceMaster
    			// Най-новата валидна ф-ра в БД е по-нова от настоящата.
    			$form->setError('date',
    					'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
-   					dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
+   					dt::mysql2verbal($newDate, 'd.m.y') .
    					')'
    			);
    		}
