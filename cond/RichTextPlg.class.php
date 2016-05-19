@@ -38,7 +38,7 @@ class cond_RichTextPlg extends core_Plugin
             $id = $attr['id'];
 
             // Име на функцията и на прозореца
-            $windowName = $callbackName = 'placePassage_' . $id;
+            $callbackName = 'placePassage_' . $id;
 
             // Ако е мобилен/тесем режим
             if(Mode::is('screenMode', 'narrow')) {
@@ -54,21 +54,20 @@ class cond_RichTextPlg extends core_Plugin
             $url = toUrl(array('cond_Texts', 'Dialog', 'callback' => $callbackName, 'groupName' => $mvc->params['passage']));
 
             // JS фунцкията, която отваря прозореца
-            $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+            $js = "openWindow('{$url}', '{$callbackName}', '{$args}'); return false;";
 
             // Бутон за отвяряне на прозореца
             $addPassage = new ET("<a class=rtbutton title='" . tr("Добавяне на пасаж ") . "' onclick=\"{$js}\">" . tr("Пасаж") . "</a>");
 
             // JS функцията
             $callback = "function {$callbackName}(passage) {
-            console.log(passage);
                 var ta = get$('{$id}');
                 rp(passage, ta, 1);
-                return true;
+                return false;
             }";
 
             // Добавяме скрипта
-            $addPassage ->appendOnce($callback, 'SCRIPTS');
+            $addPassage->appendOnce($callback, 'SCRIPTS');
 
             // Добавяне в групата за добавяне на документ
             $toolbarArr->add($addPassage , 'filesAndDoc', 1000.056);
