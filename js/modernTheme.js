@@ -130,7 +130,6 @@ function setMenuCookie(){
 
 	currentMenuInfo = menuState;
 	setCookie('menuInfo', menuState);
-	console.log('set' + menuState);
 }
 
 
