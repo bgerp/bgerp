@@ -121,7 +121,7 @@ function setMenuCookie(){
 	if($(window).width() > 700) {
 		var openMenus = '';
 		$('#nav-panel > ul > li.open').each(function() {
-			if ($(this).attr('data-menuid') != 'undefined' && !$(this).hasClass('selected'))
+			if ($(this).attr('data-menuid') != 'undefined')
 				openMenus += $(this).attr('data-menuId') + ",";
 		});
 		
@@ -235,6 +235,7 @@ function getCookie(key) {
 function sidebarAccordeonActions() {
 	$('#nav-panel li:not(.open,.selected) ul').css('display', 'none');
 	$('#nav-panel li.selected').addClass('open');
+	setMenuCookie();
 
 	$("#nav-panel li div").click( function() {
 		$(this).parent().toggleClass('open');
