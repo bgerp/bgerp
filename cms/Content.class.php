@@ -215,7 +215,9 @@ class cms_Content extends core_Manager
             $cMenuId = Request::get('cMenuId', 'int');
             Mode::set('cMenuId', $cMenuId);
         }
-        
+
+        $loginLink = FALSE;
+
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
                 
@@ -233,7 +235,11 @@ class cms_Content extends core_Manager
                 $url = $this->getContentUrl($rec);
 
                 if(!$url) $url = '#';
-                
+                $urlS = toUrl($url);
+                if(strpos( $urlS,'/core_Users/')  !== FALSE || strpos($urlS, 'Portal/Show/') !== FALSE){
+                    $loginLink = TRUE;
+                }
+
                 $tpl->append(ht::createLink($rec->menu, $url, NULL, $attr));
             }    
         }
@@ -247,16 +253,6 @@ class cms_Content extends core_Manager
             }
             if ($dRec->activeColor) {
                 $activeColor = $dRec->activeColor;
-            }
-        }
-
-        $loginLink = FALSE;
-
-        if(count($data->items)){
-            foreach ($data->items as $item) {
-                if(strpos( $item->url,'/core_Users/')  !== FALSE || strpos($item->url, 'Portal/Show/') !== FALSE){
-                    $loginLink = TRUE;
-                }
             }
         }
 
