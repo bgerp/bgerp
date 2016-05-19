@@ -44,6 +44,7 @@ function initElements() {
 
 	if(cookie && viewportWidth > 700) {
 		if(cookie.indexOf('l') != "-1" && !$('.sidemenu-left').hasClass('sidemenu-open')) {
+			openSubmenus();
 			$('.btn-menu-left ').click();
 		}
 		if(cookie.indexOf('r') != "-1" && !$('.sidemenu-right').hasClass('sidemenu-open')) {
@@ -120,7 +121,7 @@ function setMenuCookie(){
 	if($(window).width() > 700) {
 		var openMenus = '';
 		$('#nav-panel > ul > li.open').each(function() {
-			if ($(this).attr('data-menuid') != 'undefined')
+			if ($(this).attr('data-menuid') != 'undefined' && !$(this).hasClass('selected'))
 				openMenus += $(this).attr('data-menuId') + ",";
 		});
 		
