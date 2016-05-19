@@ -237,7 +237,39 @@ class cms_Content extends core_Manager
                 $tpl->append(ht::createLink($rec->menu, $url, NULL, $attr));
             }    
         }
-        
+
+        $dRec = cms_Domains::getPublicDomain('form');
+        $menuColor = "";
+        $activeColor = "";
+        if ($dRec) {
+            if ($dRec->baseColor) {
+                $menuColor = $dRec->baseColor;
+            }
+            if ($dRec->activeColor) {
+                $activeColor = $dRec->activeColor;
+            }
+        }
+
+        $loginLink = FALSE;
+
+        if(count($data->items)){
+            foreach ($data->items as $item) {
+                if(strpos( $item->url,'/core_Users/')  !== FALSE || strpos($item->url, 'Portal/Show/') !== FALSE){
+                    $loginLink = TRUE;
+                }
+            }
+        }
+
+        if($loginLink == FALSE) {
+            if( $menuColor && !phpcolor_Adapter::checkColor($menuColor) && $activeColor && !phpcolor_Adapter::checkColor($activeColor)) {
+                $filePath = sbf('img/32/loginLight.png', "");
+            } else {
+                $filePath = sbf('img/32/loginDark.png', "");
+            }
+
+            $tpl->append(ht::createLink(ht::createElement('img', array('src' => $filePath)), array('Portal', 'Show'), NULL, array('title' => "Вход||Log in")));
+        }
+
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
  
@@ -261,7 +293,7 @@ class cms_Content extends core_Manager
                 }
                 
                 $url = array($this, 'SelectLang', 'lang' => $lg);
- 
+
 
                 $tpl->append(ht::createLink($img, $url, NULL, $attr));
             }
