@@ -7,40 +7,40 @@
 		    	<table>
 		    		<!--ET_BEGIN driverClass-->
 		    		<tr>
-		    			<td>|Вид|*:</td> 
+		    			<td class='quiet'>|Вид|*:</td> 
 		    			<td>[#driverClass#]</td>
 		    		</tr>
 		    		<!--ET_END driverClass-->
 		    		<!--ET_BEGIN format-->
 		    		<tr>
-		    			<td>|Формат|*:</td> 
+		    			<td class='quiet'>|Формат|*:</td> 
 		    			<td>[#format#]</td>
 		    		</tr>
 		       		<!--ET_END format-->
 		       		<!--ET_BEGIN time-->
 		    		<tr>
-		    			<td>|Време|*:</td> 
+		    			<td class='quiet'>|Време|*:</td> 
 		    			<td>[#time#]</td>
 		    		</tr>
 		       		<!--ET_END time-->
 		       		
 		       		<!--ET_BEGIN numbers-->
 		    		<tr>
-		    			<td>|Цифри|*:</td> 
+		    			<td class='quiet'>|Цифри|*:</td> 
 		    			<td>[#numbers#]</td>
 		    		</tr>
 		       		<!--ET_END numbers-->
 		       		
 		       		<!--ET_BEGIN prefix-->
 		    		<tr>
-		    			<td>|Представка|*:</td> 
+		    			<td class='quiet'>|Представка|*:</td> 
 		    			<td>[#prefix#]</td>
 		    		</tr>
 		       		<!--ET_END prefix-->
 		       		
 		       		<!--ET_BEGIN suffix-->
 		    		<tr>
-		    			<td>|Наставка|*:</td> 
+		    			<td class='quiet'>|Наставка|*:</td> 
 		    			<td>[#suffix#]</td>
 		    		</tr>
 		       		<!--ET_END suffix-->

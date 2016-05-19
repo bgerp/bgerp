@@ -114,7 +114,7 @@ span.all-users{
 .select2-selection--multiple  {
 	    background-image: url('../../img/16/darrow.png') !important;
 	    background-repeat: no-repeat !important;
-	 	background-position: 10px center !important;
+	 	background-position: right 15px center !important;
         padding-right:10px;
         cursor: pointer;
 

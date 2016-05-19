@@ -14,7 +14,8 @@
  */
 class cal_Tasks extends core_Master
 {
-
+    
+    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -32,7 +33,7 @@ class cal_Tasks extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone';
 
 
     /**
@@ -2304,5 +2305,24 @@ class cal_Tasks extends core_Master
         if ($row->timeClosed) {
             $resArr['timeClosed'] =  array('name' => tr('Приключено на'), 'val' =>"[#timeClosed#]");
         }
+    }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->progress);
+        unset($nRec->timeActivated);
+        unset($nRec->workingTime);
+        unset($nRec->timeCalc);
+        $nRec->notifySent = 'no';
     }
 }
