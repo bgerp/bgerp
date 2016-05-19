@@ -2210,23 +2210,6 @@ span.sharing-history-title {
 .narrow #login-form .button {
   margin-top: 7px; }
 
-.login-link {
-  position: absolute;
-  font-weight: bold;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3); }
-  .login-link.topLeft {
-    left: 15px;
-    top: 15px; }
-  .login-link.downLeft {
-    left: 15px;
-    bottom: 15px; }
-  .login-link.topRight {
-    right: 15px;
-    top: 15px; }
-  .login-link.downRight {
-    right: 15px;
-    bottom: 15px; }
-
 .drawing {
   float: right;
   max-width: 400px; }

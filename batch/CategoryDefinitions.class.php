@@ -156,7 +156,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     	if(is_object($data->row)){
     		$tpl->placeObject($data->row);
     	} else {
-    		$tpl->append(tr("Няма запис"), 'CONTENT');
+    		$tpl->replace(tr("Няма запис"), 'CONTENT');
     	}
     	
     	$tpl->append($title, 'title');
@@ -164,6 +164,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     		$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,select=Добавяне на нова дефиниция');
     		$tpl->append($addBtn, 'title');
     	}
+    	$tpl->removeBlocks();
     	
     	return $tpl;
     }

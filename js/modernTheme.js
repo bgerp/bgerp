@@ -43,10 +43,10 @@ function initElements() {
 	}
 
 	if(cookie && viewportWidth > 700) {
-		if(cookie.indexOf('l') && !$('.sidemenu-left').hasClass('sidemenu-open')) {
+		if(cookie.indexOf('l') != "-1" && !$('.sidemenu-left').hasClass('sidemenu-open')) {
 			$('.btn-menu-left ').click();
 		}
-		if(cookie.indexOf('r') && !$('.sidemenu-right').hasClass('sidemenu-open')) {
+		if(cookie.indexOf('r') != "-1" && !$('.sidemenu-right').hasClass('sidemenu-open')) {
 			$('.btn-menu-right ').click();
 		}
 	}
