@@ -73,10 +73,42 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	public function getPaymentState($aggregateDealInfo, $state)
 	{
-		$amountPaid      = $aggregateDealInfo->get('amountPaid');
-		$amountBl        = $aggregateDealInfo->get('blAmount');
-		$amountDelivered = $aggregateDealInfo->get('deliveryAmount');
-	
+		$amountPaid        = $aggregateDealInfo->get('amountPaid');
+		$amountBl          = $aggregateDealInfo->get('blAmount');
+		$amountDelivered   = $aggregateDealInfo->get('deliveryAmount');
+		$amountInvoiced    = $aggregateDealInfo->get('invoicedAmount');
+		$notInvoicedAmount = $amountDelivered - $amountInvoiced;
+		
+		// Ако имаме фактури
+		if(count($aggregateDealInfo->invoices)){
+			$tomorrow = dt::addDays(1, dt::today());
+			$tomorrow = dt::verbal2mysql($tomorrow, FALSE);
+			$invoices = $aggregateDealInfo->invoices;
+			
+			// И сме продажба
+			if($this instanceof sales_Sales){
+				$sum = 0;
+				
+				// Намираме непадежиралите фактури, тези с вальор >= на утре
+				$res = array_filter($invoices, function (&$e) use ($tomorrow, &$sum) {
+					if($e['valior'] >= $tomorrow){
+						$sum += $e['total'];
+						return TRUE;
+					}
+					return FALSE;
+				});
+				
+				// Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
+				$valueToCompare = $sum + $notInvoicedAmount;
+				
+				// Ако е по-голямо приемаме че сделката е просрочена
+				$isOverdue = $amountBl > $valueToCompare;
+				if($isOverdue === TRUE){
+					return 'overdue';
+				}
+			}
+		}
+		
 		// Ако имаме платено и доставено
 		$diff = round($amountDelivered - $amountPaid, 4);
 	
@@ -919,6 +951,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	$rec->modifiedOn = dt::now();
+    	
+    	//bp();
     	
     	$cRec = doc_Containers::fetch($rec->containerId);
     	$cRec->modifiedOn = $rec->modifiedOn;

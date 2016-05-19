@@ -195,7 +195,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Съобщение,before=name');
+    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message,before=name');
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
@@ -586,7 +586,7 @@ class marketing_Inquiries2 extends embed_Manager
     		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
     		$conf = core_Packs::getConfig('marketing');
     		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
-    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
+    			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), array('ef_icon'=> "img/16/email_forward.png", 'warning' => "Сигурни ли сте, че искате да препратите имейла на|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'",'title' => "Препращане на имейла със запитването към|* '{$conf->MARKETING_INQUIRE_TO_EMAIL}'"));
     		}
     	}
     }
@@ -919,7 +919,10 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$rec->ip = core_Users::getRealIpAddr();
     	$rec->brid = log_Browsers::getBrid();
-    	$rec->state = 'active';
+    	
+    	if($rec->state != 'rejected'){
+    		$rec->state = 'active';
+    	}
     }
     
     

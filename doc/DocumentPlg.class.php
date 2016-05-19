@@ -944,7 +944,7 @@ class doc_DocumentPlg extends core_Plugin
 
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
-        $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
+        $attr['title'] .= "{$mvc->singleTitle}|* №{$rec->id}";
         
         if ($rec->state == 'rejected') {
         	$attr['class'] .= ' state-rejected';
@@ -2487,7 +2487,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields')
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields' || Request::get('Act') == 'cloneFields')
             || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';

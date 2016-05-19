@@ -169,7 +169,7 @@ class bgerp_Recently extends core_Manager
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
-                    $attr['title'] = $docRow->title;
+                    $attr['title'] = '|*' . $docRow->title;
                 }
                 
                 // Ако имамем права, тогава генерирам линк

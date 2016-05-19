@@ -1988,7 +1988,7 @@ class doc_Containers extends core_Manager
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
-        $attr['title'] = tr('Документ') . ': ' . $docRow->title;
+        $attr['title'] = 'Документ|*: ' . $docRow->title;
         
         // Документа да е линк към single' а на документа
         $res = ht::createLink(str::limitLen($docRow->title, 35), $url, NULL, $attr);
@@ -2564,7 +2564,7 @@ class doc_Containers extends core_Manager
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle2.png';
             $attr['class'] = 'settings-hide-document';
-            $attr['title'] = tr('Скриване на документа в нишката');
+            $attr['title'] = 'Скриване на документа в нишката';
             $attr['onclick'] = 'return startUrlFromDataAttr(this);';
             $attr['data-url'] = toUrl($url, 'local');
 
@@ -2657,7 +2657,7 @@ class doc_Containers extends core_Manager
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle-expand.png';
             $attr['class'] = 'settings-show-document';
-            $attr['title'] = tr('Показване на целия документ');
+            $attr['title'] = 'Показване на целия документ';
             $attr['onclick'] = 'return startUrlFromDataAttr(this);';
             $attr['data-url'] = toUrl($url, 'local');
 

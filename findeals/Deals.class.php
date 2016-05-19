@@ -371,13 +371,7 @@ class findeals_Deals extends deals_DealBase
     			$row->secondContragentId = cls::get($rec->secondContragentClassId)->getHyperLink($rec->secondContragentId, TRUE);
     		}
 
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    			$lastBalance = acc_Balances::getLastBalance();
-    			if(acc_Balances::haveRightFor('single', $lastBalance)){
-    				$accUrl = array('acc_Balances', 'single', $lastBalance->id, 'accId' => $rec->accountId);
-    				$row->accountId = ht::createLink($row->accountId, $accUrl);
-    			}
-    		}
+    		$row->accountId = acc_Balances::getAccountLink($rec->accountId, NULL, TRUE, TRUE);
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -518,6 +512,7 @@ class findeals_Deals extends deals_DealBase
     	
     	$row = new stdClass();
     	$row->valior = dt::mysql2verbal($jRec->valior, 'd.m.Y');
+    	$row->ROW_ATTR['class'] = 'state-active';
     	
     	try{
     		$DocType = cls::get($jRec->docType);
@@ -528,10 +523,16 @@ class findeals_Deals extends deals_DealBase
     	
     	if($jRec->debitA){
     		$row->debitA = $Double->toVerbal($jRec->debitA);
+    		if($jRec->debitA < 0){
+    			$row->debitA = "<span class='red'>{$row->debitA}</span>";
+    		}
     	}
     	
     	if($jRec->creditA){
     		$row->creditA = $Double->toVerbal($jRec->creditA);
+    		if($jRec->creditA < 0){
+    			$row->creditA = "<span class='red'>{$row->creditA}</span>";
+    		}
     	}
     	
     	return $row;

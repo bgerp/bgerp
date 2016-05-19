@@ -120,7 +120,7 @@ class crm_ext_IdCards extends core_Detail
 	            $tpl->append(
 	                ht::createLink(
 	                    $img, $url, FALSE,
-	                    'title=' . tr('Промяна ЛК')
+	                    'title=Промяна ЛК'
 	                ),
 	                'title'
 	            );

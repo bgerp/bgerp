@@ -426,16 +426,20 @@ class store_InventoryNotes extends core_Master
     	$row->sales = array();
     	$sQuery = sales_Sales::getQuery();
     	$sQuery->where("#originId = {$rec->containerId}");
-    	$sQuery->show('id,contragentClassId,contragentId');
+    	$sQuery->show('id,contragentClassId,contragentId,state');
     	while ($sRec = $sQuery->fetch()){
     		$index = $sRec->contragentClassId . "|" . $sRec->contragentId;
     		if(!array_key_exists($index, $row->sales)){
     			$userId = crm_Profiles::fetchField("#personId = {$sRec->contragentId}", 'userId');
     			$row->sales[$index] = (object)array('sales' => array(), 'link' => crm_Profiles::createLink($userId));
     		}
-    		$row->sales[$index]->sales[] = sales_Sales::getLink($sRec->id, 0);
+    		
+    		$class = "state-{$sRec->state}";
+    		$link = sales_Sales::getLink($sRec->id, 0, FALSE);
+    		$row->sales[$index]->sales[] = "<span class='{$class}'>{$link}</span>";
     	}
     }
+    
     
     /**
      * Извиква се преди рендирането на 'опаковката'
