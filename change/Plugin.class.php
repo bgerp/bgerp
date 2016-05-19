@@ -652,4 +652,20 @@ class change_Plugin extends core_Plugin
             $res = TRUE;
         } 
     }
+    
+    
+    /**
+     * Преди записване при клониране
+     * 
+     * @see plg_Clone
+     * 
+     * @param core_Manager $mvc
+     * @param stdObject $rec
+     * @param stdObject $nRec
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        $nRec->version = 0;
+        $nRec->subVersion = 1;
+    }
 }
