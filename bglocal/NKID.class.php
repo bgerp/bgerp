@@ -64,11 +64,17 @@ class bglocal_NKID extends core_Master
      */
     static function on_BeforeSave($mvc, $res, $rec)
     {
-        if(isset($rec->csv_title)){
-            $rec->title = $rec->key . " " . $rec->csv_title;
+        if(isset($rec->csv_key)){ 
+            if($rec->csv_title == '') {
+                $rec->key = $rec->csv_key . $rec->csv_position;
+                $rec->title = $rec->csv_key . " " . $rec->csv_position;
+            } else {
+                $rec->key = $rec->csv_key . $rec->csv_title;
+                $rec->title = $rec->key . " " . $rec->csv_position;
+            }
         }
     }
-    
+   
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -76,7 +82,7 @@ class bglocal_NKID extends core_Master
     static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = "bglocal/data/nkid.csv";
-        $fields = array(0 => "key", 1 => "csv_title");
+        $fields = array(0 => "csv_key", 1 => "csv_title", 2 => "csv_position");
         $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
