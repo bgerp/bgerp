@@ -2173,8 +2173,15 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    
+    /**
+     * Връща стринг, който се използва за плейсхолдер на mid стринга
+     * 
+     * @return string
+     */
     static function getMidPlace() 
     {
+        
         return '__MID__';        
     }
     
