@@ -37,7 +37,7 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'iban, contragent=Контрагент, currencyId';
+    public $listFields = 'iban, currencyId, contragent=Контрагент';
     
     
     /**
@@ -246,11 +246,7 @@ class bank_Accounts extends core_Master {
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $cMvc = cls::get($rec->contragentCls);
-        $field = $cMvc->rowToolsSingleField;
-        $cRec = $cMvc->fetch($rec->contragentId);
-        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
-        $row->contragent = $cRow->{$field};
+        $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, TRUE);
     }
     
     

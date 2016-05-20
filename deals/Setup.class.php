@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Толеранс за допустимо разминаване в салдото->Сума
+ */
+defIfNot('DEAL_BALANCE_TOLERANCE', '0.05');
+
 
 /**
  * class deals_Setup
@@ -50,6 +55,14 @@ class deals_Setup extends core_ProtoSetup
     		'migrate::updatedClosedDealsValior',
         );
 
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'DEAL_BALANCE_TOLERANCE' => array("percent(min=0)", 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+    );
+    
     
     /**
      * Де-инсталиране на пакета

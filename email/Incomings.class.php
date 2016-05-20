@@ -708,6 +708,15 @@ class email_Incomings extends core_Master
         if(!$rec->subject) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
+		
+        if ($rec->headers) {
+            $xResentFrom = email_Mime::getHeadersFromArr($rec->headers, 'X-ResentFrom');
+        	
+            if ($xResentFrom && ($xEmailStr = email_Mime::getAllEmailsFromStr($xResentFrom))) {
+                $tEmails = cls::get('type_Emails');
+                $row->fromEml .= ' ' . tr('чрез') . ' ' . $tEmails->toVerbal($xEmailStr);
+            }
+        }
         
         if($fields['-single']) {
             if ($rec->files) {

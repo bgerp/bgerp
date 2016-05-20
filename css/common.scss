@@ -1162,7 +1162,7 @@ a.profile {
 
 .state-pending{
     background-color: #ecf;
-    background:(238, 204, 255, 0.7);
+    background:rgba(238, 204, 255, 0.7);
 }
 
 .state-pending-link > a {
@@ -1243,7 +1243,7 @@ a.profile {
 
 .state-free { 
     background-color: #33CCF5;
-    background:(51, 204, 245, 0.7);
+    background:rgba(51, 204, 245, 0.7);
 }
 
 .state-hidden {
@@ -1256,7 +1256,7 @@ a.profile {
 
 .state-wakeup {
     background-color: #2baf4c;
-    background:(43, 175, 76, 0.7);
+    background:rgba(43, 175, 76, 0.7);
 }
 
 .row-negative {
