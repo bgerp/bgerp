@@ -122,16 +122,13 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 		
 		// Ако имаме доставено или платено
-		if(!empty($amountPaid) || !empty($amountDelivered)){
-			$amountBl = round($amountBl, 4);
+		$amountBl = round($amountBl, 4);
 			
-			// Правим проверка дали е платена сделката
-			if($this instanceof sales_Sales){
-				if($amountBl <= 0) return 'paid';
-					
-			} elseif($this instanceof purchase_Purchases){
-				if($amountBl >= 0) return 'paid';
-			}
+		// Правим проверка дали е платена сделката
+		if($this instanceof sales_Sales){
+			if($amountBl <= 0) return 'paid';
+		} elseif($this instanceof purchase_Purchases){
+			if($amountBl >= 0) return 'paid';
 		}
 		
 		return 'pending';
