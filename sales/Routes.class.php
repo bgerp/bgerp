@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт';
+    public $listFields = 'contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо';
     
     
 	/**
@@ -43,14 +43,8 @@ class sales_Routes extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Created,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, plg_Rejected, plg_State';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата.
-     */
-    public $rowToolsField = 'tools';
 
     
     /**
@@ -316,9 +310,9 @@ class sales_Routes extends core_Manager {
     	
     	if($rec->state == 'active'){
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-    			if(sales_Sales::haveRightFor('add')){
-    				$row->btn = ht::createBtn('ПР', array('crm_Locations', 'createSale', $rec->locationId), FALSE, TRUE, 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към локацията');
-    				$row->contragent = "{$row->btn} " . $row->contragent;
+    			if(crm_Locations::haveRightFor('createsale', $rec->locationId)){
+    				core_RowToolbar::createIfNotExists($row->_rowTools);
+    				$row->_rowTools->addLink('Продажба', array('crm_Locations', 'createSale', $rec->locationId, 'ret_url' => TRUE), 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба към локацията');
     			}
     		}
     	} else {
@@ -409,7 +403,7 @@ class sales_Routes extends core_Manager {
     {
     	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
-    	$listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт');
+    	$listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
     	
     	if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
     		if($this->haveRightFor('list')){
@@ -427,7 +421,11 @@ class sales_Routes extends core_Manager {
     	$tpl->replace($title, 'title');
     	
     	$table = cls::get('core_TableView');
-    	$tableTpl = $table->get($data->rows, $listFields);
+    	
+    	$data->listFields = $listFields;
+    	$this->invoke('BeforeRenderListTable', array($data, $data));
+    	
+    	$tableTpl = $table->get($data->rows, $data->listFields);
     	$tpl->append($tableTpl, 'content');
 
     	return $tpl;
