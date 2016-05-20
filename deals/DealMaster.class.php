@@ -79,7 +79,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$amountInvoiced    = $aggregateDealInfo->get('invoicedAmount');
 		$notInvoicedAmount = $amountDelivered - $amountInvoiced;
 		
-		$aggregateDealInfo->invoices = array();
 		$diff = round($amountDelivered - $amountPaid, 4);
 		
 		// Ако имаме фактури към сделката
