@@ -44,7 +44,7 @@ class doc_Search extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,createdOn=Създаване,modifiedOn=Модифициране||Modified';
+    var $listFields = 'title=Заглавие,author=Автор,createdOn=Създаване,hnd=Номер,modifiedOn=Модифициране||Modified';
     
     
     /**
@@ -486,11 +486,7 @@ class doc_Search extends core_Manager
             $row->author = $docRow->author;
         }
     
-        $row->hnd = "<div class='rowtools'>";
-        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-        $row->hnd .= $handle;
-        $row->hnd .= '</div>';
-        $row->hnd .= '</div>';
+        $row->hnd = "<div class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     
     
