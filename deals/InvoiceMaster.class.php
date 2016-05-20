@@ -680,11 +680,24 @@ abstract class deals_InvoiceMaster extends core_Master
     		// Ако има срок за плащане но няма дата изчисляваме я
     		if(isset($rec->dueTime) && empty($rec->dueDate)){
     			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
+    			$rec->dueDate = dt::verbal2mysql($rec->dueDate, FALSE);
     		}
     		
     		// Ако има дата за плащане но няма срок изчисляваме го
     		if(empty($rec->dueTime) && isset($rec->dueDate)){
     			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
+    		}
+    		
+    		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
+    			$form->setError('date,dueDate', "Вальора не може да е по-малък от крайната дата за плащане");
+    		} else {
+    			if(isset($rec->dueDate) && isset($rec->dueTime)){
+    				$date = dt::addSecs($rec->dueTime, $rec->date);
+    				$date = dt::verbal2mysql($date, FALSE);
+    				if($date != $rec->dueDate){
+    					$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    				}
+    			}
     		}
     		
     		if(!$rec->displayRate){
