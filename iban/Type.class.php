@@ -52,9 +52,7 @@ class iban_Type extends type_Varchar
             $res->value = $value;
         } else {
             
-            // $res->value = iban_to_machine_format($value);
-            
-            if (!verify_iban(iban_to_machine_format($value))) {
+            if (!verify_iban($value)) {
                 $res->error = 'Невалиден IBAN! За сметка извън IBAN стандарта започнете със знака "#"';
             }
         }
@@ -74,7 +72,7 @@ class iban_Type extends type_Varchar
         
         expect(!$validIban['error']);
         
-        $country = iban_get_country_part($validIban['value']);
+        $country = iban_get_country_part($iban);
         
         return $country;
     }
