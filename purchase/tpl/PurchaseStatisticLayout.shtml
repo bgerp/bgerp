@@ -25,7 +25,7 @@
               <td class = 'nowrap'>[#amountInvoiced#]</td>
               <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
-                  <span style='font-weight:normal'>|Плащане|*</span>: [#paymentState#]<br>
+                  <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
                   <!--ET_BEGIN initiatorId-->
                   <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>

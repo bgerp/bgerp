@@ -89,8 +89,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			// Намираме непадежиралите фактури, тези с вальор >= на днес
 			$sum = 0;
 			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
-				if($e['valior'] >= $today){
-					$sum += $e['total'];
+				if($e['dueDate'] >= $today){
+					$sum += $e['dueDate'];
 					return TRUE;
 				}
 				return FALSE;
@@ -185,7 +185,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просрочено,paid=Платено,repaid=Издължено)', 'caption=Плащане, input=none');
+		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none');
 	}
 
 
