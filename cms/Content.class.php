@@ -244,26 +244,19 @@ class cms_Content extends core_Manager
             }    
         }
 
-        $dRec = cms_Domains::getPublicDomain('form');
-        $menuColor = "";
-        $activeColor = "";
-        if ($dRec) {
-            if ($dRec->baseColor) {
-                $menuColor = $dRec->baseColor;
-            }
-            if ($dRec->activeColor) {
-                $activeColor = $dRec->activeColor;
-            }
-        }
-
+        // Поставяне на иконка за Вход
         if($loginLink == FALSE) {
-            if( $menuColor && !phpcolor_Adapter::checkColor($menuColor) && $activeColor && !phpcolor_Adapter::checkColor($activeColor)) {
+            
+            $dRec = cms_Domains::getPublicDomain('form');
+
+            if(isset($dRec->baseColor) && !phpcolor_Adapter::checkColor($dRec->baseColor)) {
                 $filePath = sbf('img/32/loginLight.png', "");
             } else {
                 $filePath = sbf('img/32/loginDark.png', "");
             }
 
-            $tpl->append(ht::createLink(ht::createElement('img', array('src' => $filePath)), array('Portal', 'Show'), NULL, array('title' => "Вход||Log in")));
+            $tpl->append(ht::createLink(ht::createElement('img', array('src' => $filePath)), 
+                array('Portal', 'Show'), NULL, array('title' => "Вход||Log in")));
         }
 
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
