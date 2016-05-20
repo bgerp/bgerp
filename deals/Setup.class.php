@@ -4,7 +4,7 @@
 /**
  * Толеранс за допустимо разминаване в салдото->Сума
  */
-defIfNot('DEAL_BALANCE_TOLERANCE', '0.01');
+defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
 
 
 /**
@@ -60,7 +60,7 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    		'DEAL_BALANCE_TOLERANCE' => array("percent(min=0)", 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+    		'DEALS_BALANCE_TOLERANCE' => array("percent(min=0)", 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
     );
     
     
