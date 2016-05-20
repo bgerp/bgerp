@@ -123,7 +123,14 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Ако имаме доставено или платено
 		$amountBl = round($amountBl, 4);
-			
+		$tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+		$tolerance = $amountDelivered * $tolerancePercent;
+		
+		// Ако салдото е в рамките на толеранса приемаме че е 0
+		if(abs($amountBl) <= abs($tolerance)){
+			$amountBl = 0;
+		}
+		
 		// Правим проверка дали е платена сделката
 		if($this instanceof sales_Sales){
 			if($amountBl <= 0) return 'paid';
