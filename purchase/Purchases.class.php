@@ -587,6 +587,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public function cron_CheckPurchasePayments()
     {
+    	core_App::setTimeLimit(300);
     	$conf = core_Packs::getConfig('purchase');
     	$overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
     	
