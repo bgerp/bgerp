@@ -184,11 +184,12 @@ class cond_PaymentMethods extends core_Master
 
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
         $paymentAfterInvoice = round($paymentAfterInvoice * $amount, 4);
-        
         $res['timeBalancePayment'] = $rec->timeBalancePayment;
+        
         if($paymentAfterInvoice > 0) {
             $res['paymentAfterInvoice']       = $paymentAfterInvoice;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeBalancePayment, $invoiceDate);
+            $res['deadlineForBalancePayment'] = dt::verbal2mysql($res['deadlineForBalancePayment'], FALSE);
         }
         
         return $res;
@@ -222,23 +223,23 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Дали документа е просрочен
+     * Дали платежния план е просрочен
+     * 
      * @param array $payment - платежния план (@see static::getPaymentPlan)
      * @param double $restAmount - оставаща сума за плащане
-     * @param datetime $today - дата
      * @return boolean
      */
-    public static function isOverdue($payment, $restAmount, $today = NULL)
+    public static function isOverdue($payment, $restAmount)
     {
     	expect(is_array($payment) && isset($restAmount));
-    	if(!$today){
-    		$today = dt::verbal2mysql();
-    	}
-    	
+    	$today = dt::today();
     	$restAmount = round($restAmount, 4);
     	
     	// Ако остатъка за плащане е 0 или по-малко
     	if($restAmount <= 0) return FALSE;
+    	
+    	// Ако няма крайна дата на плащане, не е просрочена
+    	if(!$payment['deadlineForBalancePayment']) return FALSE;
     	
     	// Ако текущата дата след крайния срок за плащане, документа е просрочен
     	return ($today > $payment['deadlineForBalancePayment']);

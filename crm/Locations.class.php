@@ -332,7 +332,7 @@ class crm_Locations extends core_Master {
     			$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
     		}
     		
-    		if($mvc->requireRightFor('createsale', $rec)){
+    		if($mvc->haveRightFor('createsale', $rec)){
     			$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба');
     		}
     	}

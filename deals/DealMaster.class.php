@@ -71,7 +71,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	/**
 	 * Какво е платежното състояние на сделката
 	 */
-	public function getPaymentState($aggregateDealInfo, $state)
+	public function getPaymentState($aggregateDealInfo)
 	{
 		$amountPaid        = $aggregateDealInfo->get('amountPaid');
 		$amountBl          = $aggregateDealInfo->get('blAmount');
@@ -79,58 +79,59 @@ abstract class deals_DealMaster extends deals_DealBase
 		$amountInvoiced    = $aggregateDealInfo->get('invoicedAmount');
 		$notInvoicedAmount = $amountDelivered - $amountInvoiced;
 		
-		// Ако имаме фактури
+		$aggregateDealInfo->invoices = array();
+		$diff = round($amountDelivered - $amountPaid, 4);
+		
+		// Ако имаме фактури към сделката
 		if(count($aggregateDealInfo->invoices)){
-			$tomorrow = dt::addDays(1, dt::today());
-			$tomorrow = dt::verbal2mysql($tomorrow, FALSE);
+			$today = dt::today();
 			$invoices = $aggregateDealInfo->invoices;
 			
-			// И сме продажба
-			if($this instanceof sales_Sales){
-				$sum = 0;
-				
-				// Намираме непадежиралите фактури, тези с вальор >= на утре
-				$res = array_filter($invoices, function (&$e) use ($tomorrow, &$sum) {
-					if($e['valior'] >= $tomorrow){
-						$sum += $e['total'];
-						return TRUE;
-					}
-					return FALSE;
-				});
-				
-				// Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
-				$valueToCompare = $sum + $notInvoicedAmount;
-				
-				// Ако е по-голямо приемаме че сделката е просрочена
-				$isOverdue = $amountBl > $valueToCompare;
-				if($isOverdue === TRUE){
-					return 'overdue';
+			// Намираме непадежиралите фактури, тези с вальор >= на днес
+			$sum = 0;
+			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
+				if($e['valior'] >= $today){
+					$sum += $e['total'];
+					return TRUE;
 				}
+				return FALSE;
+			});
+				
+			// Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
+			$valueToCompare = $sum + $notInvoicedAmount;
+			$balance = $amountBl;
+			
+			// За покупката гледаме баланса с обратен знак
+			if($this instanceof purchase_Purchases){
+				$balance = -1 * $balance;
+			}
+			
+			// Ако е по-голямо приемаме че сделката е просрочена
+			if($balance > $valueToCompare) return 'overdue';
+		} else {
+			
+			// Ако няма фактури, гледаме имали платежен план
+			$methodId = $aggregateDealInfo->get('paymentMethodId');
+			if(!empty($methodId)){
+				// За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
+				setIfNot($date, $aggregateDealInfo->get('invoicedValior'), $aggregateDealInfo->get('shippedValior'), $aggregateDealInfo->get('agreedValior'));
+				$plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
+				
+				// Проверяваме дали сделката е просрочена по платежния си план
+				if(cond_PaymentMethods::isOverdue($plan, $diff)) return 'overdue';
 			}
 		}
 		
-		// Ако имаме платено и доставено
-		$diff = round($amountDelivered - $amountPaid, 4);
-	
-		$conf = core_Packs::getConfig('acc');
-	
+		// Ако имаме доставено или платено
 		if(!empty($amountPaid) || !empty($amountDelivered)){
+			$amountBl = round($amountBl, 4);
 			
-			// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
-			if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-				
-				// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
-				return ($state != 'overdue') ? 'paid' : 'repaid';
-			}
-		}
-		
-		// Ако крайното салдо е 0
-		if(round($amountBl, 2) == 0){
-			
-			// издължени стават: платените с нулево платено, просрочените и чакащите по които има плащане или доставяне и крайното салдо е 0
-			if(($state == 'paid' && round($amountPaid, 2) == 0) || $state == 'overdue' || ($state == 'pending' && (!empty($amountPaid) || !empty($amountDelivered)))){
-				
-				return 'repaid';
+			// Правим проверка дали е платена сделката
+			if($this instanceof sales_Sales){
+				if($amountBl <= 0) return 'paid';
+					
+			} elseif($this instanceof purchase_Purchases){
+				if($amountBl >= 0) return 'paid';
 			}
 		}
 		
@@ -349,7 +350,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,repaid=Издължени,invoiced=Фактурирани,notInvoiced=Нефактурирани)', 'caption=Състояние');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани)', 'caption=Състояние');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -379,7 +380,7 @@ abstract class deals_DealMaster extends deals_DealBase
 						$data->query->where("#state = 'closed'");
 						break;
 					case 'paid':
-						$data->query->where("#paymentState = 'paid'");
+						$data->query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
 						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'invoiced':
@@ -392,9 +393,6 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case 'overdue':
 						$data->query->where("#paymentState = 'overdue'");
-						break;
-					case 'repaid':
-						$data->query->where("#paymentState = 'repaid'");
 						break;
 					case 'delivered':
 						$data->query->where("#deliveredRound = #dealRound");
@@ -949,10 +947,8 @@ abstract class deals_DealMaster extends deals_DealBase
     		$rec->amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
     	}
     	
-    	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
+    	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo);
     	$rec->modifiedOn = dt::now();
-    	
-    	//bp();
     	
     	$cRec = doc_Containers::fetch($rec->containerId);
     	$cRec->modifiedOn = $rec->modifiedOn;
@@ -1278,59 +1274,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Проверяват се всички активирани и продажби с чакащо плащане или просрочените
     	$query = $Class->getQuery();
-    	$query->where("#paymentState = 'pending' || #paymentState = 'overdue'");
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
     	
     	while($rec = $query->fetch()){
     		try{
-    			// Намира се метода на плащане от интерфейса
     			$dealInfo = $Class->getAggregateDealInfo($rec->id);
-    		} catch(core_exception_Expect $e){
-                reportException($e);
-    			continue;
-    		}
-    
-    		$mId = $dealInfo->get('paymentMethodId');
-    		$isOverdue = FALSE;
-    
-    		if($mId){
-    			$date = NULL;
-    			 
-    			// Намира се датата в реда фактура/експедиция/сделка
-    			foreach (array('invoicedValior', 'shippedValior', 'agreedValior') as $asp){
-    				if($date = $dealInfo->get($asp)){
-    					break;
-    				}
-    			}
-    			 
-    			// Извлича се платежния план
-    			$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
-    
-    			try{
-    				$isOverdue = cond_PaymentMethods::isOverdue($plan, round($rec->amountDelivered, 2) - round($rec->amountPaid, 2));
-    			} catch(core_exception_Expect $e){
-    			    reportException($e);
-    				continue;
-    			}
-    		}
-    
-    		// Проверка дали сделката е просрочена
-    		if($isOverdue){
-    
-    			// Ако да, то сделката се отбелязва като просрочена
-    			$rec->paymentState = 'overdue';
-    		} else {
-    			
-    			// Ако не е просрочена проверяваме дали е платена
-    			$rec->paymentState = $Class->getPaymentState($dealInfo, $rec->paymentState);
-    		}
-    
-    		try{
+    			$rec->paymentState = $Class->getPaymentState($dealInfo);
     			$Class->save_($rec, 'paymentState');
     		} catch(core_exception_Expect $e){
                 reportException($e);
+    			continue;
     		}
     	}
     }
