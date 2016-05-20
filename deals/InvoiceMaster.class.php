@@ -908,7 +908,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
  
-    	$aggregator->push('invoices', array('valior' => $rec->date, 'total' => $total));
+    	$defDueDate = dt::addDays(3, $rec->date);
+    	$defDueDate = dt::verbal2mysql($defDueDate, FALSE);
+    	setIfNot($dueDate, $rec->dueDate, $defDueDate);
+    	
+    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total));
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	
