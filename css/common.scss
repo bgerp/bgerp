@@ -1142,11 +1142,12 @@ a.profile {
 /*състояния*/
 .state-draft {
     background-color: #bff;
+    background: rgba(187, 255, 255, 0.7);
 }
 
 .state-active {
     background-color: #fed;
-    background: rgba(250, 221, 187, 0.5);
+    background: rgba(250, 221, 187, 0.7);
 }
 
 .state-opened {
@@ -1161,6 +1162,7 @@ a.profile {
 
 .state-pending{
     background-color: #ecf;
+    background:(238, 204, 255, 0.7);
 }
 
 .state-pending-link > a {
@@ -1177,13 +1179,16 @@ a.profile {
 
 .state-closed {
     background-color: #f1f1f1;
+    background: rgba(240, 240, 240, 0.7);
 }
 
 .state-stopped, .state-blocked {
     background-color: #ffbb33;
+    background: rgba(255, 187, 51, 0.7);
 }
 
 .state-rejected { 
+    background-color:#CC6666;
     background-color: rgba(204, 102, 102, 0.8);
 }
 
@@ -1238,6 +1243,7 @@ a.profile {
 
 .state-free { 
     background-color: #33CCF5;
+    background:(51, 204, 245, 0.7);
 }
 
 .state-hidden {
@@ -1250,6 +1256,7 @@ a.profile {
 
 .state-wakeup {
     background-color: #2baf4c;
+    background:(43, 175, 76, 0.7);
 }
 
 .row-negative {
