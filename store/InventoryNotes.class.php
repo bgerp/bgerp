@@ -73,6 +73,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Кой може да го контира?
+     */
+    public $canConto = 'ceo,storeMaster';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Протокол за инвентаризация';
