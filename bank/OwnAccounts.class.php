@@ -208,16 +208,17 @@ class bank_OwnAccounts extends core_Master {
         	if($mvc->haveRightFor('select', $rec)){
         		
         		$bankItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        		$rec->blAmount = 0;
         		
         		// Намираме всички записи от текущия баланс за това перо
-        		$balRec = acc_Balances::getLastBalance();
-        		$bQuery = acc_BalanceDetails::getQuery();
-        		acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
-        		 
-        		// Събираме ги да намерим крайното салдо на перото
-        		$rec->blAmount = NULL;
-        		while($bRec = $bQuery->fetch()){
-        			$rec->blAmount += $bRec->blAmount;
+        		if($balRec = acc_Balances::getLastBalance()){
+        			$bQuery = acc_BalanceDetails::getQuery();
+        			acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
+        			 
+        			// Събираме ги да намерим крайното салдо на перото
+        			while($bRec = $bQuery->fetch()){
+        				$rec->blAmount += $bRec->blAmount;
+        			}
         		}
         		
         		// Обръщаме го във четим за хората вид
