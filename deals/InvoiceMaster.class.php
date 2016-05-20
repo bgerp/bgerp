@@ -818,11 +818,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
     		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
-    		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->dealValue;
-    		$row->valueNoVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->valueNoVat;
+    		@$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($rec->vatAmount / $rec->rate);
     		
-    		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
-    		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>&nbsp;" . $row->vatAmount;
+    		if($total < 0){
+    			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";
+    			$row->valueNoVat = "<span class='red'>{$row->valueNoVat}</span>";
+    			$row->vatAmount = "<span class='red'>{$row->vatAmount}</span>";
+    		}
     	}
     	
     	if($fields['-single']){
