@@ -486,7 +486,7 @@ class doc_Search extends core_Manager
             $row->author = $docRow->author;
         }
     
-        $row->hnd = "<div class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
+        $row->hnd = "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#{$handle}</div>";
     }
     
     

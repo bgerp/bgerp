@@ -782,7 +782,7 @@ class doc_Threads extends core_Manager
                 $row->author = $docRow->author;
             }
 
-            $row->hnd .= "<div class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
+            $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
 
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
