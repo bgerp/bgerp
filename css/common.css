@@ -879,8 +879,8 @@ table .linkWithIcon {
   padding-left: 25px !important;
   background-repeat: no-repeat !important;
   background-position: 3px center;
-  background-size: 16px 16px; }
-  background-size 	.linkWithIcon.sick {
+  background-size: 16px 16px !important; }
+  .linkWithIcon.sick {
     background-image: url('../img/16/sick.png'); }
   .linkWithIcon.trip {
     background-image: url('../img/16/working-travel.png'); }

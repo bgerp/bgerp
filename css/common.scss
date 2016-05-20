@@ -894,8 +894,8 @@ table .linkWithIcon {
 .linkWithIcon{
 	padding-left: 25px !important;  
 	background-repeat: no-repeat !important;
-	background-position: 3px center;
-    background-size 
+	background-position: 3px center ;
+	background-size: 16px 16px !important;
 	&.sick {
 		background-image: url('../img/16/sick.png');
 	}
@@ -923,7 +923,6 @@ table .linkWithIcon {
 	&.nameday {
 		background-image: url('../img/16/orthodox.png');
 	}
-    background-size: 16px 16px;
 }
 
 a.linkInTitle {
