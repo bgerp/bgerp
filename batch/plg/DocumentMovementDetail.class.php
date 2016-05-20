@@ -60,7 +60,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				$suggestions = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
 				
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}));
+				
+				if(!isset($rec->id)){
+					$form->setDefault('batch', $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}));
+				}
+				
 				if(!empty($rec->batch)){
 					$rec->batch = $BatchClass->denormalize($rec->batch);
 				}
@@ -77,12 +81,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			
 			if($form->isSubmitted()){
 				if(is_object($BatchClass)){
-					$productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
-					$quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-					$quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
-					
-					if(!$BatchClass->isValid($rec->batch, $quantity, $msg)){
-						$form->setError('batch', $msg);
+					if(!empty($rec->batch)){
+						$productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
+						$quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+						$quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
+							
+						if(!$BatchClass->isValid($rec->batch, $quantity, $msg)){
+							$form->setError('batch', $msg);
+						}
 					}
 				}
 			}

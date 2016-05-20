@@ -44,7 +44,9 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 			
 			if(is_object($BatchClass)){
 				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				$form->setDefault('batch', $BatchClass->getAutoValue($mvc, $rec));
+				if(!isset($rec->id)){
+					$form->setDefault('batch', $BatchClass->getAutoValue($mvc, $rec));
+				}
 			} else {
 				$form->setField('batch', 'input=none');
 				unset($rec->batch);
@@ -53,9 +55,11 @@ class batch_plg_DirectProductionNoteMovement extends core_Plugin
 		
 		if($form->isSubmitted()){
 			if(is_object($BatchClass)){
-				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-				if(!$BatchClass->isValid($rec->batch, $rec->quantity, $msg)){
-					$form->setError('batch', $msg);
+				if(!empty($rec->batch)){
+					$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+					if(!$BatchClass->isValid($rec->batch, $rec->quantity, $msg)){
+						$form->setError('batch', $msg);
+					}
 				}
 			}
 		}
