@@ -465,16 +465,16 @@ class marketing_Inquiries2 extends embed_Manager
     		// Име на фирма/лице/име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
-    		$files = $this->getAttachedFiles($rec, $Driver);
+    		//$files = $this->getAttachedFiles($rec, $Driver);
     		
     		// Ако има прикачени файлове, добавяме ги
-    		if(count($files)){
+    		/*if(count($files)){
 	    		foreach ($files as $fh => $name){
 		    		$name = fileman_Files::fetchByFh($fh, 'name');
 		    		$path = fileman_Files::fetchByFh($fh, 'path');
 		    		$PML->AddAttachment($path, $name);
 	    		}
-    		}
+    		}*/
     		
     		// Адрес на който да се изпрати
     		$PML->AddAddress($emailsTo);

@@ -552,7 +552,6 @@ class core_Mvc extends core_FieldSet
         
         $res = NULL;
 
-
         $handler = md5("{$fields} . {$where} . {$index} . {$orderBy} . {$this->className}");
         
         $res = $this->makeArray4selectCache[$handler];
@@ -564,8 +563,8 @@ class core_Mvc extends core_FieldSet
                 $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
             }  
         }
-
-        if($res === NULL) {
+        
+        if(!is_array($res)) {
             
             $res = array();
 

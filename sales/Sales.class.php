@@ -729,6 +729,7 @@ class sales_Sales extends deals_DealMaster
      */
     function cron_CheckSalesPayments()
     {
+    	core_App::setTimeLimit(300);
     	$conf = core_Packs::getConfig('sales');
     	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
     	

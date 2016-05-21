@@ -2681,7 +2681,8 @@ fieldset.sharing-history {
 
 #cmsNavigation.articles-menu .nav_item {
 	a, span {
-	   float: left;
+		float: left;
+		border: 1px solid transparent;
 	}
 	&:after {
 	    content: '';

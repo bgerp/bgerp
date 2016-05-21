@@ -471,7 +471,11 @@ abstract class store_DocumentMaster extends core_Master
     	
     	if($amount){
     		$row->collection = "<span style='float:right'><span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount) . "</span>";
+    	} else {
+    		unset($rec->amountDelivered);
+    		unset($rec->amountDeliveredVat);
     	}
+    	
     	$row->rowNumb = $rec->rowNumb;
     	 
     	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
