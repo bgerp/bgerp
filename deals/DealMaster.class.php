@@ -79,7 +79,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$amountInvoiced    = $aggregateDealInfo->get('invoicedAmount');
 		$notInvoicedAmount = $amountDelivered - $amountInvoiced;
 		
-		$aggregateDealInfo->invoices = array();
 		$diff = round($amountDelivered - $amountPaid, 4);
 		
 		// Ако имаме фактури към сделката
@@ -90,8 +89,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			// Намираме непадежиралите фактури, тези с вальор >= на днес
 			$sum = 0;
 			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
-				if($e['valior'] >= $today){
-					$sum += $e['total'];
+				if($e['dueDate'] >= $today){
+					$sum += $e['dueDate'];
 					return TRUE;
 				}
 				return FALSE;
@@ -123,16 +122,20 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
 		
 		// Ако имаме доставено или платено
-		if(!empty($amountPaid) || !empty($amountDelivered)){
-			$amountBl = round($amountBl, 4);
-			
-			// Правим проверка дали е платена сделката
-			if($this instanceof sales_Sales){
-				if($amountBl <= 0) return 'paid';
-					
-			} elseif($this instanceof purchase_Purchases){
-				if($amountBl >= 0) return 'paid';
-			}
+		$amountBl = round($amountBl, 4);
+		$tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+		$tolerance = $amountDelivered * $tolerancePercent;
+		
+		// Ако салдото е в рамките на толеранса приемаме че е 0
+		if(abs($amountBl) <= abs($tolerance)){
+			$amountBl = 0;
+		}
+		
+		// Правим проверка дали е платена сделката
+		if($this instanceof sales_Sales){
+			if($amountBl <= 0) return 'paid';
+		} elseif($this instanceof purchase_Purchases){
+			if($amountBl >= 0) return 'paid';
 		}
 		
 		return 'pending';
@@ -186,7 +189,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просрочено,paid=Платено,repaid=Издължено)', 'caption=Плащане, input=none');
+		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none');
 	}
 
 

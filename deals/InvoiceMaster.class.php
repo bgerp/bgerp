@@ -680,11 +680,24 @@ abstract class deals_InvoiceMaster extends core_Master
     		// Ако има срок за плащане но няма дата изчисляваме я
     		if(isset($rec->dueTime) && empty($rec->dueDate)){
     			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
+    			$rec->dueDate = dt::verbal2mysql($rec->dueDate, FALSE);
     		}
     		
     		// Ако има дата за плащане но няма срок изчисляваме го
     		if(empty($rec->dueTime) && isset($rec->dueDate)){
     			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
+    		}
+    		
+    		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
+    			$form->setError('date,dueDate', "Вальора не може да е по-малък от крайната дата за плащане");
+    		} else {
+    			if(isset($rec->dueDate) && isset($rec->dueTime)){
+    				$date = dt::addSecs($rec->dueTime, $rec->date);
+    				$date = dt::verbal2mysql($date, FALSE);
+    				if($date != $rec->dueDate){
+    					$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    				}
+    			}
     		}
     		
     		if(!$rec->displayRate){
@@ -805,11 +818,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
     		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
-    		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->dealValue;
-    		$row->valueNoVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->valueNoVat;
+    		@$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($rec->vatAmount / $rec->rate);
     		
-    		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
-    		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>&nbsp;" . $row->vatAmount;
+    		if($total < 0){
+    			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";
+    			$row->valueNoVat = "<span class='red'>{$row->valueNoVat}</span>";
+    			$row->vatAmount = "<span class='red'>{$row->vatAmount}</span>";
+    		}
     	}
     	
     	if($fields['-single']){
@@ -908,7 +923,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
  
-    	$aggregator->push('invoices', array('valior' => $rec->date, 'total' => $total));
+    	$defDueDate = dt::addDays(3, $rec->date);
+    	$defDueDate = dt::verbal2mysql($defDueDate, FALSE);
+    	setIfNot($dueDate, $rec->dueDate, $defDueDate);
+    	
+    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total));
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	

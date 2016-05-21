@@ -1,6 +1,8 @@
 <?php
 
 
+defIfNot('IBAN_CODE_VERSION', 'php-iban-1.4.7');
+
 /**
  * Клас 'iban_Setup'
  *

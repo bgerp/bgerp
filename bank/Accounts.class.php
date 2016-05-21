@@ -247,6 +247,20 @@ class bank_Accounts extends core_Master {
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, TRUE);
+        
+        if ($rec->iban) {
+            $countryCode = iban_Type::getCountryPart($rec->iban);
+            
+            if ($countryCode) {
+                $singleUrl = $mvc->getSingleUrlArray($rec->id);
+                $singleIcon = $mvc->getIcon($rec->id);
+                $attr['class'] = 'linkWithIcon';
+                $attr['style'] = 'background-image:url(' . sbf($singleIcon) . ');';
+                $attr['title'] = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+                
+                $row->iban = ht::createLink($rec->iban, $singleUrl, NULL, $attr);
+            }
+        }
     }
     
     
