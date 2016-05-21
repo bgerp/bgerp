@@ -91,13 +91,13 @@ class catering_Menu extends core_Master
     {
         // Prepare day input
         $string = new type_Varchar();
-        $string->suggestions = arr::make(tr("Всеки понеделник,
-                                             Всеки вторник, 
-                                             Всяка сряда,
-                                             Всеки четвъртък,
-                                             Всеки петък,
-                                             Всяка събота,
-                                             Всеки ден"), TRUE);
+        $string->suggestions = arr::make(tr("Всеки понеделник|*,
+                                             |Всеки вторник|*, 
+                                             |Всяка сряда|*,
+                                             |Всеки четвъртък|*,
+                                             |Всеки петък|*,
+                                             |Всяка събота|*,
+                                             |Всеки ден"), TRUE);
         $string->load('calendarpicker_Plugin');
         $this->FNC('day', $string, 'caption=Ден, input');
         

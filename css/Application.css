@@ -2348,7 +2348,8 @@ span.sharing-history-title {
 
   #cmsNavigation.articles-menu .nav_item a,
   #cmsNavigation.articles-menu .nav_item span {
-    float: left; }
+    float: left;
+    border: 1px solid transparent; }
   #cmsNavigation.articles-menu .nav_item:after {
     content: '';
     display: block;

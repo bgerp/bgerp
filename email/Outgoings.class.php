@@ -2216,7 +2216,7 @@ class email_Outgoings extends core_Master
                     $countryName = '';
                     foreach ($badIpArr as $ip => $countryCode) {
                         $row->IpErrorString .= ($countryName) ? ', ' : '';
-                        $countryName = drdata_Countries::getCountryName($countryCode);
+                        $countryName = drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
                         $row->IpErrorString .= $countryName;
                     }
                     
