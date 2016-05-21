@@ -195,15 +195,15 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни и съобщение||Contact data & message->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни и съобщение->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
-    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни и съобщение->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни и съобщение->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни и съобщение->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
-    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни и съобщение->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
-        $this->FLD('place', 'varchar(64)', 'caption=Контактни данни и съобщение->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
-        $this->FLD('address', 'varchar(255)', 'caption=Контактни данни и съобщение->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
-    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Контактни данни и съобщение->Вашето запитване||Your inquiry');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
+    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
+    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
+    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
+        $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
+        $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
+    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Съобщение->Вашето запитване||Your inquiry');
     
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
     	$this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
