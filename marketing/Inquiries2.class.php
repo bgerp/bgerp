@@ -203,7 +203,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
-    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Съобщение->Вашето запитване||Your inquiry');
+    	$this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message');
     
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
     	$this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
