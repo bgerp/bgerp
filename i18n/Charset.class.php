@@ -360,7 +360,7 @@ class i18n_Charset extends core_MVC {
      * Намира кой е предполагаемия charset
      */
     static function detect($text, $assumedCharsets = array(), $isHtml = FALSE)
-    {
+    { 
         $step = 10;
         $oa = $assumedCharsets;
         $newAssumedCharsets = array();
@@ -412,7 +412,7 @@ class i18n_Charset extends core_MVC {
         
 
         // Ако текста е 7-битов 
-        if(self::is7bit($text)) {  
+        if(self::is7bit($text)) {
             if(count($assumedCharsets)) {
                 $cs = array_search(max($assumedCharsets), $assumedCharsets);
             }
@@ -445,7 +445,7 @@ class i18n_Charset extends core_MVC {
                 $rates[$cs] = $rates[$cs]*(1 + $weight/100) + $weight/1000;
             }
         }
-
+ 
         $max = max($rates);
         
         if($max < 1.1) {
@@ -494,14 +494,19 @@ class i18n_Charset extends core_MVC {
             }
         }
  
-       //  arsort($rates);
+        // arsort($rates);
  
         $resArr = array_keys($rates,  max($rates));
          
         $charset = $resArr[0];
         // Todo: да се разгледа случая, когато имаме няколко чарсета на първо място
 
-        expect($charset, $resArr, max($rates), $rates, $assumedCharsets, $oa);
+        // expect($charset, $charset, $resArr, max($rates), $rates, $assumedCharsets, $oa);
+
+        // Ако не сме успели да установим чарсета - приемаме, че е UTF-8
+        if(!$charset) {
+            $charset = 'UTF-8';
+        }
 
         return $charset;
     }
@@ -553,7 +558,7 @@ class i18n_Charset extends core_MVC {
                     $bitStr = $bitStrArr[$k];
         			
                     // Докато не намерим символ различен от 7 бита, правим проверка
-                    if ($bitStr != $not7BitStr && !self::is7bit($char)) {
+                    if ($bitStr != $not7BitStr && ord($char) > 127 ) {
                         $bitStrArr[$k] = $bitStr = $not7BitStr;
                     }
         			
@@ -1063,7 +1068,9 @@ class i18n_Charset extends core_MVC {
      */
     static function is7Bit($text)
     {
-        return  mb_detect_encoding($text, 'ASCII', TRUE) == 'ASCII';
+        $res =  preg_match("/[^\\x00-\\x7F]/", $text);
+
+        return !$res;
     }
 
     
