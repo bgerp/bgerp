@@ -738,8 +738,8 @@ class fileman_Files2 extends core_Master
      */
     static function getMimeTypeFromFilePath($path)
     {
-        // Очакваме да е валиден път
-        expect(static::isCorrectPath($path));
+        // Очакваме да е валиден път иначе се отказваме
+        if(!static::isCorrectPath($path)) return FALSE;
         
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
