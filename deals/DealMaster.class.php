@@ -83,6 +83,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Ако имаме фактури към сделката
 		if(count($aggregateDealInfo->invoices)){
+			
+			
 			$today = dt::today();
 			$invoices = $aggregateDealInfo->invoices;
 			
@@ -90,12 +92,12 @@ abstract class deals_DealMaster extends deals_DealBase
 			$sum = 0;
 			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
 				if($e['dueDate'] >= $today){
-					$sum += $e['dueDate'];
+					$sum += $e['total'];
 					return TRUE;
 				}
 				return FALSE;
 			});
-				
+			
 			// Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
 			$valueToCompare = $sum + $notInvoicedAmount;
 			$balance = $amountBl;

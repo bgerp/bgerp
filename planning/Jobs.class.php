@@ -442,7 +442,8 @@ class planning_Jobs extends core_Master
     		}
     		
     		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
-    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal');
+    		$lg = core_Lg::getCurrent();
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal', $lg);
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));
