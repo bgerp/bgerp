@@ -244,22 +244,24 @@ class bank_Accounts extends core_Master {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, TRUE);
         
-        if ($rec->iban) {
-            $countryCode = iban_Type::getCountryPart($rec->iban);
-            
-            if ($countryCode) {
-                $singleUrl = $mvc->getSingleUrlArray($rec->id);
-                $singleIcon = $mvc->getIcon($rec->id);
-                $attr['class'] = 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($singleIcon) . ');';
-                $attr['title'] = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
-                
-                $row->iban = ht::createLink($rec->iban, $singleUrl, NULL, $attr);
-            }
+        if(isset($fields['-list'])){
+        	if($rec->iban) {
+        		$verbalIban = $mvc->getVerbal($rec, 'iban');
+        		if(strpos($rec->iban, '#') === FALSE){
+        			
+        			$countryCode = iban_Type::getCountryPart($rec->iban);
+        			if ($countryCode) {
+        				$singleUrl = $mvc->getSingleUrlArray($rec->id);
+        			
+        				$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+        				$row->iban = ht::createLink($verbalIban, $singleUrl, NULL, "ef_icon={$mvc->getIcon($rec->id)},title={$hint}");
+        			}
+        		}
+        	}
         }
     }
     

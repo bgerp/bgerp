@@ -186,7 +186,7 @@ class cat_products_Packagings extends core_Detail
         
         // Ако опаковката вече е използвана не може да се изтрива
         if($action == 'delete' && isset($rec)){
-        	if(self::isUsed($rec->productId, $rec->packagingId)){
+        	if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
         		$requiredRoles = 'no_one';
         	}
         }
@@ -269,7 +269,8 @@ class cat_products_Packagings extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-    	$options = self::getRemainingOptions($form->rec->productId, $form->rec->id);
+    	$rec = &$form->rec;
+        $options = self::getRemainingOptions($rec->productId, $rec->id);
     	
         if (empty($options)) {
         	
@@ -277,20 +278,20 @@ class cat_products_Packagings extends core_Detail
             redirect(getRetUrl(), FALSE, '|Всички налични мерки/опаковки за артикула са вече избрани');
         }
 		
-    	if(!$form->rec->id){
+    	if(!$rec->id){
         	$options = array('' => '') + $options;
         }
         
         $form->setDefault('isBase', 'no');
         $form->setOptions('packagingId', $options);
         
-        $pInfo = cat_Products::getProductInfo($form->rec->productId);
+        $pInfo = cat_Products::getProductInfo($rec->productId);
         $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
         $form->setField('quantity', "unit={$unit}");
         
         // Ако редактираме, но опаковката е използвана не може да се променя
-        if(isset($form->rec->id)){
-        	if(self::isUsed($form->rec->productId, $form->rec->packagingId)){
+        if(isset($rec->id)){
+        	if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
         		$form->setReadOnly('packagingId');
         	}
         }
@@ -419,16 +420,35 @@ class cat_products_Packagings extends core_Detail
     /**
      * Дали в бизнес документите е използван артикула с посочената опаковка
      * 
-     * @param int $productId - ид на артикул
-     * @param int $uomId - мярка
-     * @return boolean
+     * @param int $productId   - ид на артикул
+     * @param int $uomId       - мярка на артикула
+     * @param boolean $cache   - дали искаме данните да се кешират при използване или не
+     * @return boolean $isUsed -използван или не
      */
-    public static function isUsed($productId, $uomId = NULL)
+    public static function isUsed($productId, $uomId, $cache = FALSE)
     {
-    	// Ако няма мярка, това е основната на артикула
-    	if(!$uomId){
-    		$pInfo = cat_Products::getProductInfo($productId);
-    		$uomId = $pInfo->productRec->measureId;
+    	// Ако искаме кеширани данни
+    	if($cache === TRUE){
+    		$isUsed = FALSE;
+    		
+    		// Проверяваме имали кеш
+    		$cacheKey = "{$productId}|{$uomId}";
+    		$hasCache = core_Cache::get('cat_Products',  $cacheKey);
+    		
+    		// Ако артикула е използван в тази си опаковка, кешираме че е използван
+    		if(!$hasCache){
+    			
+    			// Ако няма проверяваме дали е използван с тази опаковка (без кеш)
+    			if(self::isUsed($productId, $uomId)){
+    				core_Cache::set('cat_Products', $cacheKey, TRUE, 10080);
+    				$isUsed = TRUE;
+    			}
+    		} else {
+    			$isUsed = TRUE;
+    		}
+    		
+    		// Връщаме намерения резултат
+    		return $isUsed;
     	}
     	
     	// Детайли в които ще проверяваме

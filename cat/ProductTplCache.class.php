@@ -66,7 +66,7 @@ class cat_ProductTplCache extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, productId, time, type, documentType';
+	public $listFields = 'id, productId, lang, time, type, documentType';
 	
 	
 	/**
@@ -89,6 +89,7 @@ class cat_ProductTplCache extends core_Master
 		$this->FLD("productId", "key(mvc=cat_Products,select=name)", "input=none,caption=Артикул");
 		$this->FLD("type", "enum(title=Заглавие,description=Описание)", "input=none,caption=Тип");
 		$this->FLD("documentType", "enum(public=Външни документи,internal=Вътрешни документи)", "input=none,caption=Документ тип");
+		$this->FLD("lang", "varchar", "input=none,caption=Език");
 		
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime", "input=none,caption=Дата");
@@ -171,7 +172,7 @@ class cat_ProductTplCache extends core_Master
 	 * @param datetime $time - време
 	 * @return mixed
 	 */
-	public static function getCache($productId, $time, $type, $documentType)
+	public static function getCache($productId, $time, $type, $documentType, $lang)
 	{
 		// Кога артикула е бил последно модифициран
 		$productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
@@ -179,7 +180,7 @@ class cat_ProductTplCache extends core_Master
 		// Намираме кешираните данни
 		$res = array($productModifiedOn => NULL);
 		$query = self::getQuery();
-		$query->where("#productId = {$productId} AND #type = '{$type}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
+		$query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
 		$query->orderBy('time', 'DESC');
 		while($rec = $query->fetch()){
 			$res[$rec->time] = $rec->cache;
@@ -205,7 +206,7 @@ class cat_ProductTplCache extends core_Master
 	 * @param enum(internal,public) $documentType
 	 * @return string - заглавието на артикула
 	 */
-	public static function cacheTitle($rec, $time, $documentType)
+	public static function cacheTitle($rec, $time, $documentType, $lang)
 	{
 		$rec = cat_Products::fetchRec($rec);
 		
@@ -224,6 +225,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->type = 'title';
 		$cacheRec->documentType = $documentType;
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
+		$cacheRec->lang = $lang;
 		
 		if(isset($time)){
 			self::save($cacheRec);
@@ -241,7 +243,7 @@ class cat_ProductTplCache extends core_Master
 	 * @param enum(public,internal) $documentType
 	 * @return core_ET
 	 */
-	public static function cacheDescription($productId, $time, $documentType)
+	public static function cacheDescription($productId, $time, $documentType, $lang)
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		
@@ -265,6 +267,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->type = 'description';
 		$cacheRec->documentType = $documentType;
 		$cacheRec->cache = $data;
+		$cacheRec->lang = $lang;
 		
 		if(isset($time)){
 			self::save($cacheRec);

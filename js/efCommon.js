@@ -1537,6 +1537,9 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
         $('.formTable .hiddenFormRow select.w25').css('width', formElWidth/2);
 
+        $('.formTable .hiddenFormRow .inlineTo select.w50').css('width', formElWidth - 8);
+        $('.formTable .hiddenFormRow .inlineTo select.w25').css('width', formElWidth/2 - 8);
+
         $('.formTable .inlineTo .chzn-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo .select2-container').css('maxWidth', formElWidth/2 - 10);
         $('.formTable .inlineTo  select').css('maxWidth', formElWidth/2 - 10);
@@ -2082,11 +2085,11 @@ function getShortURL(shortUrl) {
  *
  * @param string text: допълнителен текст, който се появява при копирането
  */
-function addLinkOnCopy(text) {
+function addLinkOnCopy(text, symbolCount) {
     var body_element = document.getElementsByTagName('body')[0];
     var selection = window.getSelection();
 
-    if (("" + selection).length < 30) return;
+    if (("" + selection).length < symbolCount) return;
 
     var htmlDiv = document.createElement('div');
 

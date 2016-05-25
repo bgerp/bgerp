@@ -767,9 +767,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		} else {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
-
     		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
