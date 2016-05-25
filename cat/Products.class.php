@@ -1525,13 +1525,13 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public')
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg')
     {
     	$rec = static::fetchRec($id);
     	
-    	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType);
+    	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType, $lang);
     	if(!$title){
-    		$title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType);
+    		$title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType, $lang);
     	}
     	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
@@ -1560,9 +1560,9 @@ class cat_Products extends embed_Manager {
     	
     	// Ако ще показваме описание подготвяме го
     	if($showDescription === TRUE){
-    	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType);
+    	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType, $lang);
     	    if(!$data){
-    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType);
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang);
     	    }
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
