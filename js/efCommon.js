@@ -2085,11 +2085,11 @@ function getShortURL(shortUrl) {
  *
  * @param string text: допълнителен текст, който се появява при копирането
  */
-function addLinkOnCopy(text) {
+function addLinkOnCopy(text, symbolCount) {
     var body_element = document.getElementsByTagName('body')[0];
     var selection = window.getSelection();
 
-    if (("" + selection).length < 30) return;
+    if (("" + selection).length < symbolCount) return;
 
     var htmlDiv = document.createElement('div');
 
