@@ -455,7 +455,16 @@ class cat_Products extends embed_Manager {
     		
     		// При редакция ако артикула е използван с тази мярка, тя не може да се променя
     		if(isset($rec->id) && $data->action != 'clone'){
-    			if(cat_products_Packagings::fetch("#productId = {$rec->id}") || cat_products_Packagings::isUsed($rec->id, $form->rec->measureId)){
+    			
+    			$isUsed = FALSE;
+    			if(cat_products_Packagings::fetch("#productId = {$rec->id}")){
+    				$isUsed = TRUE;
+    			} else {
+    				$isUsed = cat_products_Packagings::isUsed($rec->id, $rec->measureId, TRUE);
+    			}
+    			
+    			// Ако артикулът е използван, мярката му не може да бъде сменена
+    			if($isUsed === TRUE){
     				$form->setReadOnly('measureId');
     			}
     		}
