@@ -128,6 +128,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+    	core_Lg::push($data->masterData->rec->tplLang);
     	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	
     	if(count($data->rows)) {
@@ -141,5 +142,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     			}
     		}
     	}
+    	
+    	core_Lg::pop();
     }
 }
