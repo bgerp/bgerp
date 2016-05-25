@@ -250,14 +250,16 @@ class bank_Accounts extends core_Master {
         
         if(isset($fields['-list'])){
         	if($rec->iban) {
-        		$countryCode = iban_Type::getCountryPart($rec->iban);
-        	
-        		if ($countryCode) {
-        			$singleUrl = $mvc->getSingleUrlArray($rec->id);
-        			 
-        			$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
-        			$row->iban = $mvc->getVerbal($rec, 'iban');
-        			$row->iban = ht::createLink($row->iban, $singleUrl, NULL, "ef_icon={$mvc->getIcon($rec->id)},title={$hint}");
+        		$verbalIban = $mvc->getVerbal($rec, 'iban');
+        		if(strpos($rec->iban, '#') === FALSE){
+        			
+        			$countryCode = iban_Type::getCountryPart($rec->iban);
+        			if ($countryCode) {
+        				$singleUrl = $mvc->getSingleUrlArray($rec->id);
+        			
+        				$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+        				$row->iban = ht::createLink($verbalIban, $singleUrl, NULL, "ef_icon={$mvc->getIcon($rec->id)},title={$hint}");
+        			}
         		}
         	}
         }
