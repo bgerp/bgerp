@@ -38,7 +38,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,groupId,state';
+    var $listFields = 'id,name,groupId,coDriver,state';
     
     
     /**
@@ -142,23 +142,54 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto,silent');
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
         $this->FLD('proto', "keylist(mvc=cat_Products,allowEmpty,select=name)", "caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни продукти");
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
-        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember,tdClass=centerCol');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(3=3 количества,2=2 количества,1=1 количество,0=Без количество)', 'caption=Запитване->Брой количества');
     }
 
-
+    
+    /**
+     * 
+     * @param unknown $rec
+     * @return Ambigous <NULL, mixed>
+     */
+	private function getUomFromDriver($rec)
+	{
+		$uomId = NULL;
+		if(cls::load($rec->coDriver, TRUE)){
+			if($Driver = cls::get($rec->coDriver)){
+				$uomId = $Driver->getDefaultUomId();
+			}
+		}
+		
+		return $uomId;
+	}
+	
+	
     /**
      * Проверка за дублиран код
      */
     public static function on_AfterInputeditForm($mvc, $form)
     {
-        if($form->isSubmitted()) {
-            
-            $rec = $form->rec;
-            
+    	$rec = $form->rec;
+    	
+    	$isMandatoryMeasure = FALSE;
+    	if($form->rec->coDriver){
+    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    	
+    		if(count($protoProducts)){
+    			$form->setField('proto', 'input');
+    			$form->setSuggestions('proto', $protoProducts);
+    		}
+    	
+    		if($uomId = $mvc->getUomFromDriver($rec)){
+    			$form->setField('measureId', 'input=none');
+    		}
+    	}
+    	
+    	if($form->isSubmitted()) {
             $query = self::getQuery();
             $query->EXT('menuId', 'eshop_Groups', 'externalName=menuId,externalKey=groupId');
             if($rec->id) {
@@ -170,7 +201,6 @@ class eshop_Products extends core_Master
             if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = [#2#]", $rec->code, $menuId))) {
                 $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
             }
-
         }
     }
 
@@ -200,10 +230,19 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg');
+            	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
-            		$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            		$url = array('marketing_Inquiries2', 'new', 'drvId' => $rec->coDriver, 'Lg' => $lg, 'protos' => $rec->proto, 'quantityCount' => $rec->quantityCount, 'moq' => $rec->coMoq, 'title' => $rec->name, 'ret_url' => TRUE);
+            		$uomId = NULL;
+            		$defUom = cat_Setup::get('DEFAULT_MEASURE_ID');
+            		if(!$defUom){
+            			$defUom = NULL;
+            		}
+            		
+            		setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom, cat_UoM::fetchBySysId('pcs')->id);
+            		$url['measureId'] = $uomId;
+            		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             	}
             }
         }
@@ -523,16 +562,5 @@ class eshop_Products extends core_Master
             $cRec = cms_Content::fetch($gRec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
-
-    	$form = &$data->form;
-    	
-    	if($form->rec->coDriver){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
-    		 
-    		if(count($protoProducts)){
-    			$form->setField('proto', 'input');
-    			$form->setSuggestions('proto', $protoProducts);
-    		}
-    	}
     }
 }

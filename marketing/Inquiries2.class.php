@@ -221,7 +221,7 @@ class marketing_Inquiries2 extends embed_Manager
     { 
     	$form = &$data->form;
     	$form->setField('innerClass', "remember,removeAndRefreshForm=proto|measureId|meta");
- 
+
     	// Ако има избран прототип, зареждаме му данните в река
     	if(isset($form->rec->proto)){
     		if($pRec = cat_Products::fetch($form->rec->proto)) {
@@ -235,18 +235,13 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		if($pRec->measureId){
-    			$measureId = $pRec->measureId;
-    		} elseif($data->Driver->getDefaultUomId()){
-    			$measureId = $data->Driver->getDefaultUomId();
-    		} else{
-    			$measureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+    		$uomId = $form->rec->measureId;
+    		if($uomId != cat_UoM::fetchBySysId('pcs')->id){
+    			$uom = cat_UoM::getShortName($uomId);
+    		} else {
+    			$uom = '';
     		}
     		
-    		if($measureId){
-    			$uom = cat_UoM::getShortName($measureId);
-    		}
-    	
     		if(isset($form->rec->moq)){
     			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($form->rec->moq);
     			$caption .= "|* <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
@@ -711,8 +706,9 @@ class marketing_Inquiries2 extends embed_Manager
     	$form = $this->prepareForm($drvId);
     	$form->FLD('moq', 'double', 'input=hidden,silent');
     	$form->FLD('quantityCount', 'double', 'input=hidden,silent');
-    	$form->input(NULL, 'silent');
     	
+    	$form->input(NULL, 'silent');
+    	$form->setDefault('measureId', Request::get('measureId'));
     	if(count($proto)){
     		
     		$form->setOptions('proto', $proto);
@@ -725,7 +721,7 @@ class marketing_Inquiries2 extends embed_Manager
     	} else {
     		$form->setField('proto', 'input=none');
     	}
- 
+
     	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	$data = (object)array('form' => $form);
     	
@@ -734,6 +730,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$data->Driver = $Driver;
     		
     		$Driver->addFields($data->form);
+    		
     		$this->expandEditForm($data);
     		
     		$Driver->invoke('AfterPrepareEditForm', array($this, &$data, &$data));
