@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   eshop
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,109 +20,97 @@ class eshop_Products extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Продукти в онлайн магазина";
+    public $title = "Продукти в онлайн магазина";
     
     
     /**
      * Страница от менюто
      */
-    var $pageMenu = "Е-Магазин";
+    public $pageMenu = "Е-Магазин";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,groupId,coDriver,state';
-    
-    
-    /**
-     * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
-     */
-    var $searchFields = 'name';
-    
-            
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'id';
+    public $listFields = 'name,groupId,state';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Продукт";
+    public $singleTitle = "Продукт";
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/wooden-box.png';
+    public $singleIcon = 'img/16/wooden-box.png';
 
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'eshop,ceo';
+    public $canRead = 'eshop,ceo';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'eshop,ceo';
+    public $canEditsysdata = 'eshop,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'eshop,ceo';
+    public $canEdit = 'eshop,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'eshop,ceo';
+    public $canAdd = 'eshop,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'eshop,ceo';
+	public $canList = 'eshop,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'eshop,ceo';
+	public $canSingle = 'eshop,ceo';
 	
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'eshop,ceo';
+    public $canWrite = 'eshop,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'eshop,ceo';
+    public $canView = 'eshop,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
-
-
+    public $canDelete = 'no_one';
+    
+    
     /**
-     * Нов темплейт за показване
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    //var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    public $searchFields = 'code,groupId,name';
     
     
     /**
@@ -151,9 +139,10 @@ class eshop_Products extends core_Master
 
     
     /**
+     * Връща мярката от драйвера ако има
      * 
-     * @param unknown $rec
-     * @return Ambigous <NULL, mixed>
+     * @param stdClass $rec
+     * @return int|NULL
      */
 	private function getUomFromDriver($rec)
 	{
@@ -171,7 +160,7 @@ class eshop_Products extends core_Master
     /**
      * Проверка за дублиран код
      */
-    public static function on_AfterInputeditForm($mvc, $form)
+    protected static function on_AfterInputeditForm($mvc, $form)
     {
     	$rec = $form->rec;
     	
@@ -255,10 +244,7 @@ class eshop_Products extends core_Master
         	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
         }
     }
-
-
-
-
+    
 
     /**
      * Подготвя информация за всички продукти от активните групи
@@ -320,12 +306,13 @@ class eshop_Products extends core_Master
 
         return $layout;
     }
-
-
-
+    
+    
     /**
+     * Рендира списъка с групите
      *
-     * @return $tpl
+     * @param stdClass $data
+     * @return core_ET $layout
      */
     public function renderGroupList_($data)
     {   
@@ -509,7 +496,7 @@ class eshop_Products extends core_Master
     /**
      * Връща кратко URL към продукт
      */
-    static function getShortUrl($url)
+    public static function getShortUrl($url)
     { 
         $vid = urldecode($url['id']);
         $act = strtolower($url['Act']);
@@ -562,5 +549,16 @@ class eshop_Products extends core_Master
             $cRec = cms_Content::fetch($gRec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }
