@@ -28,7 +28,7 @@ class fileman_SetExtensionPlg2 extends core_Plugin
         $dataRec = fileman_Data::fetch($dataId);
         
         // Очакваме да е валиден път иначе се отказваме
-        if(!static::isCorrectPath($dataRec->path)) return FALSE;
+        if(!fileman::isCorrectPath($dataRec->path)) return FALSE;
 
         // Вземаме mime типа на данните
         $fileMimeType = fileman::getMimeTypeFromFilePath($dataRec->path);
