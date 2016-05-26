@@ -386,6 +386,13 @@ class sales_Quotations extends core_Master
 	    			$form->setError('currencyRate', "Не може да се изчисли курс");
 	    		}
 	    	}
+	    	
+	    	if(isset($rec->date) && isset($rec->validFor)){
+	    		$expireOn = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), FALSE);
+	    		if($expireOn < dt::today()){
+	    			$form->setWarning('date,validFor', 'Валидноста на офертата е преди текущата дата');
+	    		}
+	    	}
 		}
     }
     
@@ -433,7 +440,12 @@ class sales_Quotations extends core_Master
     			if($date < dt::today()){
     				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     					$row->validDate = "<span class='red'>{$row->validDate}</span>";
-    					$row->validDate = ht::createHint($row->validDate, 'Офертата е изтекла', 'warning');
+    					
+    					if($rec->state == 'draft'){
+    						$row->validDate = ht::createHint($row->validDate, 'Валидноста на офертата е преди текущата дата', 'warning');
+    					} elseif($rec->state != 'rejected'){
+    						$row->validDate = ht::createHint($row->validDate, 'Офертата е изтекла', 'warning');
+    					}
     				}
     			}
     		}
