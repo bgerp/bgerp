@@ -216,6 +216,20 @@ class sales_Setup extends core_ProtoSetup
     var $defClasses = 'sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl';
     
     
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array('systemId'    => "Close invalid quotations",
+    			  'description' => "Затваряне на остарелите оферти",
+    			  'controller'  => "sales_Quotations",
+    			  'action'      => "CloseQuotations",
+    			  'period'      => 1440,
+    			  'timeLimit'   => 360,
+    		),
+    );
+    
+    
 	/**
      * Инсталиране на пакета
      */

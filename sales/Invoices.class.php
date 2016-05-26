@@ -777,7 +777,8 @@ class sales_Invoices extends deals_InvoiceMaster
    		
    		$amount = 0;
    		$query = static::getQuery();
-   		$query->where("#paymentType = 'cash'");
+   		
+   		$query->where("#paymentType = 'cash' OR (#paymentType IS NULL AND #autoPaymentType = 'cash')");
    		$query->where("#state = 'active'");
    		$query->between("date", $from, $to);
    		
