@@ -393,7 +393,7 @@ class sales_Quotations extends core_Master
 	/**
      * Извиква се след успешен запис в модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec)
+    protected static function on_AfterSave($mvc, &$id, $rec)
     {
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
@@ -423,20 +423,21 @@ class sales_Quotations extends core_Master
     	$mvc = cls::get(get_called_class());
     	
     	if($fields['-single']){
-    		$quotDate = dt::mysql2timestamp($rec->date);
-    		$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
-    			
     		if(isset($rec->validFor)){
     	
     			// До коя дата е валидна
-    			$row->validDate = dt::addSecs($rec->validFor, $rec->date);
-    			$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
+    			$validDate = dt::addSecs($rec->validFor, $rec->date);
+    			$row->validDate = $mvc->getFieldType('date')->toVerbal($validDate);
+    		
+    			$date = dt::verbal2mysql($validDate, FALSE);
+    			if($date < dt::today()){
+    				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    					$row->validDate = "<span class='red'>{$row->validDate}</span>";
+    					$row->validDate = ht::createHint($row->validDate, 'Офертата е изтекла', 'warning');
+    				}
+    			}
     		}
-    			
-    		if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
-    			$row->expired = tr("офертата е изтекла");
-    		}
-    			
+    		
     		$row->number = $mvc->getHandle($rec->id);
     		$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
 			$row->username = transliterate(tr($row->username));
@@ -629,7 +630,7 @@ class sales_Quotations extends core_Master
      * Функция, която прихваща след активирането на документа
      * Ако офертата е базирана на чернова спецификация, активираме и нея
      */
-    public static function on_AfterActivation($mvc, &$rec)
+    protected static function on_AfterActivation($mvc, &$rec)
     {
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
@@ -993,7 +994,7 @@ class sales_Quotations extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if($rec->reff === ''){
     		$rec->reff = NULL;
@@ -1007,5 +1008,52 @@ class sales_Quotations extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * Затваряне на изтекли оферти по крон
+     */
+    function cron_CloseQuotations()
+    {
+    	$now = dt::today();
+    	
+    	// Селектираме тези фактури, с изтекла валидност
+    	$query = $this->getQuery();
+    	$query->where("#state = 'active'");
+    	$query->where("#validFor IS NOT NULL");
+    	$query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
+    	$query->where("#expireOn < '{$now}'");
+    	$query->show("id");
+    	
+    	// Затваряме ги
+    	while($rec = $query->fetch()){
+    		try{
+    			$rec->state = 'closed';
+    			$this->save_($rec, 'state');
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     *  Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	if(Request::get('Rejected', 'int')) return;
+    	
+    	$data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
+    	$data->listFilter->showFields .= ',sState';
+    	$data->listFilter->setDefault('sState', 'active');
+    	$data->listFilter->input();
+    	
+    	if($rec = $data->listFilter->rec){
+    		if(isset($rec->sState) && $rec->sState != 'all'){
+    			$data->query->where("#state = '{$rec->sState}'");
+    		}
+    	}
     }
 }
