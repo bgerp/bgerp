@@ -98,12 +98,12 @@ class store_ConsignmentProtocols extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior, title=Документ, contragentId=Контрагент, folderId, createdOn, createdBy';
-    
-    
-    /**
-     * Икона на единичния изглед
-     */
-    public $singleIcon = 'img/16/shipment.png';
+
+
+	/**
+	 * Икона на единичния изглед
+	 */
+	public $singleIcon = 'img/16/consignment.png';
     
     
     /**
