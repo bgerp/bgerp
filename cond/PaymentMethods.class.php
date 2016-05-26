@@ -192,6 +192,11 @@ class cond_PaymentMethods extends core_Master
             $res['deadlineForBalancePayment'] = dt::verbal2mysql($res['deadlineForBalancePayment'], FALSE);
         }
         
+        // Ако плащането е на момента, крайната дата за плащане е подадената дата
+        if($rec->sysId == 'COD'){
+        	$res['deadlineForBalancePayment'] = dt::verbal2mysql($invoiceDate, FALSE);
+        }
+        
         return $res;
     }
 
@@ -236,7 +241,13 @@ class cond_PaymentMethods extends core_Master
     	$restAmount = round($restAmount, 4);
     	
     	// Ако остатъка за плащане е 0 или по-малко
-    	if($restAmount <= 0) return FALSE;
+    	if($restAmount <= 0){
+    		
+    		// И няма крайна дата за плащане или има, но тя не е минала връщаме че не е просрочена
+    		if(!isset($payment['deadlineForBalancePayment']) || (isset($payment['deadlineForBalancePayment']) && $today <= $payment['deadlineForBalancePayment'])){
+    			return FALSE;
+    		}
+    	}
     	
     	// Ако няма крайна дата на плащане, не е просрочена
     	if(!$payment['deadlineForBalancePayment']) return FALSE;
