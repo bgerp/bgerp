@@ -857,7 +857,7 @@ class cat_Products extends embed_Manager {
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
-                'title'    => $rec->name,
+                'title'    => static::getDisplayName($rec),
                 'uomId'    => $rec->measureId,
                 'features' => array()
             );
