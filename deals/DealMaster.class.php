@@ -199,7 +199,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=pending');
+		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
 	}
 
 
@@ -346,8 +346,6 @@ abstract class deals_DealMaster extends deals_DealBase
     			$form->setWarning('currencyRate', $msg);
     		}
     	}
-        
-        $form->rec->paymentState = 'pending';
     }
 
     
