@@ -1016,14 +1016,14 @@ class sales_Quotations extends core_Master
      */
     function cron_CloseQuotations()
     {
-    	$now = dt::today();
+    	$today = dt::today();
     	
     	// Селектираме тези фактури, с изтекла валидност
     	$query = $this->getQuery();
     	$query->where("#state = 'active'");
     	$query->where("#validFor IS NOT NULL");
     	$query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
-    	$query->where("#expireOn < '{$now}'");
+    	$query->where("#expireOn < '{$today}'");
     	$query->show("id");
     	
     	// Затваряме ги
