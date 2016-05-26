@@ -53,6 +53,16 @@ class plg_Clone extends core_Plugin
         $mvc->prepareEditForm($data);
         $form = &$data->form;
         
+        // Проверяваме имали полета, които не искаме да се клонират
+        $dontCloneFields = arr::make($mvc->fieldsNotToClone, TRUE);
+        
+        // Ако има махаме ги от $form->rec
+        if(count($dontCloneFields)){
+        	foreach ($dontCloneFields as $unsetField){
+        		unset($form->rec->{$unsetField});
+        	}
+        }
+        
         // Задаваме екшъна
         $form->setAction($mvc, 'clonefields');
         
