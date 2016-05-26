@@ -181,6 +181,14 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'date';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
