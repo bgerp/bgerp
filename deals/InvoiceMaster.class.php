@@ -689,7 +689,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
-    			$form->setError('date,dueDate', "Вальора не може да е по-малък от крайната дата за плащане");
+    			$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
+    			unset($rec->dueTime);
     		} else {
     			if(isset($rec->dueDate) && isset($rec->dueTime)){
     				$date = dt::addSecs($rec->dueTime, $rec->date);
