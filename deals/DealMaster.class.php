@@ -56,6 +56,14 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -191,7 +199,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				'caption=Статус, input=none'
 		);
 		
-		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none');
+		$mvc->FLD('paymentState', 'enum(pending=Да,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=pending');
 	}
 
 
@@ -201,13 +209,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$form = &$data->form;
-		
-		if($data->action === 'clone'){
-			$form->rec->valior = dt::now();
-		} else {
-			$form->setDefault('valior', dt::now());
-		}
-		
+		$form->setDefault('valior', dt::now());
 		$form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 		
 		if(empty($form->rec->id)){
@@ -729,23 +731,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function canActivate($rec)
     {
     	return TRUE;
-    }
-    
-    
-    /**
-     * Преди клониране
-     */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
-    {
-    	unset($nRec->contoActions,
-    		  $nRec->amountDelivered, 
-    		  $nRec->amountBl,  
-    		  $nRec->amountPaid,
-    		  $nRec->amountInvoiced,
-    		  $nRec->sharedViews,
-    		  $nRec->closedDocuments);
-    	
-    	$nRec->paymentState = 'pending';
     }
 
 
