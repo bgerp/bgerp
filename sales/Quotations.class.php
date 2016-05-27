@@ -590,6 +590,16 @@ class sales_Quotations extends core_Master
     			}
     		}
     	}
+    	
+    	// Ако офертата е изтекла и е затврорена, не може да се отваря
+    	if($action == 'close' && isset($rec)){
+    		if($rec->state == 'closed' && isset($rec->validFor) && isset($rec->date)){
+    			$validTill = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), FALSE);
+    			if($validTill < dt::today()){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
     
     
