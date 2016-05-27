@@ -477,10 +477,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', TRUE);
     	$row = $this->recToVerbal($rec, $fields);
     	
-        $subTitle = "Дост: " . (($rec->amountDelivered) ? $row->amountDelivered : 0) . " ({$row->amountToDeliver})";
-		$subTitle .= ", Плат: " . (($rec->amountPaid) ? $row->amountPaid : 0) . " ({$row->amountToPay})";
+        $subTitle = tr("Дост:") . " {$row->amountDelivered} ({$row->amountToDeliver})";
+		$subTitle .= ", " . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
         if($rec->makeInvoice != 'no'){
-        	$subTitle .= ", Факт: " . (($rec->amountInvoiced) ? $row->amountInvoiced : 0) . " ({$row->amountToInvoice})";
+        	$subTitle .= ", " . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
         }
         
         return $subTitle;
@@ -787,16 +787,13 @@ abstract class deals_DealMaster extends deals_DealBase
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
-        if($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid'){
-        	$row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . "</span>";
-        }
-        
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
-        
-    	if($fields['-list']){
-	    	$row->paymentState = ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
-    	}
+       
+        if($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid'){
+			$row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . "</span>";
+        	$row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
+        }
 	    
     	if($rec->dealerId){
     		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
