@@ -136,7 +136,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/shipment.png';
+    public $singleIcon = 'img/16/store-receipt.png';
 
    
     /**

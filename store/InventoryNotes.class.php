@@ -87,7 +87,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/shipment.png';
+    public $singleIcon = 'img/16/invertory.png';
     
     
     /**

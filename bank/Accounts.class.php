@@ -248,16 +248,18 @@ class bank_Accounts extends core_Master {
     {
         $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, TRUE);
         
-        if(isset($fields['-list'])){
-        	if($rec->iban) {
-        		$verbalIban = $mvc->getVerbal($rec, 'iban');
-        		if(strpos($rec->iban, '#') === FALSE){
+        if($rec->iban) {
+        	$verbalIban = $mvc->getVerbal($rec, 'iban');
+        	if(strpos($rec->iban, '#') === FALSE){
         			
-        			$countryCode = iban_Type::getCountryPart($rec->iban);
-        			if ($countryCode) {
+        		$countryCode = iban_Type::getCountryPart($rec->iban);
+        		if ($countryCode) {
+        			$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+        				
+        			if(isset($fields['-single'])){
+        				$row->iban = ht::createHint($row->iban, $hint);
+        			} else {
         				$singleUrl = $mvc->getSingleUrlArray($rec->id);
-        			
-        				$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
         				$row->iban = ht::createLink($verbalIban, $singleUrl, NULL, "ef_icon={$mvc->getIcon($rec->id)},title={$hint}");
         			}
         		}

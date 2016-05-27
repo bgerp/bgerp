@@ -117,7 +117,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/shipment.png';
+    public $singleIcon = 'img/16/EN.png';
     
     
     /**

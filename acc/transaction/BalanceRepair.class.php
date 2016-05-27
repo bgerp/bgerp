@@ -143,6 +143,8 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 			
 			if(!is_null($blQuantity)){
 				$ourSideArr['quantity'] = abs($blQuantity);
+			} else {
+				$ourSideArr['quantity'] = 0;
 			}
 				
 			// Ако салдото е отрицателно отива като приход

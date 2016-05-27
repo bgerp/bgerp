@@ -318,7 +318,7 @@ class purchase_Purchases extends deals_DealMaster
     		
 	    	if (store_Receipts::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
-	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/shipment.png,title=Засклаждане на артикулите в склада,order=9.21');
+	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/store-receipt.png,title=Засклаждане на артикулите в склада,order=9.21');
 	        }
 	    	
     		if(purchase_Services::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {

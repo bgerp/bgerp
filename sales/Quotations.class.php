@@ -386,6 +386,13 @@ class sales_Quotations extends core_Master
 	    			$form->setError('currencyRate', "Не може да се изчисли курс");
 	    		}
 	    	}
+	    	
+	    	if(isset($rec->date) && isset($rec->validFor)){
+	    		$expireOn = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), FALSE);
+	    		if($expireOn < dt::today()){
+	    			$form->setWarning('date,validFor', 'Валидноста на офертата е преди текущата дата');
+	    		}
+	    	}
 		}
     }
     
@@ -433,7 +440,12 @@ class sales_Quotations extends core_Master
     			if($date < dt::today()){
     				if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     					$row->validDate = "<span class='red'>{$row->validDate}</span>";
-    					$row->validDate = ht::createHint($row->validDate, 'Офертата е изтекла', 'warning');
+    					
+    					if($rec->state == 'draft'){
+    						$row->validDate = ht::createHint($row->validDate, 'Валидноста на офертата е преди текущата дата', 'warning');
+    					} elseif($rec->state != 'rejected'){
+    						$row->validDate = ht::createHint($row->validDate, 'Офертата е изтекла', 'warning');
+    					}
     				}
     			}
     		}
@@ -521,7 +533,7 @@ class sales_Quotations extends core_Master
     	
     	return $row;
     }
-    
+
     
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
@@ -531,10 +543,7 @@ class sales_Quotations extends core_Master
     	$rec = $this->fetch($id);
         $row = new stdClass();
         
-        $lang = doc_TplManager::fetchField($rec->template, 'lang');
-        core_Lg::push($lang);
-        $row->title = tr('Оферта') . " №" .$this->abbr . $rec->id;
-        core_Lg::pop();
+        $row->title = self::getRecTitle($rec);
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -574,6 +583,16 @@ class sales_Quotations extends core_Master
     			
     			// За да се активира, трябва да има детайли
     			if(!sales_QuotationsDetails::fetchField("#quotationId = {$rec->id}")){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	// Ако офертата е изтекла и е затврорена, не може да се отваря
+    	if($action == 'close' && isset($rec)){
+    		if($rec->state == 'closed' && isset($rec->validFor) && isset($rec->date)){
+    			$validTill = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), FALSE);
+    			if($validTill < dt::today()){
     				$res = 'no_one';
     			}
     		}
@@ -751,14 +770,33 @@ class sales_Quotations extends core_Master
      }
      
      
-	/**
+
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)
-    {
-        $rec = static::fetchRec($rec);
-    	
-    	return tr("|Оферта|* №{$rec->id}");
+    {   
+        $mvc = cls::get(get_called_class());
+
+    	$rec = static::fetchRec($rec);
+    
+     	
+        $abbr = $mvc->abbr;
+        $abbr{0} = strtoupper($abbr{0});
+
+        $date = dt::mysql2verbal($rec->date, 'd.m.year'); 
+
+        $crm = cls::get($rec->contragentClassId);
+
+        $cRec =  $crm->getContragentData($rec->contragentId);
+        
+        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
+        
+        if($escaped) {
+            $contragent = type_Varchar::escape($contragent);
+        }
+
+    	return "{$abbr}{$rec->id}/{$date} {$contragent}";
     }
     
     

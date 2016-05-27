@@ -192,6 +192,11 @@ class cond_PaymentMethods extends core_Master
             $res['deadlineForBalancePayment'] = dt::verbal2mysql($res['deadlineForBalancePayment'], FALSE);
         }
         
+        // Ако плащането е на момента, крайната дата за плащане е подадената дата
+        if($rec->sysId == 'COD'){
+        	$res['deadlineForBalancePayment'] = dt::verbal2mysql($invoiceDate, FALSE);
+        }
+        
         return $res;
     }
 
