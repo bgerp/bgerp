@@ -164,8 +164,14 @@ class store_Transfers extends core_Master
      * Как се казва полето в което е избран склада
      */
     public $storeFieldName = 'fromStore';
-    
-    
+
+
+	/**
+	 * Икона на единичния изглед
+	 */
+	public $singleIcon = 'img/16/transfers.png';
+
+
     /**
      * Описание на модела (таблицата)
      */

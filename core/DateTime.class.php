@@ -335,6 +335,8 @@ class core_DateTime
         if (($year == $yearNow)) {
             $mask = str_replace('-YEAR', '', $mask);
             $mask = str_replace('-year', '', $mask);
+            $mask = str_replace('.YEAR', '', $mask);
+            $mask = str_replace('.year', '', $mask);
         }
         
         $mask = str_replace('YEAR', 'Y', $mask);

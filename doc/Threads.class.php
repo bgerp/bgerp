@@ -484,6 +484,10 @@ class doc_Threads extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
+        if ($folderRec->state == 'closed') {
+        	$folderRow->title = ht::createHint($folderRow->title, 'Намирате се в затворена папка', 'warning');
+        }
+        
         $title->append($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         

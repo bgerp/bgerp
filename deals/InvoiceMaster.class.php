@@ -677,26 +677,18 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		// Ако има срок за плащане но няма дата изчисляваме я
-    		if(isset($rec->dueTime) && empty($rec->dueDate)){
-    			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
-    			$rec->dueDate = dt::verbal2mysql($rec->dueDate, FALSE);
+    		if(isset($rec->dueDate) && isset($rec->dueTime)){
+    			$date = dt::addSecs($rec->dueTime, $rec->date);
+    			$date = dt::verbal2mysql($date, FALSE);
+    			if($date != $rec->dueDate){
+    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    			}
     		}
     		
-    		// Ако има дата за плащане но няма срок изчисляваме го
-    		if(empty($rec->dueTime) && isset($rec->dueDate)){
-    			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
-    		}
-    		
-    		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
-    			$form->setError('date,dueDate', "Вальора не може да е по-малък от крайната дата за плащане");
-    		} else {
-    			if(isset($rec->dueDate) && isset($rec->dueTime)){
-    				$date = dt::addSecs($rec->dueTime, $rec->date);
-    				$date = dt::verbal2mysql($date, FALSE);
-    				if($date != $rec->dueDate){
-    					$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
-    				}
+    		$dueDate = ($rec->dueDate) ? $rec->dueDate : ((isset($rec->dueTime)) ? dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE): NULL);
+    		if(isset($dueDate)){
+    			if($dueDate < $rec->date){
+    				$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
     			}
     		}
     		
@@ -884,6 +876,11 @@ abstract class deals_InvoiceMaster extends core_Master
     			if(!empty($rec->{$cfld})){
     				$row->{$cfld} = core_Lg::transliterate($row->{$cfld});
     			}
+    		}
+    		
+    		if(empty($rec->dueDate) && isset($rec->dueTime)){
+    			$dueDate = dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE);
+    			$row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
     		}
     		
     		$mvc->prepareMyCompanyInfo($row);
@@ -1198,5 +1195,22 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$rec = $mvc->fetchRec($id);
     	doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+    	// Ако няма дата при промяна на документа в активно състояние се изчислява крайната му дата за плащане
+    	if($rec->state == 'active'){
+    		if(empty($rec->dueDate) && isset($rec->dueTime)){
+    			$rec->dueDate = dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE);
+    		}
+    	}
     }
 }
