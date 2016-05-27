@@ -878,9 +878,15 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
-    		if(empty($rec->dueDate) && isset($rec->dueTime)){
-    			$dueDate = dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE);
+    		if(empty($rec->dueDate)){
+    			$dueTime = (isset($rec->dueTime)) ? $rec->dueTime : 3 * 86400;
+    			
+    			$dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
     			$row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+    			if(!$rec->dueTime){
+    				$time = cls::get('type_Time')->toVerbal(3 * 86400);
+    				$row->dueDate = ht::createHint($row->dueDate, "Според срока за плащане по подразбиране|*: {$time}");
+    			}
     		}
     		
     		$mvc->prepareMyCompanyInfo($row);
@@ -1208,8 +1214,9 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	// Ако няма дата при промяна на документа в активно състояние се изчислява крайната му дата за плащане
     	if($rec->state == 'active'){
-    		if(empty($rec->dueDate) && isset($rec->dueTime)){
-    			$rec->dueDate = dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE);
+    		if(empty($rec->dueDate)){
+    			$dueTime = (isset($rec->dueTime)) ? $rec->dueTime : 3 * 86400;
+    			$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
     		}
     	}
     }
