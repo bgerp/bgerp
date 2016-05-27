@@ -784,19 +784,19 @@ class sales_Quotations extends core_Master
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
 
-        $date = dt::mysql2verbal($rec->date, 'd.m.y'); 
+        $date = dt::mysql2verbal($rec->date, 'd.m.year'); 
 
         $crm = cls::get($rec->contragentClassId);
 
         $cRec =  $crm->getContragentData($rec->contragentId);
         
-        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 24);
+        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
         
         if($escaped) {
             $contragent = type_Varchar::escape($contragent);
         }
 
-    	return "{$abbr}{$rec->id}; {$date}; {$contragent}";
+    	return "{$abbr}{$rec->id}/{$date} {$contragent}";
     }
     
     
