@@ -1056,26 +1056,4 @@ class sales_Sales extends deals_DealMaster
     	return array('crm_ContragentAccRegIntf');
     }
 
-
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$rec = static::fetchRec($rec);
-    
-    	// Името на шаблона е и име на документа
-    	$templateId = static::getTemplate($rec);
-    	$templateName = doc_TplManager::getTitleById($templateId);
-    	
-        $date = dt::mysql2verbal($rec->valior, 'd.m.y'); 
-
-        $crm = cls::get($rec->contragentClassId);
-
-        $cRec =  $crm->getContragentData($rec->contragentId);
-        
-        $contragent = str::limitLen(type_Varchar::escape($cRec->company ? $cRec->company : $cRec->person), 24);
-
-    	return "Sal{$rec->id}; {$date}; {$contragent}";
-    }
 }

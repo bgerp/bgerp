@@ -533,7 +533,7 @@ class sales_Quotations extends core_Master
     	
     	return $row;
     }
-    
+
     
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
@@ -543,10 +543,7 @@ class sales_Quotations extends core_Master
     	$rec = $this->fetch($id);
         $row = new stdClass();
         
-        $lang = doc_TplManager::fetchField($rec->template, 'lang');
-        core_Lg::push($lang);
-        $row->title = tr('Оферта') . " №" .$this->abbr . $rec->id;
-        core_Lg::pop();
+        $row->title = self::getRecTitle($rec);
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
@@ -773,14 +770,33 @@ class sales_Quotations extends core_Master
      }
      
      
-	/**
+
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)
-    {
-        $rec = static::fetchRec($rec);
-    	
-    	return tr("|Оферта|* №{$rec->id}");
+    {   
+        $mvc = cls::get(get_called_class());
+
+    	$rec = static::fetchRec($rec);
+    
+     	
+        $abbr = $mvc->abbr;
+        $abbr{0} = strtoupper($abbr{0});
+
+        $date = dt::mysql2verbal($rec->date, 'd.m.y'); 
+
+        $crm = cls::get($rec->contragentClassId);
+
+        $cRec =  $crm->getContragentData($rec->contragentId);
+        
+        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 24);
+        
+        if($escaped) {
+            $contragent = type_Varchar::escape($contragent);
+        }
+
+    	return "{$abbr}{$rec->id}; {$date}; {$contragent}";
     }
     
     

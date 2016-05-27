@@ -311,14 +311,28 @@ abstract class deals_DealMaster extends deals_DealBase
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)
-    {
+    {   
+        $mvc = cls::get(get_called_class());
+
     	$rec = static::fetchRec($rec);
     
-    	// Името на шаблона е и име на документа
-    	$templateId = static::getTemplate($rec);
-    	$templateName = doc_TplManager::getTitleById($templateId);
-    	
-    	return "{$templateName} №{$rec->id}";
+     	
+        $abbr = $mvc->abbr;
+        $abbr{0} = strtoupper($abbr{0});
+
+        $date = dt::mysql2verbal($rec->valior, 'd.m.y'); 
+
+        $crm = cls::get($rec->contragentClassId);
+
+        $cRec =  $crm->getContragentData($rec->contragentId);
+        
+        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 24);
+        
+        if($escaped) {
+            $contragent = type_Varchar::escape($contragent);
+        }
+
+    	return "{$abbr}{$rec->id}; {$date}; {$contragent}";
     }
     
     
