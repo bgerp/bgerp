@@ -112,6 +112,11 @@ class thumb_M extends core_Mvc
         $cmd = constant(strtoupper($optimizer) . '_CMD');
         $cmd = str_replace('[#path#]', $path, $cmd);
         exec($cmd, $out, $status);
-        log_System::add('tumb_Img', ($status ? 'Грешка: ' : 'Оптимизирано: ') . $cmd , NULL, $status ? 'err' : 'debug');
+        if($status) {
+            $err = implode(' | ', $out);
+            log_System::add('tumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'err');
+        } else {
+            log_System::add('tumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
+        }
     }
 }
