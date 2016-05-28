@@ -1,6 +1,12 @@
 <?php
 
+defIfNot('JPEGOPTIM_CMD', 'jpegoptim [#path#]');
 
+defIfNot('JPEGTRAN_CMD', 'jpegtran -copy none -optimize -outfile [#path#] [#path#]');
+
+defIfNot('OPTIPNG_CMD', 'optipng [#path#]');
+
+defIfNot('PNGQUANT_CMD', 'pngquant.exe --quality=65-80 --ext .png --force [#path#]');
 
 
 /**
@@ -590,6 +596,11 @@ class thumb_Img
                 if($asString = $this->getAsString()) {  
                     file_put_contents($path, $asString);
                 }
+            }
+
+            if(thumb_Setup::get('OPTIMIZATORS') && !empty($path) && ($type = $this->getThumbFormat())) {
+                $M = cls::get('thumb_M');
+                $M->forOptimization[$path] = $type;
             }
         }
     }
