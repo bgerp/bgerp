@@ -32,6 +32,12 @@ defIfNot('PURCHASE_USE_RATE_IN_CONTRACTS', 'no');
 
 
 /**
+ * Срок по подразбиране за плащане на фактурата
+ */
+defIfNot('PURCHASE_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -103,10 +109,11 @@ class purchase_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'PURCHASE_OVERDUE_CHECK_DELAY'   => array("time", "caption=Толеранс за просрочване на покупката->Време"),
-			'PURCHASE_CLOSE_OLDER_THAN'      => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
-			'PURCHASE_CLOSE_OLDER_NUM'       => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
-			'PURCHASE_USE_RATE_IN_CONTRACTS' => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в покупките->Избор'),
+		'PURCHASE_OVERDUE_CHECK_DELAY'       => array("time", "caption=Толеранс за просрочване на покупката->Време"),
+		'PURCHASE_CLOSE_OLDER_THAN'          => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
+		'PURCHASE_CLOSE_OLDER_NUM'           => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
+		'PURCHASE_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в покупките->Избор'),
+		'PURCHASE_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
 	);
 	
 	

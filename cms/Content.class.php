@@ -250,12 +250,12 @@ class cms_Content extends core_Manager
             $dRec = cms_Domains::getPublicDomain('form');
 
             if(isset($dRec->baseColor) && !phpcolor_Adapter::checkColor($dRec->baseColor)) {
-                $filePath = sbf('img/32/loginLight.png', "");
+                $filePath = 'img/32/loginLight.png';
             } else {
-                $filePath = sbf('img/32/loginDark.png', "");
+                $filePath = 'img/32/loginDark.png';
             }
 
-            $tpl->append(ht::createLink(ht::createElement('img', array('src' => $filePath)), 
+            $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
                 array('Portal', 'Show'), NULL, array('title' => "Вход||Log in")));
         }
 

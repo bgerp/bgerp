@@ -873,6 +873,37 @@ class core_Html
 
 
     /**
+     * Връща <img ..> таг с подадените атрибути
+     */
+    public static function createImg($attr)
+    {expect(is_array($attr), $attr);
+
+        if($path = $attr['path']) {
+            $attr['src'] = sbf($path, '');
+            unset($attr['path']);
+            if((Mode::get('devicePixelRatio') > 1.5)) {
+                if($dotPos = mb_strrpos($path, '.')) {
+                    $path2x = mb_substr($path, 0, $dotPos) . 'x2' . mb_substr($filename, $dotPos);
+                    if(getFullPath($path2x)) {
+                        $url2x = sbf($path2x, '');
+                        $attr['srcset']   = "{$url2x} 2x";
+                    }
+                }
+
+            }
+        }
+
+        if(!isset($attr['alt'])) {
+            $attr['alt'] = '';
+        }
+
+        $res = self::createElement('img', $attr);
+
+        return $res;
+    }
+
+
+    /**
      * Създава лейаут, по зададени блокове, като плейсхолдери
      */
     static function createLayout($blocks)
