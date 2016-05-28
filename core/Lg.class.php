@@ -301,7 +301,7 @@ class core_Lg extends core_Manager
                 $rec->lg = $lg;
                 
                 // Само потребители с определена роля могат да добавят (автоматично) в превода
-                if (haveRole('translate')) {
+                if (haveRole('translate') || !haveRole('powerUser')) {
                     $this->save($rec);
                 }
                 

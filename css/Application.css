@@ -1518,7 +1518,8 @@ pre.document {
   margin-top: 3px; }
 
 .cell {
-  border: 1px solid #999999; }
+  border: 1px solid #999999;
+  vertical-align: top; }
 
 .topCell {
   max-width: 400px !important; }

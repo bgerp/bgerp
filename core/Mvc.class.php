@@ -1400,6 +1400,9 @@ class core_Mvc extends core_FieldSet
      */
     public function cron_OptimizeTables()
     {
+        // Временно спрян процеса по оптимизиране на таблиците
+        return;
+
         $db = cls::get('core_Db');
         
         $dbName = $db->escape($db->dbName);
