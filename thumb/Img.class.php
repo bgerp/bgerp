@@ -218,8 +218,8 @@ class thumb_Img
  
         if($this->boxWidth && $this->boxHeight) {
             $this->size2x = clone($this);
-            $this->size2x *= 2;
-            $this->size2x *= 2;
+            $this->size2x->boxWidth *= 2;
+            $this->size2x->boxWidth *= 2;
         }
     }
 
