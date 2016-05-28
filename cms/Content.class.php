@@ -246,14 +246,22 @@ class cms_Content extends core_Manager
 
         // Поставяне на иконка за Вход
         if($loginLink == FALSE) {
-            
+
             $dRec = cms_Domains::getPublicDomain('form');
 
+            $filePath = 'img/32/login';
+
             if(isset($dRec->baseColor) && !phpcolor_Adapter::checkColor($dRec->baseColor)) {
-                $filePath = 'img/32/loginLight.png';
+                $filePath .= 'Light';
             } else {
-                $filePath = 'img/32/loginDark.png';
+                $filePath .= 'Dark';
             }
+
+            if(Mode::is('screenMode', 'narrow')) {
+                $filePath .= 'M';
+            }
+
+            $filePath .= '.png';
 
             $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
                 array('Portal', 'Show'), NULL, array('title' => "Вход||Log in")));
