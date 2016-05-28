@@ -677,27 +677,18 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		// Ако има срок за плащане но няма дата изчисляваме я
-    		if(isset($rec->dueTime) && empty($rec->dueDate)){
-    			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
-    			$rec->dueDate = dt::verbal2mysql($rec->dueDate, FALSE);
+    		if(isset($rec->dueDate) && isset($rec->dueTime)){
+    			$date = dt::addSecs($rec->dueTime, $rec->date);
+    			$date = dt::verbal2mysql($date, FALSE);
+    			if($date != $rec->dueDate){
+    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    			}
     		}
     		
-    		// Ако има дата за плащане но няма срок изчисляваме го
-    		if(empty($rec->dueTime) && isset($rec->dueDate)){
-    			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
-    		}
-    		
-    		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
-    			$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
-    			unset($rec->dueTime);
-    		} else {
-    			if(isset($rec->dueDate) && isset($rec->dueTime)){
-    				$date = dt::addSecs($rec->dueTime, $rec->date);
-    				$date = dt::verbal2mysql($date, FALSE);
-    				if($date != $rec->dueDate){
-    					$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
-    				}
+    		$dueDate = ($rec->dueDate) ? $rec->dueDate : ((isset($rec->dueTime)) ? dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE): NULL);
+    		if(isset($dueDate)){
+    			if($dueDate < $rec->date){
+    				$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
     			}
     		}
     		
@@ -887,6 +878,20 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
+    		if(empty($rec->dueDate)){
+    			$defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+    			$dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
+    			
+    			if($dueTime){
+    				$dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
+    				$row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+    				if(!$rec->dueTime){
+    					$time = cls::get('type_Time')->toVerbal($defTime);
+    					$row->dueDate = ht::createHint($row->dueDate, "Според срока за плащане по подразбиране|*: {$time}");
+    				}
+    			}
+    		}
+    		
     		$mvc->prepareMyCompanyInfo($row);
     		core_Lg::pop();
     	}
@@ -924,9 +929,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
  
-    	$defDueDate = dt::addDays(3, $rec->date);
-    	$defDueDate = dt::verbal2mysql($defDueDate, FALSE);
-    	setIfNot($dueDate, $rec->dueDate, $defDueDate);
+    	setIfNot($dueDate, $rec->dueDate, $rec->date);
     	
     	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total));
     	$aggregator->sum('invoicedAmount', $total);

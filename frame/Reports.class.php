@@ -356,7 +356,17 @@ class frame_Reports extends core_Embedder
     	try{
     		$Driver = $me->getDriver($rec);
     		if($Driver){
-    			$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
+    		    if (isset($rec->filter->to)){
+    		        $to = dt::mysql2verbal($rec->filter->to,'d.m.year');
+    		        if(isset($rec->data->summary)) {
+    		            $summ = $rec->data->summary->{$rec->filter->orderField} . " BGN";
+    		            $title = "{$Driver->getReportTitle()} ({$to}/{$summ})";
+    		        } else {
+    		          $title = "{$Driver->getReportTitle()} ({$to})";
+    		        }
+    		    } else {
+    			    $title = "{$Driver->getReportTitle()}";
+    		    }
     		}
     	} catch(core_exception_Expect $e){
     		$title = "<span class='red'>" . tr('Проблем при показването') . "</span>";
