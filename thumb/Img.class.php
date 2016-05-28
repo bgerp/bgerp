@@ -217,15 +217,9 @@ class thumb_Img
         }
  
         if($this->boxWidth && $this->boxHeight) {
-            
-            $this->boxWidth *= 2;
-            $this->boxHeight *= 2;
-
-            $this->copy = clone($this);
-            
-            $this->boxWidth /= 2;
-            $this->boxHeight /= 2;
-
+            $this->size2x = clone($this);
+            $this->size2x *= 2;
+            $this->size2x *= 2;
         }
     }
 
@@ -621,17 +615,17 @@ class thumb_Img
         setIfNot($attr['width'], $this->scaledWidth);
         setIfNot($attr['height'], $this->scaledHeight);
      
-        if(Mode::get('devicePixelRatio') > 1.5 && $this->copy) { 
+        if(Mode::get('devicePixelRatio') > 1.5 && $this->size2x) { 
             // За случаите, когато имаме дисплей с по-висока плътност
-            $urlX2 = $this->copy->getUrl();
-            $attr['srcset']   = "{$urlX2} 2x";
+            $url2x = $this->size2x->getUrl();
+            $attr['srcset']   = "{$url2x} 2x";
         }
         
         setIfNot($attr['alt'], $this->verbalName);
         
         unset($attr['isAbsolute']);
 
-        $img = ht::createElement('img', $attr);
+        $img = ht::createImg($attr);
 
         return $img;
     }
