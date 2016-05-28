@@ -775,7 +775,7 @@ class core_Html
                 $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
                 $srcset  = '';
 
-                if(Mode::get('devicePixelRatio') > 1.5) {
+                if(log_Browsers::isRetina()) {
                     $icon2 = str_replace('/16/', '/32/', $icon);
                     if(getFullPath($icon2)) {
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
@@ -878,9 +878,9 @@ class core_Html
     public static function createImg($attr)
     {
         if($path = $attr['path']) {
-            $attr['src'] = sbf($path, '');
+            $src = sbf($path, '');
             unset($attr['path']);
-            if((Mode::get('devicePixelRatio') > 1.5)) {
+            if((log_Browsers::isRetina())) {
                 if($dotPos = mb_strrpos($path, '.')) {
                     $path2x = mb_substr($path, 0, $dotPos) . '2x' . mb_substr($path, $dotPos);
                     if(getFullPath($path2x)) {
@@ -890,6 +890,7 @@ class core_Html
                 }
 
             }
+            $attr['src'] = $src;
         }
 
         if(!isset($attr['alt'])) {
@@ -1249,7 +1250,7 @@ class core_Html
     static function getIconStyle($icon, $style = 'background-size:16px 16px;')
     {
         if(!empty($icon)) {
-            if(Mode::get('devicePixelRatio') > 1.5) {
+            if(log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
                 if(getFullPath($icon2)) {
                     $icon = $icon2;
