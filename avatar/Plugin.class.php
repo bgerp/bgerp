@@ -66,7 +66,7 @@ class avatar_Plugin extends core_Plugin
         $attr['src']   = $url;
         
         // За случаите, когато имаме дисплей с по-висока плътност
-        if(Mode::get('devicePixelRatio') > 1.5) {
+        if(log_Browsers::isRetina()) {
             $urlX2 = self::getUrl($userId, $email, $width * 2);
             $attr['srcset']   = "{$urlX2} 2x";
         }
