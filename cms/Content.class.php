@@ -251,10 +251,10 @@ class cms_Content extends core_Manager
 
             $filePath = 'img/32/login';
 
-            if(isset($dRec->baseColor) && !phpcolor_Adapter::checkColor($dRec->baseColor)) {
-                $filePath .= 'Light';
-            } else {
+            if(isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor)) {
                 $filePath .= 'Dark';
+            } else {
+                $filePath .= 'Light';
             }
 
             if(Mode::is('screenMode', 'narrow')) {
