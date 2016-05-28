@@ -154,6 +154,12 @@ class thumb_Img
      * @var string Пътят във файловата система, където да бъде записано изображението
      */
     protected $thumbPath;
+
+
+    /**
+     * @var thumb_Img Копие на обекта с дройно по-големи рамери
+     */
+    private $size2x;
     
 
     /**
@@ -615,7 +621,7 @@ class thumb_Img
         setIfNot($attr['width'], $this->scaledWidth);
         setIfNot($attr['height'], $this->scaledHeight);
      
-        if(Mode::get('devicePixelRatio') > 1.5 && $this->size2x) { 
+        if(log_Browsers::isRetina() && $this->size2x) { 
             // За случаите, когато имаме дисплей с по-висока плътност
             $url2x = $this->size2x->getUrl();
             $attr['srcset']   = "{$url2x} 2x";

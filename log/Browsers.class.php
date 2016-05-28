@@ -732,6 +732,19 @@ class log_Browsers extends core_Master
         return $browser;
     }
     
+
+    /**
+     * Рвъща TRUE, ако браузърът има висока резолюция на дисплея
+     */
+    public static function isRetina()
+    {
+        if( (Mode::get('devicePixelRatio') > 1.5) ||
+             (Mode::get('devicePixelRatio') === NULL && Mode::is('screenMode', 'narrow')) ) {
+
+            return TRUE;
+        }
+    }
+
     
     /**
      * Стандартния page_Footer извиква този екшън,

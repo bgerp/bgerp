@@ -107,12 +107,12 @@ class thumb_M extends core_Mvc
     private function execCmd($optimizer, $path)
     {   
         $out = array();
-        $status = NULL;
+        $status = 0;
         $path = escapeshellarg($path);
         $cmd = constant(strtoupper($optimizer) . '_CMD');
         $cmd = str_replace('[#path#]', $path, $cmd);
         exec($cmd, $out, $status);
-        if($status) {
+        if($status > 0) {
             $err = implode(' | ', $out);
             log_System::add('tumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'err');
         } else {
