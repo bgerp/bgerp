@@ -244,32 +244,10 @@ class cms_Content extends core_Manager
             }    
         }
 
-        // Поставяне на иконка за Вход
-        if($loginLink == FALSE) {
-
-            $dRec = cms_Domains::getPublicDomain('form');
-
-            $filePath = 'img/32/login';
-
-            if(isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor)) {
-                $filePath .= 'Dark';
-            } else {
-                $filePath .= 'Light';
-            }
-
-            if(Mode::is('screenMode', 'narrow')) {
-                $filePath .= 'M';
-            }
-
-            $filePath .= '.png';
-
-            $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
-                array('Portal', 'Show'), NULL, array('title' => "Вход||Log in")));
-        }
 
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
- 
+        
         if(count($usedLangsArr) == 2) {
 
             // Премахваме текущия език
@@ -297,8 +275,36 @@ class cms_Content extends core_Manager
         } elseif(count($usedLangsArr) > 1) {
             $attr['class'] = 'selectLang';
             $attr['title'] = implode(', ', $usedLangsArr);
+            if(Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
+                $attr['class'] = 'selected';
+            }
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), NULL, $attr));
         }
+
+
+        // Поставяне на иконка за Вход
+        if($loginLink == FALSE) {
+
+            $dRec = cms_Domains::getPublicDomain('form');
+
+            $filePath = 'img/32/login';
+
+            if(isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor)) {
+                $filePath .= 'Dark';
+            } else {
+                $filePath .= 'Light';
+            }
+
+            if(Mode::is('screenMode', 'narrow')) {
+                $filePath .= 'M';
+            }
+
+            $filePath .= '.png';
+
+            $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
+                array('Portal', 'Show'), NULL, array('title' => "Вход||Log in", 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')));
+        }
+
 
         return $tpl;
     }
