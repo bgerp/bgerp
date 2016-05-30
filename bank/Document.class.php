@@ -298,7 +298,9 @@ abstract class bank_Document extends deals_PaymentDocument
 	public function pushDealInfo($id, &$aggregator)
 	{
 		$rec = static::fetchRec($id);
-		$aggregator->setIfNot('bankAccountId', bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId'));
+		if($rec->ownAccount){
+			$aggregator->setIfNot('bankAccountId', bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId'));
+		}
 	}
 	
 
@@ -452,7 +454,7 @@ abstract class bank_Document extends deals_PaymentDocument
         	}
         }
         
-        if(empty($form->rec->id)){
+        if(empty($form->rec->id) && $form->cmd != 'refresh'){
         	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
         	$form->setDefault('ownAccoun', $bankId);
         }
