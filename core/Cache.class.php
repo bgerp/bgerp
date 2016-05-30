@@ -309,8 +309,8 @@ class core_Cache extends core_Manager
      */
     function getKey(&$type, &$handler)
     {
-        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE, 12);
-        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE, 8);
+        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE-4, 12);
+        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE-3, 8);
         
         $prefix = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT);
         $prefix = substr($prefix, 0, 6);
