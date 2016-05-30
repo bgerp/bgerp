@@ -298,7 +298,9 @@ abstract class bank_Document extends deals_PaymentDocument
 	public function pushDealInfo($id, &$aggregator)
 	{
 		$rec = static::fetchRec($id);
-		$aggregator->setIfNot('bankAccountId', bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId'));
+		if($rec->ownAccount){
+			$aggregator->setIfNot('bankAccountId', bank_OwnAccounts::fetchField($rec->ownAccount, 'bankAccountId'));
+		}
 	}
 	
 
@@ -349,6 +351,20 @@ abstract class bank_Document extends deals_PaymentDocument
 		// Документа не може да се създава  в нова нишка, ако е възоснова на друг
 		if(!empty($data->form->toolbar->buttons['btnNewThread'])){
 			$data->form->toolbar->removeBtn('btnNewThread');
+		}
+	}
+	
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		$rec = $data->rec;
+		
+		// Ако не е избрана сметка, показваме бутона за контиране но с грешка
+		if($rec->state == 'draft' && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')){
+			$data->toolbar->addBtn('Контиране', array(), "id=btnConto,error=Не е уточнена сметка", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
 		}
 	}
 	
@@ -452,7 +468,7 @@ abstract class bank_Document extends deals_PaymentDocument
         	}
         }
         
-        if(empty($form->rec->id)){
+        if(empty($form->rec->id) && $form->cmd != 'refresh'){
         	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
         	$form->setDefault('ownAccoun', $bankId);
         }
