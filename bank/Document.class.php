@@ -356,6 +356,20 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		$rec = $data->rec;
+		
+		// Ако не е избрана сметка, показваме бутона за контиране но с грешка
+		if($rec->state == 'draft' && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')){
+			$data->toolbar->addBtn('Контиране', array(), "id=btnConto,error=Не е уточнена сметка", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+		}
+	}
+	
+	
+	/**
 	 * Обработки по вербалното представяне на данните
 	 */
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
