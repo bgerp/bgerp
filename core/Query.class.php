@@ -576,6 +576,7 @@ class core_Query extends core_FieldSet
         $wh = $temp->getWhereAndHaving();
         
         if (!$temp->useHaving && !$temp->getGroupBy()) {
+            
             $options = '';
             
             if (!empty($this->_selectOptions)) {
@@ -583,8 +584,7 @@ class core_Query extends core_FieldSet
             }
            
             $query = "SELECT {$options}\n   count(*) AS `_count`";
-            if ($temp->getGroupBy() ||
-                count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
+            if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
                 $fields = $temp->getShowFields();
                 $query .= ($fields ? ',' : '') . $fields;
             }
@@ -592,7 +592,6 @@ class core_Query extends core_FieldSet
             $query .= "\nFROM ";
             $query .= $temp->getTables();
             $query .= $wh->w;
-            $query .= $temp->getGroupBy();
             $query .= $wh->h;
             $query .= $temp->getLimit();
 

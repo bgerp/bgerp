@@ -2922,7 +2922,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
 
-        	var text = 'Connection error';
+        	var text = 'Connection error <br>ReadyStatus: ' + res.readyState + '<br>Status: ' + res.status;
 
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
