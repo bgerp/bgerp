@@ -358,7 +358,7 @@ class frame_Reports extends core_Embedder
     		if($Driver){
     		    if (isset($rec->filter->to)){
     		        $to = dt::mysql2verbal($rec->filter->to,'d.m.year');
-    		        if(isset($rec->data->summary)) {
+    		        if(isset($rec->data->summary) && isset($rec->filter->orderField)) {
     		            $summ = $rec->data->summary->{$rec->filter->orderField} . " BGN";
     		            $title = "{$Driver->getReportTitle()} ({$to}/{$summ})";
     		        } else {
