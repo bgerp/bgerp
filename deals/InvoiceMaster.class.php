@@ -1042,14 +1042,16 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	// Не може да се оттеглят документи, към които има създадени КИ и ДИ
     	if($action == 'reject' && isset($rec)){
-    		if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
-    			$res = 'no_one';
+    		if(!($mvc instanceof sales_Proformas)){
+    			if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
     	// Ако възстановяваме известие и оригиналът му е оттеглен, не можем да го възстановим
     	if($action == 'restore' && isset($rec)){
-    		if($rec->type != 'invoice'){
+    		if(isset($rec->type) && $rec->type != 'invoice'){
     			if($mvc->fetch("#containerId = {$rec->originId} AND #state = 'rejected'")){
     				$res = 'no_one';
     			}
