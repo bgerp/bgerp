@@ -1093,6 +1093,18 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
+    	
+    	// Не може да се контира КИ и ДИ, ако оригиналната фактура е оттеглена
+    	if($action == 'conto' && isset($rec)){
+    		if($res != 'no_one'){
+    			if($rec->type == 'dc_note'){
+    				$origin = doc_Containers::getDocument($rec->originId);
+    				if($origin->fetchField('state') == 'rejected'){
+    					$res = 'no_one';
+    				}
+    			}
+    		}
+    	}
     }
     
 
