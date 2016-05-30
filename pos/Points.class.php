@@ -214,9 +214,12 @@ class pos_Points extends core_Master {
     public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
     	unset($row->currentPlg);
-    	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
-    		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
-    		$row->currentPlg = ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png');
+    	
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
+    		if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
+    			$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+    			$row->currentPlg = ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png');
+    		}
     	}
     	
     	$row->caseId = cash_Cases::getHyperlink($rec->caseId, TRUE);

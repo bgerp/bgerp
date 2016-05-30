@@ -199,7 +199,7 @@ class doc_FolderPlg extends core_Plugin
                 $attr = array();
                 $attr['class'] = 'linkWithIcon';
 		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-		        $attr['title'] = tr('Екшън лог на потребителя');
+		        $attr['title'] = 'Екшън лог на потребителя';
                 
                 $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
                 
@@ -572,16 +572,16 @@ class doc_FolderPlg extends core_Plugin
 
         // В лист изгледа
         if($fields['-list']) {
-        	
+        
         	// Имали бързи бутони
-        	if($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected'){
-        		
+        	if($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)){
         		$managersIds = doc_Threads::getFastButtons($mvc, $rec->id);
         		if(count($managersIds)){
         		
         			// За всеки документ който може да се създаде от бърз бутон
         			foreach ($managersIds as $classId){
         				$Cls = cls::get($classId);
+        				
         				if($Cls->haveRightFor('add', (object)array('folderId' => $mvc->forceCoverAndFolder($rec->id, FALSE)))){
         					$btnTitle = ($Cls->buttonInFolderTitle) ? $Cls->buttonInFolderTitle : $Cls->singleTitle;
         					$url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $classId, 'ret_url' => TRUE);
@@ -589,7 +589,6 @@ class doc_FolderPlg extends core_Plugin
         					// Добавяме го в rowToolbar-а
         					core_RowToolbar::createIfNotExists($row->_rowTools);
         					$row->_rowTools->addLink($btnTitle, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
-        		
         				}
         			}
         		}

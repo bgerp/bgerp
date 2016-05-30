@@ -107,9 +107,15 @@ class crm_Locations extends core_Master {
     
 
     /**
-     * 
+     * Записи за обновяване
      */
     protected $updatedRecs = array();
+    
+    
+    /**
+     * Кой може да създава продажба за локацията
+     */
+    public $canCreatesale = 'ceo,sales';
     
     
     /**
@@ -326,8 +332,8 @@ class crm_Locations extends core_Master {
     			$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
     		}
     		
-    		if(sales_Sales::haveRightFor('add')){
-    			$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $rec->id), 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба');
+    		if($mvc->haveRightFor('createsale', $rec)){
+    			$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/cart_go.png,title=Създаване на нова продажба');
     		}
     	}
     }
@@ -338,14 +344,19 @@ class crm_Locations extends core_Master {
      */
     function act_CreateSale()
     {
-    	sales_Sales::requireRightFor('add');
+    	$this->requireRightFor('createsale');
     	$id = Request::get('id', 'key(mvc=crm_Locations)');
     	$rec = $this->fetch($id);
+    	$this->requireRightFor('createsale', $rec);
     	
     	// Форсираме папката на контрагента
     	$folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId);
+    	if(sales_Sales::haveRightFor('add', (object)array('folderId' => $folderId))){
+    		
+    		return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
+    	}
     	
-    	return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
+    	followRetUrl(NULL, 'Нямате достъп  до папката');
     }
     
     
@@ -376,7 +387,7 @@ class crm_Locations extends core_Master {
             if ($data->masterMvc->haveRightFor('edit', $data->masterId)) {
                 $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
-                $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова локация')), 'title');
+                $tpl->append(ht::createLink($img, $url, FALSE, 'title=Добавяне на нова локация'), 'title');
             }
         }
         
@@ -402,6 +413,18 @@ class crm_Locations extends core_Master {
         	if ($cState == 'rejected') {
                 $requiredRoles = 'no_one';
             } 
+        }
+        
+        if($action == 'createsale' && isset($rec)){
+        	if(!sales_Sales::haveRightFor('add')){
+        		$requiredRoles = 'no_one';
+        	} elseif(!$mvc->haveRightFor('single', $rec)){
+        		$requiredRoles = 'no_one';
+        	} else {
+        		if(!cls::get($rec->contragentCls)->haveRightFor('single', $rec->contragentId)){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
         }
     }
 

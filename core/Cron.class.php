@@ -652,7 +652,7 @@ class core_Cron extends core_Manager
      * 
      * @param string $systemId
      * 
-     * @return date $nextStartTime
+     * @return date|NULL|FALSE $nextStartTime
      */
     static function getNextStartTime($systemId)
     {

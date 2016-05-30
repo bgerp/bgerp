@@ -487,6 +487,9 @@ class core_Form extends core_FieldSet
                 
                 jquery_Jquery::run($this->layout, "setFormElementsWidth();");
                 jquery_Jquery::runAfterAjax($this->layout, "setFormElementsWidth");
+
+                jquery_Jquery::run($this->layout, "markElementsForRefresh();");
+
                 jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
             }
             
@@ -910,7 +913,7 @@ class core_Form extends core_FieldSet
 
             // Заменяме състоянието на секциите
             foreach($fsArr as $id => $group) { 
-                if(!$usedGroups[$group]) {
+                if(!$usedGroups[$group] && !Mode::is('javascript', 'no')) {
                     $tpl->replace(" class='fs{$id}  hiddenFormRow'", "FS_ROW{$id}");
                     $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
                     $tpl->replace(" {$plusImg}", "FS_IMAGE{$id}");
@@ -984,6 +987,7 @@ class core_Form extends core_FieldSet
                     $hiddens[$field->name] = $vars[$field->name];
                 }
             }
+            core_Request::addUrlHash($hiddens);
         }
         
         // Вкарваме скритите полета

@@ -320,7 +320,7 @@ abstract class deals_DealDetail extends doc_Detail
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
     		batch_Defs::appendBatch($rec->productId, $rec->batch, $rec->notes);
     		
     		if($rec->notes){

@@ -196,14 +196,16 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     {
         // Подготвяме страницирането
         $data = $res;
-        	
-        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
-        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-        	
-        $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
-        $data->pager = $pager;
-
+        
+        if(!Mode::is('printing')){	
+            $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+            $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+            $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+           
+            $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+            $data->pager = $pager;
+        }
+        
         $id = 1;
         if(count($data->recs)){
    
@@ -211,7 +213,9 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 $rec->count = 1;
 
                 $rec->count = $id++;
-                if(!$pager->isOnPage()) continue;
+                if(!Mode::is('printing')){
+                    if(!$pager->isOnPage()) continue;
+                }
                 
                 $row = $mvc->getVerbal($rec);
             

@@ -114,7 +114,7 @@ span.all-users{
 .select2-selection--multiple  {
 	    background-image: url('../../img/16/darrow.png') !important;
 	    background-repeat: no-repeat !important;
-	 	background-position: 10px center !important;
+	 	background-position: right 15px center !important;
         padding-right:10px;
         cursor: pointer;
 
@@ -176,6 +176,14 @@ span.all-users{
 	vertical-align: top;
 	position: relative;
 	top:4px;
+}
+
+.select2-container.contextCursor .select2-selection--single{
+    cursor: context-menu !important;
+}
+
+.select2 > .selection > .select2-selection {
+    transition: background-color linear 500ms;
 }
 
 @-moz-document url-prefix() { 

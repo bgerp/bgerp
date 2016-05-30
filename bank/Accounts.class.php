@@ -37,7 +37,7 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'iban, contragent=Контрагент, currencyId';
+    public $listFields = 'iban, currencyId, contragent=Контрагент';
     
     
     /**
@@ -244,13 +244,27 @@ class bank_Accounts extends core_Master {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $cMvc = cls::get($rec->contragentCls);
-        $field = $cMvc->rowToolsSingleField;
-        $cRec = $cMvc->fetch($rec->contragentId);
-        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
-        $row->contragent = $cRow->{$field};
+        $row->contragent = cls::get($rec->contragentCls)->getHyperLink($rec->contragentId, TRUE);
+        
+        if($rec->iban) {
+        	$verbalIban = $mvc->getVerbal($rec, 'iban');
+        	if(strpos($rec->iban, '#') === FALSE){
+        			
+        		$countryCode = iban_Type::getCountryPart($rec->iban);
+        		if ($countryCode) {
+        			$hint = 'Държава|*: ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+        				
+        			if(isset($fields['-single'])){
+        				$row->iban = ht::createHint($row->iban, $hint);
+        			} else {
+        				$singleUrl = $mvc->getSingleUrlArray($rec->id);
+        				$row->iban = ht::createLink($verbalIban, $singleUrl, NULL, "ef_icon={$mvc->getIcon($rec->id)},title={$hint}");
+        			}
+        		}
+        	}
+        }
     }
     
     
@@ -344,7 +358,7 @@ class bank_Accounts extends core_Master {
             		$title = 'Добавяне на нова банкова сметка';
             	}
             	
-            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr($title)), 'title');
+            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . $title), 'title');
             }
         }
         

@@ -643,7 +643,7 @@ select.combo {
 input[type=checkbox],
 input[type=radio] {
   border: none !important;
-  box-shadow: none;
+  box-shadow: none !important;
   background-color: transparent;
   outline: none; }
 
@@ -880,7 +880,7 @@ table .linkWithIcon {
   background-repeat: no-repeat !important;
   background-position: 3px center;
   background-size: 16px 16px; }
-  background-size 	.linkWithIcon.sick {
+  .linkWithIcon.sick {
     background-image: url('../img/16/sick.png'); }
   .linkWithIcon.trip {
     background-image: url('../img/16/working-travel.png'); }
@@ -1082,11 +1082,12 @@ a.profile {
  * състояния
  */
 .state-draft {
-  background-color: #bbffff; }
+  background-color: #bbffff;
+  background-color: rgba(187, 255, 255, 0.7); }
 
 .state-active {
   background-color: #ffeedd;
-  background: rgba(250, 221, 187, 0.5); }
+  background-color: rgba(250, 221, 187, 0.7); }
 
 .state-opened {
   background-color: #bbffcc; }
@@ -1097,7 +1098,8 @@ a.profile {
   box-shadow: inset 0 0 3px #aaf2aa; }
 
 .state-pending {
-  background-color: #eeccff; }
+  background-color: #eeccff;
+  background-color: rgba(238, 204, 255, 0.7); }
 
 .state-pending-link > a {
   background-color: #f7ebf8;
@@ -1110,13 +1112,16 @@ a.profile {
   box-shadow: inset 0 0 3px #eca7a6; }
 
 .state-closed {
-  background-color: #f1f1f1; }
+  background-color: #f1f1f1;
+  background-color: rgba(240, 240, 240, 0.7); }
 
 .state-stopped,
 .state-blocked {
-  background-color: #ffbb33; }
+  background-color: #ffbb33;
+  background-color: rgba(255, 187, 51, 0.7); }
 
 .state-rejected {
+  background-color: #cc6666;
   background-color: rgba(204, 102, 102, 0.8); }
 
 .state-rejected td,
@@ -1185,7 +1190,8 @@ a.profile {
   background-color: transparent; }
 
 .state-free {
-  background-color: #33ccf5; }
+  background-color: #33ccf5;
+  background-color: rgba(51, 204, 245, 0.7); }
 
 .state-hidden {
   background-color: #ffee77; }
@@ -1194,7 +1200,8 @@ a.profile {
   background-color: #cc9933; }
 
 .state-wakeup {
-  background-color: #2baf4c; }
+  background-color: #2baf4c;
+  background-color: rgba(43, 175, 76, 0.7); }
 
 .row-negative {
   color: #ff3333; }
@@ -1288,7 +1295,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .wide table.listAction {
   min-width: 760px; }
 
-.wide .remote_Authorizations table.listAction {
+.wide .user-profile .remote_Authorizations table.listAction {
   min-width: 0; }
 
 /*
@@ -1730,9 +1737,25 @@ input:focus[type=button] {
 .narrow .horizontal .formFields > div {
   margin-bottom: 10px; }
 
+.flashElem {
+  background-color: #fffa99;
+  transition: background-color linear 500; }
+  .flashElem label,
+  .flashEleminput.combo,
+  .flashEleminput[type="checkbox"],
+  .flashEleminput[type="radio"],
+  small.flashElem {
+    background: none; }
+
+.flashElem.select2 > .selection > .select2-selection {
+  background-color: #fffa99 !important; }
+
 /*
  * край на хоризонтални форми
  */
+.contextCursor {
+  cursor: context-menu; }
+
 /*
  * Загвавие, състоящо се от пътека
  */
@@ -2399,11 +2422,10 @@ a.lang {
   display: none; }
   .richtext-emoticons6 a.rtbutton {
     text-align: left;
-    display: table-cell;
-    min-width: 65px; }
+    min-width: 70px; }
 
 .narrow .richtext-emoticons6 a.rtbutton {
-  min-width: 72px; }
+  min-width: 74px; }
 
 .richtext-emoticons5 {
   left: -260%; }
@@ -3081,4 +3103,7 @@ td.centerCol {
 td.leftColImportant {
   white-space: nowrap;
   text-align: left !important; }
+
+.dangerFile {
+  color: #990000 !important; }
 

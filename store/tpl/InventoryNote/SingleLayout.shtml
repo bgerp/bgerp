@@ -1,0 +1,81 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<table class="innerTable border-table paddingCells">
+   <tbody>
+      <tr>
+         <td class="cell custom-header-bg" style='width:33%;height:20px;'><b>|Склад|*</b></td>
+         <td class="cell centered" rowspan='2' style='width:34%;'>
+            <div class="document-title">|протокол за инвентаризация|*</div>
+            <div style="padding-top:5px;">
+               № <span class="bigData">[#id#]</span> / 
+               <span class="bigData">[#valior#]</span>
+            </div>
+            <!--ET_BEGIN state-->
+            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+            <!--ET_END state-->
+            <small class='quiet2'>( |наличности към|* <b>[#toDate#]</b> )</small>
+         </td>
+         <td class="cell custom-header-bg vtop" style='width:33%;'><b>|Организация|*</b></td>
+      </tr>
+      <tr>
+         <td class="cell">
+            <b>[#storeId#]</b>
+            <div class='address-block'>
+               [#storeAddress#]
+            </div>
+            <br>
+            <!--ET_BEGIN SALES_BLOCK-->
+            <div><b>|Продажби за начет|*</b></div>
+            <div class='address-block'>
+             [#SALES_BLOCK#]
+            </div>
+            <!--ET_END SALES_BLOCK-->
+            <!--ET_BEGIN link-->
+            <div>[#link#]: [#sales#]</div>
+            <!--ET_END link-->
+         </td>
+         <td class="cell">
+            <b>[#MyCompany#]</b>
+            <div class='address-block'>
+               [#MyAddress#]
+            </div>
+         </td>
+      </tr>
+   </tbody>
+</table><div class="lines"></div>
+<div class='scrolling-holder'>
+   <div class="details">
+      [#store_InventoryNoteSummary#]
+   </div>
+</div>
+<div class="lines"></div>
+<table style="width: 100%;" class="table-border">
+    <tr>
+        <td style="width: 1%;" class="nowrap">|Броил|* 1: </td>
+        <td class='nowrap' style='padding-top: 35px;table-layout: fixed;'>
+            <span class="sign_names">
+                <!--ET_BEGIN counter1-->
+                 /[#counter1#]/
+                <!--ET_END counter1-->
+            </span>
+        </td>
+        <td style="width: 1%;" class="nowrap">|Броил|* 2 : </td>
+        <td class='nowrap' style='padding-top: 35px;'>
+            <span class="sign_names">
+                <!--ET_BEGIN counter2-->
+                 /[#counter2#]/
+                <!--ET_END counter2-->
+            </span>
+        </td>
+        <td style="width: 1%;" class="nowrap">|Броил|* 3 : </td>
+        <td class='nowrap' style='padding-top: 35px;'>
+            <span class="sign_names">
+                <!--ET_BEGIN counter3-->
+                 /[#counter3#]/
+                <!--ET_END counter3-->
+            </span>
+        </td>
+    </tr>
+
+</table>
+<div class="clearfix21"></div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

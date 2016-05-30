@@ -279,10 +279,10 @@ class blast_Emails extends core_Master
      */
     public static function activateEmail($id, $sendPerCall = 5)
     {   
-        self::logWrite('Активиран бласт имейл', $id);
-
         // Записа
         $rec = self::getRec($id);
+        
+        self::logWrite('Активиран бласт имейл', $rec->id);
         
         expect($rec, 'Няма такъв запис');
         
@@ -413,7 +413,7 @@ class blast_Emails extends core_Master
             // Ако е свършило времето
             if (!$this->checkTimelimit()) {
                 
-                $this->logWarning('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
                 
                 break;
             }
@@ -470,7 +470,7 @@ class blast_Emails extends core_Master
             $emailPlaceArr = self::getEmailFields($descArr);
             
             // Ако няма полета за имейли, няма смисъл да се праща
-            if (!$emailPlaceArr) continue;
+            if (empty($emailPlaceArr)) continue;
             
             $notSendDataArr = $dataArr;
             
@@ -483,7 +483,7 @@ class blast_Emails extends core_Master
                     // Маркираме неизпратените имейли
                     blast_EmailSend::removeMarkAsSent($notSendDataArr);
                     
-                    $this->logWarning('Прекъснато изпращане на циркулярни имейли', $rec->id);
+                    $this->logNotice('Прекъснато изпращане на циркулярни имейли', $rec->id);
                     
                     break;
                 }
@@ -661,8 +661,8 @@ class blast_Emails extends core_Master
      * Връща URL за отписване
      * 
      * @param integer $id
-     * @param string $lg
-     * @param string $addMidPlace
+     * @param string|NULL $lg
+     * @param string|NULL $midPlace
      * @param array $otherParams
      * 
      * @return array
@@ -701,7 +701,7 @@ class blast_Emails extends core_Master
      * Връща тялото на съобщението
      *
      * @param object $rec - Данни за имейла
-     * @param int $detId - id на детайла на данните
+     * @param array $detArr - масив с id на детайлите
      * @param boolen $sending - Дали ще изпращаме имейла
      *
      * @return object $body - Обект с тялото на съобщението
@@ -1421,17 +1421,19 @@ class blast_Emails extends core_Master
                 
                 $msg = '|Няма източник, който да може да се използва за персонализация';
                 
+                $redirectUrl = array();
+                
                 if (($defPerSrcClassId != $listClassId) && ($cover && $cover->instance)) {
                     if ($cover->instance->haveRightFor('single', $cover->that)) {
                         $redirectUrl = array($cover->instance, 'single', $cover->that);
                     }
                 }
                 
-                if (!$redirectUrl && $perClsInst->haveRightFor('list')) {
+                if (empty($redirectUrl) && $perClsInst->haveRightFor('list')) {
                     $redirectUrl = array($perClsInst, 'list');
                 }
                 
-                if (!$redirectUrl) {
+                if (empty($redirectUrl)) {
                     $redirectUrl = getRetUrl();
                 }
                 
@@ -1460,7 +1462,7 @@ class blast_Emails extends core_Master
             $allLangArr = arr::make(EF_LANGUAGES);
             $currLg = core_Lg::getCurrent();
             
-            if (!$allLangArr) {
+            if (empty($allLangArr)) {
                 $allLangArr = arr::make($currLg, TRUE);
             }
             
@@ -1629,6 +1631,8 @@ class blast_Emails extends core_Master
             
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
+            
+            $fieldsArr = array();
             
             // Полетата и описаниите им, които ще се използва за персонализация
             $onlyAllFieldsArr = $classInst->getPersonalizationDescr($rec->perSrcObjectId);
@@ -1912,9 +1916,9 @@ class blast_Emails extends core_Master
      * Връща времето на следващото стартиране
      * 
      * @param object $rec
-     * @param NULL|datetime $nextStartTime
+     * @param NULL|datetime|FALSE $nextStartTime
      * 
-     * @return datetime
+     * @return datetime|string
      */
     protected static function getNextStartTime($rec, $nextStartTime = NULL)
     {
@@ -1942,7 +1946,7 @@ class blast_Emails extends core_Master
         
         $haveNextStartTime = FALSE;
         
-        if (!$sendingArr || ($sendingArr[$dayOfWeek])) {
+        if (empty($sendingArr) || ($sendingArr[$dayOfWeek])) {
             if ((($nextStartTime >= $sendingFrom) || !$sendingFrom) && (($nextStartTime < $sendingTo) || !$sendingTo)) {
                 $haveNextStartTime = TRUE;
             }

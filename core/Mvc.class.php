@@ -92,9 +92,13 @@ class core_Mvc extends core_FieldSet
     /**
      * Какъв да е минималния брой за кеширане при подготовката на MakeArray4Select
      */
-    public $cacheLimitForMakeArray = 500;
-
-
+    public $makeArray4selectLimit4Cache = 500;
+    
+    
+    /**
+     * Кеш за резултатите от makeArray4select(), когато са по-малко от $makeArray4selectLimit4Cache
+     */
+    public $makeArray4selectCache = array();
 
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
@@ -546,16 +550,22 @@ class core_Mvc extends core_FieldSet
             $query->orderBy($orderBy ? $orderBy : $fields);
         }
         
-        $res = FALSE;
-	
-        if($query->count($where, $this->cacheLimitForMakeArray) >= $this->cacheLimitForMakeArray) {
+        $res = NULL;
 
-            $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
-
-            $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
+        $handler = md5("{$fields} . {$where} . {$index} . {$orderBy} . {$this->className}");
+        
+        $res = $this->makeArray4selectCache[$handler];
+        
+        if($res === NULL) {
+            // Колко записа биха влезли в масива?
+            $cnt = $query->count($where, $this->makeArray4selectLimit4Cache);
+            if($cnt >= $this->makeArray4selectLimit4Cache) {
+                $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
+            }  
         }
-
-        if($res === FALSE) {
+        
+        if(!is_array($res)) {
+            
             $res = array();
 
             while ($rec = $query->fetch($where)) {
@@ -576,12 +586,14 @@ class core_Mvc extends core_FieldSet
 
                 $res[$rec->{$index}] = str_replace(array('&lt;', '&amp;'), array("<", "&"), $res[$rec->{$index}]);
             }
-            
+
+            if($cnt >= $this->makeArray4selectLimit4Cache) {
+                core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
+            } else {
+                $this->makeArray4selectCache[$handler] = $res;
+            }
        }
         
-        if($handler) { 
-            core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
-        }
  
  
         return $res;
@@ -1388,6 +1400,9 @@ class core_Mvc extends core_FieldSet
      */
     public function cron_OptimizeTables()
     {
+        // Временно спрян процеса по оптимизиране на таблиците
+        return;
+
         $db = cls::get('core_Db');
         
         $dbName = $db->escape($db->dbName);

@@ -374,7 +374,7 @@ class doc_LikesPlg extends core_Plugin
                         
                         $attr['ef_icon'] = 'img/16/redheart.png';
                         $attr['class'] = 'liked';
-                        $attr['title'] = tr('Отказ от харесване');
+                        $attr['title'] = 'Отказ от харесване';
                         
                         $likesLink = ht::createLink('', $dislikeUrl, NULL, $attr);
                     } else {
@@ -394,7 +394,7 @@ class doc_LikesPlg extends core_Plugin
                         
                             $attr['ef_icon'] = 'img/16/grayheart.png';
                             $attr['class'] = $linkClass;
-                            $attr['title'] = tr('Харесване');
+                            $attr['title'] = 'Харесване';
                             
                             $likesLink = ht::createLink('', $likeUrl, NULL, $attr);
                         }

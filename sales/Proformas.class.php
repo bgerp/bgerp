@@ -265,6 +265,17 @@ class sales_Proformas extends deals_InvoiceMaster
     	}
     	
     	parent::beforeInvoiceSave($rec);
+    	
+    	if($rec->state == 'active'){
+    	
+    		if(empty($rec->dueDate)){
+    			$dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+    			 
+    			if($dueTime){
+    				$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
+    			}
+    		}
+    	}
     }
     
     

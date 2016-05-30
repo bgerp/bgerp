@@ -108,7 +108,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::truncatCache',
             'migrate::fixProductsSearchKeywords',
     		'migrate::updateProductsNew',
-    		'migrate::deleteCache1',
+    		'migrate::deleteCache2',
     		'migrate::updateParams',
     		'migrate::addClassIdToParams',
     		'migrate::updateBomType'
@@ -142,7 +142,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_REMEMBERED_RESOURCES'          => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
     		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER'   => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
-    		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
+    		'CAT_DEFAULT_MEASURE_ID'                => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на артикулите->Мярка'),
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
     );
@@ -392,7 +392,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Изчистване на кеша на артикулите
      */
-    public function deleteCache1()
+    public function deleteCache2()
     {
     	cat_ProductTplCache::truncate();
     }

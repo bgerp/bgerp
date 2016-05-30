@@ -48,14 +48,16 @@ abstract class deals_PaymentDocument extends core_Master {
 	 */
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
-		if($data->rec->state != 'rejected'){
-			if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
-				$timeStart = array('d' => $data->rec->{$mvc->valiorFld}, 't' => '8:30');
-				$sharedUsers = keylist::toArray($data->rec->sharedUsers);
-				$description = tr('Да се активира документ|* #') . $mvc->getHandle($data->rec);
-				$title = tr("Активиране на|* ") .  mb_strtolower($mvc->singleTitle) . " №{$data->rec->id}";
+		$rec = $data->rec;
+		
+		if($rec->state != 'rejected'){
+			if(cal_Reminders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
+				$timeStart = array('d' => $rec->{$mvc->valiorFld}, 't' => '8:30');
+				$sharedUsers = keylist::toArray($rec->sharedUsers);
+				$description = tr('Да се активира документ|* #') . $mvc->getHandle($rec);
+				$title = tr("Активиране на|* ") .  mb_strtolower($mvc->singleTitle) . " №{$rec->id}";
 					
-				$url = array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'timeStart' => $timeStart, 'sharedUsers' => $sharedUsers, 'description' => $description, 'title' => $title, 'ret_url' => TRUE);
+				$url = array('cal_Reminders', 'add', 'originId' => $rec->containerId, 'timeStart' => $timeStart, 'sharedUsers' => $sharedUsers, 'description' => $description, 'title' => $title, 'ret_url' => TRUE);
 				$data->toolbar->addBtn('Напомняне', $url, 'ef_icon=img/16/rem-plus.png', 'title=Създаване на ново напомняне');
 			}
 		}

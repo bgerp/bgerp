@@ -315,6 +315,11 @@ class doc_Folders extends core_Master
                 // Да сочи към коша
                 $link['Rejected'] = 1;
             }
+            
+            if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
+            	$link = array();
+            }
+            
             $row->title = ht::createLink($row->title, $link, NULL, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';

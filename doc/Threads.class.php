@@ -237,7 +237,7 @@ class doc_Threads extends core_Manager
      * 
      * 
      * @param integer $id
-     * @param boolean $escape
+     * @param boolean $escaped
      */
     public static function getTitleForId_($id, $escaped = TRUE)
     {
@@ -484,6 +484,10 @@ class doc_Threads extends core_Manager
         // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
         $folderRow = doc_Folders::recToVerbal($folderRec);
+        if ($folderRec->state == 'closed') {
+        	$folderRow->title = ht::createHint($folderRow->title, 'Намирате се в затворена папка', 'warning');
+        }
+        
         $title->append($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         
@@ -781,11 +785,9 @@ class doc_Threads extends core_Manager
             } else {
                 $row->author = $docRow->author;
             }
-            $row->hnd = "<div class='rowtools'>";
-            $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
-            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
-            $row->hnd .= '</div>';
-            $row->hnd .= '</div>';
+
+            $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
+
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
             $row->title = '?????????????';
@@ -1251,7 +1253,7 @@ class doc_Threads extends core_Manager
                 $usersArr = bgerp_Notifications::getNotifiedUserArr($urlArr);
                 $nRec = doc_Threads::fetch($id, '*', FALSE);
                 
-                if ($usersArr) {
+                if (!empty($usersArr)) {
                     foreach ((array)$usersArr as $userId => $hidden) {
                         
                         // Ако има права до сингъла
@@ -2182,7 +2184,7 @@ class doc_Threads extends core_Manager
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
      * @see core_SettingsIntf
      */
     static function canModifySettings($key, $userOrRole=NULL)

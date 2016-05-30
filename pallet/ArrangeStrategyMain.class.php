@@ -3,7 +3,7 @@
 
 
 /**
- * Стратегия за подреждане на склада 'ArrangeStrategyMain'
+ * Стратегия за подреждане на склада 'pallet_ArrangeStrategyMain'
  *
  * Започва се от 0 т.
  * Ако pallet_Racks::isSuitable() върне FALSE това палет място не може да се използва -1000 т.
@@ -32,7 +32,7 @@ class pallet_ArrangeStrategyMain
     /**
      * Какви интерфeйси поддържа този мениджър
      */
-    var $interfaces = 'store_iface_ArrangeStrategyIntf';
+    var $interfaces = 'pallet_ArrangeStrategyIntf';
     
     
     /**

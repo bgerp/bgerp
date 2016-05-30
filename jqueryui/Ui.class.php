@@ -43,9 +43,10 @@ class jqueryui_Ui
     {
         $conf = core_Packs::getConfig('jqueryui');
         
-        $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.min.js";
+        $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.js";
         
         $tpl->push($jsPath, "JS");
+        //bp($jsPath);
     }
     
     

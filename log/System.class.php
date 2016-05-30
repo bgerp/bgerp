@@ -123,7 +123,7 @@ class log_System extends core_Manager
      * Добавяне на събитие в лога
      * 
      * @param string $className
-     * @param integer|NULL $objectId
+     * @param integer|NULL|stdObject $objectId
      * @param string $action
      * @param string $type
      * @param integer $lifeDays
@@ -132,6 +132,10 @@ class log_System extends core_Manager
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
+        }
+        
+        if (is_object($objectId)) {
+            $objectId = $objectId->id;
         }
         
         $logStr = $className;

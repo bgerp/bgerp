@@ -20,7 +20,7 @@ class core_Html
     /**
      * Композира xHTML елемент
      */
-    static function createElement($name, $attributes, $body = NULL, $closeTag = FALSE)
+    static function createElement($name, $attributes = array(), $body = NULL, $closeTag = FALSE)
     {   
         $attrStr = '';
 
@@ -89,56 +89,78 @@ class core_Html
     /**
      * Създава редактируем комбо-бокс, съчетавайки SELECT с INPUT
      */
-    static function createCombo($name, $value, $attr, $options)
+    static function createCombo($name, $value, $attr = array(), $options = array())
     {
-        $tpl = new ET();
-
-
-        // За съвместимост с IE
-        $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
-        $tpl->appendOnce("\n<!--[if IE 6]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
-
         $attr['name'] = $name;
-
+        
         self::setUniqId($attr);
- 
-        $attr['class'] .= ' combo';
-        $attr['value'] = $value;
-        $id = $attr['id'];
-        
-        $suffix = '_cs';
-        list($l, $r) = explode('[', $id);
-        $selectId = $l . $suffix . $r;
 
-        if ($attr['ajaxAutoRefreshOptions']) {
-            $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
-            $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
-            if($attr['onchange']) {
-                $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . "} ";
+        if(Mode::is('javascript', 'no')) {
+            
+            $listId = $attr['id'] . '_list';
+
+            $attr['list'] = $listId;
+
+            $tpl = self::createElement('input', $attr);
+            
+            $tpl->append(self::createElement('datalist', array('id' =>$listId)));
+            if(is_array($options)) {
+                unset($options['']);
+                foreach($options as $key => $v) {
+                    $tpl->append("\n" . self::createElement('option', array('value' => $v)));
+                }
             }
-            $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
-            unset($attr['ajaxAutoRefreshOptions']);
+            $tpl->append(self::createElement('/datalist'));
+
+        } else {
+
+            $tpl = new ET();
+
+            // За съвместимост с IE
+            $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
+            $tpl->appendOnce("\n<!--[if IE 6]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
+
+
+     
+            $attr['class'] .= ' combo';
+            $attr['value'] = $value;
+            $id = $attr['id'];
+            
+            $suffix = '_cs';
+            list($l, $r) = explode('[', $id);
+            $selectId = $l . $suffix . $r;
+
+            if ($attr['ajaxAutoRefreshOptions']) {
+                $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
+                $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
+                if($attr['onchange']) {
+                    $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . "} ";
+                }
+                $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
+                unset($attr['ajaxAutoRefreshOptions']);
+            }
+
+            unset($attr['onblur']);
+            $attr['type'] = 'text';
+            $attr['autocomplete'] = 'off';
+            $tpl->append(self::createElement('input', $attr));
+            
+            unset($attr['autocomplete'], $attr['type']);
+
+            $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
+
+            jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
+
+            $attr['id'] = $selectId;
+            $name = $attr['name'] = $selectId;
+
+            // Долното кара да не работи селекта в firefox-mobile
+            //$attr['tabindex'] = "-1";
+
+            unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
+
+            $tpl->prepend(self::createSelect($name, $options, $value, $attr));
         }
-
-        unset($attr['onblur']);
-        $attr['type'] = 'text';
-        $tpl->append(self::createElement('input', $attr));
-        
-        unset($attr['autocomplete'], $attr['type']);
-
-        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$selectId}');";
-
-       	jquery_Jquery::run($tpl, "comboBoxInit('{$attr['id']}', '{$selectId}');", TRUE);
-
-        $attr['id'] = $selectId;
-        $name = $attr['name'] = $selectId;
-
-        // Долното кара да не работи селекта в firefox-mobile
-        //$attr['tabindex'] = "-1";
-
-        unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
-
-        $tpl->prepend(self::createSelect($name, $options, $value, $attr));
 
         return $tpl;
     }
@@ -271,7 +293,7 @@ class core_Html
 
                 // Хак за добавяне на плейс-холдер
                 if($selAttr['placeholder'] &&
-                    empty($attr['value']) && !trim($title)) {
+                    strlen($attr['value'])==0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
                 }
@@ -324,7 +346,9 @@ class core_Html
         $columns = NULL)
     {
         $optionsCnt = self::countOptions($options);
-
+        
+        setIfNot($attr['data-hiddenName'], $name);
+        
         // Очакваме да има поне една опция
         expect($optionsCnt > 0, "'Липсват опции за '{$name}'");
         
@@ -751,7 +775,7 @@ class core_Html
                 $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
                 $srcset  = '';
 
-                if(Mode::get('devicePixelRatio') > 1.5) {
+                if(log_Browsers::isRetina()) {
                     $icon2 = str_replace('/16/', '/32/', $icon);
                     if(getFullPath($icon2)) {
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
@@ -845,6 +869,37 @@ class core_Html
         }
 
         return $selectMenu;
+    }
+
+
+    /**
+     * Връща <img ..> таг с подадените атрибути
+     */
+    public static function createImg($attr)
+    {
+        if($path = $attr['path']) {
+            $src = sbf($path, '');
+            unset($attr['path']);
+            if((log_Browsers::isRetina())) {
+                if($dotPos = mb_strrpos($path, '.')) {
+                    $path2x = mb_substr($path, 0, $dotPos) . '2x' . mb_substr($path, $dotPos);
+                    if(getFullPath($path2x)) {
+                        $url2x = sbf($path2x, '');
+                        $attr['srcset']   = "{$url2x} 2x";
+                    }
+                }
+
+            }
+            $attr['src'] = $src;
+        }
+
+        if(!isset($attr['alt'])) {
+            $attr['alt'] = '';
+        }
+
+        $res = self::createElement('img', $attr);
+
+        return $res;
     }
 
 
@@ -1195,7 +1250,7 @@ class core_Html
     static function getIconStyle($icon, $style = 'background-size:16px 16px;')
     {
         if(!empty($icon)) {
-            if(Mode::get('devicePixelRatio') > 1.5) {
+            if(log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
                 if(getFullPath($icon2)) {
                     $icon = $icon2;

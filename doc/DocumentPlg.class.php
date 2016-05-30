@@ -944,7 +944,7 @@ class doc_DocumentPlg extends core_Plugin
 
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
-        $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
+        $attr['title'] .= "{$mvc->singleTitle}|* №{$rec->id}";
         
         if ($rec->state == 'rejected') {
         	$attr['class'] .= ' state-rejected';
@@ -2173,8 +2173,15 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    
+    /**
+     * Връща стринг, който се използва за плейсхолдер на mid стринга
+     * 
+     * @return string
+     */
     static function getMidPlace() 
     {
+        
         return '__MID__';        
     }
     
@@ -2487,7 +2494,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields')
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add' || Request::get('Act') == 'changeFields' || Request::get('Act') == 'cloneFields')
             || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';
@@ -2655,7 +2662,24 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if ($rec) {
-            $mvc->save($rec, 'modifiedOn, modifiedBy');
+            
+            $cu = Users::getCurrent();
+            // Задаваме стойностите на полетата за последно модифициране
+            $rec->modifiedBy = $cu ? $cu : 0;
+            $rec->modifiedOn = dt::verbal2Mysql();
+            
+            $mvc->save_($rec, 'modifiedOn, modifiedBy');
+            $cid = $rec->containerId;
+            
+            if ($cid) {
+                $cRec = new stdClass();
+                $cRec->id = $cid;
+                $cRec->modifiedOn = $rec->modifiedOn;
+                $cRec->modifiedBy = $rec->modifiedBy;
+                
+                $containersInst = cls::get('doc_Containers');
+                $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
+            }
         }
     }
     

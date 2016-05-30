@@ -29,6 +29,8 @@ class cms_CopyTextPlg extends core_Plugin
 		
 		// За кои роли да е забранено показването на линка
 		$disableFor = $conf->CMS_COPY_DISABLE_FOR;
+
+		$symbolCount = $conf->CMS_COPY_ON_SYMBOL_COUNT;
 	
 		// Ако потребителя има някоя от забранените роли, не се добавя линка при копиране
 		if(!haveRole($disableFor)){
@@ -42,7 +44,7 @@ class cms_CopyTextPlg extends core_Plugin
                 jquery_Jquery::run($invoker, "getShortURL('{$selfUrl}');");
                 
                 // Слагане на функцията при копиране
-             	jquery_Jquery::run($invoker, "document.oncopy = function(){addLinkOnCopy('{$textOnCopy}');}");
+             	jquery_Jquery::run($invoker, "document.oncopy = function(){addLinkOnCopy('{$textOnCopy}',{$symbolCount});}");
             }
 		}
 	}

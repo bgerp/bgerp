@@ -129,7 +129,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     				
     				// За всяка номенклатура даваме избор да и се изберат свойства
     				$items = cls::get('acc_Items')->makeArray4Select('title', "#lists LIKE '%|{$listId}|%'", 'id');
-    				$features = acc_Features::getFeatureOptions(array_keys($items));
+    				$features = acc_Features::getFeatureOptions(array_keys(array($items)));
     				$features = array('' => '') + $features + array('*' => $caption);
     				$form->setOptions("feat{$i}", $features);
     				$i++;

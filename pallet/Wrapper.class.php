@@ -3,13 +3,13 @@
 
 
 /**
- * Клас 'store_Wrapper'
+ * Клас 'pallet_Wrapper'
  *
- * Поддържа системното меню и табове-те на пакета 'store'
+ * Обвивква на палетния склад
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   pallet
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3

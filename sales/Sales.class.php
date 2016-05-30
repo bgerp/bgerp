@@ -413,7 +413,7 @@ class sales_Sales extends deals_DealMaster
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
 	    	if (store_ShipmentOrders::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/shipment.png,title=Експедиране на артикулите от склада,order=9.21');
+	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/EN.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
 	        
     		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
@@ -729,6 +729,7 @@ class sales_Sales extends deals_DealMaster
      */
     function cron_CheckSalesPayments()
     {
+    	core_App::setTimeLimit(300);
     	$conf = core_Packs::getConfig('sales');
     	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
     	

@@ -293,9 +293,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		$mvc = cls::get(get_called_class());
 		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+		$lang = doc_TplManager::fetchField($masterRec->template, 'lang');
 		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
-		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short');
+		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $lang);
 		if($rec->notes){
 			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
 		}
@@ -356,7 +357,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$rec = &$form->rec;
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 	
-		if($form->rec->productId){
+		if($form->rec->productId && $masterRec->type != 'dc_note'){
 			$vat = cat_Products::getVat($rec->productId);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			

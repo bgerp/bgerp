@@ -3,7 +3,7 @@
 
 
 /**
- * Стратегия за подреждане на склада 'ArrangeStrategyTop'
+ * Стратегия за подреждане на склада 'pallet_ArrangeStrategyTop'
  *
  *
  * @category  bgerp
@@ -26,7 +26,7 @@ class pallet_ArrangeStrategyTop
     /**
      * Какви интерфeйси поддържа този мениджър
      */
-    var $interfaces = 'store_iface_ArrangeStrategyIntf';
+    var $interfaces = 'pallet_ArrangeStrategyIntf';
     
     
     /**

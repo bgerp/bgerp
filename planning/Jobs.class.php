@@ -307,7 +307,7 @@ class planning_Jobs extends core_Master
     	// Бутон за добавяне на документ за бързо производство
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    		 $data->toolbar->addBtn("Протокол", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
     	}
     }
     
@@ -442,7 +442,8 @@ class planning_Jobs extends core_Master
     		}
     		
     		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
-    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal');
+    		$lg = core_Lg::getCurrent();
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal', $lg);
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
     			$tpl = new ET(tr(' от [#user#] на [#date#]'));

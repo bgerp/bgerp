@@ -837,6 +837,13 @@ div.mobile {
   border-radius: 3px;
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); }
 
+.document-handler {
+  font-size: 0.8em;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
+
 /*
  * край на стилове за CRM
  */
@@ -1352,13 +1359,17 @@ td.portal-date {
   position: relative; }
 
 .narrow .docBgIcon {
-  font-size: 0.9em; }
+  font-size: 0.9em;
+  padding-right: 20px; }
 
 .narrow .document-settings {
   position: absolute;
   right: 2px;
   top: 50%;
   margin-top: -10px; }
+
+.narrow .document-settings-left span {
+  white-space: nowrap; }
 
 .snapshot {
   margin-top: 10px;
@@ -1405,6 +1416,9 @@ td.rowtools-column {
 
 .small-field {
   width: 1%; }
+
+.medium-field {
+  width: 200px; }
 
 .large-field {
   width: 50%; }
@@ -1504,7 +1518,8 @@ pre.document {
   margin-top: 3px; }
 
 .cell {
-  border: 1px solid #999999; }
+  border: 1px solid #999999;
+  vertical-align: top; }
 
 .topCell {
   max-width: 400px !important; }
@@ -2334,7 +2349,8 @@ span.sharing-history-title {
 
   #cmsNavigation.articles-menu .nav_item a,
   #cmsNavigation.articles-menu .nav_item span {
-    float: left; }
+    float: left;
+    border: 1px solid transparent; }
   #cmsNavigation.articles-menu .nav_item:after {
     content: '';
     display: block;

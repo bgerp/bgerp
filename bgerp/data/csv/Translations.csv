@@ -600,7 +600,7 @@ en,Задължения,Duties
 en,Задължително п_f3a5,Mandatory displaying documents in thread
 en,Заето,Busy
 en,Заключвания,Lockings
-en,Закриване,Blocking
+en,Закриване,Block
 en,Закупчик,Buyer
 en,Заличен,Deleted
 en,Запетая,Comma
@@ -722,6 +722,7 @@ en,Именници във в_afabd,Name-day celebrating in Contacts
 en,Именници,Name days
 en,Името ви (задължително)|Your name (required)
 en,Импорт,Import
+en,Импортиране,Import
 en,Инвентарна книга,Inventory book
 en,Индекс,Index
 en,Индекси,Indexes
@@ -1287,6 +1288,7 @@ en,Офис,Office
 en,Оценка на сигнал,Issue Evaluation
 en,Оценки,Ratings
 en,Очаквано начало,Estimated start
+en,Очаквано,Expected
 en,Още...,More...
 en,П - почивка,R - rest
 en,П. код,Post code
@@ -1333,6 +1335,7 @@ en,Персонализиране,Customize
 en,Пет,Fri
 en,Печалба по арт_373cd,Profit per articles
 en,Печалба по кли_0b887,Profit per customers
+en,Печат на страницата,Print page
 en,Печат,Print
 en,Писма,Letters
 en,Писмо,Letter
@@ -1599,13 +1602,16 @@ en,Пропуснати,Missed
 en,Проследяване,Follower
 en,Просрочени,Overdue
 en,Просрочено,Overdue
-en,Протокол за отговорно пазене,Consignment Protocols
+en,Протокол за отговорно пазене,Consignment Protocol
 en,Протокол за пр_2df4e,Protocol for changing LTA
 en,Протокол,Protocol
 en,Протокол за производство,Production note
 en,Протокол за влагане в производство,Consumption note
 en,Протоколи за в_19dc8,Production notes
 en,Протоколи за в_b4591,Protocols for return of manufacturing
+en,Протоколи за инвентаризация,Inventory notes
+en,Протокол за инвентаризация,Inventory note
+en,протокол за инвентаризация,inventory note
 en,Протоколи за г_e1584,Group production notes
 en,Протоколи за извършени услуги,Protocols for services
 en,Протоколи за о_8f834,Protocols for safekeeping
@@ -1649,6 +1655,7 @@ en,Разглеждане,View
 en,Разговори,Calls
 en,Разделител,Delimiter
 en,Разкачане на в_800a0,Disconnect the business card from the user
+en,Разлика,Difference
 en,Размер,Size
 en,Размер:,Size:
 en,Размерност,Dimensionality
@@ -1728,7 +1735,7 @@ en,Само моите,Only mine
 en,Само фирми,Companies only
 en,Самостоятелна,Separate
 en,Свален файл,Downloaded file
-en,Сваляне на док_7060b,Document download
+en,Сваляне на док_7060b,Download document
 en,Сваляне,Download
 en,Сваляния,Downloads
 en,Свойства,Properties
@@ -2371,3 +2378,5 @@ en,Изпращане на сигнал към разработчиците на
 en,Прекъсване на сесията,Logout from the system
 en,Деактивиране,Deactivate
 en,УниКредит Булбанк АД,UniCredit Bulbank
+en,Пасаж,Passage
+en,Минимална поръчка,Minimal order

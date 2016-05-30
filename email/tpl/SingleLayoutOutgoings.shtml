@@ -3,6 +3,11 @@
         <div class='display-table'>
             <div class='antetka'>
 				<div class="small">
+				    
+				    <!--ET_BEGIN IpErrorString-->
+				    <div class="textWithIcons red"><b>|Внимание|*!</b> [#IpErrorString#]</div>
+				    <!--ET_END IpErrorString-->
+				    
                     <table class='top-table' style='width:100%'>
                         <tr>
                             <td class='vtop'>

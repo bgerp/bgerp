@@ -738,8 +738,8 @@ class fileman_Files2 extends core_Master
      */
     static function getMimeTypeFromFilePath($path)
     {
-        // Очакваме да е валиден път
-        expect(static::isCorrectPath($path));
+        // Очакваме да е валиден път иначе се отказваме
+        if(!static::isCorrectPath($path)) return FALSE;
         
         // Вземаме конфигурацията
         $conf = core_Packs::getConfig('fileman');
@@ -946,6 +946,11 @@ class fileman_Files2 extends core_Master
         $url = static::getUrlToSingle($fh, $absolute);
         
         $attr['rel'] = 'nofollow';
+        
+        $isAbsolute = (boolean)(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
+        if (!$isAbsolute && fileman_Files::isDanger($rec)) {
+            $attr['class'] .= ' dangerFile';
+        }
         
         // Вземаме линка
         $link = ht::createLink($fileName, $url, FALSE, $attr);

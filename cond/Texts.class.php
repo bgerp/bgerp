@@ -30,7 +30,7 @@ class cond_Texts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, plg_Printing, cond_Wrapper, plg_Search, cond_DialogWrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, cond_Wrapper, plg_Search, cond_DialogWrapper";
 
 
     /**
@@ -48,25 +48,25 @@ class cond_Texts extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,admin';
+    var $canRead = 'ceo,admin, powerUser';
 
 
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,admin';
+    var $canEdit = 'ceo,admin,powerUser';
 
 
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,admin';
+    var $canAdd = 'ceo,admin,powerUser';
 
 
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,admin';
+    var $canList = 'powerUser';
 
 
     /**
@@ -88,12 +88,18 @@ class cond_Texts extends core_Manager
 
 
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'body, created=Автор';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Описание, mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage=Общи)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
@@ -104,6 +110,8 @@ class cond_Texts extends core_Manager
      */
     function act_Dialog()
     {
+        Request::setProtected('groupName');
+
         Mode::set('wrapper', 'page_Dialog');
 
         // Вземаме callBack'а
@@ -112,7 +120,6 @@ class cond_Texts extends core_Manager
         // Сетваме нужните променливи
         Mode::set('dialogOpened', TRUE);
         Mode::set('callback', $callback);
-      // Mode::set('bucketId', $bucketId);
 
         // Вземаме шаблона
         $tpl = $this->act_List();
@@ -140,6 +147,12 @@ class cond_Texts extends core_Manager
             }
         }
 
+        if ($action == 'edit') {
+            if (Mode::get('dialogOpened')) {
+                $res = 'no_one';
+            }
+        }
+
     }
     /**
      * Извиква се преди рендирането на 'опаковката' на мениджъра
@@ -147,7 +160,7 @@ class cond_Texts extends core_Manager
      * @param core_Mvc $mvc
      * @param string $res
      * @param core_Et $tpl
-     * @param object $data.
+     * @param object $data
      *
      * @return boolean
      */
@@ -208,13 +221,25 @@ class cond_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
+
+        Request::setProtected('groupName');
+        $group = Request::get('groupName');
+
+        if (isset($group)) {
+            $groupId = cond_Groups::fetchField(array("#title = '[#1#]'", $group), 'id');
+
+            $default = type_Keylist::fromArray(array($groupId => $groupId));
+
+            $form->setDefault('group', $default);
+        }
+
         $form->showFields = 'search,author,langWithAllSelect, group';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
         $form->class = 'simpleForm';
 
         $form->input();
-        if($form->isSubmitted()){
+
             $rec = $form->rec;
             if($rec->author){
                 $data->query->where("'{$rec->author}' LIKE CONCAT ('%|', #createdBy , '|%')");
@@ -228,8 +253,6 @@ class cond_Texts extends core_Manager
 //                bp($data->query->where);
 //                $data->query->where(array("#gropu = '[#1#]'", $rec->langWithAllSelect));
             }
-//            bp($rec);
-        }
         $data->query->orderBy('#createdOn', 'DESC');
     }
 
@@ -261,39 +284,23 @@ class cond_Texts extends core_Manager
             Mode::pop('text');
             $rec->title = str::limitLen($title, 100);
 
-            $string = substr_replace($string, "[hide=Още]", 0, 0);
+            $string = substr_replace($string, "[hide]", 0, 0);
             $string = substr_replace($string, "[/hide]", strlen($string), 0);
             $string =  $mvc->fields['body']->type->toVerbal($string);
             $createdOn = $mvc->getVerbal($rec, 'createdOn');
             $createdBy = $mvc->getVerbal($rec, 'createdBy');
 
-            $row->body = $title . "<br>" . $string  . $createdOn . ' - ' . $createdBy;
+            $row->body = "<span class='passageHolder'>" . $title . $string . "</span>";
+            $row->created = $createdOn . '<br>' . $createdBy;
         }
     }
 
 
     /**
-    * Извиква се преди подготовката на колоните ($data->listFields)
-    *
-    * @param core_Mvc $mvc
-    * @param object $res
-    * @param object $data
-     *
-     * @return bool false
+    * Преди рендиране на таблицата
     */
-    static function on_BeforePrepareListFields($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        // Ако е отворен в диалоговия прозорец
-        if (Mode::get('dialogOpened')) {
-
-            // Нулираме, ако е имало нещо
-            $data->listFields = array();
-
-            // Задаваме, кои полета да се показва
-            $data->listFields['body'] = "Пасаж";
-
-            // Да не се извикат останалите
-            return FALSE;
-        }
+        $data->listTableMvc->FLD('created', 'varchar', 'tdClass=createdInfo');
     }
 }

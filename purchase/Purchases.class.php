@@ -318,7 +318,7 @@ class purchase_Purchases extends deals_DealMaster
     		
 	    	if (store_Receipts::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
-	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/shipment.png,title=Засклаждане на артикулите в склада,order=9.21');
+	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/store-receipt.png,title=Засклаждане на артикулите в склада,order=9.21');
 	        }
 	    	
     		if(purchase_Services::haveRightFor('add', (object)array('threadId' => $rec->threadId))) {
@@ -326,11 +326,11 @@ class purchase_Purchases extends deals_DealMaster
 	            $data->toolbar->addBtn('Приемане', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Покупка на услуги,order=9.22');
 	        }
 	        
-    		if(cash_Pko::haveRightFor('add')){
+    		if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 		    	$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов разходен касов ордер');
 		    }
 		    
-    		if(bank_IncomeDocuments::haveRightFor('add')){
+    		if(bank_IncomeDocuments::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 		    	$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
 		    }
 		    
@@ -587,6 +587,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public function cron_CheckPurchasePayments()
     {
+    	core_App::setTimeLimit(300);
     	$conf = core_Packs::getConfig('purchase');
     	$overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
     	

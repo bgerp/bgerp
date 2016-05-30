@@ -112,10 +112,12 @@ class bgerp_Notifications extends core_Manager
      */
     static function add($msg, $urlArr, $userId, $priority = NULL, $customUrl = NULL, $addOnce = FALSE)
     {
+        if (!isset($userId)) return ;
+        
         // Потребителя не може да си прави нотификации сам на себе си
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
-        if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return;
+        if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
         if(!$priority) {
             $priority = 'normal';
@@ -123,11 +125,9 @@ class bgerp_Notifications extends core_Manager
 
         $rec = new stdClass();
         $rec->msg = $msg;
-        
         $rec->url = toUrl($urlArr, 'local', FALSE);
         $rec->userId = $userId;
         $rec->priority = $priority;
-        
         
         // Ако има такова съобщение - само му вдигаме флага, че е активно
         $r = bgerp_Notifications::fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
@@ -344,7 +344,7 @@ class bgerp_Notifications extends core_Manager
         $query->limit(1);
         $query->orderBy("#modifiedOn", 'DESC');
         $lastRec = $query->fetch();
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch'));
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch'));
 
         list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
  
@@ -494,7 +494,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,refreshForm');
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";

@@ -89,7 +89,7 @@ class backup_Start extends core_Manager
         }
         
         // Сваляме мета файла с описанията за бекъпите
-        if (!self::$storage->getFile(self::$metaFileName)) {
+        if (!self::$storage->getFile(self::$metaFileName, EF_TEMP_PATH . "/" . self::$metaFileName)) {
             // Ако го няма - създаваме го
             touch(EF_TEMP_PATH . "/" . self::$metaFileName);
             $metaArr = array();
@@ -141,7 +141,7 @@ class backup_Start extends core_Manager
     private static function getMETA()
     {
         // 1. сваля се метафайла
-        if (!self::$storage->getFile(self::$metaFileName)) {
+        if (!self::$storage->getFile(self::$metaFileName, EF_TEMP_PATH . "/" . self::$metaFileName )) {
             // Ако го няма - пропускаме - не е минал пълен бекъп
             self::logErr("ГРЕШКА при сваляне на метафайла!");
             self::unLock();

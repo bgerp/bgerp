@@ -3,7 +3,7 @@
 
 
 /**
- * Движения
+ * Движения в палетния склад
  *
  *
  * @category  bgerp
@@ -397,7 +397,7 @@ class pallet_Movements extends core_Manager
                         case "Автоматично" :
                             // Генерира автоматично палет място от стратегията
                             $storeRec = pallet_pallets::fetch($selectedStoreId);
-                            $strategy = cls::getInterface('store_iface_ArrangeStrategyIntf', $storeRec->strategy);
+                            $strategy = cls::getInterface('pallet_ArrangeStrategyIntf', $storeRec->strategy);
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {
@@ -451,7 +451,7 @@ class pallet_Movements extends core_Manager
                         case "Автоматично" :
                             // Генерира автоматично палет място от стратегията
                             $storeRec = store_Stores::fetch($selectedStoreId);
-                            $strategy = cls::getInterface('store_iface_ArrangeStrategyIntf', $storeRec->strategy);
+                            $strategy = cls::getInterface('pallet_ArrangeStrategyIntf', $storeRec->strategy);
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {

@@ -236,7 +236,7 @@ class acc_Periods extends core_Manager
     	if(!$dateToCheck) return;
     	
     	$rec = self::forceActive();
-    	if($rec->start >= $dateToCheck) {
+    	if($rec->start > $dateToCheck) {
     		
     		return "Датата е преди активния счетоводен период|* <b>{$rec->title}</b>";
     	}

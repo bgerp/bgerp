@@ -192,21 +192,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Връща датата на последната ф-ра
-     */
-    protected function getNewestInvoiceDate()
-    {
-    	$query = $this->getQuery();
-    	$query->where("#state = 'active'");
-    	$query->orderBy('date', 'DESC');
-    	$query->limit(1);
-    	$lastRec = $query->fetch();
-    	
-    	return $lastRec->date;
-    }
-    
-    
-    /**
      * Валидиране на полето 'vatDate' - дата на данъчно събитие (ДС)
      *
      * Грешка ако ДС е след датата на фактурата или на повече от 5 дни преди тази дата.
@@ -247,7 +232,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+    	$row->MyCompany = core_Lg::transliterate(tr($row->MyCompany));
     	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
     	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -291,14 +276,28 @@ abstract class deals_InvoiceMaster extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	
     	if($invArr['type'] != 'dc_note'){
-    		$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
-    		$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
-    		
-    		if($invArr['dpOperation'] == 'accrued'){
+    		$show = TRUE;
+    		if(isset($form->rec->id)){
+    			$Detail = cls::get($this->mainDetail);
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->where("#invoiceId = {$form->rec->id}");
     			
-    			// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
-    			$caption = '|Промяна на авансово плащане|*';
-    			$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    			if($dQuery->count()){
+    				$show = FALSE;
+    			}
+    		}
+    		
+    		if($show === TRUE){
+    			$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
+    			$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
+    			$form->setFieldTypeParams('changeAmount', array('min' => -1 * $invArr['dealValue']));
+    			
+    			if($invArr['dpOperation'] == 'accrued'){
+    				 
+    				// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
+    				$caption = '|Промяна на авансово плащане|*';
+    				$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    			}
     		}
     	}
     
@@ -678,14 +677,19 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		// Ако има срок за плащане но няма дата изчисляваме я
-    		if(isset($rec->dueTime) && empty($rec->dueDate)){
-    			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
+    		if(isset($rec->dueDate) && isset($rec->dueTime)){
+    			$date = dt::addSecs($rec->dueTime, $rec->date);
+    			$date = dt::verbal2mysql($date, FALSE);
+    			if($date != $rec->dueDate){
+    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    			}
     		}
     		
-    		// Ако има дата за плащане но няма срок изчисляваме го
-    		if(empty($rec->dueTime) && isset($rec->dueDate)){
-    			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
+    		$dueDate = ($rec->dueDate) ? $rec->dueDate : ((isset($rec->dueTime)) ? dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE): NULL);
+    		if(isset($dueDate)){
+    			if($dueDate < $rec->date){
+    				$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
+    			}
     		}
     		
     		if(!$rec->displayRate){
@@ -806,11 +810,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		@$row->dealValue = $mvc->getFieldType('dealValue')->toVerbal($total / $rec->rate);
     		@$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($noVat / $rec->rate);
-    		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->dealValue;
-    		$row->valueNoVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>&nbsp;" . $row->valueNoVat;
+    		@$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($rec->vatAmount / $rec->rate);
     		
-    		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
-    		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>&nbsp;" . $row->vatAmount;
+    		if($total < 0){
+    			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";
+    			$row->valueNoVat = "<span class='red'>{$row->valueNoVat}</span>";
+    			$row->vatAmount = "<span class='red'>{$row->vatAmount}</span>";
+    		}
     	}
     	
     	if($fields['-single']){
@@ -872,6 +878,20 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     		
+    		if(empty($rec->dueDate)){
+    			$defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+    			$dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
+    			
+    			if($dueTime){
+    				$dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
+    				$row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+    				if(!$rec->dueTime){
+    					$time = cls::get('type_Time')->toVerbal($defTime);
+    					$row->dueDate = ht::createHint($row->dueDate, "Според срока за плащане по подразбиране|*: {$time}");
+    				}
+    			}
+    		}
+    		
     		$mvc->prepareMyCompanyInfo($row);
     		core_Lg::pop();
     	}
@@ -885,6 +905,10 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$row = new stdClass();
     	$row->type = static::getVerbal($rec, 'type');
+    	if($rec->type == 'dc_note'){
+    		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    	}
+    	
     	$row->number = strip_tags(static::getVerbal($rec, 'number'));
     	$num = ($row->number) ? $row->number : $rec->id;
     
@@ -904,7 +928,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec = $this->fetchRec($id);
     	$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     	$total = ($rec->type == 'credit_note') ? -1 * $total : $total;
-    
+ 
+    	setIfNot($dueDate, $rec->dueDate, $rec->date);
+    	
+    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total));
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	
@@ -1013,12 +1040,30 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	// Не може да се оттеглят документи, към които има създадени КИ и ДИ
     	if($action == 'reject' && isset($rec)){
-    		if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
-    			$res = 'no_one';
+    		if(!($mvc instanceof sales_Proformas)){
+    			if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
+    	// Ако възстановяваме известие и оригиналът му е оттеглен, не можем да го възстановим
+    	if($action == 'restore' && isset($rec)){
+    		if(isset($rec->type) && $rec->type != 'invoice'){
+    			if($mvc->fetch("#containerId = {$rec->originId} AND #state = 'rejected'")){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	// Към ф-ра не можем да правим корекция, трябва да направим КИ или ДИ
+    	if($action == 'correction' && isset($rec)){
+    		$res = 'no_one';
+    	}
+    	
+    	// Може да се генерира фактура само в нишка с начало сделка, или от друга фактура
     	if($action == 'add' && isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
     		$state = $origin->rec()->state;
@@ -1131,5 +1176,33 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	if(!count($data->rows)) return;
     	$data->listTableMvc->FNC('valueNoVat', 'int');
+    }
+    
+    
+    /**
+     * Оттегляне на документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int $id
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	doc_DocumentCache::invalidateByOriginId($rec->containerId);
     }
 }

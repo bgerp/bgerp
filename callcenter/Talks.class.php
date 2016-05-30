@@ -1758,7 +1758,7 @@ class callcenter_Talks extends core_Master
             if (!haveRole('admin')) return ;
             
             // Аттрибути за стилове 
-            $numbersAttr['title'] = tr('Добави към потребител');
+            $numbersAttr['title'] = 'Добави към потребител';
             
             // Икона на телефон
             $phonesImg = "<img src=" . sbf('img/16/telephone2-add.png') . " width='16' height='16'>";
@@ -1768,7 +1768,7 @@ class callcenter_Talks extends core_Master
         } else {
             
             // Аттрибути за стилове 
-            $companiesAttr['title'] = tr('Нова фирма');
+            $companiesAttr['title'] = 'Нова фирма';
             
             // Икона на фирмите
             $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
@@ -1777,7 +1777,7 @@ class callcenter_Talks extends core_Master
             $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
             
             // Аттрибути за стилове 
-            $personsAttr['title'] = tr('Ново лице');
+            $personsAttr['title'] = 'Ново лице';
             
             // Икона на изображенията
             $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";

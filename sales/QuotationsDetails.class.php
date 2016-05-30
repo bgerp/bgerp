@@ -767,9 +767,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		} else {
     			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
-
     		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
@@ -910,19 +909,23 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = 1)
     {
+    	$today = dt::today();
+    	
     	$query = sales_QuotationsDetails::getQuery();
     	$query->EXT('contragentClassId', 'sales_Quotations', 'externalName=contragentClassId,externalKey=quotationId');
     	$query->EXT('contragentId', 'sales_Quotations', 'externalName=contragentId,externalKey=quotationId');
     	$query->EXT('state', 'sales_Quotations', 'externalName=state,externalKey=quotationId');
     	$query->EXT('date', 'sales_Quotations', 'externalName=date,externalKey=quotationId');
-    	 
+    	$query->EXT('validFor', 'sales_Quotations', 'externalName=validFor,externalKey=quotationId');
+    	$query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
+    	
     	// Филтрираме офертите за да намерим на каква цена последно сме
     	// оферирали артикула за посоченото количество
     	$query->where("#productId = {$productId} AND #quantity = {$quantity}");
     	$query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
     	$query->where("#state = 'active'");
-    	$query->orderBy("quotationId", 'DESC');
-    	$query->orderBy("id", 'DESC');
+    	$query->where("#expireOn >= '{$today}'");
+    	$query->orderBy("date,quotationId", 'DESC');
     	
     	$res = (object)array('price' => NULL);
     	if($rec = $query->fetch()){

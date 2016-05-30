@@ -122,7 +122,7 @@ class price_ListRules extends core_Detail
     /**
      * След генериране на ключовите думи
      */
-    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
      	if($rec->productId){
      		$code = cat_Products::getVerbal($rec->productId, 'code');
@@ -285,7 +285,7 @@ class price_ListRules extends core_Detail
     /**
      * Подготвя формата за въвеждане на правила
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
 		$rec = &$form->rec;
@@ -389,7 +389,7 @@ class price_ListRules extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -479,7 +479,7 @@ class price_ListRules extends core_Detail
     /**
      * Премахва кеша за интервалите от време
      */
-    public static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fields = NULL)
     {
         price_History::removeTimeline();
     }
@@ -494,7 +494,7 @@ class price_ListRules extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
             if($rec->validFrom <= dt::verbal2mysql()) {
@@ -524,7 +524,7 @@ class price_ListRules extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
         $now = dt::verbal2mysql();
 

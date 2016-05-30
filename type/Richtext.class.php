@@ -154,6 +154,8 @@ class type_Richtext extends type_Blob
         }
         
     	jquery_Jquery::run($tpl, "hideRichtextEditGroups();");
+
+        jquery_Jquery::run($tpl, "prepareRichtextAddElements();");
     	
     	jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
     	
@@ -680,7 +682,7 @@ class type_Richtext extends type_Blob
             if ($boldTextPattern) {
                 
                 // Добавяме текста в шаблона
-                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n|^$]+))/ui";    
+                static::$boldPattern = "/(?'begin'([\r\n]|^){1}[\ \t]*){1}(?'text'(?'leftText'({$boldTextPattern}))(?'sign'\:\ )(?'rightText'[^\r|^\n]+))/ui";    
             } else {
                 
                 // Добавяме FALSE, за да не се опитваме да го определим пак

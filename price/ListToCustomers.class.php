@@ -95,7 +95,7 @@ class price_ListToCustomers extends core_Detail
     public function description()
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
-        $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
+        $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
     }
@@ -228,7 +228,7 @@ class price_ListToCustomers extends core_Detail
         $tpl = $wrapTpl;
         
         if ($data->addUrl  && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=' . tr('Избор на Ценова политика')), 'title');
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на Ценова политика'), 'title');
         }
     }
 
