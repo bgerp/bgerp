@@ -147,9 +147,9 @@ class cond_DeliveryTerms extends core_Master
      * Проверява даден стринг дали съдържа валиден код CASE SENSITIVE
      * 
      * @param string $code - код
-     * @return boolean
+     * @return int|NULL - ид на кода или NULL - ако не е открит
      */
-    public static function checkTermCode($code)
+    public static function getTermCodeId($code)
     {
     	// Разделяме въведения стринг на интервали
     	$params = explode(' ', $code);
@@ -158,11 +158,10 @@ class cond_DeliveryTerms extends core_Master
     	$foundCode = $params[0];
     	
     	// Ако няма запис с намерения код, връщаме FALSE
-    	if(!static::fetch(array("#codeName = '[#1#]'", $foundCode))){
-    		return FALSE;
-    	}
+    	$rec = static::fetch(array("#codeName = '[#1#]'", $foundCode));
+    	if(isset($rec)) return $rec->id;
     	
     	// Ако стигнем до тук, значи кода е валиден
-    	return TRUE;
+    	return NULL;
     }
 }
