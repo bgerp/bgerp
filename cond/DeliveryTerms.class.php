@@ -141,4 +141,28 @@ class cond_DeliveryTerms extends core_Master
     	
     	return $res;
     }
+    
+    
+    /**
+     * Проверява даден стринг дали съдържа валиден код CASE SENSITIVE
+     * 
+     * @param string $code - код
+     * @return boolean
+     */
+    public static function checkTermCode($code)
+    {
+    	// Разделяме въведения стринг на интервали
+    	$params = explode(' ', $code);
+    	
+    	// Кода трябва да е в първите символи
+    	$foundCode = $params[0];
+    	
+    	// Ако няма запис с намерения код, връщаме FALSE
+    	if(!static::fetch(array("#codeName = '[#1#]'", $foundCode))){
+    		return FALSE;
+    	}
+    	
+    	// Ако стигнем до тук, значи кода е валиден
+    	return TRUE;
+    }
 }
