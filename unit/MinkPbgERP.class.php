@@ -64,13 +64,14 @@ class unit_MinkPbgERP extends core_Manager {
         // Записваме черновата на покупката
          
         // Добавяме нов артикул
-        // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
+        // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02' и Дес.точка, не запетая
+        // 1,05 -- 1,5
     
             $browser->press('Артикул');
             $browser->setValue('productId', '7');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100+03*08');//124
-            $browser->setValue('packPrice', '0100+3*0.8');//102.4
+            $browser->setValue('packQuantity', '0100-06*08');//52
+            $browser->setValue('packPrice', '0,0100+3*0,8');//2,41
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
              
@@ -79,15 +80,15 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('productId', '5');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '0100-03*8');//76
-            $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+            $browser->setValue('packPrice', '010,020+0,3*08');//12.6
             $browser->setValue('discount', 2);
              
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
             $browser->setValue('productId', '9');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', 1887);
-            $browser->setValue('packPrice', 1.6987);
+            $browser->setValue('packQuantity', 01,00);
+            $browser->setValue('packPrice', '1,0202');
             $browser->setValue('discount', 1);
              
             // Записваме артикула
@@ -98,12 +99,12 @@ class unit_MinkPbgERP extends core_Manager {
             //return  $browser->getHtml();
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '568,93')) {
+            if(strpos($browser->gettext(), '209,52')) {
             } else {
                 return "Грешно ДДС";
             }
     
-            if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+            if(strpos($browser->gettext(), 'Хиляда двеста петдесет и седем BGN и 0,13')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -126,7 +127,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Фактура
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '127');
+            $browser->setValue('number', '17598');
             $browser->setValue('date', date('d-m-Y', $valior));
             $valior=strtotime("+1 Day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
@@ -144,7 +145,7 @@ class unit_MinkPbgERP extends core_Manager {
             // РБД
             $browser->press('РБД');
             $browser->setValue('ownAccount', 'BG21 CREX 9260 3114 5487 01');
-            $browser->setValue('amountDeal', '27751,36');
+            $browser->setValue('amountDeal', '01251,36');
             $browser->press('Чернова');
             $browser->press('Контиране');
     
@@ -199,13 +200,13 @@ class unit_MinkPbgERP extends core_Manager {
         // Записваме черновата на покупката
          
         // Добавяме нов артикул
-        // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
+        // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02' Дес.точка, не запетая
     
             $browser->press('Артикул');
             $browser->setValue('productId', '7');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100+03*08');//124
-            $browser->setValue('packPrice', '0100+3*0.8');//102.4
+            $browser->setValue('packQuantity', '004+03*08');//28
+            $browser->setValue('packPrice', '010,2');//10.2
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
              
@@ -213,17 +214,17 @@ class unit_MinkPbgERP extends core_Manager {
     
             $browser->setValue('productId', '5');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100-03*8');//76
-            $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+            $browser->setValue('packQuantity', '080-07*8');//24
+            $browser->setValue('packPrice', '01,20+0,3*08');//3,6
             $browser->setValue('discount', 2);
              
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
             $browser->setValue('productId', '9');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', 1887);
-            $browser->setValue('packPrice', 1.6987);
-            $browser->setValue('discount', 1);
+            $browser->setValue('packQuantity', '017');
+            $browser->setValue('packPrice', '1.07');
+            $browser->setValue('discount', '10.02');
              
             // Записваме артикула
             $browser->press('Запис');
@@ -233,12 +234,12 @@ class unit_MinkPbgERP extends core_Manager {
             //return  $browser->getHtml();
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '568,93')) {
+            if(strpos($browser->gettext(), '75,61')) {
             } else {
                 return "Грешно ДДС";
             }
     
-            if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+            if(strpos($browser->gettext(), 'Четиристотин петдесет и три BGN и 0,68')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -261,7 +262,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Фактура
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '14532');
+            $browser->setValue('number', '789');
             $browser->setValue('date', date('d-m-Y', $valior));
             $valior=strtotime("+1 Day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
@@ -338,8 +339,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', '7');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100+03*08');//124
-        $browser->setValue('packPrice', '0100+3*0.8');//102.4
+        $browser->setValue('packQuantity', '010+03*08');//34
+        $browser->setValue('packPrice', '010+3*0.8');//12.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
          
@@ -347,17 +348,17 @@ class unit_MinkPbgERP extends core_Manager {
         
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100-03*8');//76
-        $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
-        $browser->setValue('discount', 2);
+        $browser->setValue('packQuantity', '0100-09*8');//28
+        $browser->setValue('packPrice', '08,20+0.3*08');//10.6
+        $browser->setValue('discount', 5);
          
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '9');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1887);
-        $browser->setValue('packPrice', 1.6987);
-        $browser->setValue('discount', 1);
+        $browser->setValue('packQuantity', 107);
+        $browser->setValue('packPrice', '0,027');
+        //$browser->setValue('discount', 2);
          
         // Записваме артикула
         $browser->press('Запис');
@@ -367,12 +368,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '568,93')) {
+        if(strpos($browser->gettext(), '143,96')) {
         } else {
             return "Грешно ДДС";
         }
         
-        if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+        if(strpos($browser->gettext(), 'Осемстотин шестдесет и три BGN и 0,76')) {
         } else {
             return "Грешна обща сума";
         }
@@ -395,7 +396,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Фактура
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '1432');
+            $browser->setValue('number', '172');
             $browser->setValue('date', date('d-m-Y', $valior));
             $valior=strtotime("-1 Day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
@@ -473,41 +474,41 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Артикул');
             $browser->setValue('productId', '7');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100+03*08');//124
-            $browser->setValue('packPrice', '0100+3*0.8');//102.4
+            $browser->setValue('packQuantity', '008+03*08');//32
+            $browser->setValue('packPrice', '010+3*0.8');//12.4
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
             //return  $browser->getHtml();
             // Записваме артикула и добавяме нов
             $browser->setValue('productId', '5');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100-03*8');//76
-            $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+            $browser->setValue('packQuantity', '0100-07*8');//44
+            $browser->setValue('packPrice', '010.20+0.3*08');//12.6
             $browser->setValue('discount', 2);
             $browser->press('Запис и Нов');
             // Записваме артикула и добавяме нов
     
             $browser->setValue('productId', '6');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '023 + 045*03');//158
-            $browser->setValue('packPrice', '091 - 013*02');//65
-            $browser->setValue('discount', 3);
+            $browser->setValue('packQuantity', '023 + 012*03');//59
+            $browser->setValue('packPrice', '091 - 023*02');//45
+            $browser->setValue('discount', 4);
     
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
             $browser->setValue('productId', '9');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', 1887);
-            $browser->setValue('packPrice', 1.6987);
-            $browser->setValue('discount', 1);
+            $browser->setValue('packQuantity', 113);
+            $browser->setValue('packPrice', '1,127');
+            $browser->setValue('discount', 5);
     
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
             $browser->setValue('productId', '3');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '1000 / 05-03*08');//176
-            $browser->setValue('packPrice', '100/05+3*08');//44
-            $browser->setValue('discount', 1);
+            $browser->setValue('packQuantity', '1000 / 08-09*08');//48
+            $browser->setValue('packPrice', '100/02-3*08');//26
+            $browser->setValue('discount', 10);
     
             // Записваме артикула
             $browser->press('Запис');
@@ -517,12 +518,12 @@ class unit_MinkPbgERP extends core_Manager {
             //return  $browser->getHtml();
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '954,47')) {
+            if(strpos($browser->gettext(), '967,64')) {
             } else {
                 return "Грешно ДДС";
             }
     
-            if(strpos($browser->gettext(), 'Четиридесет и осем хиляди деветстотин и дванадесет BGN и 0,21')) {
+            if(strpos($browser->gettext(), 'Пет хиляди осемстотин и пет BGN и 0,83')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -543,7 +544,7 @@ class unit_MinkPbgERP extends core_Manager {
     
             // Фактура
             $browser->press('Вх. фактура');
-            $browser->setValue('number', '16');
+            $browser->setValue('number', '11976');
             $browser->press('Чернова');
             $browser->press('Контиране');
     
@@ -657,6 +658,7 @@ class unit_MinkPbgERP extends core_Manager {
         //Контиране на извършени на момента действия (опционално):
         //$browser->setValue('action[ship]','1');
         //return  $browser->getHtml();
+////////////////////////////////////        
         $exp='Експедиране на продукти от склад "Склад 1"';
         $browser->setValue($exp,'1');
         $browser->setValue('Прието плащане в брой в каса "КАСА 2"','1');
@@ -769,24 +771,24 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Артикул');
             $browser->setValue('productId', '7');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100+03*08');//124
-            $browser->setValue('packPrice', '0100+3*0.8');//102.4
+            $browser->setValue('packQuantity', '010+02*09');//28
+            $browser->setValue('packPrice', '080-3*0.8');//77,6
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
              
             // Записваме артикула и добавяме нов
             $browser->setValue('productId', '5');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100-03*8');//76
-            $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+            $browser->setValue('packQuantity', '0100-05*8');//60
+            $browser->setValue('packPrice', '010.21+0.3*08');//12.61
             $browser->setValue('discount', 2);
     
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
             $browser->setValue('productId', '9');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', 1887);
-            $browser->setValue('packPrice', 1.6987);
+            $browser->setValue('packQuantity', 112);
+            $browser->setValue('packPrice', 0.1987);
             $browser->setValue('discount', 1);
     
             // Записваме артикула
@@ -796,12 +798,12 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Активиране');
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '568,93')) {
+            if(strpos($browser->gettext(), '574,22')) {
             } else {
                 return "Грешно ДДС";
             }
     
-            if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+            if(strpos($browser->gettext(), 'Три хиляди четиристотин четиридесет и пет BGN и 0,34')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -827,8 +829,8 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('date', date('d-m-Y', $valior));
             $valior=strtotime("+1 day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
-            $browser->setValue('numlimit', '2000000 - 3000000');
-            //$browser->setValue('numlimit', '0 - 2000000');
+            //$browser->setValue('numlimit', '2000000 - 3000000');
+            $browser->setValue('numlimit', '0 - 2000000');
             $browser->press('Чернова');
             //return  $browser->getHtml();
             //$browser->setValue('paymentType', "bank");
@@ -856,7 +858,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     /**
      * 13. 
-     * Проверка състояние плащане - просрочено, метод - на момента
+     * Проверка състояние плащане - чакащо, метод - на момента
      * Нова продажба на съществуваща фирма с папка
      */
     //http://localhost/unit_MinkPbgERP/CreateSaleMomentWaitP/
@@ -906,8 +908,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', '7');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100+03*08');//124
-        $browser->setValue('packPrice', '0100+3*0.8');//102.4
+        $browser->setValue('packQuantity', '010+03*08');//34
+        $browser->setValue('packPrice', '010+3*0.8');//12.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
              
@@ -915,15 +917,15 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '0100-03*8');//76
-        $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+        $browser->setValue('packPrice', '010.20+0.3*08');//12.6
         $browser->setValue('discount', 2);
     
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '9');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1887);
-        $browser->setValue('packPrice', 1.6987);
+        $browser->setValue('packQuantity', 113);
+        $browser->setValue('packPrice', 0.2353);
         $browser->setValue('discount', 1);
     
         // Записваме артикула
@@ -934,12 +936,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
              
-        if(strpos($browser->gettext(), '568,93')) {
+        if(strpos($browser->gettext(), '274,74')) {
         } else {
             return "Грешно ДДС";
         }
     
-        if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+        if(strpos($browser->gettext(), 'Хиляда шестстотин четиридесет и осем BGN и 0,46')) {
         } else {
             return "Грешна обща сума";
         }
@@ -1042,8 +1044,8 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Артикул');
             $browser->setValue('productId', '7');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', '0100+03*08');//124
-            $browser->setValue('packPrice', '0100+3*0.8');//102.4
+            $browser->setValue('packQuantity', '01+03*08');//25
+            $browser->setValue('packPrice', '010+3*0.8');//12.4
             $browser->setValue('discount', 3);
             $browser->press('Запис и Нов');
              
@@ -1051,15 +1053,15 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('productId', '5');
             $browser->refresh('Запис');
             $browser->setValue('packQuantity', '0100-03*8');//76
-            $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+            $browser->setValue('packPrice', '010.20-0.3*08');//7.8
             $browser->setValue('discount', 2);
     
             // Записваме артикула и добавяме нов - услуга
             $browser->press('Запис и Нов');
             $browser->setValue('productId', '9');
             $browser->refresh('Запис');
-            $browser->setValue('packQuantity', 1887);
-            $browser->setValue('packPrice', 1.6987);
+            $browser->setValue('packQuantity', 123);
+            $browser->setValue('packPrice', 1.121);
             $browser->setValue('discount', 1);
     
             // Записваме артикула
@@ -1070,12 +1072,12 @@ class unit_MinkPbgERP extends core_Manager {
             //return  $browser->getHtml();
             //$browser->press('Активиране/Контиране');
              
-            if(strpos($browser->gettext(), '568,93')) {
+            if(strpos($browser->gettext(), '203,63')) {
             } else {
                 return "Грешно ДДС";
             }
     
-            if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+            if(strpos($browser->gettext(), 'Хиляда двеста двадесет и един BGN и 0,77')) {
             } else {
                 return "Грешна обща сума";
             }
@@ -1184,7 +1186,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '021-03*4');//9
-        $browser->setValue('packPrice', '09,20+0,3*04');//10.4
+        $browser->setValue('packPrice', '09,28+0,3*04');//10.48
         $browser->setValue('discount', 2);
            
         // Записваме артикула
@@ -1194,12 +1196,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '3,32')) {
+        if(strpos($browser->gettext(), '27,88')) {
         } else {
             return "Грешно ДДС";
         }
     
-        if(strpos($browser->gettext(), 'Сто шестдесет и шест BGN и 0,42')) {
+        if(strpos($browser->gettext(), 'Сто шестдесет и седем BGN и 0,26')) {
         } else {
             return "Грешна обща сума";
         }
@@ -1303,7 +1305,7 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
              
-        if(strpos($browser->gettext(), '3,32')) {
+        if(strpos($browser->gettext(), '27,74')) {
         } else {
             return "Грешно ДДС";
         }
@@ -1391,8 +1393,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', '7');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100+03*08');//124
-        $browser->setValue('packPrice', '0100+3*0.8');//102.4
+        $browser->setValue('packQuantity', '010+03*08');//34
+        $browser->setValue('packPrice', '066-3*0.8');//63,6
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
        
@@ -1400,15 +1402,15 @@ class unit_MinkPbgERP extends core_Manager {
         
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100-03*8');//76
-        $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+        $browser->setValue('packQuantity', '068-03*8');//44
+        $browser->setValue('packPrice', '07.20+0.3*08');//9.6
         $browser->setValue('discount', 2);
      
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '9');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1207);
+        $browser->setValue('packQuantity', 117);
         $browser->setValue('packPrice', 1.6207);
         $browser->setValue('discount', 1);
           
@@ -1416,7 +1418,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '3');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000 / 05-03*08');//176
+        $browser->setValue('packQuantity', '140 / 05-03*08');//4
         $browser->setValue('packPrice', '100/05+3*08');//44
         $browser->setValue('discount', 1);
     
@@ -1428,12 +1430,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), '633,88')) {
+        if(strpos($browser->gettext(), '574,69')) {
         } else {
             return "Грешно ДДС";
         }
     
-        if(strpos($browser->gettext(), 'Тридесет и пет хиляди четиристотин седемдесет и три BGN и 0,79')) {
+        if(strpos($browser->gettext(), 'Три хиляди четиристотин четиридесет и осем BGN и 0,13')) {
         } else {
             return "Грешна обща сума";
         }
@@ -1536,8 +1538,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', '7');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100+03*08');//124
-        $browser->setValue('packPrice', '0100+3*0.8');//102.4
+        $browser->setValue('packQuantity', '010+03*08');//34
+        $browser->setValue('packPrice', '010+3*0.8');//12.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
        
@@ -1545,16 +1547,16 @@ class unit_MinkPbgERP extends core_Manager {
     
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100-03*8');//76
-        $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+        $browser->setValue('packQuantity', '03*08-010');//14
+        $browser->setValue('packPrice', '01.20+0.3*08');//3.6
         $browser->setValue('discount', 2);
              
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '9');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1887);
-        $browser->setValue('packPrice', 1.6987);
+        $browser->setValue('packQuantity', 17);
+        $browser->setValue('packPrice', '1.017');
         $browser->setValue('discount', 1);
              
         // Записваме артикула
@@ -1565,12 +1567,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
              
-        if(strpos($browser->gettext(), '568,93')) {
+        if(strpos($browser->gettext(), '95,09')) {
         } else {
             return "Грешно ДДС";
         }
     
-        if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+        if(strpos($browser->gettext(), 'Петстотин и седемдесет BGN и 0,55')) {
         } else {
             return "Грешна обща сума";
         }
@@ -1595,8 +1597,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("-1 Day");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
-        $browser->setValue('numlimit', '2000000 - 3000000');
-        //$browser->setValue('numlimit', '0 - 2000000');
+        //$browser->setValue('numlimit', '2000000 - 3000000');
+        $browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
         //return  $browser->getHtml();
         //$browser->setValue('paymentType', "bank");
@@ -1674,8 +1676,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', '7');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100+03*08');//124
-        $browser->setValue('packPrice', '0100+3*0.8');//102.4
+        $browser->setValue('packQuantity', '089-07*08');//33
+        $browser->setValue('packPrice', '07+3*0.8');//9.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
         
@@ -1684,15 +1686,15 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '0100-03*8');//76
-        $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+        $browser->setValue('packPrice', '09.20+0.3*08');//11.6
         $browser->setValue('discount', 2);
                  
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '9');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1887);
-        $browser->setValue('packPrice', 1.6987);
+        $browser->setValue('packQuantity', 107);
+        $browser->setValue('packPrice', 1.0127);
         $browser->setValue('discount', 1);
             
         // Записваме артикула
@@ -1703,12 +1705,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
                  
-        if(strpos($browser->gettext(), '568,93')) {
+        if(strpos($browser->gettext(), '254,43')) {
         } else {
             return "Грешно ДДС";
         }
         
-        if(strpos($browser->gettext(), 'Двадесет и седем хиляди седемстотин петдесет и осем BGN и 0,06')) {
+        if(strpos($browser->gettext(), 'Хиляда петстотин двадесет и шест BGN и 0,57')) {
                      
         } else {
             return "Грешна обща сума";
@@ -1823,23 +1825,23 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Артикул');
         $browser->setValue('productId', '7');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100+03*08');//124
-        $browser->setValue('packPrice', '0100+3*0.8');//102.4
+        $browser->setValue('packQuantity', '010+03*08');//34
+        $browser->setValue('packPrice', '01+3*0,8');//3.4
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
         //return  $browser->getHtml();
         // Записваме артикула и добавяме нов
         $browser->setValue('productId', '5');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '0100-03*8');//76
-        $browser->setValue('packPrice', '0100.20+0.3*08');//102.6
+        $browser->setValue('packQuantity', '03*048-0123');//21
+        $browser->setValue('packPrice', '010.20+0.3*08');//12.6
         $browser->setValue('discount', 2);
         $browser->press('Запис и Нов');
         // Записваме артикула и добавяме нов
         
         $browser->setValue('productId', '6');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '023 + 045*03');//158
+        $browser->setValue('packQuantity', '023 + 017*02');//57
         $browser->setValue('packPrice', '091 - 013*02');//65
         $browser->setValue('discount', 3);
         
@@ -1847,15 +1849,15 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '9');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', 1887);
-        $browser->setValue('packPrice', 1.6987);
+        $browser->setValue('packQuantity', 114);
+        $browser->setValue('packPrice', 1.1124);
         $browser->setValue('discount', 1);
         
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', '3');
         $browser->refresh('Запис');
-        $browser->setValue('packQuantity', '1000 / 05-03*08');//176
+        $browser->setValue('packQuantity', '160 / 05-03*08');//8
         $browser->setValue('packPrice', '100/05+3*08');//44
         $browser->setValue('discount', 1);
         
@@ -1870,12 +1872,12 @@ class unit_MinkPbgERP extends core_Manager {
         //return  $browser->getHtml();
         //$browser->press('Активиране/Контиране');
                  
-        if(strpos($browser->gettext(), '954,47')) {
+        if(strpos($browser->gettext(), '887,87')) {
         } else {
              return "Грешно ДДС";
         }
         
-        if(strpos($browser->gettext(), 'Четиридесет и осем хиляди деветстотин и дванадесет BGN и 0,21')) {
+        if(strpos($browser->gettext(), 'Пет хиляди триста двадесет и седем BGN и 0,18')) {
         } else {
              return "Грешна обща сума";
         }
