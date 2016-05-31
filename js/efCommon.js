@@ -2117,6 +2117,26 @@ function addLinkOnCopy(text, symbolCount) {
 
 
 /**
+ * Подготовка за контекстно меню по ajax
+ */
+function getContextMenuFromAjax() {
+    $('.more-btn').parent().css('position', 'relative');
+
+    $(document.body).on('click', ".more-btn", function () {
+        var holder = $(this).closest('td').find('.modal-toolbar');
+
+        var url = $(holder).attr("data-url");
+
+        if(!url) return;
+
+        resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+    });
+}
+
+
+/**
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
 function editCopiedTextBeforePaste() {

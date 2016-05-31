@@ -1227,7 +1227,7 @@ class fileman_Files extends core_Master
             }
         }
     }
-    
+
     
     /**
      * 
@@ -1507,5 +1507,52 @@ class fileman_Files extends core_Master
         $fh = static::fetchField($id, 'fileHnd');
         
         return static::getLink($fh);
+    }
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param object $data
+     */
+    static function on_AfterPrepareListRows($mvc, $res, &$data)
+    {
+        if (!Mode::get('dialogOpened')) {
+            // Обхождаме масива
+            foreach ((array)($data->recs) as $id => $rec) {
+
+                // Вземаме линка към сингъла на файла
+                $linkTpl = fileman::getLinkToSingle($rec->fileHnd);
+
+
+                //@TO DO проверка за права
+                $logId = fileman_Log::fetchField("#fileId = {$id}", 'id');
+                $dataUrl =  toUrl(array('fileman_Log', 'getButtons', $logId), 'local');
+
+                $linkTpl->prepend("<div class='modal-toolbar fileOptions' id='context-holder{$logId}' data-url='{$dataUrl}'></div>");
+
+                $data->rows[$id]->name = "<span class='more-btn transparentBtn'></span>" . $linkTpl ;
+
+            }
+        }
+    }
+
+
+    /**
+     * След рендиране на шаблона
+     *
+     * @param core_Mvc $mvc
+     * @param core_Et $tpl
+     * @param object $data
+     */
+    static function on_AfterRenderListLayout($mvc, $tpl, $data)
+    {
+        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+            $tpl->push('context/lib/contextMenu.css', "CSS");
+            $tpl->push('context/lib/contextMenu.js', "JS");
+            jquery_Jquery::run($tpl,'prepareContextMenu();', TRUE);
+
+            jquery_Jquery::run($tpl, "getContextMenuFromAjax();");
+        }
     }
 }

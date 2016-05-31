@@ -1315,6 +1315,26 @@ table.listTable {
 	margin-bottom: 12px;
 }
 
+.more-btn.transparentBtn {
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	position: absolute;
+	left: 5px;
+	top: 5px;
+	cursor: pointer;
+	background: none !important;
+}
+
+.fileOptions {
+	min-width: 140px;
+	min-height: 120px
+}
+
+.narrow .fileOptions {
+	min-height: 132px
+}
+
 .wide .singleView table.listTable > tbody > tr > td {
     max-width: 70% !important;
 }
