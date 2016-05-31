@@ -460,7 +460,7 @@ class crm_Persons extends core_Master
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Лица в групата|* \"<b style='color:green'>|" .
-            crm_Groups::getTitleById($data->groupId) . "|*</b>\"";
+            crm_Groups::getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
