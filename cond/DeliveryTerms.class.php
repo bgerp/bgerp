@@ -159,6 +159,8 @@ class cond_DeliveryTerms extends core_Master
     	
     	// Ако няма запис с намерения код, връщаме FALSE
     	$rec = static::fetch(array("#codeName = '[#1#]'", $foundCode));
+    	
+    	// Ако е намерено нещо връщаме го
     	if(isset($rec)) return $rec->id;
     	
     	// Ако стигнем до тук, значи кода е валиден
