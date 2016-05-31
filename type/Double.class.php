@@ -58,9 +58,6 @@ class type_Double extends core_Type {
         $allowOct = (boolean) ($this->params['allowOct'] == 'allowOct');
         $allowHex = (boolean) ($this->params['allowHex'] == 'allowHex');
         
-        $value = $this->prepareVal($value, $allowOct, $allowHex);
-        
-        if(!strlen($value)) return NULL;
         
         $originalVal = $value;
         
@@ -69,6 +66,10 @@ class type_Double extends core_Type {
         $to = array('.', '.', '', '', '');
         
         $value = str_replace($from, $to, trim($value));
+        
+        if(!strlen($value)) return NULL;
+        
+        $value = $this->prepareVal($value, $allowOct, $allowHex);
         
         if(!strlen($value)) return NULL;
         
