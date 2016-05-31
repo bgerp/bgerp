@@ -98,8 +98,6 @@ class csv_tests_Lib extends unit_Class
         $trimRes = trim($res);
         $expect = "Тип на документа,Автор,Създадени документи (бр.)\nЗадачи,\"| <a class=\"\"\"\" profile ceo inactive\"\"\"\" title=\"\"\"\"Йордан Бонев\"\"\"\" href=\"\"\"\"/crm_Profiles/single/1OGU/\"\"\"\">Bachko</a>|\",7\nЗадачи,\"<a class=\"\" profile ceo active\"\" title=\"\"Gabriela Petrova\"\" href=\"\"/crm_Profiles/single/27NmR/\"\">Gaby</a>\",1\nВарниш (DS-09454 a),кг,95\n#Ч-та LD вън.др 50х40 - ГЕПАРД,\"<a href=\"\"/sales_Invoices/single/5739YjN/\"\" class=\"\" linkWithIcon\"\" style=\"\"background-image:url(&#039;/sbf/bgerp/img/16/invoice_0722143638.png&#039;);\"\">0000005642</a>\",15 800\nЧ-та LD вън.др 50х40 - ГЕПАРД - 3986652,#Sal5664,4 000.0000\n##Ч-та LD вън.др 50х40 - ГЕПАРД - 3986652,\||Sal5664|,4 000 0000\n";
         $trimExp = trim($expect);
-        echo ($trimExp); echo ("<p>");
-        echo ($trimRes); die;
         
         ut::expectEqual($trimExp, $trimRes);
     }
