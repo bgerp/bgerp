@@ -60,6 +60,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Кой има право да чете?
+     */
+    public $canRead = 'ceo,acc';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'no_one';
