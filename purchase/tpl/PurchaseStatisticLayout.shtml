@@ -33,6 +33,9 @@
                   <!--ET_BEGIN dealerId-->
                   <span style='font-weight:normal'>|Търговец|*</span>: [#dealerId#]<br>
                   <!--ET_END dealerId-->
+                  <!--ET_BEGIN deliveryLocationId-->
+                  <span style='font-weight:normal'>|До обект|*</span>: [#deliveryLocationId#]<br>
+                  <!--ET_END deliveryLocationId-->
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]
                   <!--ET_END originId-->
