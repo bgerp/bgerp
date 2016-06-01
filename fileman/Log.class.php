@@ -499,10 +499,7 @@ class fileman_Log extends core_Manager
                 //@TO DO проверка за права
                 $dataUrl =  toUrl(array($mvc, 'getButtons', $id), 'local');
 
-                $linkTpl->prepend("<div class='modal-toolbar fileOptions' id='context-holder{$id}' data-url='{$dataUrl}'></div>");
-
-                $data->rows[$id]->fileId = "<span class='more-btn transparentBtn'></span>" . $linkTpl ;
-
+                $data->rows[$id]->fileId = "<span class='more-btn transparentBtn' data-id='context-holder{$id}' data-url='{$dataUrl}'></span>" . $linkTpl ;
             }
         }
     }

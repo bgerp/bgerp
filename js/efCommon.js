@@ -2120,13 +2120,9 @@ function addLinkOnCopy(text, symbolCount) {
  * Подготовка за контекстно меню по ajax
  */
 function getContextMenuFromAjax() {
-    $('.more-btn').parent().css('position', 'relative');
-
+    prepareContextHtmlFromAjax();
     $(document.body).on('click', ".more-btn", function () {
-        var holder = $(this).closest('td').find('.modal-toolbar');
-
-        var url = $(holder).attr("data-url");
-
+        var url = $(this).attr("data-url");
         if(!url) return;
 
         resObj = new Object();
@@ -2135,7 +2131,19 @@ function getContextMenuFromAjax() {
     });
 }
 
+function prepareContextHtmlFromAjax() {
+    $('.more-btn').parent().css('position', 'relative');
+    $('.more-btn').each(function(){
+        var holder = document.createElement('div');
+        $(holder).addClass('modal-toolbar fileOptions');
+        $(holder).attr('id', $(this).attr("data-id"));
+        $(holder).attr('data-sizestyle', 'context');
 
+        $(this).parent().append(holder);
+    });
+
+    prepareContextMenu();
+}
 /**
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */

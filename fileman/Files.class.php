@@ -1529,10 +1529,7 @@ class fileman_Files extends core_Master
                 $logId = fileman_Log::fetchField("#fileId = {$id}", 'id');
                 $dataUrl =  toUrl(array('fileman_Log', 'getButtons', $logId), 'local');
 
-                $linkTpl->prepend("<div class='modal-toolbar fileOptions' id='context-holder{$logId}' data-url='{$dataUrl}'></div>");
-
-                $data->rows[$id]->name = "<span class='more-btn transparentBtn'></span>" . $linkTpl ;
-
+                $data->rows[$id]->name = "<span class='more-btn transparentBtn' data-id='context-holder{$logId}' data-url='{$dataUrl}'></span>" . $linkTpl ;
             }
         }
     }
