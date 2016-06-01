@@ -396,7 +396,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$rec->deliveryTermId = $termId;
     			$rec->deliveryTermIdExtended = $deliveryExtended;
     			
-    			cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermIdExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    			$rec->deliveryTermIdExtended = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermIdExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
     		}
     	}
     }
