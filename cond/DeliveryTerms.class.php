@@ -188,7 +188,9 @@ class cond_DeliveryTerms extends core_Master
     			if($locationId = store_Stores::fetchField($storeId, 'locationId')){
     				$adress = crm_Locations::getAddress($locationId);
     			}
-    		} else {
+    		} 
+    		
+    		if(empty($adress)){
     			$ownCompany = crm_Companies::fetchOurCompany();
     			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id)->getContent();
     		}
