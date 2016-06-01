@@ -99,7 +99,7 @@ DEFINE('EF_APP_TITLE', 'bgERP');
  # DEFINE('EF_PRIVATE_PATH', 'ABSOLUTE_PATH_TO_PRIVATE_REPOSITORY');
 
 // Git бранч - на частният пакет - ако не е дефинирано се взима бранча на основния пакет
-# DEFINE('BGERP_PRIVATE_GIT_BRANCH', 'master');
+# DEFINE('PRIVATE_GIT_BRANCH', 'master');
 
 
 // Игнориране на затварянето на модул "Help"
