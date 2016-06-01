@@ -1330,7 +1330,7 @@ class fileman_Files extends core_Master
         
         fileman::updateLastUse($fRec);
         
-        //Проверяваме дали сме отркили записа
+        //Проверяваме дали сме открили записа
         if(!$fRec) {
             
             sleep(2);
@@ -1456,6 +1456,18 @@ class fileman_Files extends core_Master
             }
         }
         
+        $link = new core_ET($link);
+      
+        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+        	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
+        	$link->prepend("<span class='more-btn transparentBtn' data-id='context-holder{$fRec->id}' data-url='{$dataUrl}'></span>");
+        	
+        	$link->push('context/lib/contextMenu.css', "CSS");
+        	$link->push('context/lib/contextMenu.js', "JS");
+        	jquery_Jquery::run($link, "getContextMenuFromAjax();");
+        }
+        
+        //bp($link);
         return $link;
     }
     
@@ -1508,26 +1520,12 @@ class fileman_Files extends core_Master
         
         return static::getLink($fh);
     }
-
-
-    /**
-     * След рендиране на шаблона
-     *
-     * @param core_Mvc $mvc
-     * @param core_Et $tpl
-     * @param object $data
-     */
-    static function on_AfterRenderListLayout($mvc, $tpl, $data)
-    {
-        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-            $tpl->push('context/lib/contextMenu.css', "CSS");
-            $tpl->push('context/lib/contextMenu.js', "JS");
-
-            jquery_Jquery::run($tpl, "getContextMenuFromAjax();");
-        }
-    }
     
-    function act_getButtons()
+    
+    /**
+     * Екшън връщащ бутоните за контектстното меню
+     */
+    function act_getContextMenu()
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = static::fetch($id));

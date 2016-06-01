@@ -575,12 +575,6 @@ class fileman_Log extends core_Manager
             // Заменяме плейсхолдера за страницира с празен стринг
             $tpl->replace('', 'ListPagerBottom');
         }
-
-        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-            $tpl->push('context/lib/contextMenu.css', "CSS");
-            $tpl->push('context/lib/contextMenu.js', "JS");
-            jquery_Jquery::run($tpl, "getContextMenuFromAjax();");
-        }
     }
     
     
