@@ -1459,15 +1459,13 @@ class fileman_Files extends core_Master
         $link = new core_ET($link);
       
         if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-        	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
-        	$link->prepend("<span class='more-btn transparentBtn' data-id='context-holder{$fRec->id}' data-url='{$dataUrl}'></span>");
         	
-        	$link->push('context/lib/contextMenu.css', "CSS");
-        	$link->push('context/lib/contextMenu.js', "JS");
-        	jquery_Jquery::run($link, "getContextMenuFromAjax();");
-        }
+        	if(static::haveRightFor('single', $fRec)){
+        		$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
+        		$link->prepend("<span class='more-btn transparentBtn' data-id='context-holder{$fRec->id}' data-url='{$dataUrl}'></span>");
+        	}
+		}
         
-        //bp($link);
         return $link;
     }
     
@@ -1527,9 +1525,11 @@ class fileman_Files extends core_Master
      */
     function act_getContextMenu()
     {
+    	$this->requireRightFor('single');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = static::fetch($id));
-    
+    	$this->requireRightFor('single', $rec);
+    	
     	$fh = fileman::idToFh($rec->id);
     
     	$fRec = fileman_Files::fetchByFh($fh);
