@@ -2525,7 +2525,7 @@ class crm_Persons extends core_Master
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--><!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode--><!--ET_BEGIN place-->[#place#]<br><!--ET_END place-->[#address#]");
+    	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--><!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode--><!--ET_BEGIN place-->[#place#] <br><!--ET_END place-->[#address#]");
     	
     	// Показваме държавата само ако е различна от тази на моята компания
     	if($rec->country){
