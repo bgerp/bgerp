@@ -396,23 +396,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$rec->deliveryTermId = $termId;
     			$rec->deliveryTermIdExtended = $deliveryExtended;
     			
-    			// Ако доставката е `EXW` допълваме с адреса на избрания склад, ако няма на `Моята фирма`
-    			if($rec->deliveryTermIdExtended == 'EXW'){
-    				$adress = NULL;
-    				if(isset($rec->shipmentStoreId)){
-    					if($locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
-    						$adress = crm_Locations::getAddress($locationId);
-    					}
-    				} else {
-    					$ownCompany = crm_Companies::fetchOurCompany();
-    					$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id)->getContent();
-    					$adress = trim(strip_tags($adress));
-    				}
-    				
-    				if(isset($adress)){
-    					$rec->deliveryTermIdExtended .= " ({$adress})";
-    				}
-    			}
+    			cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermIdExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
     		}
     	}
     }

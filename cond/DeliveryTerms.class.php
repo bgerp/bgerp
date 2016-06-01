@@ -166,4 +166,45 @@ class cond_DeliveryTerms extends core_Master
     	// Ако стигнем до тук, значи кода е валиден
     	return NULL;
     }
+    
+    
+    
+    /**
+     * Помощен метод допълващ условието на доставка с адреса
+     * 
+     * @param string $deliveryCode   - текста на търговското условие
+     * @param int $contragentClassId - класа на контрагента
+     * @param int $contragentId      - ид на котнрагента
+     * @param int $storeId           - ид на склада
+     * @param int $locationId        - ид на локация
+     * @param core_Mvc $document     - за кой документ се отнася
+     * @return string                - условието за доставка допълнено с адреса, ако може да се определи
+     */
+    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $document)
+    {
+    	$adress = '';
+    	if($deliveryCode == 'EXW'){
+    		if(isset($storeId)){
+    			if($locationId = store_Stores::fetchField($storeId, 'locationId')){
+    				$adress = crm_Locations::getAddress($locationId);
+    			}
+    		} else {
+    			$ownCompany = crm_Companies::fetchOurCompany();
+    			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id)->getContent();
+    		}
+    	} elseif($deliveryCode == 'DDP'){
+    		if(isset($locationId)){
+    			$adress = crm_Locations::getAddress($locationId);
+    		} else {
+    			$adress = cls::get($contragentClassId)->getFullAdress($contragentId)->getContent();
+    		}
+    	}
+    	
+    	$adress = trim(strip_tags($adress));
+    	if(!empty($adress)){
+    		$deliveryCode .= " ({$adress})";
+    	}
+    	
+    	return $deliveryCode;
+    }
 }
