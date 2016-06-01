@@ -1436,6 +1436,16 @@ class fileman_Files extends core_Master
                 
                 $attr['rel'] = 'nofollow';
                 
+                $link = new core_ET($link);
+                
+                if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+                	if(static::haveRightFor('single', $fRec)){
+                		$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
+                		$attr['data-id'] = "context-holder{$fRec->id}";
+                		$attr['data-url'] = $dataUrl;
+                	}
+                }
+                
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
             }
         } else {
@@ -1451,20 +1461,11 @@ class fileman_Files extends core_Master
                 if(!file_exists($path)) {
     				$attr['style'] .= ' color:red;';
     			}
+    			
                 //Генерираме името с иконата
                 $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
             }
         }
-        
-        $link = new core_ET($link);
-      
-        if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-        	
-        	if(static::haveRightFor('single', $fRec)){
-        		$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
-        		$link->prepend("<span class='more-btn transparentBtn' data-id='context-holder{$fRec->id}' data-url='{$dataUrl}'></span>");
-        	}
-		}
         
         return $link;
     }
