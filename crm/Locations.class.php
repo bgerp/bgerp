@@ -498,7 +498,15 @@ class crm_Locations extends core_Master {
     	expect($rec = static::fetch($id));
     	$row = static::recToVerbal($rec);
     	
-    	$string = "{$row->countryId}, {$row->pCode} {$row->place}, {$row->address}";
+    	$string = "";
+    	if($rec->countryId){
+    		$ourCompany = crm_Companies::fetchOurCompany();
+    		if($ourCompany->country != $rec->countryId){
+    			$string .= "{$row->countryId}, ";
+    		}
+    	}
+    	
+    	$string .= "{$row->pCode} {$row->place}, {$row->address}";
     	$string = trim($string, ",  ");
     	
     	return $string;
