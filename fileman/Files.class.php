@@ -1509,31 +1509,6 @@ class fileman_Files extends core_Master
         return static::getLink($fh);
     }
 
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param object $data
-     */
-    static function on_AfterPrepareListRows($mvc, $res, &$data)
-    {
-        if (!Mode::get('dialogOpened')) {
-            // Обхождаме масива
-            foreach ((array)($data->recs) as $id => $rec) {
-
-                // Вземаме линка към сингъла на файла
-                $linkTpl = fileman::getLinkToSingle($rec->fileHnd);
-
-
-                //@TO DO проверка за права
-                $logId = fileman_Log::fetchField("#fileId = {$id}", 'id');
-                $dataUrl =  toUrl(array('fileman_Log', 'getButtons', $logId), 'local');
-
-                $data->rows[$id]->name = "<span class='more-btn transparentBtn' data-id='context-holder{$logId}' data-url='{$dataUrl}'></span>" . $linkTpl ;
-            }
-        }
-    }
-
 
     /**
      * След рендиране на шаблона
@@ -1550,5 +1525,64 @@ class fileman_Files extends core_Master
 
             jquery_Jquery::run($tpl, "getContextMenuFromAjax();");
         }
+    }
+    
+    function act_getButtons()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = static::fetch($id));
+    
+    	$fh = fileman::idToFh($rec->id);
+    
+    	$fRec = fileman_Files::fetchByFh($fh);
+    	
+    	//Разширението на файла
+    	$ext = fileman_Files::getExt($fRec->name);
+    
+    	//Иконата на файла, в зависимост от разширението на файла
+    	$icon = "fileman/icons/{$ext}.png";
+    
+    	//Ако не можем да намерим икона за съответното разширение
+    	if (!is_file(getFullPath($icon))) {
+    		// Използваме иконата по подразбиране
+    		$icon = "fileman/icons/default.png";
+    	}
+    
+    	// Вземаме линка към сингъла на файла таб преглед
+    	$urlPreview = array('fileman_Files', 'single', $fh);
+    	$urlPreview['currentTab'] = 'preview';
+    	$urlPreview['#'] = 'fileDetail';
+    
+    	$tpl = new core_ET();
+    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon));
+    	$tpl->append($preview);
+    
+    	// Вземаме линка към сингъла на файла таб информация
+    	$url = array('fileman_Files', 'single', $fh);
+    	$url['currentTab'] = 'info';
+    	$url['#'] = 'fileDetail';
+    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png'));
+    	$tpl->append($infoBtn);
+    
+    
+    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' =>$fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> tr('Генериране на линк за сваляне')));
+    	$tpl->append($linkBtn);
+    
+    	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
+    	$download  =  ht::createBtn('Сваляне', $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png'));
+    	$tpl->append($download);
+    
+    	// Ако сме в AJAX режим
+    	if(Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => "context-holder{$id}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+    
+    		$res = array_merge(array($resObj));
+    
+    		return $res;
+    	} else {
+    		return $tpl;
+    	}
     }
 }
