@@ -391,7 +391,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Проверяваме дали е валиден
     		$termId = cond_DeliveryTerms::getTermCodeId($deliveryExtended);
     		if(!$termId){
-    			$form->setError('deliveryTermIdExtended', 'Невалиден метод на плащане');
+    			$form->setError('deliveryTermIdExtended', 'Невалидно условие за доставка');
     		} else {
     			$rec->deliveryTermId = $termId;
     			$rec->deliveryTermIdExtended = $deliveryExtended;
