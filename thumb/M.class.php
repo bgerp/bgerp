@@ -119,4 +119,15 @@ class thumb_M extends core_Mvc
             log_System::add('tumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
         }
     }
+
+
+    /**
+     * Изтриване на кешираните изображения
+     */
+    function act_Clear()
+    {
+        $deleted = core_Os::deleteOldFiles(thumb_Setup::get('IMG_PATH'), 1);
+
+        return followRetUrl(NULL, "Изтрити са|* {$deleted} |файла.");
+    }
 }
