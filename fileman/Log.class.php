@@ -647,7 +647,6 @@ class fileman_Log extends core_Manager
         if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
             $tpl->push('context/lib/contextMenu.css', "CSS");
             $tpl->push('context/lib/contextMenu.js', "JS");
-            jquery_Jquery::run($tpl,'prepareContextMenu();', TRUE);
             jquery_Jquery::run($tpl, "getContextMenuFromAjax();");
         }
     }
