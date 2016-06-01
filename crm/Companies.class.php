@@ -1744,10 +1744,15 @@ class crm_Companies extends core_Master
     	
     	$obj = new stdClass();
     	$tpl = new ET("[#country#] <!--ET_BEGIN pCode--><br>[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
+    	
+    	// Показваме държавата само ако е различна от тази на моята компания
     	if($rec->country){
-    		$obj->country = $this->getVerbal($rec, 'country');
+    		$ourCompany = crm_Companies::fetchOurCompany();
+    		if($ourCompany->country != $rec->country){
+    			$obj->country = $this->getVerbal($rec, 'country');
+    		}
     	}
-    
+    	
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->{$fld}){
