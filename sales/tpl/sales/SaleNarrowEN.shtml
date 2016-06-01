@@ -39,12 +39,6 @@
                     </div>
                     <!--ET_END contragentAddress-->
                     <!--ET_END contragentName-->
-                    <!--ET_BEGIN deliveryLocationId-->
-                    <hr style="margin: 3px 0 1px;">
-                    <div>
-                        Location: [#deliveryLocationId#]
-                    </div>
-                    <!--ET_END deliveryLocationId-->
                     <!--ET_BEGIN vatId-->
                     <div>Vat Id:<br>
                         [#vatId#]

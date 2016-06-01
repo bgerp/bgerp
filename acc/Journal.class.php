@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,92 +20,79 @@ class acc_Journal extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Журнал със счетоводни транзакции";
+    public $title = "Журнал със счетоводни транзакции";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing, plg_Search,
-                     acc_Wrapper, plg_Sorting, bgerp_plg_Blank';
+    public $loadList = 'plg_Created, plg_State, plg_RowTools2, plg_Search,acc_Wrapper, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, valior, docType, totalAmount";
+    public $listFields = "id, valior, docType, totalAmount";
     
     
     /**
      * Детайла, на модела
      */
-    var $details = 'acc_JournalDetails';
+    public $details = 'acc_JournalDetails';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Счетоводна статия';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo,acc';
+    public $singleTitle = 'Счетоводна статия';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,acc';
+    public $canList = 'ceo,acc';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,acc';
+    public $canSingle = 'ceo,acc';
+    
+    
+    /**
+     * Кой има право да чете?
+     */
+    public $canRead = 'ceo,acc';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    var $canReject = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'acc/tpl/SingleLayoutJournal.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutJournal.shtml';
     
     
     /**
      * Полета за търсене
      */
-    var $searchFields = 'reason';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsSingleField = 'docType';
+    public $searchFields = 'reason';
     
     
     /**
@@ -117,7 +104,7 @@ class acc_Journal extends core_Master
     /**
      * Кои полета да се извличат при изтриване
      */
-    var $fetchFieldsBeforeDelete = 'id';
+    public $fetchFieldsBeforeDelete = 'id';
     
     
     /**
@@ -148,7 +135,7 @@ class acc_Journal extends core_Master
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
@@ -238,7 +225,7 @@ class acc_Journal extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         $origMvc = $mvc;
@@ -278,7 +265,7 @@ class acc_Journal extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
@@ -496,7 +483,7 @@ class acc_Journal extends core_Master
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
-    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         // Думите за търсене са името на документа-основания
         $object = new core_ObjectReference($rec->docType, $rec->docId);
@@ -861,7 +848,7 @@ class acc_Journal extends core_Master
     /**
      * След подготовка на полетата
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
     	$baseCode = acc_Periods::getBaseCurrencyCode();
     	$data->listFields['totalAmount'] .= "|* ({$baseCode})";

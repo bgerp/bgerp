@@ -460,7 +460,7 @@ class crm_Persons extends core_Master
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Лица в групата|* \"<b style='color:green'>|" .
-            crm_Groups::getTitleById($data->groupId) . "|*</b>\"";
+            crm_Groups::getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
@@ -2525,9 +2525,14 @@ class crm_Persons extends core_Master
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
+    	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
+    	
+    	// Показваме държавата само ако е различна от тази на моята компания
     	if($rec->country){
-    		$obj->country = $this->getVerbal($rec, 'country');
+    		$ourCompany = crm_Companies::fetchOurCompany();
+    		if($ourCompany->country != $rec->country){
+    			$obj->country = $this->getVerbal($rec, 'country');
+    		}
     	}
     
     	$Varchar = cls::get('type_Varchar');

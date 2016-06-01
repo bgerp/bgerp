@@ -234,9 +234,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	public static function on_AfterCheckSelectedHandle($mvc, &$error = NULL, $handle, $rec)
 	{
 		if($error) return $error;
+		
 		$doc = doc_Containers::getDocumentByHandle($handle);
 		if(!$doc->isInstanceOf('sales_Sales')){
-			$error = 'Трябва да е избрана активна продажба';
+			$error = 'Сделката не е активна продажба';
 		}
 	}
 	
