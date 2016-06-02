@@ -2121,7 +2121,7 @@ function addLinkOnCopy(text, symbolCount) {
  */
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
-    $(document.body).on('click', ".more-btn.fileLink", function (e) {
+    $(document.body).on('click', ".transparent.more-btn", function (e) {
         var url = $(this).attr("data-url");
         if(!url) return;
 
