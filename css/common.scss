@@ -975,6 +975,14 @@ input.more-btn {
 	}
 }
 
+.small .modal-toolbar{
+	top: 0 !important;
+	.linkWithIcon {
+		height: auto !important;
+		font-size: 1em;
+	}
+}
+
 a.more-btn {
 	padding-left: 17px !important;
 	height: 16px;
