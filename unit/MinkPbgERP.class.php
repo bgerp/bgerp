@@ -1917,7 +1917,7 @@ class unit_MinkPbgERP extends core_Manager {
         
      
     /**
-     *9.Рецепта - не приема мярката, като я няма - също не записва
+     *9.Рецепта - не приема мярката, като я няма - също не записва!
      *
      */
     //http://localhost/unit_MinkPbgERP/CreateBom/
@@ -1970,12 +1970,74 @@ class unit_MinkPbgERP extends core_Manager {
         
         // Логваме се
         $browser->click('Вход');
-        $browser->setValue('nick', 'Pdainovska');
+        $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
         
+        // Избираме артикул
+        $browser->click('Каталог');
+        $browser->click('Продукти');
+        $Item = "Плик 7 л";
+        
+        if(strpos($browser->gettext(), $Item)) {
+            $browser->click($Item);
+            
+            //Добавяне на задание
+            $browser->click('Задания');
+            //Проверка дали може да се добави
+            //if(strpos($browser->gettext(), 'Добавяне на ново задание за производство')) {
+                $browser->click('Добавяне на ново задание за производство');
+               
+                $valior=strtotime("+1 Day");
+                $browser->setValue('dueDate', date('d-m-Y', $valior));
+                $browser->setValue('quantity', '1000');
+                $browser->setValue('notes', 'CreatePlanningJob');
+                $browser->press('Чернова');
+                $browser->press('Активиране');
+                //Добавяне на задача
+                $browser->click('Добавяне на нова задача за производство');
+                $browser->press('Чернова');   
+                $browser->press('Активиране');
+                //Произвеждане и влагане
+                //$browser->press('Произвеждане');
+                $browser->press('Добавяне на произведен артикул');
+                $browser->setValue('quantity', '1000');
+                $browser->press('Запис');
+                $browser->press('Влагане');
+                $browser->setValue('taskProductId', 'Други суровини и материали');
+                $browser->setValue('quantity', '1000');
+                $browser->press('Запис и Нов');
+                //return $browser->getHtml();
+                $browser->setValue('taskProductId', 'Друг труд');
+                $browser->setValue('quantity', '250');
+                $browser->press('Запис и Нов');
+                $browser->setValue('taskProductId', 'Кашон');
+                $browser->setValue('quantity', '1');
+                $browser->press('Запис');
+                //// Приключване на задачата - разпознава бутона за приключване на заданието, защото са с еднакви номера
+                //$browser->press('Приключване');
+                
+                //Протокол за бързо производство
+                //$browser->press('Създаване на протокол за бързо производство от заданието');
+                
+                $browser->press('Произвеждане');
+                $browser->setValue('storeId', 1);
+                $browser->setValue('note', 'Test');
+                $browser->press('Чернова');
+                $browser->press('Контиране');
+                $browser->press('Приключване');
+            
+            //} else {
+                //return "Не може да се добави задание.";
+            //}
+            
+        } else {
+             
+            Return "Няма такъв артикул";
         
         }
+        
+    }
     
     /**
     * 7.Нова оферта на съществуваща фирма с папка
@@ -2292,7 +2354,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 4.Създава нов артикул - продукт през папката - Добавяне рецепти - Дава грешка за мярката на артикулите към рецептата
+     * 4.Създава нов артикул - продукт през папката - Добавяне рецепти - Дава грешка за мярката на артикулите към рецептата!
      */
     //http://localhost/unit_MinkPbgERP/CreateProduct1/
     function act_CreateProduct1()
@@ -2364,7 +2426,7 @@ class unit_MinkPbgERP extends core_Manager {
     
     
     /**
-     * 4.Създава нов артикул - продукт, ако го има - редакция
+     * 4.Създава нов артикул - продукт, ако го има - редакция. Дава грешка на стойността на параметъра!!!
      */
     //http://localhost/unit_MinkPbgERP/CreateProduct/
     function act_CreateProduct()
@@ -2547,7 +2609,7 @@ class unit_MinkPbgERP extends core_Manager {
          
         //$browser->hasText('Добавяне на запис в "Складове"');
          
-        $browser->setValue('name', 'Склад 3');
+        $browser->setValue('name', 'Склад 1');
         //$ekip='Екип "Главен офис"';
         //$browser->setValue($ekip, '1');
         $browser->setValue('Pavlinka', '1');
