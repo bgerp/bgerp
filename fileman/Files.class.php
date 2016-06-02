@@ -1440,8 +1440,13 @@ class fileman_Files extends core_Master
 
                 if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
                     if(static::haveRightFor('single', $fRec)){
-                        $dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
-                        $attr['data-id'] = "context-holder{$fRec->id}";
+                    	$attr['name'] = 'context-holder';
+                    	ht::setUniqId($attr);
+                    	$replaceId = $attr['id'];
+                    	unset($attr['name'], $attr['id']);
+                    	
+                    	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id, 'replaceId' => $replaceId), 'local');
+                        $attr['data-id'] = $replaceId;
                         $attr['data-url'] = $dataUrl;
                     }
                 }
@@ -1532,6 +1537,7 @@ class fileman_Files extends core_Master
     	$this->requireRightFor('single');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = static::fetch($id));
+    	expect($replaceId = Request::get('replaceId', 'varchar'));
     	$this->requireRightFor('single', $rec);
     	
     	$fh = fileman::idToFh($rec->id);
@@ -1578,7 +1584,7 @@ class fileman_Files extends core_Master
     	if(Request::get('ajax_mode')) {
     		$resObj = new stdClass();
     		$resObj->func = "html";
-    		$resObj->arg = array('id' => "context-holder{$id}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+    		$resObj->arg = array('id' => $replaceId, 'html' => $tpl->getContent(), 'replace' => TRUE);
     
     		$res = array_merge(array($resObj));
     
