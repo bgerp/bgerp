@@ -1378,7 +1378,7 @@ class fileman_Files extends core_Master
         $attr['ef_icon'] = $icon;
         
         // Клас на връзката
-        $attr['class'] = 'fileLink more-btn transparent';
+        $attr['class'] = 'fileLink';
 
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
@@ -1440,6 +1440,7 @@ class fileman_Files extends core_Master
 
                 if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
                     if(static::haveRightFor('single', $fRec)){
+                    	$attr['class'] = " more-btn transparent";
                     	$attr['name'] = 'context-holder';
                     	ht::setUniqId($attr);
                     	$replaceId = $attr['id'];
