@@ -927,7 +927,8 @@ input.more-btn {
   width: 1.9em;
   height: 2em \9; }
 
-.more-btn:not(.toolbar-btn) {
+.more-btn:not(.toolbar-btn,
+.transparent) {
   background-repeat: no-repeat !important;
   background-image: url(../img/16/toggle-expand.png) !important; }
 
@@ -1265,13 +1266,6 @@ table.listTable {
   top: 5px;
   cursor: pointer;
   background: none !important; }
-
-.fileOptions {
-  min-width: 140px;
-  min-height: 120px; }
-
-.narrow .fileOptions {
-  min-height: 132px; }
 
 .wide .singleView table.listTable > tbody > tr > td {
   max-width: 70% !important; }

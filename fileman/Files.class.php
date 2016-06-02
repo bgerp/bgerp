@@ -1378,7 +1378,7 @@ class fileman_Files extends core_Master
         $attr['ef_icon'] = $icon;
         
         // Клас на връзката
-        $attr['class'] = 'fileLink';
+        $attr['class'] = 'fileLink more-btn transparent';
 
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
@@ -1437,16 +1437,19 @@ class fileman_Files extends core_Master
                 $attr['rel'] = 'nofollow';
                 
                 $link = new core_ET($link);
-                
+
                 if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
-                	if(static::haveRightFor('single', $fRec)){
-                		$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
-                		$attr['data-id'] = "context-holder{$fRec->id}";
-                		$attr['data-url'] = $dataUrl;
-                	}
+                    if(static::haveRightFor('single', $fRec)){
+                        $dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id), 'local');
+                        $attr['data-id'] = "context-holder{$fRec->id}";
+                        $attr['data-url'] = $dataUrl;
+                    }
                 }
-                
+
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
+                $link->prepend("<span>");
+                $link->append("</span>");
+
             }
         } else {
             
