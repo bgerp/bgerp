@@ -85,7 +85,10 @@ abstract class deals_DealMaster extends deals_DealBase
 		$amountBl          = $aggregateDealInfo->get('blAmount');
 		$amountDelivered   = $aggregateDealInfo->get('deliveryAmount');
 		$amountInvoiced    = $aggregateDealInfo->get('invoicedAmount');
-		$notInvoicedAmount = $amountDelivered - $amountInvoiced;
+		$notInvoicedAmount = core_Math::roundNumber($amountDelivered) - core_Math::roundNumber($amountInvoiced);
+		
+		// Добавяме 0 за да елиминираме -0 ако се получи при изчислението
+		$notInvoicedAmount += 0;
 		
 		$diff = round($amountDelivered - $amountPaid, 4);
 		
