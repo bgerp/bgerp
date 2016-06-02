@@ -2121,7 +2121,7 @@ function addLinkOnCopy(text, symbolCount) {
  */
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
-    $(document.body).on('click', ".more-btn", function () {
+    $(document.body).on('click', ".more-btn.fileLink", function (e) {
         var url = $(this).attr("data-url");
         if(!url) return;
 
@@ -2132,10 +2132,10 @@ function getContextMenuFromAjax() {
 }
 
 function prepareContextHtmlFromAjax() {
-    $('.more-btn').parent().css('position', 'relative');
-    $('.more-btn').each(function(){
+    $( ".transparent.more-btn").parent().css('position', 'relative');
+    $( ".transparent.more-btn").each(function(){
         var holder = document.createElement('div');
-        $(holder).addClass('modal-toolbar fileOptions');
+        $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
         $(holder).attr('data-sizestyle', 'context');
 
