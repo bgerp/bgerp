@@ -1453,8 +1453,8 @@ class fileman_Files extends core_Master
                 }
 
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
-                $link->prepend("<span>");
-                $link->append("</span>");
+                $link->prepend("<div>");
+                $link->append("</div>");
 
             }
         } else {
