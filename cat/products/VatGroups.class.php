@@ -237,6 +237,7 @@ class cat_products_VatGroups extends core_Detail
     	$query->where("#productId = {$productId}");
     	$query->where("#validFrom <= NOW()");
     	$query->orderBy("#validFrom", "DESC");
+    	$query->limit(1);
     	
     	if($rec = $query->fetch()){
     		
