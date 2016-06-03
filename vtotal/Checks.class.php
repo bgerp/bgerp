@@ -28,7 +28,7 @@ class vtotal_Checks extends core_Master
 
     public function cron_CheckFiles()
     {
-        $dangerExtensions = [
+        $dangerExtensions = array(
             //Executable
             'EXE', 'PIF', 'APPLICATION', 'GADGET',
             'MSI', 'MSP', 'COM', 'SCR', 'HTA', 'CPL',
@@ -40,7 +40,7 @@ class vtotal_Checks extends core_Master
             'REG', 'DOC', 'XLS', 'PPT', 'DOCM',
             'DOTM', 'XLSM', 'XLTM', 'XLAM',
             'PPTM', 'POTM', 'PPAM', 'PPSM' , 'SLDM',
-        ];
+        );
 
         $query = fileman_Files::getQuery();
         $query->where("#dangerRate IS NULL");
