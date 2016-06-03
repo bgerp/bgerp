@@ -1887,7 +1887,7 @@ class unit_MinkPbgERP extends core_Manager {
         
      
     /**
-     *9.Рецепта - не приема мярката, като я няма - също не записва!
+     *9.Добавя рецепта 
      *
      */
     //http://localhost/unit_MinkPbgERP/CreateBom/
@@ -1908,24 +1908,25 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Други продукти');
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-        //Return $browser->getHtml();
+       
         //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('expenses', '13');
+        $browser->setValue('expenses', '8');
         $browser->setValue('quantityForPrice', '100');
         $browser->press('Чернова');
         $browser->press('Влагане');
+       
         $browser->setValue('resourceId', '1');
-        $browser->setValue('propQuantity', '19');
-        //не приема мярката, като я няма - също не записва
-        //return $browser->getHtml();
-        $browser->setValue('measureId', 3);
+        $browser->setValue('propQuantity', '1,6');
+        $browser->refresh('Запис');
+        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
         
-        $browser->press('Запис и нов');
-        $browser->setValue('resourceId', '1');
+        $browser->press('Запис и Нов');
+        $browser->setValue('resourceId', '2');
         $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-        $browser->press('OK');
+        
        
     }
          
@@ -2200,6 +2201,7 @@ class unit_MinkPbgERP extends core_Manager {
         // търсим фирмата
         //$browser->click('P');
         $Company = "Пролет ООД";
+     
         //$browser->open("/crm_Companies/?id=&Rejected=&alpha=&Cmd[default]=1&search={$Company}&users=all_users&order=alphabetic&groupId=&Cmd[default]=Филтрирай");
     
         //if(strpos($browser->gettext(), $Company)  && 0) {  - не намира съществуваща фирма
@@ -2209,22 +2211,19 @@ class unit_MinkPbgERP extends core_Manager {
             //има такава фирма - редакция
             $browser->click($Company);
             $browser->press('Редакция');
-            //Проверка дали сме в редакция
-            //$browser->hasText('Редактиране');
-            //$browser->hasText('Фирма');
-             
+            
         } else {
              
             // Правим нова фирма
              
             $browser->press('Нова фирма');
-             
+            bp($browser->getText());
             //$browser->hasText('Добавяне на запис');
             //$browser->hasText('Фирма');
         }
         $browser->setValue('name', $Company);
         $browser->setValue('place', 'Плевен');
-        $browser->setValue('pCode', '7800');
+        $browser->setValue('pCode', '6400');
         $browser->setValue('address', 'ул.Днепър, №11');
         $browser->setValue('fax', '086898989');
         $browser->setValue('tel', '086799999');
@@ -2325,9 +2324,9 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 4.Създава нов артикул - продукт през папката - Добавяне рецепти - Дава грешка за мярката на артикулите към рецептата!
+     * 4.Създава нов артикул - продукт през папката. Добавя рецепта.
      */
-    //http://localhost/unit_MinkPbgERP/CreateProduct1/
+    //http://localhost/unit_MinkPbgERP/CreateProductBom/
     function act_CreateProduct1()
     {
     
@@ -2339,9 +2338,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('nick', 'Pavlinka');
         $browser->setValue('pass', '111111');
         $browser->press('Вход');
-        //$browser->hasText('Известия');
-        //$browser->hasText('Pavlinka');
-    
+           
         // Правим нов артикул - продукт
         $browser->click('Каталог');
         $browser->click('Продукти');
@@ -2354,42 +2351,28 @@ class unit_MinkPbgERP extends core_Manager {
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             $browser->click('Плик 7 л');
-            //Return $browser->getHtml();
         }
         //Добавяне рецепта
         $browser->click('Рецепти');
         $browser->click('Добавяне на нова търговска технологична рецепта');
-        //Return $browser->getHtml();
         //$browser->hasText('Добавяне на търговска рецепта към');
         $browser->setValue('expenses', '10');
         $browser->setValue('quantityForPrice', '12');
-    
         $browser->press('Чернова');
+        
         $browser->press('Влагане');
-    
-        $browser->setValue('resourceId', '3');
-         
-        if(strpos($browser->gettext(), 'Други външни услуги')) {
-            //return 'Други външни услуги';
-        } else {
-            return 'артикул';
-        }
-    
-        //$browser->setValue('packagingId', '9');
+        $browser->setValue('resourceId', '2');
         $browser->setValue('propQuantity', '6');
         $browser->refresh('Запис');
-        if(strpos($browser->gettext(), 'packagingId')) {
-            //return 'packagingId' ;
-        } else {
-            return 'мярка';
-        }
+        // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
         
         $browser->press('Запис и Нов');
         $browser->setValue('resourceId', '1');
         $browser->setValue('propQuantity', '1 + $Начално= 10');
+        $browser->refresh('Запис');
         $browser->press('Запис');
         $browser->press('Активиране');
-        $browser->press('OK');
+       
     }
     
     
@@ -2432,7 +2415,6 @@ class unit_MinkPbgERP extends core_Manager {
             
         } else {   
             
-            //$browser->press('Запис');
             $browser->click('Добавяне на нов параметър');
             $browser->setValue('paramId', 'Дължина');
             $browser->refresh('Запис');
@@ -2487,7 +2469,6 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'КАСА 3');
         //$browser->setValue('Pavlinka', '1');
         $browser->setValue('cashiers_1', '1');
-        //return  $browser->getHtml();
         $browser->press('Запис');
          
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -2555,7 +2536,6 @@ class unit_MinkPbgERP extends core_Manager {
          
         $browser = cls::get('unit_Browser');
         $browser->start('http://localhost/');
-        //return  $browser->getHtml();
         // Логваме се
         $browser->click('Вход');
         $browser->setValue('nick', 'Pavlinka');
