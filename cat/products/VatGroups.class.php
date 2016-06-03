@@ -67,6 +67,12 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -233,17 +239,20 @@ class cat_products_VatGroups extends core_Detail
      */
     public static function getCurrentGroup($productId)
     {
-    	$query = cat_products_VatGroups::getQuery();
-    	$query->where("#productId = {$productId}");
-    	$query->where("#validFrom <= NOW()");
-    	$query->orderBy("#validFrom", "DESC");
-    	$query->limit(1);
-    	
-    	if($rec = $query->fetch()){
-    		
-    		return acc_VatGroups::fetch($rec->vatGroup);
+    	// Кешираме активната данъчна група на артикула в текущия хит
+    	if(!array_key_exists($productId, static::$cache)){
+    		$query = cat_products_VatGroups::getQuery();
+    		$query->where("#productId = {$productId}");
+    		$query->where("#validFrom <= NOW()");
+    		$query->orderBy("#validFrom", "DESC");
+    		$query->limit(1);
+    		 
+    		$rec = $query->fetch();
+    		$value = ($rec) ? $rec : FALSE;
+    		static::$cache[$productId] = $value;
     	}
     	
-    	return FALSE;
+    	// Връщаме кешираната активна данъчна група
+    	return static::$cache[$productId];
     }
 }
