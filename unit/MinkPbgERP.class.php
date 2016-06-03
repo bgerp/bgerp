@@ -2361,8 +2361,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Добавяне на нова търговска технологична рецепта');
         //Return $browser->getHtml();
         //$browser->hasText('Добавяне на търговска рецепта към');
-        $browser->setValue('expenses', '13');
-        $browser->setValue('quantityForPrice', '166');
+        $browser->setValue('expenses', '10');
+        $browser->setValue('quantityForPrice', '12');
     
         $browser->press('Чернова');
         $browser->press('Влагане');
@@ -2376,18 +2376,15 @@ class unit_MinkPbgERP extends core_Manager {
         }
     
         //$browser->setValue('packagingId', '9');
-        $browser->setValue('propQuantity', '19');
-    
+        $browser->setValue('propQuantity', '6');
+        $browser->refresh('Запис');
         if(strpos($browser->gettext(), 'packagingId')) {
             //return 'packagingId' ;
         } else {
             return 'мярка';
         }
-        //Return $browser->getHtml();
-    
-        ///// Дава грешка за мярката!!!
-        //Return $browser->getHtml();
-        $browser->press('Запис и нов');
+        
+        $browser->press('Запис и Нов');
         $browser->setValue('resourceId', '1');
         $browser->setValue('propQuantity', '1 + $Начално= 10');
         $browser->press('Запис');
@@ -2413,19 +2410,14 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Вход');
         
         // Правим нов артикул - продукт
-    
         $browser->click('Каталог');
         $browser->press('Нов запис');
-         
         $browser->setValue('catcategorieId', '7');
         $browser->press('Напред');
-    
         $browser->setValue('name', 'Чувал голям 50 L');
         $browser->setValue('code', 'smet50big');
         $browser->setValue('measureId', '9');
         $browser->setValue('info', 'черен');
-        //Return $browser->getHtml();
-        //$browser->setValue('groups[8]', 'On');
         $browser->press('Запис');
         
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -2433,9 +2425,9 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->press('Отказ');
             $browser->click('Продукти');
             $browser->click('Чувал голям 50 L');
-            //Return $browser->getHtml(); 
             $browser->press('Редакция');
             $browser->setValue('info', 'прозрачен');
+            $browser->setValue('groups[8]', '8'); 
             $browser->press('Запис');
             
         } else {   
@@ -2451,8 +2443,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('paramValue', '26');
             $browser->press('Запис');
         }
-        //Добавяне рецепти?
-        //$browser->click('Рецепти');
+        
     }
     
     /**
