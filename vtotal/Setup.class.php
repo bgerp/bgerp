@@ -4,7 +4,11 @@
 /**
  * Коя да е основната мярка на универсалните артикули
  */
+
 defIfNot('VTOTAL_VIRUSTOTAL_API_KEY', '');
+
+
+
 
 
 /**
@@ -21,6 +25,16 @@ defIfNot('VTOTAL_VIRUSTOTAL_API_KEY', '');
 class vtotal_Setup extends core_ProtoSetup
 {
 
+    function install()
+    {
+        $html = parent::install();
+
+        return $html;
+    }
+
+    var $managers = array(
+        'vtotal_Checks'
+    );
     /**
      * Описание на конфигурационните константи
      */
