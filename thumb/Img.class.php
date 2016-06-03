@@ -6,7 +6,7 @@ defIfNot('JPEGTRAN_CMD', 'jpegtran -copy none -optimize -outfile [#path#] [#path
 
 defIfNot('OPTIPNG_CMD', 'optipng [#path#]');
 
-defIfNot('PNGQUANT_CMD', 'pngquant.exe --quality=65-80 --ext .png --force [#path#]');
+defIfNot('PNGQUANT_CMD', 'pngquant --quality=65-80 --ext .png --force [#path#]');
 
 
 /**

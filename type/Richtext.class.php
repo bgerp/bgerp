@@ -1402,8 +1402,8 @@ class type_Richtext extends type_Blob
             $emot6 = 'richtext-holder-group-after';
             $toolbarArr->add("<span id='{$attr['id']}-group6' class='richtext-emoticons6 richtext-holder-group {$emot6} addElements left'>", 'TBL_GROUP3');
         	$toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.010);
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]\\n', document.getElementById('{$formId}'), true)\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.030);
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr("Добавяне на линк") . "' onclick=\"var linkTo = prompt('" . tr("Добавете линк") . "','http://'); if(linkTo) { s('[link=' + linkTo + ']', '[/link]', document.getElementById('{$formId}'))}\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.010);
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Добавяне на линия') .  "' onclick=\"rp('[hr]\\n', document.getElementById('{$formId}'), true)\">" . tr("Линия") . "</a>", 'filesAndDoc', 1000.030);
 
             $toolbarArr->add("</span>", 'TBL_GROUP3');
             $toolbarArr->add("</span><div class='clearfix21'></div>", 'TBL_GROUP3');

@@ -45,7 +45,15 @@ class thumb_Setup extends core_ProtoSetup {
        'THUMB_OPTIMIZATORS' => array ('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
 
      );
- 
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+        array('title' => 'Изтриване', 'url' => array('thumb_M', 'clear', 'ret_url' => TRUE), 'params' => array('title' => 'Изтриване на кешираните изобажения'))
+    );
+
      
      /**
      * Мениджър - входна точка в пакета

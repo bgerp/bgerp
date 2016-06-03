@@ -51,7 +51,7 @@ DEFINE('EF_USERS_PASS_SALT', '');
 // Препоръчителна стойност между 200 и 500
 DEFINE('EF_USERS_HASH_FACTOR', 0);
 
-// Git бранч
+// Git бранч - на основният пакет
 DEFINE('BGERP_GIT_BRANCH', 'master');
 
 // Вербално заглавие на приложението
@@ -92,11 +92,15 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 // Ако се укаже, от URL-то се изпускат екшъните.
  # DEFINE('EF_ACT_NAME', 'FIXED_CONTROLER');
  
-// Дефинира се ако има нужда да се достъпват прокачени файлове през друг домейн 
+// Дефинира се ако има нужда да се достъпват прикачените файлове през друг домейн 
  # DEFINE('BGERP_ABSOLUTE_HTTP_HOST', 'experta2.local');
  
 // Дефинира пътят до частно репозитори
  # DEFINE('EF_PRIVATE_PATH', 'ABSOLUTE_PATH_TO_PRIVATE_REPOSITORY');
+
+// Git бранч - на частният пакет - ако не е дефинирано се взима бранча на основния пакет
+# DEFINE('PRIVATE_GIT_BRANCH', 'master');
+
 
 // Игнориране на затварянето на модул "Help"
 DEFINE('BGERP_DEMO_MODE', FALSE);
