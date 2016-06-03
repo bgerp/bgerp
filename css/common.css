@@ -942,8 +942,6 @@ input.more-btn {
     transition-duration: 0.5s;
     transition-timing-function: ease-in-out; }
 
-.small .modal-toolbar {
-  top: 0 !important; }
   .small .modal-toolbar .linkWithIcon {
     height: auto !important;
     font-size: 1em; }
