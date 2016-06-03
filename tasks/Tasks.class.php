@@ -660,7 +660,7 @@ class tasks_Tasks extends embed_Manager
      */
     public static function getHandle($id)
     {
-    	$rec = static::fetch($id);
+    	$rec = static::fetch($id, 'classId,id');
     	if(isset($rec->classId) && cls::load($rec->classId, TRUE)){
     		$self = cls::get($rec->classId);
     		
@@ -678,7 +678,7 @@ class tasks_Tasks extends embed_Manager
     {
     	if(is_array($res)){
     		foreach ($res as $id => &$title){
-    			$title =  " {$title}" . " (#" . $mvc->getHandle($id) . ")";
+    			$title =  "{$mvc->getHandle($id)}/{$title}";
     		}
     	}
     }
