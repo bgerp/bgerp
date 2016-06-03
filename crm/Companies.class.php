@@ -650,8 +650,9 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
+        	
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
-            $mvc->Groups->getTitleById($data->groupId) . "|*</b>\"";
+            $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
@@ -1742,11 +1743,16 @@ class crm_Companies extends core_Master
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#] <!--ET_BEGIN pCode--><br>[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
+    	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
+    	
+    	// Показваме държавата само ако е различна от тази на моята компания
     	if($rec->country){
-    		$obj->country = $this->getVerbal($rec, 'country');
+    		$ourCompany = crm_Companies::fetchOurCompany();
+    		if($ourCompany->country != $rec->country){
+    			$obj->country = $this->getVerbal($rec, 'country');
+    		}
     	}
-    
+    	
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->{$fld}){
