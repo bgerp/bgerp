@@ -403,9 +403,10 @@ abstract class deals_Helper
 	{
 		if(cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
+				 
 				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
 				
-				$shortUomName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
+				$shortUomName = cat_UoM::getShortName(cat_Products::getProductInfo($productId)->productRec->measureId);
 				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
 				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
 			}
