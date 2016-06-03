@@ -46,6 +46,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'createproduct'){
+			$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+			if($masterRec->state == 'active' || $masterRec->state == 'active'){
+				$requiredRoles = 'no_one';
+				return;
+			}
+			
 			if(isset($rec)){
 				$options = self::getProtoOptions($mvc->filterProtoByMeta, 1);
 				
@@ -62,7 +68,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				if($requiredRoles != 'no_one'){
 					if(count($options)){
-						$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+						
 						if(!cat_Products::haveRightFor('add', (object)array('threadId' => $masterRec->threadId))){
 							$requiredRoles = 'no_one';
 						} else {
