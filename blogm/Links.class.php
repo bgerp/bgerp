@@ -104,7 +104,7 @@ class blogm_Links extends core_Manager {
 		if($data->links) {
 			foreach($data->links as $link){
 				// Създаваме линк от заглавието и урл-то 
-				$name = ht::createLink(tr($link->name), $link->url, NULL, 'target=_blank,class=out');
+				$name = ht::createLink($link->name, $link->url, NULL, 'target=_blank,class=out');
 				$name = ht::createElement('div', array('class' => 'level2'), $name);
 				
 				// Добавяме линка към шаблона

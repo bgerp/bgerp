@@ -148,6 +148,12 @@ class core_Db extends core_BaseClass
             // с цел да не се появи случайно при някой забравен bp()
             unset($this->dbPass);
             
+            if (BGERP_GIT_BRANCH == 'dev') {
+                $link->query("SET sql_mode = 'strict_trans_tables'");
+            } else {
+                $link->query("SET sql_mode = ''");
+            }
+            
             $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, SQL_MODE = ''");
             
             // Избираме указаната база от данни на сървъра

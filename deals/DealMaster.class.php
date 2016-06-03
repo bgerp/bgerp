@@ -85,7 +85,10 @@ abstract class deals_DealMaster extends deals_DealBase
 		$amountBl          = $aggregateDealInfo->get('blAmount');
 		$amountDelivered   = $aggregateDealInfo->get('deliveryAmount');
 		$amountInvoiced    = $aggregateDealInfo->get('invoicedAmount');
-		$notInvoicedAmount = $amountDelivered - $amountInvoiced;
+		$notInvoicedAmount = core_Math::roundNumber($amountDelivered) - core_Math::roundNumber($amountInvoiced);
+		
+		// Добавяме 0 за да елиминираме -0 ако се получи при изчислението
+		$notInvoicedAmount += 0;
 		
 		$diff = round($amountDelivered - $amountPaid, 4);
 		
@@ -174,7 +177,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('contragentId', 'int', 'input=hidden');
 		
 		// Доставка
-		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
+		$mvc->FLD('deliveryTermIdExtended', 'varchar', 'caption=Доставка->Условие');
+		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,input=hidden');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
 		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
@@ -231,11 +235,30 @@ abstract class deals_DealMaster extends deals_DealBase
         		}
         	}
         }
+        
         $form->setField('sharedUsers', 'input=none');
         
         // Търговеца по дефолт е отговорника на контрагента
         $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
         $form->setDefault('dealerId', $inCharge);
+        
+        
+        $deliverySuggestions = array();
+        $query = cond_DeliveryTerms::getQuery();
+        $query->where("#state = 'active'");
+        $query->show('codeName');
+        while($dRec = $query->fetch()){
+        	$deliverySuggestions[$dRec->codeName] = $dRec->codeName;
+        }
+        
+        if(count($deliverySuggestions)){
+        	$form->setSuggestions('deliveryTermIdExtended', array('' => '') + $deliverySuggestions);
+        }
+        
+        if(isset($form->rec->deliveryTermId)){
+        	$dCode = cond_DeliveryTerms::fetchField($form->rec->deliveryTermId, 'codeName');
+        	$form->setDefault('deliveryTermIdExtended', $dCode);
+        }
 	}
 	
 	
@@ -344,10 +367,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	if (!$form->isSubmitted()) {
-            return;
-        }
-        
+    	if (!$form->isSubmitted()) return;
         $rec = &$form->rec;
         
         if(empty($rec->currencyRate)){
@@ -358,6 +378,28 @@ abstract class deals_DealMaster extends deals_DealBase
         } else {
     		if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
     			$form->setWarning('currencyRate', $msg);
+    		}
+    	}
+    	
+    	$rec->deliveryTermId = NULL;
+    	
+    	$deliveryExtended = $rec->deliveryTermIdExtended;
+    	if(empty($rec->deliveryTermIdExtended) && isset($rec->deliveryLocationId)){
+    		$deliveryExtended = 'DDP';
+    	}
+    	
+    	// Ако има избран метод на плащане
+    	if(!empty($deliveryExtended)){
+    		
+    		// Проверяваме дали е валиден
+    		$termId = cond_DeliveryTerms::getTermCodeId($deliveryExtended);
+    		if(!$termId){
+    			$form->setError('deliveryTermIdExtended', 'Невалидно условие за доставка');
+    		} else {
+    			$rec->deliveryTermId = $termId;
+    			$rec->deliveryTermIdExtended = $deliveryExtended;
+    			
+    			$rec->deliveryTermIdExtended = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermIdExtended, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
     		}
     	}
     }
@@ -769,6 +811,9 @@ abstract class deals_DealMaster extends deals_DealBase
 			$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
 		}
 		
+		$row->deliveryTermId = (isset($rec->deliveryTermIdExtended)) ? $mvc->getFieldType('deliveryTermIdExtended')->toVerbal($rec->deliveryTermIdExtended) : $row->deliveryTermId;
+		$actions = type_Set::toArray($rec->contoActions);
+		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if (round($rec->{"amount{$amnt}"}, 2) == 0) {
             	$coreConf = core_Packs::getConfig('core');
@@ -848,7 +893,14 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
-					$row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId);
+					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId);
+					if($rec->state == 'active' && isset($actions['ship'])){
+						$row->shipmentStoreId = $storeVerbal;
+					} else {
+						unset($row->shipmentStoreId);
+					}
+					
+					$row->shipmentStoreIdTop = $storeVerbal;
 				}
 				
 				if($rec->caseId){
@@ -859,8 +911,6 @@ abstract class deals_DealMaster extends deals_DealBase
 					$row->caseId = cash_Cases::getHyperlink($rec->caseId);
 				}
 			}
-			
-			$actions = type_Set::toArray($rec->contoActions);
 
 			core_Lg::push($rec->tplLang);
 			
@@ -870,26 +920,6 @@ abstract class deals_DealMaster extends deals_DealBase
 				$row->isDelivered .= mb_strtoupper(tr('доставено'));
 				if($rec->state == 'rejected') {
 					$row->isDelivered = "<span class='quet'>{$row->isDelivered}</span>";
-				}
-				
-				if($rec->deliveryLocationId && $rec->shipmentStoreId){
-					if($ourLocation = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
-						$row->ourLocation = crm_Locations::getTitleById($ourLocation);
-						$ourLocationAddress = crm_Locations::getAddress($ourLocation);
-						if($ourLocationAddress != ''){
-							$row->ourLocationAddress = $ourLocationAddress;
-						}
-					}
-					
-					$contLocationAddress = crm_Locations::getAddress($rec->deliveryLocationId);
-					if($contLocationAddress != ''){
-						$row->deliveryLocationAddress = $contLocationAddress;
-					}
-					
-					if($gln = crm_Locations::fetchField($rec->deliveryLocationId, 'gln')){
-						$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
-						$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
-					}
 				}
 			}
 			
