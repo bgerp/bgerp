@@ -181,7 +181,7 @@ class tasks_TaskConditions extends tasks_TaskDetails
     		}
     		
     		if($requiredRoles != 'no_one'){
-    			$allowedTasks = $mvc->getAllowedTaskToDepend($rec->taskId);
+    			$allowedTasks = $mvc->getAllowedTaskToDepend($rec->taskId, 1);
     			if(!count($allowedTasks)){
     				$requiredRoles = 'no_one';
     			}
@@ -264,7 +264,7 @@ class tasks_TaskConditions extends tasks_TaskDetails
      * @param int $taskId - подадената задача
      * @return array $taskArray - масив с задачи
      */
-    protected function getAllowedTaskToDepend($taskId)
+    protected function getAllowedTaskToDepend($taskId, $limit = NULL)
     {
     	// Взимаме всички задачи от същата папка които не са приключени или оттеглени
     	$taskFolderId = $this->Master->fetchField($taskId, 'folderId');
@@ -272,7 +272,18 @@ class tasks_TaskConditions extends tasks_TaskDetails
     	if(count($notAllowed)){
     		$notAllowedCond = "#id NOT IN (" . implode(',', $notAllowed) . ") AND";
     	}
-    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('closed', 'rejected') AND #folderId={$taskFolderId}"));
+    	
+    	$taskArray = array();
+    	$tQuery = $this->Master->getQuery();
+    	$tQuery->where("{$notAllowedCond} #state NOT IN ('closed', 'rejected') AND #folderId={$taskFolderId}");
+    	$tQuery->show('title,id');
+    	if(isset($limit)){
+    		$tQuery->limit($limit);
+    	}
+    	
+    	while($tRec = $tQuery->fetch()){
+    		$taskArray[$tRec->id] = "{$this->Master->getHandle($tRec->id)}/{$tRec->title}";
+    	}
     	
     	return $taskArray;
     }
