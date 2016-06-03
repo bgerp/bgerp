@@ -1453,8 +1453,8 @@ class fileman_Files extends core_Master
                 }
 
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
-                $link->prepend("<div>");
-                $link->append("</div>");
+                $link->prepend("<span class='fileHolder'>");
+                $link->append("</span>");
 
             }
         } else {
