@@ -2,23 +2,6 @@ body{
     background-color:#ccc;
 }
 
-#cmsMenu {
-    background-color:#334;
-}
-
-#cmsMenu a {
-    color:#ddd;
-    text-shadow:2px 2px 2px #000;
-}
-
-#cmsMenu a:hover {
-    color:#fff;
-}
-
-#cmsMenu a.selected {
-    color:#fff;
-    background-color:#99f;
-}
 
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
     color: white;
@@ -26,10 +9,6 @@ body{
 
 #all #cmsTop, #cmsTop img {
     background-color:#6C72B1 !important;
-}
-
-#cmsBottom {
-    background-color: #334;
 }
 
 #all {

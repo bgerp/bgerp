@@ -559,29 +559,29 @@ if($step == 2) {
                 }
                      
                 // Ако имаме команда за revert на репозиторито - изпълняваме я
-                if($revert == $repoName) {
+                if ($revert == $repoName) {
                     gitRevertRepo($repoPath, $log);
                 }
                 
                 // Ако имаме команда за обновяване на репозитори - изпълняваме я
-                if($update == $repoName ||  $update == 'all') {
-                    gitPullRepo($repoPath, $log);
+                if ($update == $repoName ||  $update == 'all') {
+                    gitPullRepo($repoPath, $log, $branch);
                 }
                  
                 // Проверяваме за променени файлове в репозитори или за нова версия
-                if(gitHasChanges($repoPath, $log)) {
+                if (gitHasChanges($repoPath, $log)) {
                     $links[] = "wrn|{$selfUrl}&amp;revert={$repoName}|В <b>[{$repoName}]</b> има променени файлове. Възстановете ги »";
                     $changed++;
-                } elseif(gitHasNewVersion($repoPath, $log)) {
+                } elseif (gitHasNewVersion($repoPath, $log, $branch)) {
                     $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
                     $newVer++;
                 }
             }
-            if($newVer > 1 && !$changed) {
+            if ($newVer > 1 && !$changed) {
                 $links[] = "new|$selfUrl&amp;update=all|Обновете едновременно цялата система »";
             }
             
-            if($newVer || $changed) {
+            if ($newVer || $changed) {
                 $links[] = "wrn|{$nextUrl}|Продължете, без да променяте системата »";
             } else {
                 $links[] = "inf|{$nextUrl}|Вие имате последната версия на <b>bgERP</b>, може да продължите »";
@@ -1187,12 +1187,12 @@ function gitSetBranch($repoPath, &$log, $branch = NULL)
 /**
  * Дали има по-нова версия на това репозитори в зададения бранч?
  */
-function gitHasNewVersion($repoPath, &$log)
+function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     $repoName = basename($repoPath);
     
     // Команда за SHA1 на локалния бранч 
-    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse " . BGERP_GIT_BRANCH;
+    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse " . $branch;
 
     if (!gitExec($command, $arrResLocal)) {
         foreach ($arrResLocal as $val) {
@@ -1203,7 +1203,7 @@ function gitHasNewVersion($repoPath, &$log)
     }
   
     // Команда за SHA1 на отдалечения бранч
-    $command = " --git-dir=\"{$repoPath}/.git\" ls-remote origin " . BGERP_GIT_BRANCH;
+    $command = " --git-dir=\"{$repoPath}/.git\" ls-remote origin " . $branch;
 
     if (!gitExec($command, $arrResRemote)) {
         foreach ($arrResRemote as $val) {
@@ -1277,14 +1277,14 @@ function gitHasChanges($repoPath, &$log)
 /**
  * Синхронизира с последната версия на зададения бранч
  */
-function gitPullRepo($repoPath, &$log)
+function gitPullRepo($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     
     $repoName = basename($repoPath);
     
-    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . BGERP_GIT_BRANCH . " 2>&1";
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin " . $branch . " 2>&1";
 
-    $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge FETCH_HEAD"; //origin/" . BGERP_GIT_BRANCH ." 2>&1";
+    $commandMerge = " --git-dir=\"{$repoPath}/.git\" --work-tree=\"{$repoPath}\" merge FETCH_HEAD";
     
     // За по голяма прецизност е добре да се пусне и git fetch
     
@@ -1298,7 +1298,7 @@ function gitPullRepo($repoPath, &$log)
   
     if (!gitExec($commandMerge, $arrResMerge)) {
         foreach ($arrResMerge as $val) {
-            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при merge origin/" . BGERP_GIT_BRANCH .": " . $val):"";
+            $log[] = (!empty($val))?("err: [<b>$repoName</b>] грешка при merge origin/" . $branch.": " . $val):"";
         }
         
         return FALSE;

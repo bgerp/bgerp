@@ -47,6 +47,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	{
 		if($action == 'createproduct'){
 			if(isset($rec)){
+				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+				if($masterRec->state == 'active' || $masterRec->state == 'active'){
+					$requiredRoles = 'no_one';
+					return;
+				}
+				
 				$options = self::getProtoOptions($mvc->filterProtoByMeta, 1);
 				
 				if(isset($rec->cloneId)){
@@ -62,7 +68,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				if($requiredRoles != 'no_one'){
 					if(count($options)){
-						$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+						
 						if(!cat_Products::haveRightFor('add', (object)array('threadId' => $masterRec->threadId))){
 							$requiredRoles = 'no_one';
 						} else {

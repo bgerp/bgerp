@@ -183,7 +183,9 @@ class cond_DeliveryTerms extends core_Master
     public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $document)
     {
     	$adress = '';
-    	if($deliveryCode == 'EXW'){
+    	$isSale = ($document instanceof sales_Sales);
+    	
+    	if(($deliveryCode == 'EXW' && $isSale === TRUE) || ($deliveryCode == 'DDP' && $isSale === FALSE)){
     		if(isset($storeId)){
     			if($locationId = store_Stores::fetchField($storeId, 'locationId')){
     				$adress = crm_Locations::getAddress($locationId);
@@ -194,7 +196,7 @@ class cond_DeliveryTerms extends core_Master
     			$ownCompany = crm_Companies::fetchOurCompany();
     			$adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id)->getContent();
     		}
-    	} elseif($deliveryCode == 'DDP'){
+    	} elseif(($deliveryCode == 'DDP' && $isSale === TRUE) || ($deliveryCode == 'EXW' && $isSale === FALSE)){
     		if(isset($locationId)){
     			$adress = crm_Locations::getAddress($locationId);
     		} else {

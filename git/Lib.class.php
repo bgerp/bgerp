@@ -157,7 +157,7 @@ class git_Lib
         
         $commandFetch = " fetch origin " . $currBranch . " 2>&1";
 
-        $commandMerge = " --work-tree=\"{$repoPath}\" merge FETCH_HEAD 2>&1"; //origin/" . BGERP_GIT_BRANCH ." 2>&1";
+        $commandMerge = " --work-tree=\"{$repoPath}\" merge FETCH_HEAD 2>&1";
         
         // За по голяма прецизност е добре да се пусне и git fetch
         
