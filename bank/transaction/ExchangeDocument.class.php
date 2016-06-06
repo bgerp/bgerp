@@ -37,12 +37,6 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     
-    	if(Mode::get('saveTransaction')){
-    		if(!bank_OwnAccounts::haveRightFor('select', $rec->peroTo)){
-    			acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избраната банкова сметка");
-    		}
-    	}
-    	
     	$cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
     	$dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
     

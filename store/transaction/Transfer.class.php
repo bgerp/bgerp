@@ -28,12 +28,6 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 		// Извличане на мастър-записа
 		expect($rec = $this->class->fetchRec($id));
 	
-		if(Mode::get('saveTransaction')){
-			if(!store_Stores::haveRightFor('select', $rec->fromStore)){
-				acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избрания склад");
-			}
-		}
-		
 		$result = (object)array(
 				'reason'      => "Междускладов трансфер №{$rec->id}",
 				'valior'      => $rec->valior,

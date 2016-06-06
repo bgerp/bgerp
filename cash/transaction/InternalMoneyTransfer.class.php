@@ -41,12 +41,6 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     
-    	if(Mode::get('saveTransaction')){
-    		if(!cash_Cases::haveRightFor('select', $rec->creditCase)){
-    			acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избраната каса");
-    		}
-    	}
-    	
     	($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
     	
     	$entry = array('debit' => array($rec->debitAccId,$debitArr,

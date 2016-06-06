@@ -33,12 +33,6 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     
-    	if(Mode::get('saveTransaction')){
-    		if(!cash_Cases::haveRightFor('select', $rec->peroCase)){
-    			acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избраната каса");
-    		}
-    	}
-    	
     	$origin = $this->class->getOrigin($rec);
     	
     	if($rec->isReverse == 'yes'){
