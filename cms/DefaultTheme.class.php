@@ -118,6 +118,15 @@ class cms_DefaultTheme extends core_ProtoInner {
         $colorObj->hexToRgb($mixColor, $r1, $g1, $b1);
         $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
 
+
+        if($colorMultiplier > 0.9) {
+            if($colorMultiplier <= 1){
+                $colorMultiplier -= 0.2;
+            } else if($colorMultiplier <= 1.1) {
+                $colorMultiplier += 0.2;
+            }
+        }
+
         $colorObj->r = $r * $colorMultiplier;
         $colorObj->g = $g * $colorMultiplier;
         $colorObj->b = $b * $colorMultiplier;
@@ -138,6 +147,9 @@ class cms_DefaultTheme extends core_ProtoInner {
             $fontColor = $baseColor;
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
         }
+
+        $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
+
 
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor} !important;}";
 
