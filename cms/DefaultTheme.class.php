@@ -48,14 +48,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('headerColor', 'color_Type', "caption=Цветове за темата->Цвят на хедъра");
 
         // Фон на менюто 
-        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Базов цвят");
-
-        // Фон на избраното меню
-        $form->FLD('activeColor', 'color_Type', "caption=Цветове за темата->Активен цвят");
-        
-        // Фон на избраното меню
-        $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фон на страницата");
-
+        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Фирмен цвят");
     }
 
 
@@ -93,107 +86,80 @@ class cms_DefaultTheme extends core_ProtoInner {
         if($this->innerForm->headerColor) {
             $css .= "\n    #all #cmsTop {background-color:{$this->innerForm->headerColor} !important;}";
         }
-      
-        // цвят на фона на страницата
-        if ($this->innerForm->bgColor){
-        	$bgcolor = ltrim($this->innerForm->bgColor, "#");
-        	
-        }
-        // за основния цвят
-        if ($this->innerForm->baseColor){
-        	if(phpcolor_Adapter::checkColor($this->innerForm->baseColor)) {
-        		// стилове за светъл цвят
-        		$css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: 0px 0px 1px #fff}";
-        		$css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-        	} else {
-        		// стилове за тъмен цвят
-        		$css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 2px 2px 2px #000}";
-        	}
-        	$color = ltrim($this->innerForm->baseColor, "#");
-        	
-        	$bordercolor = phpcolor_Adapter::changeColor($color,  'mix', 1, '333');
-        	// ако не е зададен фон на страницата го изчисляваме
-        	if(!$bgcolor) {
-        		$tempColor = phpcolor_Adapter::changeColor($color, 'lighten', 40);
-        		$bgcolor = phpcolor_Adapter::changeColor($tempColor, 'mix', 1, '#fff');
-        	}
-        	
-        	// стилове за меню и футър
-        	$css .= "\n    #cmsMenu {background-color:#{$color};}";
-        	$css .= "\n    #cmsBottom {background-color:#{$color}; border-top:1px solid #{$bordercolor} !important;}";
-        	$css .= "\n     #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
-        	
 
-        	// в зависимост дали е светъл или тъмен, изчисляваме по различен начин
-        	if(phpcolor_Adapter::checkColor($this->innerForm->baseColor, 'dark')) {
-        		$formcolor = phpcolor_Adapter::changeColor($color, 'darken', 10);
-        		$formSubcolor = phpcolor_Adapter::changeColor($color, 'lighten', 10);
-        	} else {
-        		$formcolor = phpcolor_Adapter::changeColor($color, 'mix', 1, '666');;
-        		$color = phpcolor_Adapter::changeColor($color, 'darken', 10);
-        		$formSubcolor = phpcolor_Adapter::changeColor($color, 'lighten', 5);
-        	}
-
-        	// цветове на формите в зависимост от основния цвят
-        	$css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$color} !important; border: 1px solid #{$formcolor} !important}";
-        	$css .= "\n    .vertical .formTitle {background-color:#{$color} !important; border-color:#{$bordercolor}}";
-        	$css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
-        	
-        	
-    	}
-
-    	if($bgcolor) {
-            // фон на страницата
-            $css .= "\n    body {background-color:#{$bgcolor};}";
+        if ($this->innerForm->baseColor) {
+            $baseColor = ltrim($this->innerForm->baseColor, "#");
+        } else {
+            $baseColor = "334";
         }
 
-    	// за активния цвят
-    	if ($this->innerForm->activeColor){
+        $bordercolor = phpcolor_Adapter::changeColor($baseColor,  'mix', 10, '666');
 
-            //ако не е зададен основен, а задаваме активен цвят
-            if(!$color) {
-                $color = '#333344';
-            }
- 
-    		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->innerForm->activeColor} !important;}";
-    		
-    		$activeColor = ltrim($this->innerForm->activeColor, "#");
-    		$bordercolor = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
-    		
-    		// изчисления за фон и рамка на линковете
-    		if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
-    			$bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
-    			$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
+        if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
+            $mixColor = "#aaa";
+            $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 1px #000}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
+            $formColor = phpcolor_Adapter::changeColor($baseColor, 'lighten', 20);
+            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'lighten', 20);
 
-                // цвят на буквите от страничното меню
-                $fontcolor = phpcolor_Adapter::changeColor($activeColor, 'darken', 15);
 
-    		} else {
-                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#333 !important; text-shadow: 0px 0px 2px #fff}";
-                $bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
+        } else {
+            $mixColor = "#555";
+            // стилове за тъмен цвят
+            $css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: none}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
 
-                // цвят на буквите от страничното меню
-                $fontcolor = phpcolor_Adapter::changeColor($color, 'darken', 1);
-    		}
-    		
-    		// ако след изчисленията не сме получили цвят за фон, пробваме да го изчислим по друг начин
-    		if ($bgcolorActive == 'ffffff'){
-    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 20);
-                if($bgcolorActive == 'ffffff') {
-                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 70);
-                    if($bgcolorActive == 'ffffff') {
-                    	$bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 30);
-                    }
-                }
-    		}
-    		
-    		// Цвятове за линковете и h2 заглавията
-    		$css .= "\n    #cmsNavigation .nav_item a { color: #{$fontcolor};}";
-    		$css .= "\n    #cmsNavigation .sel_page a {background-color: #{$bgcolorActive}; border: 1px solid #{$bordercolor}; color: #{$fontcolor};}";
-    		$css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontcolor};}";
-    		$css .= "\n    .richtext h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px; border: 1px solid #{$bordercolor};}";
-    	}
- 
+            $formColor = phpcolor_Adapter::changeColor($baseColor, 'darken', 5);
+            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'darken', 5);
+        }
+
+        $colorObj =  cls::get('color_Object');
+        $colorObj->hexToRgb($baseColor, $r, $g, $b);
+
+        $colorObj->hexToRgb($mixColor, $r1, $g1, $b1);
+        $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
+
+        $colorObj->r = $r * $colorMultiplier;
+        $colorObj->g = $g * $colorMultiplier;
+        $colorObj->b = $b * $colorMultiplier;
+
+        $activeColor = $colorObj->getHex("");
+
+        // изчисления за фон и рамка на линковете
+        if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
+            $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit]  {color: #fff !important}";
+
+
+            $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
+            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
+        } else {
+            $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#000 !important; text-shadow: 0px 0px 2px #fff}";
+
+            $fontColor = $baseColor;
+            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
+        }
+
+        $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor} !important;}";
+
+        // стилове за меню и футър
+        $css .= "\n    #cmsMenu {background-color:#{$baseColor};}";
+        $css .= "\n    #cmsBottom {background-color:#{$baseColor}; border-top:1px solid #{$bordercolor} !important;}";
+        $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
+
+        // цветове на формите в зависимост от основния цвят
+        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$activeColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .vertical .formTitle {background-color:#{$activeColor} !important; border-color:#{$bordercolor};}";
+        $css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
+
+        $linkBorder =  phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
+
+        // Цвятове за линковете и h2 заглавията
+        $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
+        $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor} !important;}";
+        $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor}; border:none !important}";
+        $css .= "\n    .richtext h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
+
         if($css) {
             $tpl->append($css, 'STYLES');
         }
