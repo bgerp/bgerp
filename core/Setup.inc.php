@@ -500,18 +500,21 @@ if($step == 2) {
     $log = array();
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
 
+    if(!defined(PRIVATE_GIT_BRANCH)) {
+        define(PRIVATE_GIT_BRANCH, BGERP_GIT_BRANCH);
+    }
+
     if(defined('EF_PRIVATE_PATH')) {
-        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH);
+        $repos = array(EF_PRIVATE_PATH => PRIVATE_GIT_BRANCH, EF_APP_PATH => BGERP_GIT_BRANCH);
     } else {
-        $repos = array(EF_APP_PATH);
+        $repos = array(EF_APP_PATH => PRIVATE_GIT_BRANCH);
     }
     switch ($checkUpdate) {
         // Не се изисква сетъп
         case FALSE :
             $reposLastDate = "<table>";
-            $reposLastDate  .= "<tr><td align='right' >Бранч: </td><td align='left' style='font-weight: bold;'>" . BGERP_GIT_BRANCH . "</td></tr>";
-            foreach($repos as $repoPath) {
-                $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . "</td></tr> ";
+            foreach($repos as $repoPath => $branch) {
+                $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . " (" . gitCurrentBranch($repoPath, $log) . ")</td></tr> ";
             }
             $reposLastDate .= "</table>";             
             // Показваме бутони за ъпдейтване и информация за състоянието
@@ -546,12 +549,12 @@ if($step == 2) {
             $newVer = 0;
             $changed = 0;
     
-            foreach($repos as $repoPath) {
+            foreach($repos as $repoPath => $branch) {
                 
                 $repoName = basename($repoPath);
                 
                 // Превключваме репозиторито в зададения в конфигурацията бранч
-                if (!gitSetBranch($repoPath, $log)) {
+                if (!gitSetBranch($repoPath, $log, $branch)) {
                     continue;
                 }
                      
@@ -1133,20 +1136,18 @@ function gitCurrentBranch($repoPath, &$log)
 /**
  * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
  */
-function gitSetBranch($repoPath, &$log, $branch=NULL)
+function gitSetBranch($repoPath, &$log, $branch = NULL)
 {
 
     $repoName = basename($repoPath);
 
     $currentBranch = gitCurrentBranch($repoPath, $log);
 
-    if (isset($branch)) {
+    if(isset($branch)) {
         if ($currentBranch == $branch) {
             return TRUE;
         }
         $requiredBranch = $branch;
-    } elseif ($currentBranch == BGERP_GIT_BRANCH) {
-        return TRUE;
     } else {
         $requiredBranch = BGERP_GIT_BRANCH;
     }
