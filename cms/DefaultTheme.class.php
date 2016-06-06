@@ -112,10 +112,11 @@ class cms_DefaultTheme extends core_ProtoInner {
             $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'darken', 5);
         }
 
-        $colorObj =  cls::get('color_Object');
-        $colorObj->hexToRgb($baseColor, $r, $g, $b);
-
-        $colorObj->hexToRgb($mixColor, $r1, $g1, $b1);
+        $colorObj =  new color_Object($baseColor);
+        list($r, $g, $b) = array($colorObj->r, $colorObj->g, $colorObj->b);
+        
+        $colorObj =  new color_Object($mixColor);
+        list($r1, $g1, $b1) = array($colorObj->r, $colorObj->g, $colorObj->b);
 
         if($r + $g + $b) {
             $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
