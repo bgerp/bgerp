@@ -116,22 +116,26 @@ class cms_DefaultTheme extends core_ProtoInner {
         $colorObj->hexToRgb($baseColor, $r, $g, $b);
 
         $colorObj->hexToRgb($mixColor, $r1, $g1, $b1);
-        $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
 
+        if($r + $g + $b) {
+            $colorMultiplier = sqrt(($r1*$r1 + $g1*$g1 + $b1*$b1)/($r*$r + $g*$g + $b*$b));
 
-        if($colorMultiplier > 0.9) {
-            if($colorMultiplier <= 1){
-                $colorMultiplier -= 0.2;
-            } else if($colorMultiplier <= 1.1) {
-                $colorMultiplier += 0.2;
+            if($colorMultiplier > 0.9) {
+                if($colorMultiplier <= 1){
+                    $colorMultiplier -= 0.2;
+                } else if($colorMultiplier <= 1.1) {
+                    $colorMultiplier += 0.2;
+                }
             }
+
+            $colorObj->r = $r * $colorMultiplier;
+            $colorObj->g = $g * $colorMultiplier;
+            $colorObj->b = $b * $colorMultiplier;
+
+            $activeColor = $colorObj->getHex("");
+        } else {
+            $activeColor = "333";
         }
-
-        $colorObj->r = $r * $colorMultiplier;
-        $colorObj->g = $g * $colorMultiplier;
-        $colorObj->b = $b * $colorMultiplier;
-
-        $activeColor = $colorObj->getHex("");
 
         // изчисления за фон и рамка на линковете
         if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
