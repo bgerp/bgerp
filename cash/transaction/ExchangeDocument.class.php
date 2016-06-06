@@ -37,6 +37,12 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     
+    	if(Mode::get('saveTransaction')){
+    		if(!cash_Cases::haveRightFor('select', $rec->peroFrom)){
+    			acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избраната каса");
+    		}
+    	}
+    	
     	$entry = array('debit' => array('501',
 					    			array('cash_Cases', $rec->peroTo),
 					    			array('currency_Currencies', $rec->debitCurrency),

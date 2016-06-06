@@ -52,6 +52,12 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         
         $rec = $this->fetchShipmentData($id);
             
+        if(Mode::get('saveTransaction')){
+        	if(!store_Stores::haveRightFor('select', $rec->storeId)){
+        		acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избрания склад");
+        	}
+        }
+        
         $origin = $this->class->getOrigin($rec);
         
         // Всяко ЕН трябва да има поне един детайл

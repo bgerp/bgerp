@@ -33,6 +33,12 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         
+        if(Mode::get('saveTransaction')){
+        	if(!bank_OwnAccounts::haveRightFor('select', $rec->ownAccount)){
+        		acc_journal_RejectRedirect::expect(FALSE, "Липсват права за достъп до избраната банкова сметка");
+        	}
+        }
+        
         $origin = $this->class->getOrigin($rec);
         
         if($rec->isReverse == 'yes'){
