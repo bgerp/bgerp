@@ -102,31 +102,6 @@ class cms_DefaultTheme extends core_ProtoInner {
             $formColor = phpcolor_Adapter::changeColor($baseColor, 'lighten', 20);
             $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'lighten', 20);
 
-
-        } else {
-            $mixColor = "#555";
-            // стилове за тъмен цвят
-            $css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: none}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-
-            $formColor = phpcolor_Adapter::changeColor($baseColor, 'darken', 5);
-            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'darken', 5);
-
-        if ($this->innerForm->baseColor) {
-            $baseColor = ltrim($this->innerForm->baseColor, "#");
-        } else {
-            $baseColor = "334";
-        }
-
-        $bordercolor = phpcolor_Adapter::changeColor($baseColor,  'mix', 10, '666');
-
-        if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
-            $mixColor = "#aaa";
-            $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 1px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-            $formColor = phpcolor_Adapter::changeColor($baseColor, 'lighten', 20);
-            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'lighten', 20);
-
         } else {
             $mixColor = "#555";
             // стилове за тъмен цвят
