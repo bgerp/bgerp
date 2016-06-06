@@ -2117,6 +2117,34 @@ function addLinkOnCopy(text, symbolCount) {
 
 
 /**
+ * Подготовка за контекстно меню по ajax
+ */
+function getContextMenuFromAjax() {
+    prepareContextHtmlFromAjax();
+    $(document.body).on('click', ".transparent.more-btn", function (e) {
+        var url = $(this).attr("data-url");
+        if(!url) return;
+
+        resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+    });
+}
+
+function prepareContextHtmlFromAjax() {
+    $( ".transparent.more-btn").parent().css('position', 'relative');
+    $( ".transparent.more-btn").each(function(){
+        var holder = document.createElement('div');
+        $(holder).addClass('modal-toolbar');
+        $(holder).attr('id', $(this).attr("data-id"));
+        $(holder).attr('data-sizestyle', 'context');
+
+        $(this).parent().append(holder);
+    });
+
+    prepareContextMenu();
+}
+/**
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
 function editCopiedTextBeforePaste() {

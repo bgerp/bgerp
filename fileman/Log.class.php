@@ -488,17 +488,14 @@ class fileman_Log extends core_Manager
             
             // Обхождаме масива
             foreach ((array)($data->recs) as $id => $rec) {
-                
-                // Вземаме манипулатора на файла
-                $fh = fileman::idToFh($rec->fileId);
-                
+            	
                 // Вземаме линка към сингъла на файла
-                $data->rows[$id]->fileId = fileman::getLinkToSingle($fh);
+                $data->rows[$id]->fileId = fileman_Files::getLinkById($rec->fileId);
             }
         }
     }
-    
-    
+
+
     /**
      * Връща иконата за подадения файл
      * 

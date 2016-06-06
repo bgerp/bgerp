@@ -1227,7 +1227,7 @@ class fileman_Files extends core_Master
             }
         }
     }
-    
+
     
     /**
      * 
@@ -1330,7 +1330,7 @@ class fileman_Files extends core_Master
         
         fileman::updateLastUse($fRec);
         
-        //Проверяваме дали сме отркили записа
+        //Проверяваме дали сме открили записа
         if(!$fRec) {
             
             sleep(2);
@@ -1436,7 +1436,26 @@ class fileman_Files extends core_Master
                 
                 $attr['rel'] = 'nofollow';
                 
+                $link = new core_ET($link);
+
+                if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')){
+                    if(static::haveRightFor('single', $fRec)){
+                    	$attr['class'] .= " more-btn transparent";
+                    	$attr['name'] = 'context-holder';
+                    	ht::setUniqId($attr);
+                    	$replaceId = $attr['id'];
+                    	unset($attr['name'], $attr['id']);
+                    	
+                    	$dataUrl =  toUrl(array('fileman_Files', 'getContextMenu', $fRec->id, 'replaceId' => $replaceId), 'local');
+                        $attr['data-id'] = $replaceId;
+                        $attr['data-url'] = $dataUrl;
+                    }
+                }
+
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
+                $link->prepend("<span class='fileHolder'>");
+                $link->append("</span>");
+
             }
         } else {
             
@@ -1451,6 +1470,7 @@ class fileman_Files extends core_Master
                 if(!file_exists($path)) {
     				$attr['style'] .= ' color:red;';
     			}
+    			
                 //Генерираме името с иконата
                 $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
             }
@@ -1507,5 +1527,71 @@ class fileman_Files extends core_Master
         $fh = static::fetchField($id, 'fileHnd');
         
         return static::getLink($fh);
+    }
+    
+    
+    /**
+     * Екшън връщащ бутоните за контектстното меню
+     */
+    function act_getContextMenu()
+    {
+    	$this->requireRightFor('single');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = static::fetch($id));
+    	expect($replaceId = Request::get('replaceId', 'varchar'));
+    	$this->requireRightFor('single', $rec);
+    	
+    	$fh = fileman::idToFh($rec->id);
+    
+    	$fRec = fileman_Files::fetchByFh($fh);
+    	
+    	//Разширението на файла
+    	$ext = fileman_Files::getExt($fRec->name);
+    
+    	//Иконата на файла, в зависимост от разширението на файла
+    	$icon = "fileman/icons/{$ext}.png";
+    
+    	//Ако не можем да намерим икона за съответното разширение
+    	if (!is_file(getFullPath($icon))) {
+    		// Използваме иконата по подразбиране
+    		$icon = "fileman/icons/default.png";
+    	}
+    
+    	// Вземаме линка към сингъла на файла таб преглед
+    	$urlPreview = array('fileman_Files', 'single', $fh);
+    	$urlPreview['currentTab'] = 'preview';
+    	$urlPreview['#'] = 'fileDetail';
+    
+    	$tpl = new core_ET();
+    	$preview = ht::createBtn('Преглед', $urlPreview, NULL, NULL,  array('ef_icon' => $icon));
+    	$tpl->append($preview);
+    
+    	// Вземаме линка към сингъла на файла таб информация
+    	$url = array('fileman_Files', 'single', $fh);
+    	$url['currentTab'] = 'info';
+    	$url['#'] = 'fileDetail';
+    	$infoBtn = ht::createBtn('Информация', $url, NULL, NULL,  array('ef_icon' => 'img/16/info-16.png'));
+    	$tpl->append($infoBtn);
+    
+    
+    	$linkBtn = ht::createBtn('Линк', array('F', 'GetLink', 'fileHnd' =>$fh, 'ret_url' => TRUE), NULL, NULL, array('ef_icon' => 'img/16/link.png', 'title'=> tr('Генериране на линк за сваляне')));
+    	$tpl->append($linkBtn);
+    
+    	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
+    	$download  =  ht::createBtn('Сваляне', $downloadUrl, NULL, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png'));
+    	$tpl->append($download);
+    
+    	// Ако сме в AJAX режим
+    	if(Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => $replaceId, 'html' => $tpl->getContent(), 'replace' => TRUE);
+    
+    		$res = array_merge(array($resObj));
+    
+    		return $res;
+    	} else {
+    		return $tpl;
+    	}
     }
 }
