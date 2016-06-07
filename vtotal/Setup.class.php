@@ -46,8 +46,8 @@ class vtotal_Setup extends core_ProtoSetup
      */
     var $cronSettings = array(
         array(
-            'systemId' => "CheckFiles",
-            'description' => "Прошерка на файлошете с virustotal",
+            'systemId' => "MoveFilesFromFilemanLog",
+            'description' => "Преместване на съмнителните файлове в vtotal_Checks",
             'controller' => "vtotal_Checks",
             'action' => "MoveFilesFromFilemanLog",
             'period' => 1,
@@ -59,7 +59,7 @@ class vtotal_Setup extends core_ProtoSetup
             'description' => "Прошерка на файлошете с virustotal",
             'controller' => "vtotal_Checks",
             'action' => "VTCheck",
-            'period' => 1,
+            'period' => 1.2,
             'timeLimit' => 200
         ),
     );
