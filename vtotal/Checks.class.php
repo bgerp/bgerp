@@ -131,7 +131,7 @@ class vtotal_Checks extends core_Master
         $query->limit(4);
 
 
-        $array = [];
+        $array = array();
         while($rec = $query->fetch())
         {
 
