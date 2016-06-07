@@ -2333,7 +2333,6 @@ span.sharing-history-title {
 
 #cmsNavigation div.nav_item {
   padding: 1px;
-  border: 1px solid transparent;
   line-height: normal;
   font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
   display: block;
@@ -2346,6 +2345,7 @@ span.sharing-history-title {
   -ms-border-radius: 3px;
   border-radius: 3px;
   padding: 1px 4px;
+  border: 1px solid transparent;
   display: inline-block; }
 
   #cmsNavigation.articles-menu .nav_item a,
@@ -2402,6 +2402,44 @@ span.sharing-history-title {
   border: solid 1px #aaaaaa;
   clear: both;
   margin-bottom: 5px; }
+
+#simpleSearch {
+  width: 11em;
+  max-width: 100%;
+  border: solid 1px #cccccc;
+  display: block;
+  position: relative;
+  height: 1.5em; }
+
+.narrow #simpleSearch {
+  height: 1.3em; }
+
+#simpleSearch input {
+  top: 0.1em;
+  position: absolute;
+  display: inline-block;
+  border: none;
+  outline: none;
+  height: 1.2em;
+  font-size: 0.95em;
+  width: 90%;
+  padding: 0px;
+  padding-left: 0.2em; }
+
+#simpleSearch button {
+  width: 10%;
+  margin-right: 0px;
+  padding: 0;
+  height: 1.8em;
+  right: 0px;
+  position: absolute;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  display: inline-block; }
+
+.narrow #simpleSearch button {
+  margin-right: 3px; }
 
 .cms-row h1 {
   margin-top: 0;
