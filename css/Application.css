@@ -2333,7 +2333,6 @@ span.sharing-history-title {
 
 #cmsNavigation div.nav_item {
   padding: 1px;
-  border: 1px solid transparent;
   line-height: normal;
   font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
   display: block;
@@ -2346,6 +2345,7 @@ span.sharing-history-title {
   -ms-border-radius: 3px;
   border-radius: 3px;
   padding: 1px 4px;
+  border: 1px solid transparent;
   display: inline-block; }
 
   #cmsNavigation.articles-menu .nav_item a,

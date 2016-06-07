@@ -2667,7 +2667,6 @@ fieldset.sharing-history {
 
 #cmsNavigation div.nav_item {
 	padding: 1px;
-	border: 1px solid transparent;
 	line-height: normal;
 	font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
 	display: block; 
@@ -2677,7 +2676,8 @@ fieldset.sharing-history {
 
 #cmsNavigation a {
 	@include border-radius(3px);
-	padding: 1px 4px; 
+	padding: 1px 4px;
+	border: 1px solid transparent;
 	display: inline-block;
 }
 
