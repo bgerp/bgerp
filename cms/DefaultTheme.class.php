@@ -62,7 +62,7 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     
     public function prepareWrapper($tpl)
-    {   
+    {
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         
@@ -97,19 +97,13 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
             $mixColor = "#aaa";
-            $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 1px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-            $formColor = phpcolor_Adapter::changeColor($baseColor, 'lighten', 20);
-            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'lighten', 20);
-
+            $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#fff !important;}";
         } else {
-            $mixColor = "#555";
+            $mixColor = "#666";
             // стилове за тъмен цвят
             $css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: none}";
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
-
-            $formColor = phpcolor_Adapter::changeColor($baseColor, 'darken', 5);
-            $formSubcolor = phpcolor_Adapter::changeColor($formColor, 'darken', 5);
         }
 
         $colorObj =  new color_Object($baseColor);
@@ -140,17 +134,11 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         // изчисления за фон и рамка на линковете
         if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
-            $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit]  {color: #fff !important}";
-
-
             $fontColor = phpcolor_Adapter::changeColor($activeColor, 'darken', 25);
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
         } else {
-            $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#000 !important; text-shadow: 0px 0px 2px #fff}";
-
             $fontColor = $baseColor;
-            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
+            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 25);
         }
 
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:#{$activeColor} !important;}";
@@ -161,9 +149,8 @@ class cms_DefaultTheme extends core_ProtoInner {
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
-        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$activeColor} !important; border: 1px solid #{$bordercolor} !important}";
-        $css .= "\n    .vertical .formTitle {background-color:#{$activeColor} !important; border-color:#{$bordercolor};}";
-        $css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
+        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .vertical .formTitle, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder =  phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
 
