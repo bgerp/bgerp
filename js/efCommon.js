@@ -2121,13 +2121,19 @@ function addLinkOnCopy(text, symbolCount) {
  */
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
-    $(document.body).on('click', ".transparent.more-btn", function (e) {
-        var url = $(this).attr("data-url");
-        if(!url) return;
 
-        resObj = new Object();
-        resObj['url'] = url;
-        getEfae().process(resObj);
+    $(document.body).on('click', ".transparent.more-btn", function (e) {
+        if(e.offsetX > 22) {
+            $(this).contextMenu('close');
+            window.location.href = $(this).attr('href');
+        } else {
+            var url = $(this).attr("data-url");
+            if(!url) return;
+
+            resObj = new Object();
+            resObj['url'] = url;
+            getEfae().process(resObj);
+        }
     });
 }
 
