@@ -56,7 +56,7 @@ class vtotal_Setup extends core_ProtoSetup
 
         array(
             'systemId' => "VTCheck",
-            'description' => "Проверка на файлошете с virustotal",
+            'description' => "Проверка на файловете с virustotal",
             'controller' => "vtotal_Checks",
             'action' => "VTCheck",
             'period' => 1.2,
