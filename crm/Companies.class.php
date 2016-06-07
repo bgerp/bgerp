@@ -816,7 +816,7 @@ class crm_Companies extends core_Master
     protected static function setCompanyLogo($companyConstName)
     {
         $baseColor = 'yellow';
-        $activColor = 'green';
+        $activeColor = '#ccc';
         
         $dRec = cms_Domains::getPublicDomain('form');
         
@@ -824,12 +824,8 @@ class crm_Companies extends core_Master
             if ($dRec->baseColor) {
                 $baseColor = $dRec->baseColor;
             }
-            
-            if ($dRec->activeColor) {
-                $activColor = $dRec->activeColor;
-            }
         }
-        
+
         $tpl = getTplFromFile('bgerp/tpl/svg.svg');
         $cRec = crm_Companies::fetchOwnCompany();
         $tpl->append(transliterate(tr($cRec->company)), 'myCompanyName');
@@ -863,7 +859,7 @@ class crm_Companies extends core_Master
         $tpl->append($cRec->fax, 'fax');
         $tpl->append($cRec->website, 'site');
         $tpl->append($baseColor, 'baseColor');
-        $tpl->append($activColor, 'activColor');
+        $tpl->append($activeColor, 'activeColor');
     
         $content = $tpl->getContent();
         
