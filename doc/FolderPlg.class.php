@@ -787,12 +787,6 @@ class doc_FolderPlg extends core_Plugin
                 $currUserNick = core_Users::getCurrent('nick');
                 $currUserNick = type_Nick::normalize($currUserNick);
                 
-        		if(doc_Folders::haveRightToObject($rec) && ($mvc instanceof core_Master)) {
-        			$url = array($mvc, 'single', $rec->id);
-        		} else {
-        			$url = array($mvc, 'list');
-        		}
-                
         		$folderTitle = $mvc->getFolderTitle($rec->id);
         		
         		$notifyArr = $sArr['add'];
@@ -805,7 +799,31 @@ class doc_FolderPlg extends core_Plugin
         		
                 if ($notifyArr) {
                     foreach ($notifyArr as $notifyUserId) {
-                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                        
+                        if (!$notifyUserId) continue;
+                        
+                        $url = array();
+                        $msg = '';
+                        
+                        if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+                             
+                            if(doc_Folders::haveRightFor('single', $rec->folderId, $notifyUserId)){
+                                $url = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+                            }
+                            
+                            $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                        }
+                        
+                        if (empty($url)) {
+                            if (($mvc instanceof core_Master) && $mvc->haveRightFor('single', $rec, $notifyUserId)) {
+                                $url = array($mvc, 'single', $rec->id);
+                                $msg = $currUserNick . ' |сподели|* "|' . $mvc->singleTitle . '|*"';
+                            } else {
+                                $url = array($mvc, 'list');
+                                $msg = $currUserNick . ' |сподели|* "|' . $mvc->title . '|*"';
+                            }
+                        }
+                        
                         bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
                     }
                 } else if ($delNotifyArr) {
