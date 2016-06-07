@@ -138,7 +138,7 @@ class cms_DefaultTheme extends core_ProtoInner {
             $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
         } else {
             $fontColor = $baseColor;
-            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 25);
+            $bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 20);
         }
 
         $colorObj =  new color_Object($bgcolorActive);
